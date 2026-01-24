@@ -12,9 +12,20 @@ const HotelCard = ({ hotel, viewMode = 'grid3' }) => {
                     alt={hotel.imageAlt}
                     src={hotel.image}
                 />
-                {hotel.featured && (
-                    <div className="absolute top-4 left-4 bg-[#137fec] text-white text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-lg">FEATURED</div>
-                )}
+                <div className="absolute top-4 left-4 flex flex-col gap-2">
+                    {hotel.badges?.map((badge, idx) => (
+                        <div
+                            key={idx}
+                            className={`${badge.color} text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-500`}
+                        >
+                            {badge.type === 'opportunity' && <span className="material-symbols-outlined text-xs fill-1">local_fire_department</span>}
+                            {badge.type === 'discount' && <span className="material-symbols-outlined text-xs fill-1">sell</span>}
+                            {badge.type === 'popular' && <span className="material-symbols-outlined text-xs fill-1">trending_up</span>}
+                            {badge.type === 'exclusive' && <span className="material-symbols-outlined text-xs fill-1">workspace_premium</span>}
+                            {badge.label}
+                        </div>
+                    ))}
+                </div>
                 <button className="absolute top-4 right-4 size-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-slate-900 shadow-md hover:text-red-500 transition-all">
                     <span className="material-symbols-outlined text-xl">favorite</span>
                 </button>

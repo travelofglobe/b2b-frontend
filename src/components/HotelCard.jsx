@@ -3,30 +3,92 @@ import { Link } from 'react-router-dom';
 
 const HotelCard = ({ hotel, viewMode = 'grid3' }) => {
     const isList = viewMode === 'list';
+    const [currentImg, setCurrentImg] = React.useState(0);
+    const images = hotel.images || [hotel.image];
+
+    const nextImg = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setCurrentImg((prev) => (prev + 1) % images.length);
+    };
+
+    const prevImg = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setCurrentImg((prev) => (prev - 1 + images.length) % images.length);
+    };
+
+    const handleFavorite = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // favorite logic here
+    };
 
     return (
-        <div className={`group bg-white dark:bg-[#111a22] rounded-2xl overflow-hidden border border-slate-200 dark:border-[#233648] shadow-sm hover:shadow-xl transition-all duration-300 flex ${isList ? 'flex-col md:flex-row' : 'flex-col'}`}>
+        <Link
+            to={`/hotel/${hotel.id}`}
+            className={`group bg-white dark:bg-[#111a22] rounded-2xl overflow-hidden border border-slate-200 dark:border-[#233648] shadow-sm hover:shadow-xl transition-all duration-300 flex ${isList ? 'flex-col md:flex-row' : 'flex-col'}`}
+        >
             <div className={`relative overflow-hidden ${isList ? 'h-64 md:h-auto md:w-[400px] shrink-0' : 'h-60'}`}>
-                <img
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    alt={hotel.imageAlt}
-                    src={hotel.image}
-                />
-                <div className="absolute top-4 left-4 flex flex-col gap-2">
+                {/* Image Slider */}
+                <div className="w-full h-full relative">
+                    {images.map((img, idx) => (
+                        <img
+                            key={idx}
+                            src={img}
+                            alt={`${hotel.name} ${idx + 1}`}
+                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === currentImg ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
+                        />
+                    ))}
+
+                    {/* Navigation Arrows */}
+                    {images.length > 1 && (
+                        <>
+                            <button
+                                onClick={prevImg}
+                                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 size-8 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all border border-white/30"
+                            >
+                                <span className="material-symbols-outlined text-lg">chevron_left</span>
+                            </button>
+                            <button
+                                onClick={nextImg}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 size-8 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all border border-white/30"
+                            >
+                                <span className="material-symbols-outlined text-lg">chevron_right</span>
+                            </button>
+
+                            {/* Dots Indicators */}
+                            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex gap-1.5 px-2 py-1 rounded-full bg-black/10 backdrop-blur-sm border border-white/10">
+                                {images.map((_, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`size-1.5 rounded-full transition-all duration-300 ${idx === currentImg ? 'bg-white w-3' : 'bg-white/40 hover:bg-white/60'}`}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
+
+                <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
                     {hotel.badges?.map((badge, idx) => (
                         <div
                             key={idx}
-                            className={`${badge.color} text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg shadow-lg flex items-center gap-1 animate-in fade-in slide-in-from-left-2 duration-500`}
+                            className={`${badge.color} text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-lg flex items-center gap-1.5 animate-in fade-in slide-in-from-left-4 duration-700 backdrop-blur-sm border border-white/10`}
                         >
+                            {badge.type === 'featured' && <span className="material-symbols-outlined text-xs fill-1">workspace_premium</span>}
                             {badge.type === 'opportunity' && <span className="material-symbols-outlined text-xs fill-1">local_fire_department</span>}
                             {badge.type === 'discount' && <span className="material-symbols-outlined text-xs fill-1">sell</span>}
                             {badge.type === 'popular' && <span className="material-symbols-outlined text-xs fill-1">trending_up</span>}
-                            {badge.type === 'exclusive' && <span className="material-symbols-outlined text-xs fill-1">workspace_premium</span>}
+                            {badge.type === 'exclusive' && <span className="material-symbols-outlined text-xs fill-1">verified</span>}
                             {badge.label}
                         </div>
                     ))}
                 </div>
-                <button className="absolute top-4 right-4 size-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-slate-900 shadow-md hover:text-red-500 transition-all">
+                <button
+                    onClick={handleFavorite}
+                    className="absolute top-4 right-4 z-10 size-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-slate-900 shadow-md hover:text-red-500 transition-all"
+                >
                     <span className="material-symbols-outlined text-xl">favorite</span>
                 </button>
             </div>
@@ -72,15 +134,14 @@ const HotelCard = ({ hotel, viewMode = 'grid3' }) => {
                             </div>
                         </div>
                     </div>
-                    <Link
-                        to={`/hotel/${hotel.id}`}
+                    <div
                         className={`bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-primary/20 active:scale-95 flex items-center justify-center whitespace-nowrap ${isList ? 'text-sm py-3 px-8' : 'text-xs py-2.5 px-4'}`}
                     >
                         View Details
-                    </Link>
+                    </div>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 };
 

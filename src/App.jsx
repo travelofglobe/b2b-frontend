@@ -21,7 +21,7 @@ function App() {
             <Route path="/map" element={<ProtectedRoute><MapView /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             {/* Redirect root to hotels (ProtectedRoute will handle auth check) */}
-            <Route path="/" element={<Navigate to="/hotels" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </div>
       </AuthProvider>

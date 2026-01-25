@@ -1,15 +1,51 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { mockHotels } from '../data/mockHotels';
 
+const BookingConfirmationModal = ({ isOpen, onClose, hotelName }) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose}></div>
+            <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[40px] p-10 shadow-2xl animate-in fade-in zoom-in duration-300 text-center border border-white/20 overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary via-purple-500 to-primary"></div>
+                <div className="size-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-500 ring-8 ring-emerald-50/50 dark:ring-emerald-900/10">
+                    <span className="material-symbols-outlined text-5xl animate-bounce-slow">check_circle</span>
+                </div>
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-3 tracking-tight">Booking Confirmed!</h2>
+                <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">
+                    Great choice! Your reservation at <br /> <span className="text-slate-900 dark:text-white font-black">{hotelName}</span> <br /> has been successfully secured.
+                </p>
+
+                <div className="flex flex-col gap-3">
+                    <button
+                        onClick={onClose}
+                        className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-primary/90 transition-all shadow-xl shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                        Download Voucher
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="w-full py-4 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const HotelDetail = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const hotel = mockHotels.find(h => h.id === parseInt(id)) || mockHotels[0];
     const images = hotel.images || [hotel.image];
     const [activeTab, setActiveTab] = React.useState('Rooms & Rates');
+    const [isBookingModalOpen, setIsBookingModalOpen] = React.useState(false);
 
     const tabs = ['Rooms & Rates', 'Overview', 'Amenities', 'Policies', 'Reviews'];
 
@@ -43,7 +79,11 @@ const HotelDetail = () => {
                         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                             <span className="material-symbols-outlined text-sm text-primary">location_on</span>
                             <span className="font-semibold text-sm">{hotel.location}</span>
-                            <button className="text-primary text-sm font-bold hover:underline ml-2">Show on Map</button>
+                            <button
+                                onClick={() => navigate(`/map?hotelId=${hotel.id}`)}
+                                className="text-primary text-sm font-bold hover:underline ml-2">
+                                Show on Map
+                            </button>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -296,7 +336,9 @@ const HotelDetail = () => {
                                 </div>
                             </div>
 
-                            <button className="w-full bg-primary hover:bg-primary/90 text-white font-black py-5 rounded-[20px] transition-all shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 active:scale-[0.98] mb-4 group/btn">
+                            <button
+                                onClick={() => setIsBookingModalOpen(true)}
+                                className="w-full bg-primary hover:bg-primary/90 text-white font-black py-5 rounded-[20px] transition-all shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 active:scale-[0.98] mb-4 group/btn">
                                 Instant Reservation
                                 <span className="material-symbols-outlined text-[20px] group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
                             </button>
@@ -319,6 +361,11 @@ const HotelDetail = () => {
             </main>
 
             <Footer />
+            <BookingConfirmationModal
+                isOpen={isBookingModalOpen}
+                onClose={() => setIsBookingModalOpen(false)}
+                hotelName={hotel.name}
+            />
         </div>
     );
 };

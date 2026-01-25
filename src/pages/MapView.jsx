@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import { mockHotels } from '../data/mockHotels';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
@@ -64,7 +65,22 @@ const MapController = ({ selectedHotel }) => {
 };
 
 // Glass Filter Modal Component
-const FilterModal = ({ isOpen, onClose }) => {
+const FilterModal = ({ isOpen, onClose, currentFilters, onApply }) => {
+    const [localFilters, setLocalFilters] = useState(currentFilters);
+
+    useEffect(() => {
+        if (isOpen) setLocalFilters(currentFilters);
+    }, [isOpen, currentFilters]);
+
+    const handleTypeToggle = (type) => {
+        setLocalFilters(prev => {
+            const types = prev.types.includes(type)
+                ? prev.types.filter(t => t !== type)
+                : [...prev.types, type];
+            return { ...prev, types };
+        });
+    };
+
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
@@ -86,9 +102,14 @@ const FilterModal = ({ isOpen, onClose }) => {
                             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 px-1">Property Type</h3>
                             <div className="grid grid-cols-2 gap-3">
                                 {['Hotels', 'Resorts', 'Villas', 'Boutique', 'Apartments', 'Hostels'].map((type) => (
-                                    <label key={type} className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 cursor-pointer hover:border-primary transition-all group">
-                                        <input type="checkbox" className="size-5 rounded-lg border-slate-300 dark:border-slate-600 text-primary focus:ring-primary focus:ring-offset-0 bg-transparent" />
-                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors">{type}</span>
+                                    <label key={type} className={`flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border ${localFilters.types.includes(type) ? 'border-primary bg-primary/5' : 'border-slate-100 dark:border-slate-700'} cursor-pointer hover:border-primary transition-all group`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={localFilters.types.includes(type)}
+                                            onChange={() => handleTypeToggle(type)}
+                                            className="size-5 rounded-lg border-slate-300 dark:border-slate-600 text-primary focus:ring-primary focus:ring-offset-0 bg-transparent"
+                                        />
+                                        <span className={`text-sm font-bold ${localFilters.types.includes(type) ? 'text-primary' : 'text-slate-700 dark:text-slate-200'} group-hover:text-primary transition-colors`}>{type}</span>
                                     </label>
                                 ))}
                             </div>
@@ -99,20 +120,34 @@ const FilterModal = ({ isOpen, onClose }) => {
                             <div className="flex items-center gap-4">
                                 <div className="flex-1 space-y-2">
                                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Min</label>
-                                    <input type="number" defaultValue={100} className="w-full bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white focus:ring-primary focus:border-primary" />
+                                    <input
+                                        type="number"
+                                        value={localFilters.priceRange[0]}
+                                        onChange={(e) => setLocalFilters(prev => ({ ...prev, priceRange: [parseInt(e.target.value) || 0, prev.priceRange[1]] }))}
+                                        className="w-full bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
+                                    />
                                 </div>
                                 <div className="size-px h-10 bg-slate-200 dark:bg-slate-700 mt-6"></div>
                                 <div className="flex-1 space-y-2">
                                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Max</label>
-                                    <input type="number" defaultValue={1200} className="w-full bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white focus:ring-primary focus:border-primary" />
+                                    <input
+                                        type="number"
+                                        value={localFilters.priceRange[1]}
+                                        onChange={(e) => setLocalFilters(prev => ({ ...prev, priceRange: [prev.priceRange[0], parseInt(e.target.value) || 0] }))}
+                                        className="w-full bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
+                                    />
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div className="mt-10 flex gap-4">
-                        <button className="flex-1 py-4 rounded-2xl border border-slate-200 dark:border-slate-700 font-black uppercase text-xs tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">Clear All</button>
-                        <button onClick={onClose} className="flex-[2] py-4 rounded-2xl bg-primary text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Apply Results</button>
+                        <button
+                            onClick={() => setLocalFilters({ types: [], priceRange: [0, 2000] })}
+                            className="flex-1 py-4 rounded-2xl border border-slate-200 dark:border-slate-700 font-black uppercase text-xs tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">Clear All</button>
+                        <button
+                            onClick={() => { onApply(localFilters); onClose(); }}
+                            className="flex-[2] py-4 rounded-2xl bg-primary text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Apply Results</button>
                     </div>
                 </div>
             </div>
@@ -121,10 +156,27 @@ const FilterModal = ({ isOpen, onClose }) => {
 };
 
 const MapView = () => {
+    const [searchParams] = useSearchParams();
     const [hoveredHotel, setHoveredHotel] = useState(null);
-    const [selectedHotel, setSelectedHotel] = useState(mockHotels[0]);
+    const [selectedHotel, setSelectedHotel] = useState(() => {
+        const queryId = searchParams.get('hotelId');
+        if (queryId) {
+            return mockHotels.find(h => h.id === parseInt(queryId)) || mockHotels[0];
+        }
+        return mockHotels[0];
+    });
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [filters, setFilters] = useState({
+        types: [],
+        priceRange: [0, 2000]
+    });
+
+    const filteredHotels = mockHotels.filter(hotel => {
+        const matchesType = filters.types.length === 0 || filters.types.includes(hotel.type);
+        const matchesPrice = hotel.price >= filters.priceRange[0] && hotel.price <= filters.priceRange[1];
+        return matchesType && matchesPrice;
+    });
 
     const handleHotelSelect = (hotel) => {
         setSelectedHotel(hotel);
@@ -148,7 +200,7 @@ const MapView = () => {
                             <div className="flex items-center justify-between mb-1">
                                 <div>
                                     <h1 className="font-black text-2xl tracking-tighter text-slate-900 dark:text-white uppercase leading-none">Santorini</h1>
-                                    <p className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mt-2">124 Elite Properties</p>
+                                    <p className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mt-2">{filteredHotels.length} Elite Properties</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
@@ -169,7 +221,7 @@ const MapView = () => {
                         </div>
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5">
-                            {mockHotels.map((hotel) => (
+                            {filteredHotels.map((hotel) => (
                                 <div
                                     id={`hotel-card-${hotel.id}`}
                                     key={hotel.id}
@@ -247,7 +299,7 @@ const MapView = () => {
 
                         <MapController selectedHotel={selectedHotel} />
 
-                        {mockHotels.map((hotel) => (
+                        {filteredHotels.map((hotel) => (
                             <CustomPriceMarker
                                 key={hotel.id}
                                 hotel={hotel}
@@ -321,7 +373,12 @@ const MapView = () => {
             </main>
 
             {/* Modals */}
-            <FilterModal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} />
+            <FilterModal
+                isOpen={isFilterModalOpen}
+                onClose={() => setIsFilterModalOpen(false)}
+                currentFilters={filters}
+                onApply={setFilters}
+            />
         </div>
     );
 };

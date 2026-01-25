@@ -2,6 +2,7 @@ export const mockHotels = [
     {
         id: 1,
         name: 'The Grand Azure Resort',
+        type: 'Resorts',
         location: 'Oia, Santorini',
         image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB-kd7fYlW68meA2n5ukV-PiyWlwLoLyriV3TkpabG1rqWr_gqU15xhtgJsKPX-_vGkDUTDmEfapyPQyic9Wtk_yczGbBElh6hopevZpslaTTmS1DHbwgKG_zXda9VzF3RjlMvrPLwvyN92GETofa9BCg_uoVPyRq2PvuIha4kEuae1l1KZO8Ge7Glokw0viQB7GxuY7IsJ-oSwf4h5qScV4PHjcsiIlpTP25rSwYZZ_MW8eX_VQ9lYvY5n-Yk2lTi2q-fs8mPH_q5n',
         imageAlt: 'Luxury resort overlooking the Mediterranean sea',
@@ -32,6 +33,7 @@ export const mockHotels = [
     {
         id: 2,
         name: 'Cave Paradise Suites',
+        type: 'Boutique',
         location: 'Imerovigli, Santorini',
         image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD_GD3EnzZWPUEBFRVwTFd97noc5eAUqCoMcW_ArMM5VEGrrnDNIwhLtwzX2dpXFFsfn0Lznmj-JVWPLmxROVHj2fLL_eMV5vDj1icvHh8LlBFrcfBjxT1HrsOQO3GrNnDYPoaUYrJabj5NpzaLUtneIsZHtX4tQDUaXB_hCbN8uIgGMU8QiCQAB0uo2xDy5U4iKR-c81o-uJYQldrN9cjPNZM172EfLVe_2MVPxRTWeG8kLJPU8cQdujgNbZDnsw2ceb9kbDIlnYEe',
         imageAlt: 'Traditional white cave hotel with infinity pool',
@@ -59,6 +61,7 @@ export const mockHotels = [
     {
         id: 3,
         name: 'Santo Pure Villas',
+        type: 'Villas',
         location: 'Fira, Santorini',
         image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBIbtNc7CL0z7WxBEfjFgYBey9dauaHvEuJpvVMtqPvIRkmdWzblqdPtXm3Y4kfbz-DWYKAeUldh6CoLduVaiHl0IJSo8RwnPW5fegbRcM8JJ6YGno9oOH7OMVQh9BNEGDjkSE6vssUX3cR4T55dWizsjotpjkqv_FoGrMdqulL9M3HV5ng8bMZZNpvY8mCyY7aUjonfvlHBcwiUKh9ZXEy9FK6B--8AjVh-Iwfy1-7ApR-_VGQKxDDUOEpPxnZ_El0p20wbGTBqf1P',
         imageAlt: 'Modern boutique hotel exterior at dusk',
@@ -86,6 +89,7 @@ export const mockHotels = [
     {
         id: 4,
         name: 'Astra Boutique Hotel',
+        type: 'Hotels',
         location: 'Imerovigli, Santorini',
         image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB7ZYAKG5ENY2UPUyxU-jvcvXYrUNR2GsjmQZEL8nkXTClfYhIt-66uOdG7Sy3zRw8U-Zi-Biq1HUxhCfiDvZwEYZQf47GeBLY0ZKqpk4lQI8Z952YG5W9UDaknuxqo2XG2tB4y73kst1dFSuxPbXYzZPro9Tj3aqshevuKSdsLbmgPfPpj_bjOGCbaDmSEQ6-rZqcEAsbjz3nTNssm2iEYlp-M_Davcjz6AwSmISSuR4Ow7-qNRDfZDtDdmoi3aLBA8cwkC6q5q0dT',
         imageAlt: 'Boutique hotel pool with pink sunset',

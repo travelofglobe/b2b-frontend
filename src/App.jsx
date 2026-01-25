@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import HotelListing from './pages/HotelListing';
 import HotelDetail from './pages/HotelDetail';
 import MapView from './pages/MapView';
+import Dashboard from './pages/Dashboard';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -18,6 +19,7 @@ function App() {
             <Route path="/hotels" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
             <Route path="/hotel/:id" element={<ProtectedRoute><HotelDetail /></ProtectedRoute>} />
             <Route path="/map" element={<ProtectedRoute><MapView /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             {/* Redirect root to hotels (ProtectedRoute will handle auth check) */}
             <Route path="/" element={<Navigate to="/hotels" replace />} />
           </Routes>

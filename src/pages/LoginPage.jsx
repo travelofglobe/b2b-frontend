@@ -12,7 +12,7 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const from = location.state?.from?.pathname || "/hotels";
+    const from = location.state?.from?.pathname || "/dashboard";
 
     const handleSubmit = async (e) => {
         e.preventDefault();

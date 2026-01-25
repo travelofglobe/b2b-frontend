@@ -1,17 +1,21 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 
 const Header = () => {
+    const location = useLocation();
+    const isMap = location.pathname === '/map';
+
     return (
         <header className="sticky top-0 z-50 w-full border-b border-solid border-slate-200 dark:border-[#233648] bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-6 lg:px-20 py-3">
             <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
                 <div className="flex items-center gap-8">
-                    <div className="flex items-center gap-3 text-primary">
+                    <Link to="/" className="flex items-center gap-3 text-primary">
                         <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
                             <span className="material-symbols-outlined text-2xl">apartment</span>
                         </div>
                         <h2 className="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight">Travel of Globe</h2>
-                    </div>
+                    </Link>
                     {/* Search Bar in Header */}
                     <div className="hidden xl:flex items-center bg-slate-100 dark:bg-[#233648] rounded-xl px-2 py-1 gap-2 border border-slate-200 dark:border-transparent">
                         <div className="flex items-center px-3 border-r border-slate-300 dark:border-slate-600">
@@ -45,9 +49,8 @@ const Header = () => {
                 </div>
                 <div className="flex items-center gap-6">
                     <nav className="hidden md:flex items-center gap-6">
-                        <a className="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Stays</a>
+                        <Link className={`text-sm font-semibold transition-colors ${!isMap ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`} to="/">Stays</Link>
                         <a className="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Flights</a>
-                        <a className="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Packages</a>
                     </nav>
                     <div className="flex items-center gap-3 border-l border-slate-200 dark:border-slate-700 pl-6">
                         <ThemeToggle />

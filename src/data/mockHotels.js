@@ -9,6 +9,8 @@ export const mockHotels = [
         ratingLabel: 'Superb',
         ratingColor: 'bg-primary/10 text-primary',
         price: 450,
+        lat: 36.4618,
+        lng: 25.3753,
         priceLabel: 'Starting from',
         featured: true,
         badges: [
@@ -37,6 +39,8 @@ export const mockHotels = [
         ratingLabel: 'Excellent',
         ratingColor: 'bg-emerald-500/10 text-emerald-500',
         price: 620,
+        lat: 36.4328,
+        lng: 25.4225,
         priceLabel: 'Best price',
         featured: false,
         badges: [
@@ -62,6 +66,8 @@ export const mockHotels = [
         ratingLabel: 'Very Good',
         ratingColor: 'bg-primary/10 text-primary',
         price: 310,
+        lat: 36.4166,
+        lng: 25.4317,
         priceLabel: 'Member rate',
         featured: false,
         badges: [
@@ -87,6 +93,8 @@ export const mockHotels = [
         ratingLabel: 'Excellent',
         ratingColor: 'bg-primary/10 text-primary',
         price: 285,
+        lat: 36.4315,
+        lng: 25.4241,
         priceLabel: 'Starting from',
         featured: false,
         badges: [

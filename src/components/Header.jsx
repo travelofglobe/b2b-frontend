@@ -24,7 +24,7 @@ const Header = () => {
     const isMap = location.pathname === '/map';
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-solid border-slate-200 dark:border-[#233648] bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-6 lg:px-20 py-3">
+        <header className="sticky top-0 z-[1100] w-full border-b border-solid border-slate-200 dark:border-[#233648] bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-6 lg:px-20 py-3">
             <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
                 <div className="flex items-center gap-8">
                     <Link to="/" className="flex items-center gap-3 text-primary">
@@ -90,7 +90,7 @@ const Header = () => {
                                 </button>
 
                                 {isMenuOpen && (
-                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden z-[9999] animate-in fade-in slide-in-from-top-2">
                                         <div className="p-3 border-b border-slate-100 dark:border-slate-800">
                                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">My Account</p>
                                             <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.email}</p>

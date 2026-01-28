@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
+import { bookingService } from '../services/bookingService';
 
 const Dashboard = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [bookings, setBookings] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const menuRef = React.useRef(null);
 
     React.useEffect(() => {
@@ -22,6 +26,36 @@ const Dashboard = () => {
         };
     }, []);
 
+    useEffect(() => {
+        const abortController = new AbortController();
+
+        const fetchBookings = async () => {
+            try {
+                setLoading(true);
+                const data = await bookingService.findLastFive(abortController.signal);
+                if (!abortController.signal.aborted) {
+                    setBookings(data.bookings.content || []);
+                    setError(null);
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('Error fetching bookings:', err);
+                    setError(err.message);
+                }
+            } finally {
+                if (!abortController.signal.aborted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchBookings();
+
+        return () => {
+            abortController.abort();
+        };
+    }, []);
+
     const handleSearch = () => {
         navigate('/hotels');
     };
@@ -34,6 +68,34 @@ const Dashboard = () => {
     const userDisplayName = user?.name && user?.surname
         ? `${user.name} ${user.surname}`
         : user?.email || 'Travel Agent';
+
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'CONFIRMED':
+                return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400';
+            case 'NEW':
+                return 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400';
+            case 'CANCELLED':
+                return 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400';
+            default:
+                return 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400';
+        }
+    };
+
+    const getInitials = (name) => {
+        if (!name) return '??';
+        const words = name.split(' ');
+        if (words.length >= 2) {
+            return (words[0][0] + words[1][0]).toUpperCase();
+        }
+        return name.substring(0, 2).toUpperCase();
+    };
 
     return (
         <div className="flex min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200 font-sans">
@@ -54,10 +116,13 @@ const Dashboard = () => {
                         <span className="material-icons-round text-[20px]">corporate_fare</span>
                         My Office
                     </a>
-                    <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#">
+                    <button
+                        onClick={() => navigate('/bookings')}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs w-full"
+                    >
                         <span className="material-icons-round text-[20px]">book_online</span>
                         My Bookings
-                    </a>
+                    </button>
                     <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#">
                         <span className="material-icons-round text-[20px]">account_balance_wallet</span>
                         Finance
@@ -407,82 +472,80 @@ const Dashboard = () => {
                     <section className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 overflow-hidden mb-12 shadow-sm">
                         <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                             <h2 className="text-lg font-bold">Recent Bookings</h2>
-                            <button className="text-primary text-sm font-semibold hover:underline">View All</button>
+                            <button
+                                onClick={() => navigate('/bookings')}
+                                className="text-primary text-sm font-semibold hover:underline"
+                            >
+                                View All
+                            </button>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="text-slate-400 text-xs font-semibold uppercase tracking-wider bg-slate-50/50 dark:bg-slate-800/50">
                                         <th className="px-4 py-3">Booking ID</th>
-                                        <th className="px-4 py-3">Customer</th>
-                                        <th className="px-4 py-3">Service</th>
-                                        <th className="px-4 py-3">Date</th>
+                                        <th className="px-4 py-3">Voucher</th>
+                                        <th className="px-4 py-3">Agency</th>
+                                        <th className="px-4 py-3">Hotel</th>
+                                        <th className="px-4 py-3">Check-in Date</th>
                                         <th className="px-4 py-3">Amount</th>
                                         <th className="px-4 py-3">Status</th>
-                                        <th className="px-4 py-3">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                                        <td className="px-4 py-3 text-xs font-medium">#BK-9421</td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600">JS</div>
-                                                <span className="text-sm">John Smith</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3 text-sm">Marriott Marquis Dubai</td>
-                                        <td className="px-4 py-3 text-sm text-slate-500">Oct 12, 2024</td>
-                                        <td className="px-4 py-3 text-sm font-semibold">$540.00</td>
-                                        <td className="px-4 py-3">
-                                            <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider">Confirmed</span>
-                                        </td>
-                                        <td className="px-4 py-3 text-xs">
-                                            <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                                                <span className="material-icons-round text-slate-400 text-base">more_horiz</span>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                                        <td className="px-4 py-3 text-sm font-medium">#BK-9388</td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600">AW</div>
-                                                <span className="text-sm">Alice Wong</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3 text-sm">Emirates Flight (DXB-LHR)</td>
-                                        <td className="px-4 py-3 text-sm text-slate-500">Oct 11, 2024</td>
-                                        <td className="px-4 py-3 text-sm font-semibold">$1,210.00</td>
-                                        <td className="px-4 py-3">
-                                            <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider">Pending</span>
-                                        </td>
-                                        <td className="px-4 py-3 text-xs">
-                                            <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                                                <span className="material-icons-round text-slate-400 text-base">more_horiz</span>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                                        <td className="px-4 py-3 text-sm font-medium">#BK-9310</td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600">RT</div>
-                                                <span className="text-sm">Robert Taylor</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3 text-sm">Paris City Tour (Full Day)</td>
-                                        <td className="px-4 py-3 text-sm text-slate-500">Oct 10, 2024</td>
-                                        <td className="px-4 py-3 text-sm font-semibold">$85.00</td>
-                                        <td className="px-4 py-3">
-                                            <span className="px-2.5 py-1 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider">Cancelled</span>
-                                        </td>
-                                        <td className="px-4 py-3 text-xs">
-                                            <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                                                <span className="material-icons-round text-slate-400 text-base">more_horiz</span>
-                                            </button>
-                                        </td>
-                                    </tr>
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan="7" className="px-4 py-8 text-center text-slate-500">
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                                    Loading bookings...
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : error ? (
+                                        <tr>
+                                            <td colSpan="7" className="px-4 py-8 text-center text-red-500">
+                                                Error loading bookings: {error}
+                                            </td>
+                                        </tr>
+                                    ) : bookings.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="7" className="px-4 py-8 text-center text-slate-500">
+                                                No recent bookings found
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        bookings.map((booking) => (
+                                            <tr key={booking.bookingId} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                                                <td className="px-4 py-3 text-xs font-medium">
+                                                    #{booking.bookingId}
+                                                </td>
+                                                <td className="px-4 py-3 text-xs font-medium">
+                                                    {booking.voucher || '-'}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600">
+                                                            {getInitials(booking.principalAgencyName)}
+                                                        </div>
+                                                        <span className="text-sm">{booking.principalAgencyName}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3 text-sm">{booking.hotelName}</td>
+                                                <td className="px-4 py-3 text-sm text-slate-500">
+                                                    {formatDate(booking.checkInDate)}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm font-semibold">
+                                                    {booking.totalAmount ? `${booking.currency} ${booking.totalAmount.toFixed(2)}` : 'N/A'}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusColor(booking.bookingStatus)}`}>
+                                                        {booking.bookingStatus}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
                                 </tbody>
                             </table>
                         </div>

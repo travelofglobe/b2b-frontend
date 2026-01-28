@@ -23,6 +23,10 @@ const Header = () => {
     }, []);
     const isMap = location.pathname === '/map';
 
+    const userDisplayName = user?.name && user?.surname
+        ? `${user.name} ${user.surname}`
+        : user?.email || 'User';
+
     return (
         <header className="sticky top-0 z-[1100] w-full border-b border-solid border-slate-200 dark:border-[#233648] bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-6 lg:px-20 py-3">
             <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
@@ -79,7 +83,7 @@ const Header = () => {
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                                     className="flex items-center gap-2 transition-transform active:scale-95 focus:outline-none"
                                 >
-                                    <div className="size-10 rounded-full border-2 border-primary overflow-hidden" title={user.email}>
+                                    <div className="size-10 rounded-full border-2 border-primary overflow-hidden" title={userDisplayName}>
                                         <img
                                             className="w-full h-full object-cover"
                                             alt="User profile avatar"
@@ -93,7 +97,8 @@ const Header = () => {
                                     <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden z-[9999] animate-in fade-in slide-in-from-top-2">
                                         <div className="p-3 border-b border-slate-100 dark:border-slate-800">
                                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">My Account</p>
-                                            <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.email}</p>
+                                            <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{userDisplayName}</p>
+                                            <p className="text-xs text-slate-500 truncate">{user.email}</p>
                                         </div>
                                         <div className="p-1">
                                             <button className="w-full text-left px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg flex items-center gap-2 transition-colors">

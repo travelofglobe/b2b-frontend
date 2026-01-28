@@ -6,6 +6,21 @@ import { useAuth } from '../context/AuthContext';
 const Dashboard = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = React.useRef(null);
+
+    React.useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setIsMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     const handleSearch = () => {
         navigate('/hotels');
@@ -15,6 +30,10 @@ const Dashboard = () => {
         logout();
         navigate('/login');
     };
+
+    const userDisplayName = user?.name && user?.surname
+        ? `${user.name} ${user.surname}`
+        : user?.email || 'Travel Agent';
 
     return (
         <div className="flex min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200 font-sans">
@@ -61,14 +80,6 @@ const Dashboard = () => {
                         </a>
                     </div>
                 </nav>
-                <div className="p-4 border-t border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:opacity-80 transition-opacity text-sm">
-                        <span className="material-icons-round">dark_mode</span>
-                        <div className="flex-1">
-                            <ThemeToggle />
-                        </div>
-                    </div>
-                </div>
             </aside>
 
             {/* Main Content */}
@@ -77,7 +88,7 @@ const Dashboard = () => {
                     <header className="flex flex-wrap items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-2">
                             <span className="material-icons-round text-primary text-xl">auto_awesome</span>
-                            <h1 className="text-lg font-medium">Welcome back, <span className="font-bold">{user?.email || 'Travel Agent'}</span></h1>
+                            <h1 className="text-lg font-medium">Welcome back, <span className="font-bold">{userDisplayName}</span></h1>
                         </div>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2 text-emerald-500 font-medium text-sm bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full">
@@ -89,18 +100,48 @@ const Dashboard = () => {
                                     <span className="material-icons-round">notifications</span>
                                     <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
                                 </button>
-                                <button className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-                                    <span className="material-icons-round">public</span>
-                                </button>
-                                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden ml-2 cursor-pointer border-2 border-white dark:border-slate-800">
-                                    <img alt="User avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoFySc2vtcaMEGeREb_VgJBdqB3NFGEhhzVJsSE7mNnOZmzxS3VoAaPtJdRc2-7L1Hf3Tw_McEdZQnVhRA9C-54obeuMvsW9Cv2CriQj9uYpNq7mFi9y9xM5LBrzVKRCa0fv5BEgds6tJ0ocB_q8SJ5DDSxYd--zVR7CMjA-gxnAekeT2oQCmI64irJAGsGqVgUeBZfuootsT9StClDwUAqNsUBWn-JjCoXfS_hiw7pSyxCD89fA_aqBMpbQPYha0GPs_YuyGTv35O" />
+                                <ThemeToggle />
+                                <div className="relative" ref={menuRef}>
+                                    <button
+                                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                        className="flex items-center gap-2 transition-transform active:scale-95 focus:outline-none"
+                                    >
+                                        <div className="w-10 h-10 rounded-full border-2 border-primary overflow-hidden" title={userDisplayName}>
+                                            <img
+                                                className="w-full h-full object-cover"
+                                                alt="User profile avatar"
+                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBosNqeUSWMhJzh5LpHCFPb5pLuKb8iL2md4jVM2E56t5Fv9dyFMkYnOoEtDWJR6D93U1ktccli6wRXrDIFrJfBzqCuo5f3p_dAmSl_IOc_ls1zrDr3BzT9UkmB-hXIOrfHfvPmYIBsjYr8pMfjM43LH5Rt6-TPmTMmscoLyVghfEK4wzk7GtmvkdhcdOdWIR6LeTpuh-DYatxfCIZul2x7amqH7lCa89tzhsz4XxNW_yxi5Ycxf1QNFnIYxHogNEd3zAqE767kNbGk"
+                                            />
+                                        </div>
+                                        <span className="material-icons-round text-slate-500 dark:text-slate-400">expand_more</span>
+                                    </button>
+
+                                    {isMenuOpen && (
+                                        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden z-[9999] animate-in fade-in slide-in-from-top-2">
+                                            <div className="p-3 border-b border-slate-100 dark:border-slate-800">
+                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">My Account</p>
+                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{userDisplayName}</p>
+                                                <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                                            </div>
+                                            <div className="p-1">
+                                                <button className="w-full text-left px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg flex items-center gap-2 transition-colors">
+                                                    <span className="material-icons-round text-[18px]">settings</span>
+                                                    Settings
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        handleLogout();
+                                                        setIsMenuOpen(false);
+                                                    }}
+                                                    className="w-full text-left px-3 py-2 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex items-center gap-2 transition-colors mt-1"
+                                                >
+                                                    <span className="material-icons-round text-[18px]">logout</span>
+                                                    Sign Out
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                                <button
-                                    onClick={handleLogout}
-                                    className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
-                                >
-                                    <span className="material-icons-round">logout</span>
-                                </button>
                             </div>
                         </div>
                     </header>

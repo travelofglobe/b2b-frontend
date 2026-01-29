@@ -23,20 +23,34 @@ const MyBookings = () => {
     const [filters, setFilters] = useState({
         id: '',
         voucher: '',
+        supplierId: '',
         supplierName: '',
+        supplierVoucher: '',
+        internalHotelId: '',
+        supplierHotelId: '',
+        bookingUuid: '',
+        paymentStatus: '',
+        bookingStatus: '',
+        clientReferenceId: '',
+        requestId: '',
         hotelName: '',
+        createDateStart: '',
+        createDateEnd: '',
         checkInStart: '',
         checkInEnd: '',
         checkOutStart: '',
         checkOutEnd: '',
-        createDateStart: '',
-        createDateEnd: '',
         minAmount: '',
         maxAmount: '',
-        paymentStatus: '',
-        bookingStatus: '',
-        clientReferenceId: '',
+        currencies: '',
+        principalAgencyIds: '',
+        minCancellationAmount: '',
+        maxCancellationAmount: '',
+        cancelReason: '',
+        isCancelled: '',
     });
+
+    const [showFilters, setShowFilters] = useState(true);
 
     React.useEffect(() => {
         const handleClickOutside = (event) => {
@@ -66,18 +80,42 @@ const MyBookings = () => {
             setLoading(true);
             setError(null);
 
-            // Build filter object (only include non-empty values)
+            // Build filter object (matching API request structure)
             const filterObj = {};
             Object.keys(filters).forEach(key => {
                 const value = filters[key];
-                if (value !== '' && value !== null) {
-                    // Convert date strings to proper format
-                    if (key.includes('Date') && value) {
-                        filterObj[key] = value + 'T00:00:00';
-                    } else if ((key.includes('Start') || key.includes('End')) && !key.includes('Date') && value) {
+                if (value === '' || value === null || value === undefined) {
+                    filterObj[key] = null;
+                } else {
+                    // Handle numeric fields
+                    if (['id', 'supplierId', 'minAmount', 'maxAmount', 'minCancellationAmount', 'maxCancellationAmount'].includes(key)) {
+                        filterObj[key] = value === '' ? null : Number(value);
+                    }
+                    // Handle boolean fields
+                    else if (key === 'isCancelled') {
+                        filterObj[key] = value === 'true';
+                    }
+                    // Handle Date fields (LocalDate) - No time
+                    else if ((key.includes('checkIn') || key.includes('checkOut')) && (key.endsWith('Start') || key.endsWith('End'))) {
                         filterObj[key] = value;
-                    } else {
-                        filterObj[key] = value || null;
+                    }
+                    // Handle DateTime fields (LocalDateTime) - with T00:00:00 or T23:59:59
+                    else if (key === 'createDateStart') {
+                        filterObj[key] = value + 'T00:00:00';
+                    }
+                    else if (key === 'createDateEnd') {
+                        filterObj[key] = value + 'T23:59:59';
+                    }
+                    // Handle List fields
+                    else if (key === 'currencies' && value) {
+                        filterObj[key] = value.split(',').map(c => c.trim().toUpperCase());
+                    }
+                    else if (key === 'principalAgencyIds' && value) {
+                        filterObj[key] = value.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
+                    }
+                    // Default string handling (voucher, name, uuid, reference, requestId, hotelId)
+                    else {
+                        filterObj[key] = value;
                     }
                 }
             });
@@ -85,20 +123,18 @@ const MyBookings = () => {
             const data = await bookingService.searchBookings(filterObj, page, pageSize, signal);
 
             if (!signal?.aborted) {
-                setBookings(data.bookings.content || []);
-                setTotalPages(data.bookings.totalPages || 0);
-                setTotalElements(data.bookings.totalElements || 0);
+                setBookings(data.content || []);
+                setTotalPages(data.totalPages || 0);
+                setTotalElements(data.totalElements || 0);
                 setSummaries(data.summaries || []);
             }
-        } catch (err) {
-            if (err.name !== 'AbortError') {
-                console.error('Error searching bookings:', err);
-                setError(err.message);
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                console.error('Search error:', error);
+                setError(error.message);
             }
         } finally {
-            if (!signal?.aborted) {
-                setLoading(false);
-            }
+            setLoading(false);
         }
     };
 
@@ -116,23 +152,33 @@ const MyBookings = () => {
         setFilters({
             id: '',
             voucher: '',
+            supplierId: '',
             supplierName: '',
+            supplierVoucher: '',
+            internalHotelId: '',
+            supplierHotelId: '',
+            bookingUuid: '',
+            paymentStatus: '',
+            bookingStatus: '',
+            clientReferenceId: '',
+            requestId: '',
             hotelName: '',
+            createDateStart: '',
+            createDateEnd: '',
             checkInStart: '',
             checkInEnd: '',
             checkOutStart: '',
             checkOutEnd: '',
-            createDateStart: '',
-            createDateEnd: '',
             minAmount: '',
             maxAmount: '',
-            paymentStatus: '',
-            bookingStatus: '',
-            clientReferenceId: '',
+            currencies: '',
+            principalAgencyIds: '',
+            minCancellationAmount: '',
+            maxCancellationAmount: '',
+            cancelReason: '',
+            isCancelled: '',
         });
         setPage(0);
-        const abortController = new AbortController();
-        searchBookings(abortController.signal);
     };
 
     // Separate effect for page/pageSize changes
@@ -264,30 +310,43 @@ const MyBookings = () => {
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Header - Fixed */}
-                <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex-shrink-0">
+                <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-8 py-5 flex-shrink-0 z-30">
                     <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Bookings</h1>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                {totalElements} total bookings found
-                            </p>
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                                <span className="material-icons-round text-2xl">book_online</span>
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">My Bookings</h1>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                    Manage and monitor all travel reservations
+                                </p>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={handleClearFilters}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm"
-                            >
-                                <span className="material-icons-round text-lg">filter_alt_off</span>
-                                Clear Filters
-                            </button>
 
-                            <button
-                                onClick={handleSearch}
-                                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold"
-                            >
-                                <span className="material-icons-round text-lg">search</span>
-                                Search
-                            </button>
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                                <button
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${showFilters
+                                        ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                        }`}
+                                >
+                                    <span className="material-icons-round text-lg">tune</span>
+                                    {showFilters ? 'Hide Filters' : 'Show Filters'}
+                                </button>
+                                <div className="w-px h-4 bg-slate-200 dark:border-slate-600 mx-1"></div>
+                                <button
+                                    onClick={handleSearch}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-all"
+                                >
+                                    <span className="material-icons-round text-lg">refresh</span>
+                                    Refresh
+                                </button>
+                            </div>
+
+                            <div className="h-10 w-px bg-slate-200 dark:bg-slate-800 mx-2"></div>
 
                             <ThemeToggle />
 
@@ -295,16 +354,20 @@ const MyBookings = () => {
                             <div className="relative" ref={menuRef}>
                                 <button
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                    className="flex items-center gap-2 transition-transform active:scale-95 focus:outline-none"
+                                    className="flex items-center gap-3 p-1 pr-3 rounded-2xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all active:scale-95 focus:outline-none"
                                 >
-                                    <div className="size-10 rounded-full border-2 border-primary overflow-hidden" title={userDisplayName}>
+                                    <div className="size-9 rounded-xl border-2 border-primary/20 overflow-hidden ring-4 ring-primary/5" title={userDisplayName}>
                                         <img
                                             className="w-full h-full object-cover"
                                             alt="User profile avatar"
                                             src="https://lh3.googleusercontent.com/aida-public/AB6AXuBosNqeUSWMhJzh5LpHCFPb5pLuKb8iL2md4jVM2E56t5Fv9dyFMkYnOoEtDWJR6D93U1ktccli6wRXrDIFrJfBzqCuo5f3p_dAmSl_IOc_ls1zrDr3BzT9UkmB-hXIOrfHfvPmYIBsjYr8pMfjM43LH5Rt6-TPmTMmscoLyVghfEK4wzk7GtmvkdhcdOdWIR6LeTpuh-DYatxfCIZul2x7amqH7lCa89tzhsz4XxNW_yxi5Ycxf1QNFnIYxHogNEd3zAqE767kNbGk"
                                         />
                                     </div>
-                                    <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">expand_more</span>
+                                    <div className="hidden sm:block text-left">
+                                        <p className="text-xs font-black text-slate-900 dark:text-white leading-none mb-1 truncate max-w-[100px]">{userDisplayName}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none">Admin User</p>
+                                    </div>
+                                    <span className="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
                                 </button>
 
                                 {isMenuOpen && (
@@ -338,156 +401,330 @@ const MyBookings = () => {
 
                 {/* Content Area - Scrollable */}
                 <div className="flex-1 overflow-auto p-6">
-                    {/* Summary Cards */}
-                    {summaries.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                            {summaries.map((summary, index) => (
-                                <div key={index} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                                                {summary.currency || 'Total'} Bookings
-                                            </p>
-                                            <p className="text-2xl font-bold mt-1">{summary.bookingCount}</p>
-                                            {summary.totalAmountSum && (
-                                                <p className="text-sm text-primary font-semibold mt-1">
-                                                    {summary.currency} {summary.totalAmountSum.toFixed(2)}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                                            <span className="material-icons-round text-primary text-2xl">receipt_long</span>
-                                        </div>
+                    {/* Modern Filter Panel */}
+                    <div className={`mb-8 transition-all duration-300 ease-in-out ${showFilters ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
+                        <div className="bg-white dark:bg-slate-900 rounded-[28px] border border-slate-200 dark:border-slate-800 p-8 shadow-xl shadow-slate-200/50 dark:shadow-none">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-12 gap-y-8">
+                                {/* Group 1: Identifiers */}
+                                <div className="space-y-4">
+                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                        <span className="material-icons-round text-sm">fingerprint</span>
+                                        Identifiers
+                                    </h4>
+                                    <div className="space-y-3">
+                                        <input
+                                            type="number"
+                                            value={filters.id}
+                                            onChange={(e) => handleFilterChange('id', e.target.value)}
+                                            placeholder="Internal ID"
+                                            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={filters.bookingUuid}
+                                            onChange={(e) => handleFilterChange('bookingUuid', e.target.value)}
+                                            placeholder="Booking UUID"
+                                            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={filters.requestId}
+                                            onChange={(e) => handleFilterChange('requestId', e.target.value)}
+                                            placeholder="Request ID"
+                                            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        />
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    )}
 
-                    {/* Table with Filters in Headers */}
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    {/* Column Headers */}
-                                    <tr className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-                                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase whitespace-nowrap">ID</th>
-                                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase whitespace-nowrap">Voucher</th>
-                                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase whitespace-nowrap">Supplier</th>
-                                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase whitespace-nowrap">Agency</th>
-                                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase whitespace-nowrap">Hotel</th>
-                                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase whitespace-nowrap">Check-in</th>
-                                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase whitespace-nowrap">Check-out</th>
-                                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase whitespace-nowrap">Created</th>
-                                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase whitespace-nowrap">Amount</th>
-                                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase whitespace-nowrap">Payment</th>
-                                        <th className="px-3 py-2 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase whitespace-nowrap">Status</th>
-                                    </tr>
-                                    {/* Filter Row */}
-                                    <tr className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-                                        <th className="px-3 py-2">
+                                {/* Group 2: Property & Vouchers */}
+                                <div className="space-y-4">
+                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                        <span className="material-icons-round text-sm">hotel</span>
+                                        Property & Vouchers
+                                    </h4>
+                                    <div className="space-y-3">
+                                        <input
+                                            type="text"
+                                            value={filters.hotelName}
+                                            onChange={(e) => handleFilterChange('hotelName', e.target.value)}
+                                            placeholder="Hotel Name"
+                                            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        />
+                                        <div className="grid grid-cols-2 gap-2">
                                             <input
                                                 type="number"
-                                                value={filters.id}
-                                                onChange={(e) => handleFilterChange('id', e.target.value)}
-                                                placeholder="ID"
-                                                className="w-full px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:ring-1 focus:ring-primary focus:border-transparent"
+                                                value={filters.internalHotelId}
+                                                onChange={(e) => handleFilterChange('internalHotelId', e.target.value)}
+                                                placeholder="Int Hotel ID"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                             />
-                                        </th>
-                                        <th className="px-3 py-2">
                                             <input
-                                                type="text"
-                                                value={filters.voucher}
-                                                onChange={(e) => handleFilterChange('voucher', e.target.value)}
-                                                placeholder="Voucher"
-                                                className="w-full px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:ring-1 focus:ring-primary focus:border-transparent"
+                                                type="number"
+                                                value={filters.supplierHotelId}
+                                                onChange={(e) => handleFilterChange('supplierHotelId', e.target.value)}
+                                                placeholder="Sup Hotel ID"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                             />
-                                        </th>
-                                        <th className="px-3 py-2">
-                                            <input
-                                                type="text"
-                                                value={filters.supplierName}
-                                                onChange={(e) => handleFilterChange('supplierName', e.target.value)}
-                                                placeholder="Supplier"
-                                                className="w-full px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:ring-1 focus:ring-primary focus:border-transparent"
-                                            />
-                                        </th>
-                                        <th className="px-3 py-2">
-                                            <input
-                                                type="text"
-                                                value={filters.clientReferenceId}
-                                                onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)}
-                                                placeholder="Agency Ref"
-                                                className="w-full px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:ring-1 focus:ring-primary focus:border-transparent"
-                                            />
-                                        </th>
-                                        <th className="px-3 py-2">
-                                            <input
-                                                type="text"
-                                                value={filters.hotelName}
-                                                onChange={(e) => handleFilterChange('hotelName', e.target.value)}
-                                                placeholder="Hotel"
-                                                className="w-full px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:ring-1 focus:ring-primary focus:border-transparent"
-                                            />
-                                        </th>
-                                        <th className="px-3 py-2">
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={filters.voucher}
+                                            onChange={(e) => handleFilterChange('voucher', e.target.value)}
+                                            placeholder="System Voucher"
+                                            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={filters.supplierVoucher}
+                                            onChange={(e) => handleFilterChange('supplierVoucher', e.target.value)}
+                                            placeholder="Supplier Voucher"
+                                            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Group 3: Check-in Dates */}
+                                <div className="space-y-4">
+                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                        <span className="material-icons-round text-sm">login</span>
+                                        Check-In Range
+                                    </h4>
+                                    <div className="space-y-3">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-400 ml-1">Start Date</label>
                                             <input
                                                 type="date"
                                                 value={filters.checkInStart}
                                                 onChange={(e) => handleFilterChange('checkInStart', e.target.value)}
-                                                className="w-full px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:ring-1 focus:ring-primary focus:border-transparent"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                             />
-                                        </th>
-                                        <th className="px-3 py-2">
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-400 ml-1">End Date</label>
+                                            <input
+                                                type="date"
+                                                value={filters.checkInEnd}
+                                                onChange={(e) => handleFilterChange('checkInEnd', e.target.value)}
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Group 4: Check-out Dates */}
+                                <div className="space-y-4">
+                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                        <span className="material-icons-round text-sm">logout</span>
+                                        Check-Out Range
+                                    </h4>
+                                    <div className="space-y-3">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-400 ml-1">Start Date</label>
                                             <input
                                                 type="date"
                                                 value={filters.checkOutStart}
                                                 onChange={(e) => handleFilterChange('checkOutStart', e.target.value)}
-                                                className="w-full px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:ring-1 focus:ring-primary focus:border-transparent"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                             />
-                                        </th>
-                                        <th className="px-3 py-2">
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-400 ml-1">End Date</label>
+                                            <input
+                                                type="date"
+                                                value={filters.checkOutEnd}
+                                                onChange={(e) => handleFilterChange('checkOutEnd', e.target.value)}
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Second Row */}
+                                {/* Group 5: Creation Dates */}
+                                <div className="space-y-4">
+                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                        <span className="material-icons-round text-sm">history</span>
+                                        Booking Creation
+                                    </h4>
+                                    <div className="space-y-3">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-400 ml-1">Created From</label>
                                             <input
                                                 type="date"
                                                 value={filters.createDateStart}
                                                 onChange={(e) => handleFilterChange('createDateStart', e.target.value)}
-                                                className="w-full px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:ring-1 focus:ring-primary focus:border-transparent"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                             />
-                                        </th>
-                                        <th className="px-3 py-2">
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-400 ml-1">Created To</label>
                                             <input
-                                                type="number"
-                                                value={filters.minAmount}
-                                                onChange={(e) => handleFilterChange('minAmount', e.target.value)}
-                                                placeholder="Min"
-                                                className="w-full px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:ring-1 focus:ring-primary focus:border-transparent"
+                                                type="date"
+                                                value={filters.createDateEnd}
+                                                onChange={(e) => handleFilterChange('createDateEnd', e.target.value)}
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                             />
-                                        </th>
-                                        <th className="px-3 py-2">
-                                            <select
-                                                value={filters.paymentStatus}
-                                                onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
-                                                className="w-full px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:ring-1 focus:ring-primary focus:border-transparent"
-                                            >
-                                                <option value="">All</option>
-                                                <option value="PAID_ACCOUNT">Paid</option>
-                                                <option value="PENDING">Pending</option>
-                                                <option value="FAILED">Failed</option>
-                                            </select>
-                                        </th>
-                                        <th className="px-3 py-2">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Group 6: Status & Others */}
+                                <div className="space-y-4">
+                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                        <span className="material-icons-round text-sm">settings_suggest</span>
+                                        Status & Conditions
+                                    </h4>
+                                    <div className="space-y-3">
+                                        <div className="grid grid-cols-2 gap-2">
                                             <select
                                                 value={filters.bookingStatus}
                                                 onChange={(e) => handleFilterChange('bookingStatus', e.target.value)}
-                                                className="w-full px-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:ring-1 focus:ring-primary focus:border-transparent"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                             >
-                                                <option value="">All</option>
+                                                <option value="">Status</option>
                                                 <option value="CONFIRMED">Confirmed</option>
                                                 <option value="NEW">New</option>
                                                 <option value="ERROR">Error</option>
                                                 <option value="CANCELLED">Cancelled</option>
                                             </select>
-                                        </th>
+                                            <select
+                                                value={filters.paymentStatus}
+                                                onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                            >
+                                                <option value="">Payment</option>
+                                                <option value="PAID_ACCOUNT">Paid</option>
+                                                <option value="PENDING">Pending</option>
+                                                <option value="FAILED">Failed</option>
+                                            </select>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <select
+                                                value={filters.isCancelled}
+                                                onChange={(e) => handleFilterChange('isCancelled', e.target.value)}
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                            >
+                                                <option value="">Is Cancelled?</option>
+                                                <option value="true">Yes</option>
+                                                <option value="false">No</option>
+                                            </select>
+                                            <input
+                                                type="text"
+                                                value={filters.currencies}
+                                                onChange={(e) => handleFilterChange('currencies', e.target.value)}
+                                                placeholder="Currencies"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                            />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={filters.cancelReason}
+                                            onChange={(e) => handleFilterChange('cancelReason', e.target.value)}
+                                            placeholder="Cancellation Reason"
+                                            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Group 7: Booking Amount */}
+                                <div className="space-y-4">
+                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                        <span className="material-icons-round text-sm">payments</span>
+                                        Booking Amount
+                                    </h4>
+                                    <div className="space-y-3">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-400 ml-1">Minimum Amount</label>
+                                            <input
+                                                type="number"
+                                                value={filters.minAmount}
+                                                onChange={(e) => handleFilterChange('minAmount', e.target.value)}
+                                                placeholder="0.00"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-400 ml-1">Maximum Amount</label>
+                                            <input
+                                                type="number"
+                                                value={filters.maxAmount}
+                                                onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
+                                                placeholder="No limit"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Group 8: Cancellation Fee */}
+                                <div className="space-y-4">
+                                    <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                        <span className="material-icons-round text-sm">money_off</span>
+                                        Cancellation Fee
+                                    </h4>
+                                    <div className="space-y-3">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-400 ml-1">Min Cancellation Fee</label>
+                                            <input
+                                                type="number"
+                                                value={filters.minCancellationAmount}
+                                                onChange={(e) => handleFilterChange('minCancellationAmount', e.target.value)}
+                                                placeholder="0.00"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-400 ml-1">Max Cancellation Fee</label>
+                                            <input
+                                                type="number"
+                                                value={filters.maxCancellationAmount}
+                                                onChange={(e) => handleFilterChange('maxCancellationAmount', e.target.value)}
+                                                placeholder="No limit"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 mt-8 pt-6">
+                                <div className="flex items-center gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    <span className="flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                                        {totalElements} matching results
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={handleClearFilters}
+                                        className="h-12 px-8 text-sm font-black text-slate-500 hover:text-slate-900 dark:hover:text-white uppercase tracking-widest transition-colors"
+                                    >
+                                        Clear All
+                                    </button>
+                                    <button
+                                        onClick={handleSearch}
+                                        className="h-12 px-12 bg-primary hover:bg-blue-600 text-white text-sm font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 border border-primary/20 hover:border-primary/50 transition-all active:scale-[0.98]"
+                                    >
+                                        Apply Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Table with Modern Design */}
+                    <div className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-800">
+                                        <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Identifiers</th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Booking Info</th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Agency & Supplier</th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Timeline</th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Financials</th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -514,43 +751,121 @@ const MyBookings = () => {
                                         </tr>
                                     ) : (
                                         bookings.map((booking) => (
-                                            <tr key={booking.bookingId} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                                <td className="px-3 py-3 text-sm font-medium whitespace-nowrap">#{booking.bookingId}</td>
-                                                <td className="px-3 py-3 text-sm whitespace-nowrap">
-                                                    <div>
-                                                        <div className="font-medium">{booking.voucher || '-'}</div>
-                                                        {booking.supplierVoucher && (
-                                                            <div className="text-xs text-slate-500">Sup: {booking.supplierVoucher}</div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-3 py-3 text-sm whitespace-nowrap">{booking.supplierName || 'N/A'}</td>
-                                                <td className="px-3 py-3 whitespace-nowrap">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                                                            {getInitials(booking.principalAgencyName)}
+                                            <tr key={booking.bookingId} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group border-b border-slate-100 dark:border-slate-800 last:border-0">
+                                                {/* Identifiers */}
+                                                <td className="px-6 py-5">
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className="text-sm font-black text-slate-900 dark:text-white group-hover:text-primary transition-colors">#{booking.bookingId}</span>
+                                                        <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tight leading-tight max-w-[120px] truncate" title={booking.bookingUuid}>
+                                                            {booking.bookingUuid}
+                                                        </span>
+                                                        <div className="flex items-center gap-1 mt-1">
+                                                            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
+                                                                REQ: {booking.requestId?.substring(0, 8)}...
+                                                            </span>
                                                         </div>
-                                                        <span className="text-sm truncate max-w-[120px]" title={booking.principalAgencyName}>{booking.principalAgencyName}</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-3 py-3 text-sm whitespace-nowrap max-w-[200px] truncate" title={booking.hotelName}>
-                                                    {booking.hotelName}
+
+                                                {/* Booking Info */}
+                                                <td className="px-6 py-5">
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-primary">
+                                                                <span className="material-icons-round text-sm">hotel</span>
+                                                            </div>
+                                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[180px]" title={booking.hotelName}>
+                                                                {booking.hotelName}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 mt-1 px-1">
+                                                            <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">Sys: <span className="font-bold text-slate-600 dark:text-slate-300">{booking.voucher || '-'}</span></span>
+                                                            <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">Sup: <span className="font-bold text-slate-600 dark:text-slate-300">{booking.supplierVoucher || '-'}</span></span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 mt-1 px-1">
+                                                            <span className="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">INT: {booking.internalHotelId}</span>
+                                                            <span className="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">SUP: {booking.supplierHotelId}</span>
+                                                        </div>
+                                                    </div>
                                                 </td>
-                                                <td className="px-3 py-3 text-sm text-slate-500 whitespace-nowrap">{formatDate(booking.checkInDate)}</td>
-                                                <td className="px-3 py-3 text-sm text-slate-500 whitespace-nowrap">{formatDate(booking.checkOutDate)}</td>
-                                                <td className="px-3 py-3 text-xs text-slate-500 whitespace-nowrap">{formatDateTime(booking.createDateTime)}</td>
-                                                <td className="px-3 py-3 text-sm font-semibold whitespace-nowrap">
-                                                    {booking.totalAmount ? `${booking.currency} ${booking.totalAmount.toFixed(2)}` : 'N/A'}
+
+                                                {/* Agency & Supplier */}
+                                                <td className="px-6 py-5">
+                                                    <div className="space-y-3">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center text-[10px] font-black text-slate-600 dark:text-slate-400 shadow-sm border border-white dark:border-slate-600">
+                                                                {getInitials(booking.principalAgencyName)}
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[160px]" title={booking.principalAgencyName}>
+                                                                    {booking.principalAgencyName}
+                                                                </span>
+                                                                <span className="text-[10px] font-bold text-slate-400 tracking-tighter uppercase">ID: {booking.principalAgencyId}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 px-1 py-1 rounded-lg bg-orange-50/50 dark:bg-orange-900/10 w-fit">
+                                                            <span className="material-icons-round text-orange-400 text-[14px]">business</span>
+                                                            <span className="text-[11px] font-bold text-orange-600 dark:text-orange-400">{booking.supplierName}</span>
+                                                            <span className="text-[10px] text-orange-400/70 font-medium">#{booking.supplierId}</span>
+                                                        </div>
+                                                    </div>
                                                 </td>
-                                                <td className="px-3 py-3 whitespace-nowrap">
-                                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${getPaymentStatusColor(booking.paymentStatus)}`}>
-                                                        {booking.paymentStatus?.replace('_', ' ') || 'N/A'}
-                                                    </span>
+
+                                                {/* Timeline */}
+                                                <td className="px-6 py-5">
+                                                    <div className="space-y-3">
+                                                        <div className="flex items-center gap-6">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Check-in</span>
+                                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{formatDate(booking.checkInDate)}</span>
+                                                            </div>
+                                                            <div className="w-px h-6 bg-slate-100 dark:bg-slate-800"></div>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Check-out</span>
+                                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{formatDate(booking.checkOutDate)}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col pt-1 border-t border-slate-50 dark:border-slate-800/50">
+                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Booked On</span>
+                                                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{formatDateTime(booking.createDateTime)}</span>
+                                                        </div>
+                                                    </div>
                                                 </td>
-                                                <td className="px-3 py-3 whitespace-nowrap">
-                                                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${getStatusColor(booking.bookingStatus)}`}>
-                                                        {booking.bookingStatus}
-                                                    </span>
+
+                                                {/* Financials */}
+                                                <td className="px-6 py-5">
+                                                    <div className="flex flex-col items-end gap-1.5">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{booking.currency}</span>
+                                                            <span className="text-lg font-black text-primary tracking-tight">
+                                                                {booking.totalAmount?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                            </span>
+                                                        </div>
+                                                        {booking.totalCancellationAmount > 0 && (
+                                                            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-red-50 dark:bg-red-900/10 text-red-500 border border-red-100 dark:border-red-900/20">
+                                                                <span className="material-icons-round text-xs">cancel_presentation</span>
+                                                                <span className="text-[10px] font-black">
+                                                                    {booking.currency} {booking.totalCancellationAmount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        <div className="mt-1 flex items-center gap-1.5">
+                                                            <span className="text-[9px] font-bold text-slate-400 uppercase">Agency Ref:</span>
+                                                            <span className="text-[10px] font-black text-slate-600 dark:text-slate-400">{booking.clientReferenceId || '-'}</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                {/* Status */}
+                                                <td className="px-6 py-5">
+                                                    <div className="flex flex-col gap-2 items-end">
+                                                        <span className={`px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.1em] shadow-sm border ${getStatusColor(booking.bookingStatus)} border-current/10`}>
+                                                            {booking.bookingStatus}
+                                                        </span>
+                                                        <span className={`px-2.5 py-1 rounded-xl text-[9px] font-bold uppercase tracking-tight ${getPaymentStatusColor(booking.paymentStatus)}`}>
+                                                            {booking.paymentStatus?.replace('_', ' ')}
+                                                        </span>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -597,6 +912,40 @@ const MyBookings = () => {
                                         <span className="material-icons-round text-xl">chevron_right</span>
                                     </button>
                                 </div>
+                            </div>
+                        )}
+                        {summaries.length > 0 && (
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
+                                {summaries.map((summary, index) => (
+                                    <div key={index} className="bg-white dark:bg-slate-900 rounded-[24px] border border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-md transition-shadow group">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${summary.currency ? 'bg-blue-50 dark:bg-blue-900/20 text-primary' : 'bg-slate-50 dark:bg-slate-800 text-slate-400'}`}>
+                                                {summary.currency === 'EUR' ? (
+                                                    <span className="material-icons-round text-2xl">euro</span>
+                                                ) : summary.currency === 'USD' ? (
+                                                    <span className="material-icons-round text-2xl">attach_money</span>
+                                                ) : summary.currency === 'TRY' ? (
+                                                    <span className="material-icons-round text-2xl">currency_lira</span>
+                                                ) : (
+                                                    <span className="material-icons-round text-2xl">receipt_long</span>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col items-end">
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{summary.currency || 'Total'}</span>
+                                                <span className="text-2xl font-black text-slate-900 dark:text-white leading-none mt-1">{summary.bookingCount}</span>
+                                            </div>
+                                        </div>
+                                        <div className="pt-4 border-t border-slate-50 dark:border-slate-800">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">Accumulated Amount</p>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-sm font-bold text-slate-400">{summary.currency || ''}</span>
+                                                <span className="text-xl font-black text-primary tracking-tight">
+                                                    {summary.totalAmountSum?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>

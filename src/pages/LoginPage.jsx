@@ -1,6 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+
+const backgrounds = [
+    '/assets/backgrounds/bg-1.jpg',
+    '/assets/backgrounds/bg-2.jpg',
+    '/assets/backgrounds/bg-3.jpg',
+    '/assets/backgrounds/bg-4.jpg',
+    '/assets/backgrounds/bg-5.jpg'
+];
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -11,6 +19,11 @@ const LoginPage = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+
+    const selectedBg = useMemo(() => {
+        const randomIndex = Math.floor(Math.random() * backgrounds.length);
+        return backgrounds[randomIndex];
+    }, []);
 
     const from = location.state?.from?.pathname || "/dashboard";
 
@@ -36,7 +49,7 @@ const LoginPage = () => {
                 <div className="absolute inset-0 bg-slate-900/40 z-10"></div>
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/20 to-slate-900/90 z-10"></div>
                 <img
-                    src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=2070&auto=format&fit=crop"
+                    src={selectedBg}
                     className="w-full h-full object-cover animate-pan"
                     alt="Luxury Resort Background"
                     onError={(e) => {

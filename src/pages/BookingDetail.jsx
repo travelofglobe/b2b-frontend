@@ -68,14 +68,42 @@ const BookingDetail = () => {
 
     const formatDateTime = (dateTimeString) => {
         if (!dateTimeString) return 'N/A';
-        const date = new Date(dateTimeString);
-        return date.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+
+        try {
+            // Handle timezone format like "2026-01-30T04:52+08:00[Asia/Shanghai]"
+            // Remove the [timezone] part for parsing, but extract it for display
+            let timezoneMatch = dateTimeString.match(/\[([^\]]+)\]/);
+            let timezone = timezoneMatch ? timezoneMatch[1] : null;
+
+            // Remove the [timezone] part for Date parsing
+            let cleanDateString = dateTimeString.replace(/\[([^\]]+)\]/, '');
+
+            const date = new Date(cleanDateString);
+
+            // Check if date is valid
+            if (isNaN(date.getTime())) {
+                return 'Invalid Date';
+            }
+
+            const formattedDate = date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+
+            // Add timezone if available
+            if (timezone) {
+                return `${formattedDate} (${timezone})`;
+            }
+
+            return formattedDate;
+        } catch (error) {
+            console.error('Error formatting date:', dateTimeString, error);
+            return 'Invalid Date';
+        }
     };
 
     const getStatusColor = (status) => {

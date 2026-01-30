@@ -414,7 +414,7 @@ const MyBookings = () => {
                                             type="number"
                                             value={filters.id}
                                             onChange={(e) => handleFilterChange('id', e.target.value)}
-                                            placeholder="Internal ID"
+                                            placeholder="Order ID"
                                             className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                         />
                                         <input
@@ -452,14 +452,14 @@ const MyBookings = () => {
                                             type="number"
                                             value={filters.internalHotelId}
                                             onChange={(e) => handleFilterChange('internalHotelId', e.target.value)}
-                                            placeholder="Internal Hotel ID"
+                                            placeholder="Hotel ID"
                                             className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                         />
                                         <input
                                             type="text"
                                             value={filters.voucher}
                                             onChange={(e) => handleFilterChange('voucher', e.target.value)}
-                                            placeholder="System Voucher"
+                                            placeholder="Voucher"
                                             className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                         />
                                         <input

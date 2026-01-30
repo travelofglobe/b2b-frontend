@@ -25,9 +25,7 @@ const MyBookings = () => {
         voucher: '',
         supplierId: '',
         supplierName: '',
-        supplierVoucher: '',
         internalHotelId: '',
-        supplierHotelId: '',
         bookingUuid: '',
         paymentStatus: '',
         bookingStatus: '',
@@ -42,7 +40,7 @@ const MyBookings = () => {
         checkOutEnd: '',
         minAmount: '',
         maxAmount: '',
-        currencies: '',
+        currencies: [],
         principalAgencyIds: '',
         minCancellationAmount: '',
         maxCancellationAmount: '',
@@ -84,7 +82,7 @@ const MyBookings = () => {
             const filterObj = {};
             Object.keys(filters).forEach(key => {
                 const value = filters[key];
-                if (value === '' || value === null || value === undefined) {
+                if (value === '' || value === null || value === undefined || (Array.isArray(value) && value.length === 0)) {
                     filterObj[key] = null;
                 } else {
                     // Handle numeric fields
@@ -107,8 +105,8 @@ const MyBookings = () => {
                         filterObj[key] = value + 'T23:59:59';
                     }
                     // Handle List fields
-                    else if (key === 'currencies' && value) {
-                        filterObj[key] = value.split(',').map(c => c.trim().toUpperCase());
+                    else if (key === 'currencies' && Array.isArray(value) && value.length > 0) {
+                        filterObj[key] = value;
                     }
                     else if (key === 'principalAgencyIds' && value) {
                         filterObj[key] = value.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
@@ -123,9 +121,11 @@ const MyBookings = () => {
             const data = await bookingService.searchBookings(filterObj, page, pageSize, signal);
 
             if (!signal?.aborted) {
-                setBookings(data.content || []);
-                setTotalPages(data.totalPages || 0);
-                setTotalElements(data.totalElements || 0);
+                // Extract data from nested structure: data.bookings contains pagination info
+                const bookingsData = data.bookings || {};
+                setBookings(bookingsData.content || []);
+                setTotalPages(bookingsData.totalPages || 0);
+                setTotalElements(bookingsData.totalElements || 0);
                 setSummaries(data.summaries || []);
             }
         } catch (error) {
@@ -154,9 +154,7 @@ const MyBookings = () => {
             voucher: '',
             supplierId: '',
             supplierName: '',
-            supplierVoucher: '',
             internalHotelId: '',
-            supplierHotelId: '',
             bookingUuid: '',
             paymentStatus: '',
             bookingStatus: '',
@@ -171,7 +169,7 @@ const MyBookings = () => {
             checkOutEnd: '',
             minAmount: '',
             maxAmount: '',
-            currencies: '',
+            currencies: [],
             principalAgencyIds: '',
             minCancellationAmount: '',
             maxCancellationAmount: '',
@@ -450,22 +448,13 @@ const MyBookings = () => {
                                             placeholder="Hotel Name"
                                             className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                         />
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <input
-                                                type="number"
-                                                value={filters.internalHotelId}
-                                                onChange={(e) => handleFilterChange('internalHotelId', e.target.value)}
-                                                placeholder="Int Hotel ID"
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                            />
-                                            <input
-                                                type="number"
-                                                value={filters.supplierHotelId}
-                                                onChange={(e) => handleFilterChange('supplierHotelId', e.target.value)}
-                                                placeholder="Sup Hotel ID"
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                            />
-                                        </div>
+                                        <input
+                                            type="number"
+                                            value={filters.internalHotelId}
+                                            onChange={(e) => handleFilterChange('internalHotelId', e.target.value)}
+                                            placeholder="Internal Hotel ID"
+                                            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        />
                                         <input
                                             type="text"
                                             value={filters.voucher}
@@ -475,9 +464,9 @@ const MyBookings = () => {
                                         />
                                         <input
                                             type="text"
-                                            value={filters.supplierVoucher}
-                                            onChange={(e) => handleFilterChange('supplierVoucher', e.target.value)}
-                                            placeholder="Supplier Voucher"
+                                            value={filters.clientReferenceId}
+                                            onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)}
+                                            placeholder="Client Reference ID"
                                             className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                         />
                                     </div>
@@ -598,23 +587,51 @@ const MyBookings = () => {
                                                 <option value="FAILED">Failed</option>
                                             </select>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-2">
+                                        <select
+                                            value={filters.isCancelled}
+                                            onChange={(e) => handleFilterChange('isCancelled', e.target.value)}
+                                            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        >
+                                            <option value="">Is Cancelled?</option>
+                                            <option value="true">Yes</option>
+                                            <option value="false">No</option>
+                                        </select>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold text-slate-400 ml-1">Currencies (Multi-select)</label>
                                             <select
-                                                value={filters.isCancelled}
-                                                onChange={(e) => handleFilterChange('isCancelled', e.target.value)}
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                            >
-                                                <option value="">Is Cancelled?</option>
-                                                <option value="true">Yes</option>
-                                                <option value="false">No</option>
-                                            </select>
-                                            <input
-                                                type="text"
+                                                multiple
                                                 value={filters.currencies}
-                                                onChange={(e) => handleFilterChange('currencies', e.target.value)}
-                                                placeholder="Currencies"
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-4 text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                            />
+                                                onChange={(e) => {
+                                                    const selected = Array.from(e.target.selectedOptions, option => option.value);
+                                                    handleFilterChange('currencies', selected);
+                                                }}
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all min-h-[100px]"
+                                            >
+                                                <option value="EUR">EUR - Euro</option>
+                                                <option value="USD">USD - US Dollar</option>
+                                                <option value="GBP">GBP - British Pound</option>
+                                                <option value="TRY">TRY - Turkish Lira</option>
+                                                <option value="AED">AED - UAE Dirham</option>
+                                                <option value="SAR">SAR - Saudi Riyal</option>
+                                                <option value="CHF">CHF - Swiss Franc</option>
+                                                <option value="JPY">JPY - Japanese Yen</option>
+                                                <option value="CNY">CNY - Chinese Yuan</option>
+                                            </select>
+                                            {filters.currencies.length > 0 && (
+                                                <div className="flex flex-wrap gap-1 mt-2">
+                                                    {filters.currencies.map(currency => (
+                                                        <span key={currency} className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-bold">
+                                                            {currency}
+                                                            <button
+                                                                onClick={() => handleFilterChange('currencies', filters.currencies.filter(c => c !== currency))}
+                                                                className="hover:text-red-500 transition-colors"
+                                                            >
+                                                                ×
+                                                            </button>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                         <input
                                             type="text"
@@ -751,7 +768,11 @@ const MyBookings = () => {
                                         </tr>
                                     ) : (
                                         bookings.map((booking) => (
-                                            <tr key={booking.bookingId} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group border-b border-slate-100 dark:border-slate-800 last:border-0">
+                                            <tr
+                                                key={booking.bookingId}
+                                                onClick={() => navigate(`/bookings/${booking.bookingId}`)}
+                                                className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group border-b border-slate-100 dark:border-slate-800 last:border-0 cursor-pointer"
+                                            >
                                                 {/* Identifiers */}
                                                 <td className="px-6 py-5">
                                                     <div className="flex flex-col gap-1">

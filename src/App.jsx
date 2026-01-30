@@ -5,6 +5,7 @@ import HotelDetail from './pages/HotelDetail';
 import MapView from './pages/MapView';
 import Dashboard from './pages/Dashboard';
 import MyBookings from './pages/MyBookings';
+import BookingDetail from './pages/BookingDetail';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -22,6 +23,7 @@ function App() {
             <Route path="/map" element={<ProtectedRoute><MapView /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+            <Route path="/bookings/:bookingId" element={<ProtectedRoute><BookingDetail /></ProtectedRoute>} />
             {/* Redirect root to hotels (ProtectedRoute will handle auth check) */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>

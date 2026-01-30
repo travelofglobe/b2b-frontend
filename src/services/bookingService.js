@@ -26,8 +26,10 @@ export const bookingService = {
 
             return data;
         } catch (error) {
-            console.error('Fetch bookings error:', error);
-            throw error;
+            if (error.name !== 'AbortError') {
+                console.error('Fetch bookings error:', error);
+                throw error;
+            }
         }
     },
 
@@ -58,8 +60,42 @@ export const bookingService = {
 
             return data;
         } catch (error) {
-            console.error('Search bookings error:', error);
-            throw error;
+            if (error.name !== 'AbortError') {
+                console.error('Search bookings error:', error);
+                throw error;
+            }
+        }
+    },
+
+    getBookingDetail: async (bookingId, signal) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+
+            if (!token) {
+                throw new Error('No access token found');
+            }
+
+            const response = await fetch(`${BOOKING_API_URL}/detail/${bookingId}`, {
+                method: 'GET',
+                headers: {
+                    'Accept-Language': 'en-us',
+                    'Authorization': `Bearer ${token}`,
+                },
+                signal
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch booking detail');
+            }
+
+            return data;
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                console.error('Fetch booking detail error:', error);
+                throw error;
+            }
         }
     }
 };

@@ -90,7 +90,7 @@ const LoginPage = () => {
                 {/* Right Side: Login Card */}
                 <div className="lg:col-span-1"></div> { /* Spacer */}
                 <div className="lg:col-span-4 w-full">
-                    <div className="bg-slate-900/60 backdrop-blur-3xl rounded-[32px] border border-white/10 shadow-[0_32px_96px_-16px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in duration-700">
+                    <div className="bg-slate-900/30 backdrop-blur-2xl rounded-[32px] border border-white/20 shadow-[0_32px_96px_-16px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in duration-700">
                         {/* Card Header */}
                         <div className="p-8 pb-0 text-center">
                             <h2 className="text-2xl font-black text-white mb-2">Welcome Back</h2>

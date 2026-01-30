@@ -183,14 +183,89 @@ const BookingDetail = () => {
                         </div>
                     </header>
 
-                    <div className="flex-1 overflow-auto p-6 flex items-center justify-center">
+                    <div className="flex-1 overflow-auto p-6">
                         {loading ? (
-                            <div className="flex items-center gap-2 text-slate-500">
-                                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                Loading booking details...
+                            <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
+                                {/* Booking Overview Skeleton */}
+                                <div className="bg-white dark:bg-slate-900 rounded-[28px] border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse"></div>
+                                        <div className="flex-1 space-y-2">
+                                            <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-48 animate-pulse"></div>
+                                            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-lg w-64 animate-pulse"></div>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {[...Array(6)].map((_, i) => (
+                                            <div key={i} className="space-y-2">
+                                                <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-24 animate-pulse"></div>
+                                                <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-32 animate-pulse"></div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Hotel Information Skeleton */}
+                                <div className="bg-white dark:bg-slate-900 rounded-[28px] border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse"></div>
+                                        <div className="flex-1 space-y-2">
+                                            <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-40 animate-pulse"></div>
+                                            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-lg w-56 animate-pulse"></div>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                        {[...Array(3)].map((_, i) => (
+                                            <div key={i} className="space-y-2">
+                                                <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-28 animate-pulse"></div>
+                                                <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-full animate-pulse"></div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
+                                        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-40 mb-4 animate-pulse"></div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {[...Array(3)].map((_, i) => (
+                                                <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                                                    <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse"></div>
+                                                    <div className="flex-1 space-y-2">
+                                                        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-16 animate-pulse"></div>
+                                                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-32 animate-pulse"></div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Room Skeleton */}
+                                <div className="bg-white dark:bg-slate-900 rounded-[28px] border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse"></div>
+                                        <div className="flex-1 space-y-2">
+                                            <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-56 animate-pulse"></div>
+                                            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-lg w-32 animate-pulse"></div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-24 animate-pulse"></div>
+                                        <div className="space-y-3">
+                                            {[...Array(2)].map((_, i) => (
+                                                <div key={i} className="h-12 bg-slate-50 dark:bg-slate-800/50 rounded-xl animate-pulse"></div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Loading Indicator */}
+                                <div className="flex items-center justify-center gap-3 py-4">
+                                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                </div>
                             </div>
                         ) : error ? (
-                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-2xl p-8 max-w-md text-center">
+                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-2xl p-8 max-w-md text-center mx-auto">
                                 <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <span className="material-icons-round text-red-500 text-4xl">error</span>
                                 </div>
@@ -495,7 +570,7 @@ const BookingDetail = () => {
                                 {room.rates && room.rates.length > 0 && room.rates.map((rate, rateIndex) => (
                                     <div key={rateIndex} className="border-t border-slate-100 dark:border-slate-800 pt-6 mt-6">
                                         <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider mb-4">Rate Details</h3>
-                                        
+
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                                             <div className="space-y-1">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Board Type</p>

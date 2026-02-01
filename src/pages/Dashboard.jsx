@@ -461,7 +461,15 @@ const Dashboard = () => {
                                         bookings.map((booking) => (
                                             <tr key={booking.bookingId} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                                                 <td className="px-4 py-3 text-xs font-medium">
-                                                    #{booking.bookingId}
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigate(`/bookings/${booking.bookingId}`);
+                                                        }}
+                                                        className="text-primary hover:text-blue-700 hover:underline font-bold transition-colors"
+                                                    >
+                                                        #{booking.bookingId}
+                                                    </button>
                                                 </td>
                                                 <td className="px-4 py-3 text-xs font-medium">
                                                     {booking.voucher || '-'}

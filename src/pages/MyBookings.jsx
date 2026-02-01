@@ -728,7 +728,7 @@ const MyBookings = () => {
                                     <tr className="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-800">
                                         <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Identifiers</th>
                                         <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Booking Info</th>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Agency & Supplier</th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Agency</th>
                                         <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Timeline</th>
                                         <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Financials</th>
                                         <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
@@ -790,12 +790,12 @@ const MyBookings = () => {
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-3 mt-1 px-1">
-                                                            <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">Sys: <span className="font-bold text-slate-600 dark:text-slate-300">{booking.voucher || '-'}</span></span>
-                                                            <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">Sup: <span className="font-bold text-slate-600 dark:text-slate-300">{booking.supplierVoucher || '-'}</span></span>
+                                                            <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">Voucher: <span className="font-bold text-slate-600 dark:text-slate-300">{booking.voucher || '-'}</span></span>
+
                                                         </div>
                                                         <div className="flex items-center gap-2 mt-1 px-1">
-                                                            <span className="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">INT: {booking.internalHotelId}</span>
-                                                            <span className="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">SUP: {booking.supplierHotelId}</span>
+                                                            <span className="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">Hotel ID: {booking.internalHotelId}</span>
+
                                                         </div>
                                                     </div>
                                                 </td>
@@ -814,11 +814,7 @@ const MyBookings = () => {
                                                                 <span className="text-[10px] font-bold text-slate-400 tracking-tighter uppercase">ID: {booking.principalAgencyId}</span>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 px-1 py-1 rounded-lg bg-orange-50/50 dark:bg-orange-900/10 w-fit">
-                                                            <span className="material-icons-round text-orange-400 text-[14px]">business</span>
-                                                            <span className="text-[11px] font-bold text-orange-600 dark:text-orange-400">{booking.supplierName}</span>
-                                                            <span className="text-[10px] text-orange-400/70 font-medium">#{booking.supplierId}</span>
-                                                        </div>
+
                                                     </div>
                                                 </td>
 

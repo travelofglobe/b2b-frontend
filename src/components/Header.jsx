@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../context/AuthContext';
+import HeaderSearch from './HeaderSearch';
 
 const Header = () => {
     const { user, logout } = useAuth();
@@ -38,35 +39,8 @@ const Header = () => {
                         <h2 className="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight">Travel of Globe</h2>
                     </Link>
                     {/* Search Bar in Header */}
-                    <div className="hidden xl:flex items-center bg-slate-100 dark:bg-[#233648] rounded-xl px-2 py-1 gap-2 border border-slate-200 dark:border-transparent">
-                        <div className="flex items-center px-3 border-r border-slate-300 dark:border-slate-600">
-                            <span className="material-symbols-outlined text-slate-400 text-xl mr-2">location_on</span>
-                            <input
-                                className="bg-transparent border-none focus:ring-0 text-sm w-32 placeholder:text-slate-500"
-                                placeholder="Where to?"
-                                type="text"
-                            />
-                        </div>
-                        <div className="flex items-center px-3 border-r border-slate-300 dark:border-slate-600">
-                            <span className="material-symbols-outlined text-slate-400 text-xl mr-2">calendar_month</span>
-                            <input
-                                className="bg-transparent border-none focus:ring-0 text-sm w-32 placeholder:text-slate-500"
-                                placeholder="Dates"
-                                type="text"
-                            />
-                        </div>
-                        <div className="flex items-center px-3">
-                            <span className="material-symbols-outlined text-slate-400 text-xl mr-2">group</span>
-                            <input
-                                className="bg-transparent border-none focus:ring-0 text-sm w-20 placeholder:text-slate-500"
-                                placeholder="Guests"
-                                type="text"
-                            />
-                        </div>
-                        <button className="bg-primary text-white p-2 rounded-lg hover:bg-primary/90 transition-colors">
-                            <span className="material-symbols-outlined">search</span>
-                        </button>
-                    </div>
+                    {/* Search Bar in Header */}
+                    <HeaderSearch />
                 </div>
                 <div className="flex items-center gap-6">
                     <nav className="hidden md:flex items-center gap-6">

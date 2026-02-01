@@ -1,33 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { autocompleteService } from '../services/autocompleteService';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
 
-const DashboardSearch = () => {
+const DashboardSearch = ({ initialQuery = '' }) => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+
+    // Initialize state from URL params or defaults
     const [query, setQuery] = useState(() => {
-        return localStorage.getItem('dashboard_last_search') || '';
+        return initialQuery || searchParams.get('q') || localStorage.getItem('dashboard_last_search') || '';
     });
     const [results, setResults] = useState({ hotels: [], regions: [] });
     const [loading, setLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
-
-    // ... (rest of the state)
-
-    // Debounce search
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            if (query.length >= 3) {
-                fetchResults();
-            } else {
-                setResults({ hotels: [], regions: [] });
-            }
-        }, 300);
-
-        return () => clearTimeout(timeoutId);
-    }, [query]);
 
     // Default dates: Check-in tomorrow, Check-out day after tomorrow
     const tomorrow = new Date();
@@ -35,13 +23,28 @@ const DashboardSearch = () => {
     const dayAfter = new Date(tomorrow);
     dayAfter.setDate(dayAfter.getDate() + 1);
 
-    const [checkInDate, setCheckInDate] = useState(tomorrow);
-    const [checkOutDate, setCheckOutDate] = useState(dayAfter);
+    const [checkInDate, setCheckInDate] = useState(() => {
+        const checkinParam = searchParams.get('checkin');
+        return checkinParam ? new Date(checkinParam) : tomorrow;
+    });
+    const [checkOutDate, setCheckOutDate] = useState(() => {
+        const checkoutParam = searchParams.get('checkout');
+        return checkoutParam ? new Date(checkoutParam) : dayAfter;
+    });
 
-    const [adults, setAdults] = useState(2);
-    const [children, setChildren] = useState(0);
-    const [childrenAges, setChildrenAges] = useState([]);
-    const [rooms, setRooms] = useState(1);
+    const [adults, setAdults] = useState(() => {
+        return parseInt(searchParams.get('adult')) || 2;
+    });
+    const [children, setChildren] = useState(() => {
+        return parseInt(searchParams.get('children')) || 0;
+    });
+    const [childrenAges, setChildrenAges] = useState(() => {
+        const agesParam = searchParams.get('child_ages');
+        return agesParam ? agesParam.split(',').map(Number) : [];
+    });
+    const [rooms, setRooms] = useState(() => {
+        return parseInt(searchParams.get('room')) || 1;
+    });
     const [showGuestDropdown, setShowGuestDropdown] = useState(false);
 
     const searchWrapperRef = useRef(null);

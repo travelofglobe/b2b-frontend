@@ -43,10 +43,7 @@ const Header = () => {
                     <HeaderSearch />
                 </div>
                 <div className="flex items-center gap-6">
-                    <nav className="hidden md:flex items-center gap-6">
-                        <Link className={`text-sm font-semibold transition-colors ${!isMap ? 'text-primary' : 'text-slate-600 dark:text-slate-300 hover:text-primary'}`} to="/">Stays</Link>
-                        <a className="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Flights</a>
-                    </nav>
+
                     <div className="flex items-center gap-3 border-l border-slate-200 dark:border-slate-700 pl-6">
                         <ThemeToggle />
                         {!user ? (

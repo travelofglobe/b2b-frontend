@@ -347,6 +347,35 @@ const MapView = () => {
                         <button className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-5 rounded-[24px] shadow-2xl border border-white/20 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-primary active:scale-95 transition-all">
                             <span className="material-symbols-outlined font-black">near_me</span>
                         </button>
+
+                        {/* Navigation Controls */}
+                        <div className="flex flex-col gap-3 mt-4">
+                            <button
+                                onClick={() => window.history.back()}
+                                className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl p-4 rounded-[20px] shadow-xl border border-white/20 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-800 active:scale-95 transition-all group flex items-center justify-center relative"
+                            >
+                                <span className="material-symbols-outlined font-black group-hover:-translate-x-1 transition-transform">arrow_back</span>
+
+                                {/* Modern Tooltip */}
+                                <div className="absolute right-full mr-4 px-3 py-2 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none shadow-xl z-50">
+                                    Back to List
+                                    <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
+                                </div>
+                            </button>
+
+                            <a
+                                href="/"
+                                className="bg-primary/90 backdrop-blur-xl p-4 rounded-[20px] shadow-xl shadow-primary/30 border border-white/20 text-white hover:bg-primary active:scale-95 transition-all group flex items-center justify-center relative"
+                            >
+                                <span className="material-symbols-outlined font-black group-hover:rotate-12 transition-transform">grid_view</span>
+
+                                {/* Modern Tooltip */}
+                                <div className="absolute right-full mr-4 px-3 py-2 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none shadow-xl z-50">
+                                    Dashboard
+                                    <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
+                                </div>
+                            </a>
+                        </div>
                     </div>
 
                     {/* Sidebar Toggle Action Bar */}

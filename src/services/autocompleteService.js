@@ -9,6 +9,9 @@ export const autocompleteService = {
                 throw new Error('No access token found');
             }
 
+            // DEBUG: Log payload
+            console.log('Autocomplete Request Payload:', JSON.stringify({ query, types }));
+
             const response = await fetch(`${AUTOCOMPLETE_API_URL}/search?page=0&size=10`, {
                 method: 'POST',
                 headers: {
@@ -16,19 +19,23 @@ export const autocompleteService = {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    query,
-                    types
-                }),
+                body: JSON.stringify({ query, types }),
                 signal
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
-                throw new Error(data.message || 'Failed to fetch autocomplete results');
+                const errorText = await response.text();
+                console.error('Autocomplete API Error Status:', response.status);
+                console.error('Autocomplete API Error Body:', errorText);
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    throw new Error(errorJson.message || `API Error: ${response.status}`);
+                } catch (e) {
+                    throw new Error(`API Error: ${response.status} - ${errorText}`);
+                }
             }
 
+            const data = await response.json();
             return data;
         } catch (error) {
             if (error.name !== 'AbortError') {

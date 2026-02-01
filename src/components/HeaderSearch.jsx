@@ -51,11 +51,17 @@ const HeaderSearch = () => {
 
     const searchWrapperRef = useRef(null);
     const guestWrapperRef = useRef(null);
+    const isUserInteraction = useRef(false);
 
     // -- Effects --
 
     // Debounce search
     useEffect(() => {
+        // Only search if the user has interacted (typed)
+        if (!isUserInteraction.current) {
+            return;
+        }
+
         const timeoutId = setTimeout(() => {
             if (query && query.length >= 3) {
                 fetchResults();
@@ -157,7 +163,10 @@ const HeaderSearch = () => {
                     placeholder="Where to?"
                     type="text"
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => {
+                        isUserInteraction.current = true;
+                        setQuery(e.target.value);
+                    }}
                     onFocus={() => { if (results.hotels.length || results.regions.length) setShowDropdown(true); }}
                 />
 

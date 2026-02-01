@@ -151,6 +151,13 @@ const BookingDetail = () => {
     if (loading || error || !booking) {
         return (
             <div className="flex h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200 font-sans overflow-hidden">
+                {/* Top Progress Bar */}
+                {loading && (
+                    <div className="fixed top-0 left-0 w-full h-1 z-[9999]">
+                        <div className="h-full bg-primary animate-progress-indeterminate origin-left"></div>
+                    </div>
+                )}
+
                 <aside className="w-60 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hidden lg:flex flex-col flex-shrink-0">
                     <div className="p-3 flex items-center gap-2">
                         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
@@ -176,7 +183,7 @@ const BookingDetail = () => {
                     </nav>
                 </aside>
 
-                <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 flex flex-col overflow-hidden relative">
                     <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-8 py-5 flex-shrink-0">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
@@ -189,7 +196,7 @@ const BookingDetail = () => {
                                 <div>
                                     <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Booking Details</h1>
                                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                        {loading ? 'Loading...' : error ? 'Error loading booking' : 'Booking information'}
+                                        {loading ? 'Fetching data...' : error ? 'Error loading booking' : 'Booking information'}
                                     </p>
                                 </div>
                             </div>
@@ -199,21 +206,21 @@ const BookingDetail = () => {
 
                     <div className="flex-1 overflow-auto p-6">
                         {loading ? (
-                            <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
+                            <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
                                 {/* Booking Overview Skeleton */}
                                 <div className="bg-white dark:bg-slate-900 rounded-[28px] border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
                                     <div className="flex items-center gap-3 mb-6">
-                                        <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse"></div>
+                                        <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800"></div>
                                         <div className="flex-1 space-y-2">
-                                            <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-48 animate-pulse"></div>
-                                            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-lg w-64 animate-pulse"></div>
+                                            <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-48"></div>
+                                            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-lg w-64"></div>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         {[...Array(6)].map((_, i) => (
                                             <div key={i} className="space-y-2">
-                                                <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-24 animate-pulse"></div>
-                                                <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-32 animate-pulse"></div>
+                                                <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-24"></div>
+                                                <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-32"></div>
                                             </div>
                                         ))}
                                     </div>
@@ -222,75 +229,37 @@ const BookingDetail = () => {
                                 {/* Hotel Information Skeleton */}
                                 <div className="bg-white dark:bg-slate-900 rounded-[28px] border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
                                     <div className="flex items-center gap-3 mb-6">
-                                        <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse"></div>
+                                        <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800"></div>
                                         <div className="flex-1 space-y-2">
-                                            <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-40 animate-pulse"></div>
-                                            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-lg w-56 animate-pulse"></div>
+                                            <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-40"></div>
+                                            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-lg w-56"></div>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                         {[...Array(3)].map((_, i) => (
                                             <div key={i} className="space-y-2">
-                                                <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-28 animate-pulse"></div>
-                                                <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-full animate-pulse"></div>
+                                                <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-28"></div>
+                                                <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded w-full"></div>
                                             </div>
                                         ))}
                                     </div>
-                                    <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
-                                        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-40 mb-4 animate-pulse"></div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {[...Array(3)].map((_, i) => (
-                                                <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                                                    <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-700 animate-pulse"></div>
-                                                    <div className="flex-1 space-y-2">
-                                                        <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-16 animate-pulse"></div>
-                                                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-32 animate-pulse"></div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Room Skeleton */}
-                                <div className="bg-white dark:bg-slate-900 rounded-[28px] border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse"></div>
-                                        <div className="flex-1 space-y-2">
-                                            <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-56 animate-pulse"></div>
-                                            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-lg w-32 animate-pulse"></div>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-24 animate-pulse"></div>
-                                        <div className="space-y-3">
-                                            {[...Array(2)].map((_, i) => (
-                                                <div key={i} className="h-12 bg-slate-50 dark:bg-slate-800/50 rounded-xl animate-pulse"></div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Loading Indicator */}
-                                <div className="flex items-center justify-center gap-3 py-4">
-                                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                                 </div>
                             </div>
                         ) : error ? (
-                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-2xl p-8 max-w-md text-center mx-auto">
-                                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <span className="material-icons-round text-red-500 text-4xl">error</span>
+                            <div className="flex items-center justify-center h-full">
+                                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-2xl p-8 max-w-md text-center mx-auto shadow-lg">
+                                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-300">
+                                        <span className="material-icons-round text-red-500 text-4xl">error_outline</span>
+                                    </div>
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Unavailable</h3>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{error}</p>
+                                    <button
+                                        onClick={() => navigate('/bookings')}
+                                        className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-all shadow-lg shadow-primary/20 active:scale-95"
+                                    >
+                                        Back to Bookings
+                                    </button>
                                 </div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Failed to Load Booking</h3>
-                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{error}</p>
-                                <button
-                                    onClick={() => navigate('/bookings')}
-                                    className="px-6 py-2 bg-primary text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-colors"
-                                >
-                                    Back to Bookings
-                                </button>
                             </div>
                         ) : null}
                     </div>

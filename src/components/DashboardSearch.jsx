@@ -23,13 +23,22 @@ const DashboardSearch = ({ initialQuery = '' }) => {
     const dayAfter = new Date(tomorrow);
     dayAfter.setDate(dayAfter.getDate() + 1);
 
+    const parseDateParam = (param) => {
+        if (!param) return null;
+        const [day, month, year] = param.split('-').map(Number);
+        if (day && month && year) {
+            return new Date(year, month - 1, day);
+        }
+        return null;
+    };
+
     const [checkInDate, setCheckInDate] = useState(() => {
         const checkinParam = searchParams.get('checkin');
-        return checkinParam ? new Date(checkinParam) : tomorrow;
+        return parseDateParam(checkinParam) || tomorrow;
     });
     const [checkOutDate, setCheckOutDate] = useState(() => {
         const checkoutParam = searchParams.get('checkout');
-        return checkoutParam ? new Date(checkoutParam) : dayAfter;
+        return parseDateParam(checkoutParam) || dayAfter;
     });
 
     const [adults, setAdults] = useState(() => {
@@ -96,7 +105,11 @@ const DashboardSearch = ({ initialQuery = '' }) => {
     };
 
     const formatDateForUrl = (date) => {
-        return date.toISOString().split('T')[0];
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}-${month}-${year}`;
     };
 
     const getUrlParams = () => {
@@ -260,7 +273,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                                 minDate={new Date()}
                                 monthsShown={2}
                                 className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white font-bold cursor-pointer placeholder-slate-400"
-                                dateFormat="dd MMM yyyy"
+                                dateFormat="dd-MM-yyyy"
                                 placeholderText="Select dates"
                                 dayClassName={(date) => {
                                     const day = date.getDay();

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { bookingService } from '../services/bookingService';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/ThemeToggle';
+import BookingStatusBadge from '../components/BookingStatusBadge';
+import { BOOKING_STATUS_CONFIG } from '../utils/bookingStatusUtils';
 
 const MyBookings = () => {
     const navigate = useNavigate();
@@ -215,20 +217,7 @@ const MyBookings = () => {
         });
     };
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'CONFIRMED':
-                return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400';
-            case 'NEW':
-                return 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400';
-            case 'ERROR':
-                return 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400';
-            case 'CANCELLED':
-                return 'bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400';
-            default:
-                return 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400';
-        }
-    };
+
 
     const getPaymentStatusColor = (status) => {
         switch (status) {
@@ -571,10 +560,11 @@ const MyBookings = () => {
                                                 className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                                             >
                                                 <option value="">Status</option>
-                                                <option value="CONFIRMED">Confirmed</option>
-                                                <option value="NEW">New</option>
-                                                <option value="ERROR">Error</option>
-                                                <option value="CANCELLED">Cancelled</option>
+                                                {Object.entries(BOOKING_STATUS_CONFIG).map(([key, config]) => (
+                                                    <option key={key} value={key}>
+                                                        {config.label}
+                                                    </option>
+                                                ))}
                                             </select>
                                             <select
                                                 value={filters.paymentStatus}
@@ -880,9 +870,8 @@ const MyBookings = () => {
                                                 {/* Status */}
                                                 <td className="px-6 py-5">
                                                     <div className="flex flex-col gap-2 items-end">
-                                                        <span className={`px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.1em] shadow-sm border ${getStatusColor(booking.bookingStatus)} border-current/10`}>
-                                                            {booking.bookingStatus}
-                                                        </span>
+                                                        <BookingStatusBadge status={booking.bookingStatus} className="shadow-sm border border-current/10" />
+
                                                         <span className={`px-2.5 py-1 rounded-xl text-[9px] font-bold uppercase tracking-tight ${getPaymentStatusColor(booking.paymentStatus)}`}>
                                                             {booking.paymentStatus?.replace('_', ' ')}
                                                         </span>

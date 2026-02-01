@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { bookingService } from '../services/bookingService';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/ThemeToggle';
+import BookingStatusBadge from '../components/BookingStatusBadge';
 
 const BookingDetail = () => {
     const { bookingId } = useParams();
@@ -106,22 +107,7 @@ const BookingDetail = () => {
         }
     };
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'CONFIRMED':
-                return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400';
-            case 'NEW':
-                return 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400';
-            case 'ERROR':
-                return 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400';
-            case 'CANCELLED':
-                return 'bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400';
-            case 'ACTIVE':
-                return 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400';
-            default:
-                return 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400';
-        }
-    };
+
 
     const getPaymentStatusColor = (status) => {
         switch (status) {
@@ -434,9 +420,8 @@ const BookingDetail = () => {
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</p>
-                                    <span className={`inline-block px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${getStatusColor(booking.status)}`}>
-                                        {booking.status}
-                                    </span>
+                                    <BookingStatusBadge status={booking.status} className="px-3 py-1 rounded-xl text-[10px]" showIcon />
+
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Status</p>
@@ -497,9 +482,8 @@ const BookingDetail = () => {
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Booking Status</p>
-                                        <span className={`inline-block px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${getStatusColor(booking.hotel.bookingStatus)}`}>
-                                            {booking.hotel.bookingStatus}
-                                        </span>
+                                        <BookingStatusBadge status={booking.hotel.bookingStatus} className="px-3 py-1 rounded-xl text-[10px]" showIcon />
+
                                     </div>
                                 </div>
 
@@ -715,9 +699,8 @@ const BookingDetail = () => {
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</p>
-                                        <span className={`inline-block px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${getStatusColor(booking.audit.status)}`}>
-                                            {booking.audit.status}
-                                        </span>
+                                        <BookingStatusBadge status={booking.audit.status} className="px-3 py-1 rounded-xl text-[10px]" showIcon />
+
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Version</p>

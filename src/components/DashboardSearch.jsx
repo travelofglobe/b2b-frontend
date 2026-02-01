@@ -39,6 +39,8 @@ const DashboardSearch = () => {
     const [checkOutDate, setCheckOutDate] = useState(dayAfter);
 
     const [adults, setAdults] = useState(2);
+    const [children, setChildren] = useState(0);
+    const [childrenAges, setChildrenAges] = useState([]);
     const [rooms, setRooms] = useState(1);
     const [showGuestDropdown, setShowGuestDropdown] = useState(false);
 
@@ -94,6 +96,17 @@ const DashboardSearch = () => {
         return date.toISOString().split('T')[0];
     };
 
+    const getUrlParams = () => {
+        let params = `checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&adult=${adults}&room=${rooms}`;
+        if (children > 0) {
+            params += `&children=${children}`;
+            if (childrenAges.length > 0) {
+                params += `&child_ages=${childrenAges.join(',')}`;
+            }
+        }
+        return params;
+    };
+
     const handleSearch = () => {
         if (!query.trim()) {
             setError(true);
@@ -104,7 +117,7 @@ const DashboardSearch = () => {
         if (query) {
             localStorage.setItem('dashboard_last_search', query);
             const slug = query.toLowerCase().replace(/ /g, '-');
-            navigate(`/hotels/${slug}?checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&adult=${adults}&room=${rooms}`);
+            navigate(`/hotels/${slug}?${getUrlParams()}`);
         }
     };
 
@@ -113,15 +126,13 @@ const DashboardSearch = () => {
         const name = location.name.translations.en || Object.values(location.name.translations)[0] || 'destination';
         localStorage.setItem('dashboard_last_search', name);
         const slug = name.toLowerCase().replace(/ /g, '-');
-        const url = `/hotels/${slug}?checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&adult=${adults}&room=${rooms}`;
-        navigate(url);
+        navigate(`/hotels/${slug}?${getUrlParams()}`);
     };
 
     const handleSelectHotel = (hotel) => {
         const name = getHotelName(hotel);
         localStorage.setItem('dashboard_last_search', name);
-        const url = `/hotel/${hotel.url}?checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&adult=${adults}&room=${rooms}`;
-        navigate(url);
+        navigate(`/hotel/${hotel.url}?${getUrlParams()}`);
     };
 
     // Helper to get Hotel Name
@@ -177,7 +188,7 @@ const DashboardSearch = () => {
 
                     {/* Autocomplete Dropdown */}
                     {showDropdown && (results.hotels.length > 0 || results.regions.length > 0) && (
-                        <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-2xl max-h-80 overflow-y-auto z-50">
+                        <div className="absolute top-full left-0 w-full md:w-[450px] mt-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-2xl max-h-80 overflow-y-auto z-50">
                             {results.regions.length > 0 && (
                                 <div className="p-2">
                                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">Destinations</div>
@@ -266,16 +277,25 @@ const DashboardSearch = () => {
                         className="w-full flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-transparent focus:border-primary hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all text-left"
                     >
                         <span className="material-icons-round text-slate-400 text-lg">group</span>
-                        <span className="text-xs flex-1 font-medium text-slate-900 dark:text-white">
-                            {adults} Adults, {rooms} Room{rooms > 1 ? 's' : ''}
-                        </span>
+                        <div className="flex flex-col flex-1 items-start overflow-hidden">
+                            <span className="text-xs font-medium text-slate-900 dark:text-white truncate w-full">
+                                {adults} Adults, {children} Child{children !== 1 ? 'ren' : ''}
+                            </span>
+                            <span className="text-[10px] text-slate-500 truncate w-full">
+                                {rooms} Room{rooms > 1 ? 's' : ''}
+                            </span>
+                        </div>
                         <span className="material-icons-round text-slate-400 text-base">expand_more</span>
                     </button>
 
                     {showGuestDropdown && (
-                        <div className="absolute top-full right-0 w-64 mt-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-xl p-4 z-50">
+                        <div className="absolute top-full right-0 w-80 mt-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-xl p-4 z-50">
+                            {/* Adults */}
                             <div className="flex items-center justify-between mb-4">
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Adults</span>
+                                <div>
+                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">Adults</div>
+                                    <div className="text-[10px] text-slate-400">Age 18+</div>
+                                </div>
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={() => setAdults(Math.max(1, adults - 1))}
@@ -283,7 +303,7 @@ const DashboardSearch = () => {
                                     >
                                         <span className="material-icons-round text-sm">remove</span>
                                     </button>
-                                    <span className="w-4 text-center text-sm font-bold">{adults}</span>
+                                    <span className="w-6 text-center text-sm font-bold">{adults}</span>
                                     <button
                                         onClick={() => setAdults(Math.min(10, adults + 1))}
                                         className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
@@ -292,8 +312,70 @@ const DashboardSearch = () => {
                                     </button>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Rooms</span>
+
+                            {/* Children */}
+                            <div className="flex items-center justify-between mb-4">
+                                <div>
+                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">Children</div>
+                                    <div className="text-[10px] text-slate-400">Age 0-17</div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => {
+                                            const newCount = Math.max(0, children - 1);
+                                            setChildren(newCount);
+                                            setChildrenAges(prev => prev.slice(0, newCount));
+                                        }}
+                                        className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                    >
+                                        <span className="material-icons-round text-sm">remove</span>
+                                    </button>
+                                    <span className="w-6 text-center text-sm font-bold">{children}</span>
+                                    <button
+                                        onClick={() => {
+                                            const newCount = Math.min(6, children + 1);
+                                            setChildren(newCount);
+                                            setChildrenAges(prev => [...prev, 0]);
+                                        }}
+                                        className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                    >
+                                        <span className="material-icons-round text-sm">add</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Child Ages */}
+                            {children > 0 && (
+                                <div className="mb-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Child Ages</div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {childrenAges.map((age, index) => (
+                                            <div key={index} className="flex flex-col">
+                                                <select
+                                                    value={age}
+                                                    onChange={(e) => {
+                                                        const newAges = [...childrenAges];
+                                                        newAges[index] = parseInt(e.target.value);
+                                                        setChildrenAges(newAges);
+                                                    }}
+                                                    className="w-full h-9 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-xs px-2 focus:border-primary focus:ring-0"
+                                                >
+                                                    {[...Array(18)].map((_, i) => (
+                                                        <option key={i} value={i}>{i} yr</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Rooms */}
+                            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                                <div>
+                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">Rooms</div>
+                                    <div className="text-[10px] text-slate-400">Total rooms</div>
+                                </div>
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={() => setRooms(Math.max(1, rooms - 1))}
@@ -301,7 +383,7 @@ const DashboardSearch = () => {
                                     >
                                         <span className="material-icons-round text-sm">remove</span>
                                     </button>
-                                    <span className="w-4 text-center text-sm font-bold">{rooms}</span>
+                                    <span className="w-6 text-center text-sm font-bold">{rooms}</span>
                                     <button
                                         onClick={() => setRooms(Math.min(5, rooms + 1))}
                                         className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"

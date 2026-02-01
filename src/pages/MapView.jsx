@@ -155,6 +155,16 @@ const FilterModal = ({ isOpen, onClose, currentFilters, onApply }) => {
     );
 };
 
+// Map Instance Capture Component
+const MapInstanceCapture = ({ setMap }) => {
+    const map = useMap();
+    useEffect(() => {
+        setMap(map);
+    }, [map, setMap]);
+    return null;
+};
+
+// MapView Component
 const MapView = () => {
     const [searchParams] = useSearchParams();
     const [hoveredHotel, setHoveredHotel] = useState(null);
@@ -172,6 +182,9 @@ const MapView = () => {
         priceRange: [0, 2000]
     });
 
+    // Map Instance State
+    const [map, setMap] = useState(null);
+
     const filteredHotels = mockHotels.filter(hotel => {
         const matchesType = filters.types.length === 0 || filters.types.includes(hotel.type);
         const matchesPrice = hotel.price >= filters.priceRange[0] && hotel.price <= filters.priceRange[1];
@@ -184,6 +197,25 @@ const MapView = () => {
         const element = document.getElementById(`hotel-card-${hotel.id}`);
         if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
+
+    const handleZoomIn = () => {
+        if (map) map.zoomIn();
+    };
+
+    const handleZoomOut = () => {
+        if (map) map.zoomOut();
+    };
+
+    const handleLocate = () => {
+        if (map) {
+            map.locate({ setView: true, maxZoom: 16 });
+            map.on('locationfound', (e) => {
+                L.marker(e.latlng).addTo(map)
+                    .bindPopup("You are here")
+                    .openPopup();
+            });
         }
     };
 
@@ -292,6 +324,7 @@ const MapView = () => {
                         style={{ height: '100%', width: '100%' }}
                         zoomControl={false}
                     >
+                        <MapInstanceCapture setMap={setMap} />
                         <TileLayer
                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -337,14 +370,14 @@ const MapView = () => {
                     {/* Map Controls (Glass) */}
                     <div className="absolute right-8 top-8 z-[1000] flex flex-col gap-4">
                         <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[24px] shadow-2xl border border-white/20 dark:border-slate-800 overflow-hidden flex flex-col">
-                            <button className="p-5 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-300 transition-all border-b border-slate-100/10 active:scale-95">
+                            <button onClick={handleZoomIn} className="p-5 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-300 transition-all border-b border-slate-100/10 active:scale-95">
                                 <span className="material-symbols-outlined font-black">add</span>
                             </button>
-                            <button className="p-5 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-300 transition-all active:scale-95">
+                            <button onClick={handleZoomOut} className="p-5 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-300 transition-all active:scale-95">
                                 <span className="material-symbols-outlined font-black">remove</span>
                             </button>
                         </div>
-                        <button className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-5 rounded-[24px] shadow-2xl border border-white/20 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-primary active:scale-95 transition-all">
+                        <button onClick={handleLocate} className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-5 rounded-[24px] shadow-2xl border border-white/20 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-primary active:scale-95 transition-all">
                             <span className="material-symbols-outlined font-black">near_me</span>
                         </button>
 
@@ -408,7 +441,7 @@ const MapView = () => {
                 currentFilters={filters}
                 onApply={setFilters}
             />
-        </div>
+        </div >
     );
 };
 

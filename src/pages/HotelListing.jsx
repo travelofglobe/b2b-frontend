@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import HotelCard from '../components/HotelCard';
@@ -10,12 +10,25 @@ import { mockHotels } from '../data/mockHotels';
 
 const HotelListing = () => {
     const [viewMode, setViewMode] = React.useState('grid3'); // 'list', 'grid2', 'grid3'
+    const { slug, theme, campaign } = useParams();
+    const [searchParams] = useSearchParams();
 
     const gridClasses = {
         'list': 'grid-cols-1',
         'grid2': 'grid-cols-1 md:grid-cols-2',
         'grid3': 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
     };
+
+    // In a real app, these would trigger an API call
+    const locationName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Santorini';
+    const themeName = theme ? theme.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
+    const campaignName = campaign ? campaign.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
+
+    const pageTitle = campaignName
+        ? `${campaignName} Hotels`
+        : themeName
+            ? `${themeName} Hotels`
+            : `Hotels in ${locationName}`;
 
     return (
         <div className="relative flex min-h-screen flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200">
@@ -28,7 +41,7 @@ const HotelListing = () => {
                     <div className="flex-1">
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                             <div>
-                                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Hotels in Santorini</h1>
+                                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">{pageTitle}</h1>
                                 <p className="text-slate-500 text-sm font-medium">142 properties matching your search</p>
                             </div>
                             <div className="flex items-center gap-3">

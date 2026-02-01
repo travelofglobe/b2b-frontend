@@ -40,7 +40,11 @@ const BookingConfirmationModal = ({ isOpen, onClose, hotelName }) => {
 };
 
 const HotelDetail = () => {
-    const { id } = useParams();
+    const { id, slug } = useParams();
+    // Use slug or id to fetch hotel. Ideally if slug is present, fetch by slug.
+    // For now we assume the ID is passed or mock logic for slug.
+    console.log('Hotel Params:', { id, slug });
+    const isMock = true; // Simulating fetch behavior
     const navigate = useNavigate();
     const hotel = mockHotels.find(h => h.id === parseInt(id)) || mockHotels[0];
     const images = hotel.images || [hotel.image];

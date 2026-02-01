@@ -19,7 +19,11 @@ function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/hotels" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
-            <Route path="/hotel/:id" element={<ProtectedRoute><HotelDetail /></ProtectedRoute>} />
+            <Route path="/hotels/:slug" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
+            <Route path="/hotels/theme/:theme" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
+            <Route path="/hotels/campaign/:campaign" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
+            {/* Generic catch-all for hotel details by slug or id */}
+            <Route path="/hotel/:slug" element={<ProtectedRoute><HotelDetail /></ProtectedRoute>} />
             <Route path="/map" element={<ProtectedRoute><MapView /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />

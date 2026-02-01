@@ -174,7 +174,7 @@ const DashboardSearch = () => {
                         <span className={`material-icons-round text-lg ${error ? 'text-red-500' : 'text-slate-400'}`}>location_on</span>
                         <input
                             className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder-slate-400"
-                            placeholder="Where?"
+                            placeholder="Search for cities, hotels, or regions..."
                             type="text"
                             value={query}
                             onChange={(e) => {

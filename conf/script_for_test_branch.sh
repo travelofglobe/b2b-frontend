@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-PROJECT_NAME=tog-b2b-frontend
-REMOTE_PATH=/opt/deployment/tog-b2b-frontend
+PROJECT_NAME=b2b-frontend
+REMOTE_PATH=/opt/deployment/b2b-frontend
 IPS="37.148.213.4"
 COMMIT_ID=$(git log -n 1 --pretty=format:'%H')
 

@@ -11,7 +11,7 @@ pipeline {
 
     environment {
         BUILD_NUMBER = "${env.BUILD_NUMBER}"
-        MY_WORKSPACE = "/var/lib/jenkins/workspace/tog-b2b-frontend"
+        MY_WORKSPACE = "/var/lib/jenkins/workspace/b2b-frontend"
         BRANCH = "${env.BRANCH_NAME}"
         VERSION = "${env.VERSION}"
         JOB = "${env.JOB_NAME}"

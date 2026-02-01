@@ -272,7 +272,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                                 selectsRange
                                 minDate={new Date()}
                                 monthsShown={2}
-                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white font-bold cursor-pointer placeholder-slate-400"
+                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white font-medium cursor-pointer placeholder-slate-400"
                                 dateFormat="dd-MM-yyyy"
                                 placeholderText="Select dates"
                                 dayClassName={(date) => {

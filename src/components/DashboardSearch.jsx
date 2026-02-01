@@ -3,13 +3,31 @@ import { useNavigate } from 'react-router-dom';
 import { autocompleteService } from '../services/autocompleteService';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
+import "../datepicker-custom.css";
 
 const DashboardSearch = () => {
     const navigate = useNavigate();
-    const [query, setQuery] = useState('');
+    const [query, setQuery] = useState(() => {
+        return localStorage.getItem('dashboard_last_search') || '';
+    });
     const [results, setResults] = useState({ hotels: [], regions: [] });
     const [loading, setLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
+
+    // ... (rest of the state)
+
+    // Debounce search
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (query.length >= 3) {
+                fetchResults();
+            } else {
+                setResults({ hotels: [], regions: [] });
+            }
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+    }, [query]);
 
     // Default dates: Check-in tomorrow, Check-out day after tomorrow
     const tomorrow = new Date();
@@ -26,6 +44,8 @@ const DashboardSearch = () => {
 
     const searchWrapperRef = useRef(null);
     const guestWrapperRef = useRef(null);
+
+    const [error, setError] = useState(false);
 
     // Debounce search
     useEffect(() => {
@@ -75,13 +95,14 @@ const DashboardSearch = () => {
     };
 
     const handleSearch = () => {
-        // Fallback if user just types a city name and hits enter/search button without selecting
-        // For now, prompt usage of dropdown or default to 'hotels/query' (risky if not slug)
-        // Ideally we grab the first result or just navigate to a general search page
+        if (!query.trim()) {
+            setError(true);
+            // Focus the input if possible, or just show visual cue
+            return;
+        }
+
         if (query) {
-            // Simplistic fallback: navigate to generic hotels search with query param if implemented
-            // But per req, we want SEO friendly URLs.
-            // If user manually typed "Ankara", we go to /hotels/ankara
+            localStorage.setItem('dashboard_last_search', query);
             const slug = query.toLowerCase().replace(/ /g, '-');
             navigate(`/hotels/${slug}?checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&adult=${adults}&room=${rooms}`);
         }
@@ -90,14 +111,15 @@ const DashboardSearch = () => {
     const handleSelectLocation = (location) => {
         // Helper to get English name or fallback
         const name = location.name.translations.en || Object.values(location.name.translations)[0] || 'destination';
-        // Mock url generation from name if url field missing on regions (response shows locationId, etc)
-        // User example: /hotels/ankara (lowercase name)
+        localStorage.setItem('dashboard_last_search', name);
         const slug = name.toLowerCase().replace(/ /g, '-');
         const url = `/hotels/${slug}?checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&adult=${adults}&room=${rooms}`;
         navigate(url);
     };
 
     const handleSelectHotel = (hotel) => {
+        const name = getHotelName(hotel);
+        localStorage.setItem('dashboard_last_search', name);
         const url = `/hotel/${hotel.url}?checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&adult=${adults}&room=${rooms}`;
         navigate(url);
     };
@@ -115,22 +137,39 @@ const DashboardSearch = () => {
     return (
         <section className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none p-2 mb-6 border border-white dark:border-slate-800 relative z-20">
             <div className="flex flex-wrap items-center gap-1 mb-3 p-3 border-b border-slate-50 dark:border-slate-800">
-                <button className="bg-primary text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg shadow-primary/25 text-xs">
+                <button className="bg-primary text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg shadow-primary/25 text-xs transition-transform transform active:scale-95">
                     <span className="material-icons-round text-base">hotel</span> HOTEL
+                </button>
+                <button className="text-slate-500 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-xs transition-colors">
+                    <span className="material-icons-round text-base">flight</span> FLIGHT
+                </button>
+                <button className="text-slate-500 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-xs transition-colors">
+                    <span className="material-icons-round text-base">airport_shuttle</span> TRANSFER
+                </button>
+                <button className="text-slate-500 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-xs transition-colors">
+                    <span className="material-icons-round text-base">explore</span> TOUR
+                </button>
+                <button className="text-slate-500 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-xs transition-colors">
+                    <span className="material-icons-round text-base">directions_car</span> CAR RENTALS
                 </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4">
                 {/* Destination Input */}
-                <div className="md:col-span-5 space-y-1.5 relative" ref={searchWrapperRef}>
-                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 ml-1">Accommodation</label>
-                    <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-transparent focus-within:border-primary transition-all">
-                        <span className="material-icons-round text-slate-400 text-lg">location_on</span>
+                <div className="md:col-span-3 space-y-1.5 relative" ref={searchWrapperRef}>
+                    <label className={`text-[10px] font-semibold uppercase tracking-wider ml-1 ${error ? 'text-red-500' : 'text-slate-400'}`}>
+                        {error ? 'Please enter a destination' : 'Accommodation'}
+                    </label>
+                    <div className={`flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border transition-all ${error ? 'border-red-500 ring-1 ring-red-500 bg-red-50 dark:bg-red-900/10' : 'border-transparent focus-within:border-primary'}`}>
+                        <span className={`material-icons-round text-lg ${error ? 'text-red-500' : 'text-slate-400'}`}>location_on</span>
                         <input
                             className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder-slate-400"
-                            placeholder="Where are you going?"
+                            placeholder="Where?"
                             type="text"
                             value={query}
-                            onChange={(e) => setQuery(e.target.value)}
+                            onChange={(e) => {
+                                setQuery(e.target.value);
+                                if (error) setError(false);
+                            }}
                             onFocus={() => { if (results.hotels.length || results.regions.length) setShowDropdown(true); }}
                         />
                         {loading && <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>}
@@ -189,7 +228,7 @@ const DashboardSearch = () => {
                 </div>
 
                 {/* Date Picker */}
-                <div className="md:col-span-3 space-y-1.5 z-10">
+                <div className="md:col-span-4 space-y-1.5 z-10">
                     <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 ml-1">Check-in / Check-out</label>
                     <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-transparent focus-within:border-primary transition-all relative">
                         <span className="material-icons-round text-slate-400 text-lg">calendar_month</span>
@@ -205,15 +244,22 @@ const DashboardSearch = () => {
                                 endDate={checkOutDate}
                                 selectsRange
                                 minDate={new Date()}
-                                className="bg-transparent border-none focus:ring-0 w-full p-0 text-xs text-slate-900 dark:text-white font-medium cursor-pointer"
+                                monthsShown={2}
+                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white font-bold cursor-pointer placeholder-slate-400"
                                 dateFormat="dd MMM yyyy"
+                                placeholderText="Select dates"
+                                dayClassName={(date) => {
+                                    const day = date.getDay();
+                                    return day === 0 || day === 6 ? "text-red-500 font-bold" : "text-slate-700 dark:text-slate-200";
+                                }}
+                                calendarClassName="shadow-2xl border-none font-sans"
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Guest Selector */}
-                <div className="md:col-span-2 space-y-1.5 relative" ref={guestWrapperRef}>
+                <div className="md:col-span-3 space-y-1.5 relative" ref={guestWrapperRef}>
                     <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 ml-1">Guests & Rooms</label>
                     <button
                         onClick={() => setShowGuestDropdown(!showGuestDropdown)}

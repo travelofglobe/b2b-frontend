@@ -400,9 +400,9 @@ const DashboardSearch = () => {
                 <div className="md:col-span-2 flex items-end">
                     <button
                         onClick={handleSearch}
-                        className="w-full bg-primary hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-xl shadow-primary/20 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-xs"
+                        className="w-full bg-primary hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl border border-transparent shadow-xl shadow-primary/20 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-xs"
                     >
-                        <span className="material-icons-round text-base">search</span> Search
+                        <span className="material-icons-round text-lg">search</span> Search
                     </button>
                 </div>
             </div>

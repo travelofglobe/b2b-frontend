@@ -112,13 +112,17 @@ const DashboardSearch = ({ initialQuery = '' }) => {
         return `${day}-${month}-${year}`;
     };
 
-    const getUrlParams = () => {
+    const getUrlParams = (queryOverride) => {
         let params = `checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&adult=${adults}&room=${rooms}`;
         if (children > 0) {
             params += `&children=${children}`;
             if (childrenAges.length > 0) {
                 params += `&child_ages=${childrenAges.join(',')}`;
             }
+        }
+        const q = queryOverride !== undefined ? queryOverride : query;
+        if (q) {
+            params += `&q=${encodeURIComponent(q)}`;
         }
         return params;
     };
@@ -140,15 +144,36 @@ const DashboardSearch = ({ initialQuery = '' }) => {
     const handleSelectLocation = (location) => {
         // Helper to get English name or fallback
         const name = location.name.translations.en || Object.values(location.name.translations)[0] || 'destination';
-        localStorage.setItem('dashboard_last_search', name);
+
+        // Construct full name from breadcrumbs for display
+        let fullName = name;
+        if (location.locationBreadcrumbs && location.locationBreadcrumbs.length > 0) {
+            const parts = location.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName);
+            fullName = parts.reverse().join(', ');
+        }
+
+        localStorage.setItem('dashboard_last_search', fullName);
+        setQuery(fullName);
         const slug = name.toLowerCase().replace(/ /g, '-');
-        navigate(`/hotels/${slug}?${getUrlParams()}`);
+        navigate(`/hotels/${slug}?${getUrlParams(fullName)}`);
     };
 
     const handleSelectHotel = (hotel) => {
         const name = getHotelName(hotel);
-        localStorage.setItem('dashboard_last_search', name);
-        navigate(`/hotel/${hotel.url}?${getUrlParams()}`);
+
+        // Construct full name with location context
+        let fullName = name;
+        if (hotel.locationBreadcrumbs && hotel.locationBreadcrumbs.length > 0) {
+            const parts = hotel.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName);
+            const context = parts.reverse().join(', ');
+            fullName = `${name}, ${context}`;
+        } else if (hotel.countryCode) {
+            fullName = `${name}, ${hotel.countryCode}`;
+        }
+
+        localStorage.setItem('dashboard_last_search', fullName);
+        setQuery(fullName);
+        navigate(`/hotel/${hotel.url}?${getUrlParams(fullName)}`);
     };
 
     // Helper to get Hotel Name
@@ -186,7 +211,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4">
                 {/* Destination Input */}
-                <div className="md:col-span-3 space-y-1.5 relative" ref={searchWrapperRef}>
+                <div className="md:col-span-4 space-y-1.5 relative" ref={searchWrapperRef}>
                     <label className={`text-[10px] font-semibold uppercase tracking-wider ml-1 ${error ? 'text-red-500' : 'text-slate-400'}`}>
                         {error ? 'Please enter a destination' : 'Accommodation'}
                     </label>
@@ -200,6 +225,9 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                             onChange={(e) => {
                                 setQuery(e.target.value);
                                 if (error) setError(false);
+                            }}
+                            onClick={() => {
+                                if (query) setQuery('');
                             }}
                             onFocus={() => { if (results.hotels.length || results.regions.length) setShowDropdown(true); }}
                         />
@@ -263,7 +291,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                 </div>
 
                 {/* Date Picker */}
-                <div className="md:col-span-4 space-y-1.5 z-10">
+                <div className="md:col-span-3 space-y-1.5 z-10">
                     <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 ml-1">Check-in / Check-out</label>
                     <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-transparent focus-within:border-primary transition-all relative">
                         <span className="material-icons-round text-slate-400 text-lg">calendar_month</span>

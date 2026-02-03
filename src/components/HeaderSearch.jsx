@@ -107,7 +107,7 @@ const HeaderSearch = () => {
         return date.toISOString().split('T')[0];
     };
 
-    const getUrlParams = () => {
+    const getUrlParams = (queryOverride) => {
         let params = `checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&adult=${adults}&room=${rooms}`;
         if (children > 0) {
             params += `&children=${children}`;
@@ -116,8 +116,9 @@ const HeaderSearch = () => {
             }
         }
         // Add query param if present
-        if (query) {
-            params += `&q=${encodeURIComponent(query)}`;
+        const q = queryOverride !== undefined ? queryOverride : query;
+        if (q) {
+            params += `&q=${encodeURIComponent(q)}`;
         }
         return params;
     };
@@ -133,18 +134,45 @@ const HeaderSearch = () => {
 
     const handleSelectLocation = (location) => {
         const name = location.name.translations.en || Object.values(location.name.translations)[0] || 'destination';
-        setQuery(name);
-        localStorage.setItem('dashboard_last_search', name);
+
+        // Construct full name from breadcrumbs for display
+        let fullName = name;
+        if (location.locationBreadcrumbs && location.locationBreadcrumbs.length > 0) {
+            const parts = location.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName);
+            fullName = parts.reverse().join(', ');
+        }
+
+        setQuery(fullName);
+        localStorage.setItem('dashboard_last_search', fullName);
+
+        // For now, sticking to the existing slug logic based on the item name itself.
         const slug = name.toLowerCase().replace(/ /g, '-');
-        navigate(`/hotels/${slug}?${getUrlParams()}`);
+        navigate(`/hotels/${slug}?${getUrlParams(fullName)}`);
         setShowDropdown(false);
     };
 
     const handleSelectHotel = (hotel) => {
         const name = hotel.name.translations.en || Object.values(hotel.name.translations)[0] || 'Hotel';
-        setQuery(name);
-        localStorage.setItem('dashboard_last_search', name);
-        navigate(`/hotel/${hotel.url}?${getUrlParams()}`);
+
+        // Construct full name with location context
+        let fullName = name;
+        if (hotel.locationBreadcrumbs && hotel.locationBreadcrumbs.length > 0) {
+            const parts = hotel.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName);
+            // Usually breadcrumbs for hotel don't include the hotel itself, or do they?
+            // Based on example for LOCATION, it includes the item.
+            // For HOTEL example: Breadcrumbs: Country -> City -> District. Hotel is NOT in breadcrumbs.
+            // So we should append context.
+
+            // Take mostly specific parts (reverse), e.g. District, City, Country
+            const context = parts.reverse().join(', ');
+            fullName = `${name}, ${context}`;
+        } else if (hotel.countryCode) {
+            fullName = `${name}, ${hotel.countryCode}`;
+        }
+
+        setQuery(fullName);
+        localStorage.setItem('dashboard_last_search', fullName);
+        navigate(`/hotel/${hotel.url}?${getUrlParams(fullName)}`);
         setShowDropdown(false);
     };
 
@@ -193,13 +221,16 @@ const HeaderSearch = () => {
             <div className="flex items-center px-3 border-r border-slate-300 dark:border-slate-600 relative" ref={searchWrapperRef}>
                 <span className="material-symbols-outlined text-slate-400 text-xl mr-2">location_on</span>
                 <input
-                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-sm w-40 placeholder:text-slate-500 p-0"
+                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-sm w-[300px] placeholder:text-slate-500 p-0"
                     placeholder="Where to?"
                     type="text"
                     value={query}
                     onChange={(e) => {
                         isUserInteraction.current = true;
                         setQuery(e.target.value);
+                    }}
+                    onClick={() => {
+                        if (query) setQuery('');
                     }}
                     onFocus={() => { if (results.hotels.length || results.regions.length) setShowDropdown(true); }}
                 />

@@ -6,11 +6,13 @@ export const autocompleteService = {
             const token = localStorage.getItem('accessToken');
 
             if (!token) {
+                // Return empty structure instead of throwing for unauthorized, 
+                // or handle gracefully in UI. For now, matching existing behavior.
                 throw new Error('No access token found');
             }
 
             // DEBUG: Log payload
-            console.log('Autocomplete Request Payload:', JSON.stringify({ query, types }));
+            // console.log('Autocomplete Request Payload:', JSON.stringify({ query, types }));
 
             const response = await fetch(`${AUTOCOMPLETE_API_URL}/search?page=0&size=10`, {
                 method: 'POST',
@@ -26,9 +28,9 @@ export const autocompleteService = {
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Autocomplete API Error Status:', response.status);
-                console.error('Autocomplete API Error Body:', errorText);
                 try {
                     const errorJson = JSON.parse(errorText);
+                    // Optional: handle specific error codes
                     throw new Error(errorJson.message || `API Error: ${response.status}`);
                 } catch (e) {
                     throw new Error(`API Error: ${response.status} - ${errorText}`);
@@ -36,7 +38,23 @@ export const autocompleteService = {
             }
 
             const data = await response.json();
-            return data;
+
+            // -- ADAPTER FOR NEW RESPONSE FORMAT --
+            // The backend now returns a single "content" array with mixed types.
+            // We need to split them back into { hotels, regions } for the UI.
+
+            const content = data.content || [];
+
+            const regions = content.filter(item => item.type === 'LOCATION');
+            const hotels = content.filter(item => item.type === 'HOTEL');
+
+            return {
+                data: {
+                    regions,
+                    hotels
+                }
+            };
+
         } catch (error) {
             if (error.name !== 'AbortError') {
                 console.error('Autocomplete search error:', error);

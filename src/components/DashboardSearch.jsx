@@ -158,6 +158,10 @@ const DashboardSearch = ({ initialQuery = '' }) => {
 
     // Helper to get Region Name
     const getRegionName = (region) => {
+        if (region.locationBreadcrumbs && region.locationBreadcrumbs.length > 0) {
+            const parts = region.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName);
+            return parts.reverse().join(', ');
+        }
         return region.name.translations.en || Object.values(region.name.translations)[0] || 'Unknown Region';
     };
 
@@ -218,8 +222,8 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                                                 <span className="material-icons-round text-sm">location_on</span>
                                             </div>
                                             <div>
-                                                <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{getRegionName(region)}</div>
-                                                <div className="text-[10px] text-slate-400">{region.countryCode}</div>
+                                                <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{region.name.translations.en || region.name.defaultName}</div>
+                                                <div className="text-[10px] text-slate-400">{getRegionName(region)}</div>
                                             </div>
                                         </button>
                                     ))}
@@ -244,7 +248,11 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                                             </div>
                                             <div>
                                                 <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{getHotelName(hotel)}</div>
-                                                <div className="text-[10px] text-slate-400">{hotel.countryCode}</div>
+                                                <div className="text-[10px] text-slate-400">
+                                                    {hotel.locationBreadcrumbs ?
+                                                        hotel.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName).reverse().slice(1, 3).join(', ')
+                                                        : hotel.countryCode}
+                                                </div>
                                             </div>
                                         </button>
                                     ))}

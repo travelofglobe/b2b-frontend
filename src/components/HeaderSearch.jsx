@@ -148,8 +148,42 @@ const HeaderSearch = () => {
         setShowDropdown(false);
     };
 
-    const getRegionName = (region) => region.name.translations.en || Object.values(region.name.translations)[0] || 'Unknown Region';
+    const getRegionName = (region) => {
+        // Use breadcrumbs if available to show full path
+        if (region.locationBreadcrumbs && region.locationBreadcrumbs.length > 0) {
+            // Filter out COUNTRY type from display if desired, or keep all.
+            // Usually showing "City, Country" or "Town, City" is good.
+            // Let's try to construct a path from the breadcrumbs.
+            // Reverse to show specific -> general? Or General -> Specific?
+            // "Sakarya, Türkiye" is typical. "Sakarya" is the matched item.
+            // The breadcrumbs usually end with the item itself or the parent.
+            // Let's filter out the item itself if it's in the breadcrumbs to avoid duplication?
+            // Actually the breadcrumbs array contains the path including the item itself in the provided example?
+            // Example: item is "Sakarya" (Town). Breadcrumbs: Country -> City -> District -> Town(Sakarya).
+
+            // We want to show "Sakarya, Manisa, Türkiye" for example.
+            const parts = region.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName);
+            // Limit to maybe last 2-3 parts to keep it short?
+            // Or just reverse and join?
+            // Let's show: "Name, Parent, Country"
+            return parts.reverse().join(', ');
+        }
+        return region.name.translations.en || Object.values(region.name.translations)[0] || 'Unknown Region';
+    };
+
     const getHotelName = (hotel) => hotel.name.translations.en || Object.values(hotel.name.translations)[0] || 'Hotel';
+
+    const getLocationContext = (item) => {
+        if (!item.locationBreadcrumbs) return item.countryCode;
+
+        // Find the city or country context
+        const country = item.locationBreadcrumbs.find(b => b.locationType === 'COUNTRY');
+        // const city = item.locationBreadcrumbs.find(b => b.locationType === 'CITY');
+
+        const countryName = country ? (country.name.translations.en || country.name.defaultName) : item.countryCode;
+        // return city ? `${city.name.defaultName}, ${countryName}` : countryName;
+        return countryName;
+    };
 
 
     return (
@@ -186,8 +220,10 @@ const HeaderSearch = () => {
                                             <span className="material-icons-round text-sm">location_on</span>
                                         </div>
                                         <div>
-                                            <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{getRegionName(region)}</div>
-                                            <div className="text-[10px] text-slate-400">{region.countryCode}</div>
+                                            <div>
+                                                <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{region.name.translations.en || region.name.defaultName}</div>
+                                                <div className="text-[10px] text-slate-400">{getRegionName(region)}</div>
+                                            </div>
                                         </div>
                                     </button>
                                 ))}
@@ -209,8 +245,14 @@ const HeaderSearch = () => {
                                             <span className="material-icons-round text-sm">hotel</span>
                                         </div>
                                         <div>
-                                            <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{getHotelName(hotel)}</div>
-                                            <div className="text-[10px] text-slate-400">{hotel.countryCode}</div>
+                                            <div>
+                                                <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{getHotelName(hotel)}</div>
+                                                <div className="text-[10px] text-slate-400">
+                                                    {hotel.locationBreadcrumbs ?
+                                                        hotel.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName).reverse().slice(1, 3).join(', ')
+                                                        : hotel.countryCode}
+                                                </div>
+                                            </div>
                                         </div>
                                     </button>
                                 ))}

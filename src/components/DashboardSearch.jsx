@@ -61,8 +61,15 @@ const DashboardSearch = ({ initialQuery = '' }) => {
 
     const [error, setError] = useState(false);
 
+    const isUserInteraction = useRef(false);
+
     // Debounce search
     useEffect(() => {
+        // Only trigger search if user has interacted with the input
+        if (!isUserInteraction.current) {
+            return;
+        }
+
         const timeoutId = setTimeout(() => {
             if (query.length >= 3) {
                 fetchResults();
@@ -223,6 +230,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                             type="text"
                             value={query}
                             onChange={(e) => {
+                                isUserInteraction.current = true;
                                 setQuery(e.target.value);
                                 if (error) setError(false);
                             }}

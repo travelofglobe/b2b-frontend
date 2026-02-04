@@ -50,7 +50,7 @@ const MyBookings = () => {
         isCancelled: '',
     });
 
-    const [showFilters, setShowFilters] = useState(true);
+    const [showFilters, setShowFilters] = useState(false);
 
     React.useEffect(() => {
         const handleClickOutside = (event) => {

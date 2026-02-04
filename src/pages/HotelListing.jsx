@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
@@ -7,6 +7,7 @@ import Pagination from '../components/Pagination';
 import Footer from '../components/Footer';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { mockHotels } from '../data/mockHotels';
+import { parseGuestsParam } from '../utils/searchParamsUtils';
 
 const HotelListing = () => {
     const [viewMode, setViewMode] = React.useState('grid3'); // 'list', 'grid2', 'grid3'
@@ -19,6 +20,24 @@ const HotelListing = () => {
         'grid3': 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
     };
 
+    // Parse params
+    const roomState = useMemo(() => {
+        const guestsParam = searchParams.get('guests');
+        if (guestsParam) {
+            return parseGuestsParam(guestsParam);
+        }
+        // Fallback for old links
+        const adults = searchParams.get('adult');
+        const children = searchParams.get('children');
+        return [{ adults: parseInt(adults) || 2, children: parseInt(children) || 0, childAges: [] }];
+    }, [searchParams]);
+
+    // Computed totals
+    const totalAdults = roomState.reduce((sum, r) => sum + r.adults, 0);
+    const totalChildren = roomState.reduce((sum, r) => sum + r.children, 0);
+    const totalRooms = roomState.length;
+    const totalGuests = totalAdults + totalChildren;
+
     // In a real app, these would trigger an API call
     const locationName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Santorini';
     const themeName = theme ? theme.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
@@ -29,6 +48,8 @@ const HotelListing = () => {
         : themeName
             ? `${themeName} Hotels`
             : `Hotels in ${locationName}`;
+
+    const subtitle = `${totalRooms} Room${totalRooms > 1 ? 's' : ''}, ${totalGuests} Guest${totalGuests !== 1 ? 's' : ''} • 142 properties found`;
 
     return (
         <div className="relative flex min-h-screen flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200">
@@ -53,7 +74,7 @@ const HotelListing = () => {
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                             <div>
                                 <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">{pageTitle}</h1>
-                                <p className="text-slate-500 text-sm font-medium">142 properties matching your search</p>
+                                <p className="text-slate-500 text-sm font-medium">{subtitle}</p>
                             </div>
                             <div className="flex items-center gap-3">
                                 <span className="text-sm font-bold text-slate-500 whitespace-nowrap">SORT BY:</span>

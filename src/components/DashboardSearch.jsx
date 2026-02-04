@@ -4,6 +4,7 @@ import { autocompleteService } from '../services/autocompleteService';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
+import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms } from '../utils/searchParamsUtils';
 
 const DashboardSearch = ({ initialQuery = '' }) => {
     const navigate = useNavigate();
@@ -41,19 +42,30 @@ const DashboardSearch = ({ initialQuery = '' }) => {
         return parseDateParam(checkoutParam) || dayAfter;
     });
 
-    const [adults, setAdults] = useState(() => {
-        return parseInt(searchParams.get('adult')) || 2;
+    // -- Guest State --
+    const [roomState, setRoomState] = useState(() => {
+        const guestsParam = searchParams.get('guests');
+        if (guestsParam) {
+            return parseGuestsParam(guestsParam);
+        }
+        // Fallback to old params
+        const adults = searchParams.get('adult');
+        const children = searchParams.get('children');
+        const childAges = searchParams.get('child_ages');
+
+        if (adults || children) {
+            return convertOldParamsToRooms(adults, children, childAges);
+        }
+
+        // Default
+        return [{ adults: 2, children: 0, childAges: [] }];
     });
-    const [children, setChildren] = useState(() => {
-        return parseInt(searchParams.get('children')) || 0;
-    });
-    const [childrenAges, setChildrenAges] = useState(() => {
-        const agesParam = searchParams.get('child_ages');
-        return agesParam ? agesParam.split(',').map(Number) : [];
-    });
-    const [rooms, setRooms] = useState(() => {
-        return parseInt(searchParams.get('room')) || 1;
-    });
+
+    // Computed totals for display
+    const totalAdults = roomState.reduce((sum, r) => sum + r.adults, 0);
+    const totalChildren = roomState.reduce((sum, r) => sum + r.children, 0);
+    const totalRooms = roomState.length;
+
     const [showGuestDropdown, setShowGuestDropdown] = useState(false);
 
     const searchWrapperRef = useRef(null);
@@ -120,13 +132,9 @@ const DashboardSearch = ({ initialQuery = '' }) => {
     };
 
     const getUrlParams = (queryOverride) => {
-        let params = `checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&adult=${adults}&room=${rooms}`;
-        if (children > 0) {
-            params += `&children=${children}`;
-            if (childrenAges.length > 0) {
-                params += `&child_ages=${childrenAges.join(',')}`;
-            }
-        }
+        const guestsParam = serializeGuestsParam(roomState);
+        let params = `checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&guests=${encodeURIComponent(guestsParam)}`;
+
         const q = queryOverride !== undefined ? queryOverride : query;
         if (q) {
             params += `&q=${encodeURIComponent(q)}`;
@@ -195,6 +203,47 @@ const DashboardSearch = ({ initialQuery = '' }) => {
             return parts.reverse().join(', ');
         }
         return region.name.translations.en || Object.values(region.name.translations)[0] || 'Unknown Region';
+    };
+
+    // -- Room Manipulators --
+    const updateRoom = (index, field, value) => {
+        const newRooms = [...roomState];
+        newRooms[index] = { ...newRooms[index], [field]: value };
+
+        // Handle child count change special case to resize ages array
+        if (field === 'children') {
+            const diff = value - newRooms[index].childAges.length;
+            if (diff > 0) {
+                // Add children with default age 0
+                newRooms[index].childAges = [...newRooms[index].childAges, ...Array(diff).fill(0)];
+            } else if (diff < 0) {
+                // Remove children
+                newRooms[index].childAges = newRooms[index].childAges.slice(0, value);
+            }
+        }
+
+        setRoomState(newRooms);
+    };
+
+    const updateChildAge = (roomIndex, childIndex, age) => {
+        const newRooms = [...roomState];
+        const newAges = [...newRooms[roomIndex].childAges];
+        newAges[childIndex] = parseInt(age);
+        newRooms[roomIndex].childAges = newAges;
+        setRoomState(newRooms);
+    };
+
+    const addRoom = () => {
+        if (roomState.length < 5) {
+            setRoomState([...roomState, { adults: 2, children: 0, childAges: [] }]);
+        }
+    };
+
+    const removeRoom = (index) => {
+        if (roomState.length > 1) {
+            const newRooms = roomState.filter((_, i) => i !== index);
+            setRoomState(newRooms);
+        }
     };
 
     return (
@@ -339,119 +388,103 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                         <span className="material-icons-round text-slate-400 text-lg">group</span>
                         <div className="flex flex-col flex-1 items-start overflow-hidden">
                             <span className="text-xs font-medium text-slate-900 dark:text-white truncate w-full">
-                                {adults} Adults, {children} Child{children !== 1 ? 'ren' : ''}
+                                {totalAdults} Adults, {totalChildren} Child{totalChildren !== 1 ? 'ren' : ''}
                             </span>
                             <span className="text-[10px] text-slate-500 truncate w-full">
-                                {rooms} Room{rooms > 1 ? 's' : ''}
+                                {totalRooms} Room{totalRooms > 1 ? 's' : ''}
                             </span>
                         </div>
                         <span className="material-icons-round text-slate-400 text-base">expand_more</span>
                     </button>
 
                     {showGuestDropdown && (
-                        <div className="absolute top-full right-0 w-80 mt-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-xl p-4 z-50">
-                            {/* Adults */}
-                            <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">Adults</div>
-                                    <div className="text-[10px] text-slate-400">Age 18+</div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => setAdults(Math.max(1, adults - 1))}
-                                        className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
-                                    >
-                                        <span className="material-icons-round text-sm">remove</span>
-                                    </button>
-                                    <span className="w-6 text-center text-sm font-bold">{adults}</span>
-                                    <button
-                                        onClick={() => setAdults(Math.min(10, adults + 1))}
-                                        className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
-                                    >
-                                        <span className="material-icons-round text-sm">add</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Children */}
-                            <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">Children</div>
-                                    <div className="text-[10px] text-slate-400">Age 0-17</div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => {
-                                            const newCount = Math.max(0, children - 1);
-                                            setChildren(newCount);
-                                            setChildrenAges(prev => prev.slice(0, newCount));
-                                        }}
-                                        className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
-                                    >
-                                        <span className="material-icons-round text-sm">remove</span>
-                                    </button>
-                                    <span className="w-6 text-center text-sm font-bold">{children}</span>
-                                    <button
-                                        onClick={() => {
-                                            const newCount = Math.min(6, children + 1);
-                                            setChildren(newCount);
-                                            setChildrenAges(prev => [...prev, 0]);
-                                        }}
-                                        className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
-                                    >
-                                        <span className="material-icons-round text-sm">add</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Child Ages */}
-                            {children > 0 && (
-                                <div className="mb-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Child Ages</div>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {childrenAges.map((age, index) => (
-                                            <div key={index} className="flex flex-col">
-                                                <select
-                                                    value={age}
-                                                    onChange={(e) => {
-                                                        const newAges = [...childrenAges];
-                                                        newAges[index] = parseInt(e.target.value);
-                                                        setChildrenAges(newAges);
-                                                    }}
-                                                    className="w-full h-9 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-xs px-2 focus:border-primary focus:ring-0"
-                                                >
-                                                    {[...Array(18)].map((_, i) => (
-                                                        <option key={i} value={i}>{i} yr</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        ))}
+                        <div className="absolute top-full right-0 w-[350px] mt-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-xl p-4 z-50 overflow-y-auto max-h-[80vh]">
+                            {roomState.map((room, index) => (
+                                <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0 relative">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="text-xs font-black uppercase text-slate-400 tracking-wider">Room {index + 1}</div>
+                                        {roomState.length > 1 && (
+                                            <button
+                                                onClick={() => removeRoom(index)}
+                                                className="text-red-500 hover:text-red-700 text-[10px] font-bold uppercase"
+                                            >
+                                                Remove
+                                            </button>
+                                        )}
                                     </div>
-                                </div>
-                            )}
 
-                            {/* Rooms */}
-                            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
-                                <div>
-                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">Rooms</div>
-                                    <div className="text-[10px] text-slate-400">Total rooms</div>
+                                    {/* Adults */}
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="text-sm text-slate-700 dark:text-slate-200 font-bold">Adults</div>
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))}
+                                                className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                            >
+                                                <span className="material-icons-round text-sm">remove</span>
+                                            </button>
+                                            <span className="w-4 text-center text-sm font-bold">{room.adults}</span>
+                                            <button
+                                                onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))}
+                                                className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                            >
+                                                <span className="material-icons-round text-sm">add</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Children */}
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="text-sm text-slate-700 dark:text-slate-200 font-bold">Children</div>
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))}
+                                                className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                            >
+                                                <span className="material-icons-round text-sm">remove</span>
+                                            </button>
+                                            <span className="w-4 text-center text-sm font-bold">{room.children}</span>
+                                            <button
+                                                onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))}
+                                                className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                            >
+                                                <span className="material-icons-round text-sm">add</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Child Ages */}
+                                    {room.children > 0 && (
+                                        <div className="grid grid-cols-3 gap-2 mt-2 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg">
+                                            {room.childAges.map((age, ageIndex) => (
+                                                <div key={ageIndex} className="flex flex-col">
+                                                    <label className="text-[9px] text-slate-400 font-bold mb-1">Child {ageIndex + 1}</label>
+                                                    <select
+                                                        value={age}
+                                                        onChange={(e) => updateChildAge(index, ageIndex, e.target.value)}
+                                                        className="w-full h-8 bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 text-xs px-1 focus:border-primary focus:ring-0"
+                                                    >
+                                                        {[...Array(18)].map((_, i) => (
+                                                            <option key={i} value={i}>{i} yr</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => setRooms(Math.max(1, rooms - 1))}
-                                        className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
-                                    >
-                                        <span className="material-icons-round text-sm">remove</span>
-                                    </button>
-                                    <span className="w-6 text-center text-sm font-bold">{rooms}</span>
-                                    <button
-                                        onClick={() => setRooms(Math.min(5, rooms + 1))}
-                                        className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
-                                    >
-                                        <span className="material-icons-round text-sm">add</span>
-                                    </button>
-                                </div>
-                            </div>
+                            ))}
+
+                            {/* Add Room Button */}
+                            {roomState.length < 5 && (
+                                <button
+                                    onClick={addRoom}
+                                    className="w-full py-2 bg-blue-50 dark:bg-blue-900/20 text-primary rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <span className="material-icons-round text-base">add_circle</span>
+                                    Add Another Room
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>

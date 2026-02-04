@@ -29,7 +29,7 @@ const NationalitySelect = ({ value, onChange, compact = false }) => {
                 className="flex items-center gap-2 bg-transparent border-none p-0 focus:ring-0"
             >
                 <span className="text-xl">{selectedCountry?.flag}</span>
-                <span className={`text-sm font-semibold text-slate-900 dark:text-white truncate ${compact ? 'max-w-[100px]' : ''}`}>
+                <span className={`text-xs font-medium text-slate-900 dark:text-white truncate ${compact ? 'max-w-[100px]' : ''}`}>
                     {selectedCountry?.name}
                 </span>
                 <span className="material-symbols-outlined text-slate-400 text-sm">expand_more</span>

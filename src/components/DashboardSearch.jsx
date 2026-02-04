@@ -282,7 +282,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                     <div className={`flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border transition-all ${error ? 'border-red-500 ring-1 ring-red-500 bg-red-50 dark:bg-red-900/10' : 'border-transparent focus-within:border-primary'}`}>
                         <span className={`material-icons-round text-lg ${error ? 'text-red-500' : 'text-slate-400'}`}>location_on</span>
                         <input
-                            className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder-slate-400"
+                            className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400"
                             placeholder="Search for cities, hotels, or regions..."
                             type="text"
                             value={query}
@@ -373,7 +373,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                                 selectsRange
                                 minDate={new Date()}
                                 monthsShown={2}
-                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white font-medium cursor-pointer placeholder-slate-400"
+                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs font-medium text-slate-900 dark:text-white cursor-pointer placeholder-slate-400"
                                 dateFormat="dd-MM-yyyy"
                                 placeholderText="Select dates"
                                 dayClassName={(date) => {

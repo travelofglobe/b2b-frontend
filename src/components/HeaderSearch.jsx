@@ -239,7 +239,7 @@ const HeaderSearch = () => {
             <div className="flex items-center px-3 border-r border-slate-300 dark:border-slate-600 relative" ref={searchWrapperRef}>
                 <span className="material-symbols-outlined text-slate-400 text-xl mr-2">location_on</span>
                 <input
-                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-sm w-[300px] placeholder:text-slate-500 p-0"
+                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-xs w-[300px] font-medium text-slate-900 dark:text-white placeholder:text-slate-500 p-0"
                     placeholder="Where to?"
                     type="text"
                     value={query}
@@ -327,7 +327,7 @@ const HeaderSearch = () => {
                         selectsRange
                         minDate={new Date()}
                         monthsShown={2}
-                        className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 font-semibold"
+                        className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-500 font-medium"
                         dateFormat="dd MMM yyyy"
                         placeholderText="Dates"
                         dayClassName={(date) => {
@@ -352,7 +352,7 @@ const HeaderSearch = () => {
                 <span className="material-symbols-outlined text-slate-400 text-xl mr-2">group</span>
                 <button
                     onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                    className="bg-transparent border-none focus:ring-0 text-sm min-w-[80px] text-left text-slate-900 dark:text-white font-medium whitespace-nowrap"
+                    className="bg-transparent border-none focus:ring-0 text-xs min-w-[80px] text-left text-slate-900 dark:text-white font-medium whitespace-nowrap"
                 >
                     {totalAdults} Adults, {totalChildren} Child{totalChildren !== 1 ? 'ren' : ''}
                 </button>

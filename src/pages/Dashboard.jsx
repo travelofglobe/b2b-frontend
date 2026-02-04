@@ -466,7 +466,7 @@ const Dashboard = () => {
                                                             e.stopPropagation();
                                                             navigate(`/bookings/${booking.bookingId}`);
                                                         }}
-                                                        className="text-primary hover:text-blue-700 hover:underline font-bold transition-colors"
+                                                        className="text-primary hover:text-blue-700 hover:underline font-medium transition-colors"
                                                     >
                                                         #{booking.bookingId}
                                                     </button>
@@ -479,14 +479,14 @@ const Dashboard = () => {
                                                         <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-600">
                                                             {getInitials(booking.principalAgencyName)}
                                                         </div>
-                                                        <span className="text-sm">{booking.principalAgencyName}</span>
+                                                        <span className="text-xs font-medium">{booking.principalAgencyName}</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 text-sm">{booking.hotelName}</td>
-                                                <td className="px-4 py-3 text-sm text-slate-500">
+                                                <td className="px-4 py-3 text-xs font-medium">{booking.hotelName}</td>
+                                                <td className="px-4 py-3 text-xs font-medium text-slate-500">
                                                     {formatDate(booking.checkInDate)}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm font-semibold">
+                                                <td className="px-4 py-3 text-xs font-medium">
                                                     {booking.totalAmount ? `${booking.currency} ${booking.totalAmount.toFixed(2)}` : 'N/A'}
                                                 </td>
                                                 <td className="px-4 py-3">

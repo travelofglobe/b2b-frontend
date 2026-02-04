@@ -185,6 +185,18 @@ const MapView = () => {
     // Map Instance State
     const [map, setMap] = useState(null);
 
+    // Fix map layout on sidebar toggle
+    useEffect(() => {
+        if (map) {
+            // Trigger immediately and after transition to ensure smooth update
+            map.invalidateSize();
+            const timer = setTimeout(() => {
+                map.invalidateSize();
+            }, 550); // Wait for duration-500 transition
+            return () => clearTimeout(timer);
+        }
+    }, [isSidebarOpen, map]);
+
     const filteredHotels = mockHotels.filter(hotel => {
         const matchesType = filters.types.length === 0 || filters.types.includes(hotel.type);
         const matchesPrice = hotel.price >= filters.priceRange[0] && hotel.price <= filters.priceRange[1];

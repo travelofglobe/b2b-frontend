@@ -90,7 +90,7 @@ const HotelListing = () => {
                         {/* View Controls Toolbar */}
                         <div className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-xl p-3 mb-8 flex items-center justify-between shadow-sm">
                             <Link
-                                to="/map"
+                                to={`/map?${searchParams.toString()}`}
                                 className="flex items-center gap-2 text-sm font-bold px-5 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                             >
                                 <span className="material-symbols-outlined text-primary">map</span>

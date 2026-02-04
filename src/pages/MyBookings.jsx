@@ -770,7 +770,7 @@ const MyBookings = () => {
                                                 {/* Identifiers */}
                                                 <td className="px-6 py-5">
                                                     <div className="flex flex-col gap-1">
-                                                        <span className="text-sm font-black text-slate-900 dark:text-white group-hover:text-primary transition-colors">#{booking.bookingId}</span>
+                                                        <span className="text-xs font-medium text-slate-900 dark:text-white group-hover:text-primary transition-colors">#{booking.bookingId}</span>
                                                         <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tight leading-tight max-w-[120px] truncate" title={booking.bookingUuid}>
                                                             {booking.bookingUuid}
                                                         </span>
@@ -789,7 +789,7 @@ const MyBookings = () => {
                                                             <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-primary">
                                                                 <span className="material-icons-round text-sm">hotel</span>
                                                             </div>
-                                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[180px]" title={booking.hotelName}>
+                                                            <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate max-w-[180px]" title={booking.hotelName}>
                                                                 {booking.hotelName}
                                                             </span>
                                                         </div>
@@ -812,7 +812,7 @@ const MyBookings = () => {
                                                                 {getInitials(booking.principalAgencyName)}
                                                             </div>
                                                             <div className="flex flex-col">
-                                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-[160px]" title={booking.principalAgencyName}>
+                                                                <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate max-w-[160px]" title={booking.principalAgencyName}>
                                                                     {booking.principalAgencyName}
                                                                 </span>
                                                                 <span className="text-[10px] font-bold text-slate-400 tracking-tighter uppercase">ID: {booking.principalAgencyId}</span>
@@ -828,12 +828,12 @@ const MyBookings = () => {
                                                         <div className="flex items-center gap-6">
                                                             <div className="flex flex-col">
                                                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Check-in</span>
-                                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{formatDate(booking.checkInDate)}</span>
+                                                                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{formatDate(booking.checkInDate)}</span>
                                                             </div>
                                                             <div className="w-px h-6 bg-slate-100 dark:bg-slate-800"></div>
                                                             <div className="flex flex-col">
                                                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Check-out</span>
-                                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{formatDate(booking.checkOutDate)}</span>
+                                                                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{formatDate(booking.checkOutDate)}</span>
                                                             </div>
                                                         </div>
                                                         <div className="flex flex-col pt-1 border-t border-slate-50 dark:border-slate-800/50">
@@ -848,7 +848,7 @@ const MyBookings = () => {
                                                     <div className="flex flex-col items-end gap-1.5">
                                                         <div className="flex items-center gap-1.5">
                                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{booking.currency}</span>
-                                                            <span className="text-lg font-black text-primary tracking-tight">
+                                                            <span className="text-xs font-medium text-primary tracking-tight">
                                                                 {booking.totalAmount?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                             </span>
                                                         </div>

@@ -400,23 +400,23 @@ const BookingDetail = () => {
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Client Reference</p>
-                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{booking.clientReferenceId || 'N/A'}</p>
+                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.clientReferenceId || 'N/A'}</p>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Voucher</p>
-                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{booking.voucher || 'N/A'}</p>
+                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.voucher || 'N/A'}</p>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Check-in</p>
-                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{formatDate(booking.checkIn)}</p>
+                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatDate(booking.checkIn)}</p>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Check-out</p>
-                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{formatDate(booking.checkOut)}</p>
+                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatDate(booking.checkOut)}</p>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transaction User</p>
-                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{booking.transactionUser || 'N/A'}</p>
+                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.transactionUser || 'N/A'}</p>
                                 </div>
                                 {booking.remark && (
                                     <div className="space-y-1 md:col-span-2 lg:col-span-3">
@@ -447,7 +447,7 @@ const BookingDetail = () => {
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Internal Hotel ID</p>
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{booking.hotel.internalHotelId}</p>
+                                        <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.hotel.internalHotelId}</p>
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Booking Status</p>
@@ -465,21 +465,21 @@ const BookingDetail = () => {
                                                 <span className="material-icons-round text-slate-400">person</span>
                                                 <div>
                                                     <p className="text-[10px] font-bold text-slate-400 uppercase">Name</p>
-                                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{booking.hotel.contact.name} {booking.hotel.contact.surname}</p>
+                                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.hotel.contact.name} {booking.hotel.contact.surname}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
                                                 <span className="material-icons-round text-slate-400">phone</span>
                                                 <div>
                                                     <p className="text-[10px] font-bold text-slate-400 uppercase">Phone</p>
-                                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{booking.hotel.contact.phoneCountryCode} {booking.hotel.contact.phoneNumber}</p>
+                                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.hotel.contact.phoneCountryCode} {booking.hotel.contact.phoneNumber}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
                                                 <span className="material-icons-round text-slate-400">email</span>
                                                 <div>
                                                     <p className="text-[10px] font-bold text-slate-400 uppercase">Email</p>
-                                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{booking.hotel.contact.email}</p>
+                                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.hotel.contact.email}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -520,18 +520,18 @@ const BookingDetail = () => {
                                                     {room.occupancies.map((guest, guestIndex) => (
                                                         <tr key={guestIndex} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                                                             <td className="px-4 py-3">
-                                                                <p className="text-sm font-bold text-slate-900 dark:text-white">{guest.name} {guest.surname}</p>
+                                                                <p className="text-xs font-medium text-slate-900 dark:text-white">{guest.name} {guest.surname}</p>
                                                             </td>
                                                             <td className="px-4 py-3">
-                                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{guest.nationality}</p>
+                                                                <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{guest.nationality}</p>
                                                             </td>
                                                             <td className="px-4 py-3">
-                                                                <p className="text-sm text-slate-600 dark:text-slate-300">{formatDate(guest.birthDate)}</p>
+                                                                <p className="text-xs text-slate-600 dark:text-slate-300">{formatDate(guest.birthDate)}</p>
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="material-icons-round text-slate-400 text-sm">{getGenderIcon(guest.gender)}</span>
-                                                                    <p className="text-sm text-slate-600 dark:text-slate-300">{guest.gender}</p>
+                                                                    <p className="text-xs text-slate-600 dark:text-slate-300">{guest.gender}</p>
                                                                 </div>
                                                             </td>
                                                             <td className="px-4 py-3">
@@ -555,7 +555,7 @@ const BookingDetail = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                                             <div className="space-y-1">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Board Type</p>
-                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{rate.boardType}</p>
+                                                <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{rate.boardType}</p>
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Amount</p>
@@ -572,7 +572,7 @@ const BookingDetail = () => {
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rate Category</p>
-                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{rate.rateCategoryId}</p>
+                                                <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{rate.rateCategoryId}</p>
                                             </div>
                                         </div>
 
@@ -592,10 +592,10 @@ const BookingDetail = () => {
                                                             {rate.dailyPrices.map((daily, dailyIndex) => (
                                                                 <tr key={dailyIndex} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                                                                     <td className="px-4 py-2">
-                                                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{formatDate(daily.date)}</p>
+                                                                        <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatDate(daily.date)}</p>
                                                                     </td>
                                                                     <td className="px-4 py-2 text-right">
-                                                                        <p className="text-sm font-bold text-primary">{daily.amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })} {rate.currency}</p>
+                                                                        <p className="text-xs font-medium text-primary">{daily.amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })} {rate.currency}</p>
                                                                     </td>
                                                                 </tr>
                                                             ))}
@@ -622,13 +622,13 @@ const BookingDetail = () => {
                                                             {rate.cancellationPolicies.map((policy, policyIndex) => (
                                                                 <tr key={policyIndex} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                                                                     <td className="px-4 py-2">
-                                                                        <p className="text-sm text-slate-700 dark:text-slate-200">{formatDateTime(policy.fromDate)}</p>
+                                                                        <p className="text-xs text-slate-700 dark:text-slate-200">{formatDateTime(policy.fromDate)}</p>
                                                                     </td>
                                                                     <td className="px-4 py-2">
-                                                                        <p className="text-sm text-slate-700 dark:text-slate-200">{formatDateTime(policy.toDate)}</p>
+                                                                        <p className="text-xs text-slate-700 dark:text-slate-200">{formatDateTime(policy.toDate)}</p>
                                                                     </td>
                                                                     <td className="px-4 py-2 text-right">
-                                                                        <p className="text-sm font-bold text-red-600 dark:text-red-400">{policy.amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })} {policy.currency}</p>
+                                                                        <p className="text-xs font-medium text-red-600 dark:text-red-400">{policy.amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })} {policy.currency}</p>
                                                                     </td>
                                                                 </tr>
                                                             ))}
@@ -658,12 +658,12 @@ const BookingDetail = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Created</p>
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{formatDateTime(booking.audit.createDateTime)}</p>
+                                        <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatDateTime(booking.audit.createDateTime)}</p>
                                         <p className="text-xs text-slate-500 dark:text-slate-400">by {booking.audit.createdBy}</p>
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Updated</p>
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{formatDateTime(booking.audit.updateDateTime)}</p>
+                                        <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatDateTime(booking.audit.updateDateTime)}</p>
                                         <p className="text-xs text-slate-500 dark:text-slate-400">by {booking.audit.updatedBy}</p>
                                     </div>
                                     <div className="space-y-1">
@@ -673,7 +673,7 @@ const BookingDetail = () => {
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Version</p>
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{booking.audit.version}</p>
+                                        <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.audit.version}</p>
                                     </div>
                                 </div>
                             </div>

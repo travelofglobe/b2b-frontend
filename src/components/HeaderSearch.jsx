@@ -5,6 +5,7 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
 import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms } from '../utils/searchParamsUtils';
+import NationalitySelect from './NationalitySelect';
 
 const HeaderSearch = () => {
     const navigate = useNavigate();
@@ -13,6 +14,11 @@ const HeaderSearch = () => {
     // -- State Initialization from URL or Defaults --
     const [query, setQuery] = useState(() => {
         return searchParams.get('q') || localStorage.getItem('dashboard_last_search') || '';
+    });
+
+    // Nationality
+    const [nationality, setNationality] = useState(() => {
+        return searchParams.get('nationality') || 'TR';
     });
 
     // Default dates: tomorrow, day after
@@ -120,7 +126,7 @@ const HeaderSearch = () => {
 
     const getUrlParams = (queryOverride) => {
         const guestsParam = serializeGuestsParam(roomState);
-        let params = `checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&guests=${encodeURIComponent(guestsParam)}`;
+        let params = `checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&guests=${encodeURIComponent(guestsParam)}&nationality=${encodeURIComponent(nationality)}`;
 
         // Add query param if present
         const q = queryOverride !== undefined ? queryOverride : query;
@@ -321,7 +327,7 @@ const HeaderSearch = () => {
                         selectsRange
                         minDate={new Date()}
                         monthsShown={2}
-                        className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 font-medium"
+                        className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 font-semibold"
                         dateFormat="dd MMM yyyy"
                         placeholderText="Dates"
                         dayClassName={(date) => {
@@ -333,6 +339,13 @@ const HeaderSearch = () => {
                     />
                 </div>
             </div>
+
+            {/* Nationality Selector */}
+            <NationalitySelect
+                value={nationality}
+                onChange={setNationality}
+                compact={true}
+            />
 
             {/* 3. Guests Dropdown */}
             <div className="flex items-center px-3 relative" ref={guestWrapperRef}>

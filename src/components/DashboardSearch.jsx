@@ -6,6 +6,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
 import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms } from '../utils/searchParamsUtils';
 
+import NationalitySelect from './NationalitySelect';
+
 const DashboardSearch = ({ initialQuery = '' }) => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -14,6 +16,12 @@ const DashboardSearch = ({ initialQuery = '' }) => {
     const [query, setQuery] = useState(() => {
         return initialQuery || searchParams.get('q') || localStorage.getItem('dashboard_last_search') || '';
     });
+
+    // Nationality State
+    const [nationality, setNationality] = useState(() => {
+        return searchParams.get('nationality') || 'TR';
+    });
+
     const [results, setResults] = useState({ hotels: [], regions: [] });
     const [loading, setLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -133,7 +141,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
 
     const getUrlParams = (queryOverride) => {
         const guestsParam = serializeGuestsParam(roomState);
-        let params = `checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&guests=${encodeURIComponent(guestsParam)}`;
+        let params = `checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&guests=${encodeURIComponent(guestsParam)}&nationality=${encodeURIComponent(nationality)}`;
 
         const q = queryOverride !== undefined ? queryOverride : query;
         if (q) {
@@ -267,7 +275,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4">
                 {/* Destination Input */}
-                <div className="md:col-span-4 space-y-1.5 relative" ref={searchWrapperRef}>
+                <div className="md:col-span-3 space-y-1.5 relative" ref={searchWrapperRef}>
                     <label className={`text-[10px] font-semibold uppercase tracking-wider ml-1 ${error ? 'text-red-500' : 'text-slate-400'}`}>
                         {error ? 'Please enter a destination' : 'Accommodation'}
                     </label>
@@ -378,8 +386,20 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                     </div>
                 </div>
 
+                {/* Nationality Selector */}
+                <div className="md:col-span-2 space-y-1.5">
+                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 ml-1">Nationality</label>
+                    <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-transparent hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all">
+                        <NationalitySelect
+                            value={nationality}
+                            onChange={setNationality}
+                            compact={false}
+                        />
+                    </div>
+                </div>
+
                 {/* Guest Selector */}
-                <div className="md:col-span-3 space-y-1.5 relative" ref={guestWrapperRef}>
+                <div className="md:col-span-2 space-y-1.5 relative" ref={guestWrapperRef}>
                     <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 ml-1">Guests & Rooms</label>
                     <button
                         onClick={() => setShowGuestDropdown(!showGuestDropdown)}
@@ -396,7 +416,6 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                         </div>
                         <span className="material-icons-round text-slate-400 text-base">expand_more</span>
                     </button>
-
                     {showGuestDropdown && (
                         <div className="absolute top-full right-0 w-[350px] mt-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-xl p-4 z-50 overflow-y-auto max-h-[80vh]">
                             {roomState.map((room, index) => (

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { locationService } from '../services/locationService';
 
-const Breadcrumbs = ({ locationId }) => {
+const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded }) => {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
     const [loading, setLoading] = useState(false);
     const location = useLocation();
@@ -22,6 +22,11 @@ const Breadcrumbs = ({ locationId }) => {
                 // API returns breadcrumbs in correct order: Country → City → District → Town
                 if (data && data.breadcrumbs) {
                     setBreadcrumbs(data.breadcrumbs);
+
+                    // Call callback with full data if provided
+                    if (onBreadcrumbsLoaded) {
+                        onBreadcrumbsLoaded(data);
+                    }
                 }
             } catch (error) {
                 console.error('Failed to fetch breadcrumbs:', error);
@@ -32,7 +37,7 @@ const Breadcrumbs = ({ locationId }) => {
         };
 
         fetchBreadcrumbs();
-    }, [locationId]);
+    }, [locationId, onBreadcrumbsLoaded]);
 
     // Helper to get name with English translation preference
     const getName = (nameObj) => {

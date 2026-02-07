@@ -192,6 +192,9 @@ const HeaderSearch = () => {
             fullName = parts.reverse().join(', ');
         }
 
+        // Close dropdown FIRST before updating query to prevent reopening
+        setShowDropdown(false);
+
         setQuery(fullName);
         localStorage.setItem('dashboard_last_search', fullName);
         // Save locationId for later use with Search button and breadcrumb loading
@@ -209,7 +212,6 @@ const HeaderSearch = () => {
             const slug = name.toLowerCase().replace(/ /g, '-');
             navigate(`/hotels/${slug}?${urlParams}${locationParam}`);
         }
-        setShowDropdown(false);
     };
 
     const handleSelectHotel = (hotel) => {

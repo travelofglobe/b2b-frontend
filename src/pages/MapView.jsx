@@ -186,6 +186,9 @@ const MapView = () => {
     // Map Instance State
     const [map, setMap] = useState(null);
 
+    // Breadcrumb data for map auto-focus
+    const [breadcrumbData, setBreadcrumbData] = useState(null);
+
     // Fix map layout on sidebar toggle
     useEffect(() => {
         if (map) {
@@ -197,6 +200,27 @@ const MapView = () => {
             return () => clearTimeout(timer);
         }
     }, [isSidebarOpen, map]);
+
+    // Auto-focus map on location from breadcrumb geoCoordinate
+    useEffect(() => {
+        if (breadcrumbData && map) {
+            // The current location's geoCoordinate is in the root of breadcrumbData
+            // breadcrumbs array contains parent locations only
+            if (breadcrumbData.geoCoordinate) {
+                const { lat, lon } = breadcrumbData.geoCoordinate;
+                // Determine zoom level based on location type
+                const zoomLevels = {
+                    'TOWN': 13,
+                    'DISTRICT': 11,
+                    'CITY': 10,
+                    'COUNTRY': 6
+                };
+                const zoom = zoomLevels[breadcrumbData.locationType] || 10;
+                // Use setView for instant positioning (no animation) to avoid Santorini flash
+                map.setView([lat, lon], zoom);
+            }
+        }
+    }, [breadcrumbData, map]);
 
     const filteredHotels = mockHotels.filter(hotel => {
         const matchesType = filters.types.length === 0 || filters.types.includes(hotel.type);
@@ -245,7 +269,10 @@ const MapView = () => {
             {/* Breadcrumbs Section - matches HotelListing.jsx structure */}
             <div className="max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <Breadcrumbs locationId={searchParams.get('locationId') || '174737'} />
+                    <Breadcrumbs
+                        locationId={searchParams.get('locationId') || '174737'}
+                        onBreadcrumbsLoaded={setBreadcrumbData}
+                    />
                     <Link
                         to="/"
                         className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
@@ -353,31 +380,45 @@ const MapView = () => {
 
                 {/* Section: Leaflet Map */}
                 <section className="flex-1 relative bg-slate-100 dark:bg-[#0c1622] overflow-hidden">
-                    <MapContainer
-                        center={[selectedHotel.lat, selectedHotel.lng]}
-                        zoom={13}
-                        style={{ height: '100%', width: '100%' }}
-                        zoomControl={false}
-                    >
-                        <MapInstanceCapture setMap={setMap} />
-                        <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                        />
-
-                        <MapController selectedHotel={selectedHotel} />
-
-                        {filteredHotels.map((hotel) => (
-                            <CustomPriceMarker
-                                key={hotel.id}
-                                hotel={hotel}
-                                isSelected={selectedHotel?.id === hotel.id}
-                                isHovered={hoveredHotel?.id === hotel.id}
-                                onSelect={handleHotelSelect}
-                                onHover={setHoveredHotel}
+                    {breadcrumbData?.geoCoordinate ? (
+                        <MapContainer
+                            key={searchParams.get('locationId') || 'default'}
+                            center={[breadcrumbData.geoCoordinate.lat, breadcrumbData.geoCoordinate.lon]}
+                            zoom={breadcrumbData?.locationType ?
+                                (breadcrumbData.locationType === 'TOWN' ? 13 :
+                                    breadcrumbData.locationType === 'DISTRICT' ? 11 :
+                                        breadcrumbData.locationType === 'CITY' ? 10 : 6) : 13
+                            }
+                            style={{ height: '100%', width: '100%' }}
+                            zoomControl={false}
+                        >
+                            <MapInstanceCapture setMap={setMap} />
+                            <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                             />
-                        ))}
-                    </MapContainer>
+
+                            <MapController selectedHotel={selectedHotel} />
+
+                            {filteredHotels.map((hotel) => (
+                                <CustomPriceMarker
+                                    key={hotel.id}
+                                    hotel={hotel}
+                                    isSelected={selectedHotel?.id === hotel.id}
+                                    isHovered={hoveredHotel?.id === hotel.id}
+                                    onSelect={handleHotelSelect}
+                                    onHover={setHoveredHotel}
+                                />
+                            ))}
+                        </MapContainer>
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-slate-50 dark:bg-[#0c1622]">
+                            <div className="flex flex-col items-center gap-4 text-center p-6">
+                                <div className="w-12 h-12 border-4 border-[#137fec] border-t-transparent rounded-full animate-spin"></div>
+                                <p className="text-slate-500 dark:text-slate-400 font-medium">Preparing travel map...</p>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Glass Hover Preview Card */}
                     {hoveredHotel && (

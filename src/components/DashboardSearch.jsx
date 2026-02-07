@@ -182,7 +182,9 @@ const DashboardSearch = ({ initialQuery = '' }) => {
         localStorage.setItem('dashboard_last_search', fullName);
         setQuery(fullName);
         const slug = name.toLowerCase().replace(/ /g, '-');
-        navigate(`/hotels/${slug}?${getUrlParams(fullName)}`);
+        const urlParams = getUrlParams(fullName);
+        const locationParam = location.locationId ? `&locationId=${location.locationId}` : '';
+        navigate(`/hotels/${slug}?${urlParams}${locationParam}`);
     };
 
     const handleSelectHotel = (hotel) => {
@@ -200,7 +202,9 @@ const DashboardSearch = ({ initialQuery = '' }) => {
 
         localStorage.setItem('dashboard_last_search', fullName);
         setQuery(fullName);
-        navigate(`/hotel/${hotel.url}?${getUrlParams(fullName)}`);
+        const urlParams = getUrlParams(fullName);
+        const hotelParam = hotel.hotelId ? `&hotelId=${hotel.hotelId}` : '';
+        navigate(`/hotel/${hotel.url}?${urlParams}${hotelParam}`);
     };
 
     // Helper to get Hotel Name

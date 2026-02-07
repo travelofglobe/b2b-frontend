@@ -239,7 +239,7 @@ const MapView = () => {
             {/* Breadcrumbs Section - matches HotelListing.jsx structure */}
             <div className="max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <Breadcrumbs />
+                    <Breadcrumbs locationId={searchParams.get('locationId')} />
                     <Link
                         to="/"
                         className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"

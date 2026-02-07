@@ -23,7 +23,7 @@ const NationalitySelect = ({ value, onChange, compact = false }) => {
     );
 
     return (
-        <div className="relative border-r border-slate-300 dark:border-slate-600 px-3" ref={wrapperRef}>
+        <div className="relative px-3" ref={wrapperRef}>
             <button
                 onClick={() => { setIsOpen(!isOpen); setSearchTerm(''); }}
                 className="flex items-center gap-2 bg-transparent border-none p-0 focus:ring-0"

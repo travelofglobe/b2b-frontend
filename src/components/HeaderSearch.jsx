@@ -27,13 +27,26 @@ const HeaderSearch = () => {
     const dayAfter = new Date(tomorrow);
     dayAfter.setDate(dayAfter.getDate() + 1);
 
+    const parseDateParam = (param) => {
+        if (!param) return null;
+        const [day, month, year] = param.split('-').map(Number);
+        if (day && month && year) {
+            const date = new Date(year, month - 1, day);
+            // Validate that the date is valid
+            if (date instanceof Date && !isNaN(date.getTime())) {
+                return date;
+            }
+        }
+        return null;
+    };
+
     const [checkInDate, setCheckInDate] = useState(() => {
         const checkinParam = searchParams.get('checkin');
-        return checkinParam ? new Date(checkinParam) : tomorrow;
+        return parseDateParam(checkinParam) || tomorrow;
     });
     const [checkOutDate, setCheckOutDate] = useState(() => {
         const checkoutParam = searchParams.get('checkout');
-        return checkoutParam ? new Date(checkoutParam) : dayAfter;
+        return parseDateParam(checkoutParam) || dayAfter;
     });
 
     // -- Guest State --

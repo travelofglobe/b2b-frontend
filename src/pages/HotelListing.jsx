@@ -52,7 +52,7 @@ const HotelListing = () => {
     const subtitle = `${totalRooms} Room${totalRooms > 1 ? 's' : ''}, ${totalGuests} Guest${totalGuests !== 1 ? 's' : ''} • 142 properties found`;
 
     return (
-        <div className="relative flex min-h-screen flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200">
+        <div className="relative flex min-h-screen flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200 font-sans">
             <Header />
             <main className="flex-1 max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

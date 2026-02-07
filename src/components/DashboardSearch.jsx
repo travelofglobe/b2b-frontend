@@ -36,7 +36,11 @@ const DashboardSearch = ({ initialQuery = '' }) => {
         if (!param) return null;
         const [day, month, year] = param.split('-').map(Number);
         if (day && month && year) {
-            return new Date(year, month - 1, day);
+            const date = new Date(year, month - 1, day);
+            // Validate that the date is valid
+            if (date instanceof Date && !isNaN(date.getTime())) {
+                return date;
+            }
         }
         return null;
     };
@@ -416,6 +420,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                         </div>
                         <span className="material-icons-round text-slate-400 text-base">expand_more</span>
                     </button>
+
                     {showGuestDropdown && (
                         <div className="absolute top-full right-0 w-[350px] mt-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-xl p-4 z-50 overflow-y-auto max-h-[80vh]">
                             {roomState.map((room, index) => (

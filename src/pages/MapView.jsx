@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import Header from '../components/Header';
+import Breadcrumbs from '../components/Breadcrumbs';
 import { mockHotels } from '../data/mockHotels';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -234,6 +235,22 @@ const MapView = () => {
     return (
         <div className="flex flex-col h-screen bg-white dark:bg-background-dark overflow-hidden font-sans">
             <Header />
+
+            {/* Breadcrumbs Section - matches HotelListing.jsx structure */}
+            <div className="max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <Breadcrumbs />
+                    <Link
+                        to="/"
+                        className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
+                    >
+                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
+                            <span className="material-symbols-outlined text-lg">arrow_back</span>
+                        </div>
+                        Back to Dashboard
+                    </Link>
+                </div>
+            </div>
 
             <main className="flex-1 flex overflow-hidden relative">
                 {/* Aside: Hotel List Sidebar */}

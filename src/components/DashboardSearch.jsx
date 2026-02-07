@@ -268,17 +268,21 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                 <button className="bg-primary text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg shadow-primary/25 text-xs transition-transform transform active:scale-95">
                     <span className="material-icons-round text-base">hotel</span> HOTEL
                 </button>
-                <button className="text-slate-500 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-xs transition-colors">
+                <button className="text-slate-500 px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-xs transition-colors opacity-60 cursor-not-allowed" disabled>
                     <span className="material-icons-round text-base">flight</span> FLIGHT
+                    <span className="ml-1.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-[9px] font-bold px-2 py-0.5 rounded-md">Soon</span>
                 </button>
-                <button className="text-slate-500 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-xs transition-colors">
+                <button className="text-slate-500 px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-xs transition-colors opacity-60 cursor-not-allowed" disabled>
                     <span className="material-icons-round text-base">airport_shuttle</span> TRANSFER
+                    <span className="ml-1.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-[9px] font-bold px-2 py-0.5 rounded-md">Soon</span>
                 </button>
-                <button className="text-slate-500 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-xs transition-colors">
+                <button className="text-slate-500 px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-xs transition-colors opacity-60 cursor-not-allowed" disabled>
                     <span className="material-icons-round text-base">explore</span> TOUR
+                    <span className="ml-1.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-[9px] font-bold px-2 py-0.5 rounded-md">Soon</span>
                 </button>
-                <button className="text-slate-500 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-xs transition-colors">
+                <button className="text-slate-500 px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-xs transition-colors opacity-60 cursor-not-allowed" disabled>
                     <span className="material-icons-round text-base">directions_car</span> CAR RENTALS
+                    <span className="ml-1.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-[9px] font-bold px-2 py-0.5 rounded-md">Soon</span>
                 </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4">
@@ -382,7 +386,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                                 minDate={new Date()}
                                 monthsShown={2}
                                 className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs font-medium text-slate-900 dark:text-white cursor-pointer placeholder-slate-400"
-                                dateFormat="dd-MM-yyyy"
+                                dateFormat="dd MMM yyyy"
                                 placeholderText="Select dates"
                                 dayClassName={(date) => {
                                     const day = date.getDay();

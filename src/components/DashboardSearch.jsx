@@ -164,7 +164,10 @@ const DashboardSearch = ({ initialQuery = '' }) => {
         if (query) {
             localStorage.setItem('dashboard_last_search', query);
             const slug = query.toLowerCase().replace(/ /g, '-');
-            navigate(`/hotels/${slug}?${getUrlParams()}`);
+            // Retrieve locationId from localStorage if it exists
+            const savedLocationId = localStorage.getItem('dashboard_last_locationId');
+            const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
+            navigate(`/hotels/${slug}?${getUrlParams()}${locationParam}`);
         }
     };
 
@@ -180,6 +183,10 @@ const DashboardSearch = ({ initialQuery = '' }) => {
         }
 
         localStorage.setItem('dashboard_last_search', fullName);
+        // Save locationId for later use with Search button
+        if (location.locationId) {
+            localStorage.setItem('dashboard_last_locationId', location.locationId);
+        }
         setQuery(fullName);
         const slug = name.toLowerCase().replace(/ /g, '-');
         const urlParams = getUrlParams(fullName);

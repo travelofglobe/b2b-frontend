@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { autocompleteService } from '../services/autocompleteService';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -10,6 +10,10 @@ import NationalitySelect from './NationalitySelect';
 const HeaderSearch = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const location = useLocation();
+
+    // Detect if we're on the map page to preserve navigation context
+    const isMapPage = location.pathname.startsWith('/map');
 
     // -- State Initialization from URL or Defaults --
     const [query, setQuery] = useState(() => {
@@ -102,6 +106,14 @@ const HeaderSearch = () => {
         return () => clearTimeout(timeoutId);
     }, [query]);
 
+    // Sync query with URL parameter when URL changes (e.g., breadcrumb click)
+    useEffect(() => {
+        const qParam = searchParams.get('q');
+        if (qParam && qParam !== query) {
+            setQuery(qParam);
+        }
+    }, [searchParams]);
+
     // Click outside to close dropdowns
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -134,7 +146,11 @@ const HeaderSearch = () => {
     };
 
     const formatDateForUrl = (date) => {
-        return date.toISOString().split('T')[0];
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}-${month}-${year}`;
     };
 
     const getUrlParams = (queryOverride) => {
@@ -152,9 +168,17 @@ const HeaderSearch = () => {
     const handleSearch = () => {
         if (query) {
             localStorage.setItem('dashboard_last_search', query);
-            const slug = query.toLowerCase().replace(/ /g, '-');
-            // Navigate to results page with params
-            navigate(`/hotels/${slug}?${getUrlParams()}`);
+            // Retrieve locationId from localStorage if it exists
+            const savedLocationId = localStorage.getItem('dashboard_last_locationId');
+            const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
+
+            // Map page doesn't use slug-based routing, only Hotels does
+            if (isMapPage) {
+                navigate(`/map?${getUrlParams()}${locationParam}`);
+            } else {
+                const slug = query.toLowerCase().replace(/ /g, '-');
+                navigate(`/hotels/${slug}?${getUrlParams()}${locationParam}`);
+            }
         }
     };
 
@@ -170,10 +194,21 @@ const HeaderSearch = () => {
 
         setQuery(fullName);
         localStorage.setItem('dashboard_last_search', fullName);
+        // Save locationId for later use with Search button and breadcrumb loading
+        if (location.locationId) {
+            localStorage.setItem('dashboard_last_locationId', location.locationId);
+        }
 
-        // For now, sticking to the existing slug logic based on the item name itself.
-        const slug = name.toLowerCase().replace(/ /g, '-');
-        navigate(`/hotels/${slug}?${getUrlParams(fullName)}`);
+        const urlParams = getUrlParams(fullName);
+        const locationParam = location.locationId ? `&locationId=${location.locationId}` : '';
+
+        // Map page doesn't use slug-based routing, only Hotels does
+        if (isMapPage) {
+            navigate(`/map?${urlParams}${locationParam}`);
+        } else {
+            const slug = name.toLowerCase().replace(/ /g, '-');
+            navigate(`/hotels/${slug}?${urlParams}${locationParam}`);
+        }
         setShowDropdown(false);
     };
 

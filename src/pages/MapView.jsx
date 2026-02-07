@@ -232,6 +232,12 @@ const MapView = () => {
         }
     };
 
+    // Get location name from query parameter (same as HotelListing)
+    const queryLocation = searchParams.get('q');
+    const locationName = queryLocation
+        ? queryLocation.split(',')[0].trim()
+        : 'Explore';
+
     return (
         <div className="flex flex-col h-screen bg-white dark:bg-background-dark overflow-hidden font-sans">
             <Header />
@@ -239,7 +245,7 @@ const MapView = () => {
             {/* Breadcrumbs Section - matches HotelListing.jsx structure */}
             <div className="max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <Breadcrumbs locationId={searchParams.get('locationId')} />
+                    <Breadcrumbs locationId={searchParams.get('locationId') || '174737'} />
                     <Link
                         to="/"
                         className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
@@ -260,7 +266,7 @@ const MapView = () => {
                         <div className="p-8 border-b border-slate-100/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50">
                             <div className="flex items-center justify-between mb-1">
                                 <div>
-                                    <h1 className="font-black text-2xl tracking-tighter text-slate-900 dark:text-white uppercase leading-none">Santorini</h1>
+                                    <h1 className="font-black text-2xl tracking-tighter text-slate-900 dark:text-white uppercase leading-none">{locationName}</h1>
                                     <p className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mt-2">{filteredHotels.length} Elite Properties</p>
                                 </div>
                                 <div className="flex items-center gap-2">

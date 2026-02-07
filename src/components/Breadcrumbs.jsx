@@ -19,6 +19,7 @@ const Breadcrumbs = ({ locationId }) => {
                 const data = await locationService.fetchBreadcrumb(locationId);
 
                 // Extract breadcrumbs array from response
+                // API returns breadcrumbs in correct order: Country → City → District → Town
                 if (data && data.breadcrumbs) {
                     setBreadcrumbs(data.breadcrumbs);
                 }
@@ -57,6 +58,30 @@ const Breadcrumbs = ({ locationId }) => {
         );
     }
 
+
+    // Handle breadcrumb click - navigate to that location
+    const handleBreadcrumbClick = (crumb) => {
+        const isMapPage = location.pathname.startsWith('/map');
+        const searchParams = new URLSearchParams(location.search);
+
+        // Update locationId to the clicked breadcrumb's locationId
+        searchParams.set('locationId', crumb.locationId);
+
+        // Add query parameter with location name for autocomplete and page title
+        const name = getName(crumb.name);
+        searchParams.set('q', name);
+
+        // Navigate to appropriate page type with updated locationId and query
+        const basePath = isMapPage ? '/map' : '/hotels';
+        const slug = name.toLowerCase().replace(/ /g, '-');
+
+        if (isMapPage) {
+            window.location.href = `${basePath}?${searchParams.toString()}`;
+        } else {
+            window.location.href = `${basePath}/${slug}?${searchParams.toString()}`;
+        }
+    };
+
     return (
         <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
             <Link className="text-slate-400 dark:text-slate-500 hover:text-primary text-sm font-medium" to="/">Home</Link>
@@ -71,7 +96,10 @@ const Breadcrumbs = ({ locationId }) => {
                         {isLast ? (
                             <span className="text-slate-900 dark:text-white text-sm font-semibold">{name}</span>
                         ) : (
-                            <span className="text-slate-400 dark:text-slate-500 hover:text-primary text-sm font-medium cursor-pointer">
+                            <span
+                                onClick={() => handleBreadcrumbClick(crumb)}
+                                className="text-slate-400 dark:text-slate-500 hover:text-primary text-sm font-medium cursor-pointer"
+                            >
                                 {name}
                             </span>
                         )}

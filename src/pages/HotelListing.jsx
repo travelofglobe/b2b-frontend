@@ -38,8 +38,15 @@ const HotelListing = () => {
     const totalRooms = roomState.length;
     const totalGuests = totalAdults + totalChildren;
 
-    // In a real app, these would trigger an API call
-    const locationName = slug ? slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Santorini';
+    // Get location name from query parameter (preserves autocomplete capitalization)
+    // Fallback to slug if query param not available
+    const queryLocation = searchParams.get('q');
+    const locationName = queryLocation
+        ? queryLocation.split(',')[0].trim() // Get first part (location name) from "Location, City, Country"
+        : slug
+            ? slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+            : 'Santorini';
+
     const themeName = theme ? theme.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
     const campaignName = campaign ? campaign.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
 

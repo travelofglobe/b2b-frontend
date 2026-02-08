@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { locationService } from '../services/locationService';
@@ -56,17 +56,34 @@ const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover }) 
 // Map Controller for FlyTo
 const MapController = ({ selectedHotel }) => {
     const map = useMap();
+    const isMounted = useRef(true);
+
+    useEffect(() => {
+        isMounted.current = true;
+        return () => { isMounted.current = false; };
+    }, []);
+
     useEffect(() => {
         if (selectedHotel && map) {
             try {
-                map.flyTo([selectedHotel.lat, selectedHotel.lng], 15, {
-                    duration: 1.5
-                });
+                // Ensure map exists and hasn't been removed from DOM
+                if (map.getContainer()) {
+                    map.stop();
+                    map.flyTo([selectedHotel.lat, selectedHotel.lng], 15, {
+                        duration: 1.5
+                    });
+                }
             } catch (err) {
-                console.warn('Map flyTo failed:', err);
+                console.warn('Map flyTo (hotel) failed:', err);
             }
             return () => {
-                if (map) map.stop();
+                try {
+                    if (isMounted.current && map && map.getContainer()) {
+                        map.stop();
+                    }
+                } catch (e) {
+                    // Silent catch for unmount phase
+                }
             };
         }
     }, [selectedHotel, map]);
@@ -176,6 +193,7 @@ const MapInstanceCapture = ({ setMap }) => {
 
 // MapView Component
 const MapView = () => {
+    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [hoveredHotel, setHoveredHotel] = useState(null);
     const [selectedHotel, setSelectedHotel] = useState(() => {
@@ -199,6 +217,12 @@ const MapView = () => {
     const [breadcrumbData, setBreadcrumbData] = useState(null);
     const [isDataLoading, setIsDataLoading] = useState(true);
     const [hasInitialDataLoaded, setHasInitialDataLoaded] = useState(false);
+    const isComponentMounted = useRef(true);
+
+    useEffect(() => {
+        isComponentMounted.current = true;
+        return () => { isComponentMounted.current = false; };
+    }, []);
 
     // Fetch location details when locationId changes
     useEffect(() => {
@@ -212,12 +236,17 @@ const MapView = () => {
             setIsDataLoading(true);
             try {
                 const data = await locationService.fetchLocationDetails(locationId);
+                if (!isComponentMounted.current) return;
                 setBreadcrumbData(data);
                 if (!hasInitialDataLoaded) setHasInitialDataLoaded(true);
             } catch (error) {
-                console.error('Failed to fetch location details:', error);
+                if (isComponentMounted.current) {
+                    console.error('Failed to fetch location details:', error);
+                }
             } finally {
-                setIsDataLoading(false);
+                if (isComponentMounted.current) {
+                    setIsDataLoading(false);
+                }
             }
         };
 
@@ -229,12 +258,17 @@ const MapView = () => {
         if (map) {
             // Trigger immediately and after transition to ensure smooth update
             map.invalidateSize();
-            const timer = setTimeout(() => {
-                map.invalidateSize();
-            }, 550); // Wait for duration-500 transition
+            const timer = setTimeout(() => map.invalidateSize(), 300);
             return () => clearTimeout(timer);
         }
     }, [isSidebarOpen, map]);
+
+    const handleBackToList = () => {
+        const q = searchParams.get('q');
+        // Map slug generation logic similar to HeaderSearch
+        const baseUrl = q ? `/hotels/${q.toLowerCase().replace(/ /g, '-')}` : '/hotels';
+        navigate(`${baseUrl}?${searchParams.toString()}`);
+    };
 
     // Auto-focus map on location from breadcrumb geoCoordinate
     useEffect(() => {
@@ -250,18 +284,30 @@ const MapView = () => {
                 const zoom = zoomLevels[breadcrumbData.locationType] || 10;
 
                 try {
-                    // Stop any existing animation before starting a new one
-                    map.stop();
-                    // Fly to location with smooth animation
-                    map.flyTo([lat, lon], zoom, {
-                        duration: 1.5, // Slightly faster for responsiveness
-                        easeLinearity: 0.25
-                    });
+                    // Check if map container still exists
+                    if (map.getContainer()) {
+                        // Stop any existing animation before starting a new one
+                        map.stop();
+                        // Fly to location with smooth animation
+                        map.flyTo([lat, lon], zoom, {
+                            duration: 1.5, // Slightly faster for responsiveness
+                            easeLinearity: 0.25
+                        });
+                    }
                 } catch (err) {
-                    console.warn('Map flyTo failed:', err);
+                    console.warn('Map flyTo (location) failed:', err);
                 }
             }
         }
+        return () => {
+            try {
+                if (isComponentMounted.current && map && map.getContainer()) {
+                    map.stop();
+                }
+            } catch (e) {
+                // Ignore errors during unmount
+            }
+        };
     }, [breadcrumbData, map, isDataLoading]);
 
     const filteredHotels = mockHotels.filter(hotel => {
@@ -510,7 +556,7 @@ const MapView = () => {
                         {/* Navigation Controls */}
                         <div className="flex flex-col gap-3 mt-4">
                             <button
-                                onClick={() => window.history.back()}
+                                onClick={handleBackToList}
                                 className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl p-4 rounded-[20px] shadow-xl border border-white/20 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-800 active:scale-95 transition-all group flex items-center justify-center relative"
                             >
                                 <span className="material-symbols-outlined font-black group-hover:-translate-x-1 transition-transform">arrow_back</span>

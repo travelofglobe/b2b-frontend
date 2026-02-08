@@ -2,12 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { locationService } from '../services/locationService';
 
-const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded }) => {
+const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
     const [loading, setLoading] = useState(false);
     const location = useLocation();
 
     useEffect(() => {
+        // If initialData is provided, use it and don't fetch
+        if (initialData && initialData.breadcrumbs) {
+            setBreadcrumbs(initialData.breadcrumbs);
+            return;
+        }
+
         const fetchBreadcrumbs = async () => {
             if (!locationId) {
                 setBreadcrumbs([]);
@@ -37,7 +43,7 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded }) => {
         };
 
         fetchBreadcrumbs();
-    }, [locationId, onBreadcrumbsLoaded]);
+    }, [locationId, onBreadcrumbsLoaded, initialData]);
 
     // Helper to get name with English translation preference
     const getName = (nameObj) => {

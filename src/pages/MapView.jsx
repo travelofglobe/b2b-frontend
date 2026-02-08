@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Breadcrumbs from '../components/Breadcrumbs';
+import { locationService } from '../services/locationService';
 import { mockHotels } from '../data/mockHotels';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -56,10 +57,17 @@ const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover }) 
 const MapController = ({ selectedHotel }) => {
     const map = useMap();
     useEffect(() => {
-        if (selectedHotel) {
-            map.flyTo([selectedHotel.lat, selectedHotel.lng], 15, {
-                duration: 1.5
-            });
+        if (selectedHotel && map) {
+            try {
+                map.flyTo([selectedHotel.lat, selectedHotel.lng], 15, {
+                    duration: 1.5
+                });
+            } catch (err) {
+                console.warn('Map flyTo failed:', err);
+            }
+            return () => {
+                if (map) map.stop();
+            };
         }
     }, [selectedHotel, map]);
     return null;
@@ -161,6 +169,7 @@ const MapInstanceCapture = ({ setMap }) => {
     const map = useMap();
     useEffect(() => {
         setMap(map);
+        return () => setMap(null);
     }, [map, setMap]);
     return null;
 };
@@ -188,6 +197,32 @@ const MapView = () => {
 
     // Breadcrumb data for map auto-focus
     const [breadcrumbData, setBreadcrumbData] = useState(null);
+    const [isDataLoading, setIsDataLoading] = useState(true);
+    const [hasInitialDataLoaded, setHasInitialDataLoaded] = useState(false);
+
+    // Fetch location details when locationId changes
+    useEffect(() => {
+        const fetchDetails = async () => {
+            const locationId = searchParams.get('locationId');
+            if (!locationId) {
+                setIsDataLoading(false);
+                return;
+            }
+
+            setIsDataLoading(true);
+            try {
+                const data = await locationService.fetchLocationDetails(locationId);
+                setBreadcrumbData(data);
+                if (!hasInitialDataLoaded) setHasInitialDataLoaded(true);
+            } catch (error) {
+                console.error('Failed to fetch location details:', error);
+            } finally {
+                setIsDataLoading(false);
+            }
+        };
+
+        fetchDetails();
+    }, [searchParams]);
 
     // Fix map layout on sidebar toggle
     useEffect(() => {
@@ -203,12 +238,9 @@ const MapView = () => {
 
     // Auto-focus map on location from breadcrumb geoCoordinate
     useEffect(() => {
-        if (breadcrumbData && map) {
-            // The current location's geoCoordinate is in the root of breadcrumbData
-            // breadcrumbs array contains parent locations only
+        if (breadcrumbData && map && !isDataLoading) {
             if (breadcrumbData.geoCoordinate) {
                 const { lat, lon } = breadcrumbData.geoCoordinate;
-                // Determine zoom level based on location type
                 const zoomLevels = {
                     'TOWN': 13,
                     'DISTRICT': 11,
@@ -216,11 +248,21 @@ const MapView = () => {
                     'COUNTRY': 6
                 };
                 const zoom = zoomLevels[breadcrumbData.locationType] || 10;
-                // Use setView for instant positioning (no animation) to avoid Santorini flash
-                map.setView([lat, lon], zoom);
+
+                try {
+                    // Stop any existing animation before starting a new one
+                    map.stop();
+                    // Fly to location with smooth animation
+                    map.flyTo([lat, lon], zoom, {
+                        duration: 1.5, // Slightly faster for responsiveness
+                        easeLinearity: 0.25
+                    });
+                } catch (err) {
+                    console.warn('Map flyTo failed:', err);
+                }
             }
         }
-    }, [breadcrumbData, map]);
+    }, [breadcrumbData, map, isDataLoading]);
 
     const filteredHotels = mockHotels.filter(hotel => {
         const matchesType = filters.types.length === 0 || filters.types.includes(hotel.type);
@@ -271,7 +313,7 @@ const MapView = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <Breadcrumbs
                         locationId={searchParams.get('locationId') || '174737'}
-                        onBreadcrumbsLoaded={setBreadcrumbData}
+                        initialData={breadcrumbData}
                     />
                     <Link
                         to="/"
@@ -380,37 +422,45 @@ const MapView = () => {
 
                 {/* Section: Leaflet Map */}
                 <section className="flex-1 relative bg-slate-100 dark:bg-[#0c1622] overflow-hidden">
-                    {breadcrumbData?.geoCoordinate ? (
-                        <MapContainer
-                            key={searchParams.get('locationId') || 'default'}
-                            center={[breadcrumbData.geoCoordinate.lat, breadcrumbData.geoCoordinate.lon]}
-                            zoom={breadcrumbData?.locationType ?
-                                (breadcrumbData.locationType === 'TOWN' ? 13 :
-                                    breadcrumbData.locationType === 'DISTRICT' ? 11 :
-                                        breadcrumbData.locationType === 'CITY' ? 10 : 6) : 13
-                            }
-                            style={{ height: '100%', width: '100%' }}
-                            zoomControl={false}
-                        >
-                            <MapInstanceCapture setMap={setMap} />
-                            <TileLayer
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                            />
-
-                            <MapController selectedHotel={selectedHotel} />
-
-                            {filteredHotels.map((hotel) => (
-                                <CustomPriceMarker
-                                    key={hotel.id}
-                                    hotel={hotel}
-                                    isSelected={selectedHotel?.id === hotel.id}
-                                    isHovered={hoveredHotel?.id === hotel.id}
-                                    onSelect={handleHotelSelect}
-                                    onHover={setHoveredHotel}
+                    {hasInitialDataLoaded ? (
+                        <div className="w-full h-full relative">
+                            <MapContainer
+                                key="main-travel-map"
+                                center={[breadcrumbData?.geoCoordinate?.lat || 40.944, breadcrumbData?.geoCoordinate?.lon || 33.622]}
+                                zoom={10}
+                                style={{ height: '100%', width: '100%' }}
+                                zoomControl={false}
+                            >
+                                <MapInstanceCapture setMap={setMap} />
+                                <TileLayer
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                                 />
-                            ))}
-                        </MapContainer>
+
+                                <MapController selectedHotel={selectedHotel} />
+
+                                {filteredHotels.map((hotel) => (
+                                    <CustomPriceMarker
+                                        key={hotel.id}
+                                        hotel={hotel}
+                                        isSelected={selectedHotel?.id === hotel.id}
+                                        isHovered={hoveredHotel?.id === hotel.id}
+                                        onSelect={handleHotelSelect}
+                                        onHover={setHoveredHotel}
+                                    />
+                                ))}
+                            </MapContainer>
+
+                            {/* Subsequent Data Loading Overlay */}
+                            {isDataLoading && (
+                                <div className="absolute inset-0 z-[2000] bg-white/20 dark:bg-black/20 backdrop-blur-[2px] flex items-center justify-center animate-in fade-in duration-300">
+                                    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl px-6 py-4 rounded-[20px] shadow-2xl border border-white/20 flex items-center gap-3">
+                                        <div className="w-5 h-5 border-2 border-[#137fec] border-t-transparent rounded-full animate-spin"></div>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Updating Orbit...</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-slate-50 dark:bg-[#0c1622]">
                             <div className="flex flex-col items-center gap-4 text-center p-6">

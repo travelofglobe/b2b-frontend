@@ -193,6 +193,7 @@ const HeaderSearch = () => {
         }
 
         // Close dropdown FIRST before updating query to prevent reopening
+        isUserInteraction.current = false;
         setShowDropdown(false);
 
         setQuery(fullName);
@@ -227,10 +228,13 @@ const HeaderSearch = () => {
             fullName = `${name}, ${hotel.countryCode}`;
         }
 
+        // Close dropdown FIRST before updating query to prevent reopening
+        isUserInteraction.current = false;
+        setShowDropdown(false);
+
         setQuery(fullName);
         localStorage.setItem('dashboard_last_search', fullName);
         navigate(`/hotel/${hotel.url}?${getUrlParams(fullName)}`);
-        setShowDropdown(false);
     };
 
     const getRegionName = (region) => {

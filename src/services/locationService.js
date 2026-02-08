@@ -32,5 +32,38 @@ export const locationService = {
             console.error('Breadcrumb fetch error:', error);
             throw error;
         }
+    },
+
+    /**
+     * Fetch full location details including coordinates and breadcrumbs
+     * @param {string|number} locationId - The location ID to fetch details for
+     * @returns {Promise<Object>} Full location details
+     */
+    fetchLocationDetails: async (locationId) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/location/${locationId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept-Language': 'en-us',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch location details: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Location details fetch error:', error);
+            throw error;
+        }
     }
 };

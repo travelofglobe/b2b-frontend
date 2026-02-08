@@ -187,6 +187,11 @@ const DashboardSearch = ({ initialQuery = '' }) => {
         if (location.locationId) {
             localStorage.setItem('dashboard_last_locationId', location.locationId);
         }
+
+        // Reset user interaction flag and close dropdown to prevent reopening
+        isUserInteraction.current = false;
+        setShowDropdown(false);
+
         setQuery(fullName);
         const slug = name.toLowerCase().replace(/ /g, '-');
         const urlParams = getUrlParams(fullName);
@@ -208,6 +213,11 @@ const DashboardSearch = ({ initialQuery = '' }) => {
         }
 
         localStorage.setItem('dashboard_last_search', fullName);
+
+        // Reset user interaction flag and close dropdown to prevent reopening
+        isUserInteraction.current = false;
+        setShowDropdown(false);
+
         setQuery(fullName);
         const urlParams = getUrlParams(fullName);
         const hotelParam = hotel.hotelId ? `&hotelId=${hotel.hotelId}` : '';

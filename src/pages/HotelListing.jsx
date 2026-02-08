@@ -10,7 +10,7 @@ import { mockHotels } from '../data/mockHotels';
 import { parseGuestsParam } from '../utils/searchParamsUtils';
 
 const HotelListing = () => {
-    const [viewMode, setViewMode] = React.useState('grid3'); // 'list', 'grid2', 'grid3'
+    const [viewMode, setViewMode] = React.useState('list'); // 'list', 'grid2', 'grid3'
     const { slug, theme, campaign } = useParams();
     const [searchParams] = useSearchParams();
 

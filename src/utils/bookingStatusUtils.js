@@ -30,7 +30,7 @@ export const BOOKING_STATUS_CONFIG = {
         icon: 'cancel'
     },
     CANCELLED_WITH_PENALTY: {
-        label: 'Cancelled (Penalty)',
+        label: 'Cancelled (with Penalty)',
         colorClass: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
         icon: 'money_off'
     },

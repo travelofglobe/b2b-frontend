@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const HotelCard = ({ hotel, viewMode = 'grid3' }) => {
+const HotelCard = ({ hotel, viewMode = 'list' }) => {
     const isList = viewMode === 'list';
     const [currentImg, setCurrentImg] = React.useState(0);
     const images = hotel.images || [hotel.image];

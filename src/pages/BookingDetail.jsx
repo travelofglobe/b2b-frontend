@@ -399,12 +399,28 @@ const BookingDetail = () => {
                                     </span>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Client Reference</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Client Reference ID</p>
                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.clientReferenceId || 'N/A'}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Request ID</p>
+                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.requestId || 'N/A'}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Supplier ID</p>
+                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.supplierId || 'N/A'}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Supplier Name</p>
+                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.supplierName || 'N/A'}</p>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Voucher</p>
                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.voucher || 'N/A'}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Feed ID</p>
+                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.feedId || 'N/A'}</p>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Check-in</p>
@@ -413,6 +429,26 @@ const BookingDetail = () => {
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Check-out</p>
                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatDate(booking.checkOut)}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Amount</p>
+                                    <p className="text-xs font-black text-primary">{booking.totalAmount !== null ? `${booking.totalAmount} ${booking.currency || ''}` : 'N/A'}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Penalty Amount</p>
+                                    <p className="text-xs font-medium text-red-600">{booking.totalPenaltyAmount !== null ? `${booking.totalPenaltyAmount} ${booking.currency || ''}` : 'N/A'}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Refund Amount</p>
+                                    <p className="text-xs font-medium text-green-600">{booking.totalRefundAmount !== null ? `${booking.totalRefundAmount} ${booking.currency || ''}` : 'N/A'}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tax Amount</p>
+                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.totalTaxAmount !== null ? `${booking.totalTaxAmount} ${booking.currency || ''}` : 'N/A'}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">On Spot Amount</p>
+                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.totalOnSpotAmount !== null ? `${booking.totalOnSpotAmount} ${booking.currency || ''}` : 'N/A'}</p>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transaction User</p>
@@ -446,8 +482,8 @@ const BookingDetail = () => {
                                         <p className="text-lg font-black text-slate-900 dark:text-white">{booking.hotel.hotelName}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Internal Hotel ID</p>
-                                        <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.hotel.internalHotelId}</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hotel ID</p>
+                                        <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.hotel.internalHotelId || 'N/A'}</p>
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Booking Status</p>
@@ -495,9 +531,20 @@ const BookingDetail = () => {
                                     <div className="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
                                         <span className="material-icons-round text-2xl">meeting_room</span>
                                     </div>
-                                    <div>
+                                    <div className="flex-1">
                                         <h2 className="text-xl font-black text-slate-900 dark:text-white">Room {roomIndex + 1}: {room.roomName}</h2>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">Room ID: {room.roomId}</p>
+                                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Room ID: {room.roomId}</p>
+                                            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                                <span>Status:</span>
+                                                <BookingStatusBadge status={room.status} className="px-2 py-0.5 rounded-md text-[9px]" />
+                                            </div>
+                                            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                                                <span>Booking Status:</span>
+                                                <BookingStatusBadge status={room.bookingStatus} className="px-2 py-0.5 rounded-md text-[9px]" />
+                                            </div>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Conf. Code: <span className="font-bold text-slate-700 dark:text-slate-200">{room.roomConfirmationCode || 'N/A'}</span></p>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -572,7 +619,77 @@ const BookingDetail = () => {
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rate Category</p>
-                                                <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{rate.rateCategoryId}</p>
+                                                <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{rate.rateCategoryId || 'N/A'}</p>
+                                            </div>
+                                            <div className="lg:col-span-4 space-y-1">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rate Code</p>
+                                                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
+                                                    <p className="text-[10px] font-mono text-slate-500 break-all">{rate.rateCode || 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                                            {/* Fees */}
+                                            <div>
+                                                <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">Fees</h4>
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full border-collapse">
+                                                        <thead>
+                                                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                                                                <th className="px-4 py-2 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Type</th>
+                                                                <th className="px-4 py-2 text-right text-[10px] font-black text-slate-400 uppercase tracking-wider">Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                            {rate.fees && rate.fees.length > 0 ? rate.fees.map((fee, feeIndex) => (
+                                                                <tr key={feeIndex} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                                                                    <td className="px-4 py-2">
+                                                                        <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{fee.type?.replace(/_/g, ' ') || 'N/A'}</p>
+                                                                    </td>
+                                                                    <td className="px-4 py-2 text-right">
+                                                                        <p className="text-xs font-medium text-slate-900 dark:text-white">{fee.amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })} {fee.currency}</p>
+                                                                    </td>
+                                                                </tr>
+                                                            )) : (
+                                                                <tr>
+                                                                    <td colSpan="2" className="px-4 py-3 text-center text-xs text-slate-400 italic">No fees recorded</td>
+                                                                </tr>
+                                                            )}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            {/* Taxes */}
+                                            <div>
+                                                <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">Taxes</h4>
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full border-collapse">
+                                                        <thead>
+                                                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                                                                <th className="px-4 py-2 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Type</th>
+                                                                <th className="px-4 py-2 text-right text-[10px] font-black text-slate-400 uppercase tracking-wider">Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                            {rate.taxes && rate.taxes.length > 0 ? rate.taxes.map((tax, taxIndex) => (
+                                                                <tr key={taxIndex} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                                                                    <td className="px-4 py-2">
+                                                                        <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{tax.type?.replace(/_/g, ' ') || 'N/A'}</p>
+                                                                    </td>
+                                                                    <td className="px-4 py-2 text-right">
+                                                                        <p className="text-xs font-medium text-slate-900 dark:text-white">{tax.amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })} {tax.currency}</p>
+                                                                    </td>
+                                                                </tr>
+                                                            )) : (
+                                                                <tr>
+                                                                    <td colSpan="2" className="px-4 py-3 text-center text-xs text-slate-400 italic">No taxes recorded</td>
+                                                                </tr>
+                                                            )}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
 

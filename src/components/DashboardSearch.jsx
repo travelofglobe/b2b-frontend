@@ -302,17 +302,17 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                     <span className="ml-1.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-[9px] font-bold px-2 py-0.5 rounded-md">Soon</span>
                 </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 p-4">
                 {/* Destination Input */}
                 <div className="md:col-span-3 space-y-1.5 relative" ref={searchWrapperRef}>
                     <label className={`text-[10px] font-semibold uppercase tracking-wider ml-1 ${error ? 'text-red-500' : 'text-slate-400'}`}>
                         {error ? 'Please enter a destination' : 'Accommodation'}
                     </label>
-                    <div className={`flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border transition-all ${error ? 'border-red-500 ring-1 ring-red-500 bg-red-50 dark:bg-red-900/10' : 'border-transparent focus-within:border-primary'}`}>
+                    <div className={`flex items-center gap-2 px-3 h-[52px] bg-slate-50 dark:bg-slate-800 rounded-xl border transition-all ${error ? 'border-red-500 ring-1 ring-red-500 bg-red-50 dark:bg-red-900/10' : 'border-transparent focus-within:border-primary'}`}>
                         <span className={`material-icons-round text-lg ${error ? 'text-red-500' : 'text-slate-400'}`}>location_on</span>
                         <input
-                            className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400"
-                            placeholder="Search for cities, hotels, or regions..."
+                            className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400"
+                            placeholder="Where are you going?"
                             type="text"
                             value={query}
                             onChange={(e) => {
@@ -387,7 +387,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                 {/* Date Picker */}
                 <div className="md:col-span-3 space-y-1.5 z-10">
                     <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 ml-1">Check-in / Check-out</label>
-                    <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-transparent focus-within:border-primary transition-all relative">
+                    <div className="flex items-center gap-2 px-3 h-[52px] bg-slate-50 dark:bg-slate-800 rounded-xl border border-transparent focus-within:border-primary transition-all relative">
                         <span className="material-icons-round text-slate-400 text-lg">calendar_month</span>
                         <div className="flex items-center w-full">
                             <DatePicker
@@ -402,7 +402,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                                 selectsRange
                                 minDate={new Date()}
                                 monthsShown={2}
-                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs font-medium text-slate-900 dark:text-white cursor-pointer placeholder-slate-400"
+                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs font-semibold text-slate-900 dark:text-white cursor-pointer placeholder-slate-400"
                                 dateFormat="dd MMM yyyy"
                                 placeholderText="Select dates"
                                 dayClassName={(date) => {
@@ -418,7 +418,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                 {/* Nationality Selector */}
                 <div className="md:col-span-2 space-y-1.5">
                     <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 ml-1">Nationality</label>
-                    <div className="flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-transparent hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all">
+                    <div className="flex items-center gap-2 px-3 h-[52px] bg-slate-50 dark:bg-slate-800 rounded-xl border border-transparent hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all">
                         <NationalitySelect
                             value={nationality}
                             onChange={setNationality}
@@ -432,14 +432,14 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                     <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 ml-1">Guests & Rooms</label>
                     <button
                         onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                        className="w-full flex items-center gap-2 px-3 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-transparent focus:border-primary hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all text-left"
+                        className="w-full h-[52px] flex items-center gap-2 px-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-transparent focus:border-primary hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-all text-left"
                     >
                         <span className="material-icons-round text-slate-400 text-lg">group</span>
                         <div className="flex flex-col flex-1 items-start overflow-hidden">
-                            <span className="text-xs font-medium text-slate-900 dark:text-white truncate w-full">
+                            <span className="text-xs font-semibold text-slate-900 dark:text-white truncate w-full">
                                 {totalAdults} Adults, {totalChildren} Child{totalChildren !== 1 ? 'ren' : ''}
                             </span>
-                            <span className="text-[10px] text-slate-500 truncate w-full">
+                            <span className="text-[10px] text-slate-500 truncate w-full leading-tight">
                                 {totalRooms} Room{totalRooms > 1 ? 's' : ''}
                             </span>
                         </div>
@@ -542,7 +542,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                 <div className="md:col-span-2 flex items-end">
                     <button
                         onClick={handleSearch}
-                        className="w-full bg-primary hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl border border-transparent shadow-xl shadow-primary/20 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-xs"
+                        className="w-full h-[52px] bg-primary hover:bg-blue-700 text-white font-bold px-4 rounded-xl border border-transparent shadow-xl shadow-primary/20 flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-xs"
                     >
                         <span className="material-icons-round text-lg">search</span> Search
                     </button>

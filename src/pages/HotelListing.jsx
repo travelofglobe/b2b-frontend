@@ -3,7 +3,6 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import HotelCard from '../components/HotelCard';
-import Pagination from '../components/Pagination';
 import Footer from '../components/Footer';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { mockHotels } from '../data/mockHotels';
@@ -13,6 +12,12 @@ const HotelListing = () => {
     const [viewMode, setViewMode] = React.useState('list'); // 'list', 'grid2', 'grid3'
     const { slug, theme, campaign } = useParams();
     const [searchParams] = useSearchParams();
+
+    const [hotels, setHotels] = React.useState([]);
+    const [page, setPage] = React.useState(1);
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [hasMore, setHasMore] = React.useState(true);
+    const loaderRef = React.useRef(null);
 
     const gridClasses = {
         'list': 'grid-cols-1',
@@ -27,7 +32,7 @@ const HotelListing = () => {
             return parseGuestsParam(guestsParam);
         }
         // Fallback for old links
-        const adults = searchParams.get('adult');
+        const adults = searchParams.get('adults');
         const children = searchParams.get('children');
         return [{ adults: parseInt(adults) || 2, children: parseInt(children) || 0, childAges: [] }];
     }, [searchParams]);
@@ -38,11 +43,10 @@ const HotelListing = () => {
     const totalRooms = roomState.length;
     const totalGuests = totalAdults + totalChildren;
 
-    // Get location name from query parameter (preserves autocomplete capitalization)
-    // Fallback to slug if query param not available
+    // Get location name from query parameter
     const queryLocation = searchParams.get('q');
     const locationName = queryLocation
-        ? queryLocation.split(',')[0].trim() // Get first part (location name) from "Location, City, Country"
+        ? queryLocation.split(',')[0].trim()
         : slug
             ? slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
             : 'Santorini';
@@ -61,6 +65,43 @@ const HotelListing = () => {
     // Extract locationId from URL params
     const locationId = searchParams.get('locationId');
 
+    // Simulate loading more hotels from mock data
+    const loadMoreHotels = React.useCallback(() => {
+        if (isLoading || !hasMore) return;
+
+        setIsLoading(true);
+        // Simulate API delay
+        setTimeout(() => {
+            const itemsPerPage = 2;
+            const startIndex = (page - 1) * itemsPerPage;
+            const nextItems = mockHotels.slice(startIndex, startIndex + itemsPerPage);
+
+            if (nextItems.length > 0) {
+                setHotels(prev => [...prev, ...nextItems]);
+                setPage(prev => prev + 1);
+            }
+
+            if (setHotels.length >= mockHotels.length || nextItems.length < itemsPerPage || startIndex + itemsPerPage >= mockHotels.length) {
+                setHasMore(false);
+            }
+            setIsLoading(false);
+        }, 800);
+    }, [page, isLoading, hasMore]);
+
+    React.useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && hasMore && !isLoading) {
+                loadMoreHotels();
+            }
+        }, { threshold: 0.1 });
+
+        if (loaderRef.current) {
+            observer.observe(loaderRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, [loadMoreHotels, hasMore, isLoading]);
+
     return (
         <div className="relative flex min-h-screen flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200 font-sans">
             <Header />
@@ -71,7 +112,7 @@ const HotelListing = () => {
                         to="/"
                         className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
                     >
-                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-sm" >
                             <span className="material-symbols-outlined text-lg">arrow_back</span>
                         </div>
                         Back to Dashboard
@@ -137,11 +178,25 @@ const HotelListing = () => {
 
                         {/* Hotel Grid */}
                         <div className={`grid gap-6 ${gridClasses[viewMode]}`}>
-                            {mockHotels.map(hotel => (
+                            {hotels.map(hotel => (
                                 <HotelCard key={hotel.id} hotel={hotel} viewMode={viewMode} />
                             ))}
                         </div>
-                        <Pagination />
+
+                        {/* Loading Sentinel */}
+                        <div ref={loaderRef} className="mt-12 py-8 flex flex-col items-center justify-center gap-4">
+                            {isLoading && (
+                                <>
+                                    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                    <p className="text-sm font-bold text-slate-500 animate-pulse uppercase tracking-widest">Loading properties...</p>
+                                </>
+                            )}
+                            {!hasMore && hotels.length > 0 && (
+                                <p className="text-sm font-black text-slate-400 uppercase tracking-widest border-t border-slate-100 dark:border-slate-800 pt-8 w-full text-center">
+                                    You've reached the end of the list
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
             </main>

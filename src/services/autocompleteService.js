@@ -1,4 +1,4 @@
-const AUTOCOMPLETE_API_URL = 'http://37.148.213.4:8000/b2b-backend/v1/autocomplete';
+const AUTOCOMPLETE_API_URL = 'http://37.148.213.4:8000/b2b-backend/v1/autocomplete/b2b';
 
 export const autocompleteService = {
     search: async (query, types = ['LOCATION', 'HOTEL'], signal) => {

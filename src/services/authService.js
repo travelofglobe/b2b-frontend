@@ -1,28 +1,16 @@
+import apiClient from '../utils/apiClient';
+
 const API_URL = 'http://37.148.213.4:8000/auth/v1/agency-token/access';
 const USER_ME_URL = 'http://37.148.213.4:8000/auth/v1/agency-token/me';
 
 export const authService = {
     fetchUserDetails: async (token) => {
-        try {
-            const response = await fetch(USER_ME_URL, {
-                method: 'GET',
-                headers: {
-                    'Accept-Language': 'en-us',
-                    'Authorization': `Bearer ${token}`,
-                }
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to fetch user details');
+        // We pass the token explicitly here because login has it before localStorage is guaranteed
+        return apiClient.get(USER_ME_URL, {
+            headers: {
+                'Authorization': `Bearer ${token}`
             }
-
-            return data;
-        } catch (error) {
-            console.error('Fetch user details error:', error);
-            throw error;
-        }
+        });
     },
 
     login: async (emailAddress, password) => {

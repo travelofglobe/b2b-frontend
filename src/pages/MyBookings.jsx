@@ -449,6 +449,11 @@ const MyBookings = () => {
                                         <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[140px]">Payment</th>
                                         <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[140px]">Status</th>
                                         <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[140px]">Cancel Fee</th>
+                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[200px]">UUID</th>
+                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[200px]">Agency</th>
+                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[150px]">Hotel ID</th>
+                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[180px]">Cl. Ref</th>
+                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[100px]">Cancelled?</th>
                                     </tr>
                                     <tr className="bg-slate-50/30 dark:bg-slate-800/20 border-b border-slate-200 dark:border-slate-800">
                                         <td className="px-2 py-2">
@@ -604,15 +609,66 @@ const MyBookings = () => {
                                                 />
                                             </div>
                                         </td>
+                                        <td className="px-2 py-2">
+                                            <input
+                                                type="text"
+                                                value={filters.bookingUuid}
+                                                onChange={(e) => handleFilterChange('bookingUuid', e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                                placeholder="UUID"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-2 text-xs focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                            />
+                                        </td>
+                                        <td className="px-2 py-2">
+                                            <input
+                                                type="text"
+                                                value={filters.principalAgencyIds}
+                                                onChange={(e) => handleFilterChange('principalAgencyIds', e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                                placeholder="Agency IDs"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-2 text-xs focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                            />
+                                        </td>
+                                        <td className="px-2 py-2">
+                                            <input
+                                                type="number"
+                                                value={filters.internalHotelId}
+                                                onChange={(e) => handleFilterChange('internalHotelId', e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                                placeholder="Hotel ID"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-2 text-xs focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                            />
+                                        </td>
+                                        <td className="px-2 py-2">
+                                            <input
+                                                type="text"
+                                                value={filters.clientReferenceId}
+                                                onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                                placeholder="Cl. Ref"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-2 text-xs focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                            />
+                                        </td>
+                                        <td className="px-2 py-2">
+                                            <select
+                                                value={filters.isCancelled}
+                                                onChange={(e) => handleFilterChange('isCancelled', e.target.value)}
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                            >
+                                                <option value="">All</option>
+                                                <option value="true">Yes</option>
+                                                <option value="false">No</option>
+                                            </select>
+                                        </td>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                                     {loading ? (
                                         Array.from({ length: 10 }).map((_, index) => (
                                             <tr key={`skeleton-${index}`} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
-                                                {Array.from({ length: 10 }).map((_, cellIndex) => (
+                                                {Array.from({ length: 15 }).map((_, cellIndex) => (
                                                     <td key={`skeleton-cell-${cellIndex}`} className="px-4 py-3">
-                                                        <div className={`h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse ${[2, 3, 4, 5].includes(cellIndex) ? 'w-24' :
+                                                        <div className={`h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse ${[2, 11].includes(cellIndex) ? 'w-48' :
                                                             [0, 1].includes(cellIndex) ? 'w-32' :
                                                                 'w-16'
                                                             }`}></div>
@@ -622,13 +678,13 @@ const MyBookings = () => {
                                         ))
                                     ) : error ? (
                                         <tr>
-                                            <td colSpan="10" className="px-4 py-12 text-center text-red-500">
+                                            <td colSpan="15" className="px-4 py-12 text-center text-red-500">
                                                 Error: {error}
                                             </td>
                                         </tr>
                                     ) : bookings.length === 0 ? (
                                         <tr>
-                                            <td colSpan="10" className="px-4 py-12 text-center text-slate-500">
+                                            <td colSpan="15" className="px-4 py-12 text-center text-slate-500">
                                                 No bookings found
                                             </td>
                                         </tr>
@@ -658,6 +714,17 @@ const MyBookings = () => {
                                                 </td>
                                                 <td className="px-4 py-3 text-red-500">
                                                     {booking.totalCancellationAmount > 0 ? `${booking.currency} ${booking.totalCancellationAmount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '-'}
+                                                </td>
+                                                <td className="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-[10px] truncate max-w-[120px]" title={booking.bookingUuid}>{booking.bookingUuid}</td>
+                                                <td className="px-4 py-3 text-slate-700 dark:text-slate-200 truncate max-w-[150px]" title={booking.principalAgencyName}>{booking.principalAgencyName}</td>
+                                                <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-[10px]">{booking.internalHotelId}</td>
+                                                <td className="px-4 py-3 text-slate-700 dark:text-slate-200 truncate max-w-[100px]" title={booking.clientReferenceId}>{booking.clientReferenceId || '-'}</td>
+                                                <td className="px-4 py-3 text-center">
+                                                    {booking.isCancelled ? (
+                                                        <span className="material-icons-round text-red-500 text-sm">check_circle</span>
+                                                    ) : (
+                                                        <span className="material-icons-round text-slate-200 dark:text-slate-700 text-sm">cancel</span>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))

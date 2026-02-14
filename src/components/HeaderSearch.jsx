@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { autocompleteService } from '../services/autocompleteService';
+import { useToast } from '../context/ToastContext';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
@@ -9,6 +10,7 @@ import NationalitySelect from './NationalitySelect';
 
 const HeaderSearch = () => {
     const navigate = useNavigate();
+    const { error } = useToast();
     const [searchParams] = useSearchParams();
     const location = useLocation();
 
@@ -82,13 +84,16 @@ const HeaderSearch = () => {
     const [showDropdown, setShowDropdown] = useState(false);
     const [showGuestDropdown, setShowGuestDropdown] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(-1);
 
     const searchWrapperRef = useRef(null);
     const guestWrapperRef = useRef(null);
+    const datePickerRef = useRef(null);
     const isUserInteraction = useRef(false);
 
     // -- Effects --
 
+    // Debounce search
     // Debounce search
     useEffect(() => {
         // Only search if the user has interacted (typed)
@@ -105,6 +110,11 @@ const HeaderSearch = () => {
         }, 300);
         return () => clearTimeout(timeoutId);
     }, [query]);
+
+    // Reset active index when results change
+    useEffect(() => {
+        setActiveIndex(-1);
+    }, [results]);
 
     // Sync query with URL parameter when URL changes (e.g., breadcrumb click)
     useEffect(() => {
@@ -142,6 +152,38 @@ const HeaderSearch = () => {
             console.error(error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        // Allow Enter key to trigger search actions regardless of dropdown state
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            // If dropdown is open and we have an active item, select it
+            if (showDropdown && activeIndex >= 0) {
+                if (activeIndex < results.regions.length) {
+                    handleSelectLocation(results.regions[activeIndex]);
+                } else {
+                    handleSelectHotel(results.hotels[activeIndex - results.regions.length]);
+                }
+            } else {
+                // Otherwise, trigger the main search
+                handleSearch();
+            }
+            return;
+        }
+
+        // For navigation keys, we need the dropdown to be open and have results
+        if (!showDropdown || (results.regions.length === 0 && results.hotels.length === 0)) return;
+
+        const totalItems = results.regions.length + results.hotels.length;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setActiveIndex((prev) => (prev < totalItems - 1 ? prev + 1 : prev));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setActiveIndex((prev) => (prev > 0 ? prev - 1 : -1));
         }
     };
 
@@ -203,16 +245,7 @@ const HeaderSearch = () => {
             localStorage.setItem('dashboard_last_locationId', location.locationId);
         }
 
-        const urlParams = getUrlParams(fullName);
-        const locationParam = location.locationId ? `&locationId=${location.locationId}` : '';
-
-        // Map page doesn't use slug-based routing, only Hotels does
-        if (isMapPage) {
-            navigate(`/map?${urlParams}${locationParam}`);
-        } else {
-            const slug = name.toLowerCase().replace(/ /g, '-');
-            navigate(`/hotels/${slug}?${urlParams}${locationParam}`);
-        }
+        // Removed immediate navigation
     };
 
     const handleSelectHotel = (hotel) => {
@@ -234,7 +267,8 @@ const HeaderSearch = () => {
 
         setQuery(fullName);
         localStorage.setItem('dashboard_last_search', fullName);
-        navigate(`/hotel/${hotel.url}?${getUrlParams(fullName)}`);
+
+        // Removed immediate navigation
     };
 
     const getRegionName = (region) => {
@@ -305,6 +339,7 @@ const HeaderSearch = () => {
                         if (query) setQuery('');
                     }}
                     onFocus={() => { if (results.hotels.length || results.regions.length) setShowDropdown(true); }}
+                    onKeyDown={handleKeyDown}
                 />
 
                 {/* Autocomplete Dropdown */}
@@ -313,11 +348,11 @@ const HeaderSearch = () => {
                         {results.regions.length > 0 && (
                             <div className="p-2">
                                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">Destinations</div>
-                                {results.regions.map((region) => (
+                                {results.regions.map((region, index) => (
                                     <button
                                         key={region.locationId}
                                         onClick={() => handleSelectLocation(region)}
-                                        className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg flex items-center gap-3 transition-colors group"
+                                        className={`w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg flex items-center gap-3 transition-colors group ${activeIndex === index ? 'bg-slate-100 dark:bg-slate-800 ring-1 ring-primary/20' : ''}`}
                                     >
                                         <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
                                             <span className="material-icons-round text-sm">location_on</span>
@@ -338,11 +373,11 @@ const HeaderSearch = () => {
                         {results.hotels.length > 0 && (
                             <div className="p-2">
                                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">Hotels</div>
-                                {results.hotels.map((hotel) => (
+                                {results.hotels.map((hotel, index) => (
                                     <button
                                         key={hotel.hotelId}
                                         onClick={() => handleSelectHotel(hotel)}
-                                        className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg flex items-center gap-3 transition-colors group"
+                                        className={`w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg flex items-center gap-3 transition-colors group ${activeIndex === (results.regions.length + index) ? 'bg-slate-100 dark:bg-slate-800 ring-1 ring-primary/20' : ''}`}
                                     >
                                         <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
                                             <span className="material-icons-round text-sm">hotel</span>
@@ -366,13 +401,15 @@ const HeaderSearch = () => {
             </div>
 
             {/* 2. Date Picker */}
-            <div className="flex items-center px-3 border-r border-slate-300 dark:border-slate-600">
+            <div className="flex items-center px-3 border-r border-slate-300 dark:border-slate-600 cursor-pointer" onClick={() => datePickerRef.current?.setOpen(true)}>
                 <span className="material-symbols-outlined text-slate-400 text-xl mr-2">calendar_month</span>
                 <div className="w-[210px]">
                     <DatePicker
+                        ref={datePickerRef}
                         selected={checkInDate}
                         onChange={(dates) => {
                             const [start, end] = dates;
+
                             setCheckInDate(start);
                             setCheckOutDate(end);
                         }}
@@ -380,6 +417,7 @@ const HeaderSearch = () => {
                         endDate={checkOutDate}
                         selectsRange
                         minDate={new Date()}
+                        maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                         monthsShown={2}
                         className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-500 font-medium"
                         dateFormat="dd MMM yyyy"

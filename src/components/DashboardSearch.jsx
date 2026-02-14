@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { autocompleteService } from '../services/autocompleteService';
+import { useToast } from '../context/ToastContext';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
@@ -8,13 +9,14 @@ import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms } from 
 
 import NationalitySelect from './NationalitySelect';
 
-const DashboardSearch = ({ initialQuery = '' }) => {
+const DashboardSearch = () => {
     const navigate = useNavigate();
+    const { error: toastError } = useToast(); // Renamed to avoid conflict with local 'error' state
     const [searchParams] = useSearchParams();
 
     // Initialize state from URL params or defaults
     const [query, setQuery] = useState(() => {
-        return initialQuery || searchParams.get('q') || localStorage.getItem('dashboard_last_search') || '';
+        return searchParams.get('q') || localStorage.getItem('dashboard_last_search') || '';
     });
 
     // Nationality State
@@ -25,6 +27,12 @@ const DashboardSearch = ({ initialQuery = '' }) => {
     const [results, setResults] = useState({ hotels: [], regions: [] });
     const [loading, setLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(-1);
+
+    // Reset active index when results change
+    useEffect(() => {
+        setActiveIndex(-1);
+    }, [results]);
 
     // Default dates: Check-in tomorrow, Check-out day after tomorrow
     const tomorrow = new Date();
@@ -82,6 +90,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
 
     const searchWrapperRef = useRef(null);
     const guestWrapperRef = useRef(null);
+    const datePickerRef = useRef(null);
 
     const [error, setError] = useState(false);
 
@@ -193,10 +202,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
         setShowDropdown(false);
 
         setQuery(fullName);
-        const slug = name.toLowerCase().replace(/ /g, '-');
-        const urlParams = getUrlParams(fullName);
-        const locationParam = location.locationId ? `&locationId=${location.locationId}` : '';
-        navigate(`/hotels/${slug}?${urlParams}${locationParam}`);
+
     };
 
     const handleSelectHotel = (hotel) => {
@@ -219,9 +225,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
         setShowDropdown(false);
 
         setQuery(fullName);
-        const urlParams = getUrlParams(fullName);
-        const hotelParam = hotel.hotelId ? `&hotelId=${hotel.hotelId}` : '';
-        navigate(`/hotel/${hotel.url}?${urlParams}${hotelParam}`);
+
     };
 
     // Helper to get Hotel Name
@@ -236,6 +240,38 @@ const DashboardSearch = ({ initialQuery = '' }) => {
             return parts.reverse().join(', ');
         }
         return region.name.translations.en || Object.values(region.name.translations)[0] || 'Unknown Region';
+    };
+
+    const handleKeyDown = (e) => {
+        // Allow Enter key to trigger search actions regardless of dropdown state
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            // If dropdown is open and we have an active item, select it
+            if (showDropdown && activeIndex >= 0) {
+                if (activeIndex < results.regions.length) {
+                    handleSelectLocation(results.regions[activeIndex]);
+                } else {
+                    handleSelectHotel(results.hotels[activeIndex - results.regions.length]);
+                }
+            } else {
+                // Otherwise, trigger the main search
+                handleSearch();
+            }
+            return;
+        }
+
+        // For navigation keys, we need the dropdown to be open and have results
+        if (!showDropdown || (results.regions.length === 0 && results.hotels.length === 0)) return;
+
+        const totalItems = results.regions.length + results.hotels.length;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setActiveIndex((prev) => (prev < totalItems - 1 ? prev + 1 : prev));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setActiveIndex((prev) => (prev > 0 ? prev - 1 : -1));
+        }
     };
 
     // -- Room Manipulators --
@@ -324,6 +360,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                                 if (query) setQuery('');
                             }}
                             onFocus={() => { if (results.hotels.length || results.regions.length) setShowDropdown(true); }}
+                            onKeyDown={handleKeyDown}
                         />
                         {loading && <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>}
                     </div>
@@ -334,11 +371,11 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                             {results.regions.length > 0 && (
                                 <div className="p-2">
                                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">Destinations</div>
-                                    {results.regions.map((region) => (
+                                    {results.regions.map((region, index) => (
                                         <button
                                             key={region.locationId}
                                             onClick={() => handleSelectLocation(region)}
-                                            className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg flex items-center gap-3 transition-colors group"
+                                            className={`w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg flex items-center gap-3 transition-colors group ${activeIndex === index ? 'bg-slate-100 dark:bg-slate-800 ring-1 ring-primary/20' : ''}`}
                                         >
                                             <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
                                                 <span className="material-icons-round text-sm">location_on</span>
@@ -359,11 +396,11 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                             {results.hotels.length > 0 && (
                                 <div className="p-2">
                                     <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">Hotels</div>
-                                    {results.hotels.map((hotel) => (
+                                    {results.hotels.map((hotel, index) => (
                                         <button
                                             key={hotel.hotelId}
                                             onClick={() => handleSelectHotel(hotel)}
-                                            className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg flex items-center gap-3 transition-colors group"
+                                            className={`w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg flex items-center gap-3 transition-colors group ${activeIndex === (results.regions.length + index) ? 'bg-slate-100 dark:bg-slate-800 ring-1 ring-primary/20' : ''}`}
                                         >
                                             <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
                                                 <span className="material-icons-round text-sm">hotel</span>
@@ -388,10 +425,15 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                 <div className="md:col-span-3 space-y-1.5 z-10">
                     <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 ml-1">Check-in / Check-out</label>
                     <div className="flex items-center gap-2 px-3 h-[52px] bg-slate-50 dark:bg-slate-800 rounded-xl border border-transparent focus-within:border-primary transition-all relative">
-                        <span className="material-icons-round text-slate-400 text-lg">calendar_month</span>
+                        <span
+                            className="material-icons-round text-slate-400 text-lg cursor-pointer hover:text-primary transition-colors"
+                            onClick={() => datePickerRef.current?.setOpen(true)}
+                        >
+                            calendar_month
+                        </span>
                         <div className="flex items-center w-full">
                             <DatePicker
-                                selected={checkInDate}
+                                ref={datePickerRef}
                                 onChange={(dates) => {
                                     const [start, end] = dates;
                                     setCheckInDate(start);
@@ -401,6 +443,7 @@ const DashboardSearch = ({ initialQuery = '' }) => {
                                 endDate={checkOutDate}
                                 selectsRange
                                 minDate={new Date()}
+                                maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                                 monthsShown={2}
                                 className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs font-semibold text-slate-900 dark:text-white cursor-pointer placeholder-slate-400"
                                 dateFormat="dd MMM yyyy"

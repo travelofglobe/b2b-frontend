@@ -327,7 +327,7 @@ const HeaderSearch = () => {
             <div className="flex items-center px-3 border-r border-slate-300 dark:border-slate-600 relative" ref={searchWrapperRef}>
                 <span className="material-symbols-outlined text-slate-400 text-xl mr-2">location_on</span>
                 <input
-                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-xs w-[300px] font-medium text-slate-900 dark:text-white placeholder:text-slate-500 p-0"
+                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-xs w-[300px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 p-0"
                     placeholder="Where to?"
                     type="text"
                     value={query}
@@ -419,7 +419,7 @@ const HeaderSearch = () => {
                         minDate={new Date()}
                         maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                         monthsShown={2}
-                        className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-500 font-medium"
+                        className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 font-medium"
                         dateFormat="dd MMM yyyy"
                         placeholderText="Dates"
                         dayClassName={(date) => {

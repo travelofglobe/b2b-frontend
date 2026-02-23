@@ -90,7 +90,7 @@ const LoginPage = () => {
                 {/* Right Side: Login Card */}
                 <div className="lg:col-span-1"></div> { /* Spacer */}
                 <div className="lg:col-span-4 w-full">
-                    <div className="bg-slate-900/30 backdrop-blur-2xl rounded-[32px] border border-white/20 shadow-[0_32px_96px_-16px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in duration-700">
+                    <div className="bg-white/[0.03] backdrop-blur-[40px] rounded-[32px] border border-white/10 shadow-[0_32px_96px_-16px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in duration-700">
                         {/* Card Header */}
                         <div className="p-8 pb-0 text-center">
                             <h2 className="text-2xl font-black text-white mb-2">Welcome Back</h2>
@@ -110,7 +110,7 @@ const LoginPage = () => {
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="Email Address"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-500 font-semibold focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm"
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-400 font-semibold focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm"
                                     />
                                 </div>
 
@@ -124,7 +124,7 @@ const LoginPage = () => {
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="Password"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-500 font-semibold focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm"
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-400 font-semibold focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm"
                                     />
                                 </div>
                             </div>
@@ -161,7 +161,7 @@ const LoginPage = () => {
                         </form>
 
                         {/* Card Footer */}
-                        <div className="p-6 pt-2 text-center border-t border-white/5 bg-white/5">
+                        <div className="p-6 pt-2 text-center border-t border-white/5 bg-white/[0.02]">
                             <p className="text-xs text-slate-500 font-medium">New Partner? <a href="#" className="text-white font-bold hover:underline">Apply here</a></p>
                         </div>
                     </div>

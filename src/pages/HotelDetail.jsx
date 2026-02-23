@@ -191,6 +191,20 @@ const HotelDetail = () => {
 
     const [activeTab, setActiveTab] = useState('Rooms & Rates');
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+    const [selectedRooms, setSelectedRooms] = useState([]);
+
+    const toggleRoomSelection = (roomType, rate, roomName) => {
+        setSelectedRooms(prev => {
+            const index = prev.findIndex(r => r.type === roomType && r.name === roomName);
+            if (index > -1) {
+                // Remove if already selected
+                return prev.filter((_, i) => i !== index);
+            } else {
+                // Add to selection
+                return [...prev, { type: roomType, rate, name: roomName }];
+            }
+        });
+    };
 
     // -- Handlers --
     useEffect(() => {
@@ -500,61 +514,70 @@ const HotelDetail = () => {
                             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 {activeTab === 'Rooms & Rates' && (
                                     <div className="space-y-6">
-                                        {[1, 2].map((room) => (
-                                            <div key={room} className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-[32px] overflow-hidden flex flex-col md:flex-row group transition-all hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-none">
-                                                <div className="md:w-80 relative overflow-hidden shrink-0 cursor-pointer group/room" onClick={() => openLightbox(room % images.length)}>
-                                                    <img className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src={images[room % images.length]} alt="" />
-                                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/room:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                                                        <div className="size-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white scale-90 group-hover/room:scale-100 transition-transform">
-                                                            <span className="material-symbols-outlined text-2xl">zoom_in</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
-                                                        <span className="material-symbols-outlined text-xs">photo_camera</span> 2 Photos
-                                                    </div>
-                                                </div>
-                                                <div className="flex-1 p-8">
-                                                    <div className="flex items-start justify-between mb-4">
-                                                        <div>
-                                                            <h3 className="text-2xl font-black mb-2 uppercase tracking-tight">{room === 1 ? 'Deluxe King Room' : 'Executive Loft Suite'}</h3>
-                                                            <div className="flex gap-4 text-slate-400 mb-4">
-                                                                <span className="flex items-center gap-1.5 text-xs font-black"><span className="material-symbols-outlined text-sm text-primary">square_foot</span> 48 m²</span>
-                                                                <span className="flex items-center gap-1.5 text-xs font-black"><span className="material-symbols-outlined text-sm text-primary">king_bed</span> King Bed</span>
+                                        {[1, 2].map((roomIndex) => {
+                                            const roomName = roomIndex === 1 ? 'Deluxe King Room' : 'Executive Loft Suite';
+                                            const roomPrice = hotel.price + (roomIndex * 75);
+                                            const isSelected = selectedRooms.some(r => r.name === roomName);
+
+                                            return (
+                                                <div key={roomIndex} className={`bg-white dark:bg-slate-900/50 border ${isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-slate-200 dark:border-slate-800'} rounded-[32px] overflow-hidden flex flex-col md:flex-row group transition-all hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-none`}>
+                                                    <div className="md:w-80 relative overflow-hidden shrink-0 cursor-pointer group/room" onClick={() => openLightbox(roomIndex % images.length)}>
+                                                        <img className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src={images[roomIndex % images.length]} alt="" />
+                                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/room:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                                                            <div className="size-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white scale-90 group-hover/room:scale-100 transition-transform">
+                                                                <span className="material-symbols-outlined text-2xl">zoom_in</span>
                                                             </div>
                                                         </div>
-                                                        <span className="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border border-orange-200/20">
-                                                            Most Popular
-                                                        </span>
+                                                        <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-2 border border-white/10">
+                                                            <span className="material-symbols-outlined text-xs">photo_camera</span> 2 Photos
+                                                        </div>
                                                     </div>
-
-                                                    <div className="flex flex-wrap gap-2 mb-8">
-                                                        {['Free WiFi', 'Air Conditioning', 'Mini-bar', 'Room Service'].map((feat, i) => (
-                                                            <span key={i} className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl text-[10px] font-black text-slate-500 uppercase tracking-tighter">
-                                                                {feat}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-
-                                                    <div className="bg-primary/5 dark:bg-primary/10 p-6 rounded-3xl border border-primary/20 flex items-center justify-between group/row hover:bg-primary/10 transition-colors cursor-pointer ring-2 ring-primary">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="size-6 rounded-full bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
-                                                                <span className="material-symbols-outlined text-xs">check</span>
-                                                            </div>
+                                                    <div className="flex-1 p-8">
+                                                        <div className="flex items-start justify-between mb-4">
                                                             <div>
-                                                                <p className="font-black text-sm uppercase tracking-tighter text-slate-900 dark:text-white">B2B Special Rate</p>
-                                                                <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest flex items-center gap-1">
-                                                                    <span className="material-symbols-outlined text-[14px]">cancel</span> Non-refundable
-                                                                </p>
+                                                                <h3 className="text-2xl font-black mb-2 uppercase tracking-tight">{roomName}</h3>
+                                                                <div className="flex gap-4 text-slate-400 mb-4">
+                                                                    <span className="flex items-center gap-1.5 text-xs font-black"><span className="material-symbols-outlined text-sm text-primary">square_foot</span> 48 m²</span>
+                                                                    <span className="flex items-center gap-1.5 text-xs font-black"><span className="material-symbols-outlined text-sm text-primary">king_bed</span> King Bed</span>
+                                                                </div>
                                                             </div>
+                                                            <span className="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border border-orange-200/20">
+                                                                Most Popular
+                                                            </span>
                                                         </div>
-                                                        <div className="text-right">
-                                                            <p className="text-2xl font-black text-primary">${hotel.price + (room * 75)}</p>
-                                                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none">Net / Night</p>
+
+                                                        <div className="flex flex-wrap gap-2 mb-8">
+                                                            {['Free WiFi', 'Air Conditioning', 'Mini-bar', 'Room Service'].map((feat, i) => (
+                                                                <span key={i} className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl text-[10px] font-black text-slate-500 uppercase tracking-tighter">
+                                                                    {feat}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+
+                                                        <div
+                                                            onClick={() => toggleRoomSelection(roomIndex, roomPrice, roomName)}
+                                                            className={`${isSelected ? 'bg-primary/10 ring-2 ring-primary' : 'bg-primary/5 dark:bg-primary/10 border border-primary/20'} p-6 rounded-3xl flex items-center justify-between group/row hover:bg-primary/10 transition-colors cursor-pointer`}
+                                                        >
+                                                            <div className="flex items-center gap-4">
+                                                                <div className={`size-6 rounded-full ${isSelected ? 'bg-primary text-white' : 'bg-white dark:bg-slate-800 text-slate-300 border border-slate-200 dark:border-slate-700'} flex items-center justify-center shadow-lg shadow-primary/20 transition-all`}>
+                                                                    <span className="material-symbols-outlined text-xs font-black">{isSelected ? 'check' : 'add'}</span>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-black text-sm uppercase tracking-tighter text-slate-900 dark:text-white">B2B Special Rate</p>
+                                                                    <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest flex items-center gap-1">
+                                                                        <span className="material-symbols-outlined text-[14px]">cancel</span> Non-refundable
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="text-2xl font-black text-primary">${roomPrice}</p>
+                                                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none">Net / Night</p>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
 
@@ -595,55 +618,105 @@ const HotelDetail = () => {
 
                     {/* Booking Sidebar */}
                     <div className="lg:col-span-4 lg:sticky lg:top-[88px] h-fit">
-                        <div className="bg-white dark:bg-slate-900 border-2 border-primary rounded-[32px] p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] relative overflow-hidden group/sidebar">
-                            <div className="absolute top-0 right-0 p-8 opacity-5">
-                                <span className="material-symbols-outlined text-[120px]">apartment</span>
-                            </div>
+                        <div className="relative group/sidebar">
+                            {/* Glass Background */}
+                            <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[40px] border border-white/40 dark:border-white/10 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.1)] transition-all duration-500 group-hover/sidebar:shadow-[0_48px_96px_-16px_rgba(0,0,0,0.15)] group-hover/sidebar:bg-white/50 dark:group-hover/sidebar:bg-slate-900/50"></div>
 
-                            <div className="flex items-center gap-2 text-red-500 font-black text-xs mb-8 uppercase tracking-widest bg-red-500/5 p-3 rounded-2xl border border-red-500/10">
-                                <span className="material-symbols-outlined text-sm fill-1">bolt</span>
-                                Multi-Room Reservation • 4 Rooms Left
-                            </div>
-
-                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Reservation Summary</p>
-                            <div className="space-y-4 mb-8">
-                                <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-sm">
-                                    <div className="flex justify-between font-black mb-1">
-                                        <span>1. Deluxe King Room</span>
-                                        <span>$200.00</span>
-                                    </div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Room Only • Non-refundable</p>
+                            {/* Content */}
+                            <div className="relative p-8 z-10">
+                                <div className="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.07] pointer-events-none group-hover/sidebar:scale-110 transition-transform duration-700">
+                                    <span className="material-symbols-outlined text-[140px]">hotel_class</span>
                                 </div>
-                                <div className="p-4 rounded-xl border border-slate-100 dark:border-slate-800 text-sm">
-                                    <div className="flex justify-between font-black mb-1">
-                                        <span>2. Executive Suite</span>
-                                        <span>$450.00</span>
-                                    </div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Breakfast Included • Free Cancellation</p>
-                                </div>
-                            </div>
 
-                            <div className="pt-8 border-t-2 border-dashed border-slate-100 dark:border-slate-800 mb-8">
-                                <div className="flex items-end justify-between">
-                                    <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Stay Price (Net)</p>
-                                        <p className="text-3xl font-black text-primary leading-none">$650.00</p>
-                                    </div>
-                                    <button className="text-primary group-hover/sidebar:rotate-12 transition-transform">
-                                        <span className="material-symbols-outlined">expand_more</span>
-                                    </button>
+                                <div className="flex items-center gap-2 text-primary font-black text-[10px] mb-6 uppercase tracking-[0.2em] bg-primary/5 dark:bg-primary/20 p-3 rounded-2xl border border-primary/10 backdrop-blur-md">
+                                    <span className="material-symbols-outlined text-sm fill-1">bolt</span>
+                                    Instant Confirmation Available
                                 </div>
-                            </div>
 
-                            <button
-                                onClick={() => setIsBookingModalOpen(true)}
-                                className="w-full bg-primary hover:bg-primary/90 text-white font-black py-5 rounded-[20px] transition-all shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 active:scale-[0.98] mb-4 group/btn">
-                                Instant Reservation
-                                <span className="material-symbols-outlined text-[20px] group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                            </button>
-                            <p className="text-[10px] text-center text-slate-400 font-black uppercase tracking-widest">
-                                B2B Agency Rates Applied
-                            </p>
+                                <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                                    Reservation Summary
+                                </h3>
+
+                                <div className="space-y-4 mb-8">
+                                    {selectedRooms.length > 0 ? (
+                                        selectedRooms.map((room, idx) => (
+                                            <div key={idx} className="p-5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm group/item hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <span className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-tight">{idx + 1}. {room.name}</span>
+                                                    <span className="font-black text-primary text-sm">${room.rate}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">Room Only</span>
+                                                    <span className="bg-slate-500/10 text-slate-500 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">Non-refundable</span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="py-12 px-6 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center">
+                                            <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-700 mb-2">bed</span>
+                                            <p className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Please select a room</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Dynamic Details Section */}
+                                <div className="grid grid-cols-2 gap-3 mb-8">
+                                    <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Guests</p>
+                                        <p className="text-xs font-black text-slate-900 dark:text-white truncate">
+                                            {totalAdults} Adults, {totalChildren} Child
+                                        </p>
+                                    </div>
+                                    <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Nationality</p>
+                                        <p className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                                            {nationality}
+                                            <span className="material-symbols-outlined text-[10px] text-primary">verified</span>
+                                        </p>
+                                    </div>
+                                    <div className="col-span-2 p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Dates</p>
+                                            <p className="text-xs font-black text-slate-900 dark:text-white">
+                                                {formatDateForUrl(checkInDate)} - {formatDateForUrl(checkOutDate)}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Stay</p>
+                                            <p className="text-xs font-black text-primary">{Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} Nights</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-8 border-t border-slate-200 dark:border-slate-800 mb-8">
+                                    <div className="flex items-end justify-between">
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Total Stay Price (Net)</p>
+                                            <p className="text-4xl font-black text-primary leading-none tracking-tighter">
+                                                ${selectedRooms.reduce((sum, r) => sum + r.rate, 0).toFixed(2)}
+                                            </p>
+                                        </div>
+                                        <div className="size-10 rounded-2xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">
+                                            <span className="material-symbols-outlined">payments</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => selectedRooms.length > 0 && setIsBookingModalOpen(true)}
+                                    disabled={selectedRooms.length === 0}
+                                    className={`w-full font-black py-5 rounded-[24px] transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] mb-4 group/btn overflow-hidden relative ${selectedRooms.length > 0 ? 'bg-primary text-white shadow-primary/30' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50'}`}>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
+                                    <span className="relative z-10 flex items-center gap-2">
+                                        Instant Reservation
+                                        <span className="material-symbols-outlined text-[20px] group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                                    </span>
+                                </button>
+                                <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em]">
+                                    B2B AGENCY RATES APPLIED
+                                </p>
+                            </div>
                         </div>
 
                         <div className="mt-6 bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex items-center gap-4">

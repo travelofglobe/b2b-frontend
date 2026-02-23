@@ -4,7 +4,7 @@ import Header from '../components/Header';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { locationService } from '../services/locationService';
 import { mockHotels } from '../data/mockHotels';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -21,7 +21,7 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 // Custom Marker Component
-const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover }) => {
+const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover, searchParams }) => {
     const icon = L.divIcon({
         className: 'custom-leaflet-marker',
         html: `
@@ -49,7 +49,25 @@ const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover }) 
                 mouseover: () => onHover(hotel),
                 mouseout: () => onHover(null)
             }}
-        />
+        >
+            <Popup className="hotel-marker-popup" minWidth={240}>
+                <div className="p-1 group/popup">
+                    <img src={hotel.image} className="w-full h-32 object-cover rounded-xl mb-3" alt={hotel.name} />
+                    <h3 className="font-black text-sm uppercase tracking-tight text-slate-900 dark:text-white mb-1">{hotel.name}</h3>
+                    <div className="flex items-center justify-between mt-3">
+                        <span className="text-lg font-black text-primary leading-none tracking-tighter">${hotel.price}</span>
+                        <Link
+                            to={`/hotel/${hotel.id}?${searchParams.toString()}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-primary text-white text-[9px] font-black tracking-widest uppercase px-3 py-2 rounded-lg hover:scale-105 transition-all shadow-lg shadow-primary/20"
+                        >
+                            View Details
+                        </Link>
+                    </div>
+                </div>
+            </Popup>
+        </Marker>
     );
 };
 
@@ -404,12 +422,18 @@ const MapView = () => {
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5">
                             {filteredHotels.map((hotel) => (
-                                <div
+                                <Link
+                                    to={`/hotel/${hotel.id}?${searchParams.toString()}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     id={`hotel-card-${hotel.id}`}
                                     key={hotel.id}
                                     onMouseEnter={() => setHoveredHotel(hotel)}
                                     onMouseLeave={() => setHoveredHotel(null)}
-                                    onClick={() => handleHotelSelect(hotel)}
+                                    onClick={(e) => {
+                                        // Still allow hotel selection on map but don't prevent navigation
+                                        handleHotelSelect(hotel);
+                                    }}
                                     className={`group flex gap-5 p-5 rounded-[32px] border-2 transition-all duration-300 cursor-pointer relative overflow-hidden backdrop-blur-md ${selectedHotel?.id === hotel.id
                                         ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-2xl shadow-primary/10'
                                         : 'border-transparent bg-slate-50/50 dark:bg-slate-900/40 hover:bg-white dark:hover:bg-slate-900 shadow-sm hover:shadow-xl hover:border-white dark:hover:border-slate-800'
@@ -460,7 +484,7 @@ const MapView = () => {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -493,6 +517,7 @@ const MapView = () => {
                                         isHovered={hoveredHotel?.id === hotel.id}
                                         onSelect={handleHotelSelect}
                                         onHover={setHoveredHotel}
+                                        searchParams={searchParams}
                                     />
                                 ))}
                             </MapContainer>

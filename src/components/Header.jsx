@@ -29,7 +29,7 @@ const Header = () => {
         : user?.email || 'User';
 
     return (
-        <header className="sticky top-0 z-[1100] w-full border-b border-solid border-slate-200 dark:border-[#233648] bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-6 lg:px-20 py-3">
+        <header className="sticky top-0 z-[1100] w-full border-b border-solid border-white/20 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/40 backdrop-blur-xl px-6 lg:px-20 py-3 shadow-sm shadow-slate-200/5 dark:shadow-none">
             <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
                 <div className="flex items-center gap-8">
                     <Link to="/" className="flex items-center gap-3 text-primary">

@@ -1,9 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 const HotelCard = ({ hotel, viewMode = 'list' }) => {
     const isList = viewMode === 'list';
     const [currentImg, setCurrentImg] = React.useState(0);
+    const [searchParams] = useSearchParams();
     const images = hotel.images || [hotel.image];
 
     const nextImg = (e) => {
@@ -26,7 +27,9 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
 
     return (
         <Link
-            to={`/hotel/${hotel.id}`}
+            to={`/hotel/${hotel.id}?${searchParams.toString()}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className={`group bg-white dark:bg-[#111a22] rounded-2xl overflow-hidden border border-slate-200 dark:border-[#233648] shadow-sm hover:shadow-xl transition-all duration-300 flex ${isList ? 'flex-col md:flex-row' : 'flex-col'}`}
         >
             <div className={`relative overflow-hidden ${isList ? 'h-64 md:h-auto md:w-[400px] shrink-0' : 'h-60'}`}>

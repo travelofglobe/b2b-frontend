@@ -239,6 +239,21 @@ const HotelDetail = () => {
         navigate(`${window.location.pathname}?${params.toString()}`);
     };
 
+    const handleInstantReservation = () => {
+        if (selectedRooms.length > 0) {
+            navigate('/hotel/checkout/guests', {
+                state: {
+                    selectedRooms,
+                    hotel,
+                    roomState,
+                    checkInDate: checkInDate.toISOString(),
+                    checkOutDate: checkOutDate.toISOString(),
+                    totalPrice: selectedRooms.reduce((sum, r) => sum + r.rate, 0)
+                }
+            });
+        }
+    };
+
     const updateRoom = (index, field, value) => {
         const newRooms = [...roomState];
         newRooms[index] = { ...newRooms[index], [field]: value };
@@ -743,7 +758,7 @@ const HotelDetail = () => {
                                     </div>
 
                                     <button
-                                        onClick={() => selectedRooms.length > 0 && setIsBookingModalOpen(true)}
+                                        onClick={handleInstantReservation}
                                         disabled={selectedRooms.length === 0}
                                         className={`w-full font-black py-5 rounded-[24px] transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] mb-4 group/btn overflow-hidden relative ${selectedRooms.length > 0 ? 'bg-primary text-white shadow-primary/30' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50'}`}>
                                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>

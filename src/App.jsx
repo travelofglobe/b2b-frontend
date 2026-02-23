@@ -7,6 +7,9 @@ import Dashboard from './pages/Dashboard';
 import MyBookings from './pages/MyBookings';
 import BookingDetail from './pages/BookingDetail';
 import LoginPage from './pages/LoginPage';
+import CheckoutGuestDetails from './pages/CheckoutGuestDetails';
+import CheckoutPayment from './pages/CheckoutPayment';
+import CheckoutResult from './pages/CheckoutResult';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import './index.css';
@@ -28,6 +31,11 @@ function App() {
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
             <Route path="/bookings/:bookingId" element={<ProtectedRoute><BookingDetail /></ProtectedRoute>} />
+
+            {/* Checkout Flow */}
+            <Route path="/hotel/checkout/guests" element={<ProtectedRoute><CheckoutGuestDetails /></ProtectedRoute>} />
+            <Route path="/hotel/checkout/payment" element={<ProtectedRoute><CheckoutPayment /></ProtectedRoute>} />
+            <Route path="/hotel/checkout/result" element={<ProtectedRoute><CheckoutResult /></ProtectedRoute>} />
             {/* Redirect root to hotels (ProtectedRoute will handle auth check) */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>

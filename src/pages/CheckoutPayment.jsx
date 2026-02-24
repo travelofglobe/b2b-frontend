@@ -135,54 +135,72 @@ const CheckoutPayment = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
                     <div className="lg:col-span-3 space-y-8">
                         {/* Refined Payment Method Selection - More prominent */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <button
-                                onClick={() => setPaymentMethod('deposit')}
-                                className={`relative p-6 rounded-[32px] border-2 transition-all duration-500 text-left group overflow-hidden ${paymentMethod === 'deposit' ? 'border-primary bg-primary/5 shadow-[0_0_50px_rgba(255,59,92,0.15)] ring-4 ring-primary/5' : 'border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700'}`}
-                            >
-                                <div className={`absolute -top-4 -right-4 transition-all duration-700 ${paymentMethod === 'deposit' ? 'text-primary opacity-20 scale-150 rotate-12' : 'text-slate-300 dark:text-slate-700 opacity-5'}`}>
-                                    <span className="material-symbols-outlined text-[100px]">account_balance_wallet</span>
-                                </div>
+                        <div className="max-w-[420px] mx-auto">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <button
+                                    onClick={() => setPaymentMethod('deposit')}
+                                    className={`relative p-5 rounded-[24px] transition-all duration-500 text-left group overflow-hidden border backdrop-blur-3xl ${paymentMethod === 'deposit' ? 'bg-primary/[0.04] border-primary/20 shadow-[0_20px_80px_-20px_rgba(255,59,92,0.25)] scale-[1.01]' : 'bg-white/60 dark:bg-slate-900/60 border-white/40 dark:border-white/5 shadow-lg shadow-slate-200/50 dark:shadow-black/50 hover:bg-white/80 dark:hover:bg-slate-900/80'}`}
+                                >
+                                    {/* Subtle Shading Overlays */}
+                                    <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
 
-                                <div className={`size-12 rounded-2xl mb-6 flex items-center justify-center transition-all duration-500 ${paymentMethod === 'deposit' ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                                    <span className="material-symbols-outlined text-2xl">wallet</span>
-                                </div>
-
-                                <div className="relative z-10">
-                                    <h3 className={`text-lg font-black uppercase tracking-tight mb-2 ${paymentMethod === 'deposit' ? 'text-primary' : 'text-slate-900 dark:text-white'}`}>B2B Deposit</h3>
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase leading-relaxed tracking-wider">Instant Corporate Settlement</p>
-                                </div>
-
-                                {paymentMethod === 'deposit' && (
-                                    <div className="absolute top-6 right-6 size-8 bg-primary text-white rounded-full flex items-center justify-center animate-in zoom-in spin-in-90 duration-500 shadow-lg">
-                                        <span className="material-symbols-outlined text-lg font-black">check</span>
+                                    {/* Floating Background Icon - More subtle */}
+                                    <div className={`absolute -top-6 -right-6 transition-all duration-1000 ${paymentMethod === 'deposit' ? 'text-primary opacity-[0.06] scale-150 rotate-12 blur-[2px]' : 'text-slate-300 dark:text-slate-700 opacity-[0.02]'}`}>
+                                        <span className="material-symbols-outlined text-[120px] select-none">account_balance_wallet</span>
                                     </div>
-                                )}
-                            </button>
 
-                            <button
-                                onClick={() => setPaymentMethod('credit_card')}
-                                className={`relative p-6 rounded-[32px] border-2 transition-all duration-500 text-left group overflow-hidden ${paymentMethod === 'credit_card' ? 'border-primary bg-primary/5 shadow-[0_0_50px_rgba(255,59,92,0.15)] ring-4 ring-primary/5' : 'border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700'}`}
-                            >
-                                <div className={`absolute -top-4 -right-4 transition-all duration-700 ${paymentMethod === 'credit_card' ? 'text-primary opacity-20 scale-150 rotate-12' : 'text-slate-300 dark:text-slate-700 opacity-5'}`}>
-                                    <span className="material-symbols-outlined text-[100px]">credit_card</span>
-                                </div>
-
-                                <div className={`size-12 rounded-2xl mb-6 flex items-center justify-center transition-all duration-500 ${paymentMethod === 'credit_card' ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                                    <span className="material-symbols-outlined text-2xl">payments</span>
-                                </div>
-
-                                <div className="relative z-10">
-                                    <h3 className={`text-lg font-black uppercase tracking-tight mb-2 ${paymentMethod === 'credit_card' ? 'text-primary' : 'text-slate-900 dark:text-white'}`}>Credit Card</h3>
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase leading-relaxed tracking-wider">Visa, Mastercard, Amex</p>
-                                </div>
-
-                                {paymentMethod === 'credit_card' && (
-                                    <div className="absolute top-6 right-6 size-8 bg-primary text-white rounded-full flex items-center justify-center animate-in zoom-in spin-in-90 duration-500 shadow-lg">
-                                        <span className="material-symbols-outlined text-lg font-black">check</span>
+                                    <div className={`size-10 rounded-xl mb-6 flex items-center justify-center transition-all duration-500 ${paymentMethod === 'deposit' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                                        <span className="material-symbols-outlined text-xl">account_balance_wallet</span>
                                     </div>
-                                )}
-                            </button>
+
+                                    <div className="relative z-10">
+                                        <h3 className={`text-base font-black uppercase tracking-tight mb-0.5 ${paymentMethod === 'deposit' ? 'text-primary' : 'text-slate-900 dark:text-white'}`}>
+                                            B2B Deposit
+                                        </h3>
+                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">
+                                            Instant Settlement
+                                        </p>
+                                    </div>
+
+                                    {paymentMethod === 'deposit' && (
+                                        <div className="absolute top-6 right-6 size-5 bg-primary text-white rounded-full flex items-center justify-center animate-in zoom-in duration-500 shadow-md ring-2 ring-white dark:ring-slate-900">
+                                            <span className="material-symbols-outlined text-[10px] font-black">check</span>
+                                        </div>
+                                    )}
+                                </button>
+
+                                <button
+                                    onClick={() => setPaymentMethod('credit_card')}
+                                    className={`relative p-5 rounded-[24px] transition-all duration-500 text-left group overflow-hidden border backdrop-blur-3xl ${paymentMethod === 'credit_card' ? 'bg-primary/[0.04] border-primary/20 shadow-[0_20px_80px_-20px_rgba(255,59,92,0.25)] scale-[1.01]' : 'bg-white/60 dark:bg-slate-900/60 border-white/40 dark:border-white/5 shadow-lg shadow-slate-200/50 dark:shadow-black/50 hover:bg-white/80 dark:hover:bg-slate-900/80'}`}
+                                >
+                                    {/* Subtle Shading Overlays */}
+                                    <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
+
+                                    {/* Floating Background Icon - More subtle */}
+                                    <div className={`absolute -top-6 -right-6 transition-all duration-1000 ${paymentMethod === 'credit_card' ? 'text-primary opacity-[0.06] scale-150 rotate-12 blur-[2px]' : 'text-slate-300 dark:text-slate-700 opacity-[0.02]'}`}>
+                                        <span className="material-symbols-outlined text-[120px] select-none">credit_card</span>
+                                    </div>
+
+                                    <div className={`size-10 rounded-xl mb-6 flex items-center justify-center transition-all duration-500 ${paymentMethod === 'credit_card' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                                        <span className="material-symbols-outlined text-xl">credit_card</span>
+                                    </div>
+
+                                    <div className="relative z-10">
+                                        <h3 className={`text-base font-black uppercase tracking-tight mb-0.5 ${paymentMethod === 'credit_card' ? 'text-primary' : 'text-slate-900 dark:text-white'}`}>
+                                            Credit Card
+                                        </h3>
+                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">
+                                            Secure Payment
+                                        </p>
+                                    </div>
+
+                                    {paymentMethod === 'credit_card' && (
+                                        <div className="absolute top-6 right-6 size-5 bg-primary text-white rounded-full flex items-center justify-center animate-in zoom-in duration-500 shadow-md ring-2 ring-white dark:ring-slate-900">
+                                            <span className="material-symbols-outlined text-[10px] font-black">check</span>
+                                        </div>
+                                    )}
+                                </button>
+                            </div>
                         </div>
 
                         {/* Card Visual & Form */}
@@ -275,7 +293,7 @@ const CheckoutPayment = () => {
                                     </div>
                                 </div>
 
-                                <div className="p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl space-y-6 max-w-[480px] mx-auto">
+                                <div className="p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl space-y-6 max-w-[420px] mx-auto">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Card Number</label>
                                         <input

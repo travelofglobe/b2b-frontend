@@ -6,7 +6,26 @@ import Footer from '../components/Footer';
 const CheckoutPayment = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { hotel, totalPrice } = location.state || {};
+    const { hotel, totalPrice, selectedRooms, roomState, checkInDate, checkOutDate } = location.state || {};
+
+    // Calculate nights for accurate pricing
+    const nights = React.useMemo(() => {
+        if (!checkInDate || !checkOutDate) return 1;
+        const start = new Date(checkInDate);
+        const end = new Date(checkOutDate);
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays || 1;
+    }, [checkInDate, checkOutDate]);
+
+    const formattedDates = React.useMemo(() => {
+        if (!checkInDate || !checkOutDate) return { start: 'Select Date', end: 'Select Date' };
+        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        return {
+            start: new Date(checkInDate).toLocaleDateString('en-US', options),
+            end: new Date(checkOutDate).toLocaleDateString('en-US', options)
+        };
+    }, [checkInDate, checkOutDate]);
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('deposit'); // 'deposit' or 'credit_card'
@@ -38,8 +57,16 @@ const CheckoutPayment = () => {
 
     const handlePayment = () => {
         setIsProcessing(true);
+        const finalTotal = selectedRooms?.reduce((sum, r) => sum + r.rate, 0) * nights;
         setTimeout(() => {
-            navigate('/hotel/checkout/result', { state: { ...location.state, paymentMethod, cardDetails } });
+            navigate('/hotel/checkout/result', {
+                state: {
+                    ...location.state,
+                    paymentMethod,
+                    cardDetails,
+                    totalPrice: finalTotal
+                }
+            });
         }, 2000);
     };
 
@@ -92,7 +119,7 @@ const CheckoutPayment = () => {
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
-            <main className="max-w-4xl mx-auto px-6 pt-24 pb-20">
+            <main className="max-w-6xl mx-auto px-6 pt-24 pb-20">
                 <div className="flex items-center justify-between mb-12">
                     <div className="flex items-center gap-4">
                         <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all shadow-sm">
@@ -111,14 +138,14 @@ const CheckoutPayment = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <button
                                 onClick={() => setPaymentMethod('deposit')}
-                                className={`relative p-8 rounded-[40px] border-2 transition-all duration-500 text-left group overflow-hidden ${paymentMethod === 'deposit' ? 'border-primary bg-primary/5 shadow-[0_0_50px_rgba(255,59,92,0.15)] ring-4 ring-primary/5' : 'border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700'}`}
+                                className={`relative p-6 rounded-[32px] border-2 transition-all duration-500 text-left group overflow-hidden ${paymentMethod === 'deposit' ? 'border-primary bg-primary/5 shadow-[0_0_50px_rgba(255,59,92,0.15)] ring-4 ring-primary/5' : 'border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700'}`}
                             >
                                 <div className={`absolute -top-4 -right-4 transition-all duration-700 ${paymentMethod === 'deposit' ? 'text-primary opacity-20 scale-150 rotate-12' : 'text-slate-300 dark:text-slate-700 opacity-5'}`}>
-                                    <span className="material-symbols-outlined text-[120px]">account_balance_wallet</span>
+                                    <span className="material-symbols-outlined text-[100px]">account_balance_wallet</span>
                                 </div>
 
-                                <div className={`size-14 rounded-2xl mb-8 flex items-center justify-center transition-all duration-500 ${paymentMethod === 'deposit' ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                                    <span className="material-symbols-outlined text-3xl">wallet</span>
+                                <div className={`size-12 rounded-2xl mb-6 flex items-center justify-center transition-all duration-500 ${paymentMethod === 'deposit' ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                                    <span className="material-symbols-outlined text-2xl">wallet</span>
                                 </div>
 
                                 <div className="relative z-10">
@@ -135,14 +162,14 @@ const CheckoutPayment = () => {
 
                             <button
                                 onClick={() => setPaymentMethod('credit_card')}
-                                className={`relative p-8 rounded-[40px] border-2 transition-all duration-500 text-left group overflow-hidden ${paymentMethod === 'credit_card' ? 'border-primary bg-primary/5 shadow-[0_0_50px_rgba(255,59,92,0.15)] ring-4 ring-primary/5' : 'border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700'}`}
+                                className={`relative p-6 rounded-[32px] border-2 transition-all duration-500 text-left group overflow-hidden ${paymentMethod === 'credit_card' ? 'border-primary bg-primary/5 shadow-[0_0_50px_rgba(255,59,92,0.15)] ring-4 ring-primary/5' : 'border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 hover:border-slate-300 dark:hover:border-slate-700'}`}
                             >
                                 <div className={`absolute -top-4 -right-4 transition-all duration-700 ${paymentMethod === 'credit_card' ? 'text-primary opacity-20 scale-150 rotate-12' : 'text-slate-300 dark:text-slate-700 opacity-5'}`}>
-                                    <span className="material-symbols-outlined text-[120px]">credit_card</span>
+                                    <span className="material-symbols-outlined text-[100px]">credit_card</span>
                                 </div>
 
-                                <div className={`size-14 rounded-2xl mb-8 flex items-center justify-center transition-all duration-500 ${paymentMethod === 'credit_card' ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                                    <span className="material-symbols-outlined text-3xl">payments</span>
+                                <div className={`size-12 rounded-2xl mb-6 flex items-center justify-center transition-all duration-500 ${paymentMethod === 'credit_card' ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                                    <span className="material-symbols-outlined text-2xl">payments</span>
                                 </div>
 
                                 <div className="relative z-10">
@@ -162,7 +189,7 @@ const CheckoutPayment = () => {
                         {paymentMethod === 'credit_card' ? (
                             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                                 {/* Enhanced Credit Card Visual with Flip Animation */}
-                                <div className="relative h-64 w-full perspective-1000 group">
+                                <div className="relative h-64 w-full max-w-[420px] mx-auto perspective-1000 group">
                                     <div className={`relative w-full h-full transition-all duration-700 preserve-3d ${cardDetails.cvvFocused ? 'rotate-y-180' : ''}`}>
 
                                         {/* Glow effects */}
@@ -199,7 +226,7 @@ const CheckoutPayment = () => {
                                                 </div>
 
                                                 <div className="relative z-10">
-                                                    <p className="text-2xl md:text-3xl font-black tracking-[0.25em] min-h-[40px] flex items-center text-white drop-shadow-lg">
+                                                    <p className="text-xl font-black tracking-[0.15em] min-h-[40px] flex items-center text-white drop-shadow-lg whitespace-nowrap">
                                                         {cardDetails.number || '••••  ••••  ••••  ••••'}
                                                     </p>
                                                 </div>
@@ -248,7 +275,7 @@ const CheckoutPayment = () => {
                                     </div>
                                 </div>
 
-                                <div className="p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl space-y-6">
+                                <div className="p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl space-y-6 max-w-[480px] mx-auto">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Card Number</label>
                                         <input
@@ -320,31 +347,101 @@ const CheckoutPayment = () => {
                     </div>
 
                     <div className="lg:col-span-2 space-y-8">
-                        <div className="p-8 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl">
-                            <h2 className="text-lg font-black uppercase mb-6 tracking-tight">Order Summary</h2>
-                            <div className="space-y-4 pb-6 border-b border-slate-200 dark:border-slate-800">
-                                <div className="flex justify-between items-center text-sm"><span className="font-bold text-slate-500 uppercase text-[10px] tracking-widest">Base Rate</span><span className="font-black">${totalPrice?.toFixed(2)}</span></div>
-                                <div className="flex justify-between items-center text-sm"><span className="font-bold text-slate-500 uppercase text-[10px] tracking-widest">Taxes & Fees</span><span className="font-black text-emerald-500 uppercase tracking-widest text-[9px]">Included</span></div>
+                        {/* Rich Reservation Summary Sidebar - Consistent with Guest Details */}
+                        <div className="p-8 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl overflow-hidden relative group">
+                            <div className="absolute top-0 right-0 p-6 opacity-5 rotate-12 pointer-events-none group-hover:scale-110 transition-transform duration-700">
+                                <span className="material-symbols-outlined text-[120px]">assignment</span>
                             </div>
-                            <div className="pt-6 mb-8">
-                                <div className="flex justify-between items-end">
-                                    <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total (Net)</p><p className="text-3xl font-black text-primary tracking-tighter">${totalPrice?.toFixed(2)}</p></div>
-                                    <div className="size-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500"><span className="material-symbols-outlined">shield_check</span></div>
+
+                            <div className="relative z-10">
+                                <h2 className="text-xl font-black uppercase mb-8 tracking-tight flex items-center gap-3">
+                                    <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                        <span className="material-symbols-outlined text-xl">receipt_long</span>
+                                    </div>
+                                    Reservation Summary
+                                </h2>
+
+                                {/* Hotel Quick Info */}
+                                <div className="flex gap-4 mb-8 p-4 rounded-3xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                                    <div className="size-20 rounded-2xl overflow-hidden shrink-0 border-2 border-white dark:border-slate-700 shadow-sm">
+                                        <img src={hotel?.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"} alt={hotel?.name} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="flex flex-col justify-center">
+                                        <div className="flex items-center gap-1 mb-1">
+                                            {[...Array(5)].map((_, i) => (
+                                                <span key={i} className={`material-symbols-outlined text-[12px] ${i < (hotel?.stars || 5) ? 'text-amber-400 fill-1' : 'text-slate-300'}`}>star</span>
+                                            ))}
+                                        </div>
+                                        <h3 className="font-black text-sm uppercase tracking-tight leading-tight mb-1 line-clamp-2">{hotel?.name}</h3>
+                                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{hotel?.location}</p>
+                                    </div>
                                 </div>
+
+                                {/* Booking Dates */}
+                                <div className="grid grid-cols-2 gap-4 mb-8">
+                                    <div className="p-4 rounded-3xl bg-white/40 dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
+                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Check-in</p>
+                                        <p className="text-sm font-black uppercase text-primary">{formattedDates.start}</p>
+                                    </div>
+                                    <div className="p-4 rounded-3xl bg-white/40 dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
+                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Check-out</p>
+                                        <p className="text-sm font-black uppercase text-primary">{formattedDates.end}</p>
+                                    </div>
+                                </div>
+
+                                {/* Room Breakdown */}
+                                <div className="space-y-4 mb-8 pb-8 border-b border-dashed border-slate-200 dark:border-slate-800">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Selected Rooms</p>
+                                    {selectedRooms?.map((room, idx) => (
+                                        <div key={idx} className="flex justify-between items-start text-xs group/room">
+                                            <div className="flex gap-3">
+                                                <div className="size-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-500 group-hover/room:bg-primary/10 group-hover/room:text-primary transition-colors">
+                                                    {idx + 1}
+                                                </div>
+                                                <div>
+                                                    <p className="font-black uppercase tracking-tight mb-0.5">{room.name}</p>
+                                                    <p className="text-[9px] font-bold text-slate-500 uppercase">{roomState?.[idx]?.adults} Adults, {roomState?.[idx]?.children} Children</p>
+                                                </div>
+                                            </div>
+                                            <p className="font-black text-slate-700 dark:text-slate-300">${(room.rate * nights).toFixed(2)}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Price Total */}
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Grand Total</span>
+                                    <div className="text-right">
+                                        <p className="text-3xl font-black text-primary tracking-tighter leading-none">${(selectedRooms?.reduce((sum, r) => sum + r.rate, 0) * nights || totalPrice || 0).toFixed(2)}</p>
+                                        <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-1">Taxes Included • {nights} Night{nights > 1 ? 's' : ''}</p>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={handlePayment}
+                                    disabled={isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv))}
+                                    className={`w-full mt-8 py-5 bg-primary text-white rounded-[24px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 overflow-hidden relative ${isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv)) ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                                >
+                                    {isProcessing ? <><div className="size-5 rounded-full border-4 border-white/20 border-t-white animate-spin"></div>Processing...</> : <>Authorize Payment<span className="material-symbols-outlined text-[18px]">lock</span></>}
+                                </button>
                             </div>
-                            <button
-                                onClick={handlePayment}
-                                disabled={isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv))}
-                                className={`w-full py-5 bg-primary text-white rounded-[24px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 overflow-hidden relative ${isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv)) ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
-                            >
-                                {isProcessing ? <><div className="size-5 rounded-full border-4 border-white/20 border-t-white animate-spin"></div>Processing...</> : <>Authorize Payment<span className="material-symbols-outlined text-[18px]">lock</span></>}
-                            </button>
+                        </div>
+
+                        {/* Security Badge */}
+                        <div className="p-6 rounded-[32px] border border-emerald-500/10 bg-emerald-500/5 backdrop-blur-3xl flex items-center gap-4">
+                            <div className="size-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                                <span className="material-symbols-outlined font-black">verified_user</span>
+                            </div>
+                            <div>
+                                <p className="text-xs font-black uppercase tracking-tight dark:text-emerald-400">Secure Checkout</p>
+                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 whitespace-nowrap">256-bit SSL encrypted connection</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </div >
+            </main >
             <Footer />
-        </div>
+        </div >
     );
 };
 

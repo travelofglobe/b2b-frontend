@@ -193,6 +193,15 @@ const HotelDetail = () => {
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [selectedRooms, setSelectedRooms] = useState([]);
 
+    const nights = React.useMemo(() => {
+        if (!checkInDate || !checkOutDate) return 1;
+        const start = new Date(checkInDate);
+        const end = new Date(checkOutDate);
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays || 1;
+    }, [checkInDate, checkOutDate]);
+
     const toggleRoomSelection = (roomType, rate, roomName) => {
         setSelectedRooms(prev => {
             const index = prev.findIndex(r => r.type === roomType && r.name === roomName);
@@ -248,7 +257,8 @@ const HotelDetail = () => {
                     roomState,
                     checkInDate: checkInDate.toISOString(),
                     checkOutDate: checkOutDate.toISOString(),
-                    totalPrice: selectedRooms.reduce((sum, r) => sum + r.rate, 0)
+                    totalPrice: selectedRooms.reduce((sum, r) => sum + r.rate, 0) * nights,
+                    nights
                 }
             });
         }
@@ -748,7 +758,7 @@ const HotelDetail = () => {
                                             <div>
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Total Stay Price (Net)</p>
                                                 <p className="text-4xl font-black text-primary leading-none tracking-tighter">
-                                                    ${selectedRooms.reduce((sum, r) => sum + r.rate, 0).toFixed(2)}
+                                                    ${(selectedRooms.reduce((sum, r) => sum + r.rate, 0) * nights).toFixed(2)}
                                                 </p>
                                             </div>
                                             <div className="size-10 rounded-2xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">

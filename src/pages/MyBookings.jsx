@@ -20,6 +20,7 @@ const MyBookings = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = React.useRef(null);
     const hasLoadedData = React.useRef(false);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     // Filter state - matching all API fields
     const [filters, setFilters] = useState({
@@ -65,15 +66,52 @@ const MyBookings = () => {
         };
     }, []);
 
+    // Integrated Search Effect (Handles mount, filters, pagination, and refresh)
     useEffect(() => {
-        // Only fetch if we haven't loaded data yet or if page/pageSize changed
-        if (!hasLoadedData.current || bookings.length === 0) {
-            const abortController = new AbortController();
+        const abortController = new AbortController();
+
+        // Debounce only if we already have data (i.e., user is changing filters)
+        // Instant fetch on mount or when page/pageSize/refresh change
+        const delay = (hasLoadedData.current && bookings.length > 0) ? 800 : 0;
+
+        const timer = setTimeout(() => {
             searchBookings(abortController.signal);
             hasLoadedData.current = true;
-            return () => abortController.abort();
-        }
-    }, []);
+        }, delay);
+
+        return () => {
+            clearTimeout(timer);
+            abortController.abort();
+        };
+    }, [
+        page,
+        pageSize,
+        refreshTrigger,
+        // Individual filter dependencies to avoid unnecessarily complex object checks
+        filters.id,
+        filters.voucher,
+        filters.supplierId,
+        filters.supplierName,
+        filters.internalHotelId,
+        filters.bookingUuid,
+        filters.clientReferenceId,
+        filters.requestId,
+        filters.hotelName,
+        filters.createDateStart,
+        filters.createDateEnd,
+        filters.checkInStart,
+        filters.checkInEnd,
+        filters.checkOutStart,
+        filters.checkOutEnd,
+        filters.minAmount,
+        filters.maxAmount,
+        filters.minCancellationAmount,
+        filters.maxCancellationAmount,
+        filters.principalAgencyIds,
+        filters.paymentStatus,
+        filters.bookingStatus,
+        filters.isCancelled
+    ]);
 
     const searchBookings = async (signal) => {
         try {
@@ -144,51 +182,10 @@ const MyBookings = () => {
         setFilters(prev => ({ ...prev, [key]: value }));
     };
 
-    // Debounced search for all filters
-    useEffect(() => {
-        if (hasLoadedData.current) {
-            const timer = setTimeout(() => {
-                handleSearch();
-            }, 800); // 800ms debounce
-
-            return () => clearTimeout(timer);
-        }
-    }, [
-        filters.id,
-        filters.voucher,
-        filters.supplierId,
-        filters.supplierName,
-        filters.internalHotelId,
-        filters.bookingUuid,
-        filters.clientReferenceId,
-        filters.requestId,
-        filters.hotelName,
-        filters.createDateStart,
-        filters.createDateEnd,
-        filters.checkInStart,
-        filters.checkInEnd,
-        filters.checkOutStart,
-        filters.checkOutEnd,
-        filters.minAmount,
-        filters.maxAmount,
-        filters.minCancellationAmount,
-        filters.maxCancellationAmount,
-        filters.principalAgencyIds,
-        // Select filters are also included here for consistency, or we can keep separate logic.
-        // It's cleaner to have ONE effect for all search triggers if possible, 
-        // with immediate trigger for selects vs debounce for text?
-        // For simplicity and user request, everything auto-searches. 
-        // Selects can also be debounced or instantaneous.
-        // Let's include select filters here too and remove the separate effect.
-        filters.paymentStatus,
-        filters.bookingStatus,
-        filters.isCancelled
-    ]);
-
+    // Unified handleSearch used by Refresh and manual triggers
     const handleSearch = () => {
         setPage(0);
-        const abortController = new AbortController();
-        searchBookings(abortController.signal);
+        setRefreshTrigger(prev => prev + 1);
     };
 
     const handleClearFilters = () => {
@@ -220,16 +217,9 @@ const MyBookings = () => {
             isCancelled: '',
         });
         setPage(0);
+        setRefreshTrigger(prev => prev + 1);
     };
 
-    // Separate effect for page/pageSize changes
-    useEffect(() => {
-        if (hasLoadedData.current && bookings.length > 0) {
-            const abortController = new AbortController();
-            searchBookings(abortController.signal);
-            return () => abortController.abort();
-        }
-    }, [page, pageSize]);
 
     const handleLogout = () => {
         logout();

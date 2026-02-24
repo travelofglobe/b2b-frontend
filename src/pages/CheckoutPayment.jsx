@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -11,6 +11,11 @@ const CheckoutPayment = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('deposit'); // 'deposit' or 'credit_card'
     const [cardDetails, setCardDetails] = useState({ number: '', holder: '', expiry: '', cvv: '' });
+
+    // Auto-scroll to top on mount
+    useLayoutEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     const formatCardNumber = (value) => {
         const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
@@ -87,7 +92,7 @@ const CheckoutPayment = () => {
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
-            <main className="max-w-4xl mx-auto px-6 pt-32 pb-20">
+            <main className="max-w-4xl mx-auto px-6 pt-24 pb-20">
                 <div className="flex items-center justify-between mb-12">
                     <div className="flex items-center gap-4">
                         <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all shadow-sm">
@@ -156,18 +161,89 @@ const CheckoutPayment = () => {
                         {/* Card Visual & Form */}
                         {paymentMethod === 'credit_card' ? (
                             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                <div className="relative group perspective-1000">
-                                    <div className="absolute -inset-1 bg-gradient-to-br from-primary via-purple-600 to-primary rounded-[32px] blur-xl opacity-20 transition-all duration-700 group-hover:opacity-40"></div>
-                                    <div className="relative h-64 rounded-[32px] bg-gradient-to-br from-slate-800 to-slate-950 p-10 flex flex-col justify-between overflow-hidden shadow-2xl border border-white/10">
-                                        <div className="absolute top-0 right-0 p-10 opacity-10 rotate-12"><span className="material-symbols-outlined text-[160px]">credit_card</span></div>
-                                        <div className="flex justify-between items-start relative z-10">
-                                            <div className="size-14 rounded-xl bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-lg"></div>
-                                            <p className="text-xl font-black italic tracking-tighter">PREMIUM PLATINUM</p>
+                                {/* Enhanced Credit Card Visual with Flip Animation */}
+                                <div className="relative h-64 w-full perspective-1000 group">
+                                    <div className={`relative w-full h-full transition-all duration-700 preserve-3d ${cardDetails.cvvFocused ? 'rotate-y-180' : ''}`}>
+
+                                        {/* Glow effects */}
+                                        <div className="absolute -inset-4 bg-gradient-to-br from-primary/30 via-purple-500/30 to-blue-500/30 rounded-[40px] blur-3xl opacity-50 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                                        {/* FRONT SIDE */}
+                                        <div className="absolute inset-0 w-full h-full backface-hidden">
+                                            <div className="w-full h-full relative rounded-[32px] bg-gradient-to-br from-slate-800 via-slate-900 to-black p-10 flex flex-col justify-between overflow-hidden shadow-2xl border border-white/10">
+                                                {/* Glassmorphism overlays */}
+                                                <div className="absolute top-0 right-0 w-1/2 h-full bg-white/5 skew-x-[-20deg] translate-x-1/2 pointer-events-none"></div>
+                                                <div className="absolute -bottom-20 -left-20 size-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                                                <div className="flex justify-between items-start relative z-10">
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="size-14 rounded-xl bg-gradient-to-br from-yellow-400 via-yellow-200 to-yellow-600 shadow-[0_0_20px_rgba(234,179,8,0.3)] relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                                                            {/* Simple chip lines */}
+                                                            <div className="absolute inset-x-2 top-4 h-px bg-black/20"></div>
+                                                            <div className="absolute inset-x-2 top-7 h-px bg-black/20"></div>
+                                                            <div className="absolute inset-x-2 top-10 h-px bg-black/20"></div>
+                                                            <div className="absolute inset-y-2 left-4 w-px bg-black/20"></div>
+                                                            <div className="absolute inset-y-2 left-7 w-px bg-black/20"></div>
+                                                            <div className="absolute inset-y-2 left-10 w-px bg-black/20"></div>
+                                                        </div>
+                                                        <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mt-2">Global Reserve</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-white/80 to-white/40">PREMIUM PLATINUM</p>
+                                                        <div className="flex justify-end gap-1 mt-1">
+                                                            <div className="size-2 rounded-full bg-primary/80"></div>
+                                                            <div className="size-2 rounded-full bg-white/20"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="relative z-10">
+                                                    <p className="text-2xl md:text-3xl font-black tracking-[0.25em] min-h-[40px] flex items-center text-white drop-shadow-lg">
+                                                        {cardDetails.number || '••••  ••••  ••••  ••••'}
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex justify-between items-end relative z-10">
+                                                    <div className="max-w-[70%]">
+                                                        <p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Card Holder</p>
+                                                        <p className="text-base font-black uppercase tracking-wider truncate text-white/90">
+                                                            {cardDetails.holder || 'GUEST NAME'}
+                                                        </p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Expires</p>
+                                                        <p className="text-base font-black text-white/90">{cardDetails.expiry || 'MM / YY'}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <p className="text-2xl font-black tracking-[0.25em] min-h-[32px] relative z-10">{cardDetails.number || '••••  ••••  ••••  ••••'}</p>
-                                        <div className="flex justify-between items-end relative z-10">
-                                            <div className="max-w-[70%]"><p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Card Holder</p><p className="text-sm font-black uppercase tracking-wider truncate">{cardDetails.holder || 'GUEST NAME'}</p></div>
-                                            <div className="text-right"><p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Expires</p><p className="text-sm font-black">{cardDetails.expiry || 'MM / YY'}</p></div>
+
+                                        {/* BACK SIDE */}
+                                        <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
+                                            <div className="w-full h-full relative rounded-[32px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 flex flex-col shadow-2xl border border-white/10">
+                                                <div className="w-full h-14 bg-black mt-10"></div>
+                                                <div className="flex-1 p-10 flex flex-col justify-center">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="flex-1 h-12 bg-slate-200/90 rounded-lg flex items-center justify-end px-4 overflow-hidden relative">
+                                                            {/* Security pattern lines */}
+                                                            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(45deg, #000 0, #000 1px, transparent 0, transparent 50%)', backgroundSize: '8px 8px' }}></div>
+                                                            <p className="text-black font-black italic tracking-widest relative z-10 text-lg">{cardDetails.cvv || '•••'}</p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">CVV / CVC Code</p>
+                                                            <p className="text-[8px] font-medium text-white/20 uppercase mt-1 leading-tight max-w-[80px]">AUTHORIZED SIGNATURE NOT TRANSFERABLE</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-8 flex justify-between items-center opacity-30">
+                                                        <div className="flex gap-2 text-white">
+                                                            <span className="material-symbols-outlined">wifi_tethering</span>
+                                                            <span className="material-symbols-outlined">lock_person</span>
+                                                        </div>
+                                                        <p className="text-[10px] font-black text-white uppercase tracking-widest italic font-serif">TOG BANK</p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -175,20 +251,53 @@ const CheckoutPayment = () => {
                                 <div className="p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl space-y-6">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Card Number</label>
-                                        <input name="number" maxLength={22} value={cardDetails.number} onChange={handleCardInputChange} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all font-black tracking-[0.2em]" placeholder="••••  ••••  ••••  ••••" />
+                                        <input
+                                            name="number"
+                                            maxLength={22}
+                                            value={cardDetails.number}
+                                            onChange={handleCardInputChange}
+                                            onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all font-black tracking-[0.2em]"
+                                            placeholder="••••  ••••  ••••  ••••"
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Card Holder Name</label>
-                                        <input name="holder" value={cardDetails.holder} onChange={handleCardInputChange} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold uppercase tracking-tight" placeholder="FULL NAME AS PRINTED ON CARD" />
+                                        <input
+                                            name="holder"
+                                            value={cardDetails.holder}
+                                            onChange={handleCardInputChange}
+                                            onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold uppercase tracking-tight"
+                                            placeholder="FULL NAME AS PRINTED ON CARD"
+                                        />
                                     </div>
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Expiry Date</label>
-                                            <input name="expiry" maxLength={7} value={cardDetails.expiry} onChange={handleCardInputChange} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all font-black tracking-widest" placeholder="MM / YY" />
+                                            <input
+                                                name="expiry"
+                                                maxLength={7}
+                                                value={cardDetails.expiry}
+                                                onChange={handleCardInputChange}
+                                                onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
+                                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all font-black tracking-widest"
+                                                placeholder="MM / YY"
+                                            />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">CVV / CVC</label>
-                                            <input name="cvv" maxLength={4} value={cardDetails.cvv} onChange={handleCardInputChange} type="password" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all font-black tracking-[0.5em]" placeholder="•••" />
+                                            <input
+                                                name="cvv"
+                                                maxLength={4}
+                                                value={cardDetails.cvv}
+                                                onChange={handleCardInputChange}
+                                                onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: true }))}
+                                                onBlur={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
+                                                type="password"
+                                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none transition-all font-black tracking-[0.5em]"
+                                                placeholder="•••"
+                                            />
                                         </div>
                                     </div>
                                 </div>

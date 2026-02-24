@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -9,6 +9,11 @@ const CheckoutGuestDetails = () => {
     const { selectedRooms, hotel, roomState } = location.state || {};
 
     const [activeRoomIdx, setActiveRoomIdx] = useState(0);
+
+    // Auto-scroll to top on mount
+    useLayoutEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
     // Initialize guest data for EVERY guest in EVERY room
     const [roomsData, setRoomsData] = useState(() => {
@@ -135,7 +140,7 @@ const CheckoutGuestDetails = () => {
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
-            <main className="max-w-4xl mx-auto px-6 pt-32 pb-20">
+            <main className="max-w-4xl mx-auto px-6 pt-24 pb-20">
                 {/* Top Navigation / Breadcrumb */}
                 <div className="flex items-center justify-between mb-12">
                     <div className="flex items-center gap-4">

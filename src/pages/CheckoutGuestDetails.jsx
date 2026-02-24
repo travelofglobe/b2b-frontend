@@ -84,7 +84,51 @@ const CheckoutGuestDetails = () => {
         }
     };
 
-    if (!selectedRooms) return <div className="p-20 text-center">No rooms selected.</div>;
+    if (!selectedRooms) {
+        return (
+            <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white flex flex-col">
+                <Header />
+                <main className="flex-1 flex items-center justify-center p-6 pt-32 pb-20">
+                    <div className="w-full max-w-xl relative group">
+                        {/* Glow effect */}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 via-purple-500/30 to-primary/30 rounded-[40px] blur-2xl opacity-100 transition-opacity duration-500"></div>
+
+                        <div className="relative bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-white/40 dark:border-white/10 rounded-[40px] p-12 text-center shadow-2xl overflow-hidden">
+                            {/* Decorative background icon */}
+                            <div className="absolute -top-10 -right-10 opacity-5 pointer-events-none">
+                                <span className="material-symbols-outlined text-[200px]">production_quantity_limits</span>
+                            </div>
+
+                            <div className="size-24 bg-primary/10 rounded-3xl flex items-center justify-center text-primary mx-auto mb-8 shadow-inner">
+                                <span className="material-symbols-outlined text-5xl">shopping_cart_off</span>
+                            </div>
+
+                            <h2 className="text-3xl font-black uppercase tracking-tight mb-4 text-slate-900 dark:text-white">No Selection Found</h2>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium mb-10 leading-relaxed max-w-sm mx-auto">
+                                It looks like you haven't selected any rooms yet. Please return to the hotel details to choose your preferred accommodation.
+                            </p>
+
+                            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                <button
+                                    onClick={() => navigate('/')}
+                                    className="px-8 py-4 bg-primary text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                >
+                                    Back to Dashboard
+                                </button>
+                                <button
+                                    onClick={() => navigate('/hotels')}
+                                    className="px-8 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
+                                >
+                                    Browse Hotels
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
 
     const currentRoom = roomsData[activeRoomIdx];
 

@@ -290,7 +290,7 @@ const HotelDetail = () => {
             <main className="flex-1 max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
                 <div className="mb-6 flex items-center justify-between">
                     <Breadcrumbs />
-                    <Link to="/" className="flex items-center gap-1.5 text-sm font-bold text-primary group">
+                    <Link to={`/hotels?${searchParams.toString()}`} className="flex items-center gap-1.5 text-sm font-bold text-primary group">
                         <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
                         Back to Search
                     </Link>

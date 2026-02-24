@@ -393,7 +393,9 @@ const MapView = () => {
 
             <main className="flex-1 flex overflow-hidden relative">
                 {/* Aside: Hotel List Sidebar */}
-                <aside className={`absolute lg:relative z-30 h-full bg-white/80 dark:bg-background-dark/80 backdrop-blur-2xl border-r border-slate-200/50 dark:border-slate-800/50 transition-all duration-500 ease-in-out shadow-2xl ${isSidebarOpen ? 'w-full md:w-[420px] xl:w-[480px] translate-x-0' : 'w-0 -translate-x-full lg:translate-x-0'
+                <aside className={`absolute lg:relative z-30 h-full bg-white/80 dark:bg-background-dark/80 backdrop-blur-2xl border-r border-slate-200/50 dark:border-slate-800/50 transition-all duration-500 ease-in-out shadow-2xl overflow-hidden ${isSidebarOpen
+                    ? 'w-full md:w-[420px] xl:w-[480px] translate-x-0 opacity-100'
+                    : 'w-0 -translate-x-full opacity-0 pointer-events-none'
                     }`}>
                     <div className="h-full flex flex-col w-[420px] xl:w-[480px]">
                         <div className="p-8 border-b border-slate-100/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50">

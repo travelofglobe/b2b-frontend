@@ -287,9 +287,13 @@ const MyBookings = () => {
     };
 
     return (
-        <div className="flex h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200 font-sans overflow-hidden">
-            {/* Sidebar - Same as Dashboard */}
-            <aside className="w-60 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hidden lg:flex flex-col flex-shrink-0">
+        <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#020617] text-slate-900 dark:text-slate-100 transition-colors duration-200 font-sans overflow-hidden relative">
+            {/* Ambient Background Glows */}
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/5 blur-[120px] rounded-full pointer-events-none"></div>
+
+            {/* Sidebar - Modern Glassy */}
+            <aside className="w-64 border-r border-white/40 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl hidden lg:flex flex-col flex-shrink-0 relative z-40 transition-all duration-500">
                 <div className="p-3 flex items-center gap-2">
                     <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
                         <span className="material-icons-round text-lg">language</span>
@@ -340,9 +344,9 @@ const MyBookings = () => {
             </aside>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Header - Fixed */}
-                <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-8 py-5 flex-shrink-0 z-30">
+            <div className="flex-1 flex flex-col overflow-hidden relative z-10">
+                {/* Header - Fixed Glassy */}
+                <header className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border-b border-white/40 dark:border-white/5 px-8 py-5 flex-shrink-0 z-30 transition-all">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
@@ -430,32 +434,33 @@ const MyBookings = () => {
                 </header>
 
                 {/* Content Area - Scrollable */}
-                <div className="flex-1 overflow-auto p-6">
-                    {/* Filters are now integrated into the table headers */}
+                <div className="flex-1 overflow-auto p-8 relative">
+                    {/* Background Intensity Glow for Table */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[50%] bg-primary/5 blur-[150px] rounded-full pointer-events-none"></div>
 
-                    {/* Table with Modern Design */}
-                    <div className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                    {/* Table with Premium Design */}
+                    <div className="relative bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[40px] border border-white/60 dark:border-white/10 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.08)] transition-all duration-500 overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full border-collapse">
                                 <thead>
-                                    <tr className="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-800">
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[100px]">ID</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[150px]">Voucher</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[300px]">Hotel</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[160px]">Created</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[160px]">Check-in</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[160px]">Check-out</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[140px]">Amount</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[140px]">Payment</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[140px]">Status</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[140px]">Cancel Fee</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[200px]">UUID</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[200px]">Agency</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[150px]">Hotel ID</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[180px]">Cl. Ref</th>
-                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] whitespace-nowrap min-w-[100px]">Cancelled?</th>
+                                    <tr className="bg-white/20 dark:bg-slate-800/20 border-b border-white/20 dark:border-white/5">
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">ID</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[150px]">Voucher</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[300px]">Hotel</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[160px]">Created</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[160px]">Check-in</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[160px]">Check-out</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">Amount</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">Payment</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">Status</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">Cancel Fee</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[200px]">UUID</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[200px]">Agency</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[150px]">Hotel ID</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[180px]">Cl. Ref</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">Cancelled?</th>
                                     </tr>
-                                    <tr className="bg-slate-50/30 dark:bg-slate-800/20 border-b border-slate-200 dark:border-slate-800">
+                                    <tr className="bg-white/10 dark:bg-slate-800/10 border-b border-white/20 dark:border-white/5">
                                         <td className="px-2 py-2">
                                             <input
                                                 type="number"
@@ -463,7 +468,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('id', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder="ID"
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-2 text-xs focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -473,7 +478,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('voucher', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder="Voucher"
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-2 text-xs focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -483,7 +488,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('hotelName', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder="Hotel Name"
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-2 text-xs focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -493,14 +498,14 @@ const MyBookings = () => {
                                                     value={filters.createDateStart}
                                                     onChange={(e) => handleFilterChange('createDateStart', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-0.5 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="date"
                                                     value={filters.createDateEnd}
                                                     onChange={(e) => handleFilterChange('createDateEnd', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-0.5 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -511,14 +516,14 @@ const MyBookings = () => {
                                                     value={filters.checkInStart}
                                                     onChange={(e) => handleFilterChange('checkInStart', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-0.5 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="date"
                                                     value={filters.checkInEnd}
                                                     onChange={(e) => handleFilterChange('checkInEnd', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-0.5 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -529,14 +534,14 @@ const MyBookings = () => {
                                                     value={filters.checkOutStart}
                                                     onChange={(e) => handleFilterChange('checkOutStart', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-0.5 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="date"
                                                     value={filters.checkOutEnd}
                                                     onChange={(e) => handleFilterChange('checkOutEnd', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-0.5 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -548,7 +553,7 @@ const MyBookings = () => {
                                                     onChange={(e) => handleFilterChange('minAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                     placeholder="Min"
-                                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-0.5 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="number"
@@ -556,7 +561,7 @@ const MyBookings = () => {
                                                     onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                     placeholder="Max"
-                                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-0.5 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -564,7 +569,7 @@ const MyBookings = () => {
                                             <select
                                                 value={filters.paymentStatus}
                                                 onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
                                             >
                                                 <option value="">All</option>
                                                 <option value="PENDING_PAYMENT">Pending Payment</option>
@@ -579,7 +584,7 @@ const MyBookings = () => {
                                             <select
                                                 value={filters.bookingStatus}
                                                 onChange={(e) => handleFilterChange('bookingStatus', e.target.value)}
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
                                             >
                                                 <option value="">All</option>
                                                 {Object.entries(BOOKING_STATUS_CONFIG).map(([key, config]) => (
@@ -597,7 +602,7 @@ const MyBookings = () => {
                                                     onChange={(e) => handleFilterChange('minCancellationAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                     placeholder="Min"
-                                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-0.5 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="number"
@@ -605,7 +610,7 @@ const MyBookings = () => {
                                                     onChange={(e) => handleFilterChange('maxCancellationAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                     placeholder="Max"
-                                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-0.5 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -616,7 +621,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('bookingUuid', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder="UUID"
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-2 text-xs focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -626,7 +631,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('principalAgencyIds', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder="Agency IDs"
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-2 text-xs focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -636,7 +641,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('internalHotelId', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder="Hotel ID"
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-2 text-xs focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -646,14 +651,14 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder="Cl. Ref"
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-2 text-xs focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
                                             <select
                                                 value={filters.isCancelled}
                                                 onChange={(e) => handleFilterChange('isCancelled', e.target.value)}
-                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-1 text-[10px] focus:ring-1 focus:ring-primary/50 focus:border-primary transition-all"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
                                             >
                                                 <option value="">All</option>
                                                 <option value="true">Yes</option>
@@ -693,7 +698,7 @@ const MyBookings = () => {
                                             <tr
                                                 key={booking.bookingId}
                                                 onClick={() => navigate(`/bookings/${booking.bookingId}`)}
-                                                className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group border-b border-slate-100 dark:border-slate-800 last:border-0 cursor-pointer text-xs font-medium"
+                                                className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 cursor-pointer text-xs font-bold"
                                             >
                                                 <td className="px-4 py-3 text-slate-900 dark:text-white group-hover:text-primary transition-colors">#{booking.bookingId}</td>
                                                 <td className="px-4 py-3 text-slate-700 dark:text-slate-200 truncate max-w-[100px]" title={booking.voucher}>{booking.voucher || '-'}</td>
@@ -733,9 +738,9 @@ const MyBookings = () => {
                             </table>
                         </div>
 
-                        {/* Pagination */}
+                        {/* Pagination - Glassy */}
                         {totalPages > 0 && (
-                            <div className="border-t border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between bg-slate-50 dark:bg-slate-800">
+                            <div className="border-t border-white/20 dark:border-white/5 px-8 py-4 flex items-center justify-between bg-white/10 dark:bg-slate-800/20 backdrop-blur-xl">
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-slate-600 dark:text-slate-400">Rows per page:</span>
                                     <select
@@ -786,8 +791,10 @@ const MyBookings = () => {
                                     {summaries.map((summary, index) => (
                                         <div
                                             key={index}
-                                            className="group relative bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+                                            className="group relative bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[32px] border border-white/60 dark:border-white/10 p-8 hover:shadow-[0_32px_80px_-16px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-500"
                                         >
+                                            {/* Intensity Glow */}
+                                            <div className="absolute -inset-2 bg-primary/10 rounded-[40px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                                             {/* Top Section - Icon and Badge */}
                                             <div className="flex items-start justify-between mb-4">
                                                 <div className="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -827,7 +834,7 @@ const MyBookings = () => {
                                             </div>
 
                                             {/* Accent Line */}
-                                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/0 via-primary to-primary/0 rounded-b-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                            <div className="absolute bottom-0 left-8 right-8 h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                         </div>
                                     ))}
                                 </div>

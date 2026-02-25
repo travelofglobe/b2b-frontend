@@ -319,20 +319,12 @@ const BookingDetail = () => {
                             <div className="relative" ref={menuRef}>
                                 <button
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                    className="flex items-center gap-3 p-1 pr-3 rounded-2xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all active:scale-95 focus:outline-none"
+                                    className="flex items-center gap-2 transition-transform active:scale-95 focus:outline-none"
                                 >
-                                    <div className="size-9 rounded-xl border-2 border-primary/20 overflow-hidden ring-4 ring-primary/5" title={userDisplayName}>
-                                        <img
-                                            className="w-full h-full object-cover"
-                                            alt="User profile avatar"
-                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBosNqeUSWMhJzh5LpHCFPb5pLuKb8iL2md4jVM2E56t5Fv9dyFMkYnOoEtDWJR6D93U1ktccli6wRXrDIFrJfBzqCuo5f3p_dAmSl_IOc_ls1zrDr3BzT9UkmB-hXIOrfHfvPmYIBsjYr8pMfjM43LH5Rt6-TPmTMmscoLyVghfEK4wzk7GtmvkdhcdOdWIR6LeTpuh-DYatxfCIZul2x7amqH7lCa89tzhsz4XxNW_yxi5Ycxf1QNFnIYxHogNEd3zAqE767kNbGk"
-                                        />
+                                    <div className="size-10 rounded-full border-2 border-primary shadow-sm hover:shadow-md transition-shadow flex items-center justify-center bg-slate-100 dark:bg-slate-800" title={userDisplayName}>
+                                        <span className="material-symbols-outlined text-slate-400 dark:text-slate-500 text-[28px]">person</span>
                                     </div>
-                                    <div className="hidden sm:block text-left">
-                                        <p className="text-xs font-black text-slate-900 dark:text-white leading-none mb-1 truncate max-w-[100px]">{userDisplayName}</p>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none">Admin User</p>
-                                    </div>
-                                    <span className="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
+                                    <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">expand_more</span>
                                 </button>
 
                                 {isMenuOpen && (

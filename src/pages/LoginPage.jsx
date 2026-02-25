@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import PlaneLoading from '../components/PlaneLoading';
 
 const backgrounds = [
     '/assets/backgrounds/bg-1.jpg',
@@ -98,7 +99,8 @@ const LoginPage = () => {
                         </div>
 
                         {/* Login Form */}
-                        <form onSubmit={handleSubmit} className="p-8 space-y-5">
+                        <form onSubmit={handleSubmit} className="p-8 space-y-5 relative">
+                            {isLoading && <PlaneLoading />}
                             <div className="space-y-4">
                                 <div className="group relative transition-all">
                                     <div className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary transition-colors z-10">

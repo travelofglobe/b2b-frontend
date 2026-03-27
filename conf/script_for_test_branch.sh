@@ -2,7 +2,7 @@
 
 PROJECT_NAME=b2b-frontend
 REMOTE_PATH=/opt/deployment/b2b-frontend
-IPS="37.148.213.4"
+IPS="72.62.17.189"
 COMMIT_ID=$(git log -n 1 --pretty=format:'%H')
 
 for IP in $IPS;

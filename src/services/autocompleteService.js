@@ -1,6 +1,6 @@
 import apiClient from '../utils/apiClient';
 
-const AUTOCOMPLETE_API_URL = 'http://37.148.213.4:8000/b2b-backend/v1/autocomplete';
+const AUTOCOMPLETE_API_URL = 'http://72.62.17.189:8000/b2b-backend/v1/autocomplete';
 
 export const autocompleteService = {
     search: async (query, types = ['LOCATION', 'HOTEL'], signal) => {

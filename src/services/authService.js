@@ -1,7 +1,7 @@
 import apiClient from '../utils/apiClient';
 
-const API_URL = 'http://37.148.213.4:8000/auth/v1/agency-token/access';
-const USER_ME_URL = 'http://37.148.213.4:8000/auth/v1/agency-token/me';
+const API_URL = 'http://72.62.17.189:8000/auth/v1/agency-token/access';
+const USER_ME_URL = 'http://72.62.17.189:8000/auth/v1/agency-token/me';
 
 export const authService = {
     fetchUserDetails: async (token) => {

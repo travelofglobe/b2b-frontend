@@ -3,7 +3,9 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { locationService } from '../services/locationService';
-import { mockHotels } from '../data/mockHotels';
+import { hotelService } from '../services/hotelService';
+import placeholderHotel from '../assets/placeholder-hotel.svg';
+import { useMapEvents } from 'react-leaflet';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -44,6 +46,7 @@ const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover, se
         <Marker
             position={[hotel.lat, hotel.lng]}
             icon={icon}
+            zIndexOffset={isSelected ? 1000 : (isHovered ? 500 : 0)}
             eventHandlers={{
                 click: () => onSelect(hotel),
                 mouseover: () => onHover(hotel),
@@ -199,7 +202,7 @@ const FilterModal = ({ isOpen, onClose, currentFilters, onApply }) => {
     );
 };
 
-// Map Instance Capture Component
+// Map Instances & Events
 const MapInstanceCapture = ({ setMap }) => {
     const map = useMap();
     useEffect(() => {
@@ -209,18 +212,49 @@ const MapInstanceCapture = ({ setMap }) => {
     return null;
 };
 
+const MapBoundsListener = ({ onBoundsChange }) => {
+    useMapEvents({
+        moveend: (e) => {
+            const map = e.target;
+            const bounds = map.getBounds();
+            const nw = bounds.getNorthWest();
+            const se = bounds.getSouthEast();
+
+            onBoundsChange({
+                topLeft: { lat: nw.lat, lon: nw.lng },
+                bottomRight: { lat: se.lat, lon: se.lng }
+            });
+        }
+    });
+    return null;
+};
+
 // MapView Component
 const MapView = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const [hotels, setHotels] = useState([]);
+    const [isLoadingHotels, setIsLoadingHotels] = useState(false);
     const [hoveredHotel, setHoveredHotel] = useState(null);
-    const [selectedHotel, setSelectedHotel] = useState(() => {
-        const queryId = searchParams.get('hotelId');
-        if (queryId) {
-            return mockHotels.find(h => h.id === parseInt(queryId)) || mockHotels[0];
+    const hoverTimeoutRef = useRef(null);
+
+    const handleHover = (hotel) => {
+        if (hoverTimeoutRef.current) {
+            clearTimeout(hoverTimeoutRef.current);
+            hoverTimeoutRef.current = null;
         }
-        return mockHotels[0];
-    });
+
+        if (hotel) {
+            setHoveredHotel(hotel);
+        } else {
+            // Delay closing to allow user to move mouse to the card
+            hoverTimeoutRef.current = setTimeout(() => {
+                setHoveredHotel(null);
+                hoverTimeoutRef.current = null;
+            }, 300);
+        }
+    };
+    const [selectedHotel, setSelectedHotel] = useState(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [filters, setFilters] = useState({
@@ -230,6 +264,7 @@ const MapView = () => {
 
     // Map Instance State
     const [map, setMap] = useState(null);
+    const [currentBounds, setCurrentBounds] = useState(null);
 
     // Breadcrumb data for map auto-focus
     const [breadcrumbData, setBreadcrumbData] = useState(null);
@@ -328,7 +363,118 @@ const MapView = () => {
         };
     }, [breadcrumbData, map, isDataLoading]);
 
-    const filteredHotels = mockHotels.filter(hotel => {
+    const mapApiHotelToModel = React.useCallback((apiHotel) => {
+        const name = apiHotel.name?.tr || apiHotel.name?.en || apiHotel.name?.defaultName || 'Unknown Hotel';
+        const starCount = apiHotel.hotelStar?.star || 0;
+        const starLabel = apiHotel.hotelStar?.names?.tr || apiHotel.hotelStar?.names?.en || '';
+        const rating = apiHotel.score ? (apiHotel.score / 10000).toFixed(1) : '0';
+
+        let ratingLabel = 'Good';
+        const ratingVal = parseFloat(rating);
+        if (ratingVal >= 9) ratingLabel = 'Superb';
+        else if (ratingVal >= 8) ratingLabel = 'Excellent';
+        else if (ratingVal >= 7) ratingLabel = 'Very Good';
+
+        const amenities = [
+            { icon: 'wifi', label: 'WiFi' },
+            { icon: 'pool', label: 'Pool' },
+            { icon: 'spa', label: 'Spa' }
+        ];
+
+        let imagesToMap = [];
+        if (apiHotel.images && apiHotel.images.length > 0) {
+            const sorted = [...apiHotel.images].sort((a, b) => (b.isThumbnail ? 1 : 0) - (a.isThumbnail ? 1 : 0));
+            const filtered = sorted.filter(img =>
+                img.isThumbnail || (img.category && img.category.toLowerCase() === 'hotel')
+            );
+            imagesToMap = [...new Set(filtered.map(img => img.url))].filter(url => !!url);
+        }
+
+        if (imagesToMap.length === 0) {
+            imagesToMap = [placeholderHotel];
+        }
+
+        return {
+            id: apiHotel.id,
+            name: name,
+            type: starLabel || 'Hotel',
+            stars: starCount,
+            location: apiHotel.locationPathNames || 'Unknown Location',
+            image: imagesToMap[0],
+            images: imagesToMap,
+            rating: rating,
+            ratingLabel: ratingLabel,
+            price: 450, // Static for now
+            lat: apiHotel.coordinates?.lat,
+            lng: apiHotel.coordinates?.lon,
+            amenities: amenities,
+            badges: apiHotel.isNewProperty ? [{ type: 'popular', label: 'New Property', color: 'bg-teal-500/40' }] : []
+        };
+    }, []);
+
+    const fetchHotels = React.useCallback(async (bounds) => {
+        setIsLoadingHotels(true);
+        try {
+            const response = await hotelService.searchHotels({
+                geo: bounds,
+                page: 0,
+                size: 100 // Map view usually shows many points
+            });
+
+            if (response && response.data) {
+                const { content } = response.data;
+                const mappedHotels = (content || []).map(mapApiHotelToModel);
+                
+                // Add jitter for identical coordinates
+                const coordinateMap = new Map();
+                const jitteredHotels = mappedHotels.filter(h => h.lat && h.lng).map(hotel => {
+                    const coordKey = `${hotel.lat.toFixed(4)}_${hotel.lng.toFixed(4)}`;
+                    const count = coordinateMap.get(coordKey) || 0;
+                    coordinateMap.set(coordKey, count + 1);
+                    
+                    if (count > 0) {
+                        const offsetMultiplier = 0.00015; // roughly 15 meters
+                        const angle = count * Math.PI * 0.4; // spread them around
+                        let radius = offsetMultiplier * Math.ceil(count / 5);
+                        
+                        return {
+                            ...hotel,
+                            lat: hotel.lat + radius * Math.cos(angle),
+                            lng: hotel.lng + radius * Math.sin(angle)
+                        };
+                    }
+                    return hotel;
+                });
+
+                setHotels(jitteredHotels);
+
+                // Auto-select first hotel if none selected and it's initial load
+                if (mappedHotels.length > 0 && !selectedHotel) {
+                    // setSelectedHotel(mappedHotels[0]);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch hotels for map:', error);
+        } finally {
+            setIsLoadingHotels(false);
+        }
+    }, [mapApiHotelToModel, selectedHotel]);
+
+    // Initial fetch when breadcrumb/location is ready
+    useEffect(() => {
+        if (breadcrumbData && breadcrumbData.geoCoordinate && !currentBounds) {
+            // Wait for map to fly there then we'll get bounds via MapBoundsListener
+        }
+    }, [breadcrumbData, currentBounds]);
+
+    // Trigger fetch on bounds change
+    useEffect(() => {
+        if (currentBounds) {
+            fetchHotels(currentBounds);
+        }
+    }, [currentBounds, fetchHotels]);
+
+    const filteredHotels = hotels.filter(hotel => {
         const matchesType = filters.types.length === 0 || filters.types.includes(hotel.type);
         const matchesPrice = hotel.price >= filters.priceRange[0] && hotel.price <= filters.priceRange[1];
         return matchesType && matchesPrice;
@@ -379,15 +525,26 @@ const MapView = () => {
                         locationId={searchParams.get('locationId') || '174737'}
                         initialData={breadcrumbData}
                     />
-                    <Link
-                        to="/"
-                        className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
-                    >
-                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
-                            <span className="material-symbols-outlined text-lg">arrow_back</span>
-                        </div>
-                        Back to Dashboard
-                    </Link>
+                    <div className="flex items-center gap-6">
+                        <button
+                            onClick={handleBackToList}
+                            className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
+                                <span className="material-symbols-outlined text-lg">format_list_bulleted</span>
+                            </div>
+                            Back to List
+                        </button>
+                        <Link
+                            to="/"
+                            className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
+                                <span className="material-symbols-outlined text-lg">arrow_back</span>
+                            </div>
+                            Back to Dashboard
+                        </Link>
+                    </div>
                 </div>
             </div>
 
@@ -402,7 +559,9 @@ const MapView = () => {
                             <div className="flex items-center justify-between mb-1">
                                 <div>
                                     <h1 className="font-black text-2xl tracking-tighter text-slate-900 dark:text-white uppercase leading-none">{locationName}</h1>
-                                    <p className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mt-2">{filteredHotels.length} Elite Properties</p>
+                                    <p className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mt-2">
+                                        {isLoadingHotels ? 'Searching...' : `${filteredHotels.length} Properties in this area`}
+                                    </p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
@@ -430,8 +589,8 @@ const MapView = () => {
                                     rel="noopener noreferrer"
                                     id={`hotel-card-${hotel.id}`}
                                     key={hotel.id}
-                                    onMouseEnter={() => setHoveredHotel(hotel)}
-                                    onMouseLeave={() => setHoveredHotel(null)}
+                                    onMouseEnter={() => handleHover(hotel)}
+                                    onMouseLeave={() => handleHover(null)}
                                     onClick={(e) => {
                                         // Still allow hotel selection on map but don't prevent navigation
                                         handleHotelSelect(hotel);
@@ -462,7 +621,7 @@ const MapView = () => {
                                     <div className="flex flex-col justify-between py-1 flex-1 min-w-0">
                                         <div>
                                             <div className="flex items-center gap-1 mb-1.5 opacity-60">
-                                                {[...Array(5)].map((_, i) => (
+                                                {[...Array(hotel.stars || 0)].map((_, i) => (
                                                     <span key={i} className="material-symbols-outlined text-[10px] text-amber-400 fill-1">star</span>
                                                 ))}
                                             </div>
@@ -509,6 +668,8 @@ const MapView = () => {
                                     url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                                 />
 
+                                <MapBoundsListener onBoundsChange={setCurrentBounds} />
+
                                 <MapController selectedHotel={selectedHotel} />
 
                                 {filteredHotels.map((hotel) => (
@@ -518,7 +679,7 @@ const MapView = () => {
                                         isSelected={selectedHotel?.id === hotel.id}
                                         isHovered={hoveredHotel?.id === hotel.id}
                                         onSelect={handleHotelSelect}
-                                        onHover={setHoveredHotel}
+                                        onHover={handleHover}
                                         searchParams={searchParams}
                                     />
                                 ))}
@@ -545,24 +706,38 @@ const MapView = () => {
 
                     {/* Glass Hover Preview Card */}
                     {hoveredHotel && (
-                        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-[1000] w-80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-[32px] shadow-[0_32px_96px_-16px_rgba(0,0,0,0.4)] border border-white/20 dark:border-slate-800 overflow-hidden pointer-events-none transition-all duration-300 animate-in fade-in slide-in-from-top-4">
-                            <div className="h-40 relative">
-                                <img className="w-full h-full object-cover" src={hoveredHotel.image} alt="" />
-                                <div className="absolute top-4 right-4 bg-[#137fec] px-3 py-1.5 rounded-2xl text-[10px] font-black text-white shadow-xl shadow-[#137fec]/30 flex items-center gap-1.5">
-                                    <span className="material-symbols-outlined text-[14px]">star</span>
-                                    {hoveredHotel.rating}
-                                </div>
-                            </div>
-                            <div className="p-6">
-                                <h4 className="font-black text-base uppercase tracking-tight text-slate-900 dark:text-white truncate">{hoveredHotel.name}</h4>
-                                <div className="flex items-center justify-between mt-3">
-                                    <div className="flex items-center gap-1 opacity-60">
-                                        <span className="material-symbols-outlined text-[14px]">location_on</span>
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{hoveredHotel.location}</span>
+                        <div
+                            onMouseEnter={() => handleHover(hoveredHotel)}
+                            onMouseLeave={() => handleHover(null)}
+                            className="absolute top-8 left-1/2 -translate-x-1/2 z-[1000] w-80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-[32px] shadow-[0_32px_96px_-16px_rgba(0,0,0,0.4)] border border-white/20 dark:border-slate-800 overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-top-4"
+                        >
+                            <Link
+                                to={`/hotel/${hoveredHotel.id}?${searchParams.toString()}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block"
+                            >
+                                <div className="h-40 relative">
+                                    <img className="w-full h-full object-cover" src={hoveredHotel.image} alt="" />
+                                    <div className="absolute top-4 right-4 bg-[#137fec] px-3 py-1.5 rounded-2xl text-[10px] font-black text-white shadow-xl shadow-[#137fec]/30 flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-[14px]">star</span>
+                                        {hoveredHotel.rating}
                                     </div>
-                                    <span className="text-lg font-black text-[#137fec]">${hoveredHotel.price}<span className="text-[10px] text-slate-400 lowercase ml-1 font-bold">/nt</span></span>
                                 </div>
-                            </div>
+                                <div className="p-6">
+                                    <h4 className="font-black text-base uppercase tracking-tight text-slate-900 dark:text-white truncate">{hoveredHotel.name}</h4>
+                                    <div className="flex items-center justify-between mt-3">
+                                        <div className="flex items-center gap-1 opacity-60">
+                                            <span className="material-symbols-outlined text-[14px]">location_on</span>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{hoveredHotel.location}</span>
+                                        </div>
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-lg font-black text-[#137fec]">${hoveredHotel.price}<span className="text-[10px] text-slate-400 lowercase ml-1 font-bold">/nt</span></span>
+                                            <span className="text-[8px] font-black uppercase text-primary tracking-widest mt-1">View Details</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Link>
                         </div>
                     )}
 

@@ -415,7 +415,9 @@ const MapView = () => {
     const fetchHotels = React.useCallback(async (bounds) => {
         setIsLoadingHotels(true);
         try {
+            const locationId = searchParams.get('locationId');
             const response = await hotelService.searchHotels({
+                locationId: locationId,
                 geo: bounds,
                 page: 0,
                 size: 100 // Map view usually shows many points
@@ -458,7 +460,7 @@ const MapView = () => {
         } finally {
             setIsLoadingHotels(false);
         }
-    }, [mapApiHotelToModel, selectedHotel]);
+    }, [mapApiHotelToModel, searchParams]);
 
     // Initial fetch when breadcrumb/location is ready
     useEffect(() => {

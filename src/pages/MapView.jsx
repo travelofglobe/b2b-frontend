@@ -227,7 +227,8 @@ const MapBoundsListener = ({ onBoundsChange, isUserPanRef }) => {
                     topLeft: { lat: nw.lat, lon: nw.lng },
                     bottomRight: { lat: se.lat, lon: se.lng }
                 },
-                isUserPan: isUserPanRef.current
+                isUserPan: isUserPanRef.current,
+                zoom: map.getZoom()
             });
         }
     });
@@ -434,6 +435,7 @@ const MapView = () => {
             const response = await hotelService.searchHotels({
                 locationId: locationId,
                 geo: boundsData.bounds,
+                zoom: boundsData.zoom,
                 page: 0,
                 size: 100 // Map view usually shows many points
             });
@@ -540,9 +542,27 @@ const MapView = () => {
 
     // Get location name from query parameter (same as HotelListing)
     const queryLocation = searchParams.get('q');
-    const locationName = queryLocation
+    let locationName = queryLocation
         ? queryLocation.split(',')[0].trim()
         : 'Explore';
+
+    if (isUserPanRef.current) {
+        if (filteredHotels.length > 0) {
+            const firstLocation = filteredHotels[0].location;
+            if (Array.isArray(firstLocation)) {
+                // If it's an array like ['Turkey', 'Ankara', 'Cankaya']
+                locationName = firstLocation[firstLocation.length > 1 ? firstLocation.length - 1 : 0];
+            } else if (typeof firstLocation === 'string' && firstLocation !== 'Unknown Location') {
+                // If it's a string, attempt to split by common separators or use as is
+                const parts = firstLocation.split(/[/,-]/).map(p => p.trim()).filter(Boolean);
+                locationName = parts.length > 0 ? parts[parts.length - 1] : firstLocation;
+            } else {
+                locationName = 'Map Area';
+            }
+        } else {
+            locationName = 'Map Area';
+        }
+    }
 
     return (
         <div className="flex flex-col h-screen bg-white dark:bg-background-dark overflow-hidden font-sans">

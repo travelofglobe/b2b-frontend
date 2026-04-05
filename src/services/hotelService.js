@@ -11,10 +11,10 @@ export const hotelService = {
      * @param {number} params.size - Items per page
      * @param {Object} [params.geo] - Geo bounding box (topLeft, bottomRight)
      */
-    searchHotels: async ({ locationId, page = 0, size = 10, geo = null }) => {
+    searchHotels: async ({ locationId, page = 0, size = 10, geo = null, zoom = null }) => {
         const body = {
             geo: geo || null,
-            zoom: null,
+            zoom: zoom,
             filters: {
                 locationIds: locationId ? [parseInt(locationId)] : null,
                 hotelName: null,

@@ -494,7 +494,20 @@ const MapView = () => {
     const filteredHotels = hotels.filter(hotel => {
         const matchesType = filters.types.length === 0 || filters.types.includes(hotel.type);
         const matchesPrice = hotel.price >= filters.priceRange[0] && hotel.price <= filters.priceRange[1];
-        return matchesType && matchesPrice;
+        
+        // Client-side geo bounding box filter to protect against backend bug returning global/fallback results
+        let inBounds = true;
+        if (currentBounds && currentBounds.bounds && hotel.lat && hotel.lng) {
+            const { topLeft, bottomRight } = currentBounds.bounds;
+            inBounds = (
+                hotel.lat <= topLeft.lat && 
+                hotel.lat >= bottomRight.lat && 
+                hotel.lng >= topLeft.lon && 
+                hotel.lng <= bottomRight.lon
+            );
+        }
+
+        return matchesType && matchesPrice && inBounds;
     });
 
     const handleHotelSelect = (hotel) => {

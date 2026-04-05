@@ -212,8 +212,10 @@ const MapInstanceCapture = ({ setMap }) => {
     return null;
 };
 
-const MapBoundsListener = ({ onBoundsChange }) => {
+const MapBoundsListener = ({ onBoundsChange, isUserPanRef }) => {
     useMapEvents({
+        mousedown: () => { isUserPanRef.current = true; },
+        wheel: () => { isUserPanRef.current = true; },
         moveend: (e) => {
             const map = e.target;
             const bounds = map.getBounds();
@@ -221,8 +223,11 @@ const MapBoundsListener = ({ onBoundsChange }) => {
             const se = bounds.getSouthEast();
 
             onBoundsChange({
-                topLeft: { lat: nw.lat, lon: nw.lng },
-                bottomRight: { lat: se.lat, lon: se.lng }
+                bounds: {
+                    topLeft: { lat: nw.lat, lon: nw.lng },
+                    bottomRight: { lat: se.lat, lon: se.lng }
+                },
+                isUserPan: isUserPanRef.current
             });
         }
     });
@@ -237,6 +242,12 @@ const MapView = () => {
     const [isLoadingHotels, setIsLoadingHotels] = useState(false);
     const [hoveredHotel, setHoveredHotel] = useState(null);
     const hoverTimeoutRef = useRef(null);
+    const isUserPanRef = useRef(false);
+
+    // Reset pan state when autocomplete search changes
+    useEffect(() => {
+        isUserPanRef.current = false;
+    }, [searchParams]);
 
     const handleHover = (hotel) => {
         if (hoverTimeoutRef.current) {
@@ -412,13 +423,17 @@ const MapView = () => {
         };
     }, []);
 
-    const fetchHotels = React.useCallback(async (bounds) => {
+    const fetchHotels = React.useCallback(async (boundsData) => {
         setIsLoadingHotels(true);
         try {
-            const locationId = searchParams.get('locationId');
+            // Note: If user panned the map, we omit locationId so search is strictly based on map geo bounds.
+            // If it's an initial search from autocomplete, we send locationId perfectly.
+            const passLocationId = !boundsData.isUserPan;
+            const locationId = passLocationId ? searchParams.get('locationId') : null;
+
             const response = await hotelService.searchHotels({
                 locationId: locationId,
-                geo: bounds,
+                geo: boundsData.bounds,
                 page: 0,
                 size: 100 // Map view usually shows many points
             });
@@ -670,7 +685,10 @@ const MapView = () => {
                                     url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                                 />
 
-                                <MapBoundsListener onBoundsChange={setCurrentBounds} />
+                                <MapBoundsListener 
+                                    onBoundsChange={setCurrentBounds} 
+                                    isUserPanRef={isUserPanRef}
+                                />
 
                                 <MapController selectedHotel={selectedHotel} />
 

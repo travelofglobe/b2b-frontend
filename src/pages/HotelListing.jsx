@@ -5,8 +5,9 @@ import Sidebar from '../components/Sidebar';
 import HotelCard from '../components/HotelCard';
 import Footer from '../components/Footer';
 import Breadcrumbs from '../components/Breadcrumbs';
-import { mockHotels } from '../data/mockHotels';
 import { parseGuestsParam } from '../utils/searchParamsUtils';
+import { hotelService } from '../services/hotelService';
+import placeholderHotel from '../assets/placeholder-hotel.svg';
 
 const HotelListing = () => {
     const [viewMode, setViewMode] = React.useState('list'); // 'list', 'grid2', 'grid3'
@@ -14,9 +15,10 @@ const HotelListing = () => {
     const [searchParams] = useSearchParams();
 
     const [hotels, setHotels] = React.useState([]);
-    const [page, setPage] = React.useState(1);
+    const [page, setPage] = React.useState(0); // API uses 0-based indexing
     const [isLoading, setIsLoading] = React.useState(false);
     const [hasMore, setHasMore] = React.useState(true);
+    const [totalProperties, setTotalProperties] = React.useState(0);
     const loaderRef = React.useRef(null);
 
     const gridClasses = {
@@ -60,33 +62,114 @@ const HotelListing = () => {
             ? `${themeName} Hotels`
             : `Hotels in ${locationName}`;
 
-    const subtitle = `${totalRooms} Room${totalRooms > 1 ? 's' : ''}, ${totalGuests} Guest${totalGuests !== 1 ? 's' : ''} • 142 properties found`;
-
     // Extract locationId from URL params
     const locationId = searchParams.get('locationId');
 
-    // Simulate loading more hotels from mock data
-    const loadMoreHotels = React.useCallback(() => {
+    const subtitle = `${totalRooms} Room${totalRooms > 1 ? 's' : ''}, ${totalGuests} Guest${totalGuests !== 1 ? 's' : ''} • ${totalProperties || 0} properties found`;
+
+    // Map API hotel object to UI model
+    const mapApiHotelToModel = React.useCallback((apiHotel) => {
+        // Pick name and star based on language
+        const name = apiHotel.name?.tr || apiHotel.name?.en || apiHotel.name?.defaultName || 'Unknown Hotel';
+        
+        // Dynamic Stars - new object structure
+        const starCount = apiHotel.hotelStar?.star || 0;
+        const starLabel = apiHotel.hotelStar?.names?.tr || apiHotel.hotelStar?.names?.en || '';
+
+        // Convert score (e.g. 80000) to rating (e.g. 8.0)
+        const rating = apiHotel.score ? (apiHotel.score / 10000).toFixed(1) : '0';
+
+        // Rating labels
+        let ratingLabel = 'Good';
+        const ratingVal = parseFloat(rating);
+        if (ratingVal >= 9) ratingLabel = 'Superb';
+        else if (ratingVal >= 8) ratingLabel = 'Excellent';
+        else if (ratingVal >= 7) ratingLabel = 'Very Good';
+
+        // Default amenities if none provided in API
+        const amenities = [
+            { icon: 'wifi', label: 'WiFi' },
+            { icon: 'pool', label: 'Pool' },
+            { icon: 'spa', label: 'Spa' }
+        ];
+
+        // Handle images with thumbnail priority and local silhouette fallbacks
+        let imagesToMap = [];
+        
+        if (apiHotel.images && apiHotel.images.length > 0) {
+            // Sort by isThumbnail so thumbnail is always first
+            const sorted = [...apiHotel.images].sort((a, b) => (b.isThumbnail ? 1 : 0) - (a.isThumbnail ? 1 : 0));
+            
+            // Filter: must be the thumbnail OR have 'hotel' category
+            const filtered = sorted.filter(img => 
+                img.isThumbnail || (img.category && img.category.toLowerCase() === 'hotel')
+            );
+            
+            // Map to URLs and deduplicate while maintaining order (thumbnail first)
+            imagesToMap = [...new Set(filtered.map(img => img.url))].filter(url => !!url);
+        }
+
+        if (imagesToMap.length === 0) {
+            imagesToMap = [placeholderHotel];
+        }
+
+        return {
+            id: apiHotel.id,
+            name: name,
+            type: starLabel || 'Hotel',
+            stars: starCount,
+            location: apiHotel.locationPathNames || 'Unknown Location',
+            image: imagesToMap[0],
+            images: imagesToMap,
+            rating: rating,
+            ratingLabel: ratingLabel,
+            ratingColor: 'bg-primary/10 text-primary',
+            price: 450, // Static for now as requested
+            lat: apiHotel.coordinates?.lat,
+            lng: apiHotel.coordinates?.lon,
+            amenities: amenities,
+            badges: apiHotel.isNewProperty ? [{ type: 'popular', label: 'New Property', color: 'bg-teal-500/40' }] : []
+        };
+    }, []);
+
+    // Load hotels from API
+    const loadMoreHotels = React.useCallback(async () => {
         if (isLoading || !hasMore) return;
 
         setIsLoading(true);
-        // Simulate API delay
-        setTimeout(() => {
-            const itemsPerPage = 2;
-            const startIndex = (page - 1) * itemsPerPage;
-            const nextItems = mockHotels.slice(startIndex, startIndex + itemsPerPage);
+        try {
+            const response = await hotelService.searchHotels({
+                locationId,
+                page: page,
+                size: 10
+            });
 
-            if (nextItems.length > 0) {
-                setHotels(prev => [...prev, ...nextItems]);
+            if (response && response.data) {
+                const { content, last, totalElements } = response.data;
+                const mappedHotels = (content || []).map(mapApiHotelToModel);
+
+                setHotels(prev => [...prev, ...mappedHotels]);
+                setTotalProperties(totalElements);
                 setPage(prev => prev + 1);
-            }
-
-            if (setHotels.length >= mockHotels.length || nextItems.length < itemsPerPage || startIndex + itemsPerPage >= mockHotels.length) {
+                setHasMore(!last);
+            } else {
                 setHasMore(false);
             }
+        } catch (error) {
+            console.error('Failed to load hotels:', error);
+            setHasMore(false);
+        } finally {
             setIsLoading(false);
-        }, 800);
-    }, [page, isLoading, hasMore]);
+        }
+    }, [page, isLoading, hasMore, locationId, mapApiHotelToModel]);
+
+    // Reset when locationId changes
+    React.useEffect(() => {
+        setHotels([]);
+        setPage(0);
+        setHasMore(true);
+        setTotalProperties(0);
+    }, [locationId]);
 
     React.useEffect(() => {
         const observer = new IntersectionObserver((entries) => {

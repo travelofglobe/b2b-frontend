@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import placeholderHotel from '../assets/placeholder-hotel.svg';
 
 const HotelCard = ({ hotel, viewMode = 'list' }) => {
     const isList = viewMode === 'list';
@@ -17,6 +18,11 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
         e.preventDefault();
         e.stopPropagation();
         setCurrentImg((prev) => (prev - 1 + images.length) % images.length);
+    };
+
+    const handleImageError = (e) => {
+        e.target.src = placeholderHotel;
+        e.target.onerror = null; // Prevent infinite loop
     };
 
     const handleFavorite = (e) => {
@@ -40,6 +46,7 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                             key={idx}
                             src={img}
                             alt={`${hotel.name} ${idx + 1}`}
+                            onError={handleImageError}
                             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === currentImg ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
                         />
                     ))}
@@ -100,10 +107,10 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                     <div className="flex justify-between items-start mb-1">
                         <div>
                             <div className="flex items-center gap-1 text-amber-400 mb-1">
-                                {[...Array(5)].map((_, i) => (
+                                {[...Array(hotel.stars || 0)].map((_, i) => (
                                     <span key={i} className="material-symbols-outlined text-[10px] fill-1">star</span>
                                 ))}
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">RESORT & SPA</span>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">{hotel.type}</span>
                             </div>
                             <h3 className={`font-bold leading-tight group-hover:text-primary transition-colors ${isList ? 'text-2xl' : 'text-lg'}`}>{hotel.name}</h3>
                             <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 mt-1">

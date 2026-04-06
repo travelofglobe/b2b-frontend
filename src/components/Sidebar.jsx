@@ -263,7 +263,7 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                                         className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                     />
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        {f.value ? 'Yes – Free Cancellation' : 'No – Non-refundable'}
+                                        {f.value ? 'Free Cancellation' : 'Non-refundable'}
                                     </span>
                                 </div>
                                 {f.count !== null && (
@@ -289,7 +289,7 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                                         className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                     />
                                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        {f.value ? 'Yes – Pre-Payment Required' : 'No – Pay Later'}
+                                        {f.value ? 'Pre-Payment Required' : 'Pay Later'}
                                     </span>
                                 </div>
                                 {f.count !== null && (

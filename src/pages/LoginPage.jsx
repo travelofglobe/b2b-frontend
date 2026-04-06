@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import PlaneLoading from '../components/PlaneLoading';
@@ -17,9 +17,16 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const { login } = useAuth();
+    const { login, user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+
+    // Redirect to dashboard if already logged in
+    useEffect(() => {
+        if (user) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [user, navigate]);
 
     const selectedBg = useMemo(() => {
         const randomIndex = Math.floor(Math.random() * backgrounds.length);

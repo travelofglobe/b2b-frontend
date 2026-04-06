@@ -19,6 +19,7 @@ const HotelListing = () => {
     const [isLoading, setIsLoading] = React.useState(false);
     const [hasMore, setHasMore] = React.useState(true);
     const [totalProperties, setTotalProperties] = React.useState(0);
+    const [dynamicFilters, setDynamicFilters] = React.useState(null);
     const loaderRef = React.useRef(null);
 
     const gridClasses = {
@@ -138,18 +139,43 @@ const HotelListing = () => {
 
         setIsLoading(true);
         try {
+            // Extract selected filters from search params
+            const starsParam = searchParams.get('stars');
+            const hotelStarCategoryIds = starsParam ? starsParam.split(',').map(s => parseInt(s)) : null;
+            const parseBoolParam = (val) => val === 'true' ? true : val === 'false' ? false : null;
+            const hasFreeCancellation = parseBoolParam(searchParams.get('freeCancellation'));
+            const hasPrePayment = parseBoolParam(searchParams.get('prePayment'));
+
             const response = await hotelService.searchHotels({
                 locationId,
                 page: page,
-                size: 10
+                size: 10,
+                filters: {
+                    hotelStarCategoryIds,
+                    hasFreeCancellation,
+                    hasPrePayment,
+                }
             });
 
             if (response && response.data) {
-                const { content, last, totalElements } = response.data;
-                const mappedHotels = (content || []).map(mapApiHotelToModel);
+                // response is the JSON payload. response.data is the page object, response.filters is the filters object.
+                const pageData = response.data;
+                const filtersData = response.filters || response.data.filters; // Keep fallback just in case
 
-                setHotels(prev => [...prev, ...mappedHotels]);
+                const content = pageData.content || [];
+                const last = pageData.last;
+                const totalElements = pageData.totalElements;
+
+                const mappedHotels = content.map(mapApiHotelToModel);
+
+                setHotels(prev => page === 0 ? mappedHotels : [...prev, ...mappedHotels]);
                 setTotalProperties(totalElements);
+                
+                // Always update dynamic filter counts on a fresh search
+                if (page === 0 && filtersData) {
+                    setDynamicFilters(filtersData);
+                }
+
                 setPage(prev => prev + 1);
                 setHasMore(!last);
             } else {
@@ -163,13 +189,14 @@ const HotelListing = () => {
         }
     }, [page, isLoading, hasMore, locationId, mapApiHotelToModel]);
 
-    // Reset when locationId changes
+    // Reset when locationId or other filters change
     React.useEffect(() => {
         setHotels([]);
         setPage(0);
         setHasMore(true);
         setTotalProperties(0);
-    }, [locationId]);
+        // Only clear dynamic filters if location changes, not when other filters change
+    }, [locationId, searchParams.get('stars'), searchParams.get('freeCancellation'), searchParams.get('prePayment')]);
 
     React.useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
@@ -202,7 +229,7 @@ const HotelListing = () => {
                     </Link>
                 </div>
                 <div className="flex flex-col lg:flex-row gap-8">
-                    <Sidebar />
+                    <Sidebar filters={dynamicFilters} />
                     {/* Grid Content Area */}
                     <div className="flex-1">
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">

@@ -14,36 +14,39 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
             return;
         }
 
-        const fetchBreadcrumbs = async () => {
-            if (!locationId) {
-                setBreadcrumbs([]);
-                return;
-            }
+        if (!locationId) {
+            setBreadcrumbs([]);
+            return;
+        }
 
+        const controller = new AbortController();
+
+        const fetchBreadcrumbs = async () => {
             setLoading(true);
             try {
                 const data = await locationService.fetchBreadcrumb(locationId);
+                if (controller.signal.aborted) return;
 
-                // Extract breadcrumbs array from response
-                // API returns breadcrumbs in correct order: Country → City → District → Town
                 if (data && data.breadcrumbs) {
                     setBreadcrumbs(data.breadcrumbs);
-
-                    // Call callback with full data if provided
                     if (onBreadcrumbsLoaded) {
                         onBreadcrumbsLoaded(data);
                     }
                 }
             } catch (error) {
+                if (controller.signal.aborted) return;
                 console.error('Failed to fetch breadcrumbs:', error);
                 setBreadcrumbs([]);
             } finally {
-                setLoading(false);
+                if (!controller.signal.aborted) setLoading(false);
             }
         };
 
         fetchBreadcrumbs();
-    }, [locationId, onBreadcrumbsLoaded, initialData]);
+
+        return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [locationId]); // only re-fetch when locationId changes
 
     // Helper to get name with English translation preference
     const getName = (nameObj) => {

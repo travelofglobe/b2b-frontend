@@ -11,7 +11,7 @@ export const hotelService = {
      * @param {number} params.size - Items per page
      * @param {Object} [params.geo] - Geo bounding box (topLeft, bottomRight)
      */
-    searchHotels: async ({ locationId, page = 0, size = 10, geo = null, zoom = null }) => {
+    searchHotels: async ({ locationId, page = 0, size = 10, geo = null, zoom = null, filters = {} }) => {
         const body = {
             geo: geo || null,
             zoom: zoom,
@@ -21,15 +21,15 @@ export const hotelService = {
                 citySlug: null,
                 countryCode: null,
                 facilityCategoryIds: null,
-                hotelStarCategoryIds: null,
+                hotelStarCategoryIds: filters.hotelStarCategoryIds || null,
                 preferred: null,
                 exclusive: null,
                 direct: null,
                 fireSafety: null,
                 isNewProperty: null,
                 isExpedia: null,
-                hasFreeCancellation: null,
-                hasPrePayment: null,
+                hasFreeCancellation: filters.hasFreeCancellation ?? null,
+                hasPrePayment: filters.hasPrePayment ?? null,
                 isRecommended: null,
                 builtYear: null,
                 renovationYear: null,

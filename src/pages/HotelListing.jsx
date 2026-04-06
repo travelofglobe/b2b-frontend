@@ -26,8 +26,9 @@ const HotelListing = () => {
 
     const gridClasses = {
         'list': 'grid-cols-1',
-        'grid2': 'grid-cols-1 md:grid-cols-2',
-        'grid3': 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+        'grid2': 'grid-cols-1 lg:grid-cols-2',
+        'grid3': 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3',
+        'grid4': 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
     };
 
     // Parse params
@@ -354,8 +355,8 @@ const HotelListing = () => {
                                     <span className="material-symbols-outlined text-xl">grid_on</span>
                                 </button>
                                 <button
-                                    className="p-1.5 rounded-md text-slate-300 cursor-not-allowed"
-                                    disabled
+                                    onClick={() => setViewMode('grid4')}
+                                    className={`p-1.5 rounded-md transition-all ${viewMode === 'grid4' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm border border-slate-200 dark:border-slate-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
                                 >
                                     <span className="material-symbols-outlined text-xl">apps</span>
                                 </button>

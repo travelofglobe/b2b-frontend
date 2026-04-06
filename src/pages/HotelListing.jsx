@@ -117,6 +117,17 @@ const HotelListing = () => {
             imagesToMap = [placeholderHotel];
         }
 
+        const hotelBadges = [];
+        if (apiHotel.isNewProperty) {
+            hotelBadges.push({ type: 'popular', label: 'New Property', color: 'bg-teal-500/80' });
+        }
+        if (apiHotel.preferred) {
+            hotelBadges.push({ type: 'featured', label: 'Preferred', color: 'bg-amber-500/80' });
+        }
+        if (apiHotel.exclusive) {
+            hotelBadges.push({ type: 'exclusive', label: 'Exclusive', color: 'bg-purple-500/80' });
+        }
+
         return {
             id: apiHotel.id,
             name: name,
@@ -133,7 +144,7 @@ const HotelListing = () => {
             lng: apiHotel.coordinates?.lon,
             amenities: amenities,
             transportations: apiHotel.transportations || [],
-            badges: apiHotel.isNewProperty ? [{ type: 'popular', label: 'New Property', color: 'bg-teal-500/40' }] : []
+            badges: hotelBadges
         };
     }, []);
 

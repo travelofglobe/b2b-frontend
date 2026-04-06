@@ -131,6 +131,7 @@ const HotelListing = () => {
             lat: apiHotel.coordinates?.lat,
             lng: apiHotel.coordinates?.lon,
             amenities: amenities,
+            transportations: apiHotel.transportations || [],
             badges: apiHotel.isNewProperty ? [{ type: 'popular', label: 'New Property', color: 'bg-teal-500/40' }] : []
         };
     }, []);

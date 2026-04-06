@@ -5,6 +5,7 @@ import placeholderHotel from '../assets/placeholder-hotel.svg';
 const HotelCard = ({ hotel, viewMode = 'list' }) => {
     const isList = viewMode === 'list';
     const [currentImg, setCurrentImg] = React.useState(0);
+    const [showAllTransports, setShowAllTransports] = React.useState(false);
     const [searchParams] = useSearchParams();
     const images = hotel.images || [hotel.image];
 
@@ -36,9 +37,9 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
             to={`/hotel/${hotel.id}?${searchParams.toString()}`}
             target="_blank"
             rel="noopener noreferrer"
-            className={`group bg-white dark:bg-[#111a22] rounded-2xl overflow-hidden border border-slate-200 dark:border-[#233648] shadow-sm hover:shadow-xl transition-all duration-300 flex ${isList ? 'flex-col md:flex-row' : 'flex-col'}`}
+            className={`group bg-white dark:bg-[#111a22] rounded-2xl border border-slate-200 dark:border-[#233648] shadow-sm hover:shadow-xl transition-all duration-300 flex ${isList ? 'flex-col md:flex-row' : 'flex-col'}`}
         >
-            <div className={`relative overflow-hidden ${isList ? 'h-64 md:h-auto md:w-[400px] shrink-0' : 'h-60'}`}>
+            <div className={`relative overflow-hidden ${isList ? 'rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none h-64 md:h-auto md:w-[400px] shrink-0' : 'rounded-t-2xl h-60'}`}>
                 {/* Image Slider */}
                 <div className="w-full h-full relative">
                     {images.map((img, idx) => (
@@ -113,9 +114,54 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">{hotel.type}</span>
                             </div>
                             <h3 className={`font-bold leading-tight group-hover:text-primary transition-colors ${isList ? 'text-2xl' : 'text-lg'}`}>{hotel.name}</h3>
-                            <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 mt-1">
+                            <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 mt-1 relative">
                                 <span className="material-symbols-outlined text-sm text-primary">location_on</span>
-                                <span className="text-xs font-semibold">{hotel.location} • 2.4 km from center</span>
+                                <div className="group/transport relative">
+                                    <span className="text-xs font-semibold cursor-help">
+                                        {(() => {
+                                            const validTransports = hotel.transportations?.filter(t => typeof t.distanceKm === 'number');
+                                            const nearest = validTransports?.length > 0 ? [...validTransports].sort((a, b) => a.distanceKm - b.distanceKm)[0] : null;
+
+                                            return nearest
+                                                ? `${hotel.location} • ${nearest.distanceKm} km to ${nearest.name}`
+                                                : hotel.location;
+                                        })()}
+                                        {hotel.transportations?.length > 1 && ` • +${hotel.transportations.length - 1} transports`}
+                                        {hotel.transportations?.length === 1 && !hotel.transportations.some(t => t.type === 'AIRPORT') && ` • 1 transport nearby`}
+                                    </span>
+                                    {hotel.transportations?.length > 0 && (
+                                        <div className="absolute top-full left-0 pt-2 w-64 opacity-0 invisible group-hover/transport:opacity-100 group-hover/transport:visible transition-all duration-200 z-[999]">
+                                            <div className="bg-slate-900 border border-slate-700 text-white text-xs rounded-xl shadow-xl p-3 flex flex-col gap-2 max-h-60 overflow-y-auto custom-scrollbar">
+                                                <div className="font-bold border-b border-slate-800 pb-1 mb-1 shrink-0">Nearby Transportation</div>
+                                                {hotel.transportations.slice(0, showAllTransports ? hotel.transportations.length : 5).map((trans, i) => (
+                                                    <div key={i} className="flex items-center justify-between gap-2 shrink-0">
+                                                        <div className="flex items-center gap-1.5 truncate">
+                                                            <span className="material-symbols-outlined text-[14px] text-primary shrink-0">
+                                                                {trans.type === 'AIRPORT' ? 'flight_takeoff' : trans.type === 'RAIL' || trans.type === 'SUBWAY' ? 'train' : 'directions_boat'}
+                                                            </span>
+                                                            <span className="truncate flex-1" title={trans.name}>{trans.name}</span>
+                                                        </div>
+                                                        <span className="text-slate-400 shrink-0 font-medium whitespace-nowrap">
+                                                            {trans.distanceKm ? `${trans.distanceKm} km` : trans.durationMinutes ? `${trans.durationMinutes} min` : ''}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                                {!showAllTransports && hotel.transportations.length > 5 && (
+                                                    <button 
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            setShowAllTransports(true);
+                                                        }}
+                                                        className="text-[10px] text-slate-400 hover:text-white text-center italic mt-1 pt-1 border-t border-slate-800 transition-colors cursor-pointer w-full"
+                                                    >
+                                                        + {hotel.transportations.length - 5} more options
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <div className="bg-primary/10 px-2 py-1.5 rounded-xl text-right shrink-0">

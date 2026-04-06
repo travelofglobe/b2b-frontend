@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { parseGuestsParam } from '../utils/searchParamsUtils';
 import { hotelService } from '../services/hotelService';
+import { locationService } from '../services/locationService';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
 
 const HotelListing = () => {
@@ -20,6 +21,7 @@ const HotelListing = () => {
     const [hasMore, setHasMore] = React.useState(true);
     const [totalProperties, setTotalProperties] = React.useState(0);
     const [dynamicFilters, setDynamicFilters] = React.useState(null);
+    const [locationNames, setLocationNames] = React.useState({});
     const loaderRef = React.useRef(null);
 
     const gridClasses = {
@@ -145,6 +147,8 @@ const HotelListing = () => {
             const parseBoolParam = (val) => val === 'true' ? true : val === 'false' ? false : null;
             const hasFreeCancellation = parseBoolParam(searchParams.get('freeCancellation'));
             const hasPrePayment = parseBoolParam(searchParams.get('prePayment'));
+            const locationsParam = searchParams.get('locations');
+            const filterLocationIds = locationsParam ? locationsParam.split(',').map(s => parseInt(s)) : null;
 
             const response = await hotelService.searchHotels({
                 locationId,
@@ -154,6 +158,7 @@ const HotelListing = () => {
                     hotelStarCategoryIds,
                     hasFreeCancellation,
                     hasPrePayment,
+                    locationIds: filterLocationIds,
                 }
             });
 
@@ -172,9 +177,32 @@ const HotelListing = () => {
                 setTotalProperties(totalElements);
                 
                 // Always update dynamic filter counts on a fresh search
-                if (page === 0 && filtersData) {
-                    setDynamicFilters(filtersData);
+                if (page === 0) {
+                    if (filtersData) {
+                        setDynamicFilters(filtersData);
+                    }
                 }
+
+                // Extract location names from breadcrumbs continuously across all pages
+                const newLocationNames = {};
+                content.forEach(hotel => {
+                    if (hotel.locationBreadcrumbs) {
+                        hotel.locationBreadcrumbs.forEach(crumb => {
+                            if (crumb.locationId && crumb.name) {
+                                newLocationNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
+                            }
+                        });
+                    }
+                });
+                
+                // Only update state if we found new names we didn't have before to avoid unnecessary renders
+                setLocationNames(prev => {
+                    let hasNew = false;
+                    for (const [key, val] of Object.entries(newLocationNames)) {
+                        if (prev[key] !== val) hasNew = true;
+                    }
+                    return hasNew ? { ...prev, ...newLocationNames } : prev;
+                });
 
                 setPage(prev => prev + 1);
                 setHasMore(!last);
@@ -189,6 +217,53 @@ const HotelListing = () => {
         }
     }, [page, isLoading, hasMore, locationId, mapApiHotelToModel]);
 
+    // Fetch names for any locations in the filters that we haven't seen in the hotel results yet
+    React.useEffect(() => {
+        if (!dynamicFilters || !dynamicFilters.locationId) return;
+
+        const missingLocIds = dynamicFilters.locationId
+            .map(f => f.value)
+            .filter(id => !locationNames[id]);
+
+        if (missingLocIds.length === 0) return;
+
+        let isMounted = true;
+        
+        const fetchMissingNames = async () => {
+            const newNames = {};
+            // Fetch in parallel using Promise.allSettled to not break on a single failure
+            await Promise.allSettled(missingLocIds.map(async (id) => {
+                try {
+                    const data = await locationService.fetchBreadcrumb(id);
+                    if (data && data.data && Array.isArray(data.data)) {
+                         // Some endpoints return the array in data.data
+                         data.data.forEach(crumb => {
+                             if (crumb.locationId && crumb.name) {
+                                 newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
+                             }
+                         });
+                    } else if (data && data.breadcrumbs) {
+                         data.breadcrumbs.forEach(crumb => {
+                             if (crumb.locationId && crumb.name) {
+                                 newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
+                             }
+                         });
+                    }
+                } catch (error) {
+                    console.error(`Failed to fetch breadcrumb for location ${id}`, error);
+                }
+            }));
+
+            if (isMounted && Object.keys(newNames).length > 0) {
+                setLocationNames(prev => ({ ...prev, ...newNames }));
+            }
+        };
+
+        fetchMissingNames();
+
+        return () => { isMounted = false; };
+    }, [dynamicFilters, locationNames]);
+
     // Reset when locationId or other filters change
     React.useEffect(() => {
         setHotels([]);
@@ -196,7 +271,7 @@ const HotelListing = () => {
         setHasMore(true);
         setTotalProperties(0);
         // Only clear dynamic filters if location changes, not when other filters change
-    }, [locationId, searchParams.get('stars'), searchParams.get('freeCancellation'), searchParams.get('prePayment')]);
+    }, [locationId, searchParams.get('stars'), searchParams.get('freeCancellation'), searchParams.get('prePayment'), searchParams.get('locations')]);
 
     React.useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
@@ -229,7 +304,7 @@ const HotelListing = () => {
                     </Link>
                 </div>
                 <div className="flex flex-col lg:flex-row gap-8">
-                    <Sidebar filters={dynamicFilters} />
+                    <Sidebar filters={dynamicFilters} locationNames={locationNames} />
                     {/* Grid Content Area */}
                     <div className="flex-1">
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">

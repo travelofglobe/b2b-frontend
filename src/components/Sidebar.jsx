@@ -30,7 +30,7 @@ const FilterSection = ({ title, icon, defaultOpen = true, disabled = false, chil
             </button>
             {/* The wrapper handles height animation gracefully */}
             <div
-                className={`transition-all duration-300 ease-in-out overflow-hidden pointer-events-none`}
+                className={`transition-all duration-300 ease-in-out overflow-hidden ${disabled ? 'pointer-events-none' : ''}`}
                 style={{ maxHeight: isOpen && !disabled ? '1000px' : '0px', opacity: isOpen && !disabled ? 1 : 0, marginTop: isOpen && !disabled ? '16px' : '0px' }}
             >
                 {children}
@@ -39,7 +39,7 @@ const FilterSection = ({ title, icon, defaultOpen = true, disabled = false, chil
     );
 };
 
-const Sidebar = ({ filters }) => {
+const Sidebar = ({ filters, locationNames = {} }) => {
     const [searchParams, setSearchParams] = useSearchParams();
 
     // Parse current URL stars
@@ -48,6 +48,13 @@ const Sidebar = ({ filters }) => {
 
     // Maintain local state for checkboxes before Apply
     const [selectedStars, setSelectedStars] = useState(urlStars);
+
+    // Parse current URL locations
+    const currentLocationsStr = searchParams.get('locations');
+    const urlLocations = currentLocationsStr ? currentLocationsStr.split(',').map(Number) : [];
+    
+    // Maintain local state for locations
+    const [selectedLocations, setSelectedLocations] = useState(urlLocations);
 
     // Free Cancellation filter: null = no filter, true = yes, false = no
     const parseBool = (val) => val === 'true' ? true : val === 'false' ? false : null;
@@ -59,6 +66,10 @@ const Sidebar = ({ filters }) => {
     useEffect(() => {
         setSelectedStars(currentStarsStr ? currentStarsStr.split(',').map(Number) : []);
     }, [currentStarsStr]);
+
+    useEffect(() => {
+        setSelectedLocations(currentLocationsStr ? currentLocationsStr.split(',').map(Number) : []);
+    }, [currentLocationsStr]);
 
     useEffect(() => {
         setFreeCancellation(parseBool(searchParams.get('freeCancellation')));
@@ -79,12 +90,23 @@ const Sidebar = ({ filters }) => {
         );
     };
 
+    const handleLocationToggle = (val) => {
+        setSelectedLocations(prev =>
+            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
+        );
+    };
+
     const handleApplyFilters = () => {
         const newParams = new URLSearchParams(searchParams);
         if (selectedStars.length > 0) {
             newParams.set('stars', selectedStars.join(','));
         } else {
             newParams.delete('stars');
+        }
+        if (selectedLocations.length > 0) {
+            newParams.set('locations', selectedLocations.join(','));
+        } else {
+            newParams.delete('locations');
         }
         if (freeCancellation !== null) {
             newParams.set('freeCancellation', String(freeCancellation));
@@ -101,10 +123,12 @@ const Sidebar = ({ filters }) => {
 
     const handleClearAll = () => {
         setSelectedStars([]);
+        setSelectedLocations([]);
         setFreeCancellation(null);
         setPrePayment(null);
         const newParams = new URLSearchParams(searchParams);
         newParams.delete('stars');
+        newParams.delete('locations');
         newParams.delete('freeCancellation');
         newParams.delete('prePayment');
         setSearchParams(newParams);
@@ -134,6 +158,38 @@ const Sidebar = ({ filters }) => {
                             <span>$120</span>
                             <span>$850+</span>
                         </div>
+                    </div>
+                </FilterSection>
+                {/* Locations */}
+                <FilterSection title="Locations" icon="location_on">
+                    <div className="space-y-3">
+                        {filters?.locationId && filters.locationId.length > 0 ? (
+                            [...filters.locationId]
+                                .sort((a, b) => b.count - a.count)
+                                .map(locFilter => {
+                                    const locName = locationNames[locFilter.value] || `Location ${locFilter.value}`;
+                                    return (
+                                        <label key={locFilter.value} className="flex items-center justify-between cursor-pointer group">
+                                            <div className="flex items-center gap-3">
+                                                <input
+                                                    checked={selectedLocations.includes(locFilter.value)}
+                                                    onChange={() => handleLocationToggle(locFilter.value)}
+                                                    className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                                    type="checkbox"
+                                                />
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate max-w-[170px]" title={locName}>
+                                                    {locName}
+                                                </span>
+                                            </div>
+                                            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                                ({locFilter.count})
+                                            </span>
+                                        </label>
+                                    );
+                                })
+                        ) : (
+                            <div className="text-sm text-slate-500 dark:text-slate-400 italic">No specific locations found</div>
+                        )}
                     </div>
                 </FilterSection>
                 {/* Star Rating Checklist */}

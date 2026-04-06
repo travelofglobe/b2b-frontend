@@ -16,7 +16,7 @@ export const hotelService = {
             geo: geo || null,
             zoom: zoom,
             filters: {
-                locationIds: locationId ? [parseInt(locationId)] : null,
+                locationIds: filters.locationIds?.length > 0 ? filters.locationIds : (locationId ? [parseInt(locationId)] : null),
                 hotelName: null,
                 citySlug: null,
                 countryCode: null,

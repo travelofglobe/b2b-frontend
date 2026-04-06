@@ -287,6 +287,10 @@ const HotelListing = () => {
     }, [locationId, searchParams.get('stars'), searchParams.get('freeCancellation'), searchParams.get('prePayment'), searchParams.get('locations')]);
 
     React.useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [locationId]);
+
+    React.useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting && hasMore && !isLoading) {
                 loadMoreHotels();

@@ -133,7 +133,7 @@ const HotelListing = () => {
             name: name,
             type: starLabel || 'Hotel',
             stars: starCount,
-            location: apiHotel.locationPathNames || 'Unknown Location',
+            location: apiHotel.locationPathNames?.replace(/,/g, ', ') || 'Unknown Location',
             image: imagesToMap[0],
             images: imagesToMap,
             rating: rating,

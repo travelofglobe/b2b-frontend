@@ -246,9 +246,9 @@ const Sidebar = ({ filters, locationNames = {} }) => {
 
     return (
         <aside className="w-full lg:w-72 flex-shrink-0">
-            <div className="sticky top-24 bg-white dark:bg-[#111a22] rounded-xl border border-slate-200 dark:border-[#233648] shadow-sm max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar relative">
+            <div className="sticky top-24 bg-white/80 dark:bg-[#111a22]/80 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-800/50 shadow-2xl shadow-black/5 dark:shadow-white/5 max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar relative">
                 {/* Sticky Header with Actions */}
-                <div className="sticky top-0 z-50 px-6 py-4 bg-white dark:bg-[#111a22] border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between shadow-sm">
+                <div className="sticky top-0 z-50 px-6 py-5 bg-white dark:bg-[#111a22] border-b border-slate-100/50 dark:border-slate-800/50 flex items-center justify-between shadow-lg shadow-black/[0.03] dark:shadow-white/[0.02]">
                     <h2 className="text-lg font-black tracking-tight text-slate-800 dark:text-slate-100">Filters</h2>
                     <div className="flex items-center gap-2">
                         <button

@@ -232,19 +232,48 @@ const Sidebar = ({ filters, locationNames = {} }) => {
         setSearchParams(newParams);
     };
 
+    const activeFilterCount = [
+        selectedStars.length > 0,
+        selectedLocations.length > 0,
+        freeCancellation !== null,
+        prePayment !== null,
+        roomTwin !== null,
+        selectedMaxAdult.length > 0,
+        selectedMaxChildren.length > 0,
+        selectedMaxExtraBed.length > 0,
+        selectedPaxCapacity.length > 0
+    ].filter(Boolean).length;
+
     return (
         <aside className="w-full lg:w-72 flex-shrink-0">
-            <div className="sticky top-24 bg-white dark:bg-[#111a22] rounded-xl p-6 border border-slate-200 dark:border-[#233648] shadow-sm max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar">
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800/50">
-                    <h2 className="text-lg font-bold">Filters</h2>
-                    <button
-                        onClick={handleClearAll}
-                        className="text-primary text-xs font-bold uppercase tracking-wider hover:underline"
-                    >
-                        Clear All
-                    </button>
+            <div className="sticky top-24 bg-white dark:bg-[#111a22] rounded-xl border border-slate-200 dark:border-[#233648] shadow-sm max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar relative">
+                {/* Sticky Header with Actions */}
+                <div className="sticky top-0 z-50 px-6 py-4 bg-white dark:bg-[#111a22] border-b border-slate-100 dark:border-slate-800/50 flex items-center justify-between shadow-sm">
+                    <h2 className="text-lg font-black tracking-tight text-slate-800 dark:text-slate-100">Filters</h2>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleClearAll}
+                            className="text-[10px] font-bold text-slate-400 hover:text-red-500 uppercase tracking-widest px-2 py-1 transition-colors"
+                        >
+                            Reset
+                        </button>
+                        <button
+                            onClick={handleApplyFilters}
+                            className="group flex items-center gap-2 bg-primary hover:bg-primary-hover text-white text-[10px] font-extrabold uppercase tracking-widest px-4 py-2 rounded-xl transition-all shadow-lg shadow-primary/20 active:scale-95 whitespace-nowrap relative"
+                        >
+                            Apply
+                            {activeFilterCount > 0 && (
+                                <span className="flex items-center justify-center min-w-[14px] h-[14px] bg-white text-primary text-[9px] font-black rounded-full px-1 animate-in zoom-in duration-300">
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                        </button>
+                    </div>
                 </div>
-                {/* Price Range Slider - disabled until backend support is ready */}
+                
+                {/* Scrollable Content wrapper with side padding */}
+                <div className="px-6 pb-6">
+                    {/* Price Range Slider - disabled until backend support is ready */}
                 <FilterSection title="Price per night" icon="payments" disabled>
                     <div className="px-2 pt-2">
                         <div className="relative h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full mb-6 mt-2">
@@ -585,12 +614,7 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                         </label>
                     </div>
                 </FilterSection>
-                <button
-                    onClick={handleApplyFilters}
-                    className="w-full bg-primary/10 hover:bg-primary/20 text-primary font-bold py-3 mt-4 rounded-xl transition-all border border-primary/20"
-                >
-                    Apply Filters
-                </button>
+                </div>
             </div>
         </aside>
     );

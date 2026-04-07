@@ -11,7 +11,7 @@ export const hotelService = {
      * @param {number} params.size - Items per page
      * @param {Object} [params.geo] - Geo bounding box (topLeft, bottomRight)
      */
-    searchHotels: async ({ locationId, page = 0, size = 10, geo = null, zoom = null, filters = {} }) => {
+    searchHotels: async ({ locationId, page = 0, size = 10, geo = null, zoom = null, filters = {}, signal = null }) => {
         const body = {
             geo: geo || null,
             zoom: zoom,
@@ -21,7 +21,7 @@ export const hotelService = {
                 citySlug: null,
                 countryCode: null,
                 facilityCategoryIds: null,
-                hotelStarCategoryIds: filters.hotelStarCategoryIds || null,
+                hotelStarCategoryIds: filters.stars || filters.hotelStarCategoryIds || null,
                 preferred: null,
                 exclusive: null,
                 direct: null,
@@ -52,6 +52,6 @@ export const hotelService = {
             sort: null
         };
 
-        return apiClient.post(`${API_BASE_URL}/search`, body);
+        return apiClient.post(`${API_BASE_URL}/search`, body, { signal });
     }
 };

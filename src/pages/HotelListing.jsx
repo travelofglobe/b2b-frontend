@@ -21,6 +21,34 @@ const HotelListing = () => {
     const [hasMore, setHasMore] = React.useState(true);
     const [totalProperties, setTotalProperties] = React.useState(0);
     const [dynamicFilters, setDynamicFilters] = React.useState(null);
+    const abortControllerRef = React.useRef(null);
+
+    /**
+     * Build the request body from current search state and URL params
+     */
+    const getSearchParams = () => {
+        const starsParam = searchParams.get('stars');
+        const freeCancellationParam = searchParams.get('freeCancellation');
+        const prePaymentParam = searchParams.get('prePayment');
+        const locationsParam = searchParams.get('locations');
+        const roomTwinParam = searchParams.get('roomTwin');
+        const roomMaxAdultParam = searchParams.get('roomMaxAdult');
+        const roomMaxChildrenParam = searchParams.get('roomMaxChildren');
+        const roomMaxExtraBedParam = searchParams.get('roomMaxExtraBed');
+        const roomPaxCapacityParam = searchParams.get('roomPaxCapacity');
+
+        return {
+            stars: starsParam ? starsParam.split(',').map(Number) : [],
+            freeCancellation: freeCancellationParam === 'true' ? true : freeCancellationParam === 'false' ? false : null,
+            prePayment: prePaymentParam === 'true' ? true : prePaymentParam === 'false' ? false : null,
+            locations: locationsParam ? locationsParam.split(',').map(Number) : [],
+            roomTwin: roomTwinParam === 'true' ? true : roomTwinParam === 'false' ? false : null,
+            roomMaxAdult: roomMaxAdultParam ? roomMaxAdultParam.split(',').map(Number) : null,
+            roomMaxChildren: roomMaxChildrenParam ? roomMaxChildrenParam.split(',').map(Number) : null,
+            roomMaxExtraBed: roomMaxExtraBedParam ? roomMaxExtraBedParam.split(',').map(Number) : null,
+            roomPaxCapacity: roomPaxCapacityParam ? roomPaxCapacityParam.split(',').map(Number) : null
+        };
+    };
     const [locationNames, setLocationNames] = React.useState({});
     const loaderRef = React.useRef(null);
 
@@ -148,65 +176,65 @@ const HotelListing = () => {
         };
     }, []);
 
+    // Initial load: fetch location names if possible (mocked for now or from crumbs)
+    React.useEffect(() => {
+        console.log('HotelListing mounted with locationId:', locationId);
+    }, []);
+
     // Load hotels from API
-    const loadMoreHotels = React.useCallback(async () => {
-        if (isLoading || !hasMore) return;
+    const loadMoreHotels = React.useCallback(async (isReset = false) => {
+        // If we are resetting, we cancel any existing request
+        if (isReset && abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            setIsLoading(false);
+        }
+
+        // If not a reset and already loading, skip
+        if (!isReset && (isLoading || !hasMore)) return;
 
         setIsLoading(true);
-        try {
-            // Extract selected filters from search params
-            const starsParam = searchParams.get('stars');
-            const hotelStarCategoryIds = starsParam ? starsParam.split(',').map(s => parseInt(s)) : null;
-            const parseBoolParam = (val) => val === 'true' ? true : val === 'false' ? false : null;
-            const hasFreeCancellation = parseBoolParam(searchParams.get('freeCancellation'));
-            const hasPrePayment = parseBoolParam(searchParams.get('prePayment'));
-            const locationsParam = searchParams.get('locations');
-            const filterLocationIds = locationsParam ? locationsParam.split(',').map(s => parseInt(s)) : null;
+        
+        // Create new AbortController for this request
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
 
-            // New room filters
-            const roomTwin = parseBoolParam(searchParams.get('roomTwin'));
-            const roomMaxAdult = searchParams.get('roomMaxAdult')?.split(',').map(s => parseInt(s)) || null;
-            const roomMaxChildren = searchParams.get('roomMaxChildren')?.split(',').map(s => parseInt(s)) || null;
-            const roomMaxExtraBed = searchParams.get('roomMaxExtraBed')?.split(',').map(s => parseInt(s)) || null;
-            const roomPaxCapacity = searchParams.get('roomPaxCapacity')?.split(',').map(s => parseInt(s)) || null;
+        try {
+            const filters = getSearchParams();
+            const currentPage = isReset ? 0 : page;
 
             const response = await hotelService.searchHotels({
                 locationId,
-                page: page,
+                page: currentPage,
                 size: 10,
                 filters: {
-                    hotelStarCategoryIds,
-                    hasFreeCancellation,
-                    hasPrePayment,
-                    locationIds: filterLocationIds,
-                    roomTwin,
-                    roomMaxAdult,
-                    roomMaxChildren,
-                    roomMaxExtraBed,
-                    roomPaxCapacity
-                }
+                    locationIds: filters.locations?.length > 0 ? filters.locations : (locationId ? [parseInt(locationId)] : null),
+                    stars: filters.stars,
+                    hasFreeCancellation: filters.freeCancellation,
+                    hasPrePayment: filters.prePayment,
+                    roomTwin: filters.roomTwin,
+                    roomMaxAdult: filters.roomMaxAdult,
+                    roomMaxChildren: filters.roomMaxChildren,
+                    roomMaxExtraBed: filters.roomMaxExtraBed,
+                    roomPaxCapacity: filters.roomPaxCapacity
+                },
+                signal: controller.signal
             });
 
             if (response && response.data) {
-                // response is the JSON payload. response.data is the page object, response.filters is the filters object.
                 const pageData = response.data;
-                const filtersData = response.filters || response.data.filters; // Keep fallback just in case
-
+                const filtersData = response.filters || response.data.filters;
                 const content = pageData.content || [];
-                const last = pageData.last;
-                const totalElements = pageData.totalElements;
+                const mappedHotels = content.map(h => mapApiHotelToModel(h));
 
-                const mappedHotels = content.map(mapApiHotelToModel);
+                setHotels(prev => currentPage === 0 ? mappedHotels : [...prev, ...mappedHotels]);
+                setTotalProperties(pageData.totalElements || 0);
 
-                setHotels(prev => page === 0 ? mappedHotels : [...prev, ...mappedHotels]);
-                setTotalProperties(totalElements);
-                
-                // Always update dynamic filter counts on a fresh search
-                if (page === 0) {
-                    if (filtersData) {
-                        setDynamicFilters(filtersData);
-                    }
+                if (currentPage === 0 && filtersData) {
+                    setDynamicFilters(filtersData);
                 }
+
+                setHasMore(!pageData.last);
+                setPage(currentPage + 1);
 
                 // Extract location names from breadcrumbs continuously across all pages
                 const newLocationNames = {};
@@ -219,28 +247,26 @@ const HotelListing = () => {
                         });
                     }
                 });
-                
-                // Only update state if we found new names we didn't have before to avoid unnecessary renders
-                setLocationNames(prev => {
-                    let hasNew = false;
-                    for (const [key, val] of Object.entries(newLocationNames)) {
-                        if (prev[key] !== val) hasNew = true;
-                    }
-                    return hasNew ? { ...prev, ...newLocationNames } : prev;
-                });
 
-                setPage(prev => prev + 1);
-                setHasMore(!last);
+                if (Object.keys(newLocationNames).length > 0) {
+                    setLocationNames(prev => ({ ...prev, ...newLocationNames }));
+                }
             } else {
                 setHasMore(false);
             }
         } catch (error) {
-            console.error('Failed to load hotels:', error);
-            setHasMore(false);
+            if (error.name === 'AbortError') {
+                console.log('Search request cancelled');
+            } else {
+                console.error('Error fetching hotels:', error);
+                setHasMore(false);
+            }
         } finally {
-            setIsLoading(false);
+            if (abortControllerRef.current === controller) {
+                setIsLoading(false);
+            }
         }
-    }, [page, isLoading, hasMore, locationId, mapApiHotelToModel]);
+    }, [page, isLoading, hasMore, locationId, mapApiHotelToModel, searchParams]);
 
     // Fetch names for any locations in the filters that we haven't seen in the hotel results yet
     React.useEffect(() => {
@@ -295,7 +321,15 @@ const HotelListing = () => {
         setPage(0);
         setHasMore(true);
         setTotalProperties(0);
-        // Only clear dynamic filters if location changes, not when other filters change
+        
+        // Explicitly trigger first fetch on reset
+        loadMoreHotels(true);
+
+        return () => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
     }, [
         locationId,
         searchParams.get('stars'),

@@ -297,16 +297,19 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                                     const locName = locationNames[locFilter.value] || `Location ${locFilter.value}`;
                                     return (
                                         <label key={locFilter.value} className="flex items-center justify-between cursor-pointer group">
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-3 overflow-hidden">
                                                 <input
                                                     checked={selectedLocations.includes(locFilter.value)}
                                                     onChange={() => handleLocationToggle(locFilter.value)}
-                                                    className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                                    className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0"
                                                     type="checkbox"
                                                 />
-                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate max-w-[170px]" title={locName}>
-                                                    {locName}
-                                                </span>
+                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                    <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors flex-shrink-0">location_on</span>
+                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate" title={locName}>
+                                                        {locName}
+                                                    </span>
+                                                </div>
                                             </div>
                                             <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
                                                 ({locFilter.count})
@@ -389,9 +392,14 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                                         onChange={() => handleBoolToggle(setFreeCancellation, freeCancellation, f.value)}
                                         className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                     />
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        {f.value ? 'Free Cancellation' : 'Non-refundable'}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`material-symbols-outlined text-[18px] transition-colors ${f.value ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                            {f.value ? 'verified' : 'info'}
+                                        </span>
+                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                            {f.value ? 'Free Cancellation' : 'Non-refundable'}
+                                        </span>
+                                    </div>
                                 </div>
                                 {f.count !== null && (
                                     <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
@@ -415,9 +423,14 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                                         onChange={() => handleBoolToggle(setPrePayment, prePayment, f.value)}
                                         className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                     />
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        {f.value ? 'Pre-Payment Required' : 'Pay Later'}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">
+                                            {f.value ? 'credit_card' : 'payments'}
+                                        </span>
+                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                            {f.value ? 'Pre-Payment Required' : 'Pay Later'}
+                                        </span>
+                                    </div>
                                 </div>
                                 {f.count !== null && (
                                     <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
@@ -441,9 +454,13 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                                         onChange={() => handleBoolToggle(setRoomTwin, roomTwin, f.value)}
                                         className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                     />
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        {f.value ? 'Twin Available' : 'No Twin'}
-                                    </span>
+                                    <div className="flex items-center gap-2 text-slate-500">
+                                        <span className="material-symbols-outlined text-[18px]">bed</span>
+                                        {f.value && <span className="material-symbols-outlined text-[12px] -ml-2 mb-2">bed</span>}
+                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 ml-1">
+                                            {f.value ? 'Twin Available' : 'No Twin'}
+                                        </span>
+                                    </div>
                                 </div>
                                 {f.count !== null && (
                                     <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
@@ -453,7 +470,7 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                     </div>
                 </FilterSection>
                 {/* Max Adult */}
-                <FilterSection title="Max Adult Capacity" icon="person">
+                <FilterSection title="Max Adult Capacity" icon="person" defaultOpen={false}>
                     <div className="space-y-3">
                         {filters?.roomMaxAdult?.length > 0 ? (
                             [...filters.roomMaxAdult]
@@ -467,9 +484,12 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                                                 className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                                 type="checkbox"
                                             />
-                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                {f.value} Adults
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">person</span>
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    {f.value} Adults
+                                                </span>
+                                            </div>
                                         </div>
                                         <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
                                             ({f.count})
@@ -482,7 +502,7 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                     </div>
                 </FilterSection>
                 {/* Max Children */}
-                <FilterSection title="Max Children Capacity" icon="child_care">
+                <FilterSection title="Max Children Capacity" icon="child_care" defaultOpen={false}>
                     <div className="space-y-3">
                         {filters?.roomMaxChildren?.length > 0 ? (
                             [...filters.roomMaxChildren]
@@ -496,9 +516,12 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                                                 className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                                 type="checkbox"
                                             />
-                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                {f.value} Children
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">child_care</span>
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    {f.value === 0 ? 'No Children' : `${f.value} Children`}
+                                                </span>
+                                            </div>
                                         </div>
                                         <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
                                             ({f.count})
@@ -511,7 +534,7 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                     </div>
                 </FilterSection>
                 {/* Max Extra Bed */}
-                <FilterSection title="Max Extra Beds" icon="hotel_class">
+                <FilterSection title="Max Extra Beds" icon="hotel_class" defaultOpen={false}>
                     <div className="space-y-3">
                         {filters?.roomMaxExtraBed?.length > 0 ? (
                             [...filters.roomMaxExtraBed]
@@ -525,9 +548,12 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                                                 className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                                 type="checkbox"
                                             />
-                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                {f.value} Extra Bed{f.value !== 1 ? 's' : ''}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">hotel_class</span>
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    {f.value === 0 ? 'No Extra Bed' : `${f.value} Extra Bed${f.value !== 1 ? 's' : ''}`}
+                                                </span>
+                                            </div>
                                         </div>
                                         <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
                                             ({f.count})
@@ -540,7 +566,7 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                     </div>
                 </FilterSection>
                 {/* Pax Capacity */}
-                <FilterSection title="Total Pax Capacity" icon="groups">
+                <FilterSection title="Total Pax Capacity" icon="groups" defaultOpen={false}>
                     <div className="space-y-3">
                         {filters?.roomPaxCapacity?.length > 0 ? (
                             [...filters.roomPaxCapacity]
@@ -554,9 +580,12 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                                                 className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                                 type="checkbox"
                                             />
-                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                {f.value} Pax
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">groups</span>
+                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                    {f.value} Pax
+                                                </span>
+                                            </div>
                                         </div>
                                         <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
                                             ({f.count})
@@ -574,25 +603,37 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                         <label className="flex items-center justify-between cursor-pointer group">
                             <div className="flex items-center gap-3">
                                 <input className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Free WiFi</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">wifi</span>
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Free WiFi</span>
+                                </div>
                             </div>
                         </label>
                         <label className="flex items-center justify-between cursor-pointer group">
                             <div className="flex items-center gap-3">
                                 <input className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Swimming Pool</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">pool</span>
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Swimming Pool</span>
+                                </div>
                             </div>
                         </label>
                         <label className="flex items-center justify-between cursor-pointer group">
                             <div className="flex items-center gap-3">
                                 <input className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Spa & Wellness</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">spa</span>
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Spa & Wellness</span>
+                                </div>
                             </div>
                         </label>
                         <label className="flex items-center justify-between cursor-pointer group">
                             <div className="flex items-center gap-3">
                                 <input className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Breakfast Included</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">restaurant_menu</span>
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Breakfast Included</span>
+                                </div>
                             </div>
                         </label>
                     </div>

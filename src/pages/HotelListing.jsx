@@ -163,6 +163,13 @@ const HotelListing = () => {
             const locationsParam = searchParams.get('locations');
             const filterLocationIds = locationsParam ? locationsParam.split(',').map(s => parseInt(s)) : null;
 
+            // New room filters
+            const roomTwin = parseBoolParam(searchParams.get('roomTwin'));
+            const roomMaxAdult = searchParams.get('roomMaxAdult')?.split(',').map(s => parseInt(s)) || null;
+            const roomMaxChildren = searchParams.get('roomMaxChildren')?.split(',').map(s => parseInt(s)) || null;
+            const roomMaxExtraBed = searchParams.get('roomMaxExtraBed')?.split(',').map(s => parseInt(s)) || null;
+            const roomPaxCapacity = searchParams.get('roomPaxCapacity')?.split(',').map(s => parseInt(s)) || null;
+
             const response = await hotelService.searchHotels({
                 locationId,
                 page: page,
@@ -172,6 +179,11 @@ const HotelListing = () => {
                     hasFreeCancellation,
                     hasPrePayment,
                     locationIds: filterLocationIds,
+                    roomTwin,
+                    roomMaxAdult,
+                    roomMaxChildren,
+                    roomMaxExtraBed,
+                    roomPaxCapacity
                 }
             });
 
@@ -284,7 +296,18 @@ const HotelListing = () => {
         setHasMore(true);
         setTotalProperties(0);
         // Only clear dynamic filters if location changes, not when other filters change
-    }, [locationId, searchParams.get('stars'), searchParams.get('freeCancellation'), searchParams.get('prePayment'), searchParams.get('locations')]);
+    }, [
+        locationId,
+        searchParams.get('stars'),
+        searchParams.get('freeCancellation'),
+        searchParams.get('prePayment'),
+        searchParams.get('locations'),
+        searchParams.get('roomTwin'),
+        searchParams.get('roomMaxAdult'),
+        searchParams.get('roomMaxChildren'),
+        searchParams.get('roomMaxExtraBed'),
+        searchParams.get('roomPaxCapacity')
+    ]);
 
     React.useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });

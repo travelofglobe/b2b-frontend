@@ -63,6 +63,25 @@ const Sidebar = ({ filters, locationNames = {} }) => {
     // Pre-Payment filter: null = no filter, true = yes, false = no
     const [prePayment, setPrePayment] = useState(parseBool(searchParams.get('prePayment')));
 
+    // Room Twin
+    const [roomTwin, setRoomTwin] = useState(parseBool(searchParams.get('roomTwin')));
+
+    // Room Max Adult
+    const currentMaxAdultStr = searchParams.get('roomMaxAdult');
+    const [selectedMaxAdult, setSelectedMaxAdult] = useState(currentMaxAdultStr ? currentMaxAdultStr.split(',').map(Number) : []);
+
+    // Room Max Children
+    const currentMaxChildrenStr = searchParams.get('roomMaxChildren');
+    const [selectedMaxChildren, setSelectedMaxChildren] = useState(currentMaxChildrenStr ? currentMaxChildrenStr.split(',').map(Number) : []);
+
+    // Room Max Extra Bed
+    const currentMaxExtraBedStr = searchParams.get('roomMaxExtraBed');
+    const [selectedMaxExtraBed, setSelectedMaxExtraBed] = useState(currentMaxExtraBedStr ? currentMaxExtraBedStr.split(',').map(Number) : []);
+
+    // Room Pax Capacity
+    const currentPaxCapacityStr = searchParams.get('roomPaxCapacity');
+    const [selectedPaxCapacity, setSelectedPaxCapacity] = useState(currentPaxCapacityStr ? currentPaxCapacityStr.split(',').map(Number) : []);
+
     useEffect(() => {
         setSelectedStars(currentStarsStr ? currentStarsStr.split(',').map(Number) : []);
     }, [currentStarsStr]);
@@ -79,6 +98,26 @@ const Sidebar = ({ filters, locationNames = {} }) => {
         setPrePayment(parseBool(searchParams.get('prePayment')));
     }, [searchParams.get('prePayment')]);
 
+    useEffect(() => {
+        setRoomTwin(parseBool(searchParams.get('roomTwin')));
+    }, [searchParams.get('roomTwin')]);
+
+    useEffect(() => {
+        setSelectedMaxAdult(searchParams.get('roomMaxAdult') ? searchParams.get('roomMaxAdult').split(',').map(Number) : []);
+    }, [searchParams.get('roomMaxAdult')]);
+
+    useEffect(() => {
+        setSelectedMaxChildren(searchParams.get('roomMaxChildren') ? searchParams.get('roomMaxChildren').split(',').map(Number) : []);
+    }, [searchParams.get('roomMaxChildren')]);
+
+    useEffect(() => {
+        setSelectedMaxExtraBed(searchParams.get('roomMaxExtraBed') ? searchParams.get('roomMaxExtraBed').split(',').map(Number) : []);
+    }, [searchParams.get('roomMaxExtraBed')]);
+
+    useEffect(() => {
+        setSelectedPaxCapacity(searchParams.get('roomPaxCapacity') ? searchParams.get('roomPaxCapacity').split(',').map(Number) : []);
+    }, [searchParams.get('roomPaxCapacity')]);
+
     // Toggle 3-state boolean: clicking same value again → deselect (null)
     const handleBoolToggle = (setter, current, clickedValue) => {
         setter(current === clickedValue ? null : clickedValue);
@@ -92,6 +131,30 @@ const Sidebar = ({ filters, locationNames = {} }) => {
 
     const handleLocationToggle = (val) => {
         setSelectedLocations(prev =>
+            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
+        );
+    };
+
+    const handleMaxAdultToggle = (val) => {
+        setSelectedMaxAdult(prev =>
+            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
+        );
+    };
+
+    const handleMaxChildrenToggle = (val) => {
+        setSelectedMaxChildren(prev =>
+            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
+        );
+    };
+
+    const handleMaxExtraBedToggle = (val) => {
+        setSelectedMaxExtraBed(prev =>
+            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
+        );
+    };
+
+    const handlePaxCapacityToggle = (val) => {
+        setSelectedPaxCapacity(prev =>
             prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
         );
     };
@@ -118,6 +181,31 @@ const Sidebar = ({ filters, locationNames = {} }) => {
         } else {
             newParams.delete('prePayment');
         }
+        if (roomTwin !== null) {
+            newParams.set('roomTwin', String(roomTwin));
+        } else {
+            newParams.delete('roomTwin');
+        }
+        if (selectedMaxAdult.length > 0) {
+            newParams.set('roomMaxAdult', selectedMaxAdult.join(','));
+        } else {
+            newParams.delete('roomMaxAdult');
+        }
+        if (selectedMaxChildren.length > 0) {
+            newParams.set('roomMaxChildren', selectedMaxChildren.join(','));
+        } else {
+            newParams.delete('roomMaxChildren');
+        }
+        if (selectedMaxExtraBed.length > 0) {
+            newParams.set('roomMaxExtraBed', selectedMaxExtraBed.join(','));
+        } else {
+            newParams.delete('roomMaxExtraBed');
+        }
+        if (selectedPaxCapacity.length > 0) {
+            newParams.set('roomPaxCapacity', selectedPaxCapacity.join(','));
+        } else {
+            newParams.delete('roomPaxCapacity');
+        }
         setSearchParams(newParams);
     };
 
@@ -126,11 +214,21 @@ const Sidebar = ({ filters, locationNames = {} }) => {
         setSelectedLocations([]);
         setFreeCancellation(null);
         setPrePayment(null);
+        setRoomTwin(null);
+        setSelectedMaxAdult([]);
+        setSelectedMaxChildren([]);
+        setSelectedMaxExtraBed([]);
+        setSelectedPaxCapacity([]);
         const newParams = new URLSearchParams(searchParams);
         newParams.delete('stars');
         newParams.delete('locations');
         newParams.delete('freeCancellation');
         newParams.delete('prePayment');
+        newParams.delete('roomTwin');
+        newParams.delete('roomMaxAdult');
+        newParams.delete('roomMaxChildren');
+        newParams.delete('roomMaxExtraBed');
+        newParams.delete('roomPaxCapacity');
         setSearchParams(newParams);
     };
 
@@ -297,6 +395,148 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                                 )}
                             </label>
                         ))}
+                    </div>
+                </FilterSection>
+                {/* Room Twin */}
+                <FilterSection title="Twin Room" icon="bed">
+                    <div className="space-y-3">
+                        {(filters?.roomTwin ?? [
+                            { value: true, count: null },
+                            { value: false, count: null }
+                        ]).sort((a, b) => (b.value === true ? 1 : -1)).map(f => (
+                            <label key={String(f.value)} className="flex items-center justify-between cursor-pointer group">
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={roomTwin === f.value}
+                                        onChange={() => handleBoolToggle(setRoomTwin, roomTwin, f.value)}
+                                        className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                    />
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                        {f.value ? 'Twin Available' : 'No Twin'}
+                                    </span>
+                                </div>
+                                {f.count !== null && (
+                                    <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
+                                )}
+                            </label>
+                        ))}
+                    </div>
+                </FilterSection>
+                {/* Max Adult */}
+                <FilterSection title="Max Adult Capacity" icon="person">
+                    <div className="space-y-3">
+                        {filters?.roomMaxAdult?.length > 0 ? (
+                            [...filters.roomMaxAdult]
+                                .sort((a, b) => a.value - b.value)
+                                .map(f => (
+                                    <label key={f.value} className="flex items-center justify-between cursor-pointer group">
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                checked={selectedMaxAdult.includes(f.value)}
+                                                onChange={() => handleMaxAdultToggle(f.value)}
+                                                className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                                type="checkbox"
+                                            />
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                {f.value} Adults
+                                            </span>
+                                        </div>
+                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                            ({f.count})
+                                        </span>
+                                    </label>
+                                ))
+                        ) : (
+                            <div className="text-sm text-slate-500 dark:text-slate-400 italic">No options found</div>
+                        )}
+                    </div>
+                </FilterSection>
+                {/* Max Children */}
+                <FilterSection title="Max Children Capacity" icon="child_care">
+                    <div className="space-y-3">
+                        {filters?.roomMaxChildren?.length > 0 ? (
+                            [...filters.roomMaxChildren]
+                                .sort((a, b) => a.value - b.value)
+                                .map(f => (
+                                    <label key={f.value} className="flex items-center justify-between cursor-pointer group">
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                checked={selectedMaxChildren.includes(f.value)}
+                                                onChange={() => handleMaxChildrenToggle(f.value)}
+                                                className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                                type="checkbox"
+                                            />
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                {f.value} Children
+                                            </span>
+                                        </div>
+                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                            ({f.count})
+                                        </span>
+                                    </label>
+                                ))
+                        ) : (
+                            <div className="text-sm text-slate-500 dark:text-slate-400 italic">No options found</div>
+                        )}
+                    </div>
+                </FilterSection>
+                {/* Max Extra Bed */}
+                <FilterSection title="Max Extra Beds" icon="hotel_class">
+                    <div className="space-y-3">
+                        {filters?.roomMaxExtraBed?.length > 0 ? (
+                            [...filters.roomMaxExtraBed]
+                                .sort((a, b) => a.value - b.value)
+                                .map(f => (
+                                    <label key={f.value} className="flex items-center justify-between cursor-pointer group">
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                checked={selectedMaxExtraBed.includes(f.value)}
+                                                onChange={() => handleMaxExtraBedToggle(f.value)}
+                                                className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                                type="checkbox"
+                                            />
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                {f.value} Extra Bed{f.value !== 1 ? 's' : ''}
+                                            </span>
+                                        </div>
+                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                            ({f.count})
+                                        </span>
+                                    </label>
+                                ))
+                        ) : (
+                            <div className="text-sm text-slate-500 dark:text-slate-400 italic">No options found</div>
+                        )}
+                    </div>
+                </FilterSection>
+                {/* Pax Capacity */}
+                <FilterSection title="Total Pax Capacity" icon="groups">
+                    <div className="space-y-3">
+                        {filters?.roomPaxCapacity?.length > 0 ? (
+                            [...filters.roomPaxCapacity]
+                                .sort((a, b) => a.value - b.value)
+                                .map(f => (
+                                    <label key={f.value} className="flex items-center justify-between cursor-pointer group">
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                checked={selectedPaxCapacity.includes(f.value)}
+                                                onChange={() => handlePaxCapacityToggle(f.value)}
+                                                className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                                type="checkbox"
+                                            />
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                {f.value} Pax
+                                            </span>
+                                        </div>
+                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                            ({f.count})
+                                        </span>
+                                    </label>
+                                ))
+                        ) : (
+                            <div className="text-sm text-slate-500 dark:text-slate-400 italic">No options found</div>
+                        )}
                     </div>
                 </FilterSection>
                 {/* Amenities */}

@@ -5,6 +5,7 @@ import placeholderHotel from '../assets/placeholder-hotel.svg';
 const HotelCard = ({ hotel, viewMode = 'list' }) => {
     const isList = viewMode === 'list';
     const [currentImg, setCurrentImg] = React.useState(0);
+    const [isHovered, setIsHovered] = React.useState(false);
     const [showAllTransports, setShowAllTransports] = React.useState(false);
     const [searchParams] = useSearchParams();
     const images = hotel.images || [hotel.image];
@@ -20,6 +21,21 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
         e.stopPropagation();
         setCurrentImg((prev) => (prev - 1 + images.length) % images.length);
     };
+
+    // Auto-slide effect on hover
+    React.useEffect(() => {
+        let intervalId;
+        if (isHovered && images.length > 1) {
+            intervalId = setInterval(() => {
+                setCurrentImg((prev) => (prev + 1) % images.length);
+            }, 2500); // Rotate every 2.5 seconds
+        }
+        return () => {
+            if (intervalId) clearInterval(intervalId);
+            // Optionally reset to first image on leave, but usually keeping current is fine
+            // if (!isHovered) setCurrentImg(0);
+        };
+    }, [isHovered, images.length]);
 
     const handleImageError = (e) => {
         e.target.src = placeholderHotel;
@@ -37,9 +53,14 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
             to={`/hotel/${hotel.id}?${searchParams.toString()}`}
             target="_blank"
             rel="noopener noreferrer"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
             className={`group bg-white dark:bg-[#111a22] rounded-2xl border border-slate-200 dark:border-[#233648] shadow-sm hover:shadow-xl transition-all duration-300 flex ${isList ? 'flex-col md:flex-row' : 'flex-col'}`}
         >
-            <div className={`relative overflow-hidden ${isList ? 'rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none h-64 md:h-auto md:w-[400px] shrink-0' : 'rounded-t-2xl h-60'}`}>
+            <div 
+                className={`relative overflow-hidden isolate z-0 transform-gpu ${isList ? 'rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none h-64 md:h-auto md:w-[400px] shrink-0' : 'rounded-t-2xl h-60'}`}
+                style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)' }}
+            >
                 {/* Image Slider */}
                 <div className="w-full h-full relative">
                     {images.map((img, idx) => (
@@ -48,7 +69,7 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                             src={img}
                             alt={`${hotel.name} ${idx + 1}`}
                             onError={handleImageError}
-                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === currentImg ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
+                            className={`absolute inset-0 w-full h-full object-cover transition-all duration-[1200ms] ease-in-out will-change-[transform,opacity] ${idx === currentImg ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}
                         />
                     ))}
 

@@ -322,6 +322,9 @@ const HotelListing = () => {
         setHasMore(true);
         setTotalProperties(0);
         
+        // Scroll to top when filters change
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
         // Explicitly trigger first fetch on reset
         loadMoreHotels(true);
 
@@ -342,10 +345,6 @@ const HotelListing = () => {
         searchParams.get('roomMaxExtraBed'),
         searchParams.get('roomPaxCapacity')
     ]);
-
-    React.useEffect(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [locationId]);
 
     React.useEffect(() => {
         const observer = new IntersectionObserver((entries) => {

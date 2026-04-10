@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Tooltip from '../components/Tooltip';
@@ -8,7 +8,7 @@ import { hotelService } from '../services/hotelService';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
 import { useMapEvents } from 'react-leaflet';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import FilterPanel from '../components/FilterPanel';
 import 'leaflet/dist/leaflet.css';
 
 // Fix for default marker icons in Leaflet
@@ -113,90 +113,28 @@ const MapController = ({ selectedHotel }) => {
 };
 
 // Glass Filter Modal Component
-const FilterModal = ({ isOpen, onClose, currentFilters, onApply }) => {
-    const [localFilters, setLocalFilters] = useState(currentFilters);
-
-    useEffect(() => {
-        if (isOpen) setLocalFilters(currentFilters);
-    }, [isOpen, currentFilters]);
-
-    const handleTypeToggle = (type) => {
-        setLocalFilters(prev => {
-            const types = prev.types.includes(type)
-                ? prev.types.filter(t => t !== type)
-                : [...prev.types, type];
-            return { ...prev, types };
-        });
-    };
+const FilterModal = ({ isOpen, onClose, filters, locationNames, facilityNames }) => {
+    const [searchParams, setSearchParams] = useSearchParams();
 
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
             <div
-                className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                 onClick={onClose}
             ></div>
-            <div className="relative w-full max-w-lg bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-[40px] shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)] border border-white/20 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in duration-300">
-                <div className="p-8">
-                    <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white">Professional Filters</h2>
-                        <button onClick={onClose} className="size-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white transition-all">
-                            <span className="material-symbols-outlined uppercase font-black">close</span>
-                        </button>
-                    </div>
-
-                    <div className="space-y-8">
-                        <div>
-                            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 px-1">Property Type</h3>
-                            <div className="grid grid-cols-2 gap-3">
-                                {['Hotels', 'Resorts', 'Villas', 'Boutique', 'Apartments', 'Hostels'].map((type) => (
-                                    <label key={type} className={`flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border ${localFilters.types.includes(type) ? 'border-primary bg-primary/5' : 'border-slate-100 dark:border-slate-700'} cursor-pointer hover:border-primary transition-all group`}>
-                                        <input
-                                            type="checkbox"
-                                            checked={localFilters.types.includes(type)}
-                                            onChange={() => handleTypeToggle(type)}
-                                            className="size-5 rounded-lg border-slate-300 dark:border-slate-600 text-primary focus:ring-primary focus:ring-offset-0 bg-transparent"
-                                        />
-                                        <span className={`text-sm font-bold ${localFilters.types.includes(type) ? 'text-primary' : 'text-slate-700 dark:text-slate-200'} group-hover:text-primary transition-colors`}>{type}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 px-1">Price Range ($)</h3>
-                            <div className="flex items-center gap-4">
-                                <div className="flex-1 space-y-2">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Min</label>
-                                    <input
-                                        type="number"
-                                        value={localFilters.priceRange[0]}
-                                        onChange={(e) => setLocalFilters(prev => ({ ...prev, priceRange: [parseInt(e.target.value) || 0, prev.priceRange[1]] }))}
-                                        className="w-full bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
-                                    />
-                                </div>
-                                <div className="size-px h-10 bg-slate-200 dark:bg-slate-700 mt-6"></div>
-                                <div className="flex-1 space-y-2">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Max</label>
-                                    <input
-                                        type="number"
-                                        value={localFilters.priceRange[1]}
-                                        onChange={(e) => setLocalFilters(prev => ({ ...prev, priceRange: [prev.priceRange[0], parseInt(e.target.value) || 0] }))}
-                                        className="w-full bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white focus:ring-primary focus:border-primary"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mt-10 flex gap-4">
-                        <button
-                            onClick={() => setLocalFilters({ types: [], priceRange: [0, 2000] })}
-                            className="flex-1 py-4 rounded-2xl border border-slate-200 dark:border-slate-700 font-black uppercase text-xs tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">Clear All</button>
-                        <button
-                            onClick={() => { onApply(localFilters); onClose(); }}
-                            className="flex-[2] py-4 rounded-2xl bg-primary text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">Apply Results</button>
-                    </div>
+            <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[40px] shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)] border border-white/20 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in duration-300 h-[85vh] max-h-[800px] flex flex-col">
+                
+                <div className="flex-1 overflow-hidden">
+                    <FilterPanel 
+                        filters={filters}
+                        locationNames={locationNames}
+                        facilityNames={facilityNames}
+                        searchParams={searchParams}
+                        setSearchParams={setSearchParams}
+                        onApply={onClose}
+                        onClose={onClose}
+                    />
                 </div>
             </div>
         </div>
@@ -312,10 +250,11 @@ const MapView = () => {
     const [selectedHotel, setSelectedHotel] = useState(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-    const [filters, setFilters] = useState({
-        types: [],
-        priceRange: [0, 2000]
-    });
+    
+    // Dynamic Filter Data
+    const [dynamicFilters, setDynamicFilters] = useState(null);
+    const [locationNames, setLocationNames] = useState({});
+    const [facilityNames, setFacilityNames] = useState({});
 
     // Map Instance State
     const [map, setMap] = useState(null);
@@ -493,24 +432,68 @@ const MapView = () => {
         };
     }, []);
 
-    const fetchHotels = React.useCallback(async (boundsData) => {
+
+    // Build search body from state exactly like HotelListing.jsx
+    const getSearchFilters = useCallback(() => {
+        const parseIds = (key) => searchParams.get(key) ? searchParams.get(key).split(',').map(Number) : null;
+        const parseBool = (key) => {
+            const val = searchParams.get(key);
+            return val === 'true' ? true : val === 'false' ? false : null;
+        };
+
+        return {
+            locationIds: parseIds('locations') || (searchParams.get('locationId') ? [parseInt(searchParams.get('locationId'))] : null),
+            stars: parseIds('stars'),
+            hasFreeCancellation: parseBool('freeCancellation'),
+            hasPrePayment: parseBool('prePayment'),
+            roomTwin: parseBool('roomTwin'),
+            roomMaxAdult: parseIds('roomMaxAdult'),
+            roomMaxChildren: parseIds('roomMaxChildren'),
+            roomMaxExtraBed: parseIds('roomMaxExtraBed'),
+            roomPaxCapacity: parseIds('roomPaxCapacity'),
+            facilities: parseIds('facilities')
+        };
+    }, [searchParams]);
+
+    const fetchHotels = useCallback(async (boundsData) => {
         setIsLoadingHotels(true);
         try {
-            // Note: If user panned the map, we omit locationId so search is strictly based on map geo bounds.
-            // If it's an initial search from autocomplete, we send locationId perfectly.
-            const passLocationId = !boundsData.isUserPan;
-            const locationId = passLocationId ? searchParams.get('locationId') : null;
-
+            // Include all dynamic filters in map request
+            const activeFilters = getSearchFilters();
+            
             const response = await hotelService.searchHotels({
-                locationId: locationId,
+                locationId: !boundsData.isUserPan ? searchParams.get('locationId') : null,
                 geo: boundsData.bounds,
                 zoom: boundsData.zoom,
                 page: 0,
-                size: 100 // Map view usually shows many points
+                size: 100,
+                filters: activeFilters
             });
 
             if (response && response.data) {
                 const { content } = response.data;
+                const filtersData = response.filters || response.data.filters;
+                
+                if (filtersData) {
+                    setDynamicFilters(filtersData);
+                }
+
+                // Extract location names from breadcrumbs
+                const newLocationNames = {};
+                (content || []).forEach(hotel => {
+                    if (hotel.locationBreadcrumbs) {
+                        hotel.locationBreadcrumbs.forEach(crumb => {
+                            if (crumb.locationId && crumb.name) {
+                                newLocationNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
+                            }
+                        });
+                    }
+                });
+
+                if (Object.keys(newLocationNames).length > 0) {
+                    setLocationNames(prev => ({ ...prev, ...newLocationNames }));
+                }
+
                 const mappedHotels = (content || []).map(mapApiHotelToModel);
                 
                 // Add jitter for identical coordinates
@@ -521,8 +504,8 @@ const MapView = () => {
                     coordinateMap.set(coordKey, count + 1);
                     
                     if (count > 0) {
-                        const offsetMultiplier = 0.00015; // roughly 15 meters
-                        const angle = count * Math.PI * 0.4; // spread them around
+                        const offsetMultiplier = 0.00015;
+                        const angle = count * Math.PI * 0.4;
                         let radius = offsetMultiplier * Math.ceil(count / 5);
                         
                         return {
@@ -535,38 +518,73 @@ const MapView = () => {
                 });
 
                 setHotels(jitteredHotels);
-
-                // Auto-select first hotel if none selected and it's initial load
-                if (mappedHotels.length > 0 && !selectedHotel) {
-                    // setSelectedHotel(mappedHotels[0]);
-                }
             }
         } catch (error) {
             console.error('Failed to fetch hotels for map:', error);
         } finally {
             setIsLoadingHotels(false);
         }
-    }, [mapApiHotelToModel, searchParams]);
+    }, [mapApiHotelToModel, searchParams, getSearchFilters]);
 
-    // Initial fetch when breadcrumb/location is ready
-    useEffect(() => {
-        if (breadcrumbData && breadcrumbData.geoCoordinate && !currentBounds) {
-            // Wait for map to fly there then we'll get bounds via MapBoundsListener
-        }
-    }, [breadcrumbData, currentBounds]);
-
-    // Trigger fetch on bounds change
+    // Trigger fetch on bounds change or search parameter change
     useEffect(() => {
         if (currentBounds) {
             fetchHotels(currentBounds);
         }
     }, [currentBounds, fetchHotels]);
 
+    // Metadata fetching effects (copied from HotelListing.jsx strategy)
+    useEffect(() => {
+        if (!dynamicFilters || !dynamicFilters.locationId) return;
+        const missingLocIds = dynamicFilters.locationId.map(f => f.value).filter(id => !locationNames[id]);
+        if (missingLocIds.length === 0) return;
+
+        let isMounted = true;
+        const fetchMissingNames = async () => {
+            const newNames = {};
+            await Promise.allSettled(missingLocIds.map(async (id) => {
+                try {
+                    const data = await locationService.fetchBreadcrumb(id);
+                    const crumbs = (data && data.data && Array.isArray(data.data)) ? data.data : (data?.breadcrumbs || []);
+                    crumbs.forEach(crumb => {
+                        if (crumb.locationId && crumb.name) {
+                            newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
+                        }
+                    });
+                } catch (error) {}
+            }));
+            if (isMounted && Object.keys(newNames).length > 0) {
+                setLocationNames(prev => ({ ...prev, ...newNames }));
+            }
+        };
+        fetchMissingNames();
+        return () => { isMounted = false; };
+    }, [dynamicFilters, locationNames]);
+
+    useEffect(() => {
+        if (!dynamicFilters || !dynamicFilters.hotelFacilityIds) return;
+        const missingFacIds = dynamicFilters.hotelFacilityIds.map(f => f.value).filter(id => !facilityNames[id]);
+        if (missingFacIds.length === 0) return;
+
+        let isMounted = true;
+        const fetchMissingNames = async () => {
+            try {
+                const data = await hotelService.fetchFacilityNames(missingFacIds);
+                if (isMounted && data && Array.isArray(data)) {
+                    const newNames = {};
+                    data.forEach(fac => {
+                        newNames[fac.facilityId] = fac.nameEn || fac.nameTr || fac.nameDe || `Facility ${fac.facilityId}`;
+                    });
+                    if (Object.keys(newNames).length > 0) setFacilityNames(prev => ({ ...prev, ...newNames }));
+                }
+            } catch (error) {}
+        };
+        fetchMissingNames();
+        return () => { isMounted = false; };
+    }, [dynamicFilters, facilityNames]);
+
     const filteredHotels = hotels.filter(hotel => {
-        const matchesType = filters.types.length === 0 || filters.types.includes(hotel.type);
-        const matchesPrice = hotel.price >= filters.priceRange[0] && hotel.price <= filters.priceRange[1];
-        
-        // Client-side geo bounding box filter to protect against backend bug returning global/fallback results
+        // Client-side geo bounding box filter (backend also filters, but this ensures map consistency)
         let inBounds = true;
         if (currentBounds && currentBounds.bounds && hotel.lat && hotel.lng) {
             const { topLeft, bottomRight } = currentBounds.bounds;
@@ -577,8 +595,7 @@ const MapView = () => {
                 hotel.lng <= bottomRight.lon
             );
         }
-
-        return matchesType && matchesPrice && inBounds;
+        return inBounds;
     });
 
     const handleHotelSelect = (hotel) => {
@@ -944,8 +961,9 @@ const MapView = () => {
             <FilterModal
                 isOpen={isFilterModalOpen}
                 onClose={() => setIsFilterModalOpen(false)}
-                currentFilters={filters}
-                onApply={setFilters}
+                filters={dynamicFilters}
+                locationNames={locationNames}
+                facilityNames={facilityNames}
             />
         </div >
     );

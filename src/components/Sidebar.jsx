@@ -31,7 +31,7 @@ const FilterSection = ({ title, icon, defaultOpen = true, disabled = false, chil
             {/* The wrapper handles height animation gracefully */}
             <div
                 className={`transition-all duration-300 ease-in-out overflow-hidden ${disabled ? 'pointer-events-none' : ''}`}
-                style={{ maxHeight: isOpen && !disabled ? '1000px' : '0px', opacity: isOpen && !disabled ? 1 : 0, marginTop: isOpen && !disabled ? '16px' : '0px' }}
+                style={{ maxHeight: isOpen && !disabled ? '5000px' : '0px', opacity: isOpen && !disabled ? 1 : 0, marginTop: isOpen && !disabled ? '16px' : '0px' }}
             >
                 {children}
             </div>
@@ -39,7 +39,7 @@ const FilterSection = ({ title, icon, defaultOpen = true, disabled = false, chil
     );
 };
 
-const Sidebar = ({ filters, locationNames = {} }) => {
+const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
     const [searchParams, setSearchParams] = useSearchParams();
 
     // Parse current URL stars
@@ -82,6 +82,13 @@ const Sidebar = ({ filters, locationNames = {} }) => {
     const currentPaxCapacityStr = searchParams.get('roomPaxCapacity');
     const [selectedPaxCapacity, setSelectedPaxCapacity] = useState(currentPaxCapacityStr ? currentPaxCapacityStr.split(',').map(Number) : []);
 
+    const currentFacilitiesStr = searchParams.get('facilities');
+    const [selectedFacilities, setSelectedFacilities] = useState(currentFacilitiesStr ? currentFacilitiesStr.split(',').map(Number) : []);
+
+    // Expandable sections state
+    const [isFacilitiesExpanded, setIsFacilitiesExpanded] = useState(false);
+    const [isLocationsExpanded, setIsLocationsExpanded] = useState(false);
+
     useEffect(() => {
         setSelectedStars(currentStarsStr ? currentStarsStr.split(',').map(Number) : []);
     }, [currentStarsStr]);
@@ -117,6 +124,10 @@ const Sidebar = ({ filters, locationNames = {} }) => {
     useEffect(() => {
         setSelectedPaxCapacity(searchParams.get('roomPaxCapacity') ? searchParams.get('roomPaxCapacity').split(',').map(Number) : []);
     }, [searchParams.get('roomPaxCapacity')]);
+
+    useEffect(() => {
+        setSelectedFacilities(searchParams.get('facilities') ? searchParams.get('facilities').split(',').map(Number) : []);
+    }, [searchParams.get('facilities')]);
 
     // Toggle 3-state boolean: clicking same value again → deselect (null)
     const handleBoolToggle = (setter, current, clickedValue) => {
@@ -155,6 +166,12 @@ const Sidebar = ({ filters, locationNames = {} }) => {
 
     const handlePaxCapacityToggle = (val) => {
         setSelectedPaxCapacity(prev =>
+            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
+        );
+    };
+
+    const handleFacilityToggle = (val) => {
+        setSelectedFacilities(prev =>
             prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
         );
     };
@@ -206,6 +223,11 @@ const Sidebar = ({ filters, locationNames = {} }) => {
         } else {
             newParams.delete('roomPaxCapacity');
         }
+        if (selectedFacilities.length > 0) {
+            newParams.set('facilities', selectedFacilities.join(','));
+        } else {
+            newParams.delete('facilities');
+        }
         setSearchParams(newParams);
     };
 
@@ -219,6 +241,7 @@ const Sidebar = ({ filters, locationNames = {} }) => {
         setSelectedMaxChildren([]);
         setSelectedMaxExtraBed([]);
         setSelectedPaxCapacity([]);
+        setSelectedFacilities([]);
         const newParams = new URLSearchParams(searchParams);
         newParams.delete('stars');
         newParams.delete('locations');
@@ -229,6 +252,7 @@ const Sidebar = ({ filters, locationNames = {} }) => {
         newParams.delete('roomMaxChildren');
         newParams.delete('roomMaxExtraBed');
         newParams.delete('roomPaxCapacity');
+        newParams.delete('facilities');
         setSearchParams(newParams);
     };
 
@@ -241,7 +265,8 @@ const Sidebar = ({ filters, locationNames = {} }) => {
         selectedMaxAdult.length > 0,
         selectedMaxChildren.length > 0,
         selectedMaxExtraBed.length > 0,
-        selectedPaxCapacity.length > 0
+        selectedPaxCapacity.length > 0,
+        selectedFacilities.length > 0
     ].filter(Boolean).length;
 
     return (
@@ -291,32 +316,48 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                 <FilterSection title="Locations" icon="location_on">
                     <div className="space-y-3">
                         {filters?.locationId && filters.locationId.length > 0 ? (
-                            [...filters.locationId]
-                                .sort((a, b) => b.count - a.count)
-                                .map(locFilter => {
-                                    const locName = locationNames[locFilter.value] || `Location ${locFilter.value}`;
-                                    return (
-                                        <label key={locFilter.value} className="flex items-center justify-between cursor-pointer group">
-                                            <div className="flex items-center gap-3 overflow-hidden">
-                                                <input
-                                                    checked={selectedLocations.includes(locFilter.value)}
-                                                    onChange={() => handleLocationToggle(locFilter.value)}
-                                                    className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0"
-                                                    type="checkbox"
-                                                />
-                                                <div className="flex items-center gap-2 overflow-hidden">
-                                                    <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors flex-shrink-0">location_on</span>
-                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate" title={locName}>
-                                                        {locName}
-                                                    </span>
+                            <>
+                                {[...filters.locationId]
+                                    .sort((a, b) => b.count - a.count)
+                                    .slice(0, isLocationsExpanded ? undefined : 10)
+                                    .map(locFilter => {
+                                        const locName = locationNames[locFilter.value] || `Location ${locFilter.value}`;
+                                        return (
+                                            <label key={locFilter.value} className="flex items-center justify-between cursor-pointer group">
+                                                <div className="flex items-center gap-3 overflow-hidden">
+                                                    <input
+                                                        checked={selectedLocations.includes(locFilter.value)}
+                                                        onChange={() => handleLocationToggle(locFilter.value)}
+                                                        className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0"
+                                                        type="checkbox"
+                                                    />
+                                                    <div className="flex items-center gap-2 overflow-hidden">
+                                                        <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors flex-shrink-0">location_on</span>
+                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate" title={locName}>
+                                                            {locName}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-                                                ({locFilter.count})
-                                            </span>
-                                        </label>
-                                    );
-                                })
+                                                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                                    ({locFilter.count})
+                                                </span>
+                                            </label>
+                                        );
+                                    })}
+                                
+                                {filters.locationId.length > 10 && (
+                                    <button
+                                        onClick={() => setIsLocationsExpanded(!isLocationsExpanded)}
+                                        className="text-xs font-bold text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8"
+                                    >
+                                        {isLocationsExpanded ? (
+                                            <>Show Less <span className="material-symbols-outlined text-sm">expand_less</span></>
+                                        ) : (
+                                            <>Show More ({filters.locationId.length - 10} more) <span className="material-symbols-outlined text-sm">expand_more</span></>
+                                        )}
+                                    </button>
+                                )}
+                            </>
                         ) : (
                             <div className="text-sm text-slate-500 dark:text-slate-400 italic">No specific locations found</div>
                         )}
@@ -597,45 +638,55 @@ const Sidebar = ({ filters, locationNames = {} }) => {
                         )}
                     </div>
                 </FilterSection>
-                {/* Amenities */}
-                <FilterSection title="Popular Amenities" icon="pool">
-                    <div className="space-y-3 pt-1">
-                        <label className="flex items-center justify-between cursor-pointer group">
-                            <div className="flex items-center gap-3">
-                                <input className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
-                                <div className="flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">wifi</span>
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Free WiFi</span>
-                                </div>
-                            </div>
-                        </label>
-                        <label className="flex items-center justify-between cursor-pointer group">
-                            <div className="flex items-center gap-3">
-                                <input className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
-                                <div className="flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">pool</span>
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Swimming Pool</span>
-                                </div>
-                            </div>
-                        </label>
-                        <label className="flex items-center justify-between cursor-pointer group">
-                            <div className="flex items-center gap-3">
-                                <input className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
-                                <div className="flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">spa</span>
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Spa & Wellness</span>
-                                </div>
-                            </div>
-                        </label>
-                        <label className="flex items-center justify-between cursor-pointer group">
-                            <div className="flex items-center gap-3">
-                                <input className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
-                                <div className="flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">restaurant_menu</span>
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Breakfast Included</span>
-                                </div>
-                            </div>
-                        </label>
+                {/* Hotel Facilities */}
+                <FilterSection title="Hotel Facilities" icon="pool">
+                    <div className="space-y-3">
+                        {filters?.hotelFacilityIds && filters.hotelFacilityIds.length > 0 ? (
+                            <>
+                                {[...filters.hotelFacilityIds]
+                                    .sort((a, b) => b.count - a.count)
+                                    .slice(0, isFacilitiesExpanded ? undefined : 10)
+                                    .map(facFilter => {
+                                        const facName = facilityNames[facFilter.value] || `Facility ${facFilter.value}`;
+                                        return (
+                                            <label key={facFilter.value} className="flex items-center justify-between cursor-pointer group">
+                                                <div className="flex items-center gap-3 overflow-hidden">
+                                                    <input
+                                                        checked={selectedFacilities.includes(facFilter.value)}
+                                                        onChange={() => handleFacilityToggle(facFilter.value)}
+                                                        className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0"
+                                                        type="checkbox"
+                                                    />
+                                                    <div className="flex items-center gap-2 overflow-hidden">
+                                                        <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors flex-shrink-0">business_center</span>
+                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate" title={facName}>
+                                                            {facName}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                                    ({facFilter.count})
+                                                </span>
+                                            </label>
+                                        );
+                                    })}
+                                
+                                {filters.hotelFacilityIds.length > 10 && (
+                                    <button
+                                        onClick={() => setIsFacilitiesExpanded(!isFacilitiesExpanded)}
+                                        className="text-xs font-bold text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8"
+                                    >
+                                        {isFacilitiesExpanded ? (
+                                            <>Show Less <span className="material-symbols-outlined text-sm">expand_less</span></>
+                                        ) : (
+                                            <>Show More ({filters.hotelFacilityIds.length - 10} more) <span className="material-symbols-outlined text-sm">expand_more</span></>
+                                        )}
+                                    </button>
+                                )}
+                            </>
+                        ) : (
+                            <div className="text-sm text-slate-500 dark:text-slate-400 italic">No specific facilities found</div>
+                        )}
                     </div>
                 </FilterSection>
                 {/* Guest Rating */}

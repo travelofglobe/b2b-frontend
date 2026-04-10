@@ -11,6 +11,47 @@ import { locationService } from '../services/locationService';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
 
 const HotelListing = () => {
+    // Mapping of facility IDs to Material Icon names and English labels
+    const FACILITY_ICON_MAP = {
+        98445: { icon: 'wifi', label: 'Free Wifi' },
+        48325: { icon: 'wifi', label: 'Wifi Access' },
+        3664: { icon: 'wifi', label: 'High Speed Internet' },
+        616: { icon: 'pool', label: 'Outdoor Pool' },
+        649: { icon: 'pool', label: 'Indoor Pool' },
+        1685: { icon: 'pool', label: 'Kids Pool' },
+        1985: { icon: 'spa', label: 'Spa' },
+        1978: { icon: 'fitness_center', label: 'Health Club' },
+        98455: { icon: 'fitness_center', label: 'Fitness' },
+        47935: { icon: 'fitness_center', label: 'Gym' },
+        641: { icon: 'restaurant', label: 'Restaurant' },
+        3134: { icon: 'local_bar', label: 'Bar' },
+        606: { icon: 'pets', label: 'Pets Allowed' },
+        719: { icon: 'ac_unit', label: 'Air Conditioning' },
+        101165: { icon: 'inventory_2', label: 'Minibar' },
+        618: { icon: 'sports_tennis', label: 'Tennis' },
+        3164: { icon: 'casino', label: 'Casino' },
+        3154: { icon: 'nightlife', label: 'Night Club' },
+        3891: { icon: 'hot_tub', label: 'Jacuzzi' },
+        650: { icon: 'spa', label: 'Sauna' },
+        3064: { icon: 'atm', label: 'ATM' },
+        18006: { icon: 'business_center', label: 'Business Centre' },
+        18366: { icon: 'local_laundry_service', label: 'Laundry' },
+        603: { icon: 'child_care', label: 'Babysitting' },
+        638: { icon: 'explore', label: 'Tour Desk' },
+        646: { icon: 'support_agent', label: 'Concierge' },
+        666: { icon: 'car_rental', label: 'Car Rental' },
+        1993: { icon: 'lock', label: 'Safety Box' },
+        1995: { icon: 'wheelchair_pickup', label: 'Wheelchair Access' },
+        2007: { icon: 'elevator', label: 'Elevator' },
+        98485: { icon: 'security', label: 'Security' },
+        100075: { icon: 'smoking_rooms', label: 'Smoking Area' },
+        1687: { icon: 'water_sports', label: 'Water Sports' },
+        1981: { icon: 'child_friendly', label: 'Kids Club' },
+        3724: { icon: 'beach_access', label: 'Beach' },
+        18126: { icon: 'directions_bike', label: 'Bicycle Rental' },
+        98415: { icon: 'airport_shuttle', label: 'Airport Shuttle' }
+    };
+
     const [viewMode, setViewMode] = React.useState('list'); // 'list', 'grid2', 'grid3'
     const { slug, theme, campaign } = useParams();
     const [searchParams] = useSearchParams();
@@ -36,6 +77,7 @@ const HotelListing = () => {
         const roomMaxChildrenParam = searchParams.get('roomMaxChildren');
         const roomMaxExtraBedParam = searchParams.get('roomMaxExtraBed');
         const roomPaxCapacityParam = searchParams.get('roomPaxCapacity');
+        const facilitiesParam = searchParams.get('facilities');
 
         return {
             stars: starsParam ? starsParam.split(',').map(Number) : [],
@@ -46,10 +88,12 @@ const HotelListing = () => {
             roomMaxAdult: roomMaxAdultParam ? roomMaxAdultParam.split(',').map(Number) : null,
             roomMaxChildren: roomMaxChildrenParam ? roomMaxChildrenParam.split(',').map(Number) : null,
             roomMaxExtraBed: roomMaxExtraBedParam ? roomMaxExtraBedParam.split(',').map(Number) : null,
-            roomPaxCapacity: roomPaxCapacityParam ? roomPaxCapacityParam.split(',').map(Number) : null
+            roomPaxCapacity: roomPaxCapacityParam ? roomPaxCapacityParam.split(',').map(Number) : null,
+            facilities: facilitiesParam ? facilitiesParam.split(',').map(Number) : []
         };
     };
     const [locationNames, setLocationNames] = React.useState({});
+    const [facilityNames, setFacilityNames] = React.useState({});
     const loaderRef = React.useRef(null);
 
     const gridClasses = {
@@ -118,12 +162,40 @@ const HotelListing = () => {
         else if (ratingVal >= 8) ratingLabel = 'Excellent';
         else if (ratingVal >= 7) ratingLabel = 'Very Good';
 
-        // Default amenities if none provided in API
-        const amenities = [
-            { icon: 'wifi', label: 'WiFi' },
-            { icon: 'pool', label: 'Pool' },
-            { icon: 'spa', label: 'Spa' }
-        ];
+        // Dynamic Amenities - check multiple possible field names and formats
+        let amenities = [];
+        const rawFacs = apiHotel.hotelFacilityIds || apiHotel.facilities || apiHotel.facilityIds || apiHotel.hotelFacilities;
+        
+        if (rawFacs && Array.isArray(rawFacs)) {
+            // Group by icon to avoid duplicates, but combine labels for the tooltip
+            const iconGroups = {};
+            
+            rawFacs.forEach(f => {
+                const id = typeof f === 'object' ? (f.facilityId || f.id || f.value) : f;
+                const match = FACILITY_ICON_MAP[Number(id)];
+                
+                if (match) {
+                    if (!iconGroups[match.icon]) {
+                        iconGroups[match.icon] = { ...match, labels: [match.label] };
+                    } else if (!iconGroups[match.icon].labels.includes(match.label)) {
+                        iconGroups[match.icon].labels.push(match.label);
+                    }
+                }
+            });
+
+            // Convert back to array with labels array for the Tooltip's list display
+            amenities = Object.values(iconGroups).map(group => ({
+                icon: group.icon,
+                label: group.labels // Pass as array for structured list
+            })).slice(0, 10);
+        }
+
+        // Fallback if no facilities matched our icon map
+        if (amenities.length === 0) {
+            amenities = [
+                { icon: 'info', label: 'Details' }
+            ];
+        }
 
         // Handle images with thumbnail priority and local silhouette fallbacks
         let imagesToMap = [];
@@ -215,7 +287,8 @@ const HotelListing = () => {
                     roomMaxAdult: filters.roomMaxAdult,
                     roomMaxChildren: filters.roomMaxChildren,
                     roomMaxExtraBed: filters.roomMaxExtraBed,
-                    roomPaxCapacity: filters.roomPaxCapacity
+                    roomPaxCapacity: filters.roomPaxCapacity,
+                    facilities: filters.facilities
                 },
                 signal: controller.signal
             });
@@ -314,6 +387,41 @@ const HotelListing = () => {
 
         return () => { isMounted = false; };
     }, [dynamicFilters, locationNames]);
+    
+    // Fetch names for any facilities in the filters that we haven't seen yet
+    React.useEffect(() => {
+        if (!dynamicFilters || !dynamicFilters.hotelFacilityIds) return;
+
+        const missingFacIds = dynamicFilters.hotelFacilityIds
+            .map(f => f.value)
+            .filter(id => !facilityNames[id]);
+
+        if (missingFacIds.length === 0) return;
+
+        let isMounted = true;
+
+        const fetchMissingNames = async () => {
+            try {
+                const data = await hotelService.fetchFacilityNames(missingFacIds);
+                if (isMounted && data && Array.isArray(data)) {
+                    const newNames = {};
+                    data.forEach(fac => {
+                        // Prioritize nameEn, fallback to others
+                        newNames[fac.facilityId] = fac.nameEn || fac.nameTr || fac.nameDe || `Facility ${fac.facilityId}`;
+                    });
+                    if (Object.keys(newNames).length > 0) {
+                        setFacilityNames(prev => ({ ...prev, ...newNames }));
+                    }
+                }
+            } catch (error) {
+                console.error(`Failed to fetch facility names`, error);
+            }
+        };
+
+        fetchMissingNames();
+
+        return () => { isMounted = false; };
+    }, [dynamicFilters, facilityNames]);
 
     // Reset when locationId or other filters change
     React.useEffect(() => {
@@ -343,7 +451,8 @@ const HotelListing = () => {
         searchParams.get('roomMaxAdult'),
         searchParams.get('roomMaxChildren'),
         searchParams.get('roomMaxExtraBed'),
-        searchParams.get('roomPaxCapacity')
+        searchParams.get('roomPaxCapacity'),
+        searchParams.get('facilities')
     ]);
 
     React.useEffect(() => {
@@ -377,7 +486,7 @@ const HotelListing = () => {
                     </Link>
                 </div>
                 <div className="flex flex-col lg:flex-row gap-8">
-                    <Sidebar filters={dynamicFilters} locationNames={locationNames} />
+                    <Sidebar filters={dynamicFilters} locationNames={locationNames} facilityNames={facilityNames} />
                     {/* Grid Content Area */}
                     <div className="flex-1">
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
+import Tooltip from '../components/Tooltip';
 
 const HotelCard = ({ hotel, viewMode = 'list' }) => {
     const isList = viewMode === 'list';
@@ -191,12 +192,13 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-3 my-4">
-                        {hotel.amenities.slice(0, 3).map((amenity, index) => (
-                            <div key={index} className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-800/30 rounded-lg text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800">
-                                <span className="material-symbols-outlined text-lg text-slate-400">{amenity.icon}</span>
-                                <span className="text-[9px] font-black uppercase tracking-wider">{amenity.label}</span>
-                            </div>
+                    <div className="flex flex-wrap gap-2 my-4">
+                        {hotel.amenities.slice(0, 10).map((amenity, index) => (
+                            <Tooltip key={index} text={amenity.label}>
+                                <div className="size-8 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 rounded-xl text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-800 hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all cursor-help">
+                                    <span className="material-symbols-outlined text-lg">{amenity.icon}</span>
+                                </div>
+                            </Tooltip>
                         ))}
                     </div>
                 </div>

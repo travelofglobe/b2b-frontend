@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
+import Tooltip from '../components/Tooltip';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { locationService } from '../services/locationService';
 import { hotelService } from '../services/hotelService';
@@ -212,6 +213,48 @@ const MapInstanceCapture = ({ setMap }) => {
     return null;
 };
 
+// Mapping of facility IDs to Material Icon names and English labels
+const FACILITY_ICON_MAP = {
+    98445: { icon: 'wifi', label: 'Free Wifi' },
+    48325: { icon: 'wifi', label: 'Wifi Access' },
+    3664: { icon: 'wifi', label: 'High Speed Internet' },
+    616: { icon: 'pool', label: 'Outdoor Pool' },
+    649: { icon: 'pool', label: 'Indoor Pool' },
+    1685: { icon: 'pool', label: 'Kids Pool' },
+    1985: { icon: 'spa', label: 'Spa' },
+    1978: { icon: 'fitness_center', label: 'Health Club' },
+    98455: { icon: 'fitness_center', label: 'Fitness' },
+    47935: { icon: 'fitness_center', label: 'Gym' },
+    641: { icon: 'restaurant', label: 'Restaurant' },
+    3134: { icon: 'local_bar', label: 'Bar' },
+    606: { icon: 'pets', label: 'Pets Allowed' },
+    719: { icon: 'ac_unit', label: 'Air Conditioning' },
+    101165: { icon: 'inventory_2', label: 'Minibar' },
+    618: { icon: 'sports_tennis', label: 'Tennis' },
+    3164: { icon: 'casino', label: 'Casino' },
+    3154: { icon: 'nightlife', label: 'Night Club' },
+    3891: { icon: 'hot_tub', label: 'Jacuzzi' },
+    650: { icon: 'spa', label: 'Sauna' },
+    3064: { icon: 'atm', label: 'ATM' },
+    18006: { icon: 'business_center', label: 'Business Centre' },
+    18366: { icon: 'local_laundry_service', label: 'Laundry' },
+    603: { icon: 'child_care', label: 'Babysitting' },
+    638: { icon: 'explore', label: 'Tour Desk' },
+    646: { icon: 'support_agent', label: 'Concierge' },
+    666: { icon: 'car_rental', label: 'Car Rental' },
+    1993: { icon: 'lock', label: 'Safety Box' },
+    1995: { icon: 'wheelchair_pickup', label: 'Wheelchair Access' },
+    2007: { icon: 'elevator', label: 'Elevator' },
+    98485: { icon: 'security', label: 'Security' },
+    100075: { icon: 'smoking_rooms', label: 'Smoking Area' },
+    1687: { icon: 'water_sports', label: 'Water Sports' },
+    1981: { icon: 'child_friendly', label: 'Kids Club' },
+    3724: { icon: 'beach_access', label: 'Beach' },
+    18126: { icon: 'directions_bike', label: 'Bicycle Rental' },
+    98415: { icon: 'airport_shuttle', label: 'Airport Shuttle' }
+};
+
+// MapBoundsListener
 const MapBoundsListener = ({ onBoundsChange, isUserPanRef }) => {
     useMapEvents({
         mousedown: () => { isUserPanRef.current = true; },
@@ -387,11 +430,37 @@ const MapView = () => {
         else if (ratingVal >= 8) ratingLabel = 'Excellent';
         else if (ratingVal >= 7) ratingLabel = 'Very Good';
 
-        const amenities = [
-            { icon: 'wifi', label: 'WiFi' },
-            { icon: 'pool', label: 'Pool' },
-            { icon: 'spa', label: 'Spa' }
-        ];
+        // Dynamic Amenities - check multiple possible field names and formats
+        let amenities = [];
+        const rawFacs = apiHotel.hotelFacilityIds || apiHotel.facilities || apiHotel.facilityIds || apiHotel.hotelFacilities;
+        
+        if (rawFacs && Array.isArray(rawFacs)) {
+            // Group by icon to avoid duplicates, but combine labels for the tooltip
+            const iconGroups = {};
+            
+            rawFacs.forEach(f => {
+                const id = typeof f === 'object' ? (f.facilityId || f.id || f.value) : f;
+                const match = FACILITY_ICON_MAP[Number(id)];
+                
+                if (match) {
+                    if (!iconGroups[match.icon]) {
+                        iconGroups[match.icon] = { ...match, labels: [match.label] };
+                    } else if (!iconGroups[match.icon].labels.includes(match.label)) {
+                        iconGroups[match.icon].labels.push(match.label);
+                    }
+                }
+            });
+
+            // Convert back to array with labels array for the Tooltip's list display
+            amenities = Object.values(iconGroups).map(group => ({
+                icon: group.icon,
+                label: group.labels // Pass as array for structured list
+            })).slice(0, 6);
+        }
+
+        if (amenities.length === 0) {
+            amenities = [{ icon: 'info', label: 'Details' }];
+        }
 
         let imagesToMap = [];
         if (apiHotel.images && apiHotel.images.length > 0) {
@@ -786,8 +855,18 @@ const MapView = () => {
                                         </div>
                                         <div className="flex flex-col items-end">
                                             <span className="text-lg font-black text-[#137fec]">${hoveredHotel.price}<span className="text-[10px] text-slate-400 lowercase ml-1 font-bold">/nt</span></span>
-                                            <span className="text-[8px] font-black uppercase text-primary tracking-widest mt-1">View Details</span>
                                         </div>
+                                    </div>
+
+                                    {/* Amenities in Map Preview */}
+                                    <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                                        {hoveredHotel.amenities.slice(0, 5).map((amenity, idx) => (
+                                            <Tooltip key={idx} text={amenity.label} position="top">
+                                                <div className="size-8 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 rounded-xl text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-800">
+                                                    <span className="material-symbols-outlined text-base">{amenity.icon}</span>
+                                                </div>
+                                            </Tooltip>
+                                        ))}
                                     </div>
                                 </div>
                             </Link>

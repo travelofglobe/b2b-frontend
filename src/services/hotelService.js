@@ -2,6 +2,9 @@ import apiClient from '../utils/apiClient';
 
 const API_BASE_URL = 'http://72.62.17.189:8000/hotel-hub/v1/b2b/hotels';
 
+// Persistent cache for facility names during the session
+const facilityCache = {};
+
 export const hotelService = {
     /**
      * Search for hotels using content-search endpoint.
@@ -43,7 +46,8 @@ export const hotelService = {
                 price: null,
                 score: null,
                 starList: null,
-                locationPathNames: null
+                locationPathNames: null,
+                hotelFacilityIds: filters.facilities || null
             },
             page: {
                 page: page,
@@ -53,5 +57,37 @@ export const hotelService = {
         };
 
         return apiClient.post(`${API_BASE_URL}/search`, body, { signal });
+    },
+
+    /**
+     * Fetch facility names by their IDs.
+     * @param {number[]} facilityIds 
+     */
+    fetchFacilityNames: async (facilityIds) => {
+        if (!facilityIds || facilityIds.length === 0) return [];
+
+        // 1. Identify IDs not in cache
+        const missingIds = facilityIds.filter(id => !facilityCache[id]);
+        
+        // 2. Fetch missing ones if any
+        if (missingIds.length > 0) {
+            try {
+                const body = { facilityIds: missingIds };
+                const response = await apiClient.post(`http://72.62.17.189:8000/hotel-hub/v1/b2b/hotel-facility/search`, body);
+                
+                if (response && Array.isArray(response)) {
+                    response.forEach(fac => {
+                        facilityCache[fac.facilityId] = fac;
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching facility names:', error);
+            }
+        }
+
+        // 3. Construct result from cache
+        return facilityIds
+            .map(id => facilityCache[id])
+            .filter(Boolean); // Only return found ones
     }
 };

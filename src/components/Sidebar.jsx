@@ -87,6 +87,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
 
     // Expandable sections state
     const [isFacilitiesExpanded, setIsFacilitiesExpanded] = useState(false);
+    const [facilitySearch, setFacilitySearch] = useState('');
     const [isLocationsExpanded, setIsLocationsExpanded] = useState(false);
 
     useEffect(() => {
@@ -643,13 +644,38 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                     <div className="space-y-3">
                         {filters?.hotelFacilityIds && filters.hotelFacilityIds.length > 0 ? (
                             <>
+                                {/* Facility Search Input */}
+                                <div className="relative mb-3 group/search">
+                                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/search:text-primary text-sm transition-colors">search</span>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search facilities..." 
+                                        value={facilitySearch}
+                                        onChange={(e) => setFacilitySearch(e.target.value)}
+                                        className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-xl text-xs font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all"
+                                    />
+                                    {facilitySearch && (
+                                        <button 
+                                            onClick={() => setFacilitySearch('')}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">close</span>
+                                        </button>
+                                    )}
+                                </div>
+
                                 {[...filters.hotelFacilityIds]
+                                    .filter(fac => {
+                                        if (!facilitySearch) return true;
+                                        const name = (facilityNames[fac.value] || `Facility ${fac.value}`).toLowerCase();
+                                        return name.includes(facilitySearch.toLowerCase());
+                                    })
                                     .sort((a, b) => b.count - a.count)
-                                    .slice(0, isFacilitiesExpanded ? undefined : 10)
+                                    .slice(0, (facilitySearch || isFacilitiesExpanded) ? undefined : 10)
                                     .map(facFilter => {
                                         const facName = facilityNames[facFilter.value] || `Facility ${facFilter.value}`;
                                         return (
-                                            <label key={facFilter.value} className="flex items-center justify-between cursor-pointer group">
+                                            <label key={facFilter.value} className="flex items-center justify-between cursor-pointer group animate-in fade-in duration-200">
                                                 <div className="flex items-center gap-3 overflow-hidden">
                                                     <input
                                                         checked={selectedFacilities.includes(facFilter.value)}
@@ -664,14 +690,14 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap ml-2">
                                                     ({facFilter.count})
                                                 </span>
                                             </label>
                                         );
                                     })}
                                 
-                                {filters.hotelFacilityIds.length > 10 && (
+                                {!facilitySearch && filters.hotelFacilityIds.length > 10 && (
                                     <button
                                         onClick={() => setIsFacilitiesExpanded(!isFacilitiesExpanded)}
                                         className="text-xs font-bold text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8"
@@ -687,23 +713,6 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                         ) : (
                             <div className="text-sm text-slate-500 dark:text-slate-400 italic">No specific facilities found</div>
                         )}
-                    </div>
-                </FilterSection>
-                {/* Guest Rating */}
-                <FilterSection title="Guest Rating" icon="thumb_up">
-                    <div className="space-y-3 pt-1">
-                        <label className="flex items-center justify-between cursor-pointer">
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Superb 9+</span>
-                            <input className="text-primary border-slate-300 dark:border-slate-600 focus:ring-primary bg-transparent" name="rating" type="radio" />
-                        </label>
-                        <label className="flex items-center justify-between cursor-pointer">
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Very Good 8+</span>
-                            <input className="text-primary border-slate-300 dark:border-slate-600 focus:ring-primary bg-transparent" name="rating" type="radio" />
-                        </label>
-                        <label className="flex items-center justify-between cursor-pointer">
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Good 7+</span>
-                            <input className="text-primary border-slate-300 dark:border-slate-600 focus:ring-primary bg-transparent" name="rating" type="radio" />
-                        </label>
                     </div>
                 </FilterSection>
                 </div>

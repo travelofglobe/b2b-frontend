@@ -89,6 +89,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
     const [isFacilitiesExpanded, setIsFacilitiesExpanded] = useState(false);
     const [facilitySearch, setFacilitySearch] = useState('');
     const [isLocationsExpanded, setIsLocationsExpanded] = useState(false);
+    const [locationSearch, setLocationSearch] = useState('');
 
     useEffect(() => {
         setSelectedStars(currentStarsStr ? currentStarsStr.split(',').map(Number) : []);
@@ -318,13 +319,38 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                     <div className="space-y-3">
                         {filters?.locationId && filters.locationId.length > 0 ? (
                             <>
+                                {/* Location Search Input */}
+                                <div className="relative mb-3 group/search">
+                                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/search:text-primary text-sm transition-colors">search</span>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search locations..." 
+                                        value={locationSearch}
+                                        onChange={(e) => setLocationSearch(e.target.value)}
+                                        className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 rounded-xl text-xs font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all"
+                                    />
+                                    {locationSearch && (
+                                        <button 
+                                            onClick={() => setLocationSearch('')}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">close</span>
+                                        </button>
+                                    )}
+                                </div>
+
                                 {[...filters.locationId]
+                                    .filter(loc => {
+                                        if (!locationSearch) return true;
+                                        const name = (locationNames[loc.value] || `Location ${loc.value}`).toLowerCase();
+                                        return name.includes(locationSearch.toLowerCase());
+                                    })
                                     .sort((a, b) => b.count - a.count)
-                                    .slice(0, isLocationsExpanded ? undefined : 10)
+                                    .slice(0, (locationSearch || isLocationsExpanded) ? undefined : 10)
                                     .map(locFilter => {
                                         const locName = locationNames[locFilter.value] || `Location ${locFilter.value}`;
                                         return (
-                                            <label key={locFilter.value} className="flex items-center justify-between cursor-pointer group">
+                                            <label key={locFilter.value} className="flex items-center justify-between cursor-pointer group animate-in fade-in duration-200">
                                                 <div className="flex items-center gap-3 overflow-hidden">
                                                     <input
                                                         checked={selectedLocations.includes(locFilter.value)}
@@ -339,14 +365,14 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap ml-2">
                                                     ({locFilter.count})
                                                 </span>
                                             </label>
                                         );
                                     })}
                                 
-                                {filters.locationId.length > 10 && (
+                                {!locationSearch && filters.locationId.length > 10 && (
                                     <button
                                         onClick={() => setIsLocationsExpanded(!isLocationsExpanded)}
                                         className="text-xs font-bold text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8"

@@ -271,18 +271,23 @@ const MapView = () => {
         return () => { isComponentMounted.current = false; };
     }, []);
 
-    // Fetch location details when locationId changes
+    // Fetch location details when locationId or locations filter changes
     useEffect(() => {
         const fetchDetails = async () => {
-            const locationId = searchParams.get('locationId');
-            if (!locationId) {
+            // Priority: Last selected filter location > primary locationId
+            const locationsParam = searchParams.get('locations');
+            const targetLocId = locationsParam 
+                ? locationsParam.split(',').pop() 
+                : searchParams.get('locationId');
+
+            if (!targetLocId) {
                 setIsDataLoading(false);
                 return;
             }
 
             setIsDataLoading(true);
             try {
-                const data = await locationService.fetchLocationDetails(locationId);
+                const data = await locationService.fetchLocationDetails(targetLocId);
                 if (!isComponentMounted.current) return;
                 setBreadcrumbData(data);
                 if (!hasInitialDataLoaded) setHasInitialDataLoaded(true);
@@ -298,7 +303,7 @@ const MapView = () => {
         };
 
         fetchDetails();
-    }, [searchParams]);
+    }, [searchParams.get('locationId'), searchParams.get('locations'), map]);
 
     // Fix map layout on sidebar toggle
     useEffect(() => {

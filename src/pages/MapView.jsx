@@ -145,7 +145,11 @@ const FilterModal = ({ isOpen, onClose, filters, locationNames, facilityNames })
 const MapInstanceCapture = ({ setMap }) => {
     const map = useMap();
     useEffect(() => {
-        setMap(map);
+        if (map) {
+            setMap(map);
+            // Ensure map knows its container size on mount
+            map.invalidateSize();
+        }
         return () => setMap(null);
     }, [map, setMap]);
     return null;
@@ -199,6 +203,9 @@ const MapBoundsListener = ({ onBoundsChange, isUserPanRef }) => {
         wheel: () => { isUserPanRef.current = true; },
         moveend: (e) => {
             const map = e.target;
+            // Force recalculation of container dimensions before calculating bounds
+            map.invalidateSize();
+            
             const bounds = map.getBounds();
             const nw = bounds.getNorthWest();
             const se = bounds.getSouthEast();
@@ -219,16 +226,21 @@ const MapBoundsListener = ({ onBoundsChange, isUserPanRef }) => {
 // MapView Component
 const MapView = () => {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [hotels, setHotels] = useState([]);
     const [isLoadingHotels, setIsLoadingHotels] = useState(false);
     const [hoveredHotel, setHoveredHotel] = useState(null);
     const hoverTimeoutRef = useRef(null);
     const isUserPanRef = useRef(false);
+    const abortControllerRef = useRef(null);
 
-    // Reset pan state when autocomplete search changes
+    // Reset pan state when autocomplete search changes, but with a delay
+    // to allow other context effects to check the pan status first
     useEffect(() => {
-        isUserPanRef.current = false;
+        const timer = setTimeout(() => {
+            isUserPanRef.current = false;
+        }, 1500); // 1.5s delay covers most fetch/fly transitions
+        return () => clearTimeout(timer);
     }, [searchParams]);
 
     const handleHover = (hotel) => {
@@ -324,6 +336,9 @@ const MapView = () => {
 
     // Auto-focus map on location from breadcrumb geoCoordinate
     useEffect(() => {
+        // Skip auto-focus if this was triggered by a manual pan/exploration
+        if (isUserPanRef.current) return;
+
         if (breadcrumbData && map && !isDataLoading) {
             if (breadcrumbData.geoCoordinate) {
                 const { lat, lon } = breadcrumbData.geoCoordinate;
@@ -433,6 +448,7 @@ const MapView = () => {
             lat: apiHotel.coordinates?.lat,
             lng: apiHotel.coordinates?.lon,
             amenities: amenities,
+            locationBreadcrumbs: apiHotel.locationBreadcrumbs,
             badges: apiHotel.isNewProperty ? [{ type: 'popular', label: 'New Property', color: 'bg-teal-500/40' }] : []
         };
     }, []);
@@ -461,10 +477,25 @@ const MapView = () => {
     }, [searchParams]);
 
     const fetchHotels = useCallback(async (boundsData) => {
+        // Abort previous request if it exists
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        // Create new AbortController
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         setIsLoadingHotels(true);
         try {
             // Include all dynamic filters in map request
-            const activeFilters = getSearchFilters();
+            const activeFilters = { ...getSearchFilters() };
+            
+            // If user is panning, we should ignore the restrictive locationId from the URL
+            // because they are exploring a different area.
+            if (boundsData.isUserPan) {
+                activeFilters.locationIds = null;
+            }
             
             const response = await hotelService.searchHotels({
                 locationId: !boundsData.isUserPan ? searchParams.get('locationId') : null,
@@ -472,7 +503,8 @@ const MapView = () => {
                 zoom: boundsData.zoom,
                 page: 0,
                 size: 100,
-                filters: activeFilters
+                filters: activeFilters,
+                signal: controller.signal
             });
 
             if (response && response.data) {
@@ -525,9 +557,15 @@ const MapView = () => {
                 setHotels(jitteredHotels);
             }
         } catch (error) {
-            console.error('Failed to fetch hotels for map:', error);
+            if (error.name === 'AbortError') {
+                console.log('Map search request aborted');
+            } else {
+                console.error('Failed to fetch hotels for map:', error);
+            }
         } finally {
-            setIsLoadingHotels(false);
+            if (abortControllerRef.current === controller) {
+                setIsLoadingHotels(false);
+            }
         }
     }, [mapApiHotelToModel, searchParams, getSearchFilters]);
 
@@ -587,6 +625,7 @@ const MapView = () => {
         fetchMissingNames();
         return () => { isMounted = false; };
     }, [dynamicFilters, facilityNames]);
+    
 
     const filteredHotels = hotels.filter(hotel => {
         // Client-side geo bounding box filter (backend also filters, but this ensures map consistency)
@@ -602,6 +641,65 @@ const MapView = () => {
         }
         return inBounds;
     });
+
+    // Sync breadcrumbs and location context with map center during user movement
+    useEffect(() => {
+        if (!map || filteredHotels.length === 0 || !isUserPanRef.current) return;
+
+        const syncBreadcrumbWithCenter = () => {
+            try {
+                const center = map.getCenter();
+                let closestHotel = null;
+                let minDistance = Infinity;
+
+                filteredHotels.forEach(hotel => {
+                    if (hotel.lat && hotel.lng) {
+                        const dist = map.distance(center, [hotel.lat, hotel.lng]);
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            closestHotel = hotel;
+                        }
+                    }
+                });
+
+                if (closestHotel && closestHotel.locationBreadcrumbs && closestHotel.locationBreadcrumbs.length > 0) {
+                    const breadcrumbs = closestHotel.locationBreadcrumbs;
+                    const lastCrumb = breadcrumbs[breadcrumbs.length - 1];
+                    
+                    if (lastCrumb && lastCrumb.locationId) {
+                        // 1. Update Breadcrumb State (UI only, avoids re-fetching)
+                        setBreadcrumbData({
+                            locationId: lastCrumb.locationId,
+                            breadcrumbs: breadcrumbs,
+                            locationType: lastCrumb.locationType,
+                            name: lastCrumb.name
+                        });
+
+                        // 2. Update URL silently 
+                        const currentLocId = searchParams.get('locationId');
+                        if (currentLocId !== String(lastCrumb.locationId)) {
+                            const newParams = new URLSearchParams(searchParams);
+                            newParams.set('locationId', lastCrumb.locationId);
+                            
+                            // Optional: Update query 'q' to keep HeaderSearch in sync
+                            const enName = lastCrumb.name?.translations?.en || lastCrumb.name?.defaultName;
+                            if (enName) {
+                                newParams.set('q', enName);
+                            }
+                            
+                            setSearchParams(newParams, { replace: true });
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('Breadcrumb sync failed:', err);
+            }
+        };
+
+        // Debounce update to avoid excessive URL/state changes while panning
+        const timer = setTimeout(syncBreadcrumbWithCenter, 600);
+        return () => clearTimeout(timer);
+    }, [filteredHotels, map, searchParams, setSearchParams]);
 
     const handleHotelSelect = (hotel) => {
         setSelectedHotel(hotel);
@@ -631,13 +729,21 @@ const MapView = () => {
         }
     };
 
-    // Get location name from query parameter (same as HotelListing)
-    const queryLocation = searchParams.get('q');
-    let locationName = queryLocation
-        ? queryLocation.split(',')[0].trim()
-        : 'Explore';
+    // Get location name from breadcrumb data or query parameter
+    let locationName = '';
+    
+    if (breadcrumbData && breadcrumbData.name) {
+        locationName = breadcrumbData.name.translations?.en || breadcrumbData.name.defaultName || '';
+    }
+    
+    if (!locationName) {
+        const queryLocation = searchParams.get('q');
+        locationName = queryLocation
+            ? queryLocation.split(',')[0].trim()
+            : 'Explore';
+    }
 
-    if (isUserPanRef.current) {
+    if (isUserPanRef.current && !breadcrumbData) {
         if (filteredHotels.length > 0) {
             const firstLocation = filteredHotels[0].location;
             if (Array.isArray(firstLocation)) {
@@ -793,7 +899,7 @@ const MapView = () => {
                 </aside>
 
                 {/* Section: Leaflet Map */}
-                <section className="flex-1 relative bg-slate-100 dark:bg-[#0c1622] overflow-hidden">
+                <section className="flex-1 min-h-0 relative bg-slate-100 dark:bg-[#0c1622] overflow-hidden">
                     {hasInitialDataLoaded ? (
                         <div className="w-full h-full relative">
                             <MapContainer

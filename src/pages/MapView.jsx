@@ -470,7 +470,10 @@ const MapView = () => {
 
     // Build search body from state exactly like HotelListing.jsx
     const getSearchFilters = useCallback(() => {
-        const parseIds = (key) => searchParams.get(key) ? searchParams.get(key).split(',').map(Number) : null;
+        const parseIds = (key, fallback = null) => {
+            const val = searchParams.get(key);
+            return val ? val.split(',').map(Number) : fallback;
+        };
         const parseBool = (key) => {
             const val = searchParams.get(key);
             return val === 'true' ? true : val === 'false' ? false : null;
@@ -491,8 +494,8 @@ const MapView = () => {
 
         const defaults = getDefaultDates();
         return {
-            locationIds: parseIds('locations') || (searchParams.get('locationId') ? [parseInt(searchParams.get('locationId'))] : null),
-            stars: parseIds('stars'),
+            locationIds: parseIds('locations', (searchParams.get('locationId') ? [parseInt(searchParams.get('locationId'))] : [])),
+            stars: parseIds('stars', []),
             hasFreeCancellation: parseBool('freeCancellation'),
             hasPrePayment: parseBool('prePayment'),
             roomTwin: parseBool('roomTwin'),
@@ -500,7 +503,7 @@ const MapView = () => {
             roomMaxChildren: parseIds('roomMaxChildren'),
             roomMaxExtraBed: parseIds('roomMaxExtraBed'),
             roomPaxCapacity: parseIds('roomPaxCapacity'),
-            facilities: parseIds('facilities'),
+            facilities: parseIds('facilities', []),
             _checkin: searchParams.get('checkin') || defaults.checkin,
             _checkout: searchParams.get('checkout') || defaults.checkout,
         };
@@ -523,8 +526,8 @@ const MapView = () => {
             
             // Construct a clean filters object for the API
             const filtersBody = {
-                locationIds: boundsData.isUserPan ? null : params.locationIds,
-                stars: params.stars,
+                locationIds: boundsData.isUserPan ? [] : params.locationIds,
+                stars: params.stars || [],
                 hasFreeCancellation: params.hasFreeCancellation,
                 hasPrePayment: params.hasPrePayment,
                 roomTwin: params.roomTwin,
@@ -532,7 +535,7 @@ const MapView = () => {
                 roomMaxChildren: params.roomMaxChildren,
                 roomMaxExtraBed: params.roomMaxExtraBed,
                 roomPaxCapacity: params.roomPaxCapacity,
-                facilities: params.facilities
+                facilities: params.facilities || []
             };
             
             const response = await hotelService.searchHotels({

@@ -9,6 +9,7 @@ import placeholderHotel from '../assets/placeholder-hotel.svg';
 import { useMapEvents } from 'react-leaflet';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import FilterPanel from '../components/FilterPanel';
+import { parseGuestsParam } from '../utils/searchParamsUtils';
 import 'leaflet/dist/leaflet.css';
 
 // Fix for default marker icons in Leaflet
@@ -233,6 +234,10 @@ const MapView = () => {
     const hoverTimeoutRef = useRef(null);
     const isUserPanRef = useRef(false);
     const abortControllerRef = useRef(null);
+    const roomState = React.useMemo(() => {
+        const guestsParam = searchParams.get('guests');
+        return parseGuestsParam(guestsParam);
+    }, [searchParams]);
 
     // Reset pan state when autocomplete search changes, but with a delay
     // to allow other context effects to check the pan status first
@@ -434,6 +439,13 @@ const MapView = () => {
             imagesToMap = [placeholderHotel];
         }
 
+        // Extract dynamic price and currency from the first room
+        const firstRoom = apiHotel.rooms?.[0];
+        const ratePrice = firstRoom?.ratePrice;
+        const priceValue = ratePrice?.markupCalculatedPrice?.holder?.saleAmount || ratePrice?.calculatedAmount || 0;
+        const currencyCode = ratePrice?.currency || 'USD';
+        const totalTaxAmount = ratePrice?.totalTaxAmount || 0;
+
         return {
             id: apiHotel.id,
             name: name,
@@ -444,7 +456,9 @@ const MapView = () => {
             images: imagesToMap,
             rating: rating,
             ratingLabel: ratingLabel,
-            price: 450, // Static for now
+            price: priceValue,
+            currency: currencyCode,
+            tax: totalTaxAmount,
             lat: apiHotel.coordinates?.lat,
             lng: apiHotel.coordinates?.lon,
             amenities: amenities,
@@ -461,7 +475,21 @@ const MapView = () => {
             const val = searchParams.get(key);
             return val === 'true' ? true : val === 'false' ? false : null;
         };
+        const getDefaultDates = () => {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dayAfter = new Date(tomorrow);
+            dayAfter.setDate(dayAfter.getDate() + 1);
+            const fmt = (d) => {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            };
+            return { checkin: fmt(tomorrow), checkout: fmt(dayAfter) };
+        };
 
+        const defaults = getDefaultDates();
         return {
             locationIds: parseIds('locations') || (searchParams.get('locationId') ? [parseInt(searchParams.get('locationId'))] : null),
             stars: parseIds('stars'),
@@ -472,7 +500,9 @@ const MapView = () => {
             roomMaxChildren: parseIds('roomMaxChildren'),
             roomMaxExtraBed: parseIds('roomMaxExtraBed'),
             roomPaxCapacity: parseIds('roomPaxCapacity'),
-            facilities: parseIds('facilities')
+            facilities: parseIds('facilities'),
+            _checkin: searchParams.get('checkin') || defaults.checkin,
+            _checkout: searchParams.get('checkout') || defaults.checkout,
         };
     }, [searchParams]);
 
@@ -504,6 +534,12 @@ const MapView = () => {
                 page: 0,
                 size: 100,
                 filters: activeFilters,
+                searchCriteria: {
+                    checkin: activeFilters._checkin,
+                    checkout: activeFilters._checkout,
+                    nationality: searchParams.get('nationality') || 'TR',
+                    rooms: roomState
+                },
                 signal: controller.signal
             });
 

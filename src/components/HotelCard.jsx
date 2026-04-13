@@ -49,6 +49,21 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
         // favorite logic here
     };
 
+    const getCurrencySymbol = (code) => {
+        const symbols = {
+            'USD': '$',
+            'EUR': '€',
+            'GBP': '£',
+            'TRY': '₺',
+            'AED': 'د.إ',
+            'SAR': 'ر.س',
+        };
+        return symbols[code] || code || '$';
+    };
+
+    const displayPrice = hotel.price ? Math.round(hotel.price) : '---';
+    const currencySymbol = getCurrencySymbol(hotel.currency);
+
     return (
         <Link
             to={`/hotel/${hotel.id}?${searchParams.toString()}`}
@@ -206,11 +221,23 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                 <div className={`flex items-center justify-between pt-4 ${isList ? 'border-t border-slate-100 dark:border-[#233648]' : ''}`}>
                     <div className="flex flex-col">
                         <div className="flex items-baseline gap-1">
-                            <span className={`font-black ${isList ? 'text-2xl' : 'text-xl'}`}>${hotel.price}</span>
-                            <div className="flex flex-col">
-                                <span className="text-[9px] text-slate-400 font-bold uppercase leading-none">PER NIGHT</span>
-                                <span className="text-[7px] text-slate-400 font-bold uppercase leading-none">incl. taxes</span>
-                            </div>
+                            {hotel.price > 0 ? (
+                                <>
+                                    <span className={`font-black ${isList ? 'text-2xl' : 'text-xl'}`}>
+                                        {currencySymbol}{Math.round(hotel.price)}
+                                    </span>
+                                    <div className="flex flex-col">
+                                        <span className="text-[9px] text-slate-400 font-bold uppercase leading-none">PER NIGHT</span>
+                                        <span className="text-[7px] text-slate-400 font-bold uppercase leading-none">
+                                            {hotel.tax > 0 
+                                                ? `incl. ${currencySymbol}${hotel.tax.toFixed(2)} tax` 
+                                                : 'incl. taxes'}
+                                        </span>
+                                    </div>
+                                </>
+                            ) : (
+                                <span className="text-sm font-bold text-slate-500 uppercase">Check Availability</span>
+                            )}
                         </div>
                     </div>
                     <div

@@ -67,6 +67,23 @@ const HotelListing = () => {
     /**
      * Build the request body from current search state and URL params
      */
+    /**
+     * Returns default check-in (tomorrow) and check-out (day after) as yyyy-MM-dd strings.
+     */
+    const getDefaultDates = () => {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const dayAfter = new Date(tomorrow);
+        dayAfter.setDate(dayAfter.getDate() + 1);
+        const fmt = (d) => {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        };
+        return { checkin: fmt(tomorrow), checkout: fmt(dayAfter) };
+    };
+
     const getSearchParams = () => {
         const starsParam = searchParams.get('stars');
         const freeCancellationParam = searchParams.get('freeCancellation');
@@ -228,6 +245,13 @@ const HotelListing = () => {
             hotelBadges.push({ type: 'exclusive', label: 'Exclusive', color: 'bg-purple-500/80' });
         }
 
+        // Extract dynamic price and currency from the first room
+        const firstRoom = apiHotel.rooms?.[0];
+        const ratePrice = firstRoom?.ratePrice;
+        const priceValue = ratePrice?.markupCalculatedPrice?.holder?.saleAmount || ratePrice?.calculatedAmount || 0;
+        const currencyCode = ratePrice?.currency || 'USD';
+        const totalTaxAmount = ratePrice?.totalTaxAmount || 0;
+
         return {
             id: apiHotel.id,
             name: name,
@@ -239,7 +263,9 @@ const HotelListing = () => {
             rating: rating,
             ratingLabel: ratingLabel,
             ratingColor: 'bg-primary/10 text-primary',
-            price: 450, // Static for now as requested
+            price: priceValue,
+            currency: currencyCode,
+            tax: totalTaxAmount,
             lat: apiHotel.coordinates?.lat,
             lng: apiHotel.coordinates?.lon,
             amenities: amenities,
@@ -290,6 +316,15 @@ const HotelListing = () => {
                     roomPaxCapacity: filters.roomPaxCapacity,
                     facilities: filters.facilities
                 },
+                searchCriteria: (() => {
+                    const defaults = getDefaultDates();
+                    return {
+                        checkin: searchParams.get('checkin') || defaults.checkin,
+                        checkout: searchParams.get('checkout') || defaults.checkout,
+                        nationality: searchParams.get('nationality') || 'TR',
+                        rooms: roomState
+                    };
+                })(),
                 signal: controller.signal
             });
 
@@ -443,6 +478,11 @@ const HotelListing = () => {
         };
     }, [
         locationId,
+        searchParams.get('checkin'),
+        searchParams.get('checkout'),
+        searchParams.get('guests'),
+        searchParams.get('nationality'),
+        searchParams.get('q'),
         searchParams.get('stars'),
         searchParams.get('freeCancellation'),
         searchParams.get('prePayment'),

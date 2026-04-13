@@ -5,6 +5,43 @@ const API_BASE_URL = 'http://72.62.17.189:8000/hotel-hub/v1/b2b/hotels';
 // Persistent cache for facility names during the session
 const facilityCache = {};
 
+/**
+ * Normalise a date value to the yyyy-MM-dd string format expected by the backend.
+ * Accepts a Date object, an ISO string, or any string already in yyyy-MM-dd format.
+ * Returns null if the value is falsy or cannot be parsed.
+ * @param {string|Date|null|undefined} value
+ * @returns {string|null}
+ */
+const formatDate = (value, defaultValue = null) => {
+    if (!value || value === 'null' || value === 'undefined') return defaultValue;
+    try {
+        // If it's already a yyyy-MM-dd string, return as-is
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) {
+            return value.trim();
+        }
+        const d = value instanceof Date ? value : new Date(value);
+        if (isNaN(d.getTime())) return defaultValue;
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    } catch {
+        return defaultValue;
+    }
+};
+
+const getDefaultRequestDates = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dayAfter = new Date(tomorrow);
+    dayAfter.setDate(dayAfter.getDate() + 1);
+    
+    return {
+        checkin: formatDate(tomorrow),
+        checkout: formatDate(dayAfter)
+    };
+};
+
 export const hotelService = {
     /**
      * Search for hotels using content-search endpoint.
@@ -14,10 +51,25 @@ export const hotelService = {
      * @param {number} params.size - Items per page
      * @param {Object} [params.geo] - Geo bounding box (topLeft, bottomRight)
      */
-    searchHotels: async ({ locationId, page = 0, size = 10, geo = null, zoom = null, filters = {}, signal = null }) => {
+    searchHotels: async ({ locationId, page = 0, size = 10, geo = null, zoom = null, filters = {}, searchCriteria = null, signal = null }) => {
+        const defaults = getDefaultRequestDates();
         const body = {
             geo: geo || null,
             zoom: zoom,
+            searchCriteria: searchCriteria
+                ? {
+                    ...searchCriteria,
+                    checkin: formatDate(searchCriteria.checkin, defaults.checkin),
+                    checkout: formatDate(searchCriteria.checkout, defaults.checkout),
+                    nationality: searchCriteria.nationality || 'TR',
+                    rooms: searchCriteria.rooms || [{ adults: 2, children: 0, childAges: [] }]
+                }
+                : {
+                    checkin: defaults.checkin,
+                    checkout: defaults.checkout,
+                    nationality: 'TR',
+                    rooms: [{ adults: 2, children: 0, childAges: [] }]
+                },
             filters: {
                 locationIds: filters.locationIds?.length > 0 ? filters.locationIds : (locationId ? [parseInt(locationId)] : null),
                 hotelName: null,

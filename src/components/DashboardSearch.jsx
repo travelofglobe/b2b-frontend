@@ -42,10 +42,17 @@ const DashboardSearch = () => {
 
     const parseDateParam = (param) => {
         if (!param) return null;
-        const [day, month, year] = param.split('-').map(Number);
+        // Support both yyyy-MM-dd (new, backend format) and dd-MM-yyyy (legacy)
+        const isNewFormat = /^\d{4}-\d{2}-\d{2}$/.test(param.trim());
+        const parts = param.split('-').map(Number);
+        let year, month, day;
+        if (isNewFormat) {
+            [year, month, day] = parts;
+        } else {
+            [day, month, year] = parts;
+        }
         if (day && month && year) {
             const date = new Date(year, month - 1, day);
-            // Validate that the date is valid
             if (date instanceof Date && !isNaN(date.getTime())) {
                 return date;
             }
@@ -146,10 +153,10 @@ const DashboardSearch = () => {
 
     const formatDateForUrl = (date) => {
         const d = new Date(date);
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
         const year = d.getFullYear();
-        return `${day}-${month}-${year}`;
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     };
 
     const getUrlParams = (queryOverride) => {

@@ -103,12 +103,17 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
             {breadcrumbs.map((crumb, index) => {
                 const isLast = index === breadcrumbs.length - 1;
                 const name = getName(crumb.name);
+                const isCountryAfterHome = index === 0 && (crumb.locationType === 'COUNTRY' || crumb.type === 'COUNTRY');
 
                 return (
                     <React.Fragment key={crumb.locationId}>
                         <span className="material-symbols-outlined text-slate-400 text-xs">chevron_right</span>
                         {isLast ? (
                             <span className="text-slate-900 dark:text-white text-sm font-semibold">{name}</span>
+                        ) : isCountryAfterHome ? (
+                            <span className="text-slate-400 dark:text-slate-500 text-sm font-medium">
+                                {name}
+                            </span>
                         ) : (
                             <span
                                 onClick={() => handleBreadcrumbClick(crumb)}

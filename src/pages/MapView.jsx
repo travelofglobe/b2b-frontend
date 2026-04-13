@@ -519,13 +519,21 @@ const MapView = () => {
         setIsLoadingHotels(true);
         try {
             // Include all dynamic filters in map request
-            const activeFilters = { ...getSearchFilters() };
+            const params = getSearchFilters();
             
-            // If user is panning, we should ignore the restrictive locationId from the URL
-            // because they are exploring a different area.
-            if (boundsData.isUserPan) {
-                activeFilters.locationIds = null;
-            }
+            // Construct a clean filters object for the API
+            const filtersBody = {
+                locationIds: boundsData.isUserPan ? null : params.locationIds,
+                stars: params.stars,
+                hasFreeCancellation: params.hasFreeCancellation,
+                hasPrePayment: params.hasPrePayment,
+                roomTwin: params.roomTwin,
+                roomMaxAdult: params.roomMaxAdult,
+                roomMaxChildren: params.roomMaxChildren,
+                roomMaxExtraBed: params.roomMaxExtraBed,
+                roomPaxCapacity: params.roomPaxCapacity,
+                facilities: params.facilities
+            };
             
             const response = await hotelService.searchHotels({
                 locationId: !boundsData.isUserPan ? searchParams.get('locationId') : null,
@@ -533,10 +541,10 @@ const MapView = () => {
                 zoom: boundsData.zoom,
                 page: 0,
                 size: 100,
-                filters: activeFilters,
+                filters: filtersBody,
                 searchCriteria: {
-                    checkin: activeFilters._checkin,
-                    checkout: activeFilters._checkout,
+                    checkin: params._checkin,
+                    checkout: params._checkout,
                     nationality: searchParams.get('nationality') || 'TR',
                     rooms: roomState
                 },

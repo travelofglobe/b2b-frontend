@@ -54,8 +54,8 @@ const Header = () => {
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                                     className="flex items-center gap-2 transition-transform active:scale-95 focus:outline-none"
                                 >
-                                    <div className="size-10 rounded-full border-2 border-primary shadow-sm hover:shadow-md transition-shadow flex items-center justify-center bg-slate-100 dark:bg-slate-800" title={userDisplayName}>
-                                        <span className="material-symbols-outlined text-slate-400 dark:text-slate-500 text-[28px]">person</span>
+                                    <div className="size-10 rounded-lg shadow-sm hover:shadow-md transition-shadow flex items-center justify-center bg-slate-100 dark:bg-[#233648]" title={userDisplayName}>
+                                        <span className="material-symbols-outlined text-slate-600 dark:text-slate-300 text-[24px]">person</span>
                                     </div>
                                     <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">expand_more</span>
                                 </button>

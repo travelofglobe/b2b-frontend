@@ -51,7 +51,7 @@ export const hotelService = {
      * @param {number} params.size - Items per page
      * @param {Object} [params.geo] - Geo bounding box (topLeft, bottomRight)
      */
-    searchHotels: async ({ locationId, page = 0, size = 10, geo = null, zoom = null, filters = {}, searchCriteria = null, signal = null }) => {
+    searchHotels: async ({ locationId, page = 0, size = 20, geo = null, zoom = null, filters = {}, searchCriteria = null, signal = null }) => {
         const defaults = getDefaultRequestDates();
         const body = {
             geo: geo || null,

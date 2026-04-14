@@ -303,7 +303,7 @@ const HotelListing = () => {
             const response = await hotelService.searchHotels({
                 locationId,
                 page: currentPage,
-                size: 10,
+                size: 20,
                 filters: {
                     locationIds: filters.locations?.length > 0 ? filters.locations : (locationId ? [parseInt(locationId)] : null),
                     stars: filters.stars,

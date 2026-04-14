@@ -301,19 +301,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                 {/* Scrollable Content wrapper with side padding */}
                 <div className="px-6 pb-6">
                     {/* Price Range Slider - disabled until backend support is ready */}
-                <FilterSection title="Price per night" icon="payments" disabled>
-                    <div className="px-2 pt-2">
-                        <div className="relative h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full mb-6 mt-2">
-                            <div className="absolute left-1/4 right-1/4 h-full bg-primary rounded-full"></div>
-                            <div className="absolute left-1/4 -top-1.5 size-4 bg-primary border-2 border-white dark:border-[#111a22] rounded-full shadow-sm cursor-pointer hover:scale-110 transition-transform"></div>
-                            <div className="absolute right-1/4 -top-1.5 size-4 bg-primary border-2 border-white dark:border-[#111a22] rounded-full shadow-sm cursor-pointer hover:scale-110 transition-transform"></div>
-                        </div>
-                        <div className="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
-                            <span>$120</span>
-                            <span>$850+</span>
-                        </div>
-                    </div>
-                </FilterSection>
+                    {/* Hide Price per night filter as requested */}
                 {/* Locations */}
                 <FilterSection title="Locations" icon="location_on">
                     <div className="space-y-3">

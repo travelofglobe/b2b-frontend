@@ -500,7 +500,7 @@ const HotelListing = () => {
             if (entries[0].isIntersecting && hasMore && !isLoading) {
                 loadMoreHotels();
             }
-        }, { threshold: 0.1 });
+        }, { threshold: 0, rootMargin: '2000px' });
 
         if (loaderRef.current) {
             observer.observe(loaderRef.current);

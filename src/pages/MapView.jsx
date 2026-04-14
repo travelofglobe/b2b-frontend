@@ -29,19 +29,19 @@ const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover, se
     const icon = L.divIcon({
         className: 'custom-leaflet-marker',
         html: `
-            <div class="relative group cursor-pointer">
-                <div class="px-4 py-2 rounded-2xl font-black text-sm shadow-2xl transition-all border-2 flex items-center gap-1 overflow-hidden ${isSelected || isHovered
+            <div class="relative group cursor-pointer flex flex-col items-center w-max mx-auto">
+                <div class="px-3 py-1.5 rounded-2xl font-black text-sm shadow-2xl transition-all border-2 flex items-center gap-1 whitespace-nowrap ${isSelected || isHovered
                 ? 'bg-[#137fec] text-white border-white scale-110 ring-4 ring-[#137fec]/20'
                 : 'bg-white/90 backdrop-blur-md text-slate-900 border-white/20'
             }">
                     <span class="text-[10px] opacity-70 leading-none">$</span>
                     ${hotel.price}
                 </div>
-                <div class="w-0.5 h-3 mx-auto transition-colors ${isSelected || isHovered ? 'bg-[#137fec]' : 'bg-white/40'}"></div>
+                <div class="w-0.5 h-3 mt-0.5 transition-colors ${isSelected || isHovered ? 'bg-[#137fec]' : 'bg-white/40'}"></div>
             </div>
         `,
-        iconSize: [60, 40],
-        iconAnchor: [30, 40],
+        iconSize: [120, 50],
+        iconAnchor: [60, 50],
     });
 
     return (

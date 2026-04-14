@@ -227,7 +227,6 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                                         {currencySymbol}{Math.round(hotel.price)}
                                     </span>
                                     <div className="flex flex-col">
-                                        <span className="text-[9px] text-slate-400 font-bold uppercase leading-none">PER NIGHT</span>
                                         <span className="text-[7px] text-slate-400 font-bold uppercase leading-none">
                                             {hotel.tax > 0 
                                                 ? `incl. ${currencySymbol}${hotel.tax.toFixed(2)} tax` 

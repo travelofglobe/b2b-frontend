@@ -62,6 +62,7 @@ const HotelListing = () => {
     const [hasMore, setHasMore] = React.useState(true);
     const [totalProperties, setTotalProperties] = React.useState(0);
     const [dynamicFilters, setDynamicFilters] = React.useState(null);
+    const [sortConfig, setSortConfig] = React.useState({ field: null, order: 'DESC' });
     const abortControllerRef = React.useRef(null);
 
     /**
@@ -325,6 +326,7 @@ const HotelListing = () => {
                         rooms: roomState
                     };
                 })(),
+                sort: sortConfig.field ? sortConfig : null,
                 signal: controller.signal
             });
 
@@ -374,7 +376,7 @@ const HotelListing = () => {
                 setIsLoading(false);
             }
         }
-    }, [page, isLoading, hasMore, locationId, mapApiHotelToModel, searchParams]);
+    }, [page, isLoading, hasMore, locationId, mapApiHotelToModel, searchParams, sortConfig]);
 
     // Fetch names for any locations in the filters that we haven't seen in the hotel results yet
     React.useEffect(() => {
@@ -495,6 +497,27 @@ const HotelListing = () => {
         searchParams.get('facilities')
     ]);
 
+    const handleSortChange = (e) => {
+        const val = e.target.value;
+        let newSort = { field: null, order: 'DESC' };
+        
+        switch (val) {
+            case 'star_desc': newSort = { field: 'hotelStarCategoryId', order: 'DESC' }; break;
+            case 'star_asc': newSort = { field: 'hotelStarCategoryId', order: 'ASC' }; break;
+            case 'rating_desc': newSort = { field: 'rating', order: 'DESC' }; break;
+            case 'rating_asc': newSort = { field: 'rating', order: 'ASC' }; break;
+            default: newSort = { field: null, order: 'DESC' };
+        }
+        
+        setSortConfig(newSort);
+        // loadMoreHotels will be triggered after state update because sortConfig is in dependencies
+    };
+
+    // Trigger initial search or search on sort change
+    React.useEffect(() => {
+        loadMoreHotels(true);
+    }, [locationId, searchParams, sortConfig]);
+
     React.useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting && hasMore && !isLoading) {
@@ -536,11 +559,16 @@ const HotelListing = () => {
                             </div>
                             <div className="flex items-center gap-3">
                                 <span className="text-sm font-bold text-slate-500 whitespace-nowrap">SORT BY:</span>
-                                <select className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-lg text-sm font-bold py-2 pl-4 pr-10 focus:ring-primary focus:border-primary">
-                                    <option>Most Recommended</option>
-                                    <option>Price (Low to High)</option>
-                                    <option>Guest Rating</option>
-                                    <option>Star Rating</option>
+                                <select 
+                                    className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-lg text-sm font-bold py-2 pl-4 pr-10 focus:ring-primary focus:border-primary"
+                                    onChange={handleSortChange}
+                                    value={sortConfig.field ? `${sortConfig.field === 'hotelStarCategoryId' ? 'star' : 'rating'}_${sortConfig.order.toLowerCase()}` : 'recommended'}
+                                >
+                                    <option value="recommended">Most Recommended</option>
+                                    <option value="rating_desc">Guest Rating: High to Low</option>
+                                    <option value="rating_asc">Guest Rating: Low to High</option>
+                                    <option value="star_desc">Star Rating: High to Low</option>
+                                    <option value="star_asc">Star Rating: Low to High</option>
                                 </select>
                             </div>
                         </div>

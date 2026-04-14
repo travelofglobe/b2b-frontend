@@ -334,8 +334,18 @@ const MapView = () => {
 
     const handleBackToList = () => {
         const q = searchParams.get('q');
-        // Map slug generation logic similar to HeaderSearch
-        const baseUrl = q ? `/hotels/${q.toLowerCase().replace(/ /g, '-')}` : '/hotels';
+        let slug = q ? q.toLowerCase() : '';
+        
+        // Build hierarchical slug if possible
+        if (q && q.includes(',')) {
+            const queryParts = q.split(',').map(p => p.trim().toLowerCase());
+            if (queryParts.length >= 2) {
+                const reversed = queryParts.reverse();
+                slug = reversed.slice(1).join('/');
+            }
+        }
+        
+        const baseUrl = slug ? `/hotels/${slug}` : '/hotels';
         navigate(`${baseUrl}?${searchParams.toString()}`);
     };
 

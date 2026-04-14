@@ -170,16 +170,42 @@ const DashboardSearch = () => {
         return params;
     };
 
+    const buildLocationSlug = (location) => {
+        if (location.locationBreadcrumbs && location.locationBreadcrumbs.length > 0) {
+            // parts: [Country, City, District] (hierarchical order from API)
+            const breadcrumbs = location.locationBreadcrumbs.map(b => (b.name.translations.en || b.name.defaultName).toLowerCase());
+            
+            // If more than 1 part (e.g., City exists), skip Country (at index 0)
+            if (breadcrumbs.length > 1) {
+                return breadcrumbs.slice(1).join('/');
+            }
+            // Just one part
+            return breadcrumbs[0];
+        }
+        return (location.name.translations.en || Object.values(location.name.translations)[0] || 'destination').toLowerCase();
+    };
+
     const handleSearch = () => {
         if (!query.trim()) {
             setError(true);
-            // Focus the input if possible, or just show visual cue
             return;
         }
 
         if (query) {
             localStorage.setItem('dashboard_last_search', query);
-            const slug = query.toLowerCase().replace(/ /g, '-');
+            
+            // If query contains commas, try to build a hierarchical slug
+            // e.g. "Üsküdar, İstanbul, Türkiye" -> ["Üsküdar", "İstanbul", "Türkiye"]
+            const queryParts = query.split(',').map(p => p.trim().toLowerCase());
+            let slug = query.toLowerCase();
+            
+            if (queryParts.length >= 2) {
+                // If 3 parts: [District, City, Country] -> slug "istanbul/uskudar"
+                // If 2 parts: [City, Country] -> slug "istanbul"
+                const reversed = queryParts.reverse(); // [Country, City, District]
+                slug = reversed.slice(1).join('/');
+            }
+
             // Retrieve locationId from localStorage if it exists
             const savedLocationId = localStorage.getItem('dashboard_last_locationId');
             const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
@@ -204,12 +230,20 @@ const DashboardSearch = () => {
             localStorage.setItem('dashboard_last_locationId', location.locationId);
         }
 
+        // Generate hierarchical slug
+        const slug = buildLocationSlug(location);
+
         // Reset user interaction flag and close dropdown to prevent reopening
         isUserInteraction.current = false;
         setShowDropdown(false);
 
         setQuery(fullName);
-
+        
+        // Immediate navigation with hierarchical slug
+        if (!isMapPage) {
+            const locationParam = `&locationId=${location.locationId}`;
+            navigate(`/hotels/${slug}?${getUrlParams(fullName)}${locationParam}`);
+        }
     };
 
     const handleSelectHotel = (hotel) => {
@@ -410,8 +444,10 @@ const DashboardSearch = () => {
                                                     </div>
                                                     <div className="min-w-0">
                                                         <div className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">{getHotelName(hotel)}</div>
-                                                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">
-                                                            {hotel.locationBreadcrumbs ? hotel.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName).reverse().slice(1, 3).join(', ') : hotel.countryCode}
+                                                        <div className="text-[10px] text-slate-400">
+                                                            {hotel.locationBreadcrumbs ?
+                                                                hotel.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName).reverse().join(', ')
+                                                                : hotel.countryCode}
                                                         </div>
                                                     </div>
                                                 </button>

@@ -214,18 +214,37 @@ const HeaderSearch = () => {
         return params;
     };
 
+    const buildLocationSlug = (location) => {
+        if (location.locationBreadcrumbs && location.locationBreadcrumbs.length > 0) {
+            // parts: [Country, City, District] (hierarchical order from API)
+            const breadcrumbs = location.locationBreadcrumbs.map(b => (b.name.translations.en || b.name.defaultName).toLowerCase());
+            
+            if (breadcrumbs.length > 1) {
+                return breadcrumbs.slice(1).join('/');
+            }
+            return breadcrumbs[0];
+        }
+        return (location.name.translations.en || Object.values(location.name.translations)[0] || 'destination').toLowerCase();
+    };
+
     const handleSearch = () => {
         if (query) {
             localStorage.setItem('dashboard_last_search', query);
-            // Retrieve locationId from localStorage if it exists
             const savedLocationId = localStorage.getItem('dashboard_last_locationId');
             const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
 
-            // Map page doesn't use slug-based routing, only Hotels does
+            // Build hierarchical slug if possible
+            const queryParts = query.split(',').map(p => p.trim().toLowerCase());
+            let slug = query.toLowerCase();
+            
+            if (queryParts.length >= 2) {
+                const reversed = queryParts.reverse();
+                slug = reversed.slice(1).join('/');
+            }
+
             if (isMapPage) {
                 navigate(`/map?${getUrlParams()}${locationParam}`);
             } else {
-                const slug = query.toLowerCase().replace(/ /g, '-');
                 navigate(`/hotels/${slug}?${getUrlParams()}${locationParam}`);
             }
         }
@@ -234,25 +253,27 @@ const HeaderSearch = () => {
     const handleSelectLocation = (location) => {
         const name = location.name.translations.en || Object.values(location.name.translations)[0] || 'destination';
 
-        // Construct full name from breadcrumbs for display
         let fullName = name;
         if (location.locationBreadcrumbs && location.locationBreadcrumbs.length > 0) {
             const parts = location.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName);
             fullName = parts.reverse().join(', ');
         }
 
-        // Close dropdown FIRST before updating query to prevent reopening
+        const slug = buildLocationSlug(location);
+
         isUserInteraction.current = false;
         setShowDropdown(false);
 
         setQuery(fullName);
         localStorage.setItem('dashboard_last_search', fullName);
-        // Save locationId for later use with Search button and breadcrumb loading
         if (location.locationId) {
             localStorage.setItem('dashboard_last_locationId', location.locationId);
         }
 
-        // Removed immediate navigation
+        if (!isMapPage) {
+            const locationParam = `&locationId=${location.locationId}`;
+            navigate(`/hotels/${slug}?${getUrlParams(fullName)}${locationParam}`);
+        }
     };
 
     const handleSelectHotel = (hotel) => {
@@ -394,7 +415,7 @@ const HeaderSearch = () => {
                                                 <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{getHotelName(hotel)}</div>
                                                 <div className="text-[10px] text-slate-400">
                                                     {hotel.locationBreadcrumbs ?
-                                                        hotel.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName).reverse().slice(1, 3).join(', ')
+                                                        hotel.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName).reverse().join(', ')
                                                         : hotel.countryCode}
                                                 </div>
                                             </div>

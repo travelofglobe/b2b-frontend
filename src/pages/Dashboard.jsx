@@ -425,7 +425,7 @@ const Dashboard = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div onClick={() => navigate('/hotels/new-york')} className="group bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[32px] overflow-hidden border border-white/60 dark:border-white/10 cursor-pointer shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500">
+                            <div onClick={() => navigate('/hotels/new york')} className="group bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[32px] overflow-hidden border border-white/60 dark:border-white/10 cursor-pointer shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500">
                                 <div className="relative h-48 overflow-hidden">
                                     <img alt="New York City" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtxEUChP8HguBV_GFxz8TEk3Dssxi8xSCtI9Z9T9odllNiM91Ak0hyIkth1y8h7fVd-SgwSm4HxyJenSQHfxcK0mRSw03MGbXy9awP6fWL9o2E6w2zJuTizyr02IqQyZd6m73Z9CBZkHOiHgr0UxqaQ0otgONM7xlmX8jdsLkvqO6E3iPFxcpO5oCVYD2Oeq35OrYztM-6PMWjIP3b1DOmvxfBWs1CLP1K2ycUZSlNdQ7d-ig6xdBpLeQU4BjENmJ-TBFNTw8OLQXD" />
                                     <div className="absolute top-4 right-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl px-3 py-1.5 rounded-2xl border border-white/60 dark:border-white/20 flex items-center gap-2 shadow-lg">

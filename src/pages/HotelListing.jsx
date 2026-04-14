@@ -53,11 +53,13 @@ const HotelListing = () => {
     };
 
     const [viewMode, setViewMode] = React.useState('list'); // 'list', 'grid2', 'grid3'
-    const { slug, theme, campaign } = useParams();
+    const params = useParams();
+    const slug = params['*'] || params.slug;
+    const { theme, campaign } = params;
     const [searchParams] = useSearchParams();
 
     const [hotels, setHotels] = React.useState([]);
-    const [page, setPage] = React.useState(0); // API uses 0-based indexing
+    const [page, setPage] = React.useState(0);
     const [isLoading, setIsLoading] = React.useState(false);
     const [hasMore, setHasMore] = React.useState(true);
     const [totalProperties, setTotalProperties] = React.useState(0);
@@ -65,9 +67,6 @@ const HotelListing = () => {
     const [sortConfig, setSortConfig] = React.useState({ field: null, order: 'DESC' });
     const abortControllerRef = React.useRef(null);
 
-    /**
-     * Build the request body from current search state and URL params
-     */
     /**
      * Returns default check-in (tomorrow) and check-out (day after) as yyyy-MM-dd strings.
      */
@@ -110,6 +109,7 @@ const HotelListing = () => {
             facilities: facilitiesParam ? facilitiesParam.split(',').map(Number) : []
         };
     };
+
     const [locationNames, setLocationNames] = React.useState({});
     const [facilityNames, setFacilityNames] = React.useState({});
     const loaderRef = React.useRef(null);
@@ -141,10 +141,20 @@ const HotelListing = () => {
 
     // Get location name from query parameter
     const queryLocation = searchParams.get('q');
+    
+    // For hierarchical slugs, take the last segment for the display name
+    const getSlugDisplayName = (s) => {
+        if (!s) return null;
+        const decoded = decodeURIComponent(s);
+        const parts = decoded.split('/');
+        const lastPart = parts[parts.length - 1];
+        return lastPart.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    };
+
     const locationName = queryLocation
         ? queryLocation.split(',')[0].trim()
         : slug
-            ? slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+            ? getSlugDisplayName(slug)
             : 'Santorini';
 
     const themeName = theme ? theme.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;

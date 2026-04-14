@@ -85,9 +85,20 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
         const name = getName(crumb.name);
         searchParams.set('q', name);
 
+        // Build hierarchical slug starting from City (index 1) if possible
+        const index = breadcrumbs.findIndex(c => c.locationId === crumb.locationId);
+        let slug = name.toLowerCase();
+        
+        if (index > 0) {
+            // Include segments from index 1 (City) up to the clicked index
+            const pathSegments = breadcrumbs.slice(1, index + 1).map(c => getName(c.name).toLowerCase());
+            if (pathSegments.length > 0) {
+                slug = pathSegments.join('/');
+            }
+        }
+
         // Navigate to appropriate page type with updated locationId and query
         const basePath = isMapPage ? '/map' : '/hotels';
-        const slug = name.toLowerCase().replace(/ /g, '-');
 
         if (isMapPage) {
             window.location.href = `${basePath}?${searchParams.toString()}`;

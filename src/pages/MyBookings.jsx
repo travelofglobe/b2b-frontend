@@ -4,6 +4,7 @@ import { bookingService } from '../services/bookingService';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/ThemeToggle';
 import BookingStatusBadge from '../components/BookingStatusBadge';
+import StatusMultiSelect from '../components/StatusMultiSelect';
 import { BOOKING_STATUS_CONFIG } from '../utils/bookingStatusUtils';
 
 const MyBookings = () => {
@@ -31,7 +32,7 @@ const MyBookings = () => {
         internalHotelId: '',
         bookingUuid: '',
         paymentStatus: '',
-        bookingStatus: '',
+        bookingStatuses: [],
         clientReferenceId: '',
         requestId: '',
         hotelName: '',
@@ -109,7 +110,7 @@ const MyBookings = () => {
         filters.maxCancellationAmount,
         filters.principalAgencyIds,
         filters.paymentStatus,
-        filters.bookingStatus,
+        filters.bookingStatuses,
         filters.isCancelled
     ]);
 
@@ -197,7 +198,7 @@ const MyBookings = () => {
             internalHotelId: '',
             bookingUuid: '',
             paymentStatus: '',
-            bookingStatus: '',
+            bookingStatuses: [],
             clientReferenceId: '',
             requestId: '',
             hotelName: '',
@@ -571,18 +572,10 @@ const MyBookings = () => {
                                             </select>
                                         </td>
                                         <td className="px-2 py-2">
-                                            <select
-                                                value={filters.bookingStatus}
-                                                onChange={(e) => handleFilterChange('bookingStatus', e.target.value)}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
-                                            >
-                                                <option value="">All</option>
-                                                {Object.entries(BOOKING_STATUS_CONFIG).map(([key, config]) => (
-                                                    <option key={key} value={key}>
-                                                        {config.label}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            <StatusMultiSelect
+                                                selectedValues={filters.bookingStatuses}
+                                                onChange={(values) => handleFilterChange('bookingStatuses', values)}
+                                            />
                                         </td>
                                         <td className="px-2 py-2">
                                             <div className="flex flex-col gap-1">

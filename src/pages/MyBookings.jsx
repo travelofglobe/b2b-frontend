@@ -376,10 +376,10 @@ const MyBookings = () => {
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                                     className="flex items-center gap-2 transition-transform active:scale-95 focus:outline-none"
                                 >
-                                    <div className="size-10 rounded-full border-2 border-primary shadow-sm hover:shadow-md transition-shadow flex items-center justify-center bg-slate-100 dark:bg-slate-800" title={userDisplayName}>
-                                        <span className="material-symbols-outlined text-slate-400 dark:text-slate-500 text-[28px]">person</span>
+                                    <div className="size-10 rounded-lg shadow-sm hover:shadow-md transition-shadow flex items-center justify-center bg-slate-100 dark:bg-[#233648]" title={userDisplayName}>
+                                        <span className="material-symbols-outlined text-slate-600 dark:text-slate-300 text-[24px]">person</span>
                                     </div>
-                                    <span className="material-icons-round text-slate-500 dark:text-slate-400">expand_more</span>
+                                    <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">expand_more</span>
                                 </button>
 
                                 {isMenuOpen && (
@@ -392,13 +392,13 @@ const MyBookings = () => {
                                         <div className="p-2 space-y-1">
                                             <button className="w-full text-left px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-colors">
                                                 <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-primary">
-                                                    <span className="material-icons-round text-[18px]">person</span>
+                                                    <span className="material-symbols-outlined text-[18px]">person</span>
                                                 </div>
                                                 Profile Details
                                             </button>
                                             <button className="w-full text-left px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-colors">
                                                 <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-primary">
-                                                    <span className="material-icons-round text-[18px]">settings</span>
+                                                    <span className="material-symbols-outlined text-[18px]">settings</span>
                                                 </div>
                                                 Settings
                                             </button>
@@ -411,7 +411,7 @@ const MyBookings = () => {
                                                 className="w-full text-left px-3 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg flex items-center gap-3 transition-colors"
                                             >
                                                 <div className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500">
-                                                    <span className="material-icons-round text-[18px]">logout</span>
+                                                    <span className="material-symbols-outlined text-[18px]">logout</span>
                                                 </div>
                                                 Sign Out
                                             </button>

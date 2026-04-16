@@ -424,12 +424,12 @@ const MyBookings = () => {
                 </header>
 
                 {/* Content Area - Scrollable */}
-                <div className="flex-1 overflow-auto p-8 relative">
+                <div className="flex-1 overflow-auto px-6 py-4 relative">
                     {/* Background Intensity Glow for Table */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[50%] bg-primary/5 blur-[150px] rounded-full pointer-events-none"></div>
 
                     {/* Table with Premium Design */}
-                    <div className="relative bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[40px] border border-white/60 dark:border-white/10 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.08)] transition-all duration-500 overflow-hidden">
+                    <div className="relative bg-transparent transition-all duration-500">
                         <div className="overflow-x-auto">
                             <table className="w-full border-collapse">
                                 <thead>

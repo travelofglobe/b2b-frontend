@@ -472,7 +472,7 @@ const Dashboard = () => {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
-                                        <tr className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-slate-800/20">
+                                        <tr className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-slate-800/20 border-b border-slate-200 dark:border-slate-700">
                                             <th className="px-6 py-4">Booking ID</th>
                                             <th className="px-6 py-4">Voucher</th>
                                             <th className="px-6 py-4">Agency</th>

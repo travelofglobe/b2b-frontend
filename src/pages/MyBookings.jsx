@@ -433,7 +433,7 @@ const MyBookings = () => {
                         <div className="overflow-x-auto">
                             <table className="w-full border-collapse">
                                 <thead>
-                                    <tr className="bg-white/20 dark:bg-slate-800/20 border-b border-white/20 dark:border-white/5">
+                                    <tr className="bg-white/30 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-700">
                                         <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">ID</th>
                                         <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[150px]">Voucher</th>
                                         <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[300px]">Hotel</th>
@@ -450,7 +450,7 @@ const MyBookings = () => {
                                         <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[180px]">Cl. Ref</th>
                                         <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">Cancelled?</th>
                                     </tr>
-                                    <tr className="bg-white/10 dark:bg-slate-800/10 border-b border-white/20 dark:border-white/5">
+                                    <tr className="bg-slate-50/80 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 relative z-20">
                                         <td className="px-2 py-2">
                                             <input
                                                 type="number"

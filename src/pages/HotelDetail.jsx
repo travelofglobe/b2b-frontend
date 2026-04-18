@@ -194,6 +194,7 @@ const HotelDetail = () => {
     const [showGuestDropdown, setShowGuestDropdown] = useState(false);
     const guestWrapperRef = useRef(null);
     const datePickerRef = useRef(null);
+    const lastFetchRef = useRef('');
 
     // Computed totals
     const totalAdults = roomState.reduce((sum, r) => sum + r.adults, 0);
@@ -206,6 +207,10 @@ const HotelDetail = () => {
 
     // Fetch data when search parameters or hotel ID change
     useEffect(() => {
+        const fetchKey = `${id}-${searchParams.toString()}`;
+        if (lastFetchRef.current === fetchKey) return;
+        lastFetchRef.current = fetchKey;
+
         const fetchCheckIn = parseDateParam(searchParams.get('checkin')) || tomorrow;
         const fetchCheckOut = parseDateParam(searchParams.get('checkout')) || dayAfter;
         const fetchNationality = searchParams.get('nationality') || 'TR';
@@ -728,6 +733,7 @@ const HotelDetail = () => {
                                                             {/* Price Area */}
                                                             <div
                                                                 onClick={() => {
+                                                                    if (roomPrice <= 0 && !isSelected) return;
                                                                     const roomData = { type: roomName, rate: roomPrice, name: roomName, roomIndex, currency };
                                                                     setSelectedRooms(prev => {
                                                                         const index = prev.findIndex(r => r.name === roomName && r.roomIndex === roomIndex);
@@ -735,7 +741,7 @@ const HotelDetail = () => {
                                                                         return [...prev, roomData];
                                                                     });
                                                                 }}
-                                                                className={`relative overflow-hidden p-1.5 sm:p-2.5 rounded-[18px] flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2 group/rate transition-all duration-500 cursor-pointer shadow-lg active:scale-[0.99] border ${isSelected ? 'bg-primary/5 border-primary ring-2 ring-primary/5' : 'bg-white/60 dark:bg-slate-800/60 border-white/40 dark:border-white/10 hover:border-primary/50'}`}
+                                                                className={`relative overflow-hidden p-1.5 sm:p-2.5 rounded-[18px] flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2 group/rate transition-all duration-500 border ${roomPrice > 0 ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'} shadow-lg ${isSelected ? 'bg-primary/5 border-primary ring-2 ring-primary/5' : 'bg-white/60 dark:bg-slate-800/60 border-white/40 dark:border-white/10 hover:border-primary/50'}`}
                                                             >
                                                                 <div className="flex items-center gap-2 z-10 w-full sm:w-auto">
                                                                     <div className={`size-7 sm:size-9 rounded-lg flex items-center justify-center shrink-0 transition-all duration-500 ${isSelected ? 'bg-primary text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
@@ -768,9 +774,15 @@ const HotelDetail = () => {
                                                                         <p className="text-[6px] text-slate-400 font-bold uppercase tracking-widest leading-none">TOTAL STAY</p>
                                                                     </div>
 
-                                                                    <div className={`px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg font-black text-[8px] uppercase tracking-wider transition-all duration-300 ${isSelected ? 'bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-primary text-white'}`}>
-                                                                        {isSelected ? 'Remove' : 'Select'}
-                                                                    </div>
+                                                                    {roomPrice > 0 ? (
+                                                                        <div className={`px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg font-black text-[8px] uppercase tracking-wider transition-all duration-300 ${isSelected ? 'bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-primary text-white'}`}>
+                                                                            {isSelected ? 'Remove' : 'Select'}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg font-black text-[8px] uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed">
+                                                                            Sold Out
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             </div>
 

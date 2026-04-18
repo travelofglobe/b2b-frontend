@@ -26,13 +26,13 @@ const NationalitySelect = ({ value, onChange, compact = false }) => {
         <div className="relative w-full" ref={wrapperRef}>
             <button
                 onClick={() => { setIsOpen(!isOpen); setSearchTerm(''); }}
-                className="w-full flex items-center gap-2 bg-transparent border-none p-0 focus:ring-0"
+                className={`w-full flex items-center gap-2 bg-transparent border-none p-0 focus:ring-0 ${compact ? 'justify-center' : ''}`}
             >
-                <span className="text-xl flex-shrink-0">{selectedCountry?.flag}</span>
-                <span className="text-xs font-medium text-slate-900 dark:text-white truncate flex-1 text-left">
-                    {selectedCountry?.name}
+                <span className={`${compact ? 'text-lg' : 'text-xl'} flex-shrink-0`}>{selectedCountry?.flag}</span>
+                <span className={`${compact ? 'text-[11px]' : 'text-xs'} font-black text-slate-900 dark:text-white truncate flex-1 text-left uppercase`}>
+                    {compact ? selectedCountry?.code : selectedCountry?.name}
                 </span>
-                <span className="material-symbols-outlined text-slate-400 text-sm flex-shrink-0">expand_more</span>
+                <span className={`material-symbols-outlined text-slate-400 ${compact ? 'text-xs' : 'text-sm'} flex-shrink-0`}>expand_more</span>
             </button>
 
             {isOpen && (

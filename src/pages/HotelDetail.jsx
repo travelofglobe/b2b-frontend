@@ -315,6 +315,13 @@ const HotelDetail = () => {
         navigate(`${window.location.pathname}?${params.toString()}`);
     };
 
+    const handleBreadcrumbClick = (locationId, name) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('locationId', locationId);
+        params.set('q', name);
+        navigate(`/hotels?${params.toString()}`);
+    };
+
     const handleInstantReservation = () => {
         if (selectedRooms.length > 0) {
             navigate('/hotel/checkout/guests', {
@@ -396,16 +403,22 @@ const HotelDetail = () => {
             <main className="flex-1 max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
                 <div className="mb-6 flex items-center justify-between">
                     <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-                        {hotel.locationBreadcrumbs?.map((bc, i) => (
-                            <React.Fragment key={bc.locationId}>
-                                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap">
-                                    {bc.name?.translations?.tr || bc.name?.translations?.en || bc.name?.defaultName}
-                                </span>
-                                {i < hotel.locationBreadcrumbs.length - 1 && (
-                                    <span className="material-symbols-outlined text-xs text-slate-300">chevron_right</span>
-                                )}
-                            </React.Fragment>
-                        )) || <Breadcrumbs />}
+                        {hotel.locationBreadcrumbs?.map((bc, i) => {
+                            const name = bc.name?.translations?.tr || bc.name?.translations?.en || bc.name?.defaultName;
+                            return (
+                                <React.Fragment key={bc.locationId}>
+                                    <button
+                                        onClick={() => handleBreadcrumbClick(bc.locationId, name)}
+                                        className="text-xs font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap hover:text-primary transition-colors cursor-pointer"
+                                    >
+                                        {name}
+                                    </button>
+                                    {i < hotel.locationBreadcrumbs.length - 1 && (
+                                        <span className="material-symbols-outlined text-xs text-slate-300">chevron_right</span>
+                                    )}
+                                </React.Fragment>
+                            );
+                        }) || <Breadcrumbs />}
                     </div>
                     <Link to={`/hotels?${searchParams.toString()}`} className="flex items-center gap-1.5 text-sm font-bold text-primary group">
                         <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
@@ -499,142 +512,133 @@ const HotelDetail = () => {
                     </div>
                 </div>
 
-                {/* Quick Selection Bar */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-[24px] shadow-xl shadow-slate-200/50 dark:shadow-none grid grid-cols-1 md:grid-cols-12 gap-3 mb-8">
-                    <div className="md:col-span-4 relative group">
-                        <label className="absolute left-10 top-2.5 text-[10px] uppercase tracking-wider font-bold text-slate-400 z-10">Check-in / Out</label>
-                        <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-transparent group-hover:bg-slate-100 dark:group-hover:bg-slate-700/50 px-3 pt-7 pb-4 rounded-2xl cursor-pointer transition-all h-[72px]" onClick={() => datePickerRef.current?.setOpen(true)}>
-                            <span className="material-symbols-outlined text-primary shrink-0">calendar_month</span>
-                            <div className="flex flex-col flex-1 min-w-0">
-                                <DatePicker
-                                    ref={datePickerRef}
-                                    selected={checkInDate}
-                                    onChange={(dates) => {
-                                        const [start, end] = dates;
-                                        setCheckInDate(start);
-                                        setCheckOutDate(end);
-                                    }}
-                                    startDate={checkInDate}
-                                    endDate={checkOutDate}
-                                    selectsRange
-                                    minDate={new Date()}
-                                    className="bg-transparent border-none p-0 text-sm font-black focus:ring-0 w-full text-slate-900 dark:text-white cursor-pointer whitespace-nowrap"
-                                    wrapperClassName="w-full"
-                                    dateFormat="dd MMM yyyy"
-                                />
-                                {checkInDate && checkOutDate && (
-                                    <span className="text-[10px] font-bold text-primary uppercase">
-                                        {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} Nights Stay
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="md:col-span-3 relative" ref={guestWrapperRef}>
-                        <label className="absolute left-10 top-2.5 text-[10px] uppercase tracking-wider font-bold text-slate-400 z-10">Guests & Rooms</label>
-                        <button
-                            onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                            className="w-full h-[72px] flex items-center gap-3 px-3 pt-7 pb-4 bg-slate-50 dark:bg-slate-800 border border-transparent hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-2xl transition-all text-left"
-                        >
-                            <span className="material-symbols-outlined text-primary shrink-0">group</span>
-                            <div className="flex flex-col flex-1 min-w-0">
-                                <span className="text-sm font-black text-slate-900 dark:text-white whitespace-nowrap block">
-                                    {totalAdults} Adults, {totalChildren} Child{totalChildren !== 1 ? 'ren' : ''}
-                                </span>
-                                <span className="text-[10px] text-primary font-bold uppercase tracking-tight">
-                                    {totalRooms} Room{totalRooms > 1 ? 's' : ''} Stay
-                                </span>
-                            </div>
-                            <span className="material-symbols-outlined text-slate-400 rotate-0 transition-transform">expand_more</span>
-                        </button>
-
-                        {/* Guest Dropdown */}
-                        {showGuestDropdown && (
-                            <div className="absolute top-full left-0 right-0 mt-4 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-700 shadow-2xl p-6 z-[100] max-h-[80vh] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
-                                {roomState.map((room, index) => (
-                                    <div key={index} className="mb-6 pb-6 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Room {index + 1}</div>
-                                            {roomState.length > 1 && (
-                                                <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-[10px] font-black uppercase tracking-widest">Remove</button>
-                                            )}
-                                        </div>
-
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="text-sm font-black uppercase tracking-tight">Adults</div>
-                                            <div className="flex items-center gap-4">
-                                                <button onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} className="size-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-lg">remove</span></button>
-                                                <span className="w-4 text-center font-black">{room.adults}</span>
-                                                <button onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} className="size-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-lg">add</span></button>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="text-sm font-black uppercase tracking-tight">Children</div>
-                                            <div className="flex items-center gap-4">
-                                                <button onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} className="size-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-lg">remove</span></button>
-                                                <span className="w-4 text-center font-black">{room.children}</span>
-                                                <button onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} className="size-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-lg">add</span></button>
-                                            </div>
-                                        </div>
-
-                                        {room.children > 0 && (
-                                            <div className="grid grid-cols-2 gap-2 pt-2">
-                                                {room.childAges.map((age, ageIdx) => (
-                                                    <div key={ageIdx} className="space-y-1">
-                                                        <label className="text-[9px] font-black uppercase text-slate-400">Child {ageIdx + 1} Age</label>
-                                                        <select
-                                                            value={age}
-                                                            onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
-                                                            className="w-full h-10 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs px-2 font-black focus:border-primary focus:ring-0"
-                                                        >
-                                                            {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} yr</option>)}
-                                                        </select>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-
-                                {roomState.length < 5 && (
-                                    <button
-                                        onClick={addRoom}
-                                        className="w-full py-4 mt-2 bg-primary/5 text-primary rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/10 transition-all border border-dashed border-primary/20 flex items-center justify-center gap-2"
-                                    >
-                                        <span className="material-symbols-outlined text-base">add_circle</span>
-                                        Add Another Room
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="md:col-span-3 relative">
-                        <label className="absolute left-10 top-2.5 text-[10px] uppercase tracking-wider font-bold text-slate-400 z-10">Nationality</label>
-                        <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-transparent hover:bg-slate-100 dark:group-hover:bg-slate-700/50 px-3 pt-7 pb-4 rounded-2xl transition-all h-[72px]">
-                            <NationalitySelect
-                                value={nationality}
-                                onChange={setNationality}
-                                compact={false}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="md:col-span-2">
-                        <button
-                            onClick={handleSearch}
-                            className="w-full h-[72px] bg-primary text-white rounded-2xl flex items-center justify-center hover:bg-primary/90 transition-all shadow-xl shadow-primary/30 active:scale-95 group"
-                        >
-                            <span className="material-symbols-outlined text-3xl group-hover:rotate-12 transition-transform">search</span>
-                        </button>
-                    </div>
-                </div>
 
                 {/* Main Content Layout */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     <div className="lg:col-span-8">
+                        {/* Compact Search Bar - Now aligned with room cards */}
+                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-[20px] shadow-sm grid grid-cols-1 md:grid-cols-10 gap-2 mb-6">
+                            <div className="md:col-span-4 relative group">
+                                <label className="absolute left-9 top-1.5 text-[8px] uppercase tracking-wider font-bold text-slate-400 z-10">Check-in / Out</label>
+                                <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-transparent group-hover:bg-slate-100 dark:group-hover:bg-slate-700/50 px-3 pt-5 pb-2 rounded-xl cursor-pointer transition-all h-[54px]" onClick={() => datePickerRef.current?.setOpen(true)}>
+                                    <span className="material-symbols-outlined text-primary text-xl shrink-0">calendar_month</span>
+                                    <div className="flex flex-col flex-1 min-w-0">
+                                        <DatePicker
+                                            ref={datePickerRef}
+                                            selected={checkInDate}
+                                            onChange={(dates) => {
+                                                const [start, end] = dates;
+                                                setCheckInDate(start);
+                                                setCheckOutDate(end);
+                                            }}
+                                            startDate={checkInDate}
+                                            endDate={checkOutDate}
+                                            selectsRange
+                                            minDate={new Date()}
+                                            className="bg-transparent border-none p-0 text-[13px] font-black focus:ring-0 w-full text-slate-900 dark:text-white cursor-pointer whitespace-nowrap"
+                                            wrapperClassName="w-full"
+                                            dateFormat="dd MMM yyyy"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-3 relative" ref={guestWrapperRef}>
+                                <label className="absolute left-9 top-1.5 text-[8px] uppercase tracking-wider font-bold text-slate-400 z-10">Guests & Rooms</label>
+                                <button
+                                    onClick={() => setShowGuestDropdown(!showGuestDropdown)}
+                                    className="w-full h-[54px] flex items-center gap-3 px-3 pt-5 pb-2 bg-slate-50 dark:bg-slate-800 border border-transparent hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-xl transition-all text-left"
+                                >
+                                    <span className="material-symbols-outlined text-primary text-xl shrink-0">group</span>
+                                    <div className="flex flex-col flex-1 min-w-0">
+                                        <span className="text-[13px] font-black text-slate-900 dark:text-white whitespace-nowrap block truncate">
+                                            {totalAdults} Adults, {totalChildren} Child
+                                        </span>
+                                    </div>
+                                    <span className="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
+                                </button>
+
+                                {showGuestDropdown && (
+                                    <div className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-slate-900 rounded-[28px] border border-slate-100 dark:border-slate-700 shadow-2xl p-5 z-[100] max-h-[60vh] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
+                                        {roomState.map((room, index) => (
+                                            <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0">
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Room {index + 1}</div>
+                                                    {roomState.length > 1 && (
+                                                        <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-[9px] font-black uppercase tracking-widest">Remove</button>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="text-xs font-black uppercase tracking-tight">Adults</div>
+                                                    <div className="flex items-center gap-3">
+                                                        <button onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">remove</span></button>
+                                                        <span className="w-4 text-center text-xs font-black">{room.adults}</span>
+                                                        <button onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">add</span></button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="text-xs font-black uppercase tracking-tight">Children</div>
+                                                    <div className="flex items-center gap-3">
+                                                        <button onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">remove</span></button>
+                                                        <span className="w-4 text-center text-xs font-black">{room.children}</span>
+                                                        <button onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">add</span></button>
+                                                    </div>
+                                                </div>
+
+                                                {room.children > 0 && (
+                                                    <div className="grid grid-cols-2 gap-2 pt-1">
+                                                        {room.childAges.map((age, ageIdx) => (
+                                                            <div key={ageIdx} className="space-y-1">
+                                                                <label className="text-[8px] font-black uppercase text-slate-400">Child {ageIdx + 1} Age</label>
+                                                                <select
+                                                                    value={age}
+                                                                    onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
+                                                                    className="w-full h-8 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-[10px] px-1 font-black focus:border-primary focus:ring-0"
+                                                                >
+                                                                    {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} yr</option>)}
+                                                                </select>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+
+                                        {roomState.length < 5 && (
+                                            <button
+                                                onClick={addRoom}
+                                                className="w-full py-3 mt-2 bg-primary/5 text-primary rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-primary/10 transition-all border border-dashed border-primary/20 flex items-center justify-center gap-2"
+                                            >
+                                                <span className="material-symbols-outlined text-sm">add_circle</span>
+                                                Add Another Room
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="md:col-span-2 relative">
+                                <label className="absolute left-9 top-1.5 text-[8px] uppercase tracking-wider font-bold text-slate-400 z-10">Nat.</label>
+                                <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-transparent hover:bg-slate-100 dark:group-hover:bg-slate-700/50 px-2 pt-5 pb-2 rounded-xl transition-all h-[54px]">
+                                    <NationalitySelect
+                                        value={nationality}
+                                        onChange={setNationality}
+                                        compact={true}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-1">
+                                <button
+                                    onClick={handleSearch}
+                                    className="w-full h-[54px] bg-primary text-white rounded-xl flex items-center justify-center hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 group"
+                                >
+                                    <span className="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">search</span>
+                                </button>
+                            </div>
+                        </div>
                         {/* Tab Bar Container */}
                         <div className="relative">
                             {/* Sticky Tab Bar */}

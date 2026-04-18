@@ -141,5 +141,29 @@ export const hotelService = {
         return facilityIds
             .map(id => facilityCache[id])
             .filter(Boolean); // Only return found ones
+    },
+
+    /**
+     * Search for rooms/details for a specific hotel.
+     * @param {Object} params
+     * @param {number} params.hotelId
+     * @param {Object} params.searchCriteria
+     */
+    searchRooms: async ({ hotelId, searchCriteria, signal = null }) => {
+        const defaults = getDefaultRequestDates();
+        const body = {
+            filters: {
+                hotelIds: [parseInt(hotelId)]
+            },
+            searchCriteria: {
+                ...searchCriteria,
+                checkin: formatDate(searchCriteria.checkin, defaults.checkin),
+                checkout: formatDate(searchCriteria.checkout, defaults.checkout),
+                nationality: searchCriteria.nationality || 'TR',
+                rooms: searchCriteria.rooms || [{ adults: 2, children: 0, childAges: [] }]
+            }
+        };
+
+        return apiClient.post(`http://72.62.17.189:8000/hotel-hub/v1/b2b/rooms/search`, body, { signal });
     }
 };

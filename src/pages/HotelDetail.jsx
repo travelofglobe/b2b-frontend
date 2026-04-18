@@ -8,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
 import { mockHotels } from '../data/mockHotels';
 import NationalitySelect from '../components/NationalitySelect';
+import { hotelService } from '../services/hotelService';
 import { parseGuestsParam, serializeGuestsParam } from '../utils/searchParamsUtils';
 
 const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex }) => {
@@ -132,12 +133,16 @@ const BookingConfirmationModal = ({ isOpen, onClose, hotelName }) => {
 };
 
 const HotelDetail = () => {
-    const { id, slug } = useParams();
+    const { slug } = useParams();
+    const id = slug; // Map the route parameter (which matches hotel/:slug) to id
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
-    const hotel = mockHotels.find(h => h.id === parseInt(id)) || mockHotels[0];
-    const images = hotel.images || [hotel.image];
+    const [dynamicHotel, setDynamicHotel] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const images = dynamicHotel?.images?.map(img => img.url) || (dynamicHotel?.image ? [dynamicHotel.image] : []);
 
     // -- Lightbox State --
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -151,6 +156,11 @@ const HotelDetail = () => {
     // -- Search State Initialization --
     const parseDateParam = (param) => {
         if (!param) return null;
+        // Support both yyyy-mm-dd (ISO) and dd-mm-yyyy
+        if (/^\d{4}-\d{2}-\d{2}$/.test(param)) {
+            const [year, month, day] = param.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
         const [day, month, year] = param.split('-').map(Number);
         if (day && month && year) {
             const date = new Date(year, month - 1, day);
@@ -192,6 +202,43 @@ const HotelDetail = () => {
     const [activeTab, setActiveTab] = useState('Rooms & Rates');
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [selectedRooms, setSelectedRooms] = useState([]);
+
+    // Fetch data when search parameters or hotel ID change
+    useEffect(() => {
+        const fetchData = async () => {
+            console.log('Fetching detailed room data for hotel:', id, { checkin: checkInDate, checkout: checkOutDate });
+            setIsLoading(true);
+            setError(null);
+            try {
+                const response = await hotelService.searchRooms({
+                    hotelId: id,
+                    searchCriteria: {
+                        checkin: checkInDate,
+                        checkout: checkOutDate,
+                        nationality: nationality,
+                        rooms: roomState
+                    }
+                });
+
+                if (response?.data?.content?.length > 0) {
+                    setDynamicHotel(response.data.content[0]);
+                } else if (response?.data?.content) {
+                    setError('Hotel not found or no rooms available for selected dates.');
+                }
+            } catch (err) {
+                console.error('Error fetching hotel details:', err);
+                setError('Failed to fetch hotel details. Please try again later.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (id) {
+            fetchData();
+        }
+    }, [id, checkInDate, checkOutDate, nationality, roomState]);
+
+    const hotel = dynamicHotel || {};
 
     const nights = React.useMemo(() => {
         if (!checkInDate || !checkOutDate) return 1;
@@ -257,7 +304,7 @@ const HotelDetail = () => {
                     roomState,
                     checkInDate: checkInDate.toISOString(),
                     checkOutDate: checkOutDate.toISOString(),
-                    totalPrice: selectedRooms.reduce((sum, r) => sum + r.rate, 0) * nights,
+                    totalPrice: selectedRooms.reduce((sum, r) => sum + r.rate, 0),
                     nights
                 }
             });
@@ -291,7 +338,36 @@ const HotelDetail = () => {
         if (roomState.length > 1) setRoomState(roomState.filter((_, i) => i !== index));
     };
 
-    const tabs = ['Rooms & Rates', 'Overview', 'Amenities', 'Policies', 'Reviews'];
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
+                <div className="flex flex-col items-center gap-6">
+                    <div className="size-20 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                    <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-xs">Finding the best rates...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-background-light dark:bg-background-dark flex flex-col items-center justify-center p-6 text-center">
+                <div className="size-24 bg-red-50 dark:bg-red-900/10 rounded-full flex items-center justify-center text-red-500 mb-6">
+                    <span className="material-symbols-outlined text-5xl">warning</span>
+                </div>
+                <h2 className="text-3xl font-black mb-4 tracking-tight">Oops! Something went wrong</h2>
+                <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 max-w-md">{error}</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="px-8 py-4 bg-primary text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/30"
+                >
+                    Try Again
+                </button>
+            </div>
+        );
+    }
+
+    const tabs = ['Rooms & Rates', 'Overview', 'Amenities', 'Transportation', 'Policies', 'Reviews'];
 
     return (
         <div className="relative flex min-h-screen flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200 font-sans">
@@ -299,7 +375,18 @@ const HotelDetail = () => {
 
             <main className="flex-1 max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
                 <div className="mb-6 flex items-center justify-between">
-                    <Breadcrumbs />
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                        {hotel.locationBreadcrumbs?.map((bc, i) => (
+                            <React.Fragment key={bc.locationId}>
+                                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                                    {bc.name?.translations?.tr || bc.name?.translations?.en || bc.name?.defaultName}
+                                </span>
+                                {i < hotel.locationBreadcrumbs.length - 1 && (
+                                    <span className="material-symbols-outlined text-xs text-slate-300">chevron_right</span>
+                                )}
+                            </React.Fragment>
+                        )) || <Breadcrumbs />}
+                    </div>
                     <Link to={`/hotels?${searchParams.toString()}`} className="flex items-center gap-1.5 text-sm font-bold text-primary group">
                         <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
                         Back to Search
@@ -312,7 +399,7 @@ const HotelDetail = () => {
                         <div className="flex items-center gap-3 mb-1">
                             <h1 className="text-4xl font-black tracking-tight">{hotel.names?.tr || hotel.names?.en || hotel.name}</h1>
                             <div className="flex text-amber-400">
-                                {[...Array(5)].map((_, i) => (
+                                {[...Array(hotel.hotelStar?.star || 5)].map((_, i) => (
                                     <span key={i} className="material-symbols-outlined fill-1 text-lg">star</span>
                                 ))}
                             </div>
@@ -322,7 +409,15 @@ const HotelDetail = () => {
                         </div>
                         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                             <span className="material-symbols-outlined text-sm text-primary">location_on</span>
-                            <span className="font-semibold text-sm">{hotel.location}</span>
+                            <span className="font-semibold text-sm">
+                                {hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location}
+                            </span>
+                            {hotel.contact?.phoneNumber && (
+                                <span className="flex items-center gap-1 ml-4 text-xs">
+                                    <span className="material-symbols-outlined text-xs">phone</span>
+                                    {hotel.contact.phoneNumber}
+                                </span>
+                            )}
                             <button
                                 onClick={() => navigate(`/map?hotelId=${hotel.id}`)}
                                 className="text-primary text-sm font-bold hover:underline ml-2">
@@ -347,7 +442,7 @@ const HotelDetail = () => {
 
                 {/* Quick Info Badges */}
                 <div className="flex flex-wrap gap-2 mb-8">
-                    {['Free WiFi', 'Free Parking', 'Breakfast Available', 'Pool', 'Sea View'].map((item, i) => (
+                    {(hotel.facilities?.slice(0, 5).map(f => f.names?.tr || f.names?.en) || ['Free WiFi', 'Free Parking', 'Breakfast Available']).map((item, i) => (
                         <span key={i} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all cursor-default backdrop-blur-md shadow-sm">
                             <span className="material-symbols-outlined text-sm text-primary">check_circle</span> {item}
                         </span>
@@ -539,13 +634,11 @@ const HotelDetail = () => {
                             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 {activeTab === 'Rooms & Rates' && (
                                     <div className="space-y-4">
-                                        {(hotel.rooms?.length > 0 ? hotel.rooms : [1, 2]).map((roomItem, roomIndex) => {
-                                            const isRealRoom = typeof roomItem === 'object';
-                                            const roomName = isRealRoom 
-                                                ? (roomItem.names?.tr || roomItem.names?.en || roomItem.name) 
-                                                : (roomIndex === 0 ? 'Deluxe King Room' : 'Executive Loft Suite');
-                                            const roomPrice = isRealRoom ? roomItem.price : hotel.price + (roomIndex * 75);
-                                            const isSelected = selectedRooms.some(r => r.name === roomName);
+                                        {(hotel.rooms || []).map((roomItem, roomIndex) => {
+                                            const roomName = roomItem.names?.tr || roomItem.names?.en || roomItem.names?.defaultName || 'Standard Room';
+                                            const roomPrice = roomItem.ratePrice?.calculatedAmount || roomItem.price || 0;
+                                            const currency = roomItem.ratePrice?.currency || '$';
+                                            const isSelected = selectedRooms.some(r => r.name === roomName && r.roomIndex === roomIndex);
 
                                             return (
                                                 <div key={roomIndex} className="relative group transition-all duration-500">
@@ -557,24 +650,25 @@ const HotelDetail = () => {
                                                     <div className={`relative flex flex-col md:flex-row overflow-hidden rounded-[28px] transition-all duration-500 border ${isSelected ? 'border-primary shadow-[0_0_40px_rgba(255,59,92,0.15)] bg-white/60 dark:bg-slate-900/60' : 'border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40'} backdrop-blur-3xl group-hover:bg-white/50 dark:group-hover:bg-slate-900/50 shadow-2xl shadow-black/5`}>
                                                         {/* Image Section */}
                                                         <div className="md:w-64 h-52 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room" onClick={() => openLightbox(roomIndex % images.length)}>
-                                                            <img className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src={images[roomIndex % images.length]} alt="" />
+                                                            <img className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src={roomItem.images?.[0]?.url || images[roomIndex % images.length]} alt="" />
                                                             <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/room:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[4px]">
                                                                 <div className="size-14 rounded-full bg-white/20 backdrop-blur-xl border border-white/40 flex items-center justify-center text-white scale-75 group-hover/room:scale-100 transition-all duration-500 shadow-2xl">
                                                                     <span className="material-symbols-outlined text-3xl">fullscreen</span>
                                                                 </div>
                                                             </div>
-                                                            <div className="absolute top-5 left-5 bg-black/40 backdrop-blur-xl text-white text-[10px] font-black px-3.5 py-2 rounded-2xl flex items-center gap-2 border border-white/20 shadow-lg">
-                                                                <span className="material-symbols-outlined text-sm">photo_library</span> 2 PHOTOS
-                                                            </div>
+                                                            {roomItem.images?.length > 0 && (
+                                                                <div className="absolute top-5 left-5 bg-black/40 backdrop-blur-xl text-white text-[10px] font-black px-3.5 py-2 rounded-2xl flex items-center gap-2 border border-white/20 shadow-lg">
+                                                                    <span className="material-symbols-outlined text-sm">photo_library</span> {roomItem.images.length} PHOTOS
+                                                                </div>
+                                                            )}
                                                         </div>
 
-                                                        {/* Details Section - Reduced padding to give more room */}
+                                                        {/* Details Section */}
                                                         <div className="flex-1 p-4 sm:p-6 flex flex-col justify-between min-w-0">
                                                             <div className="relative">
-                                                                {/* Absolute Badge to save space */}
                                                                 <div className="absolute top-0 right-0">
                                                                     <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-wider border border-orange-500/10 backdrop-blur-md whitespace-nowrap">
-                                                                        Popular
+                                                                        {roomItem.roomPaxCapacity || roomItem.maxAdult} Pax
                                                                     </span>
                                                                 </div>
 
@@ -582,29 +676,35 @@ const HotelDetail = () => {
                                                                     <h3 className="text-xl sm:text-2xl font-black mb-1 uppercase tracking-tight text-slate-900 dark:text-white leading-tight truncate">{roomName}</h3>
                                                                     <div className="flex gap-3 text-slate-500 dark:text-slate-400">
                                                                         <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase">
-                                                                            <span className="material-symbols-outlined text-sm text-primary">straighten</span> 48 m²
+                                                                            <span className="material-symbols-outlined text-sm text-primary">group</span> {roomItem.maxAdult} Adults
                                                                         </span>
-                                                                        <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase">
-                                                                            <span className="material-symbols-outlined text-sm text-primary">king_bed</span> King
-                                                                        </span>
+                                                                        {roomItem.maxChildren > 0 && (
+                                                                            <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase">
+                                                                                <span className="material-symbols-outlined text-sm text-primary">child_care</span> {roomItem.maxChildren} Children
+                                                                            </span>
+                                                                        )}
                                                                     </div>
                                                                 </div>
 
                                                                 <div className="flex flex-wrap gap-1.5 mb-6 sm:mb-8">
-                                                                     {(isRealRoom && roomItem.attributes 
-                                                                         ? roomItem.attributes.map(attr => attr.names?.tr || attr.names?.en || attr.name)
-                                                                         : ['Free WiFi', 'AC', 'Mini-bar', 'Service']
-                                                                     ).map((feat, i) => (
+                                                                     {(roomItem.attributes || []).slice(0, 6).map((attr, i) => (
                                                                          <span key={i} className="px-2.5 py-1 bg-slate-500/5 dark:bg-white/5 border border-slate-500/10 dark:border-white/10 rounded-xl text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight transition-colors cursor-default">
-                                                                             {feat}
+                                                                             {attr.names?.tr || attr.names?.en || attr.label || 'Feature'}
                                                                          </span>
                                                                      ))}
                                                                  </div>
                                                             </div>
 
-                                                            {/* Price/Selection Interaction Area - Ultramodern & Ultra-compressed */}
+                                                            {/* Price Area */}
                                                             <div
-                                                                onClick={() => toggleRoomSelection(roomIndex, roomPrice, roomName)}
+                                                                onClick={() => {
+                                                                    const roomData = { type: roomName, rate: roomPrice, name: roomName, roomIndex, currency };
+                                                                    setSelectedRooms(prev => {
+                                                                        const index = prev.findIndex(r => r.name === roomName && r.roomIndex === roomIndex);
+                                                                        if (index > -1) return prev.filter((_, i) => i !== index);
+                                                                        return [...prev, roomData];
+                                                                    });
+                                                                }}
                                                                 className={`relative overflow-hidden p-1.5 sm:p-2.5 rounded-[18px] flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2 group/rate transition-all duration-500 cursor-pointer shadow-lg active:scale-[0.99] border ${isSelected ? 'bg-primary/5 border-primary ring-2 ring-primary/5' : 'bg-white/60 dark:bg-slate-800/60 border-white/40 dark:border-white/10 hover:border-primary/50'}`}
                                                             >
                                                                 <div className="flex items-center gap-2 z-10 w-full sm:w-auto">
@@ -619,7 +719,9 @@ const HotelDetail = () => {
                                                                             )}
                                                                         </div>
                                                                         <div className="flex items-center gap-1.5 text-slate-400 font-bold uppercase text-[7px] tracking-tight">
-                                                                            <span className="text-emerald-500/80">NON-REF</span>
+                                                                            <span className="text-emerald-500/80">
+                                                                                {roomItem.ratePrice?.cancellationPolicies?.[0]?.amount === 0 ? 'FREE CANCEL' : 'NON-REF'}
+                                                                            </span>
                                                                             <span>• ROOM ONLY</span>
                                                                         </div>
                                                                     </div>
@@ -628,10 +730,12 @@ const HotelDetail = () => {
                                                                 <div className="flex items-center gap-2 sm:gap-3 z-10 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-700 pt-1.5 sm:pt-0 sm:pl-3 justify-between sm:justify-end">
                                                                     <div className="text-right">
                                                                         <div className="flex items-baseline justify-end gap-0.5">
-                                                                            <span className="text-[9px] font-black text-primary">$</span>
-                                                                            <p className="text-lg sm:text-xl font-black text-primary leading-none tracking-tighter">{roomPrice}</p>
+                                                                            <span className="text-[9px] font-black text-primary">{currency}</span>
+                                                                            <p className="text-lg sm:text-xl font-black text-primary leading-none tracking-tighter">
+                                                                                {roomPrice.toFixed(2)}
+                                                                            </p>
                                                                         </div>
-                                                                        <p className="text-[6px] text-slate-400 font-bold uppercase tracking-widest leading-none">NET/NIGHT</p>
+                                                                        <p className="text-[6px] text-slate-400 font-bold uppercase tracking-widest leading-none">TOTAL STAY</p>
                                                                     </div>
 
                                                                     <div className={`px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg font-black text-[8px] uppercase tracking-wider transition-all duration-300 ${isSelected ? 'bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-primary text-white'}`}>
@@ -653,20 +757,68 @@ const HotelDetail = () => {
                                 {activeTab === 'Overview' && (
                                     <div className="bg-white dark:bg-slate-900/50 p-10 rounded-[40px] border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-500">
                                         <h2 className="text-3xl font-black mb-6 uppercase tracking-tight">About the Property</h2>
-                                        <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                                            {hotel.description || "Experience the ultimate luxury at our TOG-certified property."}
-                                        </p>
+                                        <div className="space-y-6">
+                                            {hotel.descriptions?.length > 0 ? (
+                                                hotel.descriptions.map((desc, idx) => (
+                                                    <div key={idx} className="space-y-2">
+                                                        <h4 className="text-[10px] font-black uppercase text-primary tracking-[0.2em]">{desc.type}</h4>
+                                                        <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                                            {desc.text}
+                                                        </p>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                                    {hotel.description || "Experience the ultimate luxury at our TOG-certified property."}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
 
                                 {activeTab === 'Amenities' && (
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-in fade-in zoom-in-95 duration-500">
-                                        {(hotel.facilities || hotel.amenities || []).map((amenity, idx) => (
+                                        {(hotel.facilities || []).map((amenity, idx) => (
                                             <div key={idx} className="bg-white dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 flex items-center gap-4 hover:border-primary/50 transition-all hover:shadow-lg group">
                                                 <div className="size-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
-                                                    <span className="material-symbols-outlined text-3xl">{amenity.icon}</span>
+                                                    <span className="material-symbols-outlined text-3xl">done_all</span>
                                                 </div>
-                                                                                                 <span className="font-black text-sm uppercase tracking-tight">{amenity.names?.tr || amenity.names?.en || amenity.label}</span>
+                                                <span className="font-black text-sm uppercase tracking-tight">{amenity.names?.tr || amenity.names?.en || amenity.label}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {activeTab === 'Transportation' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-500">
+                                        {(hotel.transportations || []).map((t, idx) => (
+                                            <div key={idx} className="bg-white dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all group">
+                                                <div className="flex items-center gap-4 mb-4">
+                                                    <div className="size-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm">
+                                                        <span className="material-symbols-outlined text-2xl">
+                                                            {t.type === 'AIRPORT' ? 'flight_takeoff' : t.type === 'RAIL' ? 'train' : 'directions_car'}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-black text-sm uppercase tracking-tight">{t.name}</h4>
+                                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest">{t.type}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between text-xs font-bold">
+                                                        <span className="text-slate-400">Distance:</span>
+                                                        <span>{t.distanceKm} km</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-xs font-bold">
+                                                        <span className="text-slate-400">Duration:</span>
+                                                        <span>{t.durationMinutes} min</span>
+                                                    </div>
+                                                    {t.directions && (
+                                                        <p className="text-[10px] text-slate-400 italic mt-2 border-t border-slate-100 dark:border-slate-800 pt-2">
+                                                            Via {t.directions}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -714,7 +866,7 @@ const HotelDetail = () => {
                                                 <div key={idx} className="p-5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm group/item hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">
                                                     <div className="flex justify-between items-start mb-1">
                                                         <span className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-tight">{idx + 1}. {room.name}</span>
-                                                        <span className="font-black text-primary text-sm">${room.rate}</span>
+                                                        <span className="font-black text-primary text-sm">{room.currency}{room.rate.toFixed(2)}</span>
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">Room Only</span>
@@ -754,7 +906,7 @@ const HotelDetail = () => {
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Stay</p>
-                                                <p className="text-xs font-black text-primary">{Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} Nights</p>
+                                                <p className="text-xs font-black text-primary">{nights} Nights</p>
                                             </div>
                                         </div>
                                     </div>
@@ -764,7 +916,8 @@ const HotelDetail = () => {
                                             <div>
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Total Stay Price (Net)</p>
                                                 <p className="text-4xl font-black text-primary leading-none tracking-tighter">
-                                                    ${(selectedRooms.reduce((sum, r) => sum + r.rate, 0) * nights).toFixed(2)}
+                                                    {(selectedRooms[0]?.currency || '$')}
+                                                    {(selectedRooms.reduce((sum, r) => sum + r.rate, 0)).toFixed(2)}
                                                 </p>
                                             </div>
                                             <div className="size-10 rounded-2xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">

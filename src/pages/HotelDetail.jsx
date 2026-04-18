@@ -140,6 +140,7 @@ const HotelDetail = () => {
 
     const [dynamicHotel, setDynamicHotel] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isRoomsLoading, setIsRoomsLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const images = dynamicHotel?.images?.map(img => img.url) || (dynamicHotel?.image ? [dynamicHotel.image] : []);
@@ -205,18 +206,36 @@ const HotelDetail = () => {
 
     // Fetch data when search parameters or hotel ID change
     useEffect(() => {
+        const fetchCheckIn = parseDateParam(searchParams.get('checkin')) || tomorrow;
+        const fetchCheckOut = parseDateParam(searchParams.get('checkout')) || dayAfter;
+        const fetchNationality = searchParams.get('nationality') || 'TR';
+        const fetchRooms = parseGuestsParam(searchParams.get('guests'));
+
+        // Sync local state with URL params
+        setCheckInDate(fetchCheckIn);
+        setCheckOutDate(fetchCheckOut);
+        setNationality(fetchNationality);
+        setRoomState(fetchRooms);
+
         const fetchData = async () => {
-            console.log('Fetching detailed room data for hotel:', id, { checkin: checkInDate, checkout: checkOutDate });
-            setIsLoading(true);
+            console.log('Fetching detailed room data for hotel:', id, { checkin: fetchCheckIn, checkout: fetchCheckOut });
+            
+            // If we already have hotel data, only show loading for rooms
+            if (dynamicHotel) {
+                setIsRoomsLoading(true);
+            } else {
+                setIsLoading(true);
+            }
+            
             setError(null);
             try {
                 const response = await hotelService.searchRooms({
                     hotelId: id,
                     searchCriteria: {
-                        checkin: checkInDate,
-                        checkout: checkOutDate,
-                        nationality: nationality,
-                        rooms: roomState
+                        checkin: fetchCheckIn,
+                        checkout: fetchCheckOut,
+                        nationality: fetchNationality,
+                        rooms: fetchRooms
                     }
                 });
 
@@ -230,13 +249,14 @@ const HotelDetail = () => {
                 setError('Failed to fetch hotel details. Please try again later.');
             } finally {
                 setIsLoading(false);
+                setIsRoomsLoading(false);
             }
         };
 
         if (id) {
             fetchData();
         }
-    }, [id, checkInDate, checkOutDate, nationality, roomState]);
+    }, [id, searchParams]);
 
     const hotel = dynamicHotel || {};
 
@@ -289,7 +309,7 @@ const HotelDetail = () => {
         params.set('checkout', formatDateForUrl(checkOutDate));
         params.set('guests', guestsParam);
         params.set('nationality', nationality);
-        params.set('q', hotel.name);
+        params.set('q', hotel.names?.tr || hotel.names?.en || hotel.name || '');
 
         // Keep current path but update search params
         navigate(`${window.location.pathname}?${params.toString()}`);
@@ -633,7 +653,13 @@ const HotelDetail = () => {
                             {/* Dynamic Tab Content */}
                             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 {activeTab === 'Rooms & Rates' && (
-                                    <div className="space-y-4">
+                                    <div className="relative space-y-4">
+                                        {isRoomsLoading && (
+                                            <div className="absolute inset-0 z-10 bg-white/20 dark:bg-black/20 backdrop-blur-[2px] rounded-[28px] flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
+                                                <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                                                <p className="text-[10px] font-black uppercase text-primary tracking-widest bg-white/80 dark:bg-slate-900/80 px-4 py-2 rounded-full shadow-lg">Updating Rates...</p>
+                                            </div>
+                                        )}
                                         {(hotel.rooms || []).map((roomItem, roomIndex) => {
                                             const roomName = roomItem.names?.tr || roomItem.names?.en || roomItem.names?.defaultName || 'Standard Room';
                                             const roomPrice = roomItem.ratePrice?.calculatedAmount || roomItem.price || 0;

@@ -148,8 +148,10 @@ const HotelDetail = () => {
     // -- Lightbox State --
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [lightboxImages, setLightboxImages] = useState([]);
 
-    const openLightbox = (index) => {
+    const openLightbox = (index, contextImages = images) => {
+        setLightboxImages(contextImages);
         setCurrentImageIndex(index);
         setIsLightboxOpen(true);
     };
@@ -489,26 +491,26 @@ const HotelDetail = () => {
 
                 {/* Benton Grid Gallery */}
                 <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-3 h-[540px] mb-8 overflow-hidden rounded-[32px] relative group/gallery">
-                    <div className="md:col-span-2 md:row-span-2 relative overflow-hidden ring-1 ring-white/10 shadow-2xl cursor-pointer" onClick={() => openLightbox(0)}>
+                    <div className="md:col-span-2 md:row-span-2 relative overflow-hidden ring-1 ring-white/10 shadow-2xl cursor-pointer" onClick={() => openLightbox(0, images)}>
                         <img className="w-full h-full object-cover transition-all duration-700 hover:scale-105" src={images[0]} alt={hotel.name} />
                         <div className="absolute bottom-6 left-6 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-2xl text-xs font-black shadow-2xl border border-white/20">
                             1 / {images.length} Photos
                         </div>
                     </div>
-                    <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 cursor-pointer" onClick={() => openLightbox(1)}>
+                    <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 cursor-pointer" onClick={() => openLightbox(1, images)}>
                         <img className="w-full h-full object-cover transition-all duration-700 hover:scale-105" src={images[1] || images[0]} alt="" />
                         <div className="absolute top-4 right-4 flex gap-2 translate-y-2 opacity-0 group-hover/gallery:translate-y-0 group-hover/gallery:opacity-100 transition-all duration-500">
                             <button className="size-9 rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md flex items-center justify-center text-slate-800 dark:text-white shadow-xl hover:text-red-500 transition-colors" onClick={(e) => e.stopPropagation()}><span className="material-symbols-outlined text-xl">favorite</span></button>
                             <button className="size-9 rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md flex items-center justify-center text-slate-800 dark:text-white shadow-xl hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}><span className="material-symbols-outlined text-xl">share</span></button>
                         </div>
                     </div>
-                    <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 cursor-pointer" onClick={() => openLightbox(2)}>
+                    <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 cursor-pointer" onClick={() => openLightbox(2, images)}>
                         <img className="w-full h-full object-cover transition-all duration-700 hover:scale-105" src={images[2] || images[0]} alt="" />
                     </div>
-                    <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 cursor-pointer" onClick={() => openLightbox(3)}>
+                    <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 cursor-pointer" onClick={() => openLightbox(3, images)}>
                         <img className="w-full h-full object-cover transition-all duration-700 hover:scale-105" src={images[3] || images[0]} alt="" />
                     </div>
-                    <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 group/viewall cursor-pointer" onClick={() => openLightbox(0)}>
+                    <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 group/viewall cursor-pointer" onClick={() => openLightbox(0, images)}>
                         <img className="w-full h-full object-cover group-hover/viewall:scale-110 blur-[2px] transition-all duration-700" src={images[4] || images[0]} alt="" />
                         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center text-white text-center p-4">
                             <span className="material-symbols-outlined text-4xl mb-2 animate-bounce-slow">photo_library</span>
@@ -684,7 +686,15 @@ const HotelDetail = () => {
 
                                                     <div className={`relative flex flex-col md:flex-row overflow-hidden rounded-[28px] transition-all duration-500 border ${isSelected ? 'border-primary shadow-[0_0_40px_rgba(255,59,92,0.15)] bg-white/60 dark:bg-slate-900/60' : 'border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40'} backdrop-blur-3xl group-hover:bg-white/50 dark:group-hover:bg-slate-900/50 shadow-2xl shadow-black/5`}>
                                                         {/* Image Section */}
-                                                        <div className="md:w-64 h-52 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room" onClick={() => openLightbox(roomIndex % images.length)}>
+                                                        <div 
+                                                            className="md:w-64 h-52 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room" 
+                                                            onClick={() => {
+                                                                const roomImages = roomItem.images?.length > 0 
+                                                                    ? roomItem.images.map(img => img.url) 
+                                                                    : images; // Fallback to hotel images if room has none
+                                                                openLightbox(0, roomImages);
+                                                            }}
+                                                        >
                                                             <img className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src={roomItem.images?.[0]?.url || images[roomIndex % images.length]} alt="" />
                                                             <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/room:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[4px]">
                                                                 <div className="size-14 rounded-full bg-white/20 backdrop-blur-xl border border-white/40 flex items-center justify-center text-white scale-75 group-hover/room:scale-100 transition-all duration-500 shadow-2xl">
@@ -1006,7 +1016,7 @@ const HotelDetail = () => {
             />
 
             <ImageLightbox
-                images={images}
+                images={lightboxImages}
                 currentIndex={currentImageIndex}
                 isOpen={isLightboxOpen}
                 onClose={() => setIsLightboxOpen(false)}

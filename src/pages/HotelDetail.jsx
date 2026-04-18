@@ -814,15 +814,17 @@ const HotelDetail = () => {
                                                 hotel.descriptions.map((desc, idx) => (
                                                     <div key={idx} className="space-y-2">
                                                         <h4 className="text-[10px] font-black uppercase text-primary tracking-[0.2em]">{desc.type}</h4>
-                                                        <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                                                            {desc.text}
-                                                        </p>
+                                                        <p 
+                                                            className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium"
+                                                            dangerouslySetInnerHTML={{ __html: desc.text }}
+                                                        />
                                                     </div>
                                                 ))
                                             ) : (
-                                                <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                                                    {hotel.description || "Experience the ultimate luxury at our TOG-certified property."}
-                                                </p>
+                                                <p 
+                                                    className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium"
+                                                    dangerouslySetInnerHTML={{ __html: hotel.description || "Experience the ultimate luxury at our TOG-certified property." }}
+                                                />
                                             )}
                                         </div>
                                     </div>

@@ -916,9 +916,12 @@ const HotelDetail = () => {
                                         {selectedRooms.length > 0 ? (
                                             selectedRooms.map((room, idx) => (
                                                 <div key={idx} className="p-5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm group/item hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">
-                                                    <div className="flex justify-between items-start mb-1">
-                                                        <span className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-tight">{idx + 1}. {room.name}</span>
-                                                        <span className="font-black text-primary text-sm">{room.currency}{room.rate.toFixed(2)}</span>
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <span className="font-black text-slate-900 dark:text-white text-[13px] uppercase tracking-tight">{idx + 1}. {room.name}</span>
+                                                        <div className="flex items-baseline gap-1">
+                                                            <span className="text-[10px] font-black text-primary">{room.currency}</span>
+                                                            <span className="font-black text-primary text-base leading-none">{room.rate.toFixed(2)}</span>
+                                                        </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">Room Only</span>
@@ -965,12 +968,17 @@ const HotelDetail = () => {
 
                                     <div className="pt-8 border-t border-slate-200 dark:border-slate-800 mb-8">
                                         <div className="flex items-end justify-between">
-                                            <div>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Total Stay Price (Net)</p>
-                                                <p className="text-4xl font-black text-primary leading-none tracking-tighter">
-                                                    {(selectedRooms[0]?.currency || '$')}
-                                                    {(selectedRooms.reduce((sum, r) => sum + r.rate, 0)).toFixed(2)}
-                                                </p>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="material-symbols-outlined text-slate-400 text-sm">receipt_long</span>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">Total Stay Price (Net)</p>
+                                                </div>
+                                                <div className="flex items-baseline gap-1.5 ml-1">
+                                                    <span className="text-sm font-black text-primary uppercase tracking-wider">{(selectedRooms[0]?.currency || '$')}</span>
+                                                    <p className="text-4xl font-black text-primary leading-none tracking-tighter shadow-primary/10">
+                                                        {(selectedRooms.reduce((sum, r) => sum + r.rate, 0)).toFixed(2)}
+                                                    </p>
+                                                </div>
                                             </div>
                                             <div className="size-10 rounded-2xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">
                                                 <span className="material-symbols-outlined">payments</span>

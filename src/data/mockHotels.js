@@ -1,7 +1,10 @@
 export const mockHotels = [
     {
         id: 1,
-        name: 'The Grand Azure Resort',
+        names: {
+            en: 'The Grand Azure Resort',
+            tr: 'Büyük Azure Resort'
+        },
         type: 'Resorts',
         location: 'Oia, Santorini',
         image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB-kd7fYlW68meA2n5ukV-PiyWlwLoLyriV3TkpabG1rqWr_gqU15xhtgJsKPX-_vGkDUTDmEfapyPQyic9Wtk_yczGbBElh6hopevZpslaTTmS1DHbwgKG_zXda9VzF3RjlMvrPLwvyN92GETofa9BCg_uoVPyRq2PvuIha4kEuae1l1KZO8Ge7Glokw0viQB7GxuY7IsJ-oSwf4h5qScV4PHjcsiIlpTP25rSwYZZ_MW8eX_VQ9lYvY5n-Yk2lTi2q-fs8mPH_q5n',
@@ -25,14 +28,38 @@ export const mockHotels = [
             'https://lh3.googleusercontent.com/aida-public/AB6AXuBIbtNc7CL0z7WxBEfjFgYBey9dauaHvEuJpvVMtqPvIRkmdWzblqdPtXm3Y4kfbz-DWYKAeUldh6CoLduVaiHl0IJSo8RwnPW5fegbRcM8JJ6YGno9oOH7OMVQh9BNEGDjkSE6vssUX3cR4T55dWizsjotpjkqv_FoGrMdqulL9M3HV5ng8bMZZNpvY8mCyY7aUjonfvlHBcwiUKh9ZXEy9FK6B--8AjVh-Iwfy1-7ApR-_VGQKxDDUOEpPxnZ_El0p20wbGTBqf1P'
         ],
         amenities: [
-            { icon: 'wifi', label: 'WiFi' },
-            { icon: 'pool', label: 'Pool' },
-            { icon: 'spa', label: 'Spa' }
+            { icon: 'wifi', names: { en: 'WiFi', tr: 'Ücretsiz WiFi' } },
+            { icon: 'pool', names: { en: 'Pool', tr: 'Yüzme Havuzu' } },
+            { icon: 'spa', names: { en: 'Spa', tr: 'Spa Merkezi' } }
+        ],
+        rooms: [
+            {
+                roomId: 'room-1',
+                names: { en: 'Deluxe King Room', tr: 'Deluxe King Oda' },
+                price: 450,
+                attributes: [
+                    { names: { en: 'Sea View', tr: 'Deniz Manzaralı' } },
+                    { names: { en: 'Mini Bar', tr: 'Mini Bar' } },
+                    { names: { en: 'Satellite Channels', tr: 'Uydu Kanalları' } }
+                ]
+            },
+            {
+                roomId: 'room-2',
+                names: { en: 'Executive Loft Suite', tr: 'Executive Loft Süit' },
+                price: 525,
+                attributes: [
+                    { names: { en: 'Private Balcony', tr: 'Özel Balkon' } },
+                    { names: { en: 'Coffee Maker', tr: 'Kahve Makinesi' } }
+                ]
+            }
         ]
     },
     {
         id: 2,
-        name: 'Cave Paradise Suites',
+        names: {
+            en: 'Cave Paradise Suites',
+            tr: 'Mağara Cenneti Süitleri'
+        },
         type: 'Boutique',
         location: 'Imerovigli, Santorini',
         image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD_GD3EnzZWPUEBFRVwTFd97noc5eAUqCoMcW_ArMM5VEGrrnDNIwhLtwzX2dpXFFsfn0Lznmj-JVWPLmxROVHj2fLL_eMV5vDj1icvHh8LlBFrcfBjxT1HrsOQO3GrNnDYPoaUYrJabj5NpzaLUtneIsZHtX4tQDUaXB_hCbN8uIgGMU8QiCQAB0uo2xDy5U4iKR-c81o-uJYQldrN9cjPNZM172EfLVe_2MVPxRTWeG8kLJPU8cQdujgNbZDnsw2ceb9kbDIlnYEe',
@@ -54,13 +81,17 @@ export const mockHotels = [
             'https://lh3.googleusercontent.com/aida-public/AB6AXuB7ZYAKG5ENY2UPUyxU-jvcvXYrUNR2GsjmQZEL8nkXTClfYhIt-66uOdG7Sy3zRw8U-Zi-Biq1HUxhCfiDvZwEYZQf47GeBLY0ZKqpk4lQI8Z952YG5W9UDaknuxqo2XG2tB4y73kst1dFSuxPbXYzZPro9Tj3aqshevuKSdsLbmgPfPpj_bjOGCbaDmSEQ6-rZqcEAsbjz3nTNssm2iEYlp-M_Davcjz6AwSmISSuR4Ow7-qNRDfZDtDdmoi3aLBA8cwkC6q5q0dT'
         ],
         amenities: [
-            { icon: 'restaurant', label: 'Dining' },
-            { icon: 'hot_tub', label: 'Tub' }
-        ]
+            { icon: 'restaurant', names: { en: 'Dining', tr: 'Restoran' } },
+            { icon: 'hot_tub', names: { en: 'Tub', tr: 'Jakuzi' } }
+        ],
+        rooms: []
     },
     {
         id: 3,
-        name: 'Santo Pure Villas',
+        names: {
+            en: 'Santo Pure Villas',
+            tr: 'Santo Saf Villalar'
+        },
         type: 'Villas',
         location: 'Fira, Santorini',
         image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBIbtNc7CL0z7WxBEfjFgYBey9dauaHvEuJpvVMtqPvIRkmdWzblqdPtXm3Y4kfbz-DWYKAeUldh6CoLduVaiHl0IJSo8RwnPW5fegbRcM8JJ6YGno9oOH7OMVQh9BNEGDjkSE6vssUX3cR4T55dWizsjotpjkqv_FoGrMdqulL9M3HV5ng8bMZZNpvY8mCyY7aUjonfvlHBcwiUKh9ZXEy9FK6B--8AjVh-Iwfy1-7ApR-_VGQKxDDUOEpPxnZ_El0p20wbGTBqf1P',
@@ -82,13 +113,17 @@ export const mockHotels = [
             'https://lh3.googleusercontent.com/aida-public/AB6AXuB-kd7fYlW68meA2n5ukV-PiyWlwLoLyriV3TkpabG1rqWr_gqU15xhtgJsKPX-_vGkDUTDmEfapyPQyic9Wtk_yczGbBElh6hopevZpslaTTmS1DHbwgKG_zXda9VzF3RjlMvrPLwvyN92GETofa9BCg_uoVPyRq2PvuIha4kEuae1l1KZO8Ge7Glokw0viQB7GxuY7IsJ-oSwf4h5qScV4PHjcsiIlpTP25rSwYZZ_MW8eX_VQ9lYvY5n-Yk2lTi2q-fs8mPH_q5n'
         ],
         amenities: [
-            { icon: 'local_parking', label: 'Parking' },
-            { icon: 'fitness_center', label: 'Gym' }
-        ]
+            { icon: 'local_parking', names: { en: 'Parking', tr: 'Otopark' } },
+            { icon: 'fitness_center', names: { en: 'Gym', tr: 'Spor Salonu' } }
+        ],
+        rooms: []
     },
     {
         id: 4,
-        name: 'Astra Boutique Hotel',
+        names: {
+            en: 'Astra Boutique Hotel',
+            tr: 'Astra Butik Otel'
+        },
         type: 'Hotels',
         location: 'Imerovigli, Santorini',
         image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB7ZYAKG5ENY2UPUyxU-jvcvXYrUNR2GsjmQZEL8nkXTClfYhIt-66uOdG7Sy3zRw8U-Zi-Biq1HUxhCfiDvZwEYZQf47GeBLY0ZKqpk4lQI8Z952YG5W9UDaknuxqo2XG2tB4y73kst1dFSuxPbXYzZPro9Tj3aqshevuKSdsLbmgPfPpj_bjOGCbaDmSEQ6-rZqcEAsbjz3nTNssm2iEYlp-M_Davcjz6AwSmISSuR4Ow7-qNRDfZDtDdmoi3aLBA8cwkC6q5q0dT',
@@ -110,8 +145,9 @@ export const mockHotels = [
             'https://lh3.googleusercontent.com/aida-public/AB6AXuD_GD3EnzZWPUEBFRVwTFd97noc5eAUqCoMcW_ArMM5VEGrrnDNIwhLtwzX2dpXFFsfn0Lznmj-JVWPLmxROVHj2fLL_eMV5vDj1icvHh8LlBFrcfBjxT1HrsOQO3GrNnDYPoaUYrJabj5NpzaLUtneIsZHtX4tQDUaXB_hCbN8uIgGMU8QiCQAB0uo2xDy5U4iKR-c81o-uJYQldrN9cjPNZM172EfLVe_2MVPxRTWeG8kLJPU8cQdujgNbZDnsw2ceb9kbDIlnYEe'
         ],
         amenities: [
-            { icon: 'wifi', label: 'WiFi' },
-            { icon: 'pool', label: 'Pool' }
-        ]
+            { icon: 'wifi', names: { en: 'WiFi', tr: 'WiFi' } },
+            { icon: 'pool', names: { en: 'Pool', tr: 'Havuz' } }
+        ],
+        rooms: []
     }
 ];

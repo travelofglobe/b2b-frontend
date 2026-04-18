@@ -310,7 +310,7 @@ const HotelDetail = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
                     <div>
                         <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-4xl font-black tracking-tight">{hotel.name}</h1>
+                            <h1 className="text-4xl font-black tracking-tight">{hotel.names?.tr || hotel.names?.en || hotel.name}</h1>
                             <div className="flex text-amber-400">
                                 {[...Array(5)].map((_, i) => (
                                     <span key={i} className="material-symbols-outlined fill-1 text-lg">star</span>
@@ -539,9 +539,12 @@ const HotelDetail = () => {
                             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 {activeTab === 'Rooms & Rates' && (
                                     <div className="space-y-4">
-                                        {[1, 2].map((roomIndex) => {
-                                            const roomName = roomIndex === 1 ? 'Deluxe King Room' : 'Executive Loft Suite';
-                                            const roomPrice = hotel.price + (roomIndex * 75);
+                                        {(hotel.rooms?.length > 0 ? hotel.rooms : [1, 2]).map((roomItem, roomIndex) => {
+                                            const isRealRoom = typeof roomItem === 'object';
+                                            const roomName = isRealRoom 
+                                                ? (roomItem.names?.tr || roomItem.names?.en || roomItem.name) 
+                                                : (roomIndex === 0 ? 'Deluxe King Room' : 'Executive Loft Suite');
+                                            const roomPrice = isRealRoom ? roomItem.price : hotel.price + (roomIndex * 75);
                                             const isSelected = selectedRooms.some(r => r.name === roomName);
 
                                             return (
@@ -588,12 +591,15 @@ const HotelDetail = () => {
                                                                 </div>
 
                                                                 <div className="flex flex-wrap gap-1.5 mb-6 sm:mb-8">
-                                                                    {['Free WiFi', 'AC', 'Mini-bar', 'Service'].map((feat, i) => (
-                                                                        <span key={i} className="px-2.5 py-1 bg-slate-500/5 dark:bg-white/5 border border-slate-500/10 dark:border-white/10 rounded-xl text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight transition-colors cursor-default">
-                                                                            {feat}
-                                                                        </span>
-                                                                    ))}
-                                                                </div>
+                                                                     {(isRealRoom && roomItem.attributes 
+                                                                         ? roomItem.attributes.map(attr => attr.names?.tr || attr.names?.en || attr.name)
+                                                                         : ['Free WiFi', 'AC', 'Mini-bar', 'Service']
+                                                                     ).map((feat, i) => (
+                                                                         <span key={i} className="px-2.5 py-1 bg-slate-500/5 dark:bg-white/5 border border-slate-500/10 dark:border-white/10 rounded-xl text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight transition-colors cursor-default">
+                                                                             {feat}
+                                                                         </span>
+                                                                     ))}
+                                                                 </div>
                                                             </div>
 
                                                             {/* Price/Selection Interaction Area - Ultramodern & Ultra-compressed */}
@@ -655,12 +661,12 @@ const HotelDetail = () => {
 
                                 {activeTab === 'Amenities' && (
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-in fade-in zoom-in-95 duration-500">
-                                        {hotel.amenities.map((amenity, idx) => (
+                                        {(hotel.facilities || hotel.amenities || []).map((amenity, idx) => (
                                             <div key={idx} className="bg-white dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 flex items-center gap-4 hover:border-primary/50 transition-all hover:shadow-lg group">
                                                 <div className="size-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
                                                     <span className="material-symbols-outlined text-3xl">{amenity.icon}</span>
                                                 </div>
-                                                <span className="font-black text-sm uppercase tracking-tight">{amenity.label}</span>
+                                                                                                 <span className="font-black text-sm uppercase tracking-tight">{amenity.names?.tr || amenity.names?.en || amenity.label}</span>
                                             </div>
                                         ))}
                                     </div>

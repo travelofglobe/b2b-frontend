@@ -58,7 +58,7 @@ const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover, se
             <Popup className="hotel-marker-popup" minWidth={240}>
                 <div className="p-1 group/popup">
                     <img src={hotel.image} className="w-full h-32 object-cover rounded-xl mb-3" alt={hotel.name} />
-                    <h3 className="font-black text-sm uppercase tracking-tight text-slate-900 dark:text-white mb-1">{hotel.name}</h3>
+                    <h3 className="font-black text-sm uppercase tracking-tight text-slate-900 dark:text-white mb-1">{hotel.names?.tr || hotel.names?.en || hotel.name}</h3>
                     <div className="flex items-center justify-between mt-3">
                         <span className="text-lg font-black text-primary leading-none tracking-tighter">${hotel.price}</span>
                         <Link
@@ -393,7 +393,8 @@ const MapView = () => {
     }, [breadcrumbData, map, isDataLoading]);
 
     const mapApiHotelToModel = React.useCallback((apiHotel) => {
-        const name = apiHotel.name?.tr || apiHotel.name?.en || apiHotel.name?.defaultName || 'Unknown Hotel';
+        const hotelNames = apiHotel.names || apiHotel.name;
+        const name = hotelNames?.tr || hotelNames?.en || hotelNames?.defaultName || 'Unknown Hotel';
         const starCount = apiHotel.hotelStar?.star || 0;
         const starLabel = apiHotel.hotelStar?.names?.tr || apiHotel.hotelStar?.names?.en || '';
         const rating = apiHotel.score ? (apiHotel.score / 10000).toFixed(1) : '0';

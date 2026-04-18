@@ -174,7 +174,8 @@ const HotelListing = () => {
     // Map API hotel object to UI model
     const mapApiHotelToModel = React.useCallback((apiHotel) => {
         // Pick name and star based on language
-        const name = apiHotel.name?.tr || apiHotel.name?.en || apiHotel.name?.defaultName || 'Unknown Hotel';
+        const hotelNames = apiHotel.names || apiHotel.name; // Support both for transition
+        const name = hotelNames?.tr || hotelNames?.en || hotelNames?.defaultName || 'Unknown Hotel';
         
         // Dynamic Stars - new object structure
         const starCount = apiHotel.hotelStar?.star || 0;
@@ -203,10 +204,15 @@ const HotelListing = () => {
                 const match = FACILITY_ICON_MAP[Number(id)];
                 
                 if (match) {
+                    // Use localized name from facility object if available
+                    const localizedLabel = typeof f === 'object' && f.names 
+                        ? (f.names.tr || f.names.en || match.label) 
+                        : match.label;
+
                     if (!iconGroups[match.icon]) {
-                        iconGroups[match.icon] = { ...match, labels: [match.label] };
-                    } else if (!iconGroups[match.icon].labels.includes(match.label)) {
-                        iconGroups[match.icon].labels.push(match.label);
+                        iconGroups[match.icon] = { ...match, labels: [localizedLabel] };
+                    } else if (!iconGroups[match.icon].labels.includes(localizedLabel)) {
+                        iconGroups[match.icon].labels.push(localizedLabel);
                     }
                 }
             });

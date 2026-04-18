@@ -271,6 +271,7 @@ const HotelListing = () => {
 
         return {
             id: apiHotel.id,
+            hotelId: apiHotel.hotelId,
             name: name,
             type: starLabel || 'Hotel',
             stars: starCount,

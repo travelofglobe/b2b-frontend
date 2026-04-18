@@ -62,7 +62,7 @@ const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover, se
                     <div className="flex items-center justify-between mt-3">
                         <span className="text-lg font-black text-primary leading-none tracking-tighter">${hotel.price}</span>
                         <Link
-                            to={`/hotel/${hotel.id}?${searchParams.toString()}`}
+                            to={`/hotel/${hotel.hotelId}?${searchParams.toString()}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="bg-primary text-white text-[9px] font-black tracking-widest uppercase px-3 py-2 rounded-lg hover:scale-105 transition-all shadow-lg shadow-primary/20"
@@ -459,6 +459,7 @@ const MapView = () => {
 
         return {
             id: apiHotel.id,
+            hotelId: apiHotel.hotelId,
             name: name,
             type: starLabel || 'Hotel',
             stars: starCount,

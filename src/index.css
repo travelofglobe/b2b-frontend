@@ -15,12 +15,12 @@
     }
   }
   .animate-shimmer {
-    animation: shimmer 2s infinite linear;
-    background: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+    animation: shimmer 2.5s infinite linear;
+    background: linear-gradient(to right, #ebeef2 0%, #d1d9e2 20%, #ebeef2 40%, #ebeef2 100%);
     background-size: 1000px 100%;
   }
   .dark .animate-shimmer {
-    background: linear-gradient(to right, #1a242d 0%, #233648 20%, #1a242d 40%, #1a242d 100%);
+    background: linear-gradient(to right, #1e293b 0%, #334155 20%, #1e293b 40%, #1e293b 100%);
     background-size: 1000px 100%;
   }
 }

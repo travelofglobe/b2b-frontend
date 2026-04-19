@@ -11,11 +11,11 @@ const HotelCardSkeleton = ({ viewMode = 'list' }) => {
                 
                 {/* Badge Skeletons */}
                 <div className="absolute top-4 left-4 flex flex-col gap-2">
-                    <div className="w-24 h-6 rounded-xl animate-shimmer opacity-60" />
+                    <div className="w-24 h-6 rounded-xl animate-shimmer" />
                 </div>
                 
                 {/* Favorite Button Skeleton */}
-                <div className="absolute top-4 right-4 size-10 rounded-full animate-shimmer opacity-60" />
+                <div className="absolute top-4 right-4 size-10 rounded-full animate-shimmer" />
             </div>
 
             {/* Content Skeleton */}
@@ -27,10 +27,10 @@ const HotelCardSkeleton = ({ viewMode = 'list' }) => {
                             <div className="flex items-center gap-2 mb-2">
                                 <div className="flex gap-1">
                                     {[...Array(5)].map((_, i) => (
-                                        <div key={i} className="size-3 rounded-full animate-shimmer opacity-50" />
+                                        <div key={i} className="size-3 rounded-full animate-shimmer" />
                                     ))}
                                 </div>
-                                <div className="w-16 h-3 rounded animate-shimmer opacity-40" />
+                                <div className="w-16 h-3 rounded animate-shimmer" />
                             </div>
                             
                             {/* Hotel Name */}
@@ -38,8 +38,8 @@ const HotelCardSkeleton = ({ viewMode = 'list' }) => {
                             
                             {/* Location */}
                             <div className="flex items-center gap-2">
-                                <div className="size-4 rounded animate-shimmer opacity-60" />
-                                <div className="h-4 w-1/2 rounded animate-shimmer opacity-50" />
+                                <div className="size-4 rounded animate-shimmer" />
+                                <div className="h-4 w-1/2 rounded animate-shimmer" />
                             </div>
                         </div>
                         
@@ -50,7 +50,7 @@ const HotelCardSkeleton = ({ viewMode = 'list' }) => {
                     {/* Amenities Skeleton */}
                     <div className="flex flex-wrap gap-2 my-6">
                         {[...Array(6)].map((_, i) => (
-                            <div key={i} className="size-8 rounded-xl animate-shimmer opacity-60" />
+                            <div key={i} className="size-8 rounded-xl animate-shimmer" />
                         ))}
                     </div>
                 </div>
@@ -60,7 +60,7 @@ const HotelCardSkeleton = ({ viewMode = 'list' }) => {
                         {/* Price Skeleton */}
                         <div className="h-8 w-24 rounded-lg animate-shimmer" />
                         {/* Tax Skeleton */}
-                        <div className="h-3 w-16 rounded animate-shimmer opacity-40" />
+                        <div className="h-3 w-16 rounded animate-shimmer" />
                     </div>
                     
                     {/* Button Skeleton */}

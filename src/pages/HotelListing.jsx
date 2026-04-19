@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import HotelCard from '../components/HotelCard';
+import HotelCardSkeleton from '../components/HotelCardSkeleton';
 import Footer from '../components/Footer';
 import Breadcrumbs from '../components/Breadcrumbs';
 import { parseGuestsParam } from '../utils/searchParamsUtils';
@@ -169,7 +170,7 @@ const HotelListing = () => {
     // Extract locationId from URL params
     const locationId = searchParams.get('locationId');
 
-    const subtitle = `${totalRooms} Room${totalRooms > 1 ? 's' : ''}, ${totalGuests} Guest${totalGuests !== 1 ? 's' : ''} • ${totalProperties || 0} properties found`;
+    const subtitle = `${totalRooms} Room${totalRooms > 1 ? 's' : ''}, ${totalGuests} Guest${totalGuests !== 1 ? 's' : ''} • ${isLoading && totalProperties === 0 ? 'Searching...' : `${totalProperties || 0} properties found`}`;
 
     // Map API hotel object to UI model
     const mapApiHotelToModel = React.useCallback((apiHotel) => {
@@ -317,6 +318,11 @@ const HotelListing = () => {
         try {
             const filters = getSearchParams();
             const currentPage = isReset ? 0 : page;
+
+            if (isReset) {
+                setHotels([]);
+                setTotalProperties(0);
+            }
 
             const response = await hotelService.searchHotels({
                 locationId,
@@ -479,10 +485,11 @@ const HotelListing = () => {
 
     // Reset when locationId or other filters change
     React.useEffect(() => {
-        setHotels([]);
+        // We don't reset to 0 immediately here to avoid the flicker, 
+        // the reset will happen inside loadMoreHotels(true)
+        
         setPage(0);
         setHasMore(true);
-        setTotalProperties(0);
         
         // Scroll to top when filters change
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -630,23 +637,37 @@ const HotelListing = () => {
 
                         {/* Hotel Grid */}
                         <div className={`grid gap-6 ${gridClasses[viewMode]}`}>
-                            {hotels.map(hotel => (
-                                <HotelCard key={hotel.id} hotel={hotel} viewMode={viewMode} />
-                            ))}
+                            {hotels.length > 0 ? (
+                                hotels.map(hotel => (
+                                    <HotelCard key={hotel.id} hotel={hotel} viewMode={viewMode} />
+                                ))
+                            ) : isLoading ? (
+                                [...Array(6)].map((_, i) => (
+                                    <HotelCardSkeleton key={i} viewMode={viewMode} />
+                                ))
+                            ) : null}
+                            
+                            {/* Subsequent loading skeletons (Infinite Scroll) */}
+                            {isLoading && hotels.length > 0 && (
+                                [...Array(viewMode === 'list' ? 2 : 4)].map((_, i) => (
+                                    <HotelCardSkeleton key={`more-${i}`} viewMode={viewMode} />
+                                ))
+                            )}
                         </div>
 
                         {/* Loading Sentinel */}
                         <div ref={loaderRef} className="mt-12 py-8 flex flex-col items-center justify-center gap-4">
-                            {isLoading && (
-                                <>
-                                    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                    <p className="text-sm font-bold text-slate-500 animate-pulse uppercase tracking-widest">Loading properties...</p>
-                                </>
-                            )}
                             {!hasMore && hotels.length > 0 && (
                                 <p className="text-sm font-black text-slate-400 uppercase tracking-widest border-t border-slate-100 dark:border-slate-800 pt-8 w-full text-center">
                                     You've reached the end of the list
                                 </p>
+                            )}
+                            {hotels.length === 0 && !isLoading && (
+                                <div className="flex flex-col items-center justify-center py-20 text-center">
+                                    <span className="material-symbols-outlined text-6xl text-slate-200 mb-4">search_off</span>
+                                    <h3 className="text-xl font-bold text-slate-400">No properties found</h3>
+                                    <p className="text-slate-500">Try adjusting your filters or location</p>
+                                </div>
                             )}
                         </div>
                     </div>

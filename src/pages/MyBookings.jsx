@@ -653,15 +653,23 @@ const MyBookings = () => {
                                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                                     {loading ? (
                                         Array.from({ length: 10 }).map((_, index) => (
-                                            <tr key={`skeleton-${index}`} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
-                                                {Array.from({ length: 15 }).map((_, cellIndex) => (
-                                                    <td key={`skeleton-cell-${cellIndex}`} className="px-4 py-3">
-                                                        <div className={`h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse ${[2, 11].includes(cellIndex) ? 'w-48' :
-                                                            [0, 1].includes(cellIndex) ? 'w-32' :
-                                                                'w-16'
-                                                            }`}></div>
-                                                    </td>
-                                                ))}
+                                            <tr key={`skeleton-${index}`} className="border-b border-white/20 dark:border-white/5 last:border-0 h-[61px]">
+                                                {/* Adjusted widths to match column content types and header min-widths */}
+                                                <td className="px-4 py-3"><div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-4 w-60 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-5 w-24 bg-slate-200 dark:bg-slate-700 rounded-md animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-5 w-20 bg-slate-200 dark:bg-slate-700 rounded-md animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-4 w-40 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-5 w-5 mx-auto bg-slate-200 dark:bg-slate-700 rounded-full animate-shimmer"></div></td>
                                             </tr>
                                         ))
                                     ) : error ? (

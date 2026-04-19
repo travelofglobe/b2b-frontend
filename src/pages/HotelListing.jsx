@@ -559,25 +559,27 @@ const HotelListing = () => {
     return (
         <div className="relative flex min-h-screen flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200 font-sans">
             <Header />
-            <main className="flex-1 max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 bg-slate-50/50 dark:bg-slate-900/20 px-4 py-2.5 rounded-2xl border border-slate-100 dark:border-slate-800/50 backdrop-blur-sm">
+            <main className="flex-1 max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <Breadcrumbs locationId={locationId} />
                     <Link
                         to="/"
-                        className="group flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 hover:border-primary hover:text-primary transition-all duration-300 active:scale-95 shadow-sm"
+                        className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
                     >
-                        <span className="material-symbols-outlined text-[18px] font-bold group-hover:-translate-x-1 transition-transform">arrow_back</span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Dashboard</span>
+                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-sm" >
+                            <span className="material-symbols-outlined text-lg">arrow_back</span>
+                        </div>
+                        Back to Dashboard
                     </Link>
                 </div>
                 <div className="flex flex-col lg:flex-row gap-8">
                     <Sidebar filters={dynamicFilters} locationNames={locationNames} facilityNames={facilityNames} />
                     {/* Grid Content Area */}
                     <div className="flex-1">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                             <div>
-                                <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-0.5 tracking-tight">{pageTitle}</h1>
-                                <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wider opacity-80">{subtitle}</p>
+                                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">{pageTitle}</h1>
+                                <p className="text-slate-500 text-sm font-medium">{subtitle}</p>
                             </div>
                             <div className="flex items-center gap-3">
                                 <span className="text-sm font-bold text-slate-500 whitespace-nowrap">SORT BY:</span>
@@ -596,7 +598,7 @@ const HotelListing = () => {
                         </div>
 
                         {/* View Controls Toolbar */}
-                        <div className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-xl p-3 mb-4 flex items-center justify-between shadow-sm">
+                        <div className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-xl p-3 mb-8 flex items-center justify-between shadow-sm">
                             <Link
                                 to={`/map?${searchParams.toString()}`}
                                 className="flex items-center gap-2 text-sm font-bold px-5 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"

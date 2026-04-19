@@ -601,29 +601,10 @@ const HotelListing = () => {
                         <div className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-xl p-3 mb-8 flex items-center justify-between shadow-sm">
                             <Link
                                 to={`/map?${searchParams.toString()}`}
-                                className="group flex items-center gap-4 px-6 py-2.5 rounded-2xl bg-white dark:bg-[#1a2b3c] border-2 border-slate-100 dark:border-slate-800 hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 relative overflow-hidden active:scale-95"
+                                className="flex items-center gap-2 text-sm font-bold px-5 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                             >
-                                <div className="size-11 rounded-2xl bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center text-slate-400 group-hover:text-primary transition-all duration-500 group-hover:shadow-inner group-hover:scale-110 group-hover:rotate-6">
-                                    <svg 
-                                        xmlns="http://www.w3.org/2000/svg" 
-                                        width="22" height="22" 
-                                        viewBox="0 0 24 24" 
-                                        fill="none" 
-                                        stroke="currentColor" 
-                                        strokeWidth="2.5" 
-                                        strokeLinecap="round" 
-                                        strokeLinejoin="round"
-                                    >
-                                        <path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3V7z" />
-                                        <path d="M9 4v13" className="opacity-30" />
-                                        <path d="M15 7v13" className="opacity-30" />
-                                        <circle cx="12" cy="11" r="1" className="fill-primary stroke-none" />
-                                    </svg>
-                                </div>
-                                <div className="flex flex-col items-start pr-2">
-                                    <span className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-400 dark:text-slate-500 leading-none mb-1">Explore</span>
-                                    <span className="text-sm font-black text-slate-900 dark:text-white leading-none">Map Locator</span>
-                                </div>
+                                <span className="material-symbols-outlined text-primary">map</span>
+                                Map View
                             </Link>
 
                             <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 rounded-lg p-1 border border-slate-100 dark:border-slate-800">

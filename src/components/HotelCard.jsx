@@ -223,9 +223,12 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                         <div className="flex items-baseline gap-1">
                             {hotel.price > 0 ? (
                                 <>
-                                    <span className={`font-black ${isList ? 'text-2xl' : 'text-xl'}`}>
-                                        {currencySymbol}{Math.round(hotel.price)}
-                                    </span>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className={`font-black ${isList ? 'text-2xl' : 'text-xl'}`}>
+                                            {currencySymbol}{Math.round(hotel.price)}
+                                        </span>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{hotel.currency}</span>
+                                    </div>
                                     <div className="flex flex-col">
                                         <span className="text-[7px] text-slate-400 font-bold uppercase leading-none">
                                             {hotel.tax > 0 

@@ -132,7 +132,32 @@ const BookingConfirmationModal = ({ isOpen, onClose, hotelName }) => {
     );
 };
 
+
 const HotelDetail = () => {
+    const getCurrencySymbol = (code) => {
+        const symbols = {
+            'USD': '$',
+            'EUR': '€',
+            'GBP': '£',
+            'TRY': '₺',
+            'AED': 'د.إ',
+            'SAR': 'ر.س',
+        };
+        return symbols[code] || code || '$';
+    };
+
+    const formatPolicyDate = (dateStr) => {
+        if (!dateStr) return '';
+        try {
+            // Remove timezone info like [Asia/Shanghai] if present for basic parsing
+            const cleanDate = dateStr.split('[')[0];
+            const date = new Date(cleanDate);
+            return date.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } catch {
+            return dateStr;
+        }
+    };
+
     const { slug } = useParams();
     const id = slug; // Map the route parameter (which matches hotel/:slug) to id
     const [searchParams] = useSearchParams();
@@ -447,20 +472,30 @@ const HotelDetail = () => {
                                 <span className="material-symbols-outlined text-xs">verified</span> VERIFIED
                             </span>
                         </div>
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                            <span className="material-symbols-outlined text-sm text-primary">location_on</span>
-                            <span className="font-semibold text-sm">
-                                {hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location}
-                            </span>
-                            {hotel.contact?.phoneNumber && (
-                                <span className="flex items-center gap-1 ml-4 text-xs">
-                                    <span className="material-symbols-outlined text-xs">phone</span>
-                                    {hotel.contact.phoneNumber}
+                        <div className="flex flex-wrap items-center gap-4 mt-3">
+                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <span className="material-symbols-outlined text-sm text-primary">location_on</span>
+                                <span className="font-semibold text-sm">
+                                    {hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location}
                                 </span>
-                            )}
+                            </div>
+
+                            <div className="flex items-center gap-3 py-1.5 px-3 bg-slate-100/50 dark:bg-slate-800/50 rounded-xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm">
+                                <div className="flex items-center gap-1.5 border-r border-slate-200 dark:border-slate-700 pr-3">
+                                    <span className="material-symbols-outlined text-xs text-primary">login</span>
+                                    <span className="text-[10px] font-black tracking-wider text-slate-400 uppercase">In:</span>
+                                    <span className="text-xs font-black text-slate-900 dark:text-white">{hotel.checkIn || '15:00'}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-xs text-primary">logout</span>
+                                    <span className="text-[10px] font-black tracking-wider text-slate-400 uppercase">Out:</span>
+                                    <span className="text-xs font-black text-slate-900 dark:text-white">{hotel.checkOut || '11:00'}</span>
+                                </div>
+                            </div>
+
                             <button
                                 onClick={() => navigate(`/map?hotelId=${hotel.id}`)}
-                                className="text-primary text-sm font-bold hover:underline ml-2">
+                                className="text-primary text-sm font-bold hover:underline">
                                 Show on Map
                             </button>
                         </div>
@@ -684,7 +719,7 @@ const HotelDetail = () => {
                                                         <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 rounded-[36px] blur-xl opacity-100 transition-opacity duration-500"></div>
                                                     )}
 
-                                                    <div className={`relative flex flex-col md:flex-row overflow-hidden rounded-[28px] transition-all duration-500 border ${isSelected ? 'border-primary shadow-[0_0_40px_rgba(255,59,92,0.15)] bg-white/60 dark:bg-slate-900/60' : 'border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40'} backdrop-blur-3xl group-hover:bg-white/50 dark:group-hover:bg-slate-900/50 shadow-2xl shadow-black/5`}>
+                                                    <div className={`relative flex flex-col md:flex-row rounded-[28px] transition-all duration-500 border ${isSelected ? 'border-primary shadow-[0_0_40px_rgba(255,59,92,0.15)] bg-white/60 dark:bg-slate-900/60' : 'border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40'} backdrop-blur-3xl group-hover:bg-white/50 dark:group-hover:bg-slate-900/50 shadow-2xl shadow-black/5 z-10 hover:z-[60]`}>
                                                         {/* Image Section */}
                                                         <div 
                                                             className="md:w-64 h-52 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room" 
@@ -751,7 +786,7 @@ const HotelDetail = () => {
                                                                         return [...prev, roomData];
                                                                     });
                                                                 }}
-                                                                className={`relative overflow-hidden p-1.5 sm:p-2.5 rounded-[18px] flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2 group/rate transition-all duration-500 border ${roomPrice > 0 ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'} shadow-lg ${isSelected ? 'bg-primary/5 border-primary ring-2 ring-primary/5' : 'bg-white/60 dark:bg-slate-800/60 border-white/40 dark:border-white/10 hover:border-primary/50'}`}
+                                                                className={`relative p-1.5 sm:p-2.5 rounded-[18px] flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2 group/rate transition-all duration-500 border ${roomPrice > 0 ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'} shadow-lg ${isSelected ? 'bg-primary/5 border-primary ring-2 ring-primary/5' : 'bg-white/60 dark:bg-slate-800/60 border-white/40 dark:border-white/10 hover:border-primary/50'}`}
                                                             >
                                                                 <div className="flex items-center gap-2 z-10 w-full sm:w-auto">
                                                                     <div className={`size-7 sm:size-9 rounded-lg flex items-center justify-center shrink-0 transition-all duration-500 ${isSelected ? 'bg-primary text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
@@ -765,9 +800,48 @@ const HotelDetail = () => {
                                                                             )}
                                                                         </div>
                                                                         <div className="flex items-center gap-1.5 text-slate-400 font-bold uppercase text-[7px] tracking-tight">
-                                                                            <span className="text-emerald-500/80">
-                                                                                {roomItem.ratePrice?.cancellationPolicies?.[0]?.amount === 0 ? 'FREE CANCEL' : 'NON-REF'}
-                                                                            </span>
+                                                                            <div className="group/cancel relative">
+                                                                                <span className={`${roomItem.ratePrice?.cancellationPolicies?.[0]?.amount === 0 ? 'text-emerald-500/80 shadow-[0_0_10px_rgba(16,185,129,0.1)]' : 'text-orange-500/80'} cursor-help underline decoration-dotted underline-offset-2 transition-all hover:text-primary`}>
+                                                                                    {roomItem.ratePrice?.cancellationPolicies?.[0]?.amount === 0 ? 'FREE CANCEL' : 'POLICIES APPLY'}
+                                                                                </span>
+                                                                                {/* Detailed Cancellation Tooltip */}
+                                                                                <div className="absolute bottom-full left-0 mb-3 w-72 p-5 bg-slate-900 dark:bg-slate-950 text-white rounded-[24px] shadow-2xl opacity-0 invisible group-hover/cancel:opacity-100 group-hover/cancel:visible transition-all z-50 border border-slate-700/50 backdrop-blur-xl scale-95 group-hover/cancel:scale-100 origin-bottom-left duration-300">
+                                                                                    <div className="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
+                                                                                        <span className="material-symbols-outlined text-sm text-primary">event_busy</span>
+                                                                                        <p className="text-[10px] uppercase font-black tracking-widest">Cancellation Timeline</p>
+                                                                                    </div>
+                                                                                    <div className="space-y-4">
+                                                                                        {roomItem.ratePrice?.cancellationPolicies?.length > 0 ? (
+                                                                                            roomItem.ratePrice.cancellationPolicies.map((policy, idx) => (
+                                                                                                <div key={idx} className="relative pl-4 border-l-2 border-slate-800 hover:border-primary transition-colors">
+                                                                                                    <div className="flex justify-between items-start mb-1.5">
+                                                                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Penalty</span>
+                                                                                                        <span className={`text-[11px] font-black ${policy.amount === 0 ? 'text-emerald-400' : 'text-orange-400'}`}>
+                                                                                                            {policy.currency} {policy.amount}
+                                                                                                        </span>
+                                                                                                    </div>
+                                                                                                    <div className="space-y-1">
+                                                                                                        <div className="flex items-center gap-1.5">
+                                                                                                            <span className="material-symbols-outlined text-[10px] text-slate-500">calendar_today</span>
+                                                                                                            <p className="text-[9px] text-slate-300 font-bold">{formatPolicyDate(policy.fromDate)}</p>
+                                                                                                        </div>
+                                                                                                        <div className="flex items-center gap-1.5">
+                                                                                                            <span className="material-symbols-outlined text-[10px] text-slate-500">keyboard_tab</span>
+                                                                                                            <p className="text-[9px] text-slate-400 font-medium italic">{formatPolicyDate(policy.toDate)}</p>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            ))
+                                                                                        ) : (
+                                                                                            <p className="text-[10px] text-slate-500 font-medium italic">Standard property policies apply.</p>
+                                                                                        )}
+                                                                                    </div>
+                                                                                    <div className="mt-4 pt-3 border-t border-slate-800 flex items-center gap-2">
+                                                                                        <span className="material-symbols-outlined text-xs text-slate-500">info</span>
+                                                                                        <p className="text-[8px] text-slate-500 font-bold italic uppercase tracking-tighter">All times are in property local time.</p>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
                                                                             <span>• ROOM ONLY</span>
                                                                         </div>
                                                                     </div>
@@ -781,7 +855,43 @@ const HotelDetail = () => {
                                                                                 {roomPrice.toFixed(2)}
                                                                             </p>
                                                                         </div>
-                                                                        <p className="text-[6px] text-slate-400 font-bold uppercase tracking-widest leading-none">TOTAL STAY</p>
+                                                                        <div className="group/taxes relative inline-block">
+                                                                            <p className="text-[6px] text-slate-400 font-bold uppercase tracking-widest leading-none cursor-help hover:text-primary transition-colors flex items-center justify-end gap-1">
+                                                                                TOTAL STAY <span className="material-symbols-outlined text-[8px]">info</span>
+                                                                            </p>
+                                                                            {/* Taxes & Fees Breakdown Tooltip */}
+                                                                            {(roomItem.ratePrice?.taxes?.length > 0 || roomItem.ratePrice?.fees?.length > 0) && (
+                                                                                <div className="absolute bottom-full right-0 mb-3 w-60 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl opacity-0 invisible group-hover/taxes:opacity-100 group-hover/taxes:visible transition-all z-50 backdrop-blur-xl scale-95 group-hover/taxes:scale-100 origin-bottom-right duration-300">
+                                                                                    <p className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-[0.2em] border-b dark:border-slate-800 pb-2 flex items-center gap-2">
+                                                                                        <span className="material-symbols-outlined text-sm">receipt_long</span>
+                                                                                        Tax & Fee Breakdown
+                                                                                    </p>
+                                                                                    <div className="space-y-2.5">
+                                                                                        {roomItem.ratePrice?.taxes?.map((tax, idx) => (
+                                                                                            <div key={idx} className="flex justify-between items-center text-[10px]">
+                                                                                                <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">{tax.type || 'Tax'}</span>
+                                                                                                <span className="font-black text-slate-900 dark:text-white">{getCurrencySymbol(tax.currency)} {tax.amount}</span>
+                                                                                            </div>
+                                                                                        ))}
+                                                                                        {roomItem.ratePrice?.fees?.map((fee, idx) => (
+                                                                                            <div key={idx} className="flex justify-between items-center text-[10px]">
+                                                                                                <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">{fee.type || 'Fee'}</span>
+                                                                                                <span className="font-black text-slate-900 dark:text-white">{getCurrencySymbol(fee.currency)} {fee.amount}</span>
+                                                                                            </div>
+                                                                                        ))}
+                                                                                        <div className="mt-3 pt-2 border-t dark:border-slate-800 flex justify-between items-center">
+                                                                                            <span className="text-[9px] font-black uppercase text-primary">Inclusions Total</span>
+                                                                                            <span className="text-xs font-black text-primary">
+                                                                                                {getCurrencySymbol(currency)} {(
+                                                                                                    (roomItem.ratePrice.taxes?.reduce((sum, t) => sum + (t.amount || 0), 0) || 0) +
+                                                                                                    (roomItem.ratePrice.fees?.reduce((sum, f) => sum + (f.amount || 0), 0) || 0)
+                                                                                                ).toFixed(2)}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
                                                                     </div>
 
                                                                     {roomPrice > 0 ? (
@@ -878,13 +988,65 @@ const HotelDetail = () => {
                                     </div>
                                 )}
 
-                                {(activeTab === 'Policies' || activeTab === 'Reviews') && (
+                                {activeTab === 'Policies' && (
+                                    <div className="animate-in fade-in zoom-in-95 duration-500">
+                                        <div className="bg-white dark:bg-slate-900/50 p-10 rounded-[40px] border border-slate-200 dark:border-slate-800">
+                                            <div className="flex items-center gap-3 mb-8">
+                                                <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                                    <span className="material-symbols-outlined text-2xl">info</span>
+                                                </div>
+                                                <h2 className="text-3xl font-black uppercase tracking-tight">Hotel Policies</h2>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="p-8 rounded-[32px] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 group hover:border-primary/30 transition-all">
+                                                    <div className="flex items-center gap-4 mb-6">
+                                                        <div className="size-14 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                                            <span className="material-symbols-outlined text-3xl">login</span>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Standard Check-In</p>
+                                                            <h4 className="text-2xl font-black text-primary">{hotel.checkIn || '15:00'}</h4>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                                                        Guests are required to show a photo identification and credit card upon check-in.
+                                                    </p>
+                                                </div>
+
+                                                <div className="p-8 rounded-[32px] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 group hover:border-primary/30 transition-all">
+                                                    <div className="flex items-center gap-4 mb-6">
+                                                        <div className="size-14 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                                            <span className="material-symbols-outlined text-3xl">logout</span>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Standard Check-Out</p>
+                                                            <h4 className="text-2xl font-black text-primary">{hotel.checkOut || '11:00'}</h4>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                                                        Please ensure your balance is settled and keys are returned to the front desk.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="mt-8 p-6 bg-amber-500/5 rounded-3xl border border-amber-500/10 flex items-start gap-4">
+                                                <span className="material-symbols-outlined text-amber-500">warning</span>
+                                                <p className="text-xs font-bold text-amber-700/80 dark:text-amber-400/80 leading-relaxed">
+                                                    Special requests are subject to availability and cannot be guaranteed. They may incur additional charges.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'Reviews' && (
                                     <div className="bg-white dark:bg-slate-900/50 p-20 rounded-[40px] border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center">
                                         <div className="size-20 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-6 font-black uppercase tracking-widest">
-                                            {activeTab[0]}
+                                            R
                                         </div>
-                                        <h3 className="text-xl font-black uppercase mb-2">{activeTab} Details</h3>
-                                        <p className="text-slate-500 font-medium tracking-tight">Data synchronized from Travel of Globe systems.</p>
+                                        <h3 className="text-xl font-black uppercase mb-2">Guest Reviews</h3>
+                                        <p className="text-slate-500 font-medium tracking-tight">Real-time feedback from verified Travel of Globe guests.</p>
                                     </div>
                                 )}
                             </div>
@@ -917,12 +1079,21 @@ const HotelDetail = () => {
                                     <div className="space-y-4 mb-8">
                                         {selectedRooms.length > 0 ? (
                                             selectedRooms.map((room, idx) => (
-                                                <div key={idx} className="p-5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm group/item hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">
-                                                    <div className="flex justify-between items-center mb-2">
-                                                        <span className="font-black text-slate-900 dark:text-white text-[13px] uppercase tracking-tight">{idx + 1}. {room.name}</span>
-                                                        <div className="flex items-baseline gap-1">
+                                                <div key={idx} className="relative p-5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm group/item hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedRooms(prev => prev.filter((_, i) => i !== idx));
+                                                        }}
+                                                        className="absolute -top-1.5 -right-1.5 size-7 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-lg z-20 group/btn"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[16px] group-hover/btn:rotate-90 transition-transform">close</span>
+                                                    </button>
+                                                    <div className="flex justify-between items-start mb-2 pr-4">
+                                                        <span className="font-black text-slate-900 dark:text-white text-[11px] uppercase tracking-tight line-clamp-2">{idx + 1}. {room.name}</span>
+                                                        <div className="flex items-baseline gap-1 shrink-0">
                                                             <span className="text-[10px] font-black text-primary">{room.currency}</span>
-                                                            <span className="font-black text-primary text-base leading-none">{room.rate.toFixed(2)}</span>
+                                                            <span className="font-black text-primary text-sm leading-none">{room.rate.toFixed(2)}</span>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-1">

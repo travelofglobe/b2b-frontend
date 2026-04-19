@@ -2,69 +2,51 @@ import React from 'react';
 
 const PlaneLoading = () => {
     return (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/60 backdrop-blur-xl rounded-[32px] overflow-hidden animate-in fade-in duration-500">
-            {/* Background Atmosphere */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-1/4 left-0 w-32 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent animate-cloud-1"></div>
-                <div className="absolute top-2/3 right-0 w-48 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent animate-cloud-2"></div>
-                <div className="absolute top-1/2 left-1/4 w-24 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent animate-cloud-3"></div>
-            </div>
+        <div className="absolute top-0 left-0 right-0 z-50 h-1.5 animate-in fade-in duration-500 overflow-visible">
+            {/* Background Bar (Glassmorphic Track) */}
+            <div className="absolute inset-x-0 top-0 h-full bg-white/5 backdrop-blur-sm border-b border-white/10" />
 
-            <div className="relative flex flex-col items-center">
-                {/* Flight Path & Plane Container */}
-                <div className="relative w-48 h-24 flex items-center justify-center">
-                    {/* Dashed Flight Path */}
-                    <svg className="absolute w-full h-full overflow-visible" viewBox="0 0 200 100">
-                        <path
-                            d="M 0 70 Q 100 0 200 70"
-                            fill="none"
-                            stroke="rgba(255,255,255,0.1)"
-                            strokeWidth="2"
-                            strokeDasharray="4 8"
-                        />
-                    </svg>
+            {/* Progress Container */}
+            <div className="relative w-full h-full">
+                {/* Glowing Progress Fill */}
+                <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-transparent via-primary to-blue-400 shadow-[0_0_15px_rgba(19,127,236,0.6)] animate-progress-fill" />
 
-                    {/* Airplane Icon */}
-                    <div className="relative animate-flight">
-                        <div className="relative p-4 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 shadow-[0_0_30px_rgba(19,127,236,0.3)]">
-                            <span className="material-symbols-outlined text-4xl text-primary leading-none block fill-1">
-                                flight
-                            </span>
-                            {/* Engine Glow */}
-                            <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-4 h-4 bg-primary/40 blur-md rounded-full animate-pulse"></div>
-                        </div>
+                {/* The Plane */}
+                <div className="absolute top-1/2 -ml-3 -translate-y-1/2 flex items-center justify-center animate-plane-travel">
+                    <div className="relative">
+                        <span className="material-symbols-outlined text-[18px] text-white rotate-90 fill-1 [text-shadow:0_0_10px_rgba(255,255,255,0.8)]">
+                            flight
+                        </span>
+                        {/* Jet Engine Glow Effect */}
+                        <div className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-1 bg-white/60 blur-[2px] rounded-full animate-pulse" />
                     </div>
                 </div>
+            </div>
 
-                {/* Status Text */}
-                <div className="mt-8 text-center space-y-2">
-                    <h3 className="text-white font-black uppercase tracking-[0.3em] text-sm animate-pulse">
-                        Authenticating
-                    </h3>
-                    <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                        Preparing your journey...
-                    </p>
-                </div>
+            {/* Subtle "Authenticating" text underneath */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full text-center pointer-events-none">
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/80 animate-pulse whitespace-nowrap">
+                    Securing your gateway...
+                </p>
             </div>
 
             <style>{`
-                @keyframes flight {
-                    0% { transform: translate(-80px, 20px) rotate(-10deg); opacity: 0; }
-                    20% { opacity: 1; }
-                    50% { transform: translate(0, -10px) rotate(0deg); }
-                    80% { opacity: 1; }
-                    100% { transform: translate(80px, 20px) rotate(10deg); opacity: 0; }
+                @keyframes progress-fill {
+                    0% { width: 0%; opacity: 0; }
+                    10% { opacity: 1; }
+                    90% { opacity: 1; }
+                    100% { width: 100%; opacity: 0; }
                 }
-                .animate-flight {
-                    animation: flight 2.5s infinite ease-in-out;
+                @keyframes plane-travel {
+                    0% { left: 0%; transform: translateY(-50%) rotate(0deg); }
+                    100% { left: 100%; transform: translateY(-50%) rotate(0deg); }
                 }
-                @keyframes cloud-slide {
-                    from { transform: translateX(100%); }
-                    to { transform: translateX(-100%); }
+                .animate-progress-fill {
+                    animation: progress-fill 2s infinite ease-in-out;
                 }
-                .animate-cloud-1 { animation: cloud-slide 8s infinite linear; }
-                .animate-cloud-2 { animation: cloud-slide 12s infinite linear; }
-                .animate-cloud-3 { animation: cloud-slide 10s infinite linear; }
+                .animate-plane-travel {
+                    animation: plane-travel 2s infinite ease-in-out;
+                }
             `}</style>
         </div>
     );

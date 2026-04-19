@@ -98,7 +98,8 @@ const LoginPage = () => {
                 {/* Right Side: Login Card */}
                 <div className="lg:col-span-1"></div> { /* Spacer */}
                 <div className="lg:col-span-4 w-full">
-                    <div className="bg-white/[0.03] backdrop-blur-[40px] rounded-[32px] border border-white/10 shadow-[0_32px_96px_-16px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in duration-700">
+                    <div className="bg-white/[0.03] backdrop-blur-[40px] rounded-[32px] border border-white/10 shadow-[0_32px_96px_-16px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in duration-700 relative">
+                        {isLoading && <PlaneLoading />}
                         {/* Card Header */}
                         <div className="p-8 pb-0 text-center">
                             <h2 className="text-2xl font-black text-white mb-2">Welcome Back</h2>
@@ -107,7 +108,6 @@ const LoginPage = () => {
 
                         {/* Login Form */}
                         <form onSubmit={handleSubmit} className="p-8 space-y-5 relative">
-                            {isLoading && <PlaneLoading />}
                             <div className="space-y-4">
                                 <div className="group relative transition-all">
                                     <div className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary transition-colors z-10">

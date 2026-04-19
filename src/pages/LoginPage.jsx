@@ -52,6 +52,7 @@ const LoginPage = () => {
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden font-sans">
+            {isLoading && <PlaneLoading />}
             {/* Immersive Background */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute inset-0 bg-slate-900/40 z-10"></div>
@@ -99,7 +100,6 @@ const LoginPage = () => {
                 <div className="lg:col-span-1"></div> { /* Spacer */}
                 <div className="lg:col-span-4 w-full">
                     <div className="bg-white/[0.03] backdrop-blur-[40px] rounded-[32px] border border-white/10 shadow-[0_32px_96px_-16px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in duration-700 relative">
-                        {isLoading && <PlaneLoading />}
                         {/* Card Header */}
                         <div className="p-8 pb-0 text-center">
                             <h2 className="text-2xl font-black text-white mb-2">Welcome Back</h2>

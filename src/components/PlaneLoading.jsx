@@ -2,7 +2,7 @@ import React from 'react';
 
 const PlaneLoading = () => {
     return (
-        <div className="absolute top-0 left-0 right-0 z-50 h-1.5 animate-in fade-in duration-500 overflow-visible">
+        <div className="fixed top-0 left-0 right-0 z-[9999] h-1.5 animate-in fade-in duration-500 overflow-visible">
             {/* Background Bar (Glassmorphic Track) */}
             <div className="absolute inset-x-0 top-0 h-full bg-white/5 backdrop-blur-sm border-b border-white/10" />
 

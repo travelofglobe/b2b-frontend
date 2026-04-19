@@ -725,7 +725,8 @@ const HotelDetail = () => {
                                                     <div className={`relative flex flex-col md:flex-row rounded-[28px] transition-all duration-500 border ${isSelected ? 'border-primary shadow-[0_0_40px_rgba(255,59,92,0.15)] bg-white/60 dark:bg-slate-900/60' : 'border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40'} backdrop-blur-3xl group-hover:bg-white/50 dark:group-hover:bg-slate-900/50 shadow-2xl shadow-black/5 z-10 hover:z-[60]`}>
                                                         {/* Image Section */}
                                                         <div 
-                                                            className="md:w-64 h-52 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room" 
+                                                            className="md:w-64 h-52 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px] isolation-isolate z-0" 
+                                                            style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)', maskImage: 'radial-gradient(white, black)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
                                                             onClick={() => {
                                                                 const roomImages = roomItem.images?.length > 0 
                                                                     ? roomItem.images.map(img => img.url) 
@@ -733,8 +734,8 @@ const HotelDetail = () => {
                                                                 openLightbox(0, roomImages);
                                                             }}
                                                         >
-                                                            <img className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src={roomItem.images?.[0]?.url || images[roomIndex % images.length]} alt="" />
-                                                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/room:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[4px]">
+                                                            <img className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px] will-change-transform" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }} src={roomItem.images?.[0]?.url || images[roomIndex % images.length]} alt="" />
+                                                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/room:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[4px] rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px] will-change-transform" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
                                                                 <div className="size-14 rounded-full bg-white/20 backdrop-blur-xl border border-white/40 flex items-center justify-center text-white scale-75 group-hover/room:scale-100 transition-all duration-500 shadow-2xl">
                                                                     <span className="material-symbols-outlined text-3xl">fullscreen</span>
                                                                 </div>
@@ -747,7 +748,7 @@ const HotelDetail = () => {
                                                         </div>
 
                                                         {/* Details Section */}
-                                                        <div className="flex-1 p-4 sm:p-6 flex flex-col justify-between min-w-0">
+                                                        <div className="flex-1 p-4 sm:p-6 flex flex-col justify-between min-w-0 rounded-b-[28px] md:rounded-bl-none md:rounded-r-[28px]">
                                                             <div className="relative">
                                                                 <div className="absolute top-0 right-0">
                                                                     <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-wider border border-orange-500/10 backdrop-blur-md whitespace-nowrap">

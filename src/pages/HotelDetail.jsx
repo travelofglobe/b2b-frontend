@@ -238,6 +238,9 @@ const HotelDetail = () => {
         if (lastFetchRef.current === fetchKey) return;
         lastFetchRef.current = fetchKey;
 
+        // Clear previous selection when a new search is initiated
+        setSelectedRooms([]);
+
         const fetchCheckIn = parseDateParam(searchParams.get('checkin')) || tomorrow;
         const fetchCheckOut = parseDateParam(searchParams.get('checkout')) || dayAfter;
         const fetchNationality = searchParams.get('nationality') || 'TR';

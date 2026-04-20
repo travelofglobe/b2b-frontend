@@ -1,6 +1,6 @@
 import apiClient from '../utils/apiClient';
 
-const API_BASE_URL = 'http://72.62.17.189:8000/hotel-hub/v1/b2b/hotels';
+const API_BASE_URL = 'http://72.62.17.189:8000/b2b/v1/hotels';
 
 // Persistent cache for facility names during the session
 const facilityCache = {};
@@ -125,7 +125,7 @@ export const hotelService = {
         if (missingIds.length > 0) {
             try {
                 const body = { facilityIds: missingIds };
-                const response = await apiClient.post(`http://72.62.17.189:8000/hotel-hub/v1/b2b/hotel-facility/search`, body);
+                const response = await apiClient.post(`${API_BASE_URL}/facilities/search`, body);
                 
                 if (response && Array.isArray(response)) {
                     response.forEach(fac => {
@@ -139,8 +139,8 @@ export const hotelService = {
 
         // 3. Construct result from cache
         return facilityIds
-            .map(id => facilityCache[id])
-            .filter(Boolean); // Only return found ones
+                .map(id => facilityCache[id])
+                .filter(Boolean); // Only return found ones
     },
 
     /**
@@ -164,6 +164,8 @@ export const hotelService = {
             }
         };
 
-        return apiClient.post(`http://72.62.17.189:8000/hotel-hub/v1/b2b/rooms/search`, body, { signal });
+        return apiClient.post(`${API_BASE_URL}/rooms/search`, body, { signal });
     }
 };
+
+

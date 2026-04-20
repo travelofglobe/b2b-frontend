@@ -56,6 +56,11 @@ const CheckoutGuestDetails = () => {
 
     const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+    const getCurrencySymbol = (code) => {
+        const symbols = { 'USD': '$', 'EUR': '€', 'GBP': '£', 'TRY': '₺', 'AED': 'د.إ', 'SAR': 'ر.س', 'JPY': '¥', 'CHF': 'Fr', 'CAD': 'CA$', 'AUD': 'A$' };
+        return symbols[code] || code || '$';
+    };
+
     const handleInputChange = (roomIdx, guestIdx, field, value) => {
         const newData = [...roomsData];
         newData[roomIdx].guests[guestIdx][field] = value;
@@ -418,10 +423,10 @@ const CheckoutGuestDetails = () => {
                                                     </div>
                                                     <div className="text-right shrink-0 ml-2">
                                                         <div className="flex items-baseline justify-end gap-1">
-                                                            <span className="text-[9px] font-black text-primary">{room.currency || '$'}</span>
+                                                            <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(room.currency)}</span>
                                                             <span className="font-black text-sm text-primary leading-none">{(room.rate * nights).toFixed(2)}</span>
                                                         </div>
-                                                        <p className="text-[8px] text-slate-400 font-bold uppercase mt-0.5">{nights} Night{nights > 1 ? 's' : ''}</p>
+                                                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{room.currency || '$'} · {nights} Night{nights > 1 ? 's' : ''}</p>
                                                     </div>
                                                 </div>
                                                 {/* Cancellation policy */}
@@ -461,13 +466,13 @@ const CheckoutGuestDetails = () => {
                                     <div className="flex items-end justify-between">
                                         <div>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-2">Total Stay Price (Net)</p>
-                                            <div className="flex items-baseline gap-1.5">
-                                                <span className="text-sm font-black text-primary uppercase tracking-wider">{displayCurrency}</span>
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-2xl font-black text-primary leading-none">{getCurrencySymbol(displayCurrency)}</span>
                                                 <p className="text-4xl font-black text-primary leading-none tracking-tighter">
                                                     {grandTotal.toFixed(2)}
                                                 </p>
                                             </div>
-                                            <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-1">Taxes Included • {nights} Night{nights > 1 ? 's' : ''}</p>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{displayCurrency} · Taxes Incl. · {nights} Night{nights > 1 ? 's' : ''}</p>
                                         </div>
                                         <div className="size-10 rounded-2xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">
                                             <span className="material-symbols-outlined">payments</span>

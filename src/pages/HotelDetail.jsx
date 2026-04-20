@@ -783,7 +783,8 @@ const HotelDetail = () => {
                                                             <div
                                                                 onClick={() => {
                                                                     if (roomPrice <= 0 && !isSelected) return;
-                                                                    const roomData = { type: roomName, rate: roomPrice, name: roomName, roomIndex, currency };
+                                                                    const cancellationPolicies = roomItem.ratePrice?.cancellationPolicies || [];
+                                                                    const roomData = { type: roomName, rate: roomPrice, name: roomName, roomIndex, currency, cancellationPolicies };
                                                                     setSelectedRooms(prev => {
                                                                         const index = prev.findIndex(r => r.name === roomName && r.roomIndex === roomIndex);
                                                                         if (index > -1) return prev.filter((_, i) => i !== index);

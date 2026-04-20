@@ -41,30 +41,18 @@ const CheckoutGuestDetails = () => {
             const config = roomState[roomIdx] || { adults: 1, children: 0, childAges: [] };
             const guests = [];
             for (let i = 0; i < config.adults; i++) {
-                guests.push({ type: 'Adult', firstName: '', lastName: '', email: '', phone: '', tcNo: '', passportNo: '', birthDate: '', gender: '', isNonTc: false });
+                guests.push({ type: 'Adult', firstName: '', lastName: '', email: '', phone: '', birthDate: '', gender: '' });
             }
             for (let i = 0; i < config.children; i++) {
-                guests.push({ type: 'Child', age: config.childAges[i], firstName: '', lastName: '', tcNo: '', passportNo: '', birthDate: '', gender: '', isNonTc: false });
+                guests.push({ type: 'Child', age: config.childAges[i], firstName: '', lastName: '', birthDate: '', gender: '' });
             }
-            return { roomName: room.name, guests };
+            return { roomName: room.name, guests, cancellationPolicies: room.cancellationPolicies || [] };
         });
     });
 
     const [errors, setErrors] = useState({});
 
-    const validateTcNo = (tc) => {
-        if (!/^[1-9][0-9]{10}$/.test(tc)) return false;
-        let sumOdd = 0, sumEven = 0;
-        for (let i = 0; i < 9; i++) {
-            if (i % 2 === 0) sumOdd += parseInt(tc[i]);
-            else sumEven += parseInt(tc[i]);
-        }
-        let digit10 = (sumOdd * 7 - sumEven) % 10;
-        if (digit10 < 0) digit10 += 10;
-        if (parseInt(tc[9]) !== digit10) return false;
-        if (parseInt(tc[10]) !== (sumOdd + sumEven + digit10) % 10) return false;
-        return true;
-    };
+
 
     const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -72,6 +60,16 @@ const CheckoutGuestDetails = () => {
         const newData = [...roomsData];
         newData[roomIdx].guests[guestIdx][field] = value;
         setRoomsData(newData);
+    };
+
+    // Birth date validation: must be a valid date, not in the future, year must be 4 digits
+    const validateBirthDate = (dateStr) => {
+        if (!dateStr) return false;
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return false;
+        const year = date.getFullYear();
+        if (year < 1900 || year > new Date().getFullYear()) return false;
+        return date <= new Date();
     };
 
     const handleNext = () => {
@@ -85,9 +83,7 @@ const CheckoutGuestDetails = () => {
                 firstName: !guest.firstName,
                 lastName: !guest.lastName,
                 email: guest.type === 'Adult' && gIdx === 0 && !validateEmail(guest.email),
-                tcNo: !guest.isNonTc && !validateTcNo(guest.tcNo),
-                passportNo: guest.isNonTc && !guest.passportNo,
-                birthDate: !guest.birthDate,
+                birthDate: !validateBirthDate(guest.birthDate),
                 gender: !guest.gender
             };
             newErrors[key] = guestErrors;
@@ -156,10 +152,17 @@ const CheckoutGuestDetails = () => {
 
     const currentRoom = roomsData[activeRoomIdx];
 
+    const hotelName = hotel.names?.tr || hotel.names?.en || hotel.name || 'Hotel';
+    const hotelStars = hotel.hotelStar?.star || hotel.stars || 5;
+    const hotelAddress = hotel.address ? `${hotel.address.street || ''}, ${hotel.address.cityName || ''}`.replace(/^,\s*/, '').replace(/,\s*$/, '') : (hotel.location || '');
+    const hotelImage = hotel.images?.[0]?.url || hotel.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+    const grandTotal = selectedRooms.reduce((sum, r) => sum + r.rate, 0) * nights;
+    const displayCurrency = selectedRooms[0]?.currency || '$';
+
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
-            <main className="max-w-6xl mx-auto px-6 pt-24 pb-20">
+            <main className="max-w-7xl mx-auto px-6 pt-24 pb-20">
                 {/* Top Navigation / Breadcrumb */}
                 <div className="flex items-center justify-between mb-12">
                     <div className="flex items-center gap-4">
@@ -173,8 +176,8 @@ const CheckoutGuestDetails = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-                    <div className="lg:col-span-2">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                    <div className="lg:col-span-8">
                         {/* Room Stepper */}
                         <div className="flex gap-2 mb-10 overflow-x-auto pb-4 no-scrollbar">
                             {roomsData.map((room, idx) => (
@@ -209,18 +212,6 @@ const CheckoutGuestDetails = () => {
                                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{guest.type === 'Adult' ? 'Standard Adult Policy' : `Child Passenger • Age ${guest.age}`}</p>
                                                 </div>
                                             </div>
-                                            {guest.type === 'Adult' && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleInputChange(activeRoomIdx, gIdx, 'isNonTc', !guest.isNonTc)}
-                                                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all ${guest.isNonTc ? 'bg-primary/10 border-primary text-primary' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 text-slate-400'}`}
-                                                >
-                                                    <span className="text-[10px] font-black uppercase tracking-widest">Non-TC Citizen</span>
-                                                    <div className={`size-5 rounded-md border-2 flex items-center justify-center transition-all ${guest.isNonTc ? 'bg-primary border-primary text-white' : 'border-slate-300 dark:border-slate-600'}`}>
-                                                        {guest.isNonTc && <span className="material-symbols-outlined text-[14px]">check</span>}
-                                                    </div>
-                                                </button>
-                                            )}
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -240,8 +231,28 @@ const CheckoutGuestDetails = () => {
                                                     type="date"
                                                     className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold uppercase`}
                                                     value={guest.birthDate}
-                                                    onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'birthDate', e.target.value)}
+                                                    min="1900-01-01"
+                                                    max={new Date().toISOString().split('T')[0]}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        // Prevent invalid years (must be 4 digits between 1900 and current year)
+                                                        if (val) {
+                                                            const year = parseInt(val.split('-')[0], 10);
+                                                            if (year < 1900 || year > new Date().getFullYear()) return;
+                                                        }
+                                                        handleInputChange(activeRoomIdx, gIdx, 'birthDate', val);
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        const val = e.target.value;
+                                                        if (val) {
+                                                            const year = parseInt(val.split('-')[0], 10);
+                                                            if (year < 1900 || year > new Date().getFullYear()) {
+                                                                handleInputChange(activeRoomIdx, gIdx, 'birthDate', '');
+                                                            }
+                                                        }
+                                                    }}
                                                 />
+                                                {errors[`${activeRoomIdx}-${gIdx}`]?.birthDate && <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-1 ml-1 animate-in fade-in duration-300">Please enter a valid birth date</p>}
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Gender</label>
@@ -275,30 +286,6 @@ const CheckoutGuestDetails = () => {
                                                     </div>
                                                 </>
                                             )}
-
-                                            <div className="space-y-2 md:col-span-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-400">
-                                                    {guest.isNonTc ? 'Passport Number' : 'Local Identity ID (T.C.)'}
-                                                </label>
-                                                {guest.isNonTc ? (
-                                                    <input
-                                                        className={`w-full p-5 rounded-2xl outline-none transition-all font-black tracking-[0.25em] bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.passportNo ? 'border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.1)]' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-primary/20`}
-                                                        placeholder="ENTER PASSPORT NUMBER"
-                                                        value={guest.passportNo}
-                                                        onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'passportNo', e.target.value.toUpperCase())}
-                                                    />
-                                                ) : (
-                                                    <input
-                                                        maxLength={11}
-                                                        className={`w-full p-5 rounded-2xl outline-none transition-all font-black tracking-[0.25em] bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.tcNo ? 'border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.1)]' : 'border-slate-200 dark:border-slate-700'} focus:ring-2 focus:ring-primary/20`}
-                                                        placeholder="11-DIGIT IDENTITY NO"
-                                                        value={guest.tcNo}
-                                                        onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'tcNo', e.target.value.replace(/\D/g, ''))}
-                                                    />
-                                                )}
-                                                {!guest.isNonTc && errors[`${activeRoomIdx}-${gIdx}`]?.tcNo && <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-2 ml-1 animate-in fade-in duration-300">Invalid Turkish Identity Verification</p>}
-                                                {guest.isNonTc && errors[`${activeRoomIdx}-${gIdx}`]?.passportNo && <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-2 ml-1 animate-in fade-in duration-300">Passport Number is required</p>}
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -329,86 +316,179 @@ const CheckoutGuestDetails = () => {
                     </div>
 
                     {/* Sticky Reservation Summary Sidebar */}
-                    <div className="lg:sticky lg:top-24 space-y-8">
-                        <div className="p-8 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl overflow-hidden relative group">
-                            <div className="absolute top-0 right-0 p-6 opacity-5 rotate-12 pointer-events-none group-hover:scale-110 transition-transform duration-700">
-                                <span className="material-symbols-outlined text-[120px]">assignment</span>
-                            </div>
+                    <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-6">
+                        <div className="relative group/sidebar">
+                            {/* Glass Background */}
+                            <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[40px] border border-white/40 dark:border-white/10 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.1)] transition-all duration-500 group-hover/sidebar:shadow-[0_48px_96px_-16px_rgba(0,0,0,0.15)]"></div>
 
-                            <div className="relative z-10">
-                                <h2 className="text-xl font-black uppercase mb-8 tracking-tight flex items-center gap-3">
-                                    <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                                        <span className="material-symbols-outlined text-xl">receipt_long</span>
-                                    </div>
+                            <div className="relative p-8 z-10">
+                                <div className="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.07] pointer-events-none group-hover/sidebar:scale-110 transition-transform duration-700">
+                                    <span className="material-symbols-outlined text-[140px]">hotel_class</span>
+                                </div>
+
+                                {/* Header */}
+                                <div className="flex items-center gap-2 text-primary font-black text-[10px] mb-6 uppercase tracking-[0.2em] bg-primary/5 dark:bg-primary/20 p-3 rounded-2xl border border-primary/10">
+                                    <span className="material-symbols-outlined text-sm fill-1">bolt</span>
+                                    Instant Confirmation Available
+                                </div>
+
+                                <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-sm">auto_awesome</span>
                                     Reservation Summary
-                                </h2>
+                                </h3>
 
-                                {/* Hotel Quick Info */}
-                                <div className="flex gap-4 mb-8 p-4 rounded-3xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-                                    <div className="size-20 rounded-2xl overflow-hidden shrink-0 border-2 border-white dark:border-slate-700 shadow-sm">
-                                        <img src={hotel.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"} alt={hotel.name} className="w-full h-full object-cover" />
-                                    </div>
-                                    <div className="flex flex-col justify-center">
-                                        <div className="flex items-center gap-1 mb-1">
-                                            {[...Array(5)].map((_, i) => (
-                                                <span key={i} className={`material-symbols-outlined text-[12px] ${i < (hotel.stars || 5) ? 'text-amber-400 fill-1' : 'text-slate-300'}`}>star</span>
-                                            ))}
+                                {/* Hotel Info Card */}
+                                <div className="mb-6 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm">
+                                    <div className="relative h-32 overflow-hidden">
+                                        <img
+                                            src={hotelImage}
+                                            alt={hotelName}
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                                        <div className="absolute bottom-3 left-4 right-4">
+                                            <div className="flex items-center gap-0.5 mb-1">
+                                                {[...Array(hotelStars)].map((_, i) => (
+                                                    <span key={i} className="material-symbols-outlined text-[11px] text-amber-400 fill-1">star</span>
+                                                ))}
+                                            </div>
+                                            <h3 className="font-black text-white text-sm uppercase tracking-tight leading-tight line-clamp-1">{hotelName}</h3>
                                         </div>
-                                        <h3 className="font-black text-sm uppercase tracking-tight leading-tight mb-1 line-clamp-2">{hotel.name}</h3>
-                                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{hotel.location}</p>
+                                    </div>
+                                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 space-y-2">
+                                        {hotelAddress && (
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[13px] text-primary shrink-0">location_on</span>
+                                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">{hotelAddress}</p>
+                                            </div>
+                                        )}
+                                        <div className="flex gap-3">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="material-symbols-outlined text-[11px] text-primary">login</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">In: {hotel.checkIn || '15:00'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="material-symbols-outlined text-[11px] text-primary">logout</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Out: {hotel.checkOut || '11:00'}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* Booking Dates */}
-                                <div className="grid grid-cols-2 gap-4 mb-8">
-                                    <div className="p-4 rounded-3xl bg-white/40 dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
+                                <div className="grid grid-cols-2 gap-3 mb-6">
+                                    <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
                                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Check-in</p>
-                                        <p className="text-sm font-black uppercase text-primary">{formattedDates.start}</p>
+                                        <p className="text-sm font-black uppercase text-primary leading-tight">{formattedDates.start}</p>
                                     </div>
-                                    <div className="p-4 rounded-3xl bg-white/40 dark:bg-slate-900/40 border border-slate-100 dark:border-white/5">
+                                    <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
                                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Check-out</p>
-                                        <p className="text-sm font-black uppercase text-primary">{formattedDates.end}</p>
+                                        <p className="text-sm font-black uppercase text-primary leading-tight">{formattedDates.end}</p>
+                                    </div>
+                                    <div className="col-span-2 p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10 flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-[13px] text-primary">nights_stay</span>
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{nights} Night{nights > 1 ? 's' : ''} Stay</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-[13px] text-primary">group</span>
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                                {roomState.reduce((s, r) => s + r.adults, 0)} Adults{roomState.reduce((s, r) => s + r.children, 0) > 0 ? `, ${roomState.reduce((s, r) => s + r.children, 0)} Children` : ''}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* Room Breakdown */}
-                                <div className="space-y-4 mb-8 pb-8 border-b border-dashed border-slate-200 dark:border-slate-800">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Selected Rooms</p>
-                                    {selectedRooms?.map((room, idx) => (
-                                        <div key={idx} className="flex justify-between items-start text-xs group/room">
-                                            <div className="flex gap-3">
-                                                <div className="size-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-500 group-hover/room:bg-primary/10 group-hover/room:text-primary transition-colors">
-                                                    {idx + 1}
+                                <div className="space-y-4 mb-6">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Selected Rooms</p>
+                                    {selectedRooms?.map((room, idx) => {
+                                        const policies = room.cancellationPolicies || [];
+                                        return (
+                                            <div key={idx} className="relative p-4 rounded-[20px] bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div className="flex items-start gap-2.5">
+                                                        <div className="size-6 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary shrink-0 mt-0.5">
+                                                            {idx + 1}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-black text-[11px] uppercase tracking-tight text-slate-900 dark:text-white line-clamp-2">{room.name}</p>
+                                                            <p className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">{roomState[idx]?.adults} Adults{roomState[idx]?.children > 0 ? `, ${roomState[idx].children} Children` : ''}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right shrink-0 ml-2">
+                                                        <div className="flex items-baseline justify-end gap-1">
+                                                            <span className="text-[9px] font-black text-primary">{room.currency || '$'}</span>
+                                                            <span className="font-black text-sm text-primary leading-none">{(room.rate * nights).toFixed(2)}</span>
+                                                        </div>
+                                                        <p className="text-[8px] text-slate-400 font-bold uppercase mt-0.5">{nights} Night{nights > 1 ? 's' : ''}</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="font-black uppercase tracking-tight mb-0.5">{room.name}</p>
-                                                    <p className="text-[9px] font-bold text-slate-500 uppercase">{roomState[idx]?.adults} Adults, {roomState[idx]?.children} Children</p>
+                                                {/* Cancellation policy */}
+                                                <div className="pt-2 border-t border-slate-100 dark:border-slate-700/50">
+                                                    {policies.length > 0 ? (
+                                                        <div className="space-y-1">
+                                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Cancellation Policy</p>
+                                                            {policies.map((policy, pIdx) => (
+                                                                <div key={pIdx} className="flex justify-between items-center">
+                                                                    <span className="text-[9px] font-bold text-slate-500">
+                                                                        {policy.fromDate ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                                                                    </span>
+                                                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-md ${
+                                                                        policy.amount === 0
+                                                                            ? 'bg-emerald-500/10 text-emerald-500'
+                                                                            : 'bg-orange-500/10 text-orange-500'
+                                                                    }`}>
+                                                                        {policy.amount === 0 ? 'Free Cancel' : `${policy.currency || ''} ${policy.amount}`}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                                                            <span className="material-symbols-outlined text-[10px]">info</span>
+                                                            Standard cancellation applies
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <p className="font-black text-slate-700 dark:text-slate-300">${(room.rate * nights).toFixed(2)}</p>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
 
-                                {/* Price Total */}
-                                <div className="flex justify-between items-center mb-1">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Grand Total</span>
-                                    <div className="text-right">
-                                        <p className="text-3xl font-black text-primary tracking-tighter leading-none">${(selectedRooms.reduce((sum, r) => sum + r.rate, 0) * nights).toFixed(2)}</p>
-                                        <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-1">Taxes Included • {nights} Night{nights > 1 ? 's' : ''}</p>
+                                {/* Grand Total */}
+                                <div className="pt-6 border-t border-slate-200 dark:border-slate-800 mb-6">
+                                    <div className="flex items-end justify-between">
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-2">Total Stay Price (Net)</p>
+                                            <div className="flex items-baseline gap-1.5">
+                                                <span className="text-sm font-black text-primary uppercase tracking-wider">{displayCurrency}</span>
+                                                <p className="text-4xl font-black text-primary leading-none tracking-tighter">
+                                                    {grandTotal.toFixed(2)}
+                                                </p>
+                                            </div>
+                                            <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-1">Taxes Included • {nights} Night{nights > 1 ? 's' : ''}</p>
+                                        </div>
+                                        <div className="size-10 rounded-2xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">
+                                            <span className="material-symbols-outlined">payments</span>
+                                        </div>
                                     </div>
                                 </div>
+
+                                <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em]">
+                                    B2B AGENCY RATES APPLIED
+                                </p>
                             </div>
                         </div>
 
                         {/* Security Badge */}
-                        <div className="p-6 rounded-[32px] border border-emerald-500/10 bg-emerald-500/5 backdrop-blur-3xl flex items-center gap-4">
-                            <div className="size-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                                <span className="material-symbols-outlined font-black">verified_user</span>
+                        <div className="bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex items-center gap-4">
+                            <div className="size-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm">
+                                <span className="material-symbols-outlined">verified_user</span>
                             </div>
                             <div>
-                                <p className="text-xs font-black uppercase tracking-tight dark:text-emerald-400">Secure Checkout</p>
-                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 whitespace-nowrap">256-bit SSL encrypted connection</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">SECURE PAYMENT</p>
+                                <p className="text-sm font-black">TOG Protected Booking</p>
                             </div>
                         </div>
                     </div>

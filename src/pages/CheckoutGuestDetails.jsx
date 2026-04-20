@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -81,6 +81,7 @@ const CheckoutGuestDetails = () => {
         const currentRoom = roomsData[activeRoomIdx];
         const newErrors = { ...errors };
         let hasRoomError = false;
+        let firstErrorField = null;
 
         currentRoom.guests.forEach((guest, gIdx) => {
             const key = `${activeRoomIdx}-${gIdx}`;
@@ -92,12 +93,33 @@ const CheckoutGuestDetails = () => {
                 gender: !guest.gender
             };
             newErrors[key] = guestErrors;
-            if (Object.values(guestErrors).some(v => v)) hasRoomError = true;
+            if (Object.values(guestErrors).some(v => v)) {
+                hasRoomError = true;
+                // Track first error field for scroll
+                if (!firstErrorField) {
+                    const fieldName = Object.keys(guestErrors).find(k => guestErrors[k]);
+                    firstErrorField = { key, field: fieldName, gIdx };
+                }
+            }
         });
 
         setErrors(newErrors);
 
-        if (!hasRoomError) {
+        if (hasRoomError) {
+            // Scroll to first invalid field after state update
+            setTimeout(() => {
+                const selector = firstErrorField
+                    ? `[data-field="${firstErrorField.key}-${firstErrorField.field}"]`
+                    : '[data-error="true"]';
+                const el = document.querySelector(selector);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.focus?.();
+                } else {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            }, 50);
+        } else {
             if (activeRoomIdx < roomsData.length - 1) {
                 setActiveRoomIdx(prev => prev + 1);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -222,36 +244,45 @@ const CheckoutGuestDetails = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">First Name</label>
-                                                <input required className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold`} placeholder="Enter first name" value={guest.firstName} onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'firstName', e.target.value)} />
+                                                <input
+                                                    data-field={`${activeRoomIdx}-${gIdx}-firstName`}
+                                                    required
+                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold`}
+                                                    placeholder="Enter first name"
+                                                    value={guest.firstName}
+                                                    onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'firstName', e.target.value)}
+                                                />
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Last Name</label>
-                                                <input required className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold`} placeholder="Enter last name" value={guest.lastName} onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'lastName', e.target.value)} />
+                                                <input
+                                                    data-field={`${activeRoomIdx}-${gIdx}-lastName`}
+                                                    required
+                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold`}
+                                                    placeholder="Enter last name"
+                                                    value={guest.lastName}
+                                                    onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'lastName', e.target.value)}
+                                                />
                                             </div>
 
                                             {/* Birth Date and Gender */}
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Birth Date</label>
                                                 <input
+                                                    data-field={`${activeRoomIdx}-${gIdx}-birthDate`}
                                                     type="date"
                                                     className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold uppercase`}
                                                     value={guest.birthDate}
                                                     min="1900-01-01"
                                                     max={new Date().toISOString().split('T')[0]}
                                                     onChange={(e) => {
-                                                        const val = e.target.value;
-                                                        // Prevent invalid years (must be 4 digits between 1900 and current year)
-                                                        if (val) {
-                                                            const year = parseInt(val.split('-')[0], 10);
-                                                            if (year < 1900 || year > new Date().getFullYear()) return;
-                                                        }
-                                                        handleInputChange(activeRoomIdx, gIdx, 'birthDate', val);
+                                                        handleInputChange(activeRoomIdx, gIdx, 'birthDate', e.target.value);
                                                     }}
                                                     onBlur={(e) => {
                                                         const val = e.target.value;
                                                         if (val) {
                                                             const year = parseInt(val.split('-')[0], 10);
-                                                            if (year < 1900 || year > new Date().getFullYear()) {
+                                                            if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
                                                                 handleInputChange(activeRoomIdx, gIdx, 'birthDate', '');
                                                             }
                                                         }
@@ -261,7 +292,9 @@ const CheckoutGuestDetails = () => {
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Gender</label>
-                                                <div className={`grid grid-cols-2 gap-3 p-1 rounded-2xl border ${errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} bg-slate-50 dark:bg-slate-800`}>
+                                                <div
+                                                    data-field={`${activeRoomIdx}-${gIdx}-gender`}
+                                                    className={`grid grid-cols-2 gap-3 p-1 rounded-2xl border ${errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} bg-slate-50 dark:bg-slate-800`}>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'male')}
@@ -283,11 +316,19 @@ const CheckoutGuestDetails = () => {
                                                 <>
                                                     <div className="space-y-2">
                                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
-                                                        <input required type="email" className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold`} placeholder="email@example.com" value={guest.email} onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'email', e.target.value)} />
+                                                        <input
+                                                            data-field={`${activeRoomIdx}-${gIdx}-email`}
+                                                            required
+                                                            type="email"
+                                                            className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold`}
+                                                            placeholder="email@example.com"
+                                                            value={guest.email}
+                                                            onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'email', e.target.value)}
+                                                        />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Phone Number</label>
-                                                        <input required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold" placeholder="+90 (___) ___ ____" value={guest.phone} onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'phone', e.target.value)} />
+                                                        <input required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold" placeholder="+___ ___ ___ ____" value={guest.phone} onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'phone', e.target.value)} />
                                                     </div>
                                                 </>
                                             )}

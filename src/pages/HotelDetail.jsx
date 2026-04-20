@@ -703,13 +703,67 @@ const HotelDetail = () => {
                             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 {activeTab === 'Rooms & Rates' && (
                                     <div className="relative space-y-4">
-                                        {isRoomsLoading && (
-                                            <div className="absolute inset-0 z-10 bg-white/20 dark:bg-black/20 backdrop-blur-[2px] rounded-[28px] flex flex-col items-center justify-center gap-4 animate-in fade-in duration-300">
-                                                <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                                                <p className="text-[10px] font-black uppercase text-primary tracking-widest bg-white/80 dark:bg-slate-900/80 px-4 py-2 rounded-full shadow-lg">Updating Rates...</p>
+                                        {isRoomsLoading ? (
+                                            // Skeleton loading cards
+                                            <div className="space-y-4 animate-in fade-in duration-300">
+                                                {[...Array(3)].map((_, i) => (
+                                                    <div key={i} className="flex flex-col md:flex-row rounded-[28px] border border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl shadow-xl overflow-hidden">
+                                                        {/* Image skeleton */}
+                                                        <div className="md:w-64 h-52 md:h-auto shrink-0 relative overflow-hidden bg-slate-200 dark:bg-slate-800 rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px]">
+                                                            <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15}s` }}></div>
+                                                        </div>
+                                                        {/* Content skeleton */}
+                                                        <div className="flex-1 p-6 flex flex-col justify-between gap-4">
+                                                            <div className="space-y-3">
+                                                                {/* Title */}
+                                                                <div className="relative overflow-hidden h-7 w-3/5 bg-slate-200 dark:bg-slate-800 rounded-xl">
+                                                                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15}s` }}></div>
+                                                                </div>
+                                                                {/* Subtitle */}
+                                                                <div className="relative overflow-hidden h-4 w-2/5 bg-slate-100 dark:bg-slate-700/60 rounded-lg">
+                                                                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + 0.1}s` }}></div>
+                                                                </div>
+                                                                {/* Attribute tags */}
+                                                                <div className="flex gap-2 mt-2">
+                                                                    {[40, 56, 44, 36].map((w, j) => (
+                                                                        <div key={j} className={`relative overflow-hidden h-6 bg-slate-100 dark:bg-slate-700/60 rounded-xl`} style={{ width: `${w}px` }}>
+                                                                            <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + j * 0.05}s` }}></div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                            {/* Price bar skeleton */}
+                                                            <div className="relative overflow-hidden h-14 w-full bg-slate-100 dark:bg-slate-800/60 rounded-[18px]">
+                                                                <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + 0.2}s` }}></div>
+                                                                {/* Inner price placeholders */}
+                                                                <div className="absolute inset-0 flex items-center justify-between px-4">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className="size-8 rounded-lg bg-slate-200 dark:bg-slate-700"></div>
+                                                                        <div className="space-y-1.5">
+                                                                            <div className="h-2.5 w-16 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+                                                                            <div className="h-2 w-24 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="space-y-1 text-right">
+                                                                            <div className="h-5 w-20 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+                                                                            <div className="h-2 w-14 bg-slate-200 dark:bg-slate-700 rounded-md ml-auto"></div>
+                                                                        </div>
+                                                                        <div className="h-8 w-16 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {/* Loading label */}
+                                                <div className="flex items-center justify-center gap-3 py-2">
+                                                    <div className="size-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Fetching best rates...</p>
+                                                </div>
                                             </div>
-                                        )}
-                                        {(hotel.rooms || []).map((roomItem, roomIndex) => {
+                                        ) : (
+                                        <>{(hotel.rooms || []).map((roomItem, roomIndex) => {
                                             const roomName = roomItem.names?.tr || roomItem.names?.en || roomItem.names?.defaultName || 'Standard Room';
                                             const roomPrice = roomItem.ratePrice?.calculatedAmount || roomItem.price || 0;
                                             const currency = roomItem.ratePrice?.currency || '$';
@@ -917,7 +971,8 @@ const HotelDetail = () => {
                                                     </div>
                                                 </div>
                                             );
-                                        })}
+                                        })}</>
+                                        )}
                                     </div>
                                 )}
 

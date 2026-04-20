@@ -1,6 +1,6 @@
 import apiClient from '../utils/apiClient';
 
-const BOOKING_API_URL = 'http://72.62.17.189:8000/b2b-backend/v1/bookings';
+const BOOKING_API_URL = 'http://72.62.17.189:8000/b2b/v1/bookings';
 
 export const bookingService = {
     findLastFive: async (signal) => {

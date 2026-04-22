@@ -560,7 +560,7 @@ const DashboardSearch = () => {
                                 {roomState.map((room, index) => (
                                     <div key={index} className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl relative">
                                         <div className="flex items-center justify-between mb-4">
-                                            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Space {index + 1}</div>
+                                            <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Room {index + 1}</div>
                                             {roomState.length > 1 && (
                                                 <button onClick={() => removeRoom(index)} className="size-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all">
                                                     <span className="material-symbols-outlined text-sm">delete</span>
@@ -609,7 +609,7 @@ const DashboardSearch = () => {
                                         className="w-full py-4 bg-primary/5 text-primary rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-primary hover:text-white transition-all border border-dashed border-primary/30 flex items-center justify-center gap-2"
                                     >
                                         <span className="material-symbols-outlined text-base">add</span>
-                                        Add Another Space
+                                        Add Another Room
                                     </button>
                                 )}
                             </div>

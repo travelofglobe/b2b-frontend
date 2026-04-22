@@ -2,11 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { autocompleteService } from '../services/autocompleteService';
 import { useToast } from '../context/ToastContext';
-import DatePicker from 'react-datepicker';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import { enGB } from 'date-fns/locale';
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
 import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms } from '../utils/searchParamsUtils';
 import NationalitySelect from './NationalitySelect';
+
+// Register locale with Monday as week start
+registerLocale('en-GB', enGB);
 
 const HeaderSearch = () => {
     const navigate = useNavigate();
@@ -438,6 +442,20 @@ const HeaderSearch = () => {
                         onChange={(dates) => {
                             const [start, end] = dates;
 
+                            // Validation: checkout must be at least 1 day after checkin
+                            if (start && end) {
+                                const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                                const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+                                if (endDay <= startDay) {
+                                    // Auto-correct: set checkout to next day
+                                    const nextDay = new Date(startDay);
+                                    nextDay.setDate(nextDay.getDate() + 1);
+                                    setCheckInDate(start);
+                                    setCheckOutDate(nextDay);
+                                    return;
+                                }
+                            }
+
                             setCheckInDate(start);
                             setCheckOutDate(end);
                         }}
@@ -447,6 +465,7 @@ const HeaderSearch = () => {
                         minDate={new Date()}
                         maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                         monthsShown={2}
+                        locale="en-GB"
                         className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 font-medium"
                         dateFormat="dd MMM yyyy"
                         placeholderText="Dates"

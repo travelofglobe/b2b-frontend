@@ -2,12 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { autocompleteService } from '../services/autocompleteService';
 import { useToast } from '../context/ToastContext';
-import DatePicker from 'react-datepicker';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import { enGB } from 'date-fns/locale';
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
 import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms } from '../utils/searchParamsUtils';
 
 import NationalitySelect from './NationalitySelect';
+
+// Register locale with Monday as week start
+registerLocale('en-GB', enGB);
 
 const DashboardSearch = () => {
     const navigate = useNavigate();
@@ -478,6 +482,20 @@ const DashboardSearch = () => {
                                     selected={checkInDate}
                                     onChange={(dates) => {
                                         const [start, end] = dates;
+
+                                        // Validation: checkout must be at least 1 day after checkin
+                                        if (start && end) {
+                                            const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                                            const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+                                            if (endDay <= startDay) {
+                                                const nextDay = new Date(startDay);
+                                                nextDay.setDate(nextDay.getDate() + 1);
+                                                setCheckInDate(start);
+                                                setCheckOutDate(nextDay);
+                                                return;
+                                            }
+                                        }
+
                                         setCheckInDate(start);
                                         setCheckOutDate(end);
                                     }}
@@ -486,6 +504,7 @@ const DashboardSearch = () => {
                                     selectsRange
                                     minDate={new Date()}
                                     monthsShown={2}
+                                    locale="en-GB"
                                     className="bg-transparent border-none outline-none focus:ring-0 w-full p-0 text-sm font-bold text-slate-900 dark:text-white cursor-pointer tracking-tight"
                                     dateFormat="dd MMM yyyy"
                                     placeholderText="Select range"

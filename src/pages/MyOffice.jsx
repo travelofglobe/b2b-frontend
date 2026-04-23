@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { agencyService } from '../services/agencyService';
 import { locationService } from '../services/locationService';
 import { userService, roleService } from '../services/userService';
+import { guestService } from '../services/guestService';
 import ThemeToggle from '../components/ThemeToggle';
 
 // Fix Leaflet marker icon issue in React
@@ -61,7 +62,7 @@ const MyOffice = () => {
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
     // Summary data
-    const [summary, setSummary] = useState({ totalUsers: 0, activeUsers: 0, totalGuests: 0 });
+    const [summary, setSummary] = useState({ totalUsers: 0, activeUsers: 0, totalGuests: 0, activeGuests: 0 });
 
     // User management state
     const [users, setUsers] = useState([]);
@@ -69,15 +70,24 @@ const MyOffice = () => {
     const [userFilters, setUserFilters] = useState({ query: '', status: 'ACTIVE', roleIds: [] });
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
-    const [userFormData, setUserFormData] = useState({
-        name: '',
-        surname: '',
+    const [userFormData, setUserFormData] = useState({ name: '', surname: '', email: '', password: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE', roleIds: [] });
+
+    // Guest management state
+    const [guests, setGuests] = useState([]);
+    const [guestFilters, setGuestFilters] = useState({ query: '', status: 'ACTIVE', countryCodes: [] });
+    const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
+    const [editingGuest, setEditingGuest] = useState(null);
+    const [guestFormData, setGuestFormData] = useState({
+        gender: 'MALE',
+        firstName: '',
+        lastName: '',
+        birthDate: '',
+        country: '',
+        passportNo: '',
+        passportExpiry: '',
         email: '',
-        password: '',
         phoneCountryCode: '90',
-        phoneNumber: '',
-        status: 'ACTIVE',
-        roleIds: []
+        phoneNumber: ''
     });
 
     // Form data (General Info)
@@ -97,17 +107,7 @@ const MyOffice = () => {
         website: '',
         taxOffice: '',
         taxNumber: '',
-        agencyFinancialInfo: {
-            title: '',
-            countryId: '',
-            cityId: '',
-            address: '',
-            phoneCountryCode: '',
-            phoneNumber: '',
-            email: '',
-            taxOffice: '',
-            taxNumber: ''
-        }
+        agencyFinancialInfo: {}
     });
 
     const [countries, setCountries] = useState([]);
@@ -127,8 +127,10 @@ const MyOffice = () => {
     useEffect(() => {
         if (activeTab === 'users') {
             fetchUsersData();
+        } else if (activeTab === 'guests') {
+            fetchGuestsData();
         }
-    }, [activeTab, userFilters]);
+    }, [activeTab, userFilters, guestFilters]);
 
     const showNotification = (message, type = 'success') => {
         setToast({ show: true, message, type });
@@ -138,14 +140,20 @@ const MyOffice = () => {
     const fetchInitialData = async () => {
         try {
             setLoading(true);
-            const [agencyData, countriesData, summaryData] = await Promise.all([
+            const [agencyData, countriesData, userSumm, guestSumm] = await Promise.all([
                 agencyService.getMe(),
                 locationService.listCountries(),
-                userService.getSummary().catch(() => ({ totalUsers: 0, activeUsers: 0 }))
+                userService.getSummary().catch(() => ({ totalUsers: 0, activeUsers: 0 })),
+                guestService.getSummary().catch(() => ({ totalGuests: 0, activeGuests: 0 }))
             ]);
 
             setCountries(countriesData.locationList || []);
-            setSummary(prev => ({ ...prev, ...summaryData }));
+            setSummary({
+                totalUsers: userSumm.totalUsers || 0,
+                activeUsers: userSumm.activeUsers || 0,
+                totalGuests: guestSumm.totalGuests || 0,
+                activeGuests: guestSumm.activeGuests || 0
+            });
 
             let initialCities = [];
             if (agencyData.countryId) {
@@ -158,10 +166,8 @@ const MyOffice = () => {
 
             let lat = agencyData.latitude || agencyData.geoLocation?.latitude || 51.505;
             let lng = agencyData.longitude || agencyData.geoLocation?.longitude || -0.09;
-            
             lat = parseFloat(lat);
             lng = parseFloat(lng);
-
             setMapCenter([lat, lng]);
 
             setFormData({
@@ -190,9 +196,14 @@ const MyOffice = () => {
             ]);
             setUsers(usersResponse.content || []);
             setRoles(rolesResponse.content || []);
-        } catch (err) {
-            console.error('Error fetching users:', err);
-        }
+        } catch (err) { console.error(err); }
+    };
+
+    const fetchGuestsData = async () => {
+        try {
+            const response = await guestService.filterGuests(guestFilters);
+            setGuests(response.content || []);
+        } catch (err) { console.error(err); }
     };
 
     const handleCountryChange = async (e) => {
@@ -214,112 +225,59 @@ const MyOffice = () => {
         try {
             setSaving(true);
             const { officialTitle, taxOffice, taxNumber, ...cleanData } = formData;
-            const updateData = {
-                ...cleanData,
-                latitude: formData.latitude,
-                longitude: formData.longitude,
-                agencyFinancialInfo: {
-                    ...formData.agencyFinancialInfo,
-                    title: formData.officialTitle,
-                    taxOffice: formData.taxOffice,
-                    taxNumber: formData.taxNumber,
-                    latitude: formData.latitude,
-                    longitude: formData.longitude
-                }
-            };
+            const updateData = { ...cleanData, latitude: formData.latitude, longitude: formData.longitude, agencyFinancialInfo: { ...formData.agencyFinancialInfo, title: formData.officialTitle, taxOffice: formData.taxOffice, taxNumber: formData.taxNumber, latitude: formData.latitude, longitude: formData.longitude } };
             await agencyService.updateAgency(formData.id, updateData);
             showNotification('Agency profile updated.');
         } catch (err) { showNotification(err.message || 'Sync failed.', 'error'); } finally { setSaving(false); }
     };
 
     // User Modal Logic
-    const openAddUser = () => {
-        setEditingUser(null);
-        setUserFormData({
-            name: '',
-            surname: '',
-            email: '',
-            password: '',
-            phoneCountryCode: '90',
-            phoneNumber: '',
-            status: 'ACTIVE',
-            roleIds: []
-        });
-        setIsUserModalOpen(true);
-    };
-
-    const openEditUser = (user) => {
-        setEditingUser(user);
-        setUserFormData({
-            name: user.name,
-            surname: user.surname,
-            email: user.email,
-            phoneCountryCode: user.phoneCountryCode || '90',
-            phoneNumber: user.phoneNumber || '',
-            status: user.status || 'ACTIVE',
-            roleIds: user.roles?.map(r => r.id) || []
-        });
-        setIsUserModalOpen(true);
-    };
-
+    const openAddUser = () => { setEditingUser(null); setUserFormData({ name: '', surname: '', email: '', password: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE', roleIds: [] }); setIsUserModalOpen(true); };
+    const openEditUser = (u) => { setEditingUser(u); setUserFormData({ name: u.name, surname: u.surname, email: u.email, phoneCountryCode: u.phoneCountryCode || '90', phoneNumber: u.phoneNumber || '', status: u.status || 'ACTIVE', roleIds: u.roles?.map(r => r.id) || [] }); setIsUserModalOpen(true); };
     const handleUserSubmit = async (e) => {
         e.preventDefault();
         try {
             setSaving(true);
             if (editingUser) {
                 await userService.updateUser(editingUser.id, userFormData);
-                if (userFormData.roleIds.length > 0) {
-                    await userService.assignRoles(editingUser.id, userFormData.roleIds);
-                }
+                if (userFormData.roleIds.length > 0) await userService.assignRoles(editingUser.id, userFormData.roleIds);
                 showNotification('User updated successfully');
             } else {
                 const newUser = await userService.saveUser(userFormData);
-                if (userFormData.roleIds.length > 0) {
-                    await userService.assignRoles(newUser.id, userFormData.roleIds);
-                }
+                if (userFormData.roleIds.length > 0) await userService.assignRoles(newUser.id, userFormData.roleIds);
                 showNotification('User created successfully');
             }
-            setIsUserModalOpen(false);
-            fetchUsersData();
-            // Refresh summary
-            const summaryData = await userService.getSummary();
-            setSummary(prev => ({ ...prev, ...summaryData }));
-        } catch (err) {
-            showNotification(err.message || 'Error saving user', 'error');
-        } finally {
-            setSaving(false);
-        }
+            setIsUserModalOpen(false); fetchUsersData();
+            const sumData = await userService.getSummary(); setSummary(prev => ({ ...prev, totalUsers: sumData.totalUsers, activeUsers: sumData.activeUsers }));
+        } catch (err) { showNotification(err.message || 'Error saving user', 'error'); } finally { setSaving(false); }
     };
+    const handleDeleteUser = async (id) => { if (window.confirm('Are you sure you want to delete this user?')) { try { await userService.deleteUser(id); showNotification('User deleted successfully'); fetchUsersData(); const sumData = await userService.getSummary(); setSummary(prev => ({ ...prev, totalUsers: sumData.totalUsers, activeUsers: sumData.activeUsers })); } catch (err) { showNotification(err.message || 'Error deleting user', 'error'); } } };
 
-    const handleDeleteUser = async (id) => {
-        if (window.confirm('Are you sure you want to delete this user?')) {
-            try {
-                await userService.deleteUser(id);
-                showNotification('User deleted successfully');
-                fetchUsersData();
-                const summaryData = await userService.getSummary();
-                setSummary(prev => ({ ...prev, ...summaryData }));
-            } catch (err) {
-                showNotification(err.message || 'Error deleting user', 'error');
+    // Guest Modal Logic
+    const openAddGuest = () => { setEditingGuest(null); setGuestFormData({ gender: 'MALE', firstName: '', lastName: '', birthDate: '', country: '', passportNo: '', passportExpiry: '', email: '', phoneCountryCode: '90', phoneNumber: '' }); setIsGuestModalOpen(true); };
+    const openEditGuest = (g) => { setEditingGuest(g); setGuestFormData({ gender: g.gender || 'MALE', firstName: g.firstName, lastName: g.lastName, birthDate: g.birthDate, country: g.country, passportNo: g.passportNo, passportExpiry: g.passportExpiry, email: g.email, phoneCountryCode: g.phoneCountryCode || '90', phoneNumber: g.phoneNumber || '' }); setIsGuestModalOpen(true); };
+    const handleGuestSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            setSaving(true);
+            if (editingGuest) {
+                await guestService.updateGuest(editingGuest.id, guestFormData);
+                showNotification('Guest updated successfully');
+            } else {
+                await guestService.saveGuest(guestFormData);
+                showNotification('Guest created successfully');
             }
-        }
+            setIsGuestModalOpen(false); fetchGuestsData();
+            const sumData = await guestService.getSummary(); setSummary(prev => ({ ...prev, totalGuests: sumData.totalGuests, activeGuests: sumData.activeGuests }));
+        } catch (err) { showNotification(err.message || 'Error saving guest', 'error'); } finally { setSaving(false); }
     };
+    const handleDeleteGuest = async (id) => { if (window.confirm('Are you sure you want to delete this guest?')) { try { await guestService.deleteGuest(id); showNotification('Guest deleted successfully'); fetchGuestsData(); const sumData = await guestService.getSummary(); setSummary(prev => ({ ...prev, totalGuests: sumData.totalGuests, activeGuests: sumData.activeGuests })); } catch (err) { showNotification(err.message || 'Error deleting guest', 'error'); } } };
 
     const handleLogout = () => { logout(); navigate('/login'); };
-    const openInMaps = () => {
-        const addressStr = `${formData.address} ${formData.zipCode}`;
-        const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressStr)}`;
-        window.open(url, '_blank');
-    };
+    const openInMaps = () => { const addressStr = `${formData.address} ${formData.zipCode}`; const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressStr)}`; window.open(url, '_blank'); };
     const userDisplayName = user?.name && user?.surname ? `${user.name} ${user.surname}` : user?.email || 'Travel Agent';
 
-    if (loading) {
-        return (
-            <div className="flex h-screen items-center justify-center bg-[#f8fafc] dark:bg-[#0f172a]">
-                <div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        );
-    }
+    if (loading) { return <div className="flex h-screen items-center justify-center bg-[#f8fafc] dark:bg-[#0f172a]"><div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>; }
 
     return (
         <div className="flex min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 transition-colors duration-500 font-sans relative overflow-hidden">
@@ -334,32 +292,22 @@ const MyOffice = () => {
                 .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; }
                 .badge-card { background: white; border: 1px solid #f1f5f9; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
                 .dark .badge-card { background: #1e293b; border-color: #334155; }
-                .user-table th { font-size: 10px; text-transform: uppercase; color: #94a3b8; font-weight: 700; padding: 16px; border-bottom: 1px solid #f1f5f9; text-align: left; letter-spacing: 0.05em; }
-                .dark .user-table th { border-color: #334155; }
-                .user-table td { padding: 16px; border-bottom: 1px solid #f8fafc; font-size: 13px; font-weight: 500; }
-                .dark .user-table td { border-color: #1e293b; }
-                .user-row:hover { background-color: #fcfdfe; }
-                .dark .user-row:hover { background-color: #1e293b/50; }
+                .data-table th { font-size: 10px; text-transform: uppercase; color: #94a3b8; font-weight: 700; padding: 16px; border-bottom: 1px solid #f1f5f9; text-align: left; letter-spacing: 0.05em; }
+                .dark .data-table th { border-color: #334155; }
+                .data-table td { padding: 16px; border-bottom: 1px solid #f8fafc; font-size: 13px; font-weight: 500; }
+                .dark .data-table td { border-color: #1e293b; }
+                .data-row:hover { background-color: #fcfdfe; }
+                .dark .data-row:hover { background-color: #1e293b/50; }
                 .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); }
             `}</style>
 
-            {toast.show && (
-                <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[10000] animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-2xl rounded-2xl flex items-center gap-3">
-                        <div className={`size-2 rounded-full ${toast.type === 'success' ? 'bg-emerald-400' : 'bg-red-400'} animate-pulse`}></div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest">{toast.message}</p>
-                    </div>
-                </div>
-            )}
+            {toast.show && <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[10000] animate-in fade-in slide-in-from-top-4 duration-500"><div className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-2xl rounded-2xl flex items-center gap-3"><div className={`size-2 rounded-full ${toast.type === 'success' ? 'bg-emerald-400' : 'bg-red-400'} animate-pulse`}></div><p className="text-[10px] font-bold uppercase tracking-widest">{toast.message}</p></div></div>}
 
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-400/10 blur-[120px] rounded-full pointer-events-none"></div>
 
             <aside className="w-60 border-r border-white/40 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl hidden lg:flex flex-col fixed h-full z-30 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)]">
-                <div className="p-3 flex items-center gap-2">
-                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white cursor-pointer" onClick={() => navigate('/')}><span className="material-icons-round text-lg">language</span></div>
-                    <span className="font-bold text-lg tracking-tight">TravelOfGlobe</span>
-                </div>
+                <div className="p-3 flex items-center gap-2"><div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white cursor-pointer" onClick={() => navigate('/')}><span className="material-icons-round text-lg">language</span></div><span className="font-bold text-lg tracking-tight">TravelOfGlobe</span></div>
                 <nav className="flex-1 px-3 py-3 space-y-0.5">
                     <button onClick={() => navigate('/dashboard')} className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs w-full text-left"><span className="material-icons-round text-[20px]">grid_view</span> Dashboard</button>
                     <button className="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-primary font-medium text-xs w-full text-left"><span className="material-icons-round text-[20px]">corporate_fare</span> My Office</button>
@@ -367,12 +315,7 @@ const MyOffice = () => {
                     <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#"><span className="material-icons-round text-[20px]">account_balance_wallet</span> Finance</a>
                     <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#"><span className="material-icons-round text-[20px]">analytics</span> Accounting</a>
                     <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#"><span className="material-icons-round text-[20px]">settings</span> Operations</a>
-                    <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800">
-                        <a className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#">
-                            <div className="flex items-center gap-3"><span className="material-icons-round text-[20px]">admin_panel_settings</span> GSA Management</div>
-                            <span className="material-icons-round text-sm">chevron_right</span>
-                        </a>
-                    </div>
+                    <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800"><a className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#"><div className="flex items-center gap-3"><span className="material-icons-round text-[20px]">admin_panel_settings</span> GSA Management</div><span className="material-icons-round text-sm">chevron_right</span></a></div>
                 </nav>
             </aside>
 
@@ -380,56 +323,23 @@ const MyOffice = () => {
                 <div className="max-w-6xl mx-auto w-full flex flex-col h-full overflow-hidden">
                     <header className="flex flex-wrap items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-6">
-                            <div className="flex items-center gap-2">
-                                <span className="material-icons-round text-primary text-xl">corporate_fare</span>
-                                <h1 className="text-lg font-medium">My Office</h1>
-                            </div>
+                            <div className="flex items-center gap-2"><span className="material-icons-round text-primary text-xl">corporate_fare</span><h1 className="text-lg font-medium">My Office</h1></div>
                             <div className="hidden md:flex items-center gap-4">
-                                <div className="badge-card flex items-center gap-3 px-4 py-2 rounded-2xl">
-                                    <div className="size-8 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-primary"><span className="material-icons-round text-lg">group</span></div>
-                                    <div><p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Total Users</p><p className="text-sm font-bold leading-none">{summary.totalUsers}</p></div>
-                                </div>
-                                <div className="badge-card flex items-center gap-3 px-4 py-2 rounded-2xl">
-                                    <div className="size-8 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center text-emerald-500"><span className="material-icons-round text-lg">trending_up</span></div>
-                                    <div><p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Active</p><p className="text-sm font-bold leading-none">{summary.activeUsers}</p></div>
-                                </div>
-                                <div className="badge-card flex items-center gap-3 px-4 py-2 rounded-2xl">
-                                    <div className="size-8 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center text-purple-500"><span className="material-icons-round text-lg">supervised_user_circle</span></div>
-                                    <div><p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Total Guests</p><p className="text-sm font-bold leading-none">{summary.totalGuests || 0}</p></div>
-                                </div>
+                                <div className="badge-card flex items-center gap-3 px-4 py-2 rounded-2xl"><div className="size-8 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-primary"><span className="material-icons-round text-lg">group</span></div><div><p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Total Users</p><p className="text-sm font-bold leading-none">{summary.totalUsers}</p></div></div>
+                                <div className="badge-card flex items-center gap-3 px-4 py-2 rounded-2xl"><div className="size-8 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center text-purple-500"><span className="material-icons-round text-lg">supervised_user_circle</span></div><div><p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Total Guests</p><p className="text-sm font-bold leading-none">{summary.totalGuests}</p></div></div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                            <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold shadow-sm"><span className="material-icons-round text-sm">download</span> Export</button>
-                            <ThemeToggle />
-                            <div className="relative" ref={menuRef}>
-                                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center gap-2 transition-transform active:scale-95 focus:outline-none">
-                                    <div className="size-10 rounded-lg shadow-sm hover:shadow-md transition-shadow flex items-center justify-center bg-slate-100 dark:bg-[#233648]"><span className="material-symbols-outlined text-slate-600 dark:text-slate-300 text-[24px]">person</span></div>
-                                    <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">expand_more</span>
-                                </button>
-                                {isMenuOpen && (
-                                    <div className="absolute right-0 top-full mt-2 w-[340px] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden z-[9999] animate-in fade-in slide-in-from-top-2">
-                                        <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">My Account</p>
-                                            <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{userDisplayName}</p>
-                                            <p className="text-sm text-slate-500 break-words font-medium mt-0.5">{user?.email}</p>
-                                        </div>
-                                        <div className="p-2"><button onClick={handleLogout} className="w-full text-left px-3 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg flex items-center gap-3 transition-colors"><div className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500"><span className="material-symbols-outlined text-[18px]">logout</span></div> Sign Out</button></div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        <div className="flex items-center gap-4"><button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold shadow-sm"><span className="material-icons-round text-sm">download</span> Export</button><ThemeToggle /><div className="relative" ref={menuRef}><button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center gap-2 transition-transform active:scale-95 focus:outline-none"><div className="size-10 rounded-lg shadow-sm hover:shadow-md transition-shadow flex items-center justify-center bg-slate-100 dark:bg-[#233648]"><span className="material-symbols-outlined text-slate-600 dark:text-slate-300 text-[24px]">person</span></div><span className="material-symbols-outlined text-slate-500 dark:text-slate-400">expand_more</span></button>{isMenuOpen && <div className="absolute right-0 top-full mt-2 w-[340px] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden z-[9999] animate-in fade-in slide-in-from-top-2"><div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50"><p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">My Account</p><p className="text-sm font-bold text-slate-900 dark:text-white truncate">{userDisplayName}</p><p className="text-sm text-slate-500 break-words font-medium mt-0.5">{user?.email}</p></div><div className="p-2"><button onClick={handleLogout} className="w-full text-left px-3 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg flex items-center gap-3 transition-colors"><div className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500"><span className="material-symbols-outlined text-[18px]">logout</span></div> Sign Out</button></div></div>}</div></div>
                     </header>
 
                     <div className="mb-6 flex gap-10 border-b border-slate-200 dark:border-slate-800">
                         {[
                             { id: 'general', label: 'General Information', icon: 'info' },
                             { id: 'users', label: 'Users', count: summary.totalUsers, icon: 'groups' },
-                            { id: 'guests', label: 'Guests', count: summary.totalGuests || 0, icon: 'recent_actors' }
+                            { id: 'guests', label: 'Guests', count: summary.totalGuests, icon: 'recent_actors' }
                         ].map((tab) => (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`pb-4 text-[10px] font-bold uppercase tracking-widest relative flex items-center gap-2.5 transition-all ${activeTab === tab.id ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}>
-                                <span className="material-icons-round text-lg">{tab.icon}</span>
-                                {tab.label} {tab.count !== undefined && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 ml-1">{tab.count}</span>}
+                                <span className="material-icons-round text-lg">{tab.icon}</span> {tab.label} {tab.count !== undefined && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 ml-1">{tab.count}</span>}
                                 {activeTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"></div>}
                             </button>
                         ))}
@@ -439,15 +349,8 @@ const MyOffice = () => {
                         {activeTab === 'general' ? (
                             <div className="h-full flex gap-10 overflow-hidden pb-4">
                                 <div className="w-[30%] flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-2 flex-shrink-0">
-                                    <div className="bg-slate-900 dark:bg-slate-800 rounded-[40px] p-8 text-white relative overflow-hidden shadow-2xl">
-                                        <div className="absolute top-0 right-0 p-6"><div className="size-10 bg-white/10 rounded-xl flex items-center justify-center"><span className="material-icons-round text-xl">security</span></div></div>
-                                        <div className="mt-8 mb-12"><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Agency ID Card</p><h2 className="text-2xl font-bold truncate">{formData.name || 'Your Agency'}</h2><p className="text-xs text-slate-400 mt-1 opacity-80">{formData.officialTitle}</p></div>
-                                        <div className="space-y-6 pt-6 border-t border-white/10"><div><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Base Location</p><p className="text-sm font-semibold">{formData.cityName || 'Antalya'}, {formData.countryName || 'Turkey'}</p></div><div><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Digital Coordinates</p><p className="text-[11px] font-mono text-primary font-bold">{formData.latitude?.toFixed(4)}, {formData.longitude?.toFixed(4)}</p></div></div>
-                                    </div>
-                                    <div className="map-card flex-1 relative group">
-                                        <MapContainer center={mapCenter} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}><ChangeView center={mapCenter} zoom={zoom} /><TileLayer attribution='&copy; CARTO' url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" /><LocationMarker position={[formData.latitude, formData.longitude]} setPosition={setMapLocation} /></MapContainer>
-                                        <div className="absolute bottom-6 right-6 z-[1000] opacity-0 group-hover:opacity-100 transition-all"><button onClick={openInMaps} className="size-10 bg-white dark:bg-slate-900 rounded-xl shadow-xl flex items-center justify-center text-primary"><span className="material-icons-round">open_in_new</span></button></div>
-                                    </div>
+                                    <div className="bg-slate-900 dark:bg-slate-800 rounded-[40px] p-8 text-white relative overflow-hidden shadow-2xl"><div className="absolute top-0 right-0 p-6"><div className="size-10 bg-white/10 rounded-xl flex items-center justify-center"><span className="material-icons-round text-xl">security</span></div></div><div className="mt-8 mb-12"><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Agency ID Card</p><h2 className="text-2xl font-bold truncate">{formData.name || 'Your Agency'}</h2><p className="text-xs text-slate-400 mt-1 opacity-80">{formData.officialTitle}</p></div><div className="space-y-6 pt-6 border-t border-white/10"><div><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Base Location</p><p className="text-sm font-semibold">{formData.cityName || 'Antalya'}, {formData.countryName || 'Turkey'}</p></div><div><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Digital Coordinates</p><p className="text-[11px] font-mono text-primary font-bold">{formData.latitude?.toFixed(4)}, {formData.longitude?.toFixed(4)}</p></div></div></div>
+                                    <div className="map-card flex-1 relative group"><MapContainer center={mapCenter} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}><ChangeView center={mapCenter} zoom={zoom} /><TileLayer attribution='&copy; CARTO' url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" /><LocationMarker position={[formData.latitude, formData.longitude]} setPosition={setMapLocation} /></MapContainer><div className="absolute bottom-6 right-6 z-[1000] opacity-0 group-hover:opacity-100 transition-all"><button onClick={openInMaps} className="size-10 bg-white dark:bg-slate-900 rounded-xl shadow-xl flex items-center justify-center text-primary"><span className="material-icons-round">open_in_new</span></button></div></div>
                                 </div>
                                 <div className="flex-1 bg-white/50 dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-white/40 dark:border-white/5 p-12 overflow-y-auto custom-scrollbar">
                                     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-16">
@@ -460,95 +363,94 @@ const MyOffice = () => {
                             </div>
                         ) : activeTab === 'users' ? (
                             <div className="h-full flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm">
-                                {/* Users Toolbar */}
+                                <div className="p-6 border-b border-slate-50 dark:border-white/5 flex flex-wrap items-center justify-between gap-4"><div className="flex items-center gap-4 flex-1 max-w-2xl"><div className="relative flex-1"><span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span><input type="text" placeholder="Search by name or email..." value={userFilters.query} onChange={(e) => setUserFilters(prev => ({ ...prev, query: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl pl-12 pr-4 text-xs font-semibold outline-none focus:border-primary transition-colors" /></div><select value={userFilters.roleIds[0] || ''} onChange={(e) => setUserFilters(prev => ({ ...prev, roleIds: e.target.value ? [parseInt(e.target.value)] : [] }))} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer"><option value="">All Roles</option>{roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select><select value={userFilters.status} onChange={(e) => setUserFilters(prev => ({ ...prev, status: e.target.value }))} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer"><option value="ACTIVE">Active</option><option value="PASSIVE">Passive</option></select></div><button onClick={openAddUser} className="h-11 px-6 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2 active:scale-95 transition-all"><span className="material-icons-round text-lg">add</span> Add User</button></div>
+                                <div className="flex-1 overflow-y-auto custom-scrollbar"><table className="w-full data-table"><thead><tr><th className="w-12 text-center"><input type="checkbox" className="rounded border-slate-300" /></th><th>User</th><th>Contact</th><th>Role</th><th>Status</th><th className="text-right">Actions</th></tr></thead><tbody>{users.length > 0 ? users.map((u) => (<tr key={u.id} className="data-row transition-colors"><td className="text-center"><input type="checkbox" className="rounded border-slate-300" /></td><td><div className="flex items-center gap-3"><div className={`size-10 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br ${u.id % 2 === 0 ? 'from-primary to-blue-600' : 'from-emerald-500 to-teal-600'}`}>{u.name?.[0]}{u.surname?.[0]}</div><div><p className="font-bold text-slate-900 dark:text-white leading-none mb-1">{u.name} {u.surname}</p><p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {u.id}</p></div></div></td><td><div className="space-y-1"><div className="flex items-center gap-2 text-slate-500"><span className="material-icons-round text-sm">mail_outline</span> {u.email}</div>{u.phoneNumber && <div className="flex items-center gap-2 text-slate-400 text-xs"><span className="material-icons-round text-sm">phone_iphone</span> +{u.phoneCountryCode} {u.phoneNumber}</div>}</div></td><td><div className="flex flex-wrap gap-1">{u.roles?.length > 0 ? u.roles.map(r => (<span key={r.id} className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-primary text-[10px] font-bold rounded-full">{r.name}</span>)) : <span className="text-slate-300 text-[10px] font-bold italic">No Role</span>}</div></td><td><div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${u.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}><div className={`size-1.5 rounded-full ${u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>{u.status === 'ACTIVE' ? 'Active' : 'Passive'}</div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditUser(u)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-lg">edit</span></button><button onClick={() => handleDeleteUser(u.id)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-lg">delete_outline</span></button></div></td></tr>)) : (<tr><td colSpan="6" className="py-20 text-center"><p className="text-slate-400 text-sm font-medium italic">No users found</p></td></tr>)}</tbody></table></div>
+                            </div>
+                        ) : (
+                            <div className="h-full flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm">
+                                {/* Guests Toolbar */}
                                 <div className="p-6 border-b border-slate-50 dark:border-white/5 flex flex-wrap items-center justify-between gap-4">
                                     <div className="flex items-center gap-4 flex-1 max-w-2xl">
                                         <div className="relative flex-1">
                                             <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                                            <input type="text" placeholder="Search by name or email..." value={userFilters.query} onChange={(e) => setUserFilters(prev => ({ ...prev, query: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl pl-12 pr-4 text-xs font-semibold outline-none focus:border-primary transition-colors" />
+                                            <input type="text" placeholder="Search by name, email or passport..." value={guestFilters.query} onChange={(e) => setGuestFilters(prev => ({ ...prev, query: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl pl-12 pr-4 text-xs font-semibold outline-none focus:border-primary transition-colors" />
                                         </div>
-                                        <select value={userFilters.roleIds[0] || ''} onChange={(e) => setUserFilters(prev => ({ ...prev, roleIds: e.target.value ? [parseInt(e.target.value)] : [] }))} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer">
-                                            <option value="">All Roles</option>
-                                            {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                                        </select>
-                                        <select value={userFilters.status} onChange={(e) => setUserFilters(prev => ({ ...prev, status: e.target.value }))} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer">
-                                            <option value="ACTIVE">Active</option>
-                                            <option value="PASSIVE">Passive</option>
+                                        <select value={guestFilters.countryCodes[0] || ''} onChange={(e) => setGuestFilters(prev => ({ ...prev, countryCodes: e.target.value ? [e.target.value] : [] }))} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer">
+                                            <option value="">All Countries</option>
+                                            {countries.slice(0, 20).map(c => <option key={c.locationId} value={c.isoCode}>{c.name?.defaultName}</option>)}
                                         </select>
                                     </div>
-                                    <button onClick={openAddUser} className="h-11 px-6 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2 active:scale-95 transition-all"><span className="material-icons-round text-lg">add</span> Add User</button>
+                                    <button onClick={openAddGuest} className="h-11 px-6 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2 active:scale-95 transition-all"><span className="material-icons-round text-lg">add</span> Add Guest</button>
                                 </div>
 
-                                {/* Users Table */}
+                                {/* Guests Table */}
                                 <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                    <table className="w-full user-table">
+                                    <table className="w-full data-table">
                                         <thead>
                                             <tr>
                                                 <th className="w-12 text-center"><input type="checkbox" className="rounded border-slate-300" /></th>
-                                                <th>User</th>
+                                                <th>Guest</th>
+                                                <th>Birth & Country</th>
+                                                <th>Passport</th>
                                                 <th>Contact</th>
-                                                <th>Role</th>
-                                                <th>Status</th>
                                                 <th className="text-right">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {users.length > 0 ? users.map((u) => (
-                                                <tr key={u.id} className="user-row transition-colors">
+                                            {guests.length > 0 ? guests.map((g) => (
+                                                <tr key={g.id} className="data-row transition-colors">
                                                     <td className="text-center"><input type="checkbox" className="rounded border-slate-300" /></td>
                                                     <td>
                                                         <div className="flex items-center gap-3">
-                                                            <div className={`size-10 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br ${u.id % 2 === 0 ? 'from-primary to-blue-600' : 'from-emerald-500 to-teal-600'}`}>
-                                                                {u.name?.[0]}{u.surname?.[0]}
+                                                            <div className={`size-10 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br from-purple-500 to-indigo-600`}>
+                                                                {g.firstName?.[0]}{g.lastName?.[0]}
                                                             </div>
                                                             <div>
-                                                                <p className="font-bold text-slate-900 dark:text-white leading-none mb-1">{u.name} {u.surname}</p>
-                                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {u.id}</p>
+                                                                <p className="font-bold text-slate-900 dark:text-white leading-none mb-1">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p>
+                                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {g.id}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-slate-500">{g.country || 'TR'}</div>
+                                                            <div>
+                                                                <p className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-0.5">Born: {g.birthDate || 'Unknown'}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="size-6 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-sm">badge</span></div>
+                                                            <div>
+                                                                <p className="text-xs font-bold text-slate-900 dark:text-white">{g.passportNo || 'N/A'}</p>
+                                                                <p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td>
                                                         <div className="space-y-1">
-                                                            <div className="flex items-center gap-2 text-slate-500"><span className="material-icons-round text-sm">mail_outline</span> {u.email}</div>
-                                                            {u.phoneNumber && <div className="flex items-center gap-2 text-slate-400 text-xs"><span className="material-icons-round text-sm">phone_iphone</span> +{u.phoneCountryCode} {u.phoneNumber}</div>}
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {u.roles?.length > 0 ? u.roles.map(r => (
-                                                                <span key={r.id} className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-primary text-[10px] font-bold rounded-full">{r.name}</span>
-                                                            )) : <span className="text-slate-300 text-[10px] font-bold italic">No Role</span>}
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${u.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
-                                                            <div className={`size-1.5 rounded-full ${u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
-                                                            {u.status === 'ACTIVE' ? 'Active' : 'Passive'}
+                                                            <div className="flex items-center gap-2 text-slate-500"><span className="material-icons-round text-sm">mail_outline</span> {g.email}</div>
+                                                            {g.phoneNumber && <div className="flex items-center gap-2 text-slate-400 text-xs"><span className="material-icons-round text-sm">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}
                                                         </div>
                                                     </td>
                                                     <td className="text-right">
                                                         <div className="flex items-center justify-end gap-1">
-                                                            <button onClick={() => openEditUser(u)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-lg">edit</span></button>
-                                                            <button onClick={() => handleDeleteUser(u.id)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-lg">delete_outline</span></button>
+                                                            <button onClick={() => openEditGuest(g)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-lg">edit</span></button>
+                                                            <button onClick={() => handleDeleteGuest(g.id)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-lg">delete_outline</span></button>
                                                         </div>
                                                     </td>
                                                 </tr>
                                             )) : (
                                                 <tr>
                                                     <td colSpan="6" className="py-20 text-center">
-                                                        <p className="text-slate-400 text-sm font-medium italic">No users found matching your criteria</p>
+                                                        <p className="text-slate-400 text-sm font-medium italic">No guests found</p>
                                                     </td>
                                                 </tr>
                                             )}
                                         </tbody>
                                     </table>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="h-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-white/40 dark:border-white/5 flex flex-col items-center justify-center text-center p-20">
-                                <div className="size-20 bg-slate-100 dark:bg-slate-800 rounded-[32px] flex items-center justify-center text-primary mb-6 shadow-inner"><span className="material-icons-round text-4xl">groups</span></div>
-                                <h2 className="text-xl font-bold mb-2">Guest Ledger</h2>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Feature initialization in progress</p>
                             </div>
                         )}
                     </div>
@@ -560,62 +462,77 @@ const MyOffice = () => {
                 <div className="fixed inset-0 z-[20000] flex items-center justify-center p-4 overflow-y-auto">
                     <div className="modal-overlay fixed inset-0" onClick={() => setIsUserModalOpen(false)}></div>
                     <div className="relative bg-white dark:bg-slate-900 w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-slate-50 dark:border-white/5">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingUser ? 'Edit User' : 'Add User'}</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enter user information</p>
-                                </div>
-                                <button onClick={() => setIsUserModalOpen(false)} className="size-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round">close</span></button>
-                            </div>
-                        </div>
+                        <div className="p-8 border-b border-slate-50 dark:border-white/5"><div className="flex items-center justify-between"><div><h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingUser ? 'Edit User' : 'Add User'}</h3><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enter user information</p></div><button onClick={() => setIsUserModalOpen(false)} className="size-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round">close</span></button></div></div>
                         <form onSubmit={handleUserSubmit} className="p-8 space-y-6">
+                            <div className="grid grid-cols-2 gap-4"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Name</label><input type="text" required value={userFormData.name} onChange={(e) => setUserFormData(prev => ({ ...prev, name: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" /></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Surname</label><input type="text" required value={userFormData.surname} onChange={(e) => setUserFormData(prev => ({ ...prev, surname: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" /></div></div>
+                            <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label><input type="email" required value={userFormData.email} onChange={(e) => setUserFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" /></div>
+                            {!editingUser && <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label><input type="password" required value={userFormData.password} onChange={(e) => setUserFormData(prev => ({ ...prev, password: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" /></div>}
+                            <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label><div className="grid grid-cols-4 gap-2"><input type="text" value={userFormData.phoneCountryCode} onChange={(e) => setUserFormData(prev => ({ ...prev, phoneCountryCode: e.target.value }))} className="h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-center text-xs font-bold outline-none" placeholder="+90" /><input type="text" value={userFormData.phoneNumber} onChange={(e) => setUserFormData(prev => ({ ...prev, phoneNumber: e.target.value }))} className="col-span-3 h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" placeholder="5XX..." /></div></div>
+                            <div className="grid grid-cols-2 gap-4"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Role</label><select multiple value={userFormData.roleIds} onChange={(e) => setUserFormData(prev => ({ ...prev, roleIds: Array.from(e.target.selectedOptions, option => parseInt(option.value)) }))} className="w-full min-h-[80px] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl p-2 text-xs font-bold outline-none focus:border-primary">{roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Status</label><select value={userFormData.status} onChange={(e) => setUserFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary"><option value="ACTIVE">Active</option><option value="PASSIVE">Passive</option></select></div></div>
+                            <div className="pt-4 flex items-center justify-end gap-3"><button type="button" onClick={() => setIsUserModalOpen(false)} className="h-11 px-6 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Cancel</button><button type="submit" disabled={saving} className="h-11 px-8 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">{saving ? 'Processing...' : 'Save User'}</button></div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Guest Modal */}
+            {isGuestModalOpen && (
+                <div className="fixed inset-0 z-[20000] flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="modal-overlay fixed inset-0" onClick={() => setIsGuestModalOpen(false)}></div>
+                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="p-8 border-b border-slate-50 dark:border-white/5"><div className="flex items-center justify-between"><div><h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingGuest ? 'Edit Guest' : 'Add Guest'}</h3><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enter guest information</p></div><button onClick={() => setIsGuestModalOpen(false)} className="size-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round">close</span></button></div></div>
+                        <form onSubmit={handleGuestSubmit} className="p-8 space-y-6">
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gender</label>
+                                    <select value={guestFormData.gender} onChange={(e) => setGuestFormData(prev => ({ ...prev, gender: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary">
+                                        <option value="MALE">Mr</option>
+                                        <option value="FEMALE">Mrs</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">First Name</label>
+                                    <input type="text" required value={guestFormData.firstName} onChange={(e) => setGuestFormData(prev => ({ ...prev, firstName: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Last Name</label>
+                                    <input type="text" required value={guestFormData.lastName} onChange={(e) => setGuestFormData(prev => ({ ...prev, lastName: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" />
+                                </div>
+                            </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Name</label>
-                                    <input type="text" required value={userFormData.name} onChange={(e) => setUserFormData(prev => ({ ...prev, name: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" />
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Birth Date</label>
+                                    <input type="text" value={guestFormData.birthDate} onChange={(e) => setGuestFormData(prev => ({ ...prev, birthDate: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" placeholder="DD.MM.YYYY" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Surname</label>
-                                    <input type="text" required value={userFormData.surname} onChange={(e) => setUserFormData(prev => ({ ...prev, surname: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" />
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Country</label>
+                                    <input type="text" value={guestFormData.country} onChange={(e) => setGuestFormData(prev => ({ ...prev, country: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none uppercase" placeholder="TR" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Passport No</label>
+                                    <input type="text" value={guestFormData.passportNo} onChange={(e) => setGuestFormData(prev => ({ ...prev, passportNo: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Passport Expiry</label>
+                                    <input type="text" value={guestFormData.passportExpiry} onChange={(e) => setGuestFormData(prev => ({ ...prev, passportExpiry: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" placeholder="DD.MM.YYYY" />
                                 </div>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
-                                <input type="email" required value={userFormData.email} onChange={(e) => setUserFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" />
+                                <input type="email" value={guestFormData.email} onChange={(e) => setGuestFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" />
                             </div>
-                            {!editingUser && (
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
-                                    <input type="password" required value={userFormData.password} onChange={(e) => setUserFormData(prev => ({ ...prev, password: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" />
-                                </div>
-                            )}
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
                                 <div className="grid grid-cols-4 gap-2">
-                                    <input type="text" value={userFormData.phoneCountryCode} onChange={(e) => setUserFormData(prev => ({ ...prev, phoneCountryCode: e.target.value }))} className="h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-center text-xs font-bold outline-none" placeholder="+90" />
-                                    <input type="text" value={userFormData.phoneNumber} onChange={(e) => setUserFormData(prev => ({ ...prev, phoneNumber: e.target.value }))} className="col-span-3 h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" placeholder="5XX..." />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Role</label>
-                                    <select multiple value={userFormData.roleIds} onChange={(e) => setUserFormData(prev => ({ ...prev, roleIds: Array.from(e.target.selectedOptions, option => parseInt(option.value)) }))} className="w-full min-h-[80px] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl p-2 text-xs font-bold outline-none focus:border-primary">
-                                        {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                                    </select>
-                                    <p className="text-[8px] text-slate-400 mt-1 uppercase tracking-widest">Hold Ctrl/Cmd to select multiple</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Status</label>
-                                    <select value={userFormData.status} onChange={(e) => setUserFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary">
-                                        <option value="ACTIVE">Active</option>
-                                        <option value="PASSIVE">Passive</option>
-                                    </select>
+                                    <input type="text" value={guestFormData.phoneCountryCode} onChange={(e) => setGuestFormData(prev => ({ ...prev, phoneCountryCode: e.target.value }))} className="h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-center text-xs font-bold outline-none" placeholder="+90" />
+                                    <input type="text" value={guestFormData.phoneNumber} onChange={(e) => setGuestFormData(prev => ({ ...prev, phoneNumber: e.target.value }))} className="col-span-3 h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" placeholder="5XX..." />
                                 </div>
                             </div>
                             <div className="pt-4 flex items-center justify-end gap-3">
-                                <button type="button" onClick={() => setIsUserModalOpen(false)} className="h-11 px-6 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Cancel</button>
-                                <button type="submit" disabled={saving} className="h-11 px-8 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">{saving ? 'Processing...' : 'Save User'}</button>
+                                <button type="button" onClick={() => setIsGuestModalOpen(false)} className="h-11 px-6 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Cancel</button>
+                                <button type="submit" disabled={saving} className="h-11 px-8 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">{saving ? 'Processing...' : 'Save Guest'}</button>
                             </div>
                         </form>
                     </div>

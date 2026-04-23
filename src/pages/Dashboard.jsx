@@ -105,10 +105,13 @@ const Dashboard = () => {
                         <span className="material-icons-round text-[20px]">grid_view</span>
                         Dashboard
                     </a>
-                    <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#">
+                    <button
+                        onClick={() => navigate('/my-office')}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs w-full"
+                    >
                         <span className="material-icons-round text-[20px]">corporate_fare</span>
                         My Office
-                    </a>
+                    </button>
                     <button
                         onClick={() => navigate('/bookings')}
                         className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs w-full"

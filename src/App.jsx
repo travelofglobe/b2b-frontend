@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage';
 import CheckoutGuestDetails from './pages/CheckoutGuestDetails';
 import CheckoutPayment from './pages/CheckoutPayment';
 import CheckoutResult from './pages/CheckoutResult';
+import MyOffice from './pages/MyOffice';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import './index.css';
@@ -31,6 +32,7 @@ function App() {
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
             <Route path="/bookings/:bookingId" element={<ProtectedRoute><BookingDetail /></ProtectedRoute>} />
+            <Route path="/my-office" element={<ProtectedRoute><MyOffice /></ProtectedRoute>} />
 
             {/* Checkout Flow */}
             <Route path="/hotel/checkout/guests" element={<ProtectedRoute><CheckoutGuestDetails /></ProtectedRoute>} />

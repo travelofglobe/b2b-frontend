@@ -22,5 +22,13 @@ export const locationService = {
 
     fetchLocationDetails: async (locationId) => {
         return apiClient.get(`${API_BASE_URL}/location/${locationId}`);
+    },
+
+    listCountries: async () => {
+        return apiClient.get(`${API_BASE_URL}/location/list-countries`);
+    },
+
+    listSubRegions: async (locationId) => {
+        return apiClient.get(`${API_BASE_URL}/location/list-sub-regions/${locationId}`);
     }
 };

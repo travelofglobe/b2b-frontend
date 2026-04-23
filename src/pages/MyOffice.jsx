@@ -448,7 +448,7 @@ const MyOffice = () => {
     if (loading) { return <div className="flex h-screen items-center justify-center bg-[#f8fafc] dark:bg-[#0f172a]"><div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>; }
 
     return (
-        <div className="flex min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 transition-colors duration-500 font-sans relative overflow-hidden">
+        <>
             <style>{`
                 .input-modern { background: transparent; border-bottom: 2px solid #e2e8f0; transition: all 0.3s ease; border-radius: 0; }
                 .dark .input-modern { border-color: #1e293b; }
@@ -471,23 +471,7 @@ const MyOffice = () => {
 
             {toast.show && <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[10000] animate-in fade-in slide-in-from-top-4 duration-500"><div className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-2xl rounded-2xl flex items-center gap-3"><div className={`size-2 rounded-full ${toast.type === 'success' ? 'bg-emerald-400' : 'bg-red-400'} animate-pulse`}></div><p className="text-[10px] font-bold uppercase tracking-widest">{toast.message}</p></div></div>}
 
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-400/10 blur-[120px] rounded-full pointer-events-none"></div>
-
-            <aside className="w-60 border-r border-white/40 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl hidden lg:flex flex-col fixed h-full z-30 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)]">
-                <div className="p-3 flex items-center gap-2"><div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white cursor-pointer" onClick={() => navigate('/')}><span className="material-icons-round text-lg">language</span></div><span className="font-bold text-lg tracking-tight">TravelOfGlobe</span></div>
-                <nav className="flex-1 px-3 py-3 space-y-0.5">
-                    <button onClick={() => navigate('/dashboard')} className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs w-full text-left"><span className="material-icons-round text-[20px]">grid_view</span> Dashboard</button>
-                    <button className="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-primary font-medium text-xs w-full text-left"><span className="material-icons-round text-[20px]">corporate_fare</span> My Office</button>
-                    <button onClick={() => navigate('/bookings')} className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs w-full text-left"><span className="material-icons-round text-[20px]">book_online</span> My Bookings</button>
-                    <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#"><span className="material-icons-round text-[20px]">account_balance_wallet</span> Finance</a>
-                    <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#"><span className="material-icons-round text-[20px]">analytics</span> Accounting</a>
-                    <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#"><span className="material-icons-round text-[20px]">settings</span> Operations</a>
-                    <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800"><a className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#"><div className="flex items-center gap-3"><span className="material-icons-round text-[20px]">admin_panel_settings</span> GSA Management</div><span className="material-icons-round text-sm">chevron_right</span></a></div>
-                </nav>
-            </aside>
-
-            <main className="flex-1 lg:ml-60 p-3 md:p-5 flex flex-col h-screen overflow-hidden">
+            <main className="flex-1 p-3 md:p-5 flex flex-col h-screen overflow-hidden">
                 <div className="max-w-6xl mx-auto w-full flex flex-col h-full overflow-hidden">
                     <header className="flex flex-wrap items-center justify-between mb-8 gap-4">
                         <div className="flex items-center gap-2">
@@ -687,7 +671,7 @@ const MyOffice = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 };
 

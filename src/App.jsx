@@ -12,6 +12,7 @@ import CheckoutPayment from './pages/CheckoutPayment';
 import CheckoutResult from './pages/CheckoutResult';
 import MyOffice from './pages/MyOffice';
 import ProtectedRoute from './components/ProtectedRoute';
+import PortalLayout from './layouts/PortalLayout';
 import { AuthProvider } from './context/AuthContext';
 import './index.css';
 
@@ -29,10 +30,14 @@ function App() {
             {/* Generic catch-all for hotel details by slug or id */}
             <Route path="/hotel/:slug" element={<ProtectedRoute><HotelDetail /></ProtectedRoute>} />
             <Route path="/map" element={<ProtectedRoute><MapView /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
-            <Route path="/bookings/:bookingId" element={<ProtectedRoute><BookingDetail /></ProtectedRoute>} />
-            <Route path="/my-office" element={<ProtectedRoute><MyOffice /></ProtectedRoute>} />
+            
+            {/* Portal Routes with Persistent Sidebar */}
+            <Route element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/bookings" element={<MyBookings />} />
+              <Route path="/bookings/:bookingId" element={<BookingDetail />} />
+              <Route path="/my-office" element={<MyOffice />} />
+            </Route>
 
             {/* Checkout Flow */}
             <Route path="/hotel/checkout/guests" element={<ProtectedRoute><CheckoutGuestDetails /></ProtectedRoute>} />

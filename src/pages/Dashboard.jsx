@@ -105,64 +105,13 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="flex min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 transition-colors duration-500 font-sans relative overflow-hidden">
+        <>
             {/* Background Decorative Glows */}
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-400/10 blur-[120px] rounded-full pointer-events-none"></div>
 
-            {/* Sidebar */}
-            <aside className="w-60 border-r border-white/40 dark:border-white/5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl hidden lg:flex flex-col fixed h-full z-30 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)]">
-                <div className="p-3 flex items-center gap-2">
-                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
-                        <span className="material-icons-round text-lg">language</span>
-                    </div>
-                    <span className="font-bold text-lg tracking-tight">TravelOfGlobe</span>
-                </div>
-                <nav className="flex-1 px-3 py-3 space-y-0.5">
-                    <a className="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-primary font-medium text-xs" href="#">
-                        <span className="material-icons-round text-[20px]">grid_view</span>
-                        Dashboard
-                    </a>
-                    <button
-                        onClick={() => navigate('/my-office')}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs w-full"
-                    >
-                        <span className="material-icons-round text-[20px]">corporate_fare</span>
-                        My Office
-                    </button>
-                    <button
-                        onClick={() => navigate('/bookings')}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs w-full"
-                    >
-                        <span className="material-icons-round text-[20px]">book_online</span>
-                        My Bookings
-                    </button>
-                    <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#">
-                        <span className="material-icons-round text-[20px]">account_balance_wallet</span>
-                        Finance
-                    </a>
-                    <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#">
-                        <span className="material-icons-round text-[20px]">analytics</span>
-                        Accounting
-                    </a>
-                    <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#">
-                        <span className="material-icons-round text-[20px]">settings</span>
-                        Operations
-                    </a>
-                    <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800">
-                        <a className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs" href="#">
-                            <div className="flex items-center gap-3">
-                                <span className="material-icons-round text-[20px]">admin_panel_settings</span>
-                                GSA Management
-                            </div>
-                            <span className="material-icons-round text-sm">chevron_right</span>
-                        </a>
-                    </div>
-                </nav>
-            </aside>
-
             {/* Main Content */}
-            <main className="flex-1 lg:ml-60 p-3 md:p-5">
+            <main className="flex-1 p-3 md:p-5">
                 <div className="max-w-6xl mx-auto">
                     <header className="flex flex-wrap items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-2">
@@ -596,7 +545,7 @@ const Dashboard = () => {
                     </div>
                 </div>
             </main>
-        </div >
+        </>
     );
 };
 

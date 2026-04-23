@@ -475,11 +475,20 @@ const MyOffice = () => {
                     <div className="mb-6 flex gap-10 border-b border-slate-200 dark:border-slate-800">
                         {[
                             { id: 'general', label: 'General Information', icon: 'info' },
-                            { id: 'users', label: 'Users', count: statsLoading ? '...' : summary.totalUsers, icon: 'groups' },
-                            { id: 'guests', label: 'Guests', count: statsLoading ? '...' : summary.totalGuests, icon: 'recent_actors' }
+                            { id: 'users', label: 'Users', count: statsLoading ? 'loading' : summary.totalUsers, icon: 'groups' },
+                            { id: 'guests', label: 'Guests', count: statsLoading ? 'loading' : summary.totalGuests, icon: 'recent_actors' }
                         ].map((tab) => (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`pb-4 text-[10px] font-bold uppercase tracking-widest relative flex items-center gap-2.5 transition-all ${activeTab === tab.id ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}>
-                                <span className="material-icons-round text-lg">{tab.icon}</span> {tab.label} {tab.count !== undefined && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 ml-1">{tab.count}</span>}
+                                <span className="material-icons-round text-lg">{tab.icon}</span> {tab.label} 
+                                {tab.count !== undefined && (
+                                    <span className="text-[9px] flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-slate-100 dark:bg-slate-800 ml-1">
+                                        {tab.count === 'loading' ? (
+                                            <div className="size-3 border-[1.5px] border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                                        ) : (
+                                            tab.count
+                                        )}
+                                    </span>
+                                )}
                                 {activeTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"></div>}
                             </button>
                         ))}

@@ -1,32 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { bookingService } from '../services/bookingService';
-import { useAuth } from '../context/AuthContext';
-import ThemeToggle from '../components/ThemeToggle';
+import HeaderActions from '../components/HeaderActions';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 
 const BookingDetail = () => {
     const { bookingId } = useParams();
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
     const [booking, setBooking] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const menuRef = React.useRef(null);
-
-    React.useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setIsMenuOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
 
     useEffect(() => {
         const abortController = new AbortController();
@@ -52,14 +35,6 @@ const BookingDetail = () => {
         }
     };
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
-
-    const userDisplayName = user?.name && user?.surname
-        ? `${user.name} ${user.surname}`
-        : user?.email || 'Travel Agent';
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -150,38 +125,13 @@ const BookingDetail = () => {
 
     if (loading || error || !booking) {
         return (
-            <div className="flex h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200 font-sans overflow-hidden">
+            <div className="flex-1 flex flex-col h-full overflow-hidden relative">
                 {/* Top Progress Bar */}
                 {loading && (
                     <div className="fixed top-0 left-0 w-full h-1 z-[9999]">
                         <div className="h-full bg-primary animate-progress-indeterminate origin-left"></div>
                     </div>
                 )}
-
-                <aside className="w-60 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hidden lg:flex flex-col flex-shrink-0">
-                    <div className="p-3 flex items-center gap-2">
-                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
-                            <span className="material-icons-round text-lg">language</span>
-                        </div>
-                        <span className="font-bold text-lg tracking-tight">TravelOfGlobe</span>
-                    </div>
-                    <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
-                        <button
-                            onClick={() => navigate('/dashboard')}
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs w-full"
-                        >
-                            <span className="material-icons-round text-[20px]">grid_view</span>
-                            Dashboard
-                        </button>
-                        <button
-                            onClick={() => navigate('/bookings')}
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-primary font-medium text-xs w-full"
-                        >
-                            <span className="material-icons-round text-[20px]">book_online</span>
-                            My Bookings
-                        </button>
-                    </nav>
-                </aside>
 
                 <div className="flex-1 flex flex-col overflow-hidden relative">
                     <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-8 py-5 flex-shrink-0">
@@ -200,7 +150,7 @@ const BookingDetail = () => {
                                     </p>
                                 </div>
                             </div>
-                            <ThemeToggle />
+                            <HeaderActions />
                         </div>
                     </header>
 
@@ -269,32 +219,7 @@ const BookingDetail = () => {
     }
 
     return (
-        <div className="flex h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-200 font-sans overflow-hidden">
-            <aside className="w-60 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hidden lg:flex flex-col flex-shrink-0">
-                <div className="p-3 flex items-center gap-2">
-                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
-                        <span className="material-icons-round text-lg">language</span>
-                    </div>
-                    <span className="font-bold text-lg tracking-tight">TravelOfGlobe</span>
-                </div>
-                <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
-                    <button
-                        onClick={() => navigate('/dashboard')}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs w-full"
-                    >
-                        <span className="material-icons-round text-[20px]">grid_view</span>
-                        Dashboard
-                    </button>
-                    <button
-                        onClick={() => navigate('/bookings')}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-primary font-medium text-xs w-full"
-                    >
-                        <span className="material-icons-round text-[20px]">book_online</span>
-                        My Bookings
-                    </button>
-                </nav>
-            </aside>
-
+        <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
             <div className="flex-1 flex flex-col overflow-hidden">
                 <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-8 py-5 flex-shrink-0 z-30">
                     <div className="flex items-center justify-between">
@@ -314,44 +239,7 @@ const BookingDetail = () => {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <ThemeToggle />
-
-                            <div className="relative" ref={menuRef}>
-                                <button
-                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                    className="flex items-center gap-2 transition-transform active:scale-95 focus:outline-none"
-                                >
-                                    <div className="size-10 rounded-full border-2 border-primary shadow-sm hover:shadow-md transition-shadow flex items-center justify-center bg-slate-100 dark:bg-slate-800" title={userDisplayName}>
-                                        <span className="material-symbols-outlined text-slate-400 dark:text-slate-500 text-[28px]">person</span>
-                                    </div>
-                                    <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">expand_more</span>
-                                </button>
-
-                                {isMenuOpen && (
-                                    <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden z-[9999] animate-in fade-in slide-in-from-top-2">
-                                        <div className="p-3 border-b border-slate-100 dark:border-slate-800">
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">My Account</p>
-                                            <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{userDisplayName}</p>
-                                            {user?.email && (
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
-                                            )}
-                                        </div>
-                                        <div className="p-1">
-                                            <button className="w-full text-left px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg flex items-center gap-2 transition-colors">
-                                                <span className="material-icons-round text-[18px]">settings</span>
-                                                Settings
-                                            </button>
-                                            <button
-                                                onClick={handleLogout}
-                                                className="w-full text-left px-3 py-2 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex items-center gap-2 transition-colors"
-                                            >
-                                                <span className="material-icons-round text-[18px]">logout</span>
-                                                Sign Out
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            <HeaderActions />
                         </div>
                     </div>
                 </header>

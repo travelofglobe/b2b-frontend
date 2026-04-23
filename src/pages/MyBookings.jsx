@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import HeaderActions from '../components/HeaderActions';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import StatusMultiSelect from '../components/StatusMultiSelect';
+import AgencyMultiSelect from '../components/AgencyMultiSelect';
 import { BOOKING_STATUS_CONFIG } from '../utils/bookingStatusUtils';
 
 const MyBookings = () => {
@@ -43,7 +44,7 @@ const MyBookings = () => {
         minAmount: '',
         maxAmount: '',
         currencies: [],
-        principalAgencyIds: '',
+        principalAgencyIds: [],
         minCancellationAmount: '',
         maxCancellationAmount: '',
         cancelReason: '',
@@ -131,11 +132,8 @@ const MyBookings = () => {
                         filterObj[key] = value + 'T23:59:59';
                     }
                     // Handle List fields
-                    else if (key === 'currencies' && Array.isArray(value) && value.length > 0) {
+                    else if (['currencies', 'principalAgencyIds'].includes(key) && Array.isArray(value) && value.length > 0) {
                         filterObj[key] = value;
-                    }
-                    else if (key === 'principalAgencyIds' && value) {
-                        filterObj[key] = value.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
                     }
                     // Default string handling (voucher, name, uuid, reference, requestId, hotelId)
                     else {
@@ -322,7 +320,8 @@ const MyBookings = () => {
                                         <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">Status</th>
                                         <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">Cancel Fee</th>
                                         <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[200px]">UUID</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[200px]">Agency</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[200px]">Agency Name</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">Agency ID</th>
                                         <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[150px]">Hotel ID</th>
                                         <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[180px]">Cl. Ref</th>
                                         <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">Cancelled?</th>
@@ -484,14 +483,13 @@ const MyBookings = () => {
                                             />
                                         </td>
                                         <td className="px-2 py-2">
-                                            <input
-                                                type="text"
-                                                value={filters.principalAgencyIds}
-                                                onChange={(e) => handleFilterChange('principalAgencyIds', e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                placeholder="Agency IDs"
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                            <AgencyMultiSelect
+                                                selectedValues={filters.principalAgencyIds}
+                                                onChange={(values) => handleFilterChange('principalAgencyIds', values)}
                                             />
+                                        </td>
+                                        <td className="px-2 py-2">
+                                            {/* Extra column header for Agency ID */}
                                         </td>
                                         <td className="px-2 py-2">
                                             <input
@@ -543,6 +541,7 @@ const MyBookings = () => {
                                                 <td className="px-4 py-3"><div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
                                                 <td className="px-4 py-3"><div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
                                                 <td className="px-4 py-3"><div className="h-4 w-40 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                <td className="px-4 py-3"><div className="h-4 w-12 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
                                                 <td className="px-4 py-3"><div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
                                                 <td className="px-4 py-3"><div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
                                                 <td className="px-4 py-3"><div className="h-5 w-5 mx-auto bg-slate-200 dark:bg-slate-700 rounded-full animate-shimmer"></div></td>
@@ -589,6 +588,7 @@ const MyBookings = () => {
                                                 </td>
                                                 <td className="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-[10px] truncate max-w-[120px]" title={booking.bookingUuid}>{booking.bookingUuid}</td>
                                                 <td className="px-4 py-3 text-slate-700 dark:text-slate-200 truncate max-w-[150px]" title={booking.principalAgencyName}>{booking.principalAgencyName}</td>
+                                                <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-[10px]">{booking.principalAgencyId}</td>
                                                 <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-[10px]">{booking.internalHotelId}</td>
                                                 <td className="px-4 py-3 text-slate-700 dark:text-slate-200 truncate max-w-[100px]" title={booking.clientReferenceId}>{booking.clientReferenceId || '-'}</td>
                                                 <td className="px-4 py-3 text-center">

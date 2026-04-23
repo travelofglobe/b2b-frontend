@@ -9,5 +9,9 @@ export const agencyService = {
 
     updateAgency: async (id, data) => {
         return apiClient.put(`${API_BASE_URL}/agency/update-by-id/${id}`, data);
+    },
+
+    getAgencies: async (signal) => {
+        return apiClient.get(`${API_BASE_URL}/agency/find-all-by-parent-id`, { signal });
     }
 };

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bookingService } from '../services/bookingService';
 import { useAuth } from '../context/AuthContext';
-import ThemeToggle from '../components/ThemeToggle';
+import HeaderActions from '../components/HeaderActions';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import StatusMultiSelect from '../components/StatusMultiSelect';
 import { BOOKING_STATUS_CONFIG } from '../utils/bookingStatusUtils';
@@ -18,8 +18,6 @@ const MyBookings = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
     const [summaries, setSummaries] = useState([]);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const menuRef = React.useRef(null);
     const hasLoadedData = React.useRef(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -53,19 +51,6 @@ const MyBookings = () => {
     });
 
     const [showFilters, setShowFilters] = useState(false);
-
-    React.useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setIsMenuOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
 
     // Integrated Search Effect (Handles mount, filters, pagination, and refresh)
     useEffect(() => {
@@ -222,14 +207,6 @@ const MyBookings = () => {
     };
 
 
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
-
-    const userDisplayName = user?.name && user?.surname
-        ? `${user.name} ${user.surname}`
-        : user?.email || 'Travel Agent';
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -318,57 +295,7 @@ const MyBookings = () => {
 
                             <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
 
-                            <ThemeToggle />
-
-                            {/* User Profile Dropdown */}
-                            <div className="relative" ref={menuRef}>
-                                <button
-                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                    className="flex items-center gap-2 transition-transform active:scale-95 focus:outline-none"
-                                >
-                                    <div className="size-10 rounded-lg shadow-sm hover:shadow-md transition-shadow flex items-center justify-center bg-slate-100 dark:bg-[#233648]" title={userDisplayName}>
-                                        <span className="material-symbols-outlined text-slate-600 dark:text-slate-300 text-[24px]">person</span>
-                                    </div>
-                                    <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">expand_more</span>
-                                </button>
-
-                                {isMenuOpen && (
-                                    <div className="absolute right-0 top-full mt-2 w-[340px] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden z-[9999] animate-in fade-in slide-in-from-top-2">
-                                        <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">My Account</p>
-                                            <p className="text-sm font-bold text-slate-900 dark:text-white truncate" title={userDisplayName}>{userDisplayName}</p>
-                                            <p className="text-sm text-slate-500 break-words font-medium mt-0.5">{user?.email}</p>
-                                        </div>
-                                        <div className="p-2 space-y-1">
-                                            <button className="w-full text-left px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-colors">
-                                                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-primary">
-                                                    <span className="material-symbols-outlined text-[18px]">person</span>
-                                                </div>
-                                                Profile Details
-                                            </button>
-                                            <button className="w-full text-left px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-colors">
-                                                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-primary">
-                                                    <span className="material-symbols-outlined text-[18px]">settings</span>
-                                                </div>
-                                                Settings
-                                            </button>
-                                            <div className="border-t border-slate-100 dark:border-slate-800 my-1"></div>
-                                            <button
-                                                onClick={() => {
-                                                    handleLogout();
-                                                    setIsMenuOpen(false);
-                                                }}
-                                                className="w-full text-left px-3 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg flex items-center gap-3 transition-colors"
-                                            >
-                                                <div className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500">
-                                                    <span className="material-symbols-outlined text-[18px]">logout</span>
-                                                </div>
-                                                Sign Out
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            <HeaderActions />
                         </div>
                     </div>
                 </header>

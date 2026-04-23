@@ -3,11 +3,11 @@ import apiClient from '../utils/apiClient';
 const API_BASE_URL = 'http://72.62.17.189:8000/b2b-backend/v1';
 
 export const userService = {
-    getSummary: async () => {
-        return apiClient.get(`${API_BASE_URL}/agency-user/summary`);
+    getSummary: async (signal) => {
+        return apiClient.get(`${API_BASE_URL}/agency-user/summary`, { signal });
     },
-    filterUsers: async (data, page = 0, size = 10) => {
-        return apiClient.post(`${API_BASE_URL}/agency-user/filter?page=${page}&size=${size}`, data);
+    filterUsers: async (data, page = 0, size = 10, signal) => {
+        return apiClient.post(`${API_BASE_URL}/agency-user/filter?page=${page}&size=${size}`, data, { signal });
     },
     saveUser: async (data) => {
         return apiClient.post(`${API_BASE_URL}/agency-user`, data);

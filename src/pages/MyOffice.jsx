@@ -9,6 +9,9 @@ import { locationService } from '../services/locationService';
 import { userService, roleService } from '../services/userService';
 import { guestService } from '../services/guestService';
 import ThemeToggle from '../components/ThemeToggle';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import '../datepicker-custom.css';
 
 // Fix Leaflet marker icon issue in React
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -21,8 +24,8 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// Module-level cache to prevent double-requests across remounts (React 18 Strict Mode)
-let globalInitialLoaded = false;
+// Module-level cache removed to allow dynamic data refresh on every mount
+
 
 // Helper to format YYYY-MM-DD to DD.MM.YYYY for backend
 const formatToBackendDate = (dateStr) => {
@@ -107,6 +110,7 @@ const MyOffice = () => {
     const [loading, setLoading] = useState(true);
     const [usersLoading, setUsersLoading] = useState(false);
     const [guestsLoading, setGuestsLoading] = useState(false);
+    const [statsLoading, setStatsLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -177,13 +181,12 @@ const MyOffice = () => {
 
     // Single Mount Effect
     useEffect(() => {
-        if (globalInitialLoaded) return;
-        
-        const fetchOnce = async () => {
-            await fetchInitialData();
-            globalInitialLoaded = true;
+        const abortController = new AbortController();
+        const fetchOnMount = async () => {
+            await fetchInitialData(abortController.signal);
         };
-        fetchOnce();
+        fetchOnMount();
+        fetchStats(abortController.signal);
 
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -191,7 +194,10 @@ const MyOffice = () => {
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            abortController.abort();
+        };
     }, []);
 
     // Tab Lazy Loading Logic
@@ -210,23 +216,15 @@ const MyOffice = () => {
         setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
     };
 
-    const fetchInitialData = async () => {
+    const fetchInitialData = async (signal) => {
         try {
             setLoading(true);
-            const [agencyData, countriesData, userSumm, guestSumm] = await Promise.all([
-                agencyService.getMe(),
-                locationService.listCountries(),
-                userService.getSummary().catch(() => ({ totalUsers: 0, activeUsers: 0 })),
-                guestService.getSummary().catch(() => ({ totalGuests: 0, activeGuests: 0 }))
+            const [agencyData, countriesData] = await Promise.all([
+                agencyService.getMe(signal),
+                locationService.listCountries(signal)
             ]);
 
             setCountries(countriesData.locationList || []);
-            setSummary({
-                totalUsers: userSumm.totalUsers || 0,
-                activeUsers: userSumm.activeUsers || 0,
-                totalGuests: guestSumm.numberOfItems || guestSumm.totalGuests || 0,
-                activeGuests: guestSumm.activeGuests || 0
-            });
 
             let initialCities = [];
             if (agencyData.countryId) {
@@ -258,6 +256,28 @@ const MyOffice = () => {
             setError(err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchStats = async (signal) => {
+        try {
+            setStatsLoading(true);
+            const [totalUsersRes, activeUsersRes, totalGuestsRes] = await Promise.all([
+                userService.filterUsers({}, 0, 1, signal).catch(() => ({})),
+                userService.filterUsers({ status: 'ACTIVE' }, 0, 1, signal).catch(() => ({})),
+                guestService.filterGuests({}, 0, 1, signal).catch(() => ({}))
+            ]);
+
+            setSummary({
+                totalUsers: totalUsersRes.numberOfItems ?? totalUsersRes.agencyUsers?.length ?? 0,
+                activeUsers: activeUsersRes.numberOfItems ?? activeUsersRes.agencyUsers?.length ?? 0,
+                totalGuests: totalGuestsRes.numberOfItems ?? totalGuestsRes.guests?.length ?? 0,
+                activeGuests: 0
+            });
+        } catch (err) {
+            if (err.name !== 'AbortError') console.error('Error fetching stats:', err);
+        } finally {
+            setStatsLoading(false);
         }
     };
 
@@ -336,6 +356,12 @@ const MyOffice = () => {
         e.preventDefault();
         try {
             setSaving(true);
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (userFormData.email && !emailRegex.test(userFormData.email)) { 
+                showNotification('Please enter a valid email address.', 'error'); 
+                setSaving(false); 
+                return; 
+            }
             if (editingUser) {
                 await userService.updateUser(editingUser.id, userFormData);
                 if (userFormData.roleIds.length > 0) await userService.assignRoles(editingUser.id, userFormData.roleIds);
@@ -480,19 +506,12 @@ const MyOffice = () => {
                         </div>
                     </header>
 
-                    {/* KPI Section */}
-                    <div className="grid grid-cols-4 gap-4 mb-6">
-                        <div className="badge-card px-4 py-3 rounded-2xl flex items-center gap-3 hover:scale-[1.01] transition-all cursor-pointer"><div className="size-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center text-primary"><span className="material-icons-round text-xl">supervised_user_circle</span></div><div><p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Total Users</p><p className="text-base font-bold leading-none">{summary.totalUsers}</p></div></div>
-                        <div className="badge-card px-4 py-3 rounded-2xl flex items-center gap-3 hover:scale-[1.01] transition-all cursor-pointer"><div className="size-10 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center text-emerald-500"><span className="material-icons-round text-xl">trending_up</span></div><div><p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Active Users</p><p className="text-base font-bold leading-none">{summary.activeUsers}</p></div></div>
-                        <div className="badge-card px-4 py-3 rounded-2xl flex items-center gap-3 hover:scale-[1.01] transition-all cursor-pointer"><div className="size-10 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center text-purple-500"><span className="material-icons-round text-xl">group</span></div><div><p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Total Guests</p><p className="text-base font-bold leading-none">{summary.totalGuests}</p></div></div>
-                        <div className="badge-card px-4 py-3 rounded-2xl flex items-center gap-3 hover:scale-[1.01] transition-all cursor-pointer"><div className="size-10 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-center justify-center text-amber-500"><span className="material-icons-round text-xl">star_outline</span></div><div><p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Activity</p><p className="text-base font-bold leading-none">High</p></div></div>
-                    </div>
 
                     <div className="mb-6 flex gap-10 border-b border-slate-200 dark:border-slate-800">
                         {[
                             { id: 'general', label: 'General Information', icon: 'info' },
-                            { id: 'users', label: 'Users', count: summary.totalUsers, icon: 'groups' },
-                            { id: 'guests', label: 'Guests', count: summary.totalGuests, icon: 'recent_actors' }
+                            { id: 'users', label: 'Users', count: statsLoading ? '...' : summary.totalUsers, icon: 'groups' },
+                            { id: 'guests', label: 'Guests', count: statsLoading ? '...' : summary.totalGuests, icon: 'recent_actors' }
                         ].map((tab) => (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`pb-4 text-[10px] font-bold uppercase tracking-widest relative flex items-center gap-2.5 transition-all ${activeTab === tab.id ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}>
                                 <span className="material-icons-round text-lg">{tab.icon}</span> {tab.label} {tab.count !== undefined && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 ml-1">{tab.count}</span>}
@@ -506,7 +525,7 @@ const MyOffice = () => {
                             <div className="h-full flex gap-10 overflow-hidden pb-4">
                                 <div className="w-[35%] flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-2 flex-shrink-0">
                                     <div className="bg-slate-900 dark:bg-slate-800 rounded-[40px] p-8 text-white relative overflow-hidden shadow-2xl"><div className="absolute top-0 right-0 p-6"><div className="size-10 bg-white/10 rounded-xl flex items-center justify-center"><span className="material-icons-round text-xl">security</span></div></div><div className="mt-8 mb-12"><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Agency ID Card</p><h2 className="text-2xl font-bold truncate">{formData.name || 'Your Agency'}</h2><p className="text-xs text-slate-400 mt-1 opacity-80">{formData.officialTitle}</p></div><div className="space-y-6 pt-6 border-t border-white/10"><div><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Base Location</p><p className="text-sm font-semibold">{formData.cityName || 'Antalya'}, {formData.countryName || 'Türkiye'}</p></div><div><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Digital Coordinates</p><p className="text-[11px] font-mono text-primary font-bold">{formData.latitude?.toFixed(4)}, {formData.longitude?.toFixed(4)}</p></div></div></div>
-                                    <div className="map-card h-[400px] relative group border-4 border-white dark:border-slate-800"><MapContainer center={mapCenter} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}><ChangeView center={mapCenter} zoom={zoom} /><TileLayer attribution='&copy; CARTO' url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" /><LocationMarker position={[formData.latitude, formData.longitude]} setPosition={setMapLocation} /></MapContainer><div className="absolute bottom-6 right-6 z-[1000] opacity-0 group-hover:opacity-100 transition-all"><button onClick={openInMaps} className="size-10 bg-white dark:bg-slate-900 rounded-xl shadow-xl flex items-center justify-center text-primary"><span className="material-icons-round">open_in_new</span></button></div></div>
+                                    <div className="map-card h-[600px] relative group border-4 border-white dark:border-slate-800"><MapContainer center={mapCenter} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}><ChangeView center={mapCenter} zoom={zoom} /><TileLayer attribution='&copy; CARTO' url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" /><LocationMarker position={[formData.latitude, formData.longitude]} setPosition={setMapLocation} /></MapContainer><div className="absolute bottom-6 right-6 z-[1000] opacity-0 group-hover:opacity-100 transition-all"><button onClick={openInMaps} className="size-10 bg-white dark:bg-slate-900 rounded-xl shadow-xl flex items-center justify-center text-primary"><span className="material-icons-round">open_in_new</span></button></div></div>
                                 </div>
                                 <div className="flex-1 bg-white/50 dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-white/40 dark:border-white/5 p-12 overflow-y-auto custom-scrollbar">
                                     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-16">
@@ -621,8 +640,46 @@ const MyOffice = () => {
                         <div className="p-8 border-b border-slate-50 dark:border-white/5"><div className="flex items-center justify-between"><div><h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingGuest ? 'Edit Guest' : 'Add Guest'}</h3><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enter guest information</p></div><button onClick={() => setIsGuestModalOpen(false)} className="size-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round">close</span></button></div></div>
                         <form onSubmit={handleGuestSubmit} className="p-8 space-y-6">
                             <div className="grid grid-cols-3 gap-4"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gender</label><select value={guestFormData.gender} onChange={(e) => setGuestFormData(prev => ({ ...prev, gender: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary"><option value="MALE">Mr</option><option value="FEMALE">Mrs</option></select></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">First Name</label><input type="text" required value={guestFormData.firstName} onChange={(e) => setGuestFormData(prev => ({ ...prev, firstName: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" /></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Last Name</label><input type="text" required value={guestFormData.lastName} onChange={(e) => setGuestFormData(prev => ({ ...prev, lastName: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" /></div></div>
-                            <div className="grid grid-cols-2 gap-4"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Birth Date</label><input type="date" required value={formatToPickerDate(guestFormData.birthDate)} onChange={(e) => setGuestFormData(prev => ({ ...prev, birthDate: formatToBackendDate(e.target.value) }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" /></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Country</label><input type="text" value={guestFormData.country} onChange={(e) => setGuestFormData(prev => ({ ...prev, country: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none uppercase" placeholder="TR" /></div></div>
-                            <div className="grid grid-cols-2 gap-4"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Passport No</label><input type="text" value={guestFormData.passportNo} onChange={(e) => setGuestFormData(prev => ({ ...prev, passportNo: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" /></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Passport Expiry</label><input type="date" value={formatToPickerDate(guestFormData.passportExpiry)} onChange={(e) => setGuestFormData(prev => ({ ...prev, passportExpiry: formatToBackendDate(e.target.value) }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" /></div></div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Birth Date</label>
+                                    <DatePicker 
+                                        selected={guestFormData.birthDate ? new Date(formatToPickerDate(guestFormData.birthDate)) : null} 
+                                        onChange={(date) => setGuestFormData(prev => ({ ...prev, birthDate: date ? formatToBackendDate(date.toISOString().split('T')[0]) : '' }))}
+                                        dateFormat="dd.MM.yyyy"
+                                        placeholderText="DD.MM.YYYY"
+                                        showMonthDropdown
+                                        showYearDropdown
+                                        dropdownMode="select"
+                                        className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary w-full"
+                                        wrapperClassName="w-full"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Country</label>
+                                    <input type="text" value={guestFormData.country} onChange={(e) => setGuestFormData(prev => ({ ...prev, country: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none uppercase" placeholder="TR" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Passport No</label>
+                                    <input type="text" value={guestFormData.passportNo} onChange={(e) => setGuestFormData(prev => ({ ...prev, passportNo: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Passport Expiry</label>
+                                    <DatePicker 
+                                        selected={guestFormData.passportExpiry ? new Date(formatToPickerDate(guestFormData.passportExpiry)) : null} 
+                                        onChange={(date) => setGuestFormData(prev => ({ ...prev, passportExpiry: date ? formatToBackendDate(date.toISOString().split('T')[0]) : '' }))}
+                                        dateFormat="dd.MM.yyyy"
+                                        placeholderText="DD.MM.YYYY"
+                                        showMonthDropdown
+                                        showYearDropdown
+                                        dropdownMode="select"
+                                        className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary w-full"
+                                        wrapperClassName="w-full"
+                                    />
+                                </div>
+                            </div>
                             <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label><input type="email" required value={guestFormData.email} onChange={(e) => setGuestFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" placeholder="example@mail.com" /></div>
                             <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label><div className="grid grid-cols-4 gap-2"><input type="text" value={guestFormData.phoneCountryCode} onChange={(e) => setGuestFormData(prev => ({ ...prev, phoneCountryCode: e.target.value }))} className="h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-center text-xs font-bold outline-none" placeholder="+90" /><input type="text" value={guestFormData.phoneNumber} onChange={(e) => setGuestFormData(prev => ({ ...prev, phoneNumber: e.target.value }))} className="col-span-3 h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" placeholder="5XX..." /></div></div>
                             <div className="pt-4 flex items-center justify-end gap-3"><button type="button" onClick={() => setIsGuestModalOpen(false)} className="h-11 px-6 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Cancel</button><button type="submit" disabled={saving} className="h-11 px-8 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">{saving ? 'Processing...' : 'Save Guest'}</button></div>

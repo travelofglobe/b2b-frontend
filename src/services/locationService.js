@@ -24,11 +24,11 @@ export const locationService = {
         return apiClient.get(`${API_BASE_URL}/location/${locationId}`);
     },
 
-    listCountries: async () => {
-        return apiClient.get(`${API_BASE_URL}/location/list-countries`);
+    listCountries: async (signal) => {
+        return apiClient.get(`${API_BASE_URL}/location/list-countries`, { signal });
     },
 
-    listSubRegions: async (locationId) => {
-        return apiClient.get(`${API_BASE_URL}/location/list-sub-regions/${locationId}`);
+    listSubRegions: async (locationId, signal) => {
+        return apiClient.get(`${API_BASE_URL}/location/list-sub-regions/${locationId}`, { signal });
     }
 };

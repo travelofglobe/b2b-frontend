@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../context/AuthContext';
-import { bookingService } from '../services/bookingService';
+import { userService } from '../services/userService';
+import { guestService } from '../services/guestService';
 import DashboardSearch from '../components/DashboardSearch';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 
@@ -11,7 +12,9 @@ const Dashboard = () => {
     const { user, logout } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [bookings, setBookings] = useState([]);
+    const [summary, setSummary] = useState({ totalUsers: 0, activeUsers: 0, totalGuests: 0 });
     const [loading, setLoading] = useState(true);
+    const [statsLoading, setStatsLoading] = useState(true);
     const [error, setError] = useState(null);
     const menuRef = React.useRef(null);
 
@@ -31,27 +34,42 @@ const Dashboard = () => {
     useEffect(() => {
         const abortController = new AbortController();
 
-        const fetchBookings = async () => {
+        const fetchData = async () => {
             try {
                 setLoading(true);
-                const data = await bookingService.findLastFive(abortController.signal);
+                setStatsLoading(true);
+                
+                // Fetch bookings and stats in parallel
+                const [bookingsData, totalUsersRes, activeUsersRes, totalGuestsRes] = await Promise.all([
+                    bookingService.findLastFive(abortController.signal),
+                    userService.filterUsers({}, 0, 1, abortController.signal).catch(() => ({})),
+                    userService.filterUsers({ status: 'ACTIVE' }, 0, 1, abortController.signal).catch(() => ({})),
+                    guestService.filterGuests({}, 0, 1, abortController.signal).catch(() => ({}))
+                ]);
+
                 if (!abortController.signal.aborted) {
-                    setBookings(data.bookings.content || []);
+                    setBookings(bookingsData.bookings.content || []);
+                    setSummary({
+                        totalUsers: totalUsersRes.numberOfItems ?? totalUsersRes.agencyUsers?.length ?? 0,
+                        activeUsers: activeUsersRes.numberOfItems ?? activeUsersRes.agencyUsers?.length ?? 0,
+                        totalGuests: totalGuestsRes.numberOfItems ?? totalGuestsRes.guests?.length ?? 0
+                    });
                     setError(null);
                 }
             } catch (err) {
                 if (err.name !== 'AbortError') {
-                    console.error('Error fetching bookings:', err);
+                    console.error('Error fetching dashboard data:', err);
                     setError(err.message);
                 }
             } finally {
                 if (!abortController.signal.aborted) {
                     setLoading(false);
+                    setStatsLoading(false);
                 }
             }
         };
 
-        fetchBookings();
+        fetchData();
 
         return () => {
             abortController.abort();
@@ -218,78 +236,61 @@ const Dashboard = () => {
                         <DashboardSearch />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                        {/* Active Bookings Card */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        {/* Total Users Card */}
                         <div className="group bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl p-5 rounded-[32px] border border-white/60 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
-                                    <span className="material-icons-round text-2xl">confirmation_number</span>
+                                    <span className="material-icons-round text-2xl">supervised_user_circle</span>
                                 </div>
                                 <div className="flex flex-col items-end">
                                     <span className="text-emerald-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
-                                        <span className="material-icons-round text-xs">trending_up</span> +12%
+                                        <span className="material-icons-round text-xs">trending_up</span> Live
                                     </span>
                                 </div>
                             </div>
-                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Active Bookings</h3>
-                            <p className="text-3xl font-black tracking-tight">482</p>
+                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total Users</h3>
+                            <p className="text-3xl font-black tracking-tight">{statsLoading ? '...' : summary.totalUsers}</p>
                             <div className="mt-4 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                 <div className="h-full bg-primary w-2/3 rounded-full shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]"></div>
                             </div>
                         </div>
 
-                        {/* Pending Confirmations Card */}
+                        {/* Active Users Card */}
                         <div className="group bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl p-5 rounded-[32px] border border-white/60 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform duration-500">
-                                    <span className="material-icons-round text-2xl">pending_actions</span>
+                                    <span className="material-icons-round text-2xl">trending_up</span>
                                 </div>
                                 <div className="flex flex-col items-end">
                                     <span className="text-amber-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
-                                        <span className="material-icons-round text-xs animate-pulse">schedule</span> 14 New
+                                        <span className="material-icons-round text-xs animate-pulse">bolt</span> Online
                                     </span>
                                 </div>
                             </div>
-                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Pending</h3>
-                            <p className="text-3xl font-black tracking-tight">24</p>
+                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Active Users</h3>
+                            <p className="text-3xl font-black tracking-tight">{statsLoading ? '...' : summary.activeUsers}</p>
                             <div className="mt-4 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                <div className="h-full bg-amber-500 w-1/4 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
+                                <div className="h-full bg-amber-500 w-1/2 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
                             </div>
                         </div>
 
-                        {/* Monthly Revenue Card */}
-                        <div className="group bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl p-5 rounded-[32px] border border-white/60 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform duration-500">
-                                    <span className="material-icons-round text-2xl">payments</span>
-                                </div>
-                                <div className="flex flex-col items-end">
-                                    <span className="text-emerald-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
-                                        <span className="material-icons-round text-xs">trending_up</span> +8.5%
-                                    </span>
-                                </div>
-                            </div>
-                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Revenue</h3>
-                            <p className="text-3xl font-black tracking-tight">$124,500</p>
-                            <div className="mt-4 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                <div className="h-full bg-emerald-500 w-[85%] rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                            </div>
-                        </div>
-
-                        {/* New Messages Card */}
+                        {/* Total Guests Card */}
                         <div className="group bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl p-5 rounded-[32px] border border-white/60 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform duration-500">
-                                    <span className="material-icons-round text-2xl">forum</span>
+                                    <span className="material-icons-round text-2xl">group</span>
                                 </div>
                                 <div className="flex flex-col items-end">
-                                    <span className="bg-red-500 text-white text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full shadow-lg shadow-red-500/20">3 New</span>
+                                    <span className="text-purple-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                                        <span className="material-icons-round text-xs">people</span> CRM
+                                    </span>
                                 </div>
                             </div>
-                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Messages</h3>
-                            <p className="text-3xl font-black tracking-tight">12</p>
+                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total Guests</h3>
+                            <p className="text-3xl font-black tracking-tight">{statsLoading ? '...' : summary.totalGuests}</p>
                             <div className="mt-4 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                <div className="h-full bg-purple-500 w-1/2 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.5)]"></div>
+                                <div className="h-full bg-purple-500 w-[70%] rounded-full shadow-[0_0_8px_rgba(168,85,247,0.5)]"></div>
                             </div>
                         </div>
                     </div>

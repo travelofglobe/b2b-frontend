@@ -472,11 +472,21 @@ const DashboardSearch = () => {
                             className="flex flex-col gap-1 px-4 py-3 h-[72px] bg-white/60 dark:bg-slate-800/60 rounded-3xl border border-slate-100 dark:border-slate-800 transition-all duration-300 group-hover/field:border-primary/30 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm cursor-pointer"
                             onClick={() => datePickerRef.current?.setOpen(true)}
                         >
-                            <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                                <span className="material-symbols-outlined text-[16px] text-primary">calendar_today</span>
-                                Check-in - Check-out
+                            <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center justify-between w-full">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-[16px] text-primary">calendar_today</span>
+                                    Check-in - Check-out
+                                </div>
+                                {checkInDate && checkOutDate && (
+                                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 animate-in fade-in slide-in-from-right-2">
+                                        <span className="material-symbols-outlined text-[12px] leading-none">bedtime</span>
+                                        <span className="text-[9px] font-black uppercase tracking-tight">
+                                            {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} nights
+                                        </span>
+                                    </div>
+                                )}
                             </label>
-                            <div className="flex-1 min-w-0 flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
                                 <DatePicker
                                     ref={datePickerRef}
                                     selected={checkInDate}
@@ -509,11 +519,6 @@ const DashboardSearch = () => {
                                     dateFormat="dd MMM yyyy"
                                     placeholderText="Select range"
                                 />
-                                {checkInDate && checkOutDate && (
-                                    <span className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-lg shadow-lg shadow-primary/20">
-                                        {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} nights
-                                    </span>
-                                )}
                             </div>
                         </div>
                     </div>

@@ -165,6 +165,22 @@ export const hotelService = {
         };
 
         return apiClient.post(`${API_BASE_URL}/rooms/search`, body, { signal });
+    },
+
+    /**
+     * Book a hotel reservation.
+     * @param {Object} request - HubBookRequestModel
+     */
+    book: async (request) => {
+        return apiClient.post(`${API_BASE_URL}/book`, request);
+    },
+
+    /**
+     * Check rates for selected rooms.
+     * @param {Object} request - HubCheckRatesRequestModel
+     */
+    checkRates: async (request) => {
+        return apiClient.post(`${API_BASE_URL}/check-rates`, request);
     }
 };
 

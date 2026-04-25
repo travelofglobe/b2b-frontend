@@ -5,9 +5,10 @@ import Footer from '../components/Footer';
 
 const CheckoutResult = () => {
     const location = useLocation();
-    const { hotel, totalPrice, roomsData } = location.state || {};
+    const { hotel, totalPrice, roomsData, bookingResponse } = location.state || {};
 
-    const bookingRef = "TOG" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const isSuccess = bookingResponse?.status === 'SUCCESS' && bookingResponse?.voucher;
+    const bookingRef = bookingResponse?.voucher || bookingResponse?.clientReferenceId || ("TOG" + Math.random().toString(36).substring(2, 8).toUpperCase());
 
     if (!hotel) return <div className="p-20 text-center">No active booking session found.</div>;
 
@@ -16,15 +17,17 @@ const CheckoutResult = () => {
             <Header />
             <main className="max-w-4xl mx-auto px-6 pt-32 pb-20 text-center">
                 <div className="relative mb-12">
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent"></div>
-                    <div className="relative size-24 mx-auto rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-2xl shadow-emerald-500/30 animate-in zoom-in duration-700">
-                        <span className="material-symbols-outlined text-5xl">done_all</span>
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-transparent via-primary/10 to-transparent"></div>
+                    <div className={`relative size-24 mx-auto rounded-full ${isSuccess ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-red-500 shadow-red-500/30'} text-white flex items-center justify-center shadow-2xl animate-in zoom-in duration-700`}>
+                        <span className="material-symbols-outlined text-5xl">{isSuccess ? 'done_all' : 'error'}</span>
                     </div>
                 </div>
 
-                <h1 className="text-5xl font-black uppercase tracking-tight mb-4 animate-in slide-in-from-bottom-4 duration-700 delay-100">Booking Confirmed!</h1>
+                <h1 className={`text-5xl font-black uppercase tracking-tight mb-4 animate-in slide-in-from-bottom-4 duration-700 delay-100 ${isSuccess ? '' : 'text-red-500'}`}>
+                    {isSuccess ? 'Booking Confirmed!' : 'Booking Failed'}
+                </h1>
                 <p className="text-slate-500 font-bold uppercase tracking-widest mb-12 animate-in slide-in-from-bottom-4 duration-700 delay-200">
-                    Your reservation has been processed successfully.
+                    {isSuccess ? 'Your reservation has been processed successfully.' : 'There was an issue processing your reservation. Please contact support.'}
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 text-left">
@@ -35,7 +38,9 @@ const CheckoutResult = () => {
                         </h2>
                         <div className="mb-8">
                             <p className="text-4xl font-black text-primary tracking-tighter mb-1">{bookingRef}</p>
-                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Instant Confirmation</p>
+                            <p className={`text-[10px] font-black uppercase tracking-widest ${isSuccess ? 'text-emerald-500' : 'text-red-500'}`}>
+                                {isSuccess ? 'Instant Confirmation' : 'Reservation Failed'}
+                            </p>
                         </div>
                         <div className="space-y-4 pt-8 border-t border-slate-200 dark:border-slate-800">
                             <div>
@@ -49,7 +54,9 @@ const CheckoutResult = () => {
                                 </div>
                                 <div className="text-right">
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Status</p>
-                                    <span className="px-3 py-1 bg-emerald-500 text-white text-[10px] font-black rounded-lg uppercase tracking-widest">PAID</span>
+                                    <span className={`px-3 py-1 text-white text-[10px] font-black rounded-lg uppercase tracking-widest ${isSuccess ? 'bg-emerald-500' : 'bg-red-500'}`}>
+                                        {isSuccess ? 'PAID' : 'FAILED'}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -73,12 +80,10 @@ const CheckoutResult = () => {
                                                 </div>
                                                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
                                                     <p className="text-[9px] font-bold text-slate-400 uppercase">
-                                                        {guest.isNonTc ? `Passport: ${guest.passportNo}` : `TC: ${guest.tcNo.slice(0, 3)}•••${guest.tcNo.slice(-2)}`}
-                                                    </p>
-                                                    <p className="text-[9px] font-bold text-slate-400 uppercase">
                                                         {guest.gender} • {guest.birthDate}
                                                     </p>
                                                     {guest.email && <p className="text-[9px] font-bold text-primary uppercase">{guest.email}</p>}
+                                                    {guest.phone && <p className="text-[9px] font-bold text-slate-500 uppercase">{guest.phone}</p>}
                                                 </div>
                                             </div>
                                         ))}

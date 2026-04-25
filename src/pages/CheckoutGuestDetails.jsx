@@ -46,9 +46,12 @@ const CheckoutGuestDetails = () => {
             for (let i = 0; i < config.children; i++) {
                 guests.push({ type: 'Child', age: config.childAges[i], firstName: '', lastName: '', birthDate: '', gender: '' });
             }
-            return { roomName: room.name, guests, cancellationPolicies: room.cancellationPolicies || [] };
+            return { roomName: room.name, guests, cancellationPolicies: room.cancellationPolicies || [], hubRateModel: room.hubRateModel };
         });
     });
+
+    const [clientReferenceId, setClientReferenceId] = useState('');
+    const [remark, setRemark] = useState('');
 
     const [errors, setErrors] = useState({});
 
@@ -125,7 +128,7 @@ const CheckoutGuestDetails = () => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
                 navigate('/hotel/checkout/payment', {
-                    state: { ...location.state, roomsData }
+                    state: { ...location.state, roomsData, clientReferenceId, remark }
                 });
             }
         }
@@ -336,6 +339,45 @@ const CheckoutGuestDetails = () => {
                                     </div>
                                 </div>
                             ))}
+
+                            {/* Booking Reference & Remark Section - Added for Book Service */}
+                            {activeRoomIdx === roomsData.length - 1 && (
+                                <div className="relative group animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    <div className="absolute -inset-1 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-[40px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                    <div className="relative p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-2xl">
+                                        <div className="flex items-center gap-4 mb-10">
+                                            <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                                                <span className="material-symbols-outlined text-2xl">receipt_long</span>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-black uppercase tracking-tight">Booking References</h3>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Internal identifiers & special requests</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Client Reference ID</label>
+                                                <input
+                                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
+                                                    placeholder="Your internal reference number"
+                                                    value={clientReferenceId}
+                                                    onChange={(e) => setClientReferenceId(e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Special Remarks</label>
+                                                <input
+                                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
+                                                    placeholder="Any special requests or notes"
+                                                    value={remark}
+                                                    onChange={(e) => setRemark(e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="pt-10 flex items-center justify-between">
                                 <button

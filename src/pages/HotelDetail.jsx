@@ -231,6 +231,7 @@ const HotelDetail = () => {
     const [activeTab, setActiveTab] = useState('Rooms & Rates');
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [selectedRooms, setSelectedRooms] = useState([]);
+    const [isCheckingRates, setIsCheckingRates] = useState(false);
 
     // Fetch data when search parameters or hotel ID change
     useEffect(() => {
@@ -357,19 +358,39 @@ const HotelDetail = () => {
         navigate(`/hotels?${params.toString()}`);
     };
 
-    const handleInstantReservation = () => {
+    const handleInstantReservation = async () => {
         if (selectedRooms.length > 0) {
-            navigate('/hotel/checkout/guests', {
-                state: {
-                    selectedRooms,
-                    hotel,
-                    roomState,
-                    checkInDate: checkInDate.toISOString(),
-                    checkOutDate: checkOutDate.toISOString(),
-                    totalPrice: selectedRooms.reduce((sum, r) => sum + r.rate, 0),
-                    nights
-                }
-            });
+            setIsCheckingRates(true);
+            try {
+                const checkRatesRequest = {
+                    rooms: selectedRooms.map(room => ({
+                        rateCode: room.hubRateModel?.rateCode
+                    }))
+                };
+
+                const response = await hotelService.checkRates(checkRatesRequest);
+                console.log('Check rates response:', response);
+                const rateSearchUuid = response?.rateSearchUuid;
+                console.log('Obtained rateSearchUuid:', rateSearchUuid);
+
+                navigate('/hotel/checkout/guests', {
+                    state: {
+                        selectedRooms,
+                        hotel,
+                        roomState,
+                        checkInDate: checkInDate.toISOString(),
+                        checkOutDate: checkOutDate.toISOString(),
+                        totalPrice: selectedRooms.reduce((sum, r) => sum + r.rate, 0),
+                        nights,
+                        rateSearchUuid: rateSearchUuid // Pass the UUID obtained from checkRates
+                    }
+                });
+            } catch (err) {
+                console.error('Check rates failed:', err);
+                alert('Rate check failed. The price might have changed or the room is no longer available.');
+            } finally {
+                setIsCheckingRates(false);
+            }
         }
     };
 
@@ -838,7 +859,15 @@ const HotelDetail = () => {
                                                                 onClick={() => {
                                                                     if (roomPrice <= 0 && !isSelected) return;
                                                                     const cancellationPolicies = roomItem.hubRateModel?.price?.cancellationPolicies || [];
-                                                                    const roomData = { type: roomName, rate: roomPrice, name: roomName, roomIndex, currency, cancellationPolicies };
+                                                                    const roomData = { 
+                                                                        type: roomName, 
+                                                                        rate: roomPrice, 
+                                                                        name: roomName, 
+                                                                        roomIndex, 
+                                                                        currency, 
+                                                                        cancellationPolicies,
+                                                                        hubRateModel: roomItem.hubRateModel 
+                                                                    };
                                                                     setSelectedRooms(prev => {
                                                                         const index = prev.findIndex(r => r.name === roomName && r.roomIndex === roomIndex);
                                                                         if (index > -1) return prev.filter((_, i) => i !== index);
@@ -1221,12 +1250,21 @@ const HotelDetail = () => {
 
                                     <button
                                         onClick={handleInstantReservation}
-                                        disabled={selectedRooms.length === 0}
-                                        className={`w-full font-black py-5 rounded-[24px] transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] mb-4 group/btn overflow-hidden relative ${selectedRooms.length > 0 ? 'bg-primary text-white shadow-primary/30' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50'}`}>
+                                        disabled={selectedRooms.length === 0 || isCheckingRates}
+                                        className={`w-full font-black py-5 rounded-[24px] transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] mb-4 group/btn overflow-hidden relative ${selectedRooms.length > 0 && !isCheckingRates ? 'bg-primary text-white shadow-primary/30' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50'}`}>
                                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
                                         <span className="relative z-10 flex items-center gap-2">
-                                            Instant Reservation
-                                            <span className="material-symbols-outlined text-[20px] group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                                            {isCheckingRates ? (
+                                                <>
+                                                    <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                                    Checking Rates...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Instant Reservation
+                                                    <span className="material-symbols-outlined text-[20px] group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                                                </>
+                                            )}
                                         </span>
                                     </button>
                                     <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em]">

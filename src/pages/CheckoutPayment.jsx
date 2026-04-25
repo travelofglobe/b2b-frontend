@@ -2,11 +2,12 @@ import React, { useState, useLayoutEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { hotelService } from '../services/hotelService';
 
 const CheckoutPayment = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { hotel, totalPrice, selectedRooms, roomState, checkInDate, checkOutDate } = location.state || {};
+    const { hotel, totalPrice, selectedRooms, roomState, checkInDate, checkOutDate, roomsData, clientReferenceId, remark, rateSearchUuid } = location.state || {};
 
     // Calculate nights for accurate pricing
     const nights = React.useMemo(() => {
@@ -55,19 +56,69 @@ const CheckoutPayment = () => {
         setCardDetails(prev => ({ ...prev, [name]: value }));
     };
 
-    const handlePayment = () => {
+    const handlePayment = async () => {
         setIsProcessing(true);
-        const finalTotal = selectedRooms?.reduce((sum, r) => sum + r.rate, 0) * nights;
-        setTimeout(() => {
+        try {
+            // Map frontend state to HubBookRequestModel as per exact required structure
+            const firstGuest = roomsData[0]?.guests[0];
+            const phoneValue = firstGuest?.phone || '';
+            const hasPlus = phoneValue.startsWith('+');
+            const countryCode = hasPlus ? phoneValue.split(' ')[0] : '+90';
+            const phoneNumber = hasPlus ? phoneValue.split(' ').slice(1).join('') : phoneValue.replace(/\D/g, '');
+
+            // Use rateSearchUuid obtained from checkRates call in HotelDetail
+            // Fallback: try to extract from rateCode if empty
+            let finalRateSearchUuid = rateSearchUuid;
+            if (!finalRateSearchUuid && roomsData && roomsData[0]?.hubRateModel?.rateCode) {
+                try {
+                    const decoded = JSON.parse(atob(roomsData[0].hubRateModel.rateCode));
+                    finalRateSearchUuid = decoded.hotelSearchUuid;
+                    console.log('Extracted rateSearchUuid from rateCode fallback:', finalRateSearchUuid);
+                } catch (e) {
+                    console.error('Failed to decode rateCode for fallback UUID:', e);
+                }
+            }
+
+            const requestBody = {
+                contact: {
+                    name: firstGuest?.firstName || 'Guest',
+                    surname: firstGuest?.lastName || 'User',
+                    phoneCountryCode: countryCode,
+                    phoneNumber: phoneNumber,
+                    email: firstGuest?.email || ''
+                },
+                rateSearchUuid: finalRateSearchUuid || '', 
+                rooms: roomsData.map((room, roomIdx) => ({
+                    rateCode: room.hubRateModel?.rateCode,
+                    occupancies: room.guests.map((guest, guestIdx) => ({
+                        roomId: roomIdx + 1, // Sequential room identifier
+                        type: guest.type === 'Adult' ? 'ADULT' : 'CHILD',
+                        gender: guest.gender === 'male' ? 'MALE' : (guest.gender === 'female' ? 'FEMALE' : 'UNDEFINED'),
+                        name: guest.firstName,
+                        surname: guest.lastName,
+                        birthday: guest.birthDate // "YYYY-MM-DD"
+                    }))
+                })),
+                clientReferenceId: clientReferenceId || '',
+                remark: remark || ''
+            };
+
+            const response = await hotelService.book(requestBody);
+            
             navigate('/hotel/checkout/result', {
                 state: {
                     ...location.state,
                     paymentMethod,
                     cardDetails,
-                    totalPrice: finalTotal
+                    bookingResponse: response
                 }
             });
-        }, 2000);
+        } catch (error) {
+            console.error('Booking failed:', error);
+            alert(`Booking failed: ${error.message || 'Please try again.'}`);
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     const getCurrencySymbol = (code) => {

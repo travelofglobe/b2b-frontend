@@ -387,8 +387,8 @@ const DashboardSearch = () => {
                     {/* Destination Input */}
                     <div className="md:col-span-3 relative group/field" ref={searchWrapperRef}>
                         <div className={`flex flex-col gap-1 px-4 py-3 h-[72px] bg-white/60 dark:bg-slate-800/60 rounded-3xl border transition-all duration-300 ${error ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10' : 'border-slate-100 dark:border-slate-800 group-hover/field:border-primary/30 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm'}`}>
-                            <label className={`text-[11px] font-bold flex items-center gap-1.5 ${error ? 'text-red-500' : 'text-slate-500 dark:text-slate-400'}`}>
-                                <span className={`material-symbols-outlined text-[16px] ${error ? 'text-red-500' : 'text-primary'}`}>
+                            <label className={`text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 mb-1 ${error ? 'text-red-500' : 'text-slate-400'}`}>
+                                <span className={`material-symbols-outlined text-[14px] ${error ? 'text-red-500' : 'text-primary'}`}>
                                     {error ? 'error' : 'location_on'}
                                 </span>
                                 {error ? 'Destination Required' : 'Location'}
@@ -472,10 +472,10 @@ const DashboardSearch = () => {
                             className="flex flex-col gap-1 px-4 py-3 h-[72px] bg-white/60 dark:bg-slate-800/60 rounded-3xl border border-slate-100 dark:border-slate-800 transition-all duration-300 group-hover/field:border-primary/30 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm cursor-pointer"
                             onClick={() => datePickerRef.current?.setOpen(true)}
                         >
-                            <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center justify-between w-full">
+                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center justify-between w-full mb-1">
                                 <div className="flex items-center gap-1.5">
-                                    <span className="material-symbols-outlined text-[16px] text-primary">calendar_today</span>
-                                    Check-in - Check-out
+                                    <span className="material-symbols-outlined text-[14px] text-primary">calendar_today</span>
+                                    Check-in / Out
                                 </div>
                                 {checkInDate && checkOutDate && (
                                     <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 animate-in fade-in slide-in-from-right-2">
@@ -526,8 +526,8 @@ const DashboardSearch = () => {
                     {/* Nationality Section */}
                     <div className="md:col-span-2 relative group/field">
                         <div className="flex flex-col gap-1 px-4 py-3 h-[72px] bg-white/60 dark:bg-slate-800/60 rounded-3xl border border-slate-100 dark:border-slate-800 transition-all duration-300 group-hover/field:border-primary/30 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm">
-                            <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 pl-1">
-                                <span className="material-symbols-outlined text-[16px] text-primary">public</span>
+                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5 pl-1 mb-1">
+                                <span className="material-symbols-outlined text-[14px] text-primary">public</span>
                                 Nationality
                             </label>
                             <div className="flex-1 -mt-1 scale-[0.95] origin-left">
@@ -542,8 +542,8 @@ const DashboardSearch = () => {
                             onClick={() => setShowGuestDropdown(!showGuestDropdown)}
                             className="w-full h-[72px] flex flex-col items-start gap-1 px-4 py-3 bg-white/60 dark:bg-slate-800/60 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-300 group-hover/field:border-primary/30 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 text-left"
                         >
-                            <label className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                                <span className="material-symbols-outlined text-[16px] text-primary">group</span>
+                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5 mb-1">
+                                <span className="material-symbols-outlined text-[14px] text-primary">group</span>
                                 Occupants
                             </label>
                             <div className="flex items-center justify-between w-full">

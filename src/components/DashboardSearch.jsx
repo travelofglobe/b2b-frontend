@@ -547,8 +547,8 @@ const DashboardSearch = () => {
                                 Occupants
                             </label>
                             <div className="flex items-center justify-between w-full">
-                                <span className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
-                                    {totalAdults} adults, {totalChildren} kids
+                                <span className="text-sm font-bold text-slate-900 dark:text-white tracking-tight truncate w-full">
+                                    {totalAdults} Ad, {totalChildren} Ch
                                 </span>
                                 <span className="material-symbols-outlined text-slate-400 text-lg transition-transform group-hover/field:translate-y-0.5">expand_more</span>
                             </div>

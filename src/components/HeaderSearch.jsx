@@ -353,13 +353,12 @@ const HeaderSearch = () => {
     };
 
     return (
-        <div className="hidden xl:flex items-center bg-slate-100 dark:bg-[#233648] rounded-xl px-2 py-1 gap-2 border border-slate-200 dark:border-transparent relative">
-
+        <div className="hidden xl:flex items-center bg-slate-100 dark:bg-[#233648] rounded-2xl px-3 py-2 gap-2 border border-slate-200 dark:border-transparent relative shadow-md h-[60px]">
             {/* 1. Destination / Query */}
-            <div className="flex items-center px-3 border-r border-slate-300 dark:border-slate-600 relative" ref={searchWrapperRef}>
-                <span className="material-symbols-outlined text-slate-400 text-xl mr-2">location_on</span>
+            <div className="flex items-center px-4 border-r border-slate-300 dark:border-slate-600 relative h-full group/dest" ref={searchWrapperRef}>
+                <span className="material-symbols-outlined text-slate-400 text-xl mr-3 group-hover/dest:text-primary transition-colors">location_on</span>
                 <input
-                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-xs w-[300px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 p-0"
+                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-xs w-[280px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 p-0"
                     placeholder="Where to?"
                     type="text"
                     value={query}
@@ -376,52 +375,48 @@ const HeaderSearch = () => {
 
                 {/* Autocomplete Dropdown */}
                 {showDropdown && (results.hotels.length > 0 || results.regions.length > 0) && (
-                    <div className="absolute top-full left-0 w-[400px] mt-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-2xl max-h-80 overflow-y-auto z-[1200]">
+                    <div className="absolute top-full left-0 w-[400px] mt-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-2xl max-h-80 overflow-y-auto z-[1200] p-2">
                         {results.regions.length > 0 && (
-                            <div className="p-2">
+                            <div>
                                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">Destinations</div>
                                 {results.regions.map((region, index) => (
                                     <button
                                         key={region.locationId}
                                         onClick={() => handleSelectLocation(region)}
-                                        className={`w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg flex items-center gap-3 transition-colors group ${activeIndex === index ? 'bg-slate-100 dark:bg-slate-800 ring-1 ring-primary/20' : ''}`}
+                                        className={`w-full text-left px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl flex items-center gap-3 transition-colors group ${activeIndex === index ? 'bg-slate-100 dark:bg-slate-800 ring-1 ring-primary/20' : ''}`}
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
-                                            <span className="material-icons-round text-sm">location_on</span>
+                                        <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                                            <span className="material-icons-round text-lg">location_on</span>
                                         </div>
                                         <div>
-                                            <div>
-                                                <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{region.name.translations.en || region.name.defaultName}</div>
-                                                <div className="text-[10px] text-slate-400">{getRegionName(region)}</div>
-                                            </div>
+                                            <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{region.name.translations.en || region.name.defaultName}</div>
+                                            <div className="text-[10px] text-slate-400 font-medium">{getRegionName(region)}</div>
                                         </div>
                                     </button>
                                 ))}
                             </div>
                         )}
                         {results.regions.length > 0 && results.hotels.length > 0 && (
-                            <div className="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+                            <div className="border-t border-slate-100 dark:border-slate-800 my-2 mx-2"></div>
                         )}
                         {results.hotels.length > 0 && (
-                            <div className="p-2">
+                            <div>
                                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">Hotels</div>
                                 {results.hotels.map((hotel, index) => (
                                     <button
                                         key={hotel.hotelId}
                                         onClick={() => handleSelectHotel(hotel)}
-                                        className={`w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg flex items-center gap-3 transition-colors group ${activeIndex === (results.regions.length + index) ? 'bg-slate-100 dark:bg-slate-800 ring-1 ring-primary/20' : ''}`}
+                                        className={`w-full text-left px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl flex items-center gap-3 transition-colors group ${activeIndex === (results.regions.length + index) ? 'bg-slate-100 dark:bg-slate-800 ring-1 ring-primary/20' : ''}`}
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
-                                            <span className="material-icons-round text-sm">hotel</span>
+                                        <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                                            <span className="material-icons-round text-lg">hotel</span>
                                         </div>
                                         <div>
-                                            <div>
-                                                <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{getHotelName(hotel)}</div>
-                                                <div className="text-[10px] text-slate-400">
-                                                    {hotel.locationBreadcrumbs ?
-                                                        hotel.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName).reverse().join(', ')
-                                                        : hotel.countryCode}
-                                                </div>
+                                            <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{getHotelName(hotel)}</div>
+                                            <div className="text-[10px] text-slate-400 font-medium">
+                                                {hotel.locationBreadcrumbs ?
+                                                    hotel.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName).reverse().join(', ')
+                                                    : hotel.countryCode}
                                             </div>
                                         </div>
                                     </button>
@@ -433,49 +428,58 @@ const HeaderSearch = () => {
             </div>
 
             {/* 2. Date Picker */}
-            <div className="flex items-center px-3 border-r border-slate-300 dark:border-slate-600 cursor-pointer" onClick={() => datePickerRef.current?.setOpen(true)}>
-                <span className="material-symbols-outlined text-slate-400 text-xl mr-2">calendar_month</span>
-                <div className="w-[210px]">
-                    <DatePicker
-                        ref={datePickerRef}
-                        selected={checkInDate}
-                        onChange={(dates) => {
-                            const [start, end] = dates;
+            <div className="flex items-center px-4 border-r border-slate-300 dark:border-slate-600 cursor-pointer h-full group/date" onClick={() => datePickerRef.current?.setOpen(true)}>
+                <span className="material-symbols-outlined text-slate-400 text-xl mr-3 group-hover/date:text-primary transition-colors">calendar_month</span>
+                <div className="relative flex items-center gap-2">
+                    <div className="w-[180px]">
+                        <DatePicker
+                            ref={datePickerRef}
+                            selected={checkInDate}
+                            onChange={(dates) => {
+                                const [start, end] = dates;
 
-                            // Validation: checkout must be at least 1 day after checkin
-                            if (start && end) {
-                                const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-                                const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-                                if (endDay <= startDay) {
-                                    // Auto-correct: set checkout to next day
-                                    const nextDay = new Date(startDay);
-                                    nextDay.setDate(nextDay.getDate() + 1);
-                                    setCheckInDate(start);
-                                    setCheckOutDate(nextDay);
-                                    return;
+                                // Validation: checkout must be at least 1 day after checkin
+                                if (start && end) {
+                                    const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                                    const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+                                    if (endDay <= startDay) {
+                                        // Auto-correct: set checkout to next day
+                                        const nextDay = new Date(startDay);
+                                        nextDay.setDate(nextDay.getDate() + 1);
+                                        setCheckInDate(start);
+                                        setCheckOutDate(nextDay);
+                                        return;
+                                    }
                                 }
-                            }
 
-                            setCheckInDate(start);
-                            setCheckOutDate(end);
-                        }}
-                        startDate={checkInDate}
-                        endDate={checkOutDate}
-                        selectsRange
-                        minDate={new Date()}
-                        maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
-                        monthsShown={2}
-                        locale="en-GB"
-                        className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 font-medium"
-                        dateFormat="dd MMM yyyy"
-                        placeholderText="Dates"
-                        dayClassName={(date) => {
-                            const day = date.getDay();
-                            return day === 0 || day === 6 ? "text-red-500 font-bold" : "text-slate-700 dark:text-slate-200";
-                        }}
-                        calendarClassName="shadow-2xl border-none font-sans mt-4"
-                        popperPlacement="bottom-start"
-                    />
+                                setCheckInDate(start);
+                                setCheckOutDate(end);
+                            }}
+                            startDate={checkInDate}
+                            endDate={checkOutDate}
+                            selectsRange
+                            minDate={new Date()}
+                            maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
+                            monthsShown={2}
+                            locale="en-GB"
+                            className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 font-bold"
+                            dateFormat="dd MMM yyyy"
+                            dayClassName={(date) => {
+                                const day = date.getDay();
+                                return day === 0 || day === 6 ? "text-red-500 font-bold" : "text-slate-700 dark:text-slate-200";
+                            }}
+                            calendarClassName="shadow-2xl border-none font-sans mt-4"
+                            popperPlacement="bottom-start"
+                        />
+                    </div>
+                    {checkInDate && checkOutDate && (
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 whitespace-nowrap animate-in fade-in zoom-in duration-300">
+                            <span className="material-symbols-outlined text-[14px] leading-none">bedtime</span>
+                            <span className="text-[10px] font-black uppercase tracking-tight">
+                                {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} nights
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
 

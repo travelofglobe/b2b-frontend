@@ -583,10 +583,23 @@ const HotelDetail = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     <div className="lg:col-span-8">
                         {/* Compact Search Bar - Now aligned with room cards */}
-                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5 rounded-[20px] shadow-sm grid grid-cols-1 md:grid-cols-10 gap-2 mb-6">
+                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-[24px] shadow-md grid grid-cols-1 md:grid-cols-10 gap-2 mb-6 h-[64px]">
                             <div className="md:col-span-4 relative group">
-                                <label className="absolute left-9 top-1.5 text-[8px] uppercase tracking-wider font-bold text-slate-400 z-10">Check-in / Out</label>
-                                <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-transparent group-hover:bg-slate-100 dark:group-hover:bg-slate-700/50 px-3 pt-5 pb-2 rounded-xl cursor-pointer transition-all h-[54px]" onClick={() => datePickerRef.current?.setOpen(true)}>
+                                <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-transparent group-hover:bg-slate-100 dark:group-hover:bg-slate-700/50 px-3 pt-4 pb-1 rounded-xl cursor-pointer transition-all h-full" onClick={() => datePickerRef.current?.setOpen(true)}>
+                                    <span className="material-symbols-outlined text-primary text-xl shrink-0">calendar_month</span>
+                                    <div className="flex flex-col flex-1 min-w-0 relative">
+                                        <div className="flex items-center justify-between w-full mb-0.5">
+                                            <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400">Check-in / Out</label>
+                                            {checkInDate && checkOutDate && (
+                                                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 animate-in fade-in zoom-in duration-300">
+                                                    <span className="material-symbols-outlined text-[12px] leading-none">bedtime</span>
+                                                    <span className="text-[9px] font-black uppercase tracking-tight">
+                                                        {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} nights
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <DatePicker
                                     <span className="material-symbols-outlined text-primary text-xl shrink-0">calendar_month</span>
                                     <div className="flex flex-col flex-1 min-w-0">
                                         <DatePicker

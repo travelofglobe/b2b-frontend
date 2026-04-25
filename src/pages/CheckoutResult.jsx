@@ -7,7 +7,7 @@ const CheckoutResult = () => {
     const location = useLocation();
     const { hotel, totalPrice, roomsData, bookingResponse } = location.state || {};
 
-    const isSuccess = bookingResponse?.status === 'SUCCESS' && bookingResponse?.voucher;
+    const isSuccess = ['NEW', 'CONFIRMED'].includes(bookingResponse?.status) && bookingResponse?.voucher;
     const bookingRef = bookingResponse?.voucher || bookingResponse?.clientReferenceId || ("TOG" + Math.random().toString(36).substring(2, 8).toUpperCase());
 
     if (!hotel) return <div className="p-20 text-center">No active booking session found.</div>;

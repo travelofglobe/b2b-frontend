@@ -765,8 +765,8 @@ const HotelDetail = () => {
                                         ) : (
                                         <>{(hotel.rooms || []).map((roomItem, roomIndex) => {
                                             const roomName = roomItem.names?.tr || roomItem.names?.en || roomItem.names?.defaultName || 'Standard Room';
-                                            const roomPrice = roomItem.ratePrice?.calculatedAmount || roomItem.price || 0;
-                                            const currency = roomItem.ratePrice?.currency || '$';
+                                            const roomPrice = roomItem.hubRateModel?.price?.calculatedAmount || roomItem.price || 0;
+                                            const currency = roomItem.hubRateModel?.price?.currency || '$';
                                             const isSelected = selectedRooms.some(r => r.name === roomName && r.roomIndex === roomIndex);
 
                                             return (
@@ -837,7 +837,7 @@ const HotelDetail = () => {
                                                             <div
                                                                 onClick={() => {
                                                                     if (roomPrice <= 0 && !isSelected) return;
-                                                                    const cancellationPolicies = roomItem.ratePrice?.cancellationPolicies || [];
+                                                                    const cancellationPolicies = roomItem.hubRateModel?.price?.cancellationPolicies || [];
                                                                     const roomData = { type: roomName, rate: roomPrice, name: roomName, roomIndex, currency, cancellationPolicies };
                                                                     setSelectedRooms(prev => {
                                                                         const index = prev.findIndex(r => r.name === roomName && r.roomIndex === roomIndex);
@@ -860,8 +860,8 @@ const HotelDetail = () => {
                                                                         </div>
                                                                         <div className="flex items-center gap-1.5 text-slate-400 font-bold uppercase text-[7px] tracking-tight">
                                                                             <div className="group/cancel relative">
-                                                                                <span className={`${roomItem.ratePrice?.cancellationPolicies?.[0]?.amount === 0 ? 'text-emerald-500/80 shadow-[0_0_10px_rgba(16,185,129,0.1)]' : 'text-orange-500/80'} cursor-help underline decoration-dotted underline-offset-2 transition-all hover:text-primary`}>
-                                                                                    {roomItem.ratePrice?.cancellationPolicies?.[0]?.amount === 0 ? 'FREE CANCEL' : 'POLICIES APPLY'}
+                                                                                <span className={`${roomItem.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0 ? 'text-emerald-500/80 shadow-[0_0_10px_rgba(16,185,129,0.1)]' : 'text-orange-500/80'} cursor-help underline decoration-dotted underline-offset-2 transition-all hover:text-primary`}>
+                                                                                    {roomItem.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0 ? 'FREE CANCEL' : 'POLICIES APPLY'}
                                                                                 </span>
                                                                                 {/* Detailed Cancellation Tooltip */}
                                                                                 <div className="absolute bottom-full left-0 mb-3 w-72 p-5 bg-slate-900 dark:bg-slate-950 text-white rounded-[24px] shadow-2xl opacity-0 invisible group-hover/cancel:opacity-100 group-hover/cancel:visible transition-all z-50 border border-slate-700/50 backdrop-blur-xl scale-95 group-hover/cancel:scale-100 origin-bottom-left duration-300">
@@ -870,8 +870,8 @@ const HotelDetail = () => {
                                                                                         <p className="text-[10px] uppercase font-black tracking-widest">Cancellation Timeline</p>
                                                                                     </div>
                                                                                     <div className="space-y-4">
-                                                                                        {roomItem.ratePrice?.cancellationPolicies?.length > 0 ? (
-                                                                                            roomItem.ratePrice.cancellationPolicies.map((policy, idx) => (
+                                                                                        {roomItem.hubRateModel?.price?.cancellationPolicies?.length > 0 ? (
+                                                                                            roomItem.hubRateModel.price.cancellationPolicies.map((policy, idx) => (
                                                                                                 <div key={idx} className="relative pl-4 border-l-2 border-slate-800 hover:border-primary transition-colors">
                                                                                                     <div className="flex justify-between items-start mb-1.5">
                                                                                                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Penalty</span>
@@ -919,20 +919,20 @@ const HotelDetail = () => {
                                                                                 TOTAL STAY <span className="material-symbols-outlined text-[8px]">info</span>
                                                                             </p>
                                                                             {/* Taxes & Fees Breakdown Tooltip */}
-                                                                            {(roomItem.ratePrice?.taxes?.length > 0 || roomItem.ratePrice?.fees?.length > 0) && (
+                                                                            {(roomItem.hubRateModel?.price?.taxes?.length > 0 || roomItem.hubRateModel?.price?.fees?.length > 0) && (
                                                                                 <div className="absolute bottom-full right-0 mb-3 w-60 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl opacity-0 invisible group-hover/taxes:opacity-100 group-hover/taxes:visible transition-all z-50 backdrop-blur-xl scale-95 group-hover/taxes:scale-100 origin-bottom-right duration-300">
                                                                                     <p className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-[0.2em] border-b dark:border-slate-800 pb-2 flex items-center gap-2">
                                                                                         <span className="material-symbols-outlined text-sm">receipt_long</span>
                                                                                         Tax & Fee Breakdown
                                                                                     </p>
                                                                                     <div className="space-y-2.5">
-                                                                                        {roomItem.ratePrice?.taxes?.map((tax, idx) => (
+                                                                                        {roomItem.hubRateModel?.price?.taxes?.map((tax, idx) => (
                                                                                             <div key={idx} className="flex justify-between items-center text-[10px]">
                                                                                                 <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">{tax.type || 'Tax'}</span>
                                                                                                 <span className="font-black text-slate-900 dark:text-white">{getCurrencySymbol(tax.currency)} {tax.amount}</span>
                                                                                             </div>
                                                                                         ))}
-                                                                                        {roomItem.ratePrice?.fees?.map((fee, idx) => (
+                                                                                        {roomItem.hubRateModel?.price?.fees?.map((fee, idx) => (
                                                                                             <div key={idx} className="flex justify-between items-center text-[10px]">
                                                                                                 <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">{fee.type || 'Fee'}</span>
                                                                                                 <span className="font-black text-slate-900 dark:text-white">{getCurrencySymbol(fee.currency)} {fee.amount}</span>
@@ -942,8 +942,8 @@ const HotelDetail = () => {
                                                                                             <span className="text-[9px] font-black uppercase text-primary">Inclusions Total</span>
                                                                                             <span className="text-xs font-black text-primary">
                                                                                                 {getCurrencySymbol(currency)} {(
-                                                                                                    (roomItem.ratePrice.taxes?.reduce((sum, t) => sum + (t.amount || 0), 0) || 0) +
-                                                                                                    (roomItem.ratePrice.fees?.reduce((sum, f) => sum + (f.amount || 0), 0) || 0)
+                                                                                                    (roomItem.hubRateModel.price.taxes?.reduce((sum, t) => sum + (t.amount || 0), 0) || 0) +
+                                                                                                    (roomItem.hubRateModel.price.fees?.reduce((sum, f) => sum + (f.amount || 0), 0) || 0)
                                                                                                 ).toFixed(2)}
                                                                                             </span>
                                                                                         </div>

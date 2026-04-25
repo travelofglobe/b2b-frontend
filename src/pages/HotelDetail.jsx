@@ -583,15 +583,15 @@ const HotelDetail = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     <div className="lg:col-span-8">
                         {/* Compact Search Bar - Now aligned with room cards */}
-                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-[24px] shadow-md grid grid-cols-1 md:grid-cols-10 gap-2 mb-6 h-[64px]">
+                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-[24px] shadow-md grid grid-cols-1 md:grid-cols-10 gap-2 mb-6 h-[72px]">
                             <div className="md:col-span-4 relative group">
-                                <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-transparent group-hover:bg-slate-100 dark:group-hover:bg-slate-700/50 px-3 pt-4 pb-1 rounded-xl cursor-pointer transition-all h-full" onClick={() => datePickerRef.current?.setOpen(true)}>
+                                <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-transparent group-hover:bg-slate-100 dark:group-hover:bg-slate-700/50 px-4 rounded-xl cursor-pointer transition-all h-full" onClick={() => datePickerRef.current?.setOpen(true)}>
                                     <span className="material-symbols-outlined text-primary text-xl shrink-0">calendar_month</span>
-                                    <div className="flex flex-col flex-1 min-w-0 relative">
+                                    <div className="flex flex-col flex-1 min-w-0">
                                         <div className="flex items-center justify-between w-full mb-0.5">
                                             <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400">Check-in / Out</label>
                                             {checkInDate && checkOutDate && (
-                                                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 animate-in fade-in zoom-in duration-300">
+                                                <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 animate-in fade-in zoom-in duration-300">
                                                     <span className="material-symbols-outlined text-[12px] leading-none">bedtime</span>
                                                     <span className="text-[9px] font-black uppercase tracking-tight">
                                                         {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} nights
@@ -599,9 +599,6 @@ const HotelDetail = () => {
                                                 </div>
                                             )}
                                         </div>
-                                        <DatePicker
-                                    <span className="material-symbols-outlined text-primary text-xl shrink-0">calendar_month</span>
-                                    <div className="flex flex-col flex-1 min-w-0">
                                         <DatePicker
                                             ref={datePickerRef}
                                             selected={checkInDate}
@@ -622,19 +619,19 @@ const HotelDetail = () => {
                                 </div>
                             </div>
 
-                            <div className="md:col-span-3 relative" ref={guestWrapperRef}>
-                                <label className="absolute left-9 top-1.5 text-[8px] uppercase tracking-wider font-bold text-slate-400 z-10">Guests & Rooms</label>
+                            <div className="md:col-span-3 relative group/guest" ref={guestWrapperRef}>
                                 <button
                                     onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                                    className="w-full h-[54px] flex items-center gap-3 px-3 pt-5 pb-2 bg-slate-50 dark:bg-slate-800 border border-transparent hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-xl transition-all text-left"
+                                    className="w-full h-full flex items-center gap-3 px-4 bg-slate-50 dark:bg-slate-800 border border-transparent hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-xl transition-all text-left"
                                 >
-                                    <span className="material-symbols-outlined text-primary text-xl shrink-0">group</span>
+                                    <span className="material-symbols-outlined text-primary text-xl shrink-0 group-hover/guest:scale-110 transition-transform">group</span>
                                     <div className="flex flex-col flex-1 min-w-0">
+                                        <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">Guests & Rooms</label>
                                         <span className="text-[13px] font-black text-slate-900 dark:text-white whitespace-nowrap block truncate">
                                             {totalAdults} Adults, {totalChildren} Child
                                         </span>
                                     </div>
-                                    <span className="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
+                                    <span className="material-symbols-outlined text-slate-400 text-lg group-hover/guest:translate-y-0.5 transition-transform">expand_more</span>
                                 </button>
 
                                 {showGuestDropdown && (
@@ -698,21 +695,23 @@ const HotelDetail = () => {
                                 )}
                             </div>
 
-                            <div className="md:col-span-2 relative">
-                                <label className="absolute left-9 top-1.5 text-[8px] uppercase tracking-wider font-bold text-slate-400 z-10">Nat.</label>
-                                <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-transparent hover:bg-slate-100 dark:group-hover:bg-slate-700/50 px-2 pt-5 pb-2 rounded-xl transition-all h-[54px]">
-                                    <NationalitySelect
-                                        value={nationality}
-                                        onChange={setNationality}
-                                        compact={true}
-                                    />
+                            <div className="md:col-span-2 relative group/nat">
+                                <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-transparent hover:bg-slate-100 dark:hover:bg-slate-700/50 px-3 rounded-xl transition-all h-full">
+                                    <div className="flex flex-col flex-1 min-w-0">
+                                        <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">Nationality</label>
+                                        <NationalitySelect
+                                            value={nationality}
+                                            onChange={setNationality}
+                                            compact={true}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="md:col-span-1">
+                            <div className="md:col-span-1 h-full">
                                 <button
                                     onClick={handleSearch}
-                                    className="w-full h-[54px] bg-primary text-white rounded-xl flex items-center justify-center hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95 group"
+                                    className="w-full h-full bg-primary text-white rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 flex items-center justify-center group"
                                 >
                                     <span className="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">search</span>
                                 </button>

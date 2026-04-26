@@ -7,7 +7,7 @@ import { hotelService } from '../services/hotelService';
 const CheckoutPayment = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { hotel, totalPrice, selectedRooms, roomState, checkInDate, checkOutDate, roomsData, clientReferenceId, remark, rateSearchUuid } = location.state || {};
+    const { hotel, totalPrice, selectedRooms, roomState, checkInDate, checkOutDate, roomsData, clientReferenceId, remark, rateSearchUuid, checkRatesData } = location.state || {};
 
     // Calculate nights for accurate pricing
     const nights = React.useMemo(() => {
@@ -176,8 +176,10 @@ const CheckoutPayment = () => {
     const hotelStars = hotel.hotelStar?.star || hotel.stars || 5;
     const hotelAddress = hotel.address ? `${hotel.address.street || ''}, ${hotel.address.cityName || ''}`.replace(/^,\s*/, '').replace(/,\s*$/, '') : (hotel.location || '');
     const hotelImage = hotel.images?.[0]?.url || hotel.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
-    const grandTotal = (selectedRooms?.reduce((sum, r) => sum + r.rate, 0) || 0) * nights;
-    const displayCurrency = selectedRooms?.[0]?.currency || '$';
+    
+    // Use price from checkRatesData if available, otherwise fallback to local calculation
+    const grandTotal = checkRatesData?.price?.totalPaymentAmount ?? ((selectedRooms?.reduce((sum, r) => sum + r.rate, 0) || 0) * nights);
+    const displayCurrency = checkRatesData?.price?.currency || selectedRooms?.[0]?.currency || '$';
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
@@ -500,7 +502,10 @@ const CheckoutPayment = () => {
                                         <div className="flex items-center gap-2">
                                             <span className="material-symbols-outlined text-[13px] text-primary">group</span>
                                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                                {roomState?.reduce((s, r) => s + r.adults, 0)} Adults{roomState?.reduce((s, r) => s + r.children, 0) > 0 ? `, ${roomState.reduce((s, r) => s + r.children, 0)} Children` : ''}
+                                                {checkRatesData?.occupancy 
+                                                    ? `${checkRatesData.occupancy.adults} Adults${checkRatesData.occupancy.child > 0 ? `, ${checkRatesData.occupancy.child} Children` : ''}`
+                                                    : `${roomState?.reduce((s, r) => s + r.adults, 0)} Adults${roomState?.reduce((s, r) => s + r.children, 0) > 0 ? `, ${roomState.reduce((s, r) => s + r.children, 0)} Children` : ''}`
+                                                }
                                             </span>
                                         </div>
                                     </div>
@@ -518,7 +523,14 @@ const CheckoutPayment = () => {
                                                         <div className="size-6 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary shrink-0 mt-0.5">{idx + 1}</div>
                                                         <div>
                                                             <p className="font-black text-[11px] uppercase tracking-tight text-slate-900 dark:text-white line-clamp-2">{room.name}</p>
-                                                            <p className="text-[9px] font-bold text-slate-500 uppercase mt-0.5">{roomState?.[idx]?.adults} Adults{roomState?.[idx]?.children > 0 ? `, ${roomState[idx].children} Children` : ''}</p>
+                                                            <div className="flex flex-wrap gap-2 mt-1">
+                                                                <p className="text-[9px] font-bold text-slate-500 uppercase">{checkRatesData?.boardName || 'Room Only'}</p>
+                                                                {checkRatesData?.refundable !== undefined && (
+                                                                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${checkRatesData.refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                                                                        {checkRatesData.refundable ? 'Refundable' : 'Non-Refundable'}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <div className="text-right shrink-0 ml-2">
@@ -531,18 +543,23 @@ const CheckoutPayment = () => {
                                                 </div>
                                                 {/* Cancellation policy */}
                                                 <div className="pt-2 border-t border-slate-100 dark:border-slate-700/50">
-                                                    {policies.length > 0 ? (
+                                                    {(checkRatesData?.price?.cancellationPolicies || policies).length > 0 ? (
                                                         <div className="space-y-1">
                                                             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Cancellation Policy</p>
-                                                            {policies.map((policy, pIdx) => (
+                                                            {(checkRatesData?.price?.cancellationPolicies || policies).map((policy, pIdx) => (
                                                                 <div key={pIdx} className="flex justify-between items-center">
-                                                                    <span className="text-[9px] font-bold text-slate-500">
-                                                                        {policy.fromDate ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                                                                    </span>
-                                                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-md ${policy.amount === 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}>
-                                                                        {policy.amount === 0 ? 'Free Cancel' : `${policy.currency || ''} ${policy.amount}`}
-                                                                    </span>
-                                                                </div>
+                                                                     <span className="text-[9px] font-bold text-slate-500">
+                                                                         {policy.fromDate 
+                                                                             ? (policy.fromDate.includes('[') 
+                                                                                 ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                                                                                 : new Date(policy.fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))
+                                                                             : 'Non-refundable'
+                                                                        }
+                                                                     </span>
+                                                                     <span className={`text-[9px] font-black px-2 py-0.5 rounded-md ${policy.amount === 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}>
+                                                                         {policy.amount === 0 ? 'Free Cancel' : `${getCurrencySymbol(policy.currency || displayCurrency)} ${policy.amount}`}
+                                                                     </span>
+                                                                 </div>
                                                             ))}
                                                         </div>
                                                     ) : (
@@ -552,10 +569,44 @@ const CheckoutPayment = () => {
                                                         </span>
                                                     )}
                                                 </div>
+
+                                                {/* Daily Prices - Added as per request */}
+                                                {checkRatesData?.price?.dailyPrices && checkRatesData.price.dailyPrices.length > 0 && (
+                                                    <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/50">
+                                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Daily Rates</p>
+                                                        <div className="space-y-1">
+                                                            {checkRatesData.price.dailyPrices.map((dp, dpIdx) => (
+                                                                <div key={dpIdx} className="flex justify-between items-center text-[9px]">
+                                                                    <span className="font-medium text-slate-500">
+                                                                        {new Date(dp.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                                                                    </span>
+                                                                    <span className="font-black text-slate-700 dark:text-slate-300">
+                                                                        {getCurrencySymbol(displayCurrency)} {dp.amount.toFixed(2)}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })}
                                 </div>
+
+                                {/* Taxes - Added as per request */}
+                                {checkRatesData?.price?.taxes && checkRatesData.price.taxes.length > 0 && (
+                                    <div className="mb-6 space-y-2">
+                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Taxes & Fees</p>
+                                        {checkRatesData.price.taxes.map((tax, tIdx) => (
+                                            <div key={tIdx} className="flex justify-between items-center text-[9px]">
+                                                <span className="font-medium text-slate-500">{tax.name || 'Tax'}</span>
+                                                <span className="font-black text-slate-700 dark:text-slate-300">
+                                                    {getCurrencySymbol(tax.currency || displayCurrency)} {tax.amount.toFixed(2)}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
 
                                 {/* Grand Total */}
                                 <div className="pt-6 border-t border-slate-200 dark:border-slate-800 mb-6">
@@ -573,6 +624,19 @@ const CheckoutPayment = () => {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* Rate Notes - Added as per request */}
+                                {checkRatesData?.notes && checkRatesData.notes.length > 0 && (
+                                    <div className="mb-6 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10">
+                                        <p className="text-[8px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest mb-2 flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[10px]">info</span>
+                                            Rate Notes
+                                        </p>
+                                        <div className="text-[9px] font-medium text-slate-600 dark:text-slate-400 space-y-1 max-h-40 overflow-y-auto pr-2 custom-scrollbar whitespace-pre-line">
+                                            {checkRatesData.notes.join('\n')}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* Authorize Payment Button */}
                                 <button

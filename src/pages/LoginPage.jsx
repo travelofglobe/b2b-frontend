@@ -73,11 +73,19 @@ const LoginPage = () => {
 
                 {/* Left Side: Brand Messaging */}
                 <div className="hidden lg:flex lg:col-span-7 flex-col text-white animate-in fade-in slide-in-from-left-8 duration-1000">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="size-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/20">
-                            <span className="material-symbols-outlined text-2xl">apartment</span>
+                    <div className="flex items-center gap-4 mb-8 group cursor-default">
+                        <div className="size-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/20 shadow-2xl transition-all duration-700 group-hover:rotate-[15deg] group-hover:scale-110">
+                            <span className="material-symbols-outlined text-3xl fill-1">travel</span>
                         </div>
-                        <span className="font-black text-xl tracking-tight text-white uppercase">TOG B2B Portal</span>
+                        <div className="flex flex-col">
+                            <h2 className="text-white text-2xl font-black leading-none tracking-tighter uppercase whitespace-nowrap">
+                                Travel <span className="text-primary">of</span> Globe
+                            </h2>
+                            <div className="flex items-center gap-2 mt-1.5">
+                                <div className="h-[1px] w-4 bg-primary"></div>
+                                <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.4em] whitespace-nowrap leading-none">B2B Portal</p>
+                            </div>
+                        </div>
                     </div>
                     <h1 className="text-6xl font-black leading-tight tracking-tight mb-8">
                         Redefining <br />

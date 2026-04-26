@@ -3,13 +3,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import PlaneLoading from '../components/PlaneLoading';
 
-const backgrounds = [
-    '/assets/backgrounds/bg-1.jpg',
-    '/assets/backgrounds/bg-2.jpg',
-    '/assets/backgrounds/bg-3.jpg',
-    '/assets/backgrounds/bg-4.jpg',
-    '/assets/backgrounds/bg-5.jpg'
-];
+// Automatically load all images from src/assets/backgrounds
+const backgroundModules = import.meta.glob('../assets/backgrounds/*', { eager: true });
+const backgrounds = Object.values(backgroundModules).map(m => m.default || m);
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');

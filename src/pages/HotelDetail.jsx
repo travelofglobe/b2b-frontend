@@ -798,7 +798,7 @@ const HotelDetail = () => {
                                         ) : (
                                         <>{(hotel.rooms || []).map((roomItem, roomIndex) => {
                                             const roomName = roomItem.names?.tr || roomItem.names?.en || roomItem.names?.defaultName || 'Standard Room';
-                                            const roomPrice = roomItem.hubRateModel?.price?.calculatedAmount || roomItem.price || 0;
+                                            const roomPrice = roomItem.hubRateModel?.price?.totalPaymentAmount || roomItem.hubRateModel?.price?.calculatedAmount || roomItem.price || 0;
                                             const currency = roomItem.hubRateModel?.price?.currency || '$';
                                             const isSelected = selectedRooms.some(r => r.name === roomName && r.roomIndex === roomIndex);
 

@@ -266,7 +266,7 @@ const HotelListing = () => {
         // Extract dynamic price and currency from the first room
         const firstRoom = apiHotel.rooms?.[0];
         const ratePrice = firstRoom?.hubRateModel?.price;
-        const priceValue = ratePrice?.markupCalculatedPrice?.holder?.saleAmount || ratePrice?.calculatedAmount || 0;
+        const priceValue = ratePrice?.markupCalculatedPrice?.holder?.saleAmount || ratePrice?.totalPaymentAmount || ratePrice?.calculatedAmount || 0;
         const currencyCode = ratePrice?.currency || 'USD';
         const totalTaxAmount = ratePrice?.totalTaxAmount || 0;
 

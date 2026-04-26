@@ -12,6 +12,9 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isResetMode, setIsResetMode] = useState(false);
+    const [resetEmail, setResetEmail] = useState('');
+    const [resetSuccess, setResetSuccess] = useState(false);
 
     const { login, user } = useAuth();
     const navigate = useNavigate();
@@ -25,6 +28,7 @@ const LoginPage = () => {
     }, [user, navigate]);
 
     const selectedBg = useMemo(() => {
+        if (!backgrounds || backgrounds.length === 0) return '';
         const randomIndex = Math.floor(Math.random() * backgrounds.length);
         return backgrounds[randomIndex];
     }, []);
@@ -41,6 +45,22 @@ const LoginPage = () => {
             navigate(from, { replace: true });
         } catch (err) {
             setError(err.message || 'Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleResetPassword = async (e) => {
+        e.preventDefault();
+        setError('');
+        setIsLoading(true);
+
+        try {
+            // Simulated password reset API call
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            setResetSuccess(true);
+        } catch (err) {
+            setError('Şifre sıfırlama isteği gönderilemedi.');
         } finally {
             setIsLoading(false);
         }
@@ -104,75 +124,163 @@ const LoginPage = () => {
                 <div className="lg:col-span-1"></div> { /* Spacer */}
                 <div className="lg:col-span-4 w-full">
                     <div className="bg-white/[0.03] backdrop-blur-[40px] rounded-[32px] border border-white/10 shadow-[0_32px_96px_-16px_rgba(0,0,0,0.5)] overflow-hidden animate-in fade-in zoom-in duration-700 relative">
-                        {/* Card Header */}
-                        <div className="p-8 pb-0 text-center">
-                            <h2 className="text-2xl font-black text-white mb-2">Welcome Back</h2>
-                            <p className="text-slate-400 text-sm font-medium">Please enter your credentials</p>
-                        </div>
-
-                        {/* Login Form */}
-                        <form onSubmit={handleSubmit} className="p-8 space-y-5 relative">
-                            <div className="space-y-4">
-                                <div className="group relative transition-all">
-                                    <div className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary transition-colors z-10">
-                                        <span className="material-symbols-outlined text-[20px]">mail</span>
-                                    </div>
-                                    <input
-                                        type="email"
-                                        required
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="Email Address"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-400 font-semibold focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm"
-                                    />
+                        
+                        {!isResetMode ? (
+                            <>
+                                {/* Card Header */}
+                                <div className="p-8 pb-0 text-center">
+                                    <h2 className="text-2xl font-black text-white mb-2">Welcome Back</h2>
+                                    <p className="text-slate-400 text-sm font-medium">Please enter your credentials</p>
                                 </div>
 
-                                <div className="group relative transition-all">
-                                    <div className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary transition-colors z-10">
-                                        <span className="material-symbols-outlined text-[20px]">lock_open</span>
+                                {/* Login Form */}
+                                <form onSubmit={handleSubmit} className="p-8 space-y-5 relative">
+                                    <div className="space-y-4">
+                                        <div className="group relative transition-all">
+                                            <div className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary transition-colors z-10">
+                                                <span className="material-symbols-outlined text-[20px]">mail</span>
+                                            </div>
+                                            <input
+                                                type="email"
+                                                required
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                placeholder="Email Address"
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-400 font-semibold focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm"
+                                            />
+                                        </div>
+
+                                        <div className="group relative transition-all">
+                                            <div className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary transition-colors z-10">
+                                                <span className="material-symbols-outlined text-[20px]">lock_open</span>
+                                            </div>
+                                            <input
+                                                type="password"
+                                                required
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                placeholder="Password"
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-400 font-semibold focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm"
+                                            />
+                                        </div>
                                     </div>
-                                    <input
-                                        type="password"
-                                        required
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="Password"
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-400 font-semibold focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm"
-                                    />
-                                </div>
-                            </div>
 
-                            <div className="flex items-center justify-between px-1">
-                                <label className="flex items-center gap-2 cursor-pointer group">
-                                    <div className="w-4 h-4 rounded border border-slate-600 bg-transparent flex items-center justify-center group-hover:border-primary transition-colors">
-                                        <input type="checkbox" className="appearance-none peer" />
-                                        <div className="hidden peer-checked:block w-2.5 h-2.5 bg-primary rounded-[2px]"></div>
+                                    <div className="flex items-center justify-between px-1">
+                                        <label className="flex items-center gap-2 cursor-pointer group">
+                                            <div className="w-4 h-4 rounded border border-slate-600 bg-transparent flex items-center justify-center group-hover:border-primary transition-colors">
+                                                <input type="checkbox" className="appearance-none peer" />
+                                                <div className="hidden peer-checked:block w-2.5 h-2.5 bg-primary rounded-[2px]"></div>
+                                            </div>
+                                            <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">Keep me signed in</span>
+                                        </label>
+                                        <button 
+                                            type="button"
+                                            onClick={() => {
+                                                setIsResetMode(true);
+                                                setError('');
+                                            }}
+                                            className="text-xs font-bold text-primary hover:text-primary/80 transition-colors"
+                                        >
+                                            Recovery?
+                                        </button>
                                     </div>
-                                    <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">Keep me signed in</span>
-                                </label>
-                                <a href="#" className="text-xs font-bold text-primary hover:text-primary/80 transition-colors">Recovery?</a>
-                            </div>
 
-                            {error && (
-                                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-500 animate-in fade-in slide-in-from-top-2">
-                                    <span className="material-symbols-outlined text-sm">warning</span>
-                                    <span className="text-xs font-bold">{error}</span>
+                                    {error && (
+                                        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-500 animate-in fade-in slide-in-from-top-2">
+                                            <span className="material-symbols-outlined text-sm">warning</span>
+                                            <span className="text-xs font-bold">{error}</span>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        type="submit"
+                                        disabled={isLoading}
+                                        className="w-full relative overflow-hidden bg-gradient-to-r from-primary to-blue-600 text-white p-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98] transition-all disabled:opacity-70 group"
+                                    >
+                                        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                                        <span className="relative flex items-center justify-center gap-2">
+                                            {isLoading ? 'Signing In...' : 'Access Dashboard'}
+                                            {!isLoading && <span className="material-symbols-outlined text-sm">arrow_forward</span>}
+                                        </span>
+                                    </button>
+                                </form>
+                            </>
+                        ) : (
+                            <>
+                                {/* Recovery Header */}
+                                <div className="p-8 pb-0 text-center">
+                                    <h2 className="text-2xl font-black text-white mb-2">Password Recovery</h2>
+                                    <p className="text-slate-400 text-sm font-medium">Enter your email to receive instructions</p>
                                 </div>
-                            )}
 
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className="w-full relative overflow-hidden bg-gradient-to-r from-primary to-blue-600 text-white p-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98] transition-all disabled:opacity-70 group"
-                            >
-                                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                                <span className="relative flex items-center justify-center gap-2">
-                                    {isLoading ? 'Signing In...' : 'Access Dashboard'}
-                                    {!isLoading && <span className="material-symbols-outlined text-sm">arrow_forward</span>}
-                                </span>
-                            </button>
-                        </form>
+                                {resetSuccess ? (
+                                    <div className="p-8 text-center space-y-6">
+                                        <div className="size-20 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-500 mx-auto border border-emerald-500/20">
+                                            <span className="material-symbols-outlined text-4xl animate-in zoom-in duration-500">mark_email_read</span>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h3 className="text-white font-black text-lg">Instructions Sent!</h3>
+                                            <p className="text-slate-400 text-sm leading-relaxed">
+                                                We've sent password reset instructions to <br/>
+                                                <span className="text-white font-bold">{resetEmail}</span>
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                setIsResetMode(false);
+                                                setResetSuccess(false);
+                                                setResetEmail('');
+                                            }}
+                                            className="w-full bg-white/5 border border-white/10 text-white p-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-white/10 transition-all"
+                                        >
+                                            Back to Login
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleResetPassword} className="p-8 space-y-5">
+                                        <div className="group relative transition-all">
+                                            <div className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary transition-colors z-10">
+                                                <span className="material-symbols-outlined text-[20px]">mail</span>
+                                            </div>
+                                            <input
+                                                type="email"
+                                                required
+                                                value={resetEmail}
+                                                onChange={(e) => setResetEmail(e.target.value)}
+                                                placeholder="Enter registered email"
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-400 font-semibold focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm"
+                                            />
+                                        </div>
 
+                                        {error && (
+                                            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-500">
+                                                <span className="material-symbols-outlined text-sm">warning</span>
+                                                <span className="text-xs font-bold">{error}</span>
+                                            </div>
+                                        )}
+
+                                        <button
+                                            type="submit"
+                                            disabled={isLoading || !resetEmail}
+                                            className="w-full relative overflow-hidden bg-primary text-white p-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98] transition-all disabled:opacity-50"
+                                        >
+                                            Send Reset Link
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsResetMode(false);
+                                                setError('');
+                                            }}
+                                            className="w-full text-xs font-bold text-slate-400 hover:text-white transition-colors"
+                                        >
+                                            I remember my password
+                                        </button>
+                                    </form>
+                                )}
+                            </>
+                        )}
                         {/* Card Footer */}
                         <div className="p-6 pt-2 text-center border-t border-white/5 bg-white/[0.02]">
                             <p className="text-xs text-slate-500 font-medium">New Partner? <a href="#" className="text-white font-bold hover:underline">Apply here</a></p>

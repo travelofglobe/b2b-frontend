@@ -87,7 +87,7 @@ const CheckoutPayment = () => {
                     phoneNumber: phoneNumber,
                     email: firstGuest?.email || ''
                 },
-                rateSearchUuid: finalRateSearchUuid || '', 
+                rateSearchUuid: finalRateSearchUuid || '',
                 rooms: roomsData.map((room, roomIdx) => ({
                     rateCode: room.hubRateModel?.rateCode,
                     occupancies: room.guests.map((guest, guestIdx) => ({
@@ -104,7 +104,7 @@ const CheckoutPayment = () => {
             };
 
             const response = await hotelService.book(requestBody);
-            
+
             navigate('/hotel/checkout/result', {
                 state: {
                     ...location.state,
@@ -176,7 +176,7 @@ const CheckoutPayment = () => {
     const hotelStars = hotel.hotelStar?.star || hotel.stars || 5;
     const hotelAddress = hotel.address ? `${hotel.address.street || ''}, ${hotel.address.cityName || ''}`.replace(/^,\s*/, '').replace(/,\s*$/, '') : (hotel.location || '');
     const hotelImage = hotel.images?.[0]?.url || hotel.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
-    
+
     // Use price from checkRatesData if available, otherwise fallback to local calculation
     const grandTotal = checkRatesData?.price?.totalPaymentAmount ?? ((selectedRooms?.reduce((sum, r) => sum + r.rate, 0) || 0) * nights);
     const displayCurrency = checkRatesData?.price?.currency || selectedRooms?.[0]?.currency || '$';
@@ -417,11 +417,50 @@ const CheckoutPayment = () => {
                                     <div className="size-20 rounded-[28px] bg-primary/10 flex items-center justify-center text-primary"><span className="material-symbols-outlined text-4xl">account_balance_wallet</span></div>
                                     <div><h3 className="text-xl font-black uppercase tracking-tight mb-1">Corporate Deposit Account</h3><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Verified B2B Balance</p></div>
                                 </div>
-                                <div className="p-6 rounded-3xl bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                                    <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Available Funds</p><p className="text-3xl font-black tracking-tighter">$12,450.00</p></div>
-                                    <div className="text-right">
-                                        <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Status</p>
-                                        <span className="px-3 py-1.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-black rounded-xl uppercase tracking-widest border border-emerald-500/10">Active & Ready</span>
+                                <div className="space-y-4">
+                                    {/* Current Balance */}
+                                    <div className="p-6 rounded-3xl bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Available Funds</p>
+                                            <p className="text-2xl font-black tracking-tighter opacity-60">$12,450.00</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Status</p>
+                                            <span className="px-3 py-1.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-black rounded-xl uppercase tracking-widest border border-emerald-500/10">Active & Ready</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Red Deduction Card */}
+                                    <div className="p-6 rounded-3xl bg-red-500/5 border border-red-500/20 flex items-center justify-between relative overflow-hidden group">
+                                        <div className="absolute -right-4 -top-4 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
+                                            <span className="material-symbols-outlined text-8xl text-red-500">trending_down</span>
+                                        </div>
+                                        <div className="relative z-10">
+                                            <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">Deduction Amount</p>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-4xl font-black text-red-600 leading-none">-</span>
+                                                <p className="text-4xl font-black text-red-600 tracking-tighter leading-none">
+                                                    {getCurrencySymbol(displayCurrency)} {grandTotal.toFixed(2)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right relative z-10">
+                                            <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Payment Impact</p>
+                                            <span className="px-3 py-1.5 bg-red-500/10 text-red-600 text-[10px] font-black rounded-xl uppercase tracking-widest border border-red-500/10">Balance Decrease</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Estimated Balance */}
+                                    <div className="p-6 rounded-[32px] bg-slate-900 dark:bg-black text-white flex items-center justify-between shadow-2xl border border-white/5">
+                                        <div>
+                                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Estimated New Balance</p>
+                                            <p className="text-3xl font-black tracking-tighter">
+                                                $ {(12450.00 - (grandTotal * (displayCurrency === 'USD' ? 1 : 1))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </p>
+                                        </div>
+                                        <div className="size-12 rounded-2xl bg-white/10 flex items-center justify-center">
+                                            <span className="material-symbols-outlined text-white/40">account_balance</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -502,7 +541,7 @@ const CheckoutPayment = () => {
                                         <div className="flex items-center gap-2">
                                             <span className="material-symbols-outlined text-[13px] text-primary">group</span>
                                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                                {checkRatesData?.occupancy 
+                                                {checkRatesData?.occupancy
                                                     ? `${checkRatesData.occupancy.adults} Adults${checkRatesData.occupancy.child > 0 ? `, ${checkRatesData.occupancy.child} Children` : ''}`
                                                     : `${roomState?.reduce((s, r) => s + r.adults, 0)} Adults${roomState?.reduce((s, r) => s + r.children, 0) > 0 ? `, ${roomState.reduce((s, r) => s + r.children, 0)} Children` : ''}`
                                                 }
@@ -548,18 +587,18 @@ const CheckoutPayment = () => {
                                                             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Cancellation Policy</p>
                                                             {(checkRatesData?.price?.cancellationPolicies || policies).map((policy, pIdx) => (
                                                                 <div key={pIdx} className="flex justify-between items-center">
-                                                                     <span className="text-[9px] font-bold text-slate-500">
-                                                                         {policy.fromDate 
-                                                                             ? (policy.fromDate.includes('[') 
-                                                                                 ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                                                                                 : new Date(policy.fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))
-                                                                             : 'Non-refundable'
+                                                                    <span className="text-[9px] font-bold text-slate-500">
+                                                                        {policy.fromDate
+                                                                            ? (policy.fromDate.includes('[')
+                                                                                ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                                                                                : new Date(policy.fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))
+                                                                            : 'Non-refundable'
                                                                         }
-                                                                     </span>
-                                                                     <span className={`text-[9px] font-black px-2 py-0.5 rounded-md ${policy.amount === 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}>
-                                                                         {policy.amount === 0 ? 'Free Cancel' : `${getCurrencySymbol(policy.currency || displayCurrency)} ${policy.amount}`}
-                                                                     </span>
-                                                                 </div>
+                                                                    </span>
+                                                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-md ${policy.amount === 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}>
+                                                                        {policy.amount === 0 ? 'Free Cancel' : `${getCurrencySymbol(policy.currency || displayCurrency)} ${policy.amount}`}
+                                                                    </span>
+                                                                </div>
                                                             ))}
                                                         </div>
                                                     ) : (

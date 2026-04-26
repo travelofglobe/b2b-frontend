@@ -32,11 +32,19 @@ const Header = () => {
         <header className="sticky top-0 z-[1100] w-full border-b border-solid border-white/20 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/40 backdrop-blur-xl px-6 lg:px-20 py-3 shadow-sm shadow-slate-200/5 dark:shadow-none">
             <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
                 <div className="flex items-center gap-8">
-                    <Link to="/" className="flex items-center gap-3 text-primary">
-                        <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
-                            <span className="material-symbols-outlined text-2xl">apartment</span>
+                    <Link to="/" className="flex items-center gap-3 group">
+                        <div className="size-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20 transition-all duration-500 group-hover:rotate-[15deg] group-hover:scale-110">
+                            <span className="material-symbols-outlined text-2xl fill-1">travel</span>
                         </div>
-                        <h2 className="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight">Travel of Globe</h2>
+                        <div className="flex flex-col">
+                            <h2 className="text-slate-900 dark:text-white text-[15px] font-black leading-none tracking-tighter uppercase whitespace-nowrap">
+                                Travel <span className="text-primary">of</span> Globe
+                            </h2>
+                            <div className="flex items-center gap-1.5 mt-1">
+                                <div className="h-[1px] w-3 bg-primary/40"></div>
+                                <p className="text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] whitespace-nowrap leading-none">Global B2B Solutions</p>
+                            </div>
+                        </div>
                     </Link>
                     {/* Search Bar in Header */}
                     {/* Search Bar in Header */}

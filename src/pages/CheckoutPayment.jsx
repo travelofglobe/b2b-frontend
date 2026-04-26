@@ -181,6 +181,9 @@ const CheckoutPayment = () => {
     const grandTotal = checkRatesData?.price?.totalPaymentAmount ?? ((selectedRooms?.reduce((sum, r) => sum + r.rate, 0) || 0) * nights);
     const displayCurrency = checkRatesData?.price?.currency || selectedRooms?.[0]?.currency || '$';
 
+    const availableFunds = 12450.00;
+    const isInsufficientBalance = grandTotal > availableFunds;
+
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
@@ -425,8 +428,14 @@ const CheckoutPayment = () => {
                                             <p className="text-2xl font-black tracking-tighter opacity-60">$12,450.00</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Status</p>
-                                            <span className="px-3 py-1.5 bg-emerald-500/10 text-emerald-500 text-[10px] font-black rounded-xl uppercase tracking-widest border border-emerald-500/10">Active & Ready</span>
+                                            <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isInsufficientBalance ? 'text-red-500' : 'text-emerald-500'}`}>Status</p>
+                                            <span className={`px-3 py-1.5 text-[10px] font-black rounded-xl uppercase tracking-widest border ${
+                                                isInsufficientBalance 
+                                                    ? 'bg-red-500/10 text-red-500 border-red-500/10' 
+                                                    : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/10'
+                                            }`}>
+                                                {isInsufficientBalance ? 'Insufficient Funds' : 'Active & Ready'}
+                                            </span>
                                         </div>
                                     </div>
 
@@ -450,18 +459,37 @@ const CheckoutPayment = () => {
                                         </div>
                                     </div>
 
-                                    {/* Estimated Balance */}
-                                    <div className="p-6 rounded-[32px] bg-slate-900 dark:bg-black text-white flex items-center justify-between shadow-2xl border border-white/5">
-                                        <div>
-                                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Estimated New Balance</p>
-                                            <p className="text-3xl font-black tracking-tighter">
-                                                $ {(12450.00 - (grandTotal * (displayCurrency === 'USD' ? 1 : 1))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    {/* Estimated Balance or Warning */}
+                                    {isInsufficientBalance ? (
+                                        <div className="p-6 rounded-[32px] bg-red-600 dark:bg-red-900/40 text-white flex flex-col gap-3 shadow-2xl border border-red-500/20 animate-pulse">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">Deficit Amount</p>
+                                                    <p className="text-3xl font-black tracking-tighter">
+                                                        - $ {(grandTotal - availableFunds).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    </p>
+                                                </div>
+                                                <div className="size-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                                                    <span className="material-symbols-outlined text-white">warning</span>
+                                                </div>
+                                            </div>
+                                            <p className="text-[10px] font-bold text-red-100 uppercase tracking-wider bg-black/20 p-2 rounded-xl text-center">
+                                                Please top up your account to complete this booking
                                             </p>
                                         </div>
-                                        <div className="size-12 rounded-2xl bg-white/10 flex items-center justify-center">
-                                            <span className="material-symbols-outlined text-white/40">account_balance</span>
+                                    ) : (
+                                        <div className="p-6 rounded-[32px] bg-slate-900 dark:bg-black text-white flex items-center justify-between shadow-2xl border border-white/5">
+                                            <div>
+                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Estimated New Balance</p>
+                                                <p className="text-3xl font-black tracking-tighter">
+                                                    $ {(availableFunds - (grandTotal * (displayCurrency === 'USD' ? 1 : 1))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </p>
+                                            </div>
+                                            <div className="size-12 rounded-2xl bg-white/10 flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-white/40">account_balance</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         )}

@@ -93,7 +93,7 @@ const Dashboard = () => {
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-400/10 blur-[120px] rounded-full pointer-events-none"></div>
 
             {/* Main Content */}
-            <main className="flex-1 p-3 md:p-5">
+            <main className="flex-1 p-3 md:p-5 overflow-y-auto h-full">
                 <div className="max-w-6xl mx-auto">
                     <header className="flex flex-wrap items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-2">

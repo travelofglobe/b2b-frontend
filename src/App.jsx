@@ -11,6 +11,7 @@ import CheckoutGuestDetails from './pages/CheckoutGuestDetails';
 import CheckoutPayment from './pages/CheckoutPayment';
 import CheckoutResult from './pages/CheckoutResult';
 import MyOffice from './pages/MyOffice';
+import UnderConstruction from './pages/UnderConstruction';
 import ProtectedRoute from './components/ProtectedRoute';
 import PortalLayout from './layouts/PortalLayout';
 import { AuthProvider } from './context/AuthContext';
@@ -37,6 +38,11 @@ function App() {
               <Route path="/bookings" element={<MyBookings />} />
               <Route path="/bookings/:bookingId" element={<BookingDetail />} />
               <Route path="/my-office" element={<MyOffice />} />
+              
+              <Route path="/finance" element={<UnderConstruction title="Finance" icon="account_balance_wallet" />} />
+              <Route path="/accounting" element={<UnderConstruction title="Accounting" icon="analytics" />} />
+              <Route path="/operations" element={<UnderConstruction title="Operations" icon="settings" />} />
+              <Route path="/gsa-management" element={<UnderConstruction title="GSA Management" icon="admin_panel_settings" />} />
             </Route>
 
             {/* Checkout Flow */}

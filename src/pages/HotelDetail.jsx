@@ -611,9 +611,14 @@ const HotelDetail = () => {
                                             endDate={checkOutDate}
                                             selectsRange
                                             minDate={new Date()}
-                                            className="bg-transparent border-none p-0 text-[13px] font-black focus:ring-0 w-full text-slate-900 dark:text-white cursor-pointer whitespace-nowrap"
+                                            maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
+                                            monthsShown={2}
+                                            locale="en-GB"
+                                            className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[13px] font-black text-slate-900 dark:text-white cursor-pointer whitespace-nowrap"
                                             wrapperClassName="w-full"
                                             dateFormat="dd MMM yyyy"
+                                            calendarClassName="shadow-2xl border-none font-sans mt-4"
+                                            popperPlacement="bottom-start"
                                         />
                                     </div>
                                 </div>

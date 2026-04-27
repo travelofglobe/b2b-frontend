@@ -464,10 +464,6 @@ const HeaderSearch = () => {
                             locale="en-GB"
                             className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 font-bold"
                             dateFormat="dd MMM yyyy"
-                            dayClassName={(date) => {
-                                const day = date.getDay();
-                                return day === 0 || day === 6 ? "text-red-500 font-bold" : "text-slate-700 dark:text-slate-200";
-                            }}
                             calendarClassName="shadow-2xl border-none font-sans mt-4"
                             popperPlacement="bottom-start"
                         />

@@ -157,12 +157,16 @@
     display: none !important;
 }
 
-/* Outside Month */
-.react-datepicker__day--outside-month {
+/* Outside Month & Disabled Dates */
+.react-datepicker__day--outside-month,
+.react-datepicker__day--disabled {
     color: #e2e8f0 !important;
     pointer-events: none !important;
+    opacity: 0.4 !important;
 }
 
-.dark .react-datepicker__day--outside-month {
+.dark .react-datepicker__day--outside-month,
+.dark .react-datepicker__day--disabled {
     color: #334155 !important;
+    opacity: 0.3 !important;
 }

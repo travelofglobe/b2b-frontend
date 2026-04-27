@@ -39,7 +39,6 @@ const FilterPanel = ({
     const [selectedMaxAdult, setSelectedMaxAdult] = useState(searchParams.get('roomMaxAdult') ? searchParams.get('roomMaxAdult').split(',').map(Number) : []);
     const [selectedMaxChildren, setSelectedMaxChildren] = useState(searchParams.get('roomMaxChildren') ? searchParams.get('roomMaxChildren').split(',').map(Number) : []);
     const [selectedMaxExtraBed, setSelectedMaxExtraBed] = useState(searchParams.get('roomMaxExtraBed') ? searchParams.get('roomMaxExtraBed').split(',').map(Number) : []);
-    const [selectedPaxCapacity, setSelectedPaxCapacity] = useState(searchParams.get('roomPaxCapacity') ? searchParams.get('roomPaxCapacity').split(',').map(Number) : []);
 
     // Facility filter
     const currentFacilitiesStr = searchParams.get('facilities');
@@ -70,13 +69,12 @@ const FilterPanel = ({
         setSelectedMaxAdult(searchParams.get('roomMaxAdult') ? searchParams.get('roomMaxAdult').split(',').map(Number) : []);
         setSelectedMaxChildren(searchParams.get('roomMaxChildren') ? searchParams.get('roomMaxChildren').split(',').map(Number) : []);
         setSelectedMaxExtraBed(searchParams.get('roomMaxExtraBed') ? searchParams.get('roomMaxExtraBed').split(',').map(Number) : []);
-        setSelectedPaxCapacity(searchParams.get('roomPaxCapacity') ? searchParams.get('roomPaxCapacity').split(',').map(Number) : []);
         setSelectedFacilities(searchParams.get('facilities') ? searchParams.get('facilities').split(',').map(Number) : []);
     }, [
         searchParams.get('roomMaxAdult'), 
         searchParams.get('roomMaxChildren'), 
         searchParams.get('roomMaxExtraBed'), 
-        searchParams.get('roomPaxCapacity'), 
+        searchParams.get('roomMaxExtraBed'), 
         searchParams.get('facilities')
     ]);
 
@@ -108,7 +106,7 @@ const FilterPanel = ({
         setOrDelete('roomMaxAdult', selectedMaxAdult);
         setOrDelete('roomMaxChildren', selectedMaxChildren);
         setOrDelete('roomMaxExtraBed', selectedMaxExtraBed);
-        setOrDelete('roomPaxCapacity', selectedPaxCapacity);
+        setOrDelete('roomMaxExtraBed', selectedMaxExtraBed);
         setOrDelete('facilities', selectedFacilities);
 
         setSearchParams(newParams);
@@ -124,11 +122,11 @@ const FilterPanel = ({
         setSelectedMaxAdult([]);
         setSelectedMaxChildren([]);
         setSelectedMaxExtraBed([]);
-        setSelectedPaxCapacity([]);
+        setSelectedMaxExtraBed([]);
         setSelectedFacilities([]);
 
         const newParams = new URLSearchParams(searchParams);
-        ['stars', 'locations', 'freeCancellation', 'prePayment', 'roomTwin', 'roomMaxAdult', 'roomMaxChildren', 'roomMaxExtraBed', 'roomPaxCapacity', 'facilities'].forEach(k => newParams.delete(k));
+        ['stars', 'locations', 'freeCancellation', 'prePayment', 'roomTwin', 'roomMaxAdult', 'roomMaxChildren', 'roomMaxExtraBed', 'facilities'].forEach(k => newParams.delete(k));
         
         setSearchParams(newParams);
         if (onClearAll) onClearAll();
@@ -143,7 +141,6 @@ const FilterPanel = ({
         selectedMaxAdult.length > 0,
         selectedMaxChildren.length > 0,
         selectedMaxExtraBed.length > 0,
-        selectedPaxCapacity.length > 0,
         selectedFacilities.length > 0
     ].filter(Boolean).length;
 
@@ -382,20 +379,6 @@ const FilterPanel = ({
                                 <div className="flex items-center gap-3">
                                     <input checked={selectedMaxExtraBed.includes(f.value)} onChange={() => handleToggle(setSelectedMaxExtraBed, f.value)} className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
                                     <div className="flex items-center gap-2"><span className="material-symbols-outlined text-[16px] text-slate-400">hotel_class</span><span className="text-sm font-medium text-slate-700 dark:text-slate-300">{f.value === 0 ? 'None' : f.value} Bed</span></div>
-                                </div>
-                                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
-                            </label>
-                        ))}
-                    </div>
-                </FilterSection>
-
-                <FilterSection title="Total Pax Capacity" icon="groups" defaultOpen={false}>
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-                        {filters?.roomPaxCapacity?.sort((a, b) => a.value - b.value).map(f => (
-                            <label key={f.value} className="flex items-center justify-between cursor-pointer group">
-                                <div className="flex items-center gap-3">
-                                    <input checked={selectedPaxCapacity.includes(f.value)} onChange={() => handleToggle(setSelectedPaxCapacity, f.value)} className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
-                                    <div className="flex items-center gap-2"><span className="material-symbols-outlined text-[16px] text-slate-400">groups</span><span className="text-sm font-medium text-slate-700 dark:text-slate-300">{f.value} Pax</span></div>
                                 </div>
                                 <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
                             </label>

@@ -78,10 +78,6 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
     const currentMaxExtraBedStr = searchParams.get('roomMaxExtraBed');
     const [selectedMaxExtraBed, setSelectedMaxExtraBed] = useState(currentMaxExtraBedStr ? currentMaxExtraBedStr.split(',').map(Number) : []);
 
-    // Room Pax Capacity
-    const currentPaxCapacityStr = searchParams.get('roomPaxCapacity');
-    const [selectedPaxCapacity, setSelectedPaxCapacity] = useState(currentPaxCapacityStr ? currentPaxCapacityStr.split(',').map(Number) : []);
-
     const currentFacilitiesStr = searchParams.get('facilities');
     const [selectedFacilities, setSelectedFacilities] = useState(currentFacilitiesStr ? currentFacilitiesStr.split(',').map(Number) : []);
 
@@ -124,10 +120,6 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
     }, [searchParams.get('roomMaxExtraBed')]);
 
     useEffect(() => {
-        setSelectedPaxCapacity(searchParams.get('roomPaxCapacity') ? searchParams.get('roomPaxCapacity').split(',').map(Number) : []);
-    }, [searchParams.get('roomPaxCapacity')]);
-
-    useEffect(() => {
         setSelectedFacilities(searchParams.get('facilities') ? searchParams.get('facilities').split(',').map(Number) : []);
     }, [searchParams.get('facilities')]);
 
@@ -162,12 +154,6 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
 
     const handleMaxExtraBedToggle = (val) => {
         setSelectedMaxExtraBed(prev =>
-            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
-        );
-    };
-
-    const handlePaxCapacityToggle = (val) => {
-        setSelectedPaxCapacity(prev =>
             prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
         );
     };
@@ -220,11 +206,6 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
         } else {
             newParams.delete('roomMaxExtraBed');
         }
-        if (selectedPaxCapacity.length > 0) {
-            newParams.set('roomPaxCapacity', selectedPaxCapacity.join(','));
-        } else {
-            newParams.delete('roomPaxCapacity');
-        }
         if (selectedFacilities.length > 0) {
             newParams.set('facilities', selectedFacilities.join(','));
         } else {
@@ -242,7 +223,6 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
         setSelectedMaxAdult([]);
         setSelectedMaxChildren([]);
         setSelectedMaxExtraBed([]);
-        setSelectedPaxCapacity([]);
         setSelectedFacilities([]);
         const newParams = new URLSearchParams(searchParams);
         newParams.delete('stars');
@@ -253,7 +233,6 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
         newParams.delete('roomMaxAdult');
         newParams.delete('roomMaxChildren');
         newParams.delete('roomMaxExtraBed');
-        newParams.delete('roomPaxCapacity');
         newParams.delete('facilities');
         setSearchParams(newParams);
     };
@@ -267,7 +246,6 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
         selectedMaxAdult.length > 0,
         selectedMaxChildren.length > 0,
         selectedMaxExtraBed.length > 0,
-        selectedPaxCapacity.length > 0,
         selectedFacilities.length > 0
     ].filter(Boolean).length;
 
@@ -608,38 +586,6 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                                 <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">hotel_class</span>
                                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                                                     {f.value === 0 ? 'No Extra Bed' : `${f.value} Extra Bed${f.value !== 1 ? 's' : ''}`}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-                                            ({f.count})
-                                        </span>
-                                    </label>
-                                ))
-                        ) : (
-                            <div className="text-sm text-slate-500 dark:text-slate-400 italic">No options found</div>
-                        )}
-                    </div>
-                </FilterSection>
-                {/* Pax Capacity */}
-                <FilterSection title="Total Pax Capacity" icon="groups" defaultOpen={false}>
-                    <div className="space-y-3">
-                        {filters?.roomPaxCapacity?.length > 0 ? (
-                            [...filters.roomPaxCapacity]
-                                .sort((a, b) => a.value - b.value)
-                                .map(f => (
-                                    <label key={f.value} className="flex items-center justify-between cursor-pointer group">
-                                        <div className="flex items-center gap-3">
-                                            <input
-                                                checked={selectedPaxCapacity.includes(f.value)}
-                                                onChange={() => handlePaxCapacityToggle(f.value)}
-                                                className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
-                                                type="checkbox"
-                                            />
-                                            <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">groups</span>
-                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                    {f.value} Pax
                                                 </span>
                                             </div>
                                         </div>

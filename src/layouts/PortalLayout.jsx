@@ -48,20 +48,32 @@ const PortalLayout = () => {
                     
                     <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800"></div>
 
-                    <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <button 
+                        onClick={() => navigate('/finance')}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/finance' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                    >
                         <span className="material-icons-round text-[20px]">account_balance_wallet</span>
                         Finance
                     </button>
-                    <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <button 
+                        onClick={() => navigate('/accounting')}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/accounting' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                    >
                         <span className="material-icons-round text-[20px]">analytics</span>
                         Accounting
                     </button>
-                    <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <button 
+                        onClick={() => navigate('/operations')}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/operations' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                    >
                         <span className="material-icons-round text-[20px]">settings</span>
                         Operations
                     </button>
                     <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800">
-                        <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <button 
+                            onClick={() => navigate('/gsa-management')}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/gsa-management' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
                             <div className="flex items-center gap-3">
                                 <span className="material-icons-round text-[20px]">admin_panel_settings</span>
                                 GSA Management

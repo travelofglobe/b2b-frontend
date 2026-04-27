@@ -15,7 +15,7 @@ const CheckoutResult = () => {
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
-            <main className="max-w-4xl mx-auto px-6 pt-32 pb-20 text-center">
+            <main className="max-w-4xl mx-auto px-6 pt-12 pb-20 text-center">
                 <div className="relative mb-12">
                     <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-transparent via-primary/10 to-transparent"></div>
                     <div className={`relative size-24 mx-auto rounded-full ${isSuccess ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-red-500 shadow-red-500/30'} text-white flex items-center justify-center shadow-2xl animate-in zoom-in duration-700`}>

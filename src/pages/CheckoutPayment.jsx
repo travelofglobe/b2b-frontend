@@ -187,8 +187,8 @@ const CheckoutPayment = () => {
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
-            <main className="max-w-7xl mx-auto px-6 pt-24 pb-20">
-                <div className="flex items-center justify-between mb-12">
+            <main className="max-w-7xl mx-auto px-6 pt-12 pb-20">
+                <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-4">
                         <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all shadow-sm">
                             <span className="material-symbols-outlined">arrow_back</span>

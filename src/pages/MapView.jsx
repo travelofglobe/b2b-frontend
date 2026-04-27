@@ -55,7 +55,7 @@ const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover, se
                 mouseout: () => onHover(null)
             }}
         >
-            <Popup className="hotel-marker-popup" minWidth={240}>
+            <Popup className="hotel-marker-popup" minWidth={240} autoPan={false}>
                 <div className="p-1 group/popup">
                     <img src={hotel.image} className="w-full h-32 object-cover rounded-xl mb-3" alt={hotel.name} />
                     <h3 className="font-black text-sm uppercase tracking-tight text-slate-900 dark:text-white mb-1">{hotel.names?.tr || hotel.names?.en || hotel.name}</h3>
@@ -89,11 +89,19 @@ const MapController = ({ selectedHotel }) => {
     useEffect(() => {
         if (selectedHotel && map) {
             try {
-                // Ensure map exists and hasn't been removed from DOM
                 if (map.getContainer()) {
                     map.stop();
-                    map.flyTo([selectedHotel.lat, selectedHotel.lng], 15, {
-                        duration: 1.5
+                    map.invalidateSize();
+                    
+                    // Add a small vertical offset to the flyTo coordinate
+                    // This accounts for the icon's height and provides better visual balance
+                    // since the marker anchor is at its bottom.
+                    const targetLat = selectedHotel.lat;
+                    const targetLng = selectedHotel.lng;
+                    
+                    map.flyTo([targetLat, targetLng], 15, {
+                        duration: 1.5,
+                        easeLinearity: 0.25
                     });
                 }
             } catch (err) {
@@ -104,9 +112,7 @@ const MapController = ({ selectedHotel }) => {
                     if (isMounted.current && map && map.getContainer()) {
                         map.stop();
                     }
-                } catch (e) {
-                    // Silent catch for unmount phase
-                }
+                } catch (e) {}
             };
         }
     }, [selectedHotel, map]);
@@ -366,13 +372,12 @@ const MapView = () => {
                 const zoom = zoomLevels[breadcrumbData.locationType] || 10;
 
                 try {
-                    // Check if map container still exists
                     if (map.getContainer()) {
-                        // Stop any existing animation before starting a new one
                         map.stop();
+                        map.invalidateSize();
                         // Fly to location with smooth animation
                         map.flyTo([lat, lon], zoom, {
-                            duration: 1.5, // Slightly faster for responsiveness
+                            duration: 1.5,
                             easeLinearity: 0.25
                         });
                     }
@@ -533,6 +538,24 @@ const MapView = () => {
 
         setIsLoadingHotels(true);
         try {
+            const zoom = boundsData.zoom;
+            
+            // Limit search based on zoom level to prevent performance issues
+            // If zoom is too low (viewing a whole country/continent), don't fetch thousands
+            if (zoom < 6) {
+                setHotels([]);
+                setIsLoadingHotels(false);
+                return;
+            }
+
+            // Calculate dynamic page size based on zoom
+            // More zoom = more specific area = we can show more hotels
+            let dynamicSize = 100;
+            if (zoom < 9) dynamicSize = 25;
+            else if (zoom < 12) dynamicSize = 50;
+            else if (zoom < 15) dynamicSize = 100;
+            else dynamicSize = 150;
+
             // Include all dynamic filters in map request
             const params = getSearchFilters();
             
@@ -553,9 +576,9 @@ const MapView = () => {
             const response = await hotelService.searchHotels({
                 locationId: !boundsData.isUserPan ? searchParams.get('locationId') : null,
                 geo: boundsData.bounds,
-                zoom: boundsData.zoom,
+                zoom: zoom,
                 page: 0,
-                size: 100,
+                size: dynamicSize,
                 filters: filtersBody,
                 searchCriteria: {
                     checkin: params._checkin,
@@ -1000,6 +1023,27 @@ const MapView = () => {
                                     <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl px-6 py-4 rounded-[20px] shadow-2xl border border-white/20 flex items-center gap-3">
                                         <div className="w-5 h-5 border-2 border-[#137fec] border-t-transparent rounded-full animate-spin"></div>
                                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Updating Orbit...</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Low Zoom Warning Overlay */}
+                            {currentBounds?.zoom < 6 && (
+                                <div className="absolute inset-0 z-[2000] flex items-center justify-center pointer-events-none">
+                                    <div className="bg-slate-900/90 dark:bg-slate-800/90 backdrop-blur-xl px-8 py-5 rounded-[32px] shadow-2xl border border-white/10 flex flex-col items-center gap-3 animate-in fade-in zoom-in duration-500 pointer-events-auto">
+                                        <div className="size-12 bg-amber-500/20 rounded-2xl flex items-center justify-center text-amber-500">
+                                            <span className="material-symbols-outlined text-2xl">zoom_in</span>
+                                        </div>
+                                        <div className="text-center">
+                                            <h4 className="text-white text-xs font-black uppercase tracking-widest">Too many properties</h4>
+                                            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mt-1">Please zoom in to see hotels in this area</p>
+                                        </div>
+                                        <button 
+                                            onClick={handleZoomIn}
+                                            className="mt-2 px-6 py-2.5 bg-[#137fec] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#137fec]/20 hover:scale-105 active:scale-95 transition-all"
+                                        >
+                                            Zoom In Now
+                                        </button>
                                     </div>
                                 </div>
                             )}

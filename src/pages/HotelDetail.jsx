@@ -9,6 +9,7 @@ import "../datepicker-custom.css";
 import { mockHotels } from '../data/mockHotels';
 import NationalitySelect from '../components/NationalitySelect';
 import { hotelService } from '../services/hotelService';
+import { useToast } from '../context/ToastContext';
 import { parseGuestsParam, serializeGuestsParam } from '../utils/searchParamsUtils';
 
 const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex }) => {
@@ -161,6 +162,7 @@ const HotelDetail = () => {
     const { slug } = useParams();
     const id = slug; // Map the route parameter (which matches hotel/:slug) to id
     const [searchParams] = useSearchParams();
+    const { error: toastError } = useToast();
     const navigate = useNavigate();
 
     const [dynamicHotel, setDynamicHotel] = useState(null);
@@ -387,7 +389,7 @@ const HotelDetail = () => {
                 });
             } catch (err) {
                 console.error('Check rates failed:', err);
-                alert('Rate check failed. The price might have changed or the room is no longer available.');
+                toastError('Rate check failed. The price might have changed or the room is no longer available.');
             } finally {
                 setIsCheckingRates(false);
             }

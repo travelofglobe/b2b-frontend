@@ -513,11 +513,14 @@ const DashboardSearch = () => {
                                     endDate={checkOutDate}
                                     selectsRange
                                     minDate={new Date()}
+                                    maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                                     monthsShown={2}
                                     locale="en-GB"
-                                    className="bg-transparent border-none outline-none focus:ring-0 w-full p-0 text-sm font-bold text-slate-900 dark:text-white cursor-pointer tracking-tight"
+                                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-sm font-bold text-slate-900 dark:text-white cursor-pointer tracking-tight"
                                     dateFormat="dd MMM yyyy"
                                     placeholderText="Select range"
+                                    calendarClassName="shadow-2xl border-none font-sans mt-4"
+                                    popperPlacement="bottom-start"
                                 />
                             </div>
                         </div>

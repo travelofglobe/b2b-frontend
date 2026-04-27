@@ -94,7 +94,6 @@ const HotelListing = () => {
         const roomMaxAdultParam = searchParams.get('roomMaxAdult');
         const roomMaxChildrenParam = searchParams.get('roomMaxChildren');
         const roomMaxExtraBedParam = searchParams.get('roomMaxExtraBed');
-        const roomPaxCapacityParam = searchParams.get('roomPaxCapacity');
         const facilitiesParam = searchParams.get('facilities');
 
         return {
@@ -106,7 +105,6 @@ const HotelListing = () => {
             roomMaxAdult: roomMaxAdultParam ? roomMaxAdultParam.split(',').map(Number) : null,
             roomMaxChildren: roomMaxChildrenParam ? roomMaxChildrenParam.split(',').map(Number) : null,
             roomMaxExtraBed: roomMaxExtraBedParam ? roomMaxExtraBedParam.split(',').map(Number) : null,
-            roomPaxCapacity: roomPaxCapacityParam ? roomPaxCapacityParam.split(',').map(Number) : null,
             facilities: facilitiesParam ? facilitiesParam.split(',').map(Number) : []
         };
     };
@@ -337,7 +335,6 @@ const HotelListing = () => {
                     roomMaxAdult: filters.roomMaxAdult,
                     roomMaxChildren: filters.roomMaxChildren,
                     roomMaxExtraBed: filters.roomMaxExtraBed,
-                    roomPaxCapacity: filters.roomPaxCapacity,
                     facilities: filters.facilities
                 },
                 searchCriteria: (() => {
@@ -517,7 +514,6 @@ const HotelListing = () => {
         searchParams.get('roomMaxAdult'),
         searchParams.get('roomMaxChildren'),
         searchParams.get('roomMaxExtraBed'),
-        searchParams.get('roomPaxCapacity'),
         searchParams.get('facilities')
     ]);
 

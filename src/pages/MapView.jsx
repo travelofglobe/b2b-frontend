@@ -519,7 +519,6 @@ const MapView = () => {
             roomMaxAdult: parseIds('roomMaxAdult'),
             roomMaxChildren: parseIds('roomMaxChildren'),
             roomMaxExtraBed: parseIds('roomMaxExtraBed'),
-            roomPaxCapacity: parseIds('roomPaxCapacity'),
             facilities: parseIds('facilities', []),
             _checkin: searchParams.get('checkin') || defaults.checkin,
             _checkout: searchParams.get('checkout') || defaults.checkout,
@@ -569,7 +568,6 @@ const MapView = () => {
                 roomMaxAdult: params.roomMaxAdult,
                 roomMaxChildren: params.roomMaxChildren,
                 roomMaxExtraBed: params.roomMaxExtraBed,
-                roomPaxCapacity: params.roomPaxCapacity,
                 facilities: params.facilities || []
             };
             

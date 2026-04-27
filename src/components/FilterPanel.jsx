@@ -74,7 +74,6 @@ const FilterPanel = ({
         searchParams.get('roomMaxAdult'), 
         searchParams.get('roomMaxChildren'), 
         searchParams.get('roomMaxExtraBed'), 
-        searchParams.get('roomMaxExtraBed'), 
         searchParams.get('facilities')
     ]);
 
@@ -106,7 +105,6 @@ const FilterPanel = ({
         setOrDelete('roomMaxAdult', selectedMaxAdult);
         setOrDelete('roomMaxChildren', selectedMaxChildren);
         setOrDelete('roomMaxExtraBed', selectedMaxExtraBed);
-        setOrDelete('roomMaxExtraBed', selectedMaxExtraBed);
         setOrDelete('facilities', selectedFacilities);
 
         setSearchParams(newParams);
@@ -121,7 +119,6 @@ const FilterPanel = ({
         setRoomTwin(null);
         setSelectedMaxAdult([]);
         setSelectedMaxChildren([]);
-        setSelectedMaxExtraBed([]);
         setSelectedMaxExtraBed([]);
         setSelectedFacilities([]);
 

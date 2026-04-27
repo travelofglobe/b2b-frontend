@@ -126,6 +126,13 @@ const CheckoutPayment = () => {
         return symbols[code] || code || '$';
     };
 
+    const decodeHTMLEntities = (text) => {
+        if (!text) return '';
+        const textArea = document.createElement('textarea');
+        textArea.innerHTML = text;
+        return textArea.value;
+    };
+
     if (!hotel) {
         return (
             <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white flex flex-col">
@@ -699,9 +706,10 @@ const CheckoutPayment = () => {
                                             <span className="material-symbols-outlined text-[10px]">info</span>
                                             Rate Notes
                                         </p>
-                                        <div className="text-[9px] font-medium text-slate-600 dark:text-slate-400 space-y-1 max-h-40 overflow-y-auto pr-2 custom-scrollbar whitespace-pre-line">
-                                            {checkRatesData.notes.join('\n')}
-                                        </div>
+                                        <div 
+                                            className="text-[11px] font-medium text-slate-600 dark:text-slate-400 space-y-1 max-h-40 overflow-y-auto pr-2 custom-scrollbar html-content"
+                                            dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(checkRatesData.notes.join('<br/>')) }}
+                                        />
                                     </div>
                                 )}
 
@@ -734,6 +742,20 @@ const CheckoutPayment = () => {
                 </div >
             </main >
             <Footer />
+            <style jsx="true">{`
+                .html-content ul {
+                    list-style-type: disc;
+                    margin-left: 1.25rem;
+                    margin-top: 0.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                .html-content li {
+                    margin-bottom: 0.25rem;
+                }
+                .html-content p {
+                    margin-bottom: 0.5rem;
+                }
+            `}</style>
         </div >
     );
 };

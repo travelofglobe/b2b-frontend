@@ -3,11 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { hotelService } from '../services/hotelService';
+import { useToast } from '../context/ToastContext';
 
 const CheckoutPayment = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { hotel, totalPrice, selectedRooms, roomState, checkInDate, checkOutDate, roomsData, clientReferenceId, remark, rateSearchUuid, checkRatesData } = location.state || {};
+    const { error: toastError } = useToast();
 
     // Calculate nights for accurate pricing
     const nights = React.useMemo(() => {
@@ -115,7 +117,7 @@ const CheckoutPayment = () => {
             });
         } catch (error) {
             console.error('Booking failed:', error);
-            alert(`Booking failed: ${error.message || 'Please try again.'}`);
+            toastError(`Booking failed: ${error.message || 'Please try again.'}`);
         } finally {
             setIsProcessing(false);
         }

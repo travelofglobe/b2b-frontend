@@ -15,6 +15,7 @@ const LoginPage = () => {
     const [isResetMode, setIsResetMode] = useState(false);
     const [resetEmail, setResetEmail] = useState('');
     const [resetSuccess, setResetSuccess] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const { login, user } = useAuth();
     const navigate = useNavigate();
@@ -155,13 +156,22 @@ const LoginPage = () => {
                                                 <span className="material-symbols-outlined text-[20px]">lock_open</span>
                                             </div>
                                             <input
-                                                type="password"
+                                                type={showPassword ? "text" : "password"}
                                                 required
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
                                                 placeholder="Password"
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-400 font-semibold focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm"
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-12 text-white placeholder:text-slate-400 font-semibold focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm"
                                             />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute right-4 top-3.5 text-slate-400 hover:text-white transition-colors z-10 flex items-center justify-center"
+                                            >
+                                                <span className="material-symbols-outlined text-[20px]">
+                                                    {showPassword ? "visibility_off" : "visibility"}
+                                                </span>
+                                            </button>
                                         </div>
                                     </div>
 

@@ -126,7 +126,7 @@ const MyOffice = () => {
     const isGuestsLoaded = useRef(false);
 
     // Summary data
-    const [summary, setSummary] = useState({ totalUsers: 0, activeUsers: 0, totalGuests: 0, activeGuests: 0 });
+    const [summary, setSummary] = useState({ totalCount: 0, activeCount: 0, passiveCount: 0, totalGuestCount: 0, activeGuestCount: 0, passiveGuestCount: 0 });
 
     // User management state
     const [users, setUsers] = useState([]);
@@ -151,7 +151,8 @@ const MyOffice = () => {
         passportExpiry: '', 
         email: '',
         phoneCountryCode: '90',
-        phoneNumber: ''
+        phoneNumber: '',
+        status: 'ACTIVE'
     });
 
     // Form data (General Info)
@@ -252,17 +253,18 @@ const MyOffice = () => {
     const fetchStats = async (signal) => {
         try {
             setStatsLoading(true);
-            const [totalUsersRes, activeUsersRes, totalGuestsRes] = await Promise.all([
-                userService.filterUsers({}, 0, 1, signal).catch(() => ({})),
-                userService.filterUsers({ status: 'ACTIVE' }, 0, 1, signal).catch(() => ({})),
-                guestService.filterGuests({}, 0, 1, signal).catch(() => ({}))
+            const [userSummary, guestSummary] = await Promise.all([
+                userService.getSummary(signal).catch(() => ({ totalCount: 0, activeCount: 0, passiveCount: 0 })),
+                guestService.getSummary(signal).catch(() => ({ totalCount: 0, activeCount: 0, passiveCount: 0 }))
             ]);
 
             setSummary({
-                totalUsers: totalUsersRes.numberOfItems ?? totalUsersRes.agencyUsers?.length ?? 0,
-                activeUsers: activeUsersRes.numberOfItems ?? activeUsersRes.agencyUsers?.length ?? 0,
-                totalGuests: totalGuestsRes.numberOfItems ?? totalGuestsRes.guests?.length ?? 0,
-                activeGuests: 0
+                totalCount: userSummary.totalCount || 0,
+                activeCount: userSummary.activeCount || 0,
+                passiveCount: userSummary.passiveCount || 0,
+                totalGuestCount: guestSummary.totalCount || 0,
+                activeGuestCount: guestSummary.activeCount || 0,
+                passiveGuestCount: guestSummary.passiveCount || 0
             });
         } catch (err) {
             if (err.name !== 'AbortError') console.error('Error fetching stats:', err);
@@ -362,7 +364,7 @@ const MyOffice = () => {
                 showNotification('User created successfully');
             }
             setIsUserModalOpen(false); fetchUsersData();
-            const sumData = await userService.getSummary(); setSummary(prev => ({ ...prev, totalUsers: sumData.totalUsers, activeUsers: sumData.activeUsers }));
+            const sumData = await userService.getSummary(); setSummary(prev => ({ ...prev, totalCount: sumData.totalCount, activeCount: sumData.activeCount, passiveCount: sumData.passiveCount }));
         } catch (err) { showNotification(err.message || 'Error saving user', 'error'); } finally { setSaving(false); }
     };
 
@@ -380,7 +382,7 @@ const MyOffice = () => {
                     showNotification('User deleted successfully');
                     fetchUsersData();
                     const sumData = await userService.getSummary();
-                    setSummary(prev => ({ ...prev, totalUsers: sumData.totalUsers, activeUsers: sumData.activeUsers }));
+                    setSummary(prev => ({ ...prev, totalCount: sumData.totalCount, activeCount: sumData.activeCount, passiveCount: sumData.passiveCount }));
                 } catch (err) { showNotification(err.message || 'Error deleting user', 'error'); }
             }
         );
@@ -393,8 +395,8 @@ const MyOffice = () => {
         showNotification('User list exported as CSV.');
     };
 
-    const openAddGuest = () => { setEditingGuest(null); setGuestFormData({ gender: 'MALE', firstName: '', lastName: '', birthDate: '', country: '', passportNo: '', passportExpiry: '', email: '', phoneCountryCode: '90', phoneNumber: '' }); setIsGuestModalOpen(true); };
-    const openEditGuest = (g) => { setEditingGuest(g); setGuestFormData({ gender: g.gender || 'MALE', firstName: g.firstName, lastName: g.lastName, birthDate: g.birthDate, country: g.country, passportNo: g.passportNo, passportExpiry: g.passportExpiry, email: g.email, phoneCountryCode: g.phoneCountryCode || '90', phoneNumber: g.phoneNumber || '' }); setIsGuestModalOpen(true); };
+    const openAddGuest = () => { setEditingGuest(null); setGuestFormData({ gender: 'MALE', firstName: '', lastName: '', birthDate: '', country: '', passportNo: '', passportExpiry: '', email: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE' }); setIsGuestModalOpen(true); };
+    const openEditGuest = (g) => { setEditingGuest(g); setGuestFormData({ gender: g.gender || 'MALE', firstName: g.firstName, lastName: g.lastName, birthDate: g.birthDate, country: g.country, passportNo: g.passportNo, passportExpiry: g.passportExpiry, email: g.email, phoneCountryCode: g.phoneCountryCode || '90', phoneNumber: g.phoneNumber || '', status: g.status || 'ACTIVE' }); setIsGuestModalOpen(true); };
     const handleGuestSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -404,7 +406,7 @@ const MyOffice = () => {
             if (editingGuest) { await guestService.updateGuest(editingGuest.id, guestFormData); showNotification('Guest updated successfully'); }
             else { await guestService.saveGuest(guestFormData); showNotification('Guest created successfully'); }
             setIsGuestModalOpen(false); fetchGuestsData();
-            const sumData = await guestService.getSummary(); setSummary(prev => ({ ...prev, totalGuests: sumData.numberOfItems || sumData.totalGuests, activeGuests: sumData.activeGuests }));
+            const sumData = await guestService.getSummary(); setSummary(prev => ({ ...prev, totalGuestCount: sumData.totalCount, activeGuestCount: sumData.activeCount, passiveGuestCount: sumData.passiveCount }));
         } catch (err) { showNotification(err.message || 'Error saving guest', 'error'); } finally { setSaving(false); }
     };
 
@@ -418,7 +420,7 @@ const MyOffice = () => {
                     showNotification('Guest deleted successfully');
                     fetchGuestsData();
                     const sumData = await guestService.getSummary();
-                    setSummary(prev => ({ ...prev, totalGuests: sumData.numberOfItems || sumData.totalGuests, activeGuests: sumData.activeGuests }));
+                    setSummary(prev => ({ ...prev, totalGuestCount: sumData.totalCount, activeGuestCount: sumData.activeCount, passiveGuestCount: sumData.passiveCount }));
                 } catch (err) { showNotification(err.message || 'Error deleting guest', 'error'); }
             }
         );
@@ -475,8 +477,8 @@ const MyOffice = () => {
                     <div className="mb-6 flex gap-10 border-b border-slate-200 dark:border-slate-800">
                         {[
                             { id: 'general', label: 'General Information', icon: 'info' },
-                            { id: 'users', label: 'Users', count: statsLoading ? 'loading' : summary.totalUsers, icon: 'groups' },
-                            { id: 'guests', label: 'Guests', count: statsLoading ? 'loading' : summary.totalGuests, icon: 'recent_actors' }
+                            { id: 'users', label: 'Users', count: statsLoading ? 'loading' : summary.totalCount, icon: 'groups' },
+                            { id: 'guests', label: 'Guests', count: statsLoading ? 'loading' : summary.totalGuestCount, icon: 'recent_actors' }
                         ].map((tab) => (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`pb-4 text-[10px] font-bold uppercase tracking-widest relative flex items-center gap-2.5 transition-all ${activeTab === tab.id ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}>
                                 <span className="material-icons-round text-lg">{tab.icon}</span> {tab.label} 
@@ -511,7 +513,50 @@ const MyOffice = () => {
                                 </div>
                             </div>
                         ) : activeTab === 'users' ? (
-                            <div className="h-full flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm">
+                            <div className="h-full flex flex-col gap-6 overflow-hidden">
+                                {/* User Summary Cards */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="bg-[#eff6ff] dark:bg-blue-900/10 p-4 rounded-[24px] border border-blue-100/50 dark:border-blue-800/20 shadow-sm">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">Total Users</span>
+                                            <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
+                                                <span className="material-icons-round text-lg">groups</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-end gap-1.5">
+                                            <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalCount}</div>
+                                            <div className="text-[9px] font-bold text-blue-400 mb-0.5">MEMBERS</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-[#f0fdf4] dark:bg-emerald-900/10 p-4 rounded-[24px] border border-emerald-100/50 dark:border-emerald-800/20 shadow-sm">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">Active Users</span>
+                                            <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
+                                                <span className="material-icons-round text-lg">person_check</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-end gap-1.5">
+                                            <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.activeCount}</div>
+                                            <div className="text-[9px] font-bold text-emerald-400 mb-0.5">ONLINE</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-[#fef2f2] dark:bg-red-900/10 p-4 rounded-[24px] border border-red-100/50 dark:border-red-800/20 shadow-sm">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="text-[9px] font-bold text-red-600 dark:text-red-400 uppercase tracking-[0.2em]">Passive Users</span>
+                                            <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-red-600 shadow-sm">
+                                                <span className="material-icons-round text-lg">person_off</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-end gap-1.5">
+                                            <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.passiveCount}</div>
+                                            <div className="text-[9px] font-bold text-red-400 mb-0.5">DISABLED</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm">
                                 <div className="p-6 border-b border-slate-50 dark:border-white/5 flex flex-wrap items-center justify-between gap-4">
                                     <div className="flex items-center gap-4 flex-1 max-w-2xl">
                                         <div className="relative flex-1">
@@ -542,8 +587,52 @@ const MyOffice = () => {
                                     </table>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="h-full flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm">
+                        </div>
+                    ) : (
+                        <div className="h-full flex flex-col gap-6 overflow-hidden">
+                            {/* Guest Summary Cards */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="bg-[#f5f3ff] dark:bg-purple-900/10 p-4 rounded-[24px] border border-purple-100/50 dark:border-purple-800/20 shadow-sm">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className="text-[9px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-[0.2em]">Total Guests</span>
+                                        <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-purple-600 shadow-sm">
+                                            <span className="material-icons-round text-lg">recent_actors</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-end gap-1.5">
+                                        <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalGuestCount}</div>
+                                        <div className="text-[9px] font-bold text-purple-400 mb-0.5">PROFILES</div>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-[#f0fdf4] dark:bg-emerald-900/10 p-4 rounded-[24px] border border-emerald-100/50 dark:border-emerald-800/20 shadow-sm">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">Active Guests</span>
+                                        <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
+                                            <span className="material-icons-round text-lg">how_to_reg</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-end gap-1.5">
+                                        <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.activeGuestCount}</div>
+                                        <div className="text-[9px] font-bold text-emerald-400 mb-0.5">VERIFIED</div>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-[#fef2f2] dark:bg-red-900/10 p-4 rounded-[24px] border border-red-100/50 dark:border-red-800/20 shadow-sm">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className="text-[9px] font-bold text-red-600 dark:text-red-400 uppercase tracking-[0.2em]">Passive Guests</span>
+                                        <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-red-600 shadow-sm">
+                                            <span className="material-icons-round text-lg">person_remove</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-end gap-1.5">
+                                        <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.passiveGuestCount}</div>
+                                        <div className="text-[9px] font-bold text-red-400 mb-0.5">ARCHIVED</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm">
                                 <div className="p-6 border-b border-slate-50 dark:border-white/5 flex flex-wrap items-center justify-between gap-4">
                                     <div className="flex items-center gap-4 flex-1 max-w-2xl">
                                         <div className="relative flex-1">
@@ -572,7 +661,8 @@ const MyOffice = () => {
                                     </table>
                                 </div>
                             </div>
-                        )}
+                        </div>
+                    )}
                     </div>
                 </div>
             </main>
@@ -654,7 +744,10 @@ const MyOffice = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label><input type="email" required value={guestFormData.email} onChange={(e) => setGuestFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" placeholder="example@mail.com" /></div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label><input type="email" required value={guestFormData.email} onChange={(e) => setGuestFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" placeholder="example@mail.com" /></div>
+                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Status</label><select value={guestFormData.status} onChange={(e) => setGuestFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary"><option value="ACTIVE">Active</option><option value="PASSIVE">Passive</option></select></div>
+                            </div>
                             <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label><div className="grid grid-cols-4 gap-2"><input type="text" value={guestFormData.phoneCountryCode} onChange={(e) => setGuestFormData(prev => ({ ...prev, phoneCountryCode: e.target.value }))} className="h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-center text-xs font-bold outline-none" placeholder="+90" /><input type="text" value={guestFormData.phoneNumber} onChange={(e) => setGuestFormData(prev => ({ ...prev, phoneNumber: e.target.value }))} className="col-span-3 h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" placeholder="5XX..." /></div></div>
                             <div className="pt-4 flex items-center justify-end gap-3"><button type="button" onClick={() => setIsGuestModalOpen(false)} className="h-11 px-6 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Cancel</button><button type="submit" disabled={saving} className="h-11 px-8 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">{saving ? 'Processing...' : 'Save Guest'}</button></div>
                         </form>

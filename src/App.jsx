@@ -11,6 +11,8 @@ import CheckoutGuestDetails from './pages/CheckoutGuestDetails';
 import CheckoutPayment from './pages/CheckoutPayment';
 import CheckoutResult from './pages/CheckoutResult';
 import MyOffice from './pages/MyOffice';
+import MarkupManagement from './pages/MarkupManagement';
+import GSAAgencyManagement from './pages/GSAAgencyManagement';
 import UnderConstruction from './pages/UnderConstruction';
 import ProtectedRoute from './components/ProtectedRoute';
 import PortalLayout from './layouts/PortalLayout';
@@ -38,11 +40,14 @@ function App() {
               <Route path="/bookings" element={<MyBookings />} />
               <Route path="/bookings/:bookingId" element={<BookingDetail />} />
               <Route path="/my-office" element={<MyOffice />} />
+              <Route path="/definitions/markup" element={<MarkupManagement />} />
               
               <Route path="/finance" element={<UnderConstruction title="Finance" icon="account_balance_wallet" />} />
               <Route path="/accounting" element={<UnderConstruction title="Accounting" icon="analytics" />} />
               <Route path="/operations" element={<UnderConstruction title="Operations" icon="settings" />} />
-              <Route path="/gsa-management" element={<UnderConstruction title="GSA Management" icon="admin_panel_settings" />} />
+              <Route path="/gsa/agency" element={<GSAAgencyManagement />} />
+              <Route path="/gsa/finance" element={<UnderConstruction title="GSA Finance" icon="attach_money" />} />
+              <Route path="/gsa/reports" element={<UnderConstruction title="GSA Reports" icon="assessment" />} />
             </Route>
 
             {/* Checkout Flow */}

@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
 const PortalLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [isDefinitionsOpen, setIsDefinitionsOpen] = useState(location.pathname.startsWith('/definitions'));
+    const [isGSAManagementOpen, setIsGSAManagementOpen] = useState(location.pathname.startsWith('/gsa'));
 
     return (
         <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#020617] text-slate-900 dark:text-slate-100 transition-colors duration-200 font-sans overflow-hidden">
@@ -45,6 +47,29 @@ const PortalLayout = () => {
                         <span className="material-icons-round text-[20px]">book_online</span>
                         My Bookings
                     </button>
+                    <div className="space-y-0.5">
+                        <button
+                            onClick={() => setIsDefinitionsOpen(!isDefinitionsOpen)}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname.startsWith('/definitions') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="material-icons-round text-[20px]">tune</span>
+                                Definitions
+                            </div>
+                            <span className={`material-icons-round text-sm transition-transform duration-200 ${isDefinitionsOpen ? 'rotate-90' : ''}`}>chevron_right</span>
+                        </button>
+                        
+                        {isDefinitionsOpen && (
+                            <div className="ml-4 pl-5 border-l border-slate-100 dark:border-slate-800 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
+                                <button
+                                    onClick={() => navigate('/definitions/markup')}
+                                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/definitions/markup' ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                >
+                                    Markup Management
+                                </button>
+                            </div>
+                        )}
+                    </div>
                     
                     <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800"></div>
 
@@ -69,17 +94,43 @@ const PortalLayout = () => {
                         <span className="material-icons-round text-[20px]">settings</span>
                         Operations
                     </button>
-                    <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800 space-y-0.5">
                         <button 
-                            onClick={() => navigate('/gsa-management')}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/gsa-management' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                            onClick={() => setIsGSAManagementOpen(!isGSAManagementOpen)}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname.startsWith('/gsa') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                         >
                             <div className="flex items-center gap-3">
-                                <span className="material-icons-round text-[20px]">admin_panel_settings</span>
+                                <span className="material-icons-round text-[20px]">analytics</span>
                                 GSA Management
                             </div>
-                            <span className="material-icons-round text-sm">chevron_right</span>
+                            <span className={`material-icons-round text-sm transition-transform duration-200 ${isGSAManagementOpen ? 'rotate-180' : ''}`}>expand_more</span>
                         </button>
+                        
+                        {isGSAManagementOpen && (
+                            <div className="ml-4 pl-5 border-l border-slate-100 dark:border-slate-800 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
+                                <button
+                                    onClick={() => navigate('/gsa/agency')}
+                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/gsa/agency' ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                >
+                                    <span className="material-icons-round text-[18px]">business_center</span>
+                                    Agency Management
+                                </button>
+                                <button
+                                    onClick={() => navigate('/gsa/finance')}
+                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/gsa/finance' ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                >
+                                    <span className="material-icons-round text-[18px]">attach_money</span>
+                                    Finance
+                                </button>
+                                <button
+                                    onClick={() => navigate('/gsa/reports')}
+                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/gsa/reports' ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                >
+                                    <span className="material-icons-round text-[18px]">assessment</span>
+                                    Reports
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </nav>
             </aside>

@@ -99,7 +99,8 @@ export const hotelService = {
                 score: null,
                 starList: null,
                 locationPathNames: null,
-                hotelFacilityIds: filters.facilities || null
+                hotelFacilityIds: filters.facilities || null,
+                hotelIds: filters.hotelIds || null
             },
             page: {
                 page: page,

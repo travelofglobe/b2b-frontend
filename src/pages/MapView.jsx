@@ -99,7 +99,13 @@ const MapController = ({ selectedHotel }) => {
                     const targetLat = selectedHotel.lat;
                     const targetLng = selectedHotel.lng;
                     
-                    map.flyTo([targetLat, targetLng], 15, {
+                    // Add a small vertical offset to center the marker better
+                    // Markers are ~50px tall with anchor at bottom
+                    const point = map.project([targetLat, targetLng], 15);
+                    point.y -= 30; // Shift up 30px so the marker body is centered
+                    const newCenter = map.unproject(point, 15);
+
+                    map.flyTo(newCenter, 15, {
                         duration: 1.5,
                         easeLinearity: 0.25
                     });
@@ -254,6 +260,7 @@ const MapView = () => {
         return () => clearTimeout(timer);
     }, [searchParams]);
 
+
     const handleHover = (hotel) => {
         if (hoverTimeoutRef.current) {
             clearTimeout(hoverTimeoutRef.current);
@@ -288,6 +295,18 @@ const MapView = () => {
     const [isDataLoading, setIsDataLoading] = useState(true);
     const [hasInitialDataLoaded, setHasInitialDataLoaded] = useState(false);
     const isComponentMounted = useRef(true);
+
+    // Auto-select hotel if hotelIds is present in URL and hotels are loaded
+    useEffect(() => {
+        const hotelIdsParam = searchParams.get('hotelIds');
+        if (hotelIdsParam && hotels.length > 0 && !selectedHotel) {
+            const id = parseInt(hotelIdsParam.split(',')[0]);
+            const hotel = hotels.find(h => h.id === id || h.hotelId === id);
+            if (hotel) {
+                setSelectedHotel(hotel);
+            }
+        }
+    }, [hotels, searchParams, selectedHotel]);
 
     useEffect(() => {
         isComponentMounted.current = true;
@@ -520,6 +539,7 @@ const MapView = () => {
             roomMaxChildren: parseIds('roomMaxChildren'),
             roomMaxExtraBed: parseIds('roomMaxExtraBed'),
             facilities: parseIds('facilities', []),
+            hotelIds: parseIds('hotelIds', []),
             _checkin: searchParams.get('checkin') || defaults.checkin,
             _checkout: searchParams.get('checkout') || defaults.checkout,
         };
@@ -568,7 +588,8 @@ const MapView = () => {
                 roomMaxAdult: params.roomMaxAdult,
                 roomMaxChildren: params.roomMaxChildren,
                 roomMaxExtraBed: params.roomMaxExtraBed,
-                facilities: params.facilities || []
+                facilities: params.facilities || [],
+                hotelIds: params.hotelIds || []
             };
             
             const response = await hotelService.searchHotels({

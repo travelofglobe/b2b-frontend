@@ -33,6 +33,7 @@ const CheckoutPayment = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('deposit'); // 'deposit' or 'credit_card'
     const [cardDetails, setCardDetails] = useState({ number: '', holder: '', expiry: '', cvv: '' });
+    const [bookingError, setBookingError] = useState(null);
 
     // Auto-scroll to top on mount
     useLayoutEffect(() => {
@@ -117,7 +118,7 @@ const CheckoutPayment = () => {
             });
         } catch (error) {
             console.error('Booking failed:', error);
-            toastError(`Booking failed: ${error.message || 'Please try again.'}`);
+            setBookingError(error.response || { message: error.message || 'An error occurred while booking. Please try again.' });
         } finally {
             setIsProcessing(false);
         }
@@ -758,6 +759,91 @@ const CheckoutPayment = () => {
                     margin-bottom: 0.5rem;
                 }
             `}</style>
+
+            {/* Professional Booking Error Modal */}
+            {bookingError && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="w-full max-w-xl relative group">
+                        {/* Glow effect */}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-red-500/30 via-orange-500/30 to-red-500/30 rounded-[40px] blur-2xl opacity-100 transition-opacity duration-500"></div>
+
+                        <div className="relative bg-white dark:bg-slate-900/90 backdrop-blur-3xl border border-red-500/30 dark:border-red-500/20 rounded-[40px] p-10 text-left shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                            {/* Decorative background icon */}
+                            <div className="absolute -top-10 -right-10 opacity-5 pointer-events-none text-red-500">
+                                <span className="material-symbols-outlined text-[200px]">error_medley</span>
+                            </div>
+
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="size-14 rounded-2xl bg-red-500/10 dark:bg-red-500/20 text-red-500 flex items-center justify-center border border-red-500/20 shadow-inner">
+                                        <span className="material-symbols-outlined text-3xl">error</span>
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                                            Booking Issue
+                                        </h2>
+                                        <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mt-0.5">
+                                            {bookingError.errorCode || 'Action Required'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setBookingError(null)}
+                                    className="size-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all border border-slate-200/60 dark:border-white/10"
+                                >
+                                    <span className="material-symbols-outlined text-xl">close</span>
+                                </button>
+                            </div>
+
+                            {/* Main message */}
+                            <div className="p-6 bg-red-50/50 dark:bg-red-500/5 rounded-3xl border border-red-500/10 dark:border-red-500/10 mb-6 max-h-[160px] overflow-y-auto custom-scrollbar">
+                                <p className="text-[11px] font-black text-red-500 uppercase tracking-widest mb-2 select-none flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-xs">warning</span> Detailed Message
+                                </p>
+                                <p className="text-sm font-bold text-slate-700 dark:text-red-200/90 leading-relaxed break-words">
+                                    {bookingError.message || 'We encountered a problem processing your request. Please check the details or try again.'}
+                                </p>
+                            </div>
+
+                            {/* Supplementary technical details if available */}
+                            {(bookingError.timestamp || bookingError.requestId || bookingError.path) && (
+                                <div className="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-slate-100 dark:border-slate-800/80 mb-8 space-y-3">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Error Information</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {bookingError.timestamp && (
+                                            <div>
+                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Time</p>
+                                                <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 truncate">{new Date(bookingError.timestamp).toLocaleString()}</p>
+                                            </div>
+                                        )}
+                                        {bookingError.requestId && (
+                                            <div>
+                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Request ID</p>
+                                                <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 font-mono tracking-tight truncate select-all">{bookingError.requestId}</p>
+                                            </div>
+                                        )}
+                                        {bookingError.path && (
+                                            <div className="sm:col-span-2 border-t border-slate-200/40 dark:border-slate-700/40 pt-2">
+                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Path</p>
+                                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 font-mono tracking-tight truncate">{bookingError.path}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex flex-col sm:flex-row gap-4 justify-end">
+                                <button
+                                    onClick={() => setBookingError(null)}
+                                    className="px-8 py-4 bg-primary text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                >
+                                    Dismiss <span className="material-symbols-outlined text-sm">check</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };

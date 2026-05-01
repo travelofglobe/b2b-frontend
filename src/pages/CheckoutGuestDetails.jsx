@@ -137,29 +137,30 @@ const CheckoutGuestDetails = () => {
         }
     }, [location.state]);
 
-    // Save updated context automatically to Redis on any data change
+    // Save updated context automatically to Redis on any data change (with debounce)
     useEffect(() => {
-        if (sessionId && selectedRooms && hotel) {
-            const saveUpdatedContext = async () => {
-                try {
-                    await hotelService.saveCheckoutSession(sessionId, {
-                        selectedRooms,
-                        hotel,
-                        roomState,
-                        checkInDate,
-                        checkOutDate,
-                        rateSearchUuid,
-                        checkRatesData,
-                        roomsData,
-                        clientReferenceId,
-                        remark
-                    });
-                } catch (err) {
-                    console.error('Failed to save updated checkout context:', err);
-                }
-            };
-            saveUpdatedContext();
-        }
+        if (!sessionId || !selectedRooms || !hotel) return;
+
+        const timer = setTimeout(async () => {
+            try {
+                await hotelService.saveCheckoutSession(sessionId, {
+                    selectedRooms,
+                    hotel,
+                    roomState,
+                    checkInDate,
+                    checkOutDate,
+                    rateSearchUuid,
+                    checkRatesData,
+                    roomsData,
+                    clientReferenceId,
+                    remark
+                });
+            } catch (err) {
+                console.error('Failed to save updated checkout context:', err);
+            }
+        }, 1000); // Debounce: Wait 1 second after last input change before saving
+
+        return () => clearTimeout(timer);
     }, [roomsData, clientReferenceId, remark, checkRatesData, rateSearchUuid, sessionId]);
 
     // Fetch latest rates and info on mount if not provided

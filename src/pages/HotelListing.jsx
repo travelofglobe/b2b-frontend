@@ -501,6 +501,7 @@ const HotelListing = () => {
         };
     }, [
         locationId,
+        sortConfig,
         searchParams.get('checkin'),
         searchParams.get('checkout'),
         searchParams.get('guests'),
@@ -530,17 +531,11 @@ const HotelListing = () => {
         }
         
         setSortConfig(newSort);
-        // loadMoreHotels will be triggered after state update because sortConfig is in dependencies
     };
-
-    // Trigger initial search or search on sort change
-    React.useEffect(() => {
-        loadMoreHotels(true);
-    }, [locationId, searchParams, sortConfig]);
 
     React.useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && hasMore && !isLoading) {
+            if (entries[0].isIntersecting && hasMore && !isLoading && hotels.length > 0) {
                 loadMoreHotels();
             }
         }, { threshold: 0, rootMargin: '2000px' });
@@ -550,7 +545,7 @@ const HotelListing = () => {
         }
 
         return () => observer.disconnect();
-    }, [loadMoreHotels, hasMore, isLoading]);
+    }, [loadMoreHotels, hasMore, isLoading, hotels.length]);
 
     return (
         <div className="relative flex min-h-screen flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200 font-sans">

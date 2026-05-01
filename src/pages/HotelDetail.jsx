@@ -360,8 +360,12 @@ const HotelDetail = () => {
         navigate(`/hotels?${params.toString()}`);
     };
 
+    const isRequestingRef = useRef(false);
+
     const handleInstantReservation = async () => {
+        if (isRequestingRef.current || isCheckingRates) return;
         if (selectedRooms.length > 0) {
+            isRequestingRef.current = true;
             setIsCheckingRates(true);
             try {
                 const checkRatesRequest = {
@@ -372,7 +376,12 @@ const HotelDetail = () => {
 
                 const response = await hotelService.checkRates(checkRatesRequest);
                 console.log('Check rates response:', response);
-                const rateSearchUuid = response?.rateSearchUuid;
+                
+                const firstHotel = response?.[0];
+                const firstRoom = firstHotel?.rooms?.[0];
+                const firstRate = firstRoom?.rates?.[0];
+                const rateSearchUuid = response?.rateSearchUuid || firstHotel?.rateSearchUuid;
+                
                 console.log('Obtained rateSearchUuid:', rateSearchUuid);
 
                 navigate('/hotel/checkout/guests', {
@@ -384,7 +393,8 @@ const HotelDetail = () => {
                         checkOutDate: checkOutDate.toISOString(),
                         totalPrice: selectedRooms.reduce((sum, r) => sum + r.rate, 0),
                         nights,
-                        rateSearchUuid: rateSearchUuid // Pass the UUID obtained from checkRates
+                        rateSearchUuid: rateSearchUuid, // Pass the UUID obtained from checkRates
+                        checkRatesData: firstRate // Pass rate details directly to prevent duplicate fetch
                     }
                 });
             } catch (err) {
@@ -392,6 +402,7 @@ const HotelDetail = () => {
                 toastError('Rate check failed. The price might have changed or the room is no longer available.');
             } finally {
                 setIsCheckingRates(false);
+                isRequestingRef.current = false;
             }
         }
     };

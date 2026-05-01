@@ -7,11 +7,39 @@ import { hotelService } from '../services/hotelService';
 const CheckoutGuestDetails = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { selectedRooms, hotel, roomState, checkInDate, checkOutDate, rateSearchUuid: initialRateSearchUuid } = location.state || {};
 
-    const [checkRatesData, setCheckRatesData] = useState(null);
-    const [isLoadingRates, setIsLoadingRates] = useState(false);
-    const [rateSearchUuid, setRateSearchUuid] = useState(initialRateSearchUuid);
+    const [selectedRooms, setSelectedRooms] = useState(() => location.state?.selectedRooms || null);
+    const [hotel, setHotel] = useState(() => location.state?.hotel || null);
+    const [roomState, setRoomState] = useState(() => location.state?.roomState || null);
+    const [checkInDate, setCheckInDate] = useState(() => location.state?.checkInDate || null);
+    const [checkOutDate, setCheckOutDate] = useState(() => location.state?.checkOutDate || null);
+    const [rateSearchUuid, setRateSearchUuid] = useState(() => location.state?.rateSearchUuid || null);
+    const [checkRatesData, setCheckRatesData] = useState(() => location.state?.checkRatesData || null);
+    const [isLoadingRates, setIsLoadingRates] = useState(!location.state?.checkRatesData);
+    const [roomsData, setRoomsData] = useState(() => {
+        if (!location.state?.selectedRooms || !location.state?.roomState) return [];
+        return location.state.selectedRooms.map((room, roomIdx) => {
+            const config = location.state.roomState[roomIdx] || { adults: 1, children: 0, childAges: [] };
+            const guests = [];
+            for (let i = 0; i < config.adults; i++) {
+                guests.push({ type: 'Adult', firstName: '', lastName: '', email: '', phone: '', birthDate: '', gender: '' });
+            }
+            for (let i = 0; i < config.children; i++) {
+                guests.push({ type: 'Child', age: config.childAges[i], firstName: '', lastName: '', birthDate: '', gender: '' });
+            }
+            return { roomName: room.name, guests, cancellationPolicies: room.cancellationPolicies || [], hubRateModel: room.hubRateModel };
+        });
+    });
+    const [clientReferenceId, setClientReferenceId] = useState(() => location.state?.clientReferenceId || '');
+    const [remark, setRemark] = useState(() => location.state?.remark || '');
+    const [sessionId, setSessionId] = useState(() => {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('sessionId') || '';
+    });
+    const [isLoadingSession, setIsLoadingSession] = useState(() => {
+        const params = new URLSearchParams(window.location.search);
+        return !!params.get('sessionId') && !location.state;
+    });
 
     // Calculate nights for accurate pricing
     const nights = React.useMemo(() => {
@@ -39,11 +67,109 @@ const CheckoutGuestDetails = () => {
         window.scrollTo(0, 0);
     }, []);
 
-    // Fetch latest rates and info on mount
+    // Load checkout session from Redis if coming from URL param
     useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const urlSessionId = params.get('sessionId');
+
+        if (urlSessionId && !location.state) {
+            const loadSession = async () => {
+                setIsLoadingRates(true);
+                setIsLoadingSession(true);
+                try {
+                    const session = await hotelService.getCheckoutSession(urlSessionId);
+                    if (session && session.success !== false) {
+                        setSelectedRooms(session.selectedRooms || null);
+                        setHotel(session.hotel || null);
+                        setRoomState(session.roomState || null);
+                        setCheckInDate(session.checkInDate || null);
+                        setCheckOutDate(session.checkOutDate || null);
+                        setRateSearchUuid(session.rateSearchUuid || null);
+                        setCheckRatesData(session.checkRatesData || null);
+                        setRoomsData(session.roomsData || []);
+                        setClientReferenceId(session.clientReferenceId || '');
+                        setRemark(session.remark || '');
+                        setSessionId(urlSessionId);
+                    }
+                } catch (err) {
+                    console.error('Failed to load checkout session:', err);
+                } finally {
+                    setIsLoadingRates(false);
+                    setIsLoadingSession(false);
+                }
+            };
+            loadSession();
+        } else if (location.state && selectedRooms) {
+            const updateSession = async () => {
+                try {
+                    const concatRateCodes = (selectedRooms || [])
+                        .map(r => r.hubRateModel?.rateCode || r.rateCode || '')
+                        .sort()
+                        .join('_');
+
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(concatRateCodes);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    const sid = hashHex.substring(0, 16);
+
+                    setSessionId(sid);
+                    window.history.replaceState(null, '', `${window.location.pathname}?sessionId=${sid}`);
+
+                    await hotelService.saveCheckoutSession(sid, {
+                        selectedRooms,
+                        hotel,
+                        roomState,
+                        checkInDate,
+                        checkOutDate,
+                        rateSearchUuid,
+                        checkRatesData,
+                        roomsData,
+                        clientReferenceId,
+                        remark
+                    });
+                } catch (err) {
+                    console.error('Failed to compute/save session:', err);
+                }
+            };
+            updateSession();
+        }
+    }, [location.state]);
+
+    // Save updated context automatically to Redis on any data change (with debounce)
+    useEffect(() => {
+        if (!sessionId || !selectedRooms || !hotel) return;
+
+        const timer = setTimeout(async () => {
+            try {
+                await hotelService.saveCheckoutSession(sessionId, {
+                    selectedRooms,
+                    hotel,
+                    roomState,
+                    checkInDate,
+                    checkOutDate,
+                    rateSearchUuid,
+                    checkRatesData,
+                    roomsData,
+                    clientReferenceId,
+                    remark
+                });
+            } catch (err) {
+                console.error('Failed to save updated checkout context:', err);
+            }
+        }, 1000); // Debounce: Wait 1 second after last input change before saving
+
+        return () => clearTimeout(timer);
+    }, [roomsData, clientReferenceId, remark, checkRatesData, rateSearchUuid, sessionId]);
+
+    // Fetch latest rates and info on mount if not provided
+    useEffect(() => {
+        if (location.state?.checkRatesData || !selectedRooms) {
+            return;
+        }
+
         const fetchRates = async () => {
-            if (!selectedRooms || selectedRooms.length === 0) return;
-            
             setIsLoadingRates(true);
             try {
                 const checkRatesRequest = {
@@ -54,16 +180,15 @@ const CheckoutGuestDetails = () => {
 
                 const response = await hotelService.checkRates(checkRatesRequest);
                 console.log('Checkout check-rates response:', response);
-                
-                // Extract the first rate of the first room from the first hotel in the response array
+
                 const firstHotel = response?.[0];
                 const firstRoom = firstHotel?.rooms?.[0];
                 const firstRate = firstRoom?.rates?.[0];
-                
+
                 if (firstRate) {
                     setCheckRatesData(firstRate);
                 }
-                
+
                 if (firstHotel?.rateSearchUuid) {
                     setRateSearchUuid(firstHotel.rateSearchUuid);
                 }
@@ -76,25 +201,6 @@ const CheckoutGuestDetails = () => {
 
         fetchRates();
     }, [selectedRooms]);
-
-    // Initialize guest data for EVERY guest in EVERY room
-    const [roomsData, setRoomsData] = useState(() => {
-        if (!selectedRooms || !roomState) return [];
-        return selectedRooms.map((room, roomIdx) => {
-            const config = roomState[roomIdx] || { adults: 1, children: 0, childAges: [] };
-            const guests = [];
-            for (let i = 0; i < config.adults; i++) {
-                guests.push({ type: 'Adult', firstName: '', lastName: '', email: '', phone: '', birthDate: '', gender: '' });
-            }
-            for (let i = 0; i < config.children; i++) {
-                guests.push({ type: 'Child', age: config.childAges[i], firstName: '', lastName: '', birthDate: '', gender: '' });
-            }
-            return { roomName: room.name, guests, cancellationPolicies: room.cancellationPolicies || [], hubRateModel: room.hubRateModel };
-        });
-    });
-
-    const [clientReferenceId, setClientReferenceId] = useState('');
-    const [remark, setRemark] = useState('');
 
     const [errors, setErrors] = useState({});
 
@@ -177,12 +283,27 @@ const CheckoutGuestDetails = () => {
                 setActiveRoomIdx(prev => prev + 1);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
-                navigate('/hotel/checkout/payment', {
-                    state: { ...location.state, roomsData, clientReferenceId, remark, rateSearchUuid, checkRatesData }
+                navigate(`/hotel/checkout/payment?sessionId=${sessionId}`, {
+                    state: { ...location.state, selectedRooms, hotel, roomState, checkInDate, checkOutDate, roomsData, clientReferenceId, remark, rateSearchUuid, checkRatesData }
                 });
             }
         }
     };
+
+    if (isLoadingSession) {
+        return (
+            <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white flex flex-col">
+                <Header />
+                <main className="flex-1 flex items-center justify-center p-6 pt-32 pb-20">
+                    <div className="flex flex-col items-center gap-6">
+                        <div className="size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                        <p className="text-sm font-black uppercase tracking-widest text-slate-500">Loading Checkout Session...</p>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
 
     if (!selectedRooms) {
         return (

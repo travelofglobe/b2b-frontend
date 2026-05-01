@@ -370,17 +370,18 @@ const HotelDetail = () => {
             try {
                 const checkRatesRequest = {
                     rooms: selectedRooms.map(room => ({
-                        rateCode: room.hubRateModel?.rateCode
+                        rateCode: room.hubRateModel?.rateCode || room.rateCode || ''
                     }))
                 };
 
                 const response = await hotelService.checkRates(checkRatesRequest);
                 console.log('Check rates response:', response);
                 
-                const firstHotel = response?.[0];
-                const firstRoom = firstHotel?.rooms?.[0];
-                const firstRate = firstRoom?.rates?.[0];
-                const rateSearchUuid = response?.rateSearchUuid || firstHotel?.rateSearchUuid;
+                const checkRatesList = Array.isArray(response) ? response : (response?.data ? (Array.isArray(response.data) ? response.data : [response.data]) : []);
+                const firstHotel = checkRatesList[0] || {};
+                const firstRoom = firstHotel?.rooms?.[0] || {};
+                const firstRate = firstRoom?.rates?.[0] || {};
+                const rateSearchUuid = response?.rateSearchUuid || firstHotel?.rateSearchUuid || '';
                 
                 console.log('Obtained rateSearchUuid:', rateSearchUuid);
 
@@ -396,13 +397,16 @@ const HotelDetail = () => {
                 const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
                 const sid = hashHex.substring(0, 16);
 
+                const isoCheckIn = checkInDate instanceof Date ? checkInDate.toISOString() : new Date(checkInDate).toISOString();
+                const isoCheckOut = checkOutDate instanceof Date ? checkOutDate.toISOString() : new Date(checkOutDate).toISOString();
+
                 navigate(`/hotel/checkout/guests?sessionId=${sid}`, {
                     state: {
                         selectedRooms,
                         hotel,
                         roomState,
-                        checkInDate: checkInDate.toISOString(),
-                        checkOutDate: checkOutDate.toISOString(),
+                        checkInDate: isoCheckIn,
+                        checkOutDate: isoCheckOut,
                         totalPrice: selectedRooms.reduce((sum, r) => sum + r.rate, 0),
                         nights,
                         rateSearchUuid: rateSearchUuid, // Pass the UUID obtained from checkRates

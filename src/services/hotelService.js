@@ -182,6 +182,23 @@ export const hotelService = {
      */
     checkRates: async (request) => {
         return apiClient.post(`${API_BASE_URL}/check-rates`, request);
+    },
+
+    /**
+     * Save checkout session.
+     * @param {string} sessionId
+     * @param {Object} sessionData
+     */
+    saveCheckoutSession: async (sessionId, sessionData) => {
+        return apiClient.post(`${API_BASE_URL}/checkout/session/${sessionId}`, sessionData);
+    },
+
+    /**
+     * Get checkout session.
+     * @param {string} sessionId
+     */
+    getCheckoutSession: async (sessionId) => {
+        return apiClient.get(`${API_BASE_URL}/checkout/session/${sessionId}`);
     }
 };
 

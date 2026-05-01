@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect } from 'react';
+import React, { useState, useLayoutEffect, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -8,8 +8,56 @@ import { useToast } from '../context/ToastContext';
 const CheckoutPayment = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { hotel, totalPrice, selectedRooms, roomState, checkInDate, checkOutDate, roomsData, clientReferenceId, remark, rateSearchUuid, checkRatesData } = location.state || {};
+
+    const [hotel, setHotel] = useState(() => location.state?.hotel || null);
+    const [totalPrice, setTotalPrice] = useState(() => location.state?.totalPrice || null);
+    const [selectedRooms, setSelectedRooms] = useState(() => location.state?.selectedRooms || null);
+    const [roomState, setRoomState] = useState(() => location.state?.roomState || null);
+    const [checkInDate, setCheckInDate] = useState(() => location.state?.checkInDate || null);
+    const [checkOutDate, setCheckOutDate] = useState(() => location.state?.checkOutDate || null);
+    const [roomsData, setRoomsData] = useState(() => location.state?.roomsData || null);
+    const [clientReferenceId, setClientReferenceId] = useState(() => location.state?.clientReferenceId || '');
+    const [remark, setRemark] = useState(() => location.state?.remark || '');
+    const [rateSearchUuid, setRateSearchUuid] = useState(() => location.state?.rateSearchUuid || null);
+    const [checkRatesData, setCheckRatesData] = useState(() => location.state?.checkRatesData || null);
+    const [isLoadingSession, setIsLoadingSession] = useState(() => {
+        const params = new URLSearchParams(window.location.search);
+        return !!params.get('sessionId') && !location.state;
+    });
+
     const { error: toastError } = useToast();
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const urlSessionId = params.get('sessionId');
+
+        if (urlSessionId && !location.state) {
+            const loadSession = async () => {
+                setIsLoadingSession(true);
+                try {
+                    const session = await hotelService.getCheckoutSession(urlSessionId);
+                    if (session && session.success !== false) {
+                        setHotel(session.hotel || null);
+                        setTotalPrice(session.totalPrice || null);
+                        setSelectedRooms(session.selectedRooms || null);
+                        setRoomState(session.roomState || null);
+                        setCheckInDate(session.checkInDate || null);
+                        setCheckOutDate(session.checkOutDate || null);
+                        setRoomsData(session.roomsData || null);
+                        setClientReferenceId(session.clientReferenceId || '');
+                        setRemark(session.remark || '');
+                        setRateSearchUuid(session.rateSearchUuid || null);
+                        setCheckRatesData(session.checkRatesData || null);
+                    }
+                } catch (err) {
+                    console.error('Failed to load checkout session in Payment:', err);
+                } finally {
+                    setIsLoadingSession(false);
+                }
+            };
+            loadSession();
+        }
+    }, [location.state]);
 
     // Calculate nights for accurate pricing
     const nights = React.useMemo(() => {
@@ -135,6 +183,21 @@ const CheckoutPayment = () => {
         textArea.innerHTML = text;
         return textArea.value;
     };
+
+    if (isLoadingSession) {
+        return (
+            <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white flex flex-col">
+                <Header />
+                <main className="flex-1 flex items-center justify-center p-6 pt-32 pb-20">
+                    <div className="flex flex-col items-center gap-6">
+                        <div className="size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                        <p className="text-sm font-black uppercase tracking-widest text-slate-500">Loading Checkout Session...</p>
+                    </div>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
 
     if (!hotel) {
         return (

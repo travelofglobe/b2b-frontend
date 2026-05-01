@@ -768,10 +768,7 @@ const CheckoutPayment = () => {
                         <div className="absolute -inset-1 bg-gradient-to-r from-red-500/30 via-orange-500/30 to-red-500/30 rounded-[40px] blur-2xl opacity-100 transition-opacity duration-500"></div>
 
                         <div className="relative bg-white dark:bg-slate-900/90 backdrop-blur-3xl border border-red-500/30 dark:border-red-500/20 rounded-[40px] p-10 text-left shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                            {/* Decorative background icon */}
-                            <div className="absolute -top-10 -right-10 opacity-5 pointer-events-none text-red-500">
-                                <span className="material-symbols-outlined text-[200px]">error_medley</span>
-                            </div>
+
 
                             <div className="flex justify-between items-start mb-6">
                                 <div className="flex items-center gap-4">

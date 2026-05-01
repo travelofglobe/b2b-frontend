@@ -211,7 +211,12 @@ const FilterPanel = ({
                                 </div>
 
                                 {[...filters.locationId]
-                                    .filter(loc => !locationSearch || (locationNames[loc.value] || `Location ${loc.value}`).toLowerCase().includes(locationSearch.toLowerCase()))
+                                    .filter(loc => {
+                                        const name = locationNames[loc.value];
+                                        if (!name || name.startsWith('Location ') || name.startsWith('Location')) return false;
+                                        if (locationSearch && !name.toLowerCase().includes(locationSearch.toLowerCase())) return false;
+                                        return true;
+                                    })
                                     .sort((a, b) => b.count - a.count)
                                     .slice(0, (locationSearch || isLocationsExpanded) ? undefined : 10)
                                     .map(locFilter => (
@@ -225,14 +230,15 @@ const FilterPanel = ({
                                                 />
                                                 <div className="flex items-center gap-2 overflow-hidden">
                                                     <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors flex-shrink-0">location_on</span>
-                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate" title={locationNames[locFilter.value] || `Location ${locFilter.value}`}>
-                                                        {locationNames[locFilter.value] || `Location ${locFilter.value}`}
+                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate" title={locationNames[locFilter.value] || ''}>
+                                                        {locationNames[locFilter.value] || ''}
                                                     </span>
                                                 </div>
                                             </div>
                                             <span className="text-xs text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap ml-2">({locFilter.count})</span>
                                         </label>
                                     ))}
+
                                 
                                 {!locationSearch && filters.locationId.length > 10 && (
                                     <button onClick={() => setIsLocationsExpanded(!isLocationsExpanded)} className="text-xs font-bold text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8">
@@ -405,7 +411,12 @@ const FilterPanel = ({
                                 </div>
 
                                 {[...filters.hotelFacilityIds]
-                                    .filter(fac => !facilitySearch || (facilityNames[fac.value] || `Facility ${fac.value}`).toLowerCase().includes(facilitySearch.toLowerCase()))
+                                    .filter(fac => {
+                                        const name = facilityNames[fac.value];
+                                        if (!name || name.startsWith('Facility ') || name.startsWith('Facility')) return false;
+                                        if (facilitySearch && !name.toLowerCase().includes(facilitySearch.toLowerCase())) return false;
+                                        return true;
+                                    })
                                     .sort((a, b) => b.count - a.count)
                                     .slice(0, (facilitySearch || isFacilitiesExpanded) ? undefined : 10)
                                     .map(facFilter => (
@@ -414,7 +425,7 @@ const FilterPanel = ({
                                                 <input checked={selectedFacilities.includes(facFilter.value)} onChange={() => handleToggle(setSelectedFacilities, facFilter.value)} className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0" type="checkbox" />
                                                 <div className="flex items-center gap-2 overflow-hidden">
                                                     <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary flex-shrink-0">business_center</span>
-                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate" title={facilityNames[facFilter.value] || `Facility ${facFilter.value}`}>{facilityNames[facFilter.value] || `Facility ${facFilter.value}`}</span>
+                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate" title={facilityNames[facFilter.value] || ''}>{facilityNames[facFilter.value] || ''}</span>
                                                 </div>
                                             </div>
                                             <span className="text-xs text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap ml-2">({facFilter.count})</span>

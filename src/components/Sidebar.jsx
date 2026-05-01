@@ -307,14 +307,15 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
 
                                 {[...filters.locationId]
                                     .filter(loc => {
-                                        if (!locationSearch) return true;
-                                        const name = (locationNames[loc.value] || `Location ${loc.value}`).toLowerCase();
-                                        return name.includes(locationSearch.toLowerCase());
+                                        const name = locationNames[loc.value];
+                                        if (!name || name.startsWith('Location ') || name.startsWith('Location')) return false;
+                                        if (locationSearch && !name.toLowerCase().includes(locationSearch.toLowerCase())) return false;
+                                        return true;
                                     })
                                     .sort((a, b) => b.count - a.count)
                                     .slice(0, (locationSearch || isLocationsExpanded) ? undefined : 10)
                                     .map(locFilter => {
-                                        const locName = locationNames[locFilter.value] || `Location ${locFilter.value}`;
+                                        const locName = locationNames[locFilter.value] || '';
                                         return (
                                             <label key={locFilter.value} className="flex items-center justify-between cursor-pointer group animate-in fade-in duration-200">
                                                 <div className="flex items-center gap-3 overflow-hidden">
@@ -626,14 +627,15 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
 
                                 {[...filters.hotelFacilityIds]
                                     .filter(fac => {
-                                        if (!facilitySearch) return true;
-                                        const name = (facilityNames[fac.value] || `Facility ${fac.value}`).toLowerCase();
-                                        return name.includes(facilitySearch.toLowerCase());
+                                        const name = facilityNames[fac.value];
+                                        if (!name || name.startsWith('Facility ') || name.startsWith('Facility')) return false;
+                                        if (facilitySearch && !name.toLowerCase().includes(facilitySearch.toLowerCase())) return false;
+                                        return true;
                                     })
                                     .sort((a, b) => b.count - a.count)
                                     .slice(0, (facilitySearch || isFacilitiesExpanded) ? undefined : 10)
                                     .map(facFilter => {
-                                        const facName = facilityNames[facFilter.value] || `Facility ${facFilter.value}`;
+                                        const facName = facilityNames[facFilter.value] || '';
                                         return (
                                             <label key={facFilter.value} className="flex items-center justify-between cursor-pointer group animate-in fade-in duration-200">
                                                 <div className="flex items-center gap-3 overflow-hidden">

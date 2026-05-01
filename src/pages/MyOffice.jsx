@@ -126,7 +126,7 @@ const MyOffice = () => {
     const isGuestsLoaded = useRef(false);
 
     // Summary data
-    const [summary, setSummary] = useState({ totalUsers: 0, activeUsers: 0, totalGuests: 0, activeGuests: 0 });
+    const [summary, setSummary] = useState({ totalCount: 0, activeCount: 0, passiveCount: 0, totalGuestCount: 0, activeGuestCount: 0, passiveGuestCount: 0 });
 
     // User management state
     const [users, setUsers] = useState([]);
@@ -151,7 +151,8 @@ const MyOffice = () => {
         passportExpiry: '', 
         email: '',
         phoneCountryCode: '90',
-        phoneNumber: ''
+        phoneNumber: '',
+        status: 'ACTIVE'
     });
 
     // Form data (General Info)
@@ -252,17 +253,18 @@ const MyOffice = () => {
     const fetchStats = async (signal) => {
         try {
             setStatsLoading(true);
-            const [totalUsersRes, activeUsersRes, totalGuestsRes] = await Promise.all([
-                userService.filterUsers({}, 0, 1, signal).catch(() => ({})),
-                userService.filterUsers({ status: 'ACTIVE' }, 0, 1, signal).catch(() => ({})),
-                guestService.filterGuests({}, 0, 1, signal).catch(() => ({}))
+            const [userSummary, guestSummary] = await Promise.all([
+                userService.getSummary(signal).catch(() => ({ totalCount: 0, activeCount: 0, passiveCount: 0 })),
+                guestService.getSummary(signal).catch(() => ({ totalCount: 0, activeCount: 0, passiveCount: 0 }))
             ]);
 
             setSummary({
-                totalUsers: totalUsersRes.numberOfItems ?? totalUsersRes.agencyUsers?.length ?? 0,
-                activeUsers: activeUsersRes.numberOfItems ?? activeUsersRes.agencyUsers?.length ?? 0,
-                totalGuests: totalGuestsRes.numberOfItems ?? totalGuestsRes.guests?.length ?? 0,
-                activeGuests: 0
+                totalCount: userSummary.totalCount || 0,
+                activeCount: userSummary.activeCount || 0,
+                passiveCount: userSummary.passiveCount || 0,
+                totalGuestCount: guestSummary.totalCount || 0,
+                activeGuestCount: guestSummary.activeCount || 0,
+                passiveGuestCount: guestSummary.passiveCount || 0
             });
         } catch (err) {
             if (err.name !== 'AbortError') console.error('Error fetching stats:', err);
@@ -362,7 +364,7 @@ const MyOffice = () => {
                 showNotification('User created successfully');
             }
             setIsUserModalOpen(false); fetchUsersData();
-            const sumData = await userService.getSummary(); setSummary(prev => ({ ...prev, totalUsers: sumData.totalUsers, activeUsers: sumData.activeUsers }));
+            const sumData = await userService.getSummary(); setSummary(prev => ({ ...prev, totalCount: sumData.totalCount, activeCount: sumData.activeCount, passiveCount: sumData.passiveCount }));
         } catch (err) { showNotification(err.message || 'Error saving user', 'error'); } finally { setSaving(false); }
     };
 
@@ -380,7 +382,7 @@ const MyOffice = () => {
                     showNotification('User deleted successfully');
                     fetchUsersData();
                     const sumData = await userService.getSummary();
-                    setSummary(prev => ({ ...prev, totalUsers: sumData.totalUsers, activeUsers: sumData.activeUsers }));
+                    setSummary(prev => ({ ...prev, totalCount: sumData.totalCount, activeCount: sumData.activeCount, passiveCount: sumData.passiveCount }));
                 } catch (err) { showNotification(err.message || 'Error deleting user', 'error'); }
             }
         );
@@ -393,8 +395,8 @@ const MyOffice = () => {
         showNotification('User list exported as CSV.');
     };
 
-    const openAddGuest = () => { setEditingGuest(null); setGuestFormData({ gender: 'MALE', firstName: '', lastName: '', birthDate: '', country: '', passportNo: '', passportExpiry: '', email: '', phoneCountryCode: '90', phoneNumber: '' }); setIsGuestModalOpen(true); };
-    const openEditGuest = (g) => { setEditingGuest(g); setGuestFormData({ gender: g.gender || 'MALE', firstName: g.firstName, lastName: g.lastName, birthDate: g.birthDate, country: g.country, passportNo: g.passportNo, passportExpiry: g.passportExpiry, email: g.email, phoneCountryCode: g.phoneCountryCode || '90', phoneNumber: g.phoneNumber || '' }); setIsGuestModalOpen(true); };
+    const openAddGuest = () => { setEditingGuest(null); setGuestFormData({ gender: 'MALE', firstName: '', lastName: '', birthDate: '', country: '', passportNo: '', passportExpiry: '', email: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE' }); setIsGuestModalOpen(true); };
+    const openEditGuest = (g) => { setEditingGuest(g); setGuestFormData({ gender: g.gender || 'MALE', firstName: g.firstName, lastName: g.lastName, birthDate: g.birthDate, country: g.country, passportNo: g.passportNo, passportExpiry: g.passportExpiry, email: g.email, phoneCountryCode: g.phoneCountryCode || '90', phoneNumber: g.phoneNumber || '', status: g.status || 'ACTIVE' }); setIsGuestModalOpen(true); };
     const handleGuestSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -404,7 +406,7 @@ const MyOffice = () => {
             if (editingGuest) { await guestService.updateGuest(editingGuest.id, guestFormData); showNotification('Guest updated successfully'); }
             else { await guestService.saveGuest(guestFormData); showNotification('Guest created successfully'); }
             setIsGuestModalOpen(false); fetchGuestsData();
-            const sumData = await guestService.getSummary(); setSummary(prev => ({ ...prev, totalGuests: sumData.numberOfItems || sumData.totalGuests, activeGuests: sumData.activeGuests }));
+            const sumData = await guestService.getSummary(); setSummary(prev => ({ ...prev, totalGuestCount: sumData.totalCount, activeGuestCount: sumData.activeCount, passiveGuestCount: sumData.passiveCount }));
         } catch (err) { showNotification(err.message || 'Error saving guest', 'error'); } finally { setSaving(false); }
     };
 
@@ -418,7 +420,7 @@ const MyOffice = () => {
                     showNotification('Guest deleted successfully');
                     fetchGuestsData();
                     const sumData = await guestService.getSummary();
-                    setSummary(prev => ({ ...prev, totalGuests: sumData.numberOfItems || sumData.totalGuests, activeGuests: sumData.activeGuests }));
+                    setSummary(prev => ({ ...prev, totalGuestCount: sumData.totalCount, activeGuestCount: sumData.activeCount, passiveGuestCount: sumData.passiveCount }));
                 } catch (err) { showNotification(err.message || 'Error deleting guest', 'error'); }
             }
         );
@@ -475,8 +477,8 @@ const MyOffice = () => {
                     <div className="mb-6 flex gap-10 border-b border-slate-200 dark:border-slate-800">
                         {[
                             { id: 'general', label: 'General Information', icon: 'info' },
-                            { id: 'users', label: 'Users', count: statsLoading ? 'loading' : summary.totalUsers, icon: 'groups' },
-                            { id: 'guests', label: 'Guests', count: statsLoading ? 'loading' : summary.totalGuests, icon: 'recent_actors' }
+                            { id: 'users', label: 'Users', count: statsLoading ? 'loading' : summary.totalCount, icon: 'groups' },
+                            { id: 'guests', label: 'Guests', count: statsLoading ? 'loading' : summary.totalGuestCount, icon: 'recent_actors' }
                         ].map((tab) => (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`pb-4 text-[10px] font-bold uppercase tracking-widest relative flex items-center gap-2.5 transition-all ${activeTab === tab.id ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}>
                                 <span className="material-icons-round text-lg">{tab.icon}</span> {tab.label} 
@@ -511,7 +513,50 @@ const MyOffice = () => {
                                 </div>
                             </div>
                         ) : activeTab === 'users' ? (
-                            <div className="h-full flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm">
+                            <div className="h-full flex flex-col gap-6 overflow-hidden">
+                                {/* User Summary Cards */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="bg-[#eff6ff] dark:bg-blue-900/10 p-4 rounded-[24px] border border-blue-100/50 dark:border-blue-800/20 shadow-sm">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">Total Users</span>
+                                            <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
+                                                <span className="material-icons-round text-lg">groups</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-end gap-1.5">
+                                            <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalCount}</div>
+                                            <div className="text-[9px] font-bold text-blue-400 mb-0.5">MEMBERS</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-[#f0fdf4] dark:bg-emerald-900/10 p-4 rounded-[24px] border border-emerald-100/50 dark:border-emerald-800/20 shadow-sm">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">Active Users</span>
+                                            <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
+                                                <span className="material-icons-round text-lg">person_check</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-end gap-1.5">
+                                            <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.activeCount}</div>
+                                            <div className="text-[9px] font-bold text-emerald-400 mb-0.5">ONLINE</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-[#fef2f2] dark:bg-red-900/10 p-4 rounded-[24px] border border-red-100/50 dark:border-red-800/20 shadow-sm">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="text-[9px] font-bold text-red-600 dark:text-red-400 uppercase tracking-[0.2em]">Passive Users</span>
+                                            <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-red-600 shadow-sm">
+                                                <span className="material-icons-round text-lg">person_off</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-end gap-1.5">
+                                            <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.passiveCount}</div>
+                                            <div className="text-[9px] font-bold text-red-400 mb-0.5">DISABLED</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm">
                                 <div className="p-6 border-b border-slate-50 dark:border-white/5 flex flex-wrap items-center justify-between gap-4">
                                     <div className="flex items-center gap-4 flex-1 max-w-2xl">
                                         <div className="relative flex-1">
@@ -535,15 +580,59 @@ const MyOffice = () => {
                                 </div>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                                     <table className="w-full data-table">
-                                        <thead><tr><th className="w-12 text-center"><input type="checkbox" className="rounded border-slate-300" /></th><th>User</th><th>Contact</th><th>Role</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                                        <thead><tr><th>User</th><th>Contact</th><th>Role</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                                         <tbody>
-                                            {usersLoading ? <TableSkeleton columns={6} /> : users.length > 0 ? users.map((u) => (<tr key={u.id} className="data-row transition-colors"><td className="text-center"><input type="checkbox" className="rounded border-slate-300" /></td><td><div className="flex items-center gap-3"><div className={`size-10 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br ${u.id % 2 === 0 ? 'from-primary to-blue-600' : 'from-emerald-500 to-teal-600'}`}>{u.name?.[0]}{u.surname?.[0]}</div><div><p className="font-bold text-slate-900 dark:text-white leading-none mb-1">{u.name} {u.surname}</p><p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {u.id}</p></div></div></td><td><div className="space-y-1"><div className="flex items-center gap-2 text-slate-500"><span className="material-icons-round text-sm">mail_outline</span> {u.email}</div>{u.phoneNumber && <div className="flex items-center gap-2 text-slate-400 text-xs"><span className="material-icons-round text-sm">phone_iphone</span> +{u.phoneCountryCode} {u.phoneNumber}</div>}</div></td><td><div className="flex flex-wrap gap-1">{u.roles?.length > 0 ? u.roles.map((r, idx) => (<span key={r.id || idx} className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-primary text-[10px] font-bold rounded-full">{r.roleName || r.name}</span>)) : <span className="text-slate-300 text-[10px] font-bold italic">No Role</span>}</div></td><td><div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${u.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}><div className={`size-1.5 rounded-full ${u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>{u.status === 'ACTIVE' ? 'Active' : 'Passive'}</div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditUser(u)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-lg">edit</span></button><button onClick={() => handleDeleteUser(u.id)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-lg">delete_outline</span></button></div></td></tr>)) : (<tr><td colSpan="6" className="py-20 text-center"><p className="text-slate-400 text-sm font-medium italic">No users found</p></td></tr>)}
+                                            {usersLoading ? <TableSkeleton columns={5} /> : users.length > 0 ? users.map((u) => (<tr key={u.id} className="data-row transition-colors"><td><div className="flex items-center gap-3"><div className={`size-10 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br ${u.id % 2 === 0 ? 'from-primary to-blue-600' : 'from-emerald-500 to-teal-600'}`}>{u.name?.[0]}{u.surname?.[0]}</div><div><p className="font-bold text-slate-900 dark:text-white leading-none mb-1">{u.name} {u.surname}</p><p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {u.id}</p></div></div></td><td><div className="space-y-1"><div className="flex items-center gap-2 text-slate-500"><span className="material-icons-round text-sm">mail_outline</span> {u.email}</div>{u.phoneNumber && <div className="flex items-center gap-2 text-slate-400 text-xs"><span className="material-icons-round text-sm">phone_iphone</span> +{u.phoneCountryCode} {u.phoneNumber}</div>}</div></td><td><div className="flex flex-wrap gap-1">{u.roles?.length > 0 ? u.roles.map((r, idx) => (<span key={r.id || idx} className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-primary text-[10px] font-bold rounded-full">{r.roleName || r.name}</span>)) : <span className="text-slate-300 text-[10px] font-bold italic">No Role</span>}</div></td><td><div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${u.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}><div className={`size-1.5 rounded-full ${u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>{u.status === 'ACTIVE' ? 'Active' : 'Passive'}</div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditUser(u)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-lg">edit</span></button><button onClick={() => handleDeleteUser(u.id)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-lg">delete_outline</span></button></div></td></tr>)) : (<tr><td colSpan="5" className="py-20 text-center"><p className="text-slate-400 text-sm font-medium italic">No users found</p></td></tr>)}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="h-full flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm">
+                        </div>
+                    ) : (
+                        <div className="h-full flex flex-col gap-6 overflow-hidden">
+                            {/* Guest Summary Cards */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="bg-[#f5f3ff] dark:bg-purple-900/10 p-4 rounded-[24px] border border-purple-100/50 dark:border-purple-800/20 shadow-sm">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className="text-[9px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-[0.2em]">Total Guests</span>
+                                        <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-purple-600 shadow-sm">
+                                            <span className="material-icons-round text-lg">recent_actors</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-end gap-1.5">
+                                        <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalGuestCount}</div>
+                                        <div className="text-[9px] font-bold text-purple-400 mb-0.5">PROFILES</div>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-[#f0fdf4] dark:bg-emerald-900/10 p-4 rounded-[24px] border border-emerald-100/50 dark:border-emerald-800/20 shadow-sm">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">Active Guests</span>
+                                        <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
+                                            <span className="material-icons-round text-lg">how_to_reg</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-end gap-1.5">
+                                        <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.activeGuestCount}</div>
+                                        <div className="text-[9px] font-bold text-emerald-400 mb-0.5">VERIFIED</div>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-[#fef2f2] dark:bg-red-900/10 p-4 rounded-[24px] border border-red-100/50 dark:border-red-800/20 shadow-sm">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <span className="text-[9px] font-bold text-red-600 dark:text-red-400 uppercase tracking-[0.2em]">Passive Guests</span>
+                                        <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-red-600 shadow-sm">
+                                            <span className="material-icons-round text-lg">person_remove</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-end gap-1.5">
+                                        <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.passiveGuestCount}</div>
+                                        <div className="text-[9px] font-bold text-red-400 mb-0.5">ARCHIVED</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm">
                                 <div className="p-6 border-b border-slate-50 dark:border-white/5 flex flex-wrap items-center justify-between gap-4">
                                     <div className="flex items-center gap-4 flex-1 max-w-2xl">
                                         <div className="relative flex-1">
@@ -554,6 +643,10 @@ const MyOffice = () => {
                                             <option value="">All Countries</option>
                                             {countries.slice(0, 20).map(c => <option key={c.locationId} value={c.isoCode}>{c.name?.defaultName}</option>)}
                                         </select>
+                                        <select value={guestFilters.status} onChange={(e) => handleGuestFilterChange({ ...guestFilters, status: e.target.value })} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer">
+                                            <option value="ACTIVE">Active</option>
+                                            <option value="PASSIVE">Passive</option>
+                                        </select>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <button onClick={() => fetchGuestsData(true)} className={`size-11 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 transition-all text-slate-500 ${guestsLoading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}><span className="material-icons-round text-lg">refresh</span></button>
@@ -563,16 +656,17 @@ const MyOffice = () => {
                                 </div>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                                     <table className="w-full data-table">
-                                        <thead><tr><th className="w-12 text-center"><input type="checkbox" className="rounded border-slate-300" /></th><th>Guest</th><th>Birth & Country</th><th>Passport</th><th>Contact</th><th className="text-right">Actions</th></tr></thead>
+                                        <thead><tr><th>Guest</th><th>Birth & Country</th><th>Passport</th><th>Contact</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                                         <tbody>
                                             {guestsLoading ? <TableSkeleton columns={6} /> : guests.length > 0 ? guests.map((g) => (
-                                                <tr key={g.id} className="data-row transition-colors"><td className="text-center"><input type="checkbox" className="rounded border-slate-300" /></td><td><div className="flex items-center gap-3"><div className={`size-10 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br from-purple-500 to-indigo-600`}>{g.firstName?.[0]}{g.lastName?.[0]}</div><div><p className="font-bold text-slate-900 dark:text-white leading-none mb-1">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p><p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {g.id}</p></div></div></td><td><div className="flex items-center gap-3"><div className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-slate-500">{g.country || 'TR'}</div><div><p className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-0.5">Born: {g.birthDate || 'Unknown'}</p></div></div></td><td><div className="flex items-center gap-2"><div className="size-6 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-sm">badge</span></div><div><p className="text-xs font-bold text-slate-900 dark:text-white">{g.passportNo || 'N/A'}</p><p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p></div></div></td><td><div className="space-y-1"><div className="flex items-center gap-2 text-slate-500"><span className="material-icons-round text-sm">mail_outline</span> {g.email}</div>{g.phoneNumber && <div className="flex items-center gap-2 text-slate-400 text-xs"><span className="material-icons-round text-sm">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}</div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditGuest(g)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-lg">edit</span></button><button onClick={() => handleDeleteGuest(g.id)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-lg">delete_outline</span></button></div></td></tr>
+                                                <tr key={g.id} className="data-row transition-colors"><td><div className="flex items-center gap-3"><div className={`size-10 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br from-purple-500 to-indigo-600`}>{g.firstName?.[0]}{g.lastName?.[0]}</div><div><p className="font-bold text-slate-900 dark:text-white leading-none mb-1">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p><p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {g.id}</p></div></div></td><td><div className="flex items-center gap-3"><div className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-slate-500">{g.country || 'TR'}</div><div><p className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-0.5">Born: {g.birthDate || 'Unknown'}</p></div></div></td><td><div className="flex items-center gap-2"><div className="size-6 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-sm">badge</span></div><div><p className="text-xs font-bold text-slate-900 dark:text-white">{g.passportNo || 'N/A'}</p><p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p></div></div></td><td><div className="space-y-1"><div className="flex items-center gap-2 text-slate-500"><span className="material-icons-round text-sm">mail_outline</span> {g.email}</div>{g.phoneNumber && <div className="flex items-center gap-2 text-slate-400 text-xs"><span className="material-icons-round text-sm">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}</div></td><td><div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${g.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}><div className={`size-1.5 rounded-full ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditGuest(g)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-lg">edit</span></button><button onClick={() => handleDeleteGuest(g.id)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-lg">delete_outline</span></button></div></td></tr>
                                             )) : (<tr><td colSpan="6" className="py-20 text-center"><p className="text-slate-400 text-sm font-medium italic">No guests found</p></td></tr>)}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-                        )}
+                        </div>
+                    )}
                     </div>
                 </div>
             </main>
@@ -654,7 +748,10 @@ const MyOffice = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label><input type="email" required value={guestFormData.email} onChange={(e) => setGuestFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" placeholder="example@mail.com" /></div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label><input type="email" required value={guestFormData.email} onChange={(e) => setGuestFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" placeholder="example@mail.com" /></div>
+                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Status</label><select value={guestFormData.status} onChange={(e) => setGuestFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary"><option value="ACTIVE">Active</option><option value="PASSIVE">Passive</option></select></div>
+                            </div>
                             <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label><div className="grid grid-cols-4 gap-2"><input type="text" value={guestFormData.phoneCountryCode} onChange={(e) => setGuestFormData(prev => ({ ...prev, phoneCountryCode: e.target.value }))} className="h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-center text-xs font-bold outline-none" placeholder="+90" /><input type="text" value={guestFormData.phoneNumber} onChange={(e) => setGuestFormData(prev => ({ ...prev, phoneNumber: e.target.value }))} className="col-span-3 h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" placeholder="5XX..." /></div></div>
                             <div className="pt-4 flex items-center justify-end gap-3"><button type="button" onClick={() => setIsGuestModalOpen(false)} className="h-11 px-6 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Cancel</button><button type="submit" disabled={saving} className="h-11 px-8 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">{saving ? 'Processing...' : 'Save Guest'}</button></div>
                         </form>

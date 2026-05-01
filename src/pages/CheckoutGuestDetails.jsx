@@ -9,8 +9,10 @@ const CheckoutGuestDetails = () => {
     const navigate = useNavigate();
     const { selectedRooms, hotel, roomState, checkInDate, checkOutDate, rateSearchUuid: initialRateSearchUuid } = location.state || {};
 
-    const [checkRatesData, setCheckRatesData] = useState(null);
-    const [isLoadingRates, setIsLoadingRates] = useState(false);
+    const [checkRatesData, setCheckRatesData] = useState(() => {
+        return location.state?.checkRatesData || null;
+    });
+    const [isLoadingRates, setIsLoadingRates] = useState(!location.state?.checkRatesData);
     const [rateSearchUuid, setRateSearchUuid] = useState(initialRateSearchUuid);
 
     // Calculate nights for accurate pricing
@@ -41,6 +43,12 @@ const CheckoutGuestDetails = () => {
 
     // Fetch latest rates and info on mount
     useEffect(() => {
+        if (location.state?.checkRatesData) {
+            // Data was passed from the previous page, do not fetch again
+            setIsLoadingRates(false);
+            return;
+        }
+
         const fetchRates = async () => {
             if (!selectedRooms || selectedRooms.length === 0) return;
             

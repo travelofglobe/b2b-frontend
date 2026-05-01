@@ -156,6 +156,19 @@ const CheckoutPayment = () => {
 
             const response = await hotelService.book(requestBody);
 
+            // Delete session from Redis on successful confirmation with voucher
+            if (response && response.status === 'CONFIRMED' && response.voucher) {
+                try {
+                    const params = new URLSearchParams(window.location.search);
+                    const sid = params.get('sessionId');
+                    if (sid) {
+                        await hotelService.deleteCheckoutSession(sid);
+                    }
+                } catch (e) {
+                    console.error('Failed to delete session after booking confirmation:', e);
+                }
+            }
+
             navigate('/hotel/checkout/result', {
                 state: {
                     ...location.state,

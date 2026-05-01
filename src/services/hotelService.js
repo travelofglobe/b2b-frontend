@@ -199,6 +199,14 @@ export const hotelService = {
      */
     getCheckoutSession: async (sessionId) => {
         return apiClient.get(`${API_BASE_URL}/checkout/session/${sessionId}`);
+    },
+
+    /**
+     * Delete checkout session.
+     * @param {string} sessionId
+     */
+    deleteCheckoutSession: async (sessionId) => {
+        return apiClient.delete(`${API_BASE_URL}/checkout/session/${sessionId}`);
     }
 };
 

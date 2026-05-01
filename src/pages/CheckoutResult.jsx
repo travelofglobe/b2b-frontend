@@ -37,9 +37,19 @@ const CheckoutResult = () => {
                             Booking Reference
                         </h2>
                         <div className="mb-8">
-                            <p className="text-4xl font-black text-primary tracking-tighter mb-1">{bookingRef}</p>
-                            <p className={`text-[10px] font-black uppercase tracking-widest ${isSuccess ? 'text-emerald-500' : 'text-red-500'}`}>
-                                {isSuccess ? 'Instant Confirmation' : 'Reservation Failed'}
+                            <Link 
+                                to={`/bookings/${bookingRef}`}
+                                title="Click to view full booking details"
+                                className="inline-flex items-center gap-3 text-4xl font-black text-primary hover:text-primary-dark dark:hover:text-primary-light tracking-tighter mb-2 hover:underline decoration-primary/50 underline-offset-4 cursor-pointer transition-all group"
+                            >
+                                <span>{bookingRef}</span>
+                                <span className="material-symbols-outlined text-3xl group-hover:translate-x-1 duration-200 transition-transform select-none">
+                                    arrow_right_alt
+                                </span>
+                            </Link>
+                            <p className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1 ${isSuccess ? 'text-emerald-500' : 'text-red-500'}`}>
+                                <span className="material-symbols-outlined text-sm">info</span>
+                                {isSuccess ? 'Instant Confirmation • Click reference to view details' : 'Reservation Failed'}
                             </p>
                         </div>
                         <div className="space-y-4 pt-8 border-t border-slate-200 dark:border-slate-800">

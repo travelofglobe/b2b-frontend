@@ -53,7 +53,9 @@ const apiClient = {
                 } catch (e) {
                     throw new Error(`API Error: ${response.status}`);
                 }
-                throw new Error(errorData.message || `API Error: ${response.status}`);
+                const err = new Error(errorData.message || `API Error: ${response.status}`);
+                err.response = errorData;
+                throw err;
             }
 
             // Return parsed JSON

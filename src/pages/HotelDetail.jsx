@@ -520,7 +520,7 @@ const HotelDetail = () => {
                             </div>
 
                             <button
-                                onClick={() => navigate(`/map?hotelId=${hotel.id}`)}
+                                onClick={() => navigate(`/map?${searchParams.toString()}&hotelIds=${hotel.id}`)}
                                 className="text-primary text-sm font-bold hover:underline">
                                 Show on Map
                             </button>

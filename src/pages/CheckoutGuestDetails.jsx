@@ -107,12 +107,30 @@ const CheckoutGuestDetails = () => {
                         .sort()
                         .join('_');
 
-                    const encoder = new TextEncoder();
-                    const data = encoder.encode(concatRateCodes);
-                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                    const hashArray = Array.from(new Uint8Array(hashBuffer));
-                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                    const sid = hashHex.substring(0, 16);
+                    let sid = '';
+                    if (window.crypto && window.crypto.subtle) {
+                        try {
+                            const encoder = new TextEncoder();
+                            const data = encoder.encode(concatRateCodes);
+                            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                            const hashArray = Array.from(new Uint8Array(hashBuffer));
+                            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                            sid = hashHex.substring(0, 16);
+                        } catch (e) {
+                            console.warn('Subtle crypto failed, falling back to simple hash', e);
+                        }
+                    }
+
+                    // Fallback for non-HTTPS insecure environments or exceptions
+                    if (!sid) {
+                        let hash = 0;
+                        for (let i = 0; i < concatRateCodes.length; i++) {
+                            const char = concatRateCodes.charCodeAt(i);
+                            hash = ((hash << 5) - hash) + char;
+                            hash = hash & hash; // Convert to 32bit integer
+                        }
+                        sid = Math.abs(hash).toString(16).padEnd(16, 'a');
+                    }
 
                     setSessionId(sid);
                     window.history.replaceState(null, '', `${window.location.pathname}?sessionId=${sid}`);

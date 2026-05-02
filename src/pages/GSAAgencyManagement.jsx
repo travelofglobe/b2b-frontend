@@ -29,6 +29,12 @@ const GSAAgencyManagement = () => {
         page: 0,
         size: 20
     });
+    const [agencySummary, setAgencySummary] = useState({
+        totalAgencyCount: 0,
+        activeAgencyCount: 0,
+        passiveAgencyCount: 0,
+        directIntegrationAgencyCount: 0
+    });
 
     // Agency Groups State
     const [agencyGroups, setAgencyGroups] = useState([]);
@@ -116,11 +122,23 @@ const GSAAgencyManagement = () => {
         }
     }, [agencyFilters]);
 
+    const fetchAgencySummary = useCallback(async () => {
+        try {
+            const response = await agencyService.getSummary();
+            if (response) {
+                setAgencySummary(response);
+            }
+        } catch (error) {
+            console.error('Error fetching agency summary:', error);
+        }
+    }, []);
+
     useEffect(() => {
         if (activeTab === 'agencies') {
             fetchAgencies();
+            fetchAgencySummary();
         }
-    }, [fetchAgencies, activeTab]);
+    }, [fetchAgencies, fetchAgencySummary, activeTab]);
 
     const handleFilterChange = (field, value) => {
         setAgencyFilters(prev => ({ ...prev, [field]: value, page: 0 }));
@@ -226,6 +244,7 @@ const GSAAgencyManagement = () => {
             if (deleteModal.type === 'agency') {
                 await agencyService.deleteAgency(deleteModal.id);
                 fetchAgencies();
+                fetchAgencySummary();
             } else {
                 await agencyGroupService.deleteGroup(deleteModal.id);
                 fetchAgencyGroups();
@@ -262,9 +281,11 @@ const GSAAgencyManagement = () => {
             if (agencyFilters.status) {
                 fetchAgencies();
             }
+            fetchAgencySummary();
         } catch (error) {
             console.error('Error toggling status:', error);
             fetchAgencies();
+            fetchAgencySummary();
             alert('Failed to update status');
         }
     };
@@ -301,7 +322,64 @@ const GSAAgencyManagement = () => {
             {/* Content Area */}
             <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                 {activeTab === 'agencies' ? (
-                    <div className="space-y-6 flex flex-col h-full overflow-hidden">
+                    <div className="space-y-4 flex flex-col h-full overflow-hidden">
+                        {/* Agency Summary Boxes */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
+                            {[
+                                { 
+                                    label: 'Total Agencies', 
+                                    value: agencySummary.totalAgencyCount, 
+                                    icon: 'business_center', 
+                                    textColor: 'text-blue-600 dark:text-blue-400',
+                                    bgColor: 'bg-blue-50/50 dark:bg-blue-900/20',
+                                    borderColor: 'border-blue-200 dark:border-blue-800/40',
+                                    iconBg: 'bg-blue-100/50 dark:bg-blue-500/20'
+                                },
+                                { 
+                                    label: 'Active Agencies', 
+                                    value: agencySummary.activeAgencyCount, 
+                                    icon: 'check_circle', 
+                                    textColor: 'text-emerald-600 dark:text-emerald-400',
+                                    bgColor: 'bg-emerald-50/50 dark:bg-emerald-900/20',
+                                    borderColor: 'border-emerald-200 dark:border-emerald-800/40',
+                                    iconBg: 'bg-emerald-100/50 dark:bg-emerald-500/20'
+                                },
+                                { 
+                                    label: 'Passive Agencies', 
+                                    value: agencySummary.passiveAgencyCount, 
+                                    icon: 'pause_circle', 
+                                    textColor: 'text-rose-600 dark:text-rose-400',
+                                    bgColor: 'bg-rose-50/50 dark:bg-rose-900/20',
+                                    borderColor: 'border-rose-200 dark:border-rose-800/40',
+                                    iconBg: 'bg-rose-100/50 dark:bg-rose-500/20'
+                                },
+                                { 
+                                    label: 'Direct Integration', 
+                                    value: agencySummary.directIntegrationAgencyCount, 
+                                    icon: 'electric_bolt', 
+                                    textColor: 'text-violet-600 dark:text-violet-400',
+                                    bgColor: 'bg-violet-50/50 dark:bg-violet-900/20',
+                                    borderColor: 'border-violet-200 dark:border-violet-800/40',
+                                    iconBg: 'bg-violet-100/50 dark:bg-violet-500/20'
+                                }
+                            ].map((stat, idx) => (
+                                <div key={idx} className={`${stat.bgColor} ${stat.borderColor} p-4 rounded-[28px] border flex items-center justify-between shadow-sm transition-all hover:scale-[1.01]`}>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`size-10 rounded-2xl ${stat.iconBg} flex items-center justify-center`}>
+                                            <span className={`material-icons-round ${stat.textColor} text-xl`}>{stat.icon}</span>
+                                        </div>
+                                        <div>
+                                            <p className={`text-[10px] font-black uppercase tracking-widest opacity-60 ${stat.textColor}`}>{stat.label}</p>
+                                            <p className="text-2xl font-black text-slate-900 dark:text-white leading-none mt-1">{stat.value}</p>
+                                        </div>
+                                    </div>
+                                    <div className={`px-2 py-1 ${stat.iconBg} rounded-lg text-[9px] font-black ${stat.textColor} uppercase tracking-tighter`}>
+                                        Summary
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
                         {/* Filters Row - Integrated Add Agency Button */}
                         <div className="flex flex-col lg:flex-row items-center gap-4 shrink-0">
                             <div className="relative flex-[3] w-full">
@@ -519,7 +597,7 @@ const GSAAgencyManagement = () => {
                                     icon: 'groups', 
                                     textColor: 'text-blue-600 dark:text-blue-400',
                                     bgColor: 'bg-blue-50/50 dark:bg-blue-900/20',
-                                    borderColor: 'border-blue-100/50 dark:border-blue-800/20',
+                                    borderColor: 'border-blue-200 dark:border-blue-800/40',
                                     iconBg: 'bg-blue-100/50 dark:bg-blue-500/20'
                                 },
                                 { 
@@ -528,7 +606,7 @@ const GSAAgencyManagement = () => {
                                     icon: 'check_circle', 
                                     textColor: 'text-emerald-600 dark:text-emerald-400',
                                     bgColor: 'bg-emerald-50/50 dark:bg-emerald-900/20',
-                                    borderColor: 'border-emerald-100/50 dark:border-emerald-800/20',
+                                    borderColor: 'border-emerald-200 dark:border-emerald-800/40',
                                     iconBg: 'bg-emerald-100/50 dark:bg-emerald-500/20'
                                 },
                                 { 
@@ -537,7 +615,7 @@ const GSAAgencyManagement = () => {
                                     icon: 'pause_circle', 
                                     textColor: 'text-rose-600 dark:text-rose-400',
                                     bgColor: 'bg-rose-50/50 dark:bg-rose-900/20',
-                                    borderColor: 'border-rose-100/50 dark:border-rose-800/20',
+                                    borderColor: 'border-rose-200 dark:border-rose-800/40',
                                     iconBg: 'bg-rose-100/50 dark:bg-rose-500/20'
                                 }
                             ].map((stat, idx) => (
@@ -720,7 +798,10 @@ const GSAAgencyManagement = () => {
             <AddAgencyModal 
                 isOpen={agencyModal.isOpen} 
                 onClose={() => setAgencyModal({ ...agencyModal, isOpen: false })} 
-                onSuccess={fetchAgencies}
+                onSuccess={() => {
+                    fetchAgencies();
+                    fetchAgencySummary();
+                }}
                 mode={agencyModal.mode}
                 initialData={agencyModal.data}
             />

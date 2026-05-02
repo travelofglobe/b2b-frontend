@@ -20,15 +20,15 @@ export const agencyService = {
         return apiClient.post(`${API_BASE_URL}/agency/filter?page=${page}&size=${size}`, data, { signal });
     },
 
+    getSummary: async () => {
+        return apiClient.get(`${API_BASE_URL}/agency/get-summary`);
+    },
+
     createAgency: async (data) => {
         return apiClient.post(`${API_BASE_URL}/agency`, data);
     },
 
     deleteAgency: async (id) => {
         return apiClient.delete(`${API_BASE_URL}/agency/${id}`);
-    },
-
-    updateAgency: async (id, data) => {
-        return apiClient.put(`${API_BASE_URL}/agency/update-by-id/${id}`, data);
     }
 };

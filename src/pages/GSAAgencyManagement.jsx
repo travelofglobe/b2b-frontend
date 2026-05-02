@@ -40,6 +40,11 @@ const GSAAgencyManagement = () => {
         size: 10
     });
     const [isGroupsLoading, setIsGroupsLoading] = useState(false);
+    const [groupSummary, setGroupSummary] = useState({
+        totalGroupCount: 0,
+        activeGroupCount: 0,
+        passiveGroupCount: 0
+    });
 
     const getName = (obj, lang = 'en') => {
         if (!obj) return '';
@@ -150,11 +155,23 @@ const GSAAgencyManagement = () => {
         }
     }, [groupFilters]);
 
+    const fetchGroupSummary = useCallback(async () => {
+        try {
+            const response = await agencyGroupService.getSummary();
+            if (response) {
+                setGroupSummary(response);
+            }
+        } catch (error) {
+            console.error('Error fetching group summary:', error);
+        }
+    }, []);
+
     useEffect(() => {
         if (activeTab === 'groups') {
             fetchAgencyGroups();
+            fetchGroupSummary();
         }
-    }, [fetchAgencyGroups, activeTab]);
+    }, [fetchAgencyGroups, fetchGroupSummary, activeTab]);
 
     const handleGroupStatusToggle = async (group) => {
         const newStatus = group.status === 'ACTIVE' ? 'PASSIVE' : 'ACTIVE';
@@ -177,9 +194,11 @@ const GSAAgencyManagement = () => {
             if (groupFilters.status) {
                 fetchAgencyGroups();
             }
+            fetchGroupSummary();
         } catch (error) {
             console.error('Error toggling group status:', error);
             fetchAgencyGroups();
+            fetchGroupSummary();
             alert('Failed to update group status');
         }
     };
@@ -210,6 +229,7 @@ const GSAAgencyManagement = () => {
             } else {
                 await agencyGroupService.deleteGroup(deleteModal.id);
                 fetchAgencyGroups();
+                fetchGroupSummary();
             }
             setDeleteModal({ isOpen: false, id: null, name: '', type: 'agency', isDeleting: false });
         } catch (error) {
@@ -489,7 +509,55 @@ const GSAAgencyManagement = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="space-y-6 flex flex-col h-full overflow-hidden animate-in fade-in duration-500">
+                    <div className="space-y-4 flex flex-col h-full overflow-hidden animate-in fade-in duration-500">
+                        {/* Summary Boxes */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0">
+                            {[
+                                { 
+                                    label: 'Total Groups', 
+                                    value: groupSummary.totalGroupCount, 
+                                    icon: 'groups', 
+                                    textColor: 'text-blue-600 dark:text-blue-400',
+                                    bgColor: 'bg-blue-50/50 dark:bg-blue-900/20',
+                                    borderColor: 'border-blue-100/50 dark:border-blue-800/20',
+                                    iconBg: 'bg-blue-100/50 dark:bg-blue-500/20'
+                                },
+                                { 
+                                    label: 'Active Groups', 
+                                    value: groupSummary.activeGroupCount, 
+                                    icon: 'check_circle', 
+                                    textColor: 'text-emerald-600 dark:text-emerald-400',
+                                    bgColor: 'bg-emerald-50/50 dark:bg-emerald-900/20',
+                                    borderColor: 'border-emerald-100/50 dark:border-emerald-800/20',
+                                    iconBg: 'bg-emerald-100/50 dark:bg-emerald-500/20'
+                                },
+                                { 
+                                    label: 'Passive Groups', 
+                                    value: groupSummary.passiveGroupCount, 
+                                    icon: 'pause_circle', 
+                                    textColor: 'text-rose-600 dark:text-rose-400',
+                                    bgColor: 'bg-rose-50/50 dark:bg-rose-900/20',
+                                    borderColor: 'border-rose-100/50 dark:border-rose-800/20',
+                                    iconBg: 'bg-rose-100/50 dark:bg-rose-500/20'
+                                }
+                            ].map((stat, idx) => (
+                                <div key={idx} className={`${stat.bgColor} ${stat.borderColor} p-4 rounded-[28px] border flex items-center justify-between shadow-sm transition-all hover:scale-[1.01]`}>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`size-10 rounded-2xl ${stat.iconBg} flex items-center justify-center`}>
+                                            <span className={`material-icons-round ${stat.textColor} text-xl`}>{stat.icon}</span>
+                                        </div>
+                                        <div>
+                                            <p className={`text-[10px] font-black uppercase tracking-widest opacity-60 ${stat.textColor}`}>{stat.label}</p>
+                                            <p className="text-2xl font-black text-slate-900 dark:text-white leading-none mt-1">{stat.value}</p>
+                                        </div>
+                                    </div>
+                                    <div className={`px-2 py-1 ${stat.iconBg} rounded-lg text-[9px] font-black ${stat.textColor} uppercase tracking-tighter`}>
+                                        Summary
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
                         {/* Group Filters Row */}
                         <div className="flex flex-col lg:flex-row items-center gap-4 shrink-0">
                             <div className="relative flex-[3] w-full">
@@ -660,7 +728,10 @@ const GSAAgencyManagement = () => {
             <AddAgencyGroupModal 
                 isOpen={groupModal.isOpen} 
                 onClose={() => setGroupModal({ ...groupModal, isOpen: false })} 
-                onSuccess={fetchAgencyGroups}
+                onSuccess={() => {
+                    fetchAgencyGroups();
+                    fetchGroupSummary();
+                }}
                 mode={groupModal.mode}
                 initialData={groupModal.data}
             />

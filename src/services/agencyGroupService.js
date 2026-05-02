@@ -7,6 +7,10 @@ export const agencyGroupService = {
         const { page = 0, size = 10, ...data } = params;
         return apiClient.post(`${API_BASE_URL}/agency-group/filter?page=${page}&size=${size}`, data, { signal });
     },
+
+    getSummary: async () => {
+        return apiClient.get(`${API_BASE_URL}/agency-group/summary`);
+    },
     
     // Placeholder for upcoming services (create, update, delete will be added as user provides them)
     createGroup: async (data) => {

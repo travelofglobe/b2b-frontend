@@ -309,7 +309,13 @@ const HeaderSearch = () => {
         setQuery(fullName);
         localStorage.setItem('dashboard_last_search', fullName);
 
-        // Removed immediate navigation
+        const hId = hotel.hotelId || hotel.id?.replace('hotel_', '');
+        const searchParamsString = getUrlParams(fullName);
+
+        localStorage.setItem('last_hotel_search_slug', hotel.url || hId);
+        localStorage.setItem('last_hotel_search_params', searchParamsString);
+
+        navigate(`/hotel/${hId}?${searchParamsString}`);
     };
 
     const getRegionName = (region) => {

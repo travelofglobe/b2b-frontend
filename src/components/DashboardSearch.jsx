@@ -281,6 +281,13 @@ const DashboardSearch = () => {
 
         setQuery(fullName);
 
+        const hId = hotel.hotelId || hotel.id?.replace('hotel_', '');
+        const searchParamsString = getUrlParams(fullName);
+
+        localStorage.setItem('last_hotel_search_slug', hotel.url || hId);
+        localStorage.setItem('last_hotel_search_params', searchParamsString);
+
+        navigate(`/hotel/${hId}?${searchParamsString}`);
     };
 
     // Helper to get Hotel Name

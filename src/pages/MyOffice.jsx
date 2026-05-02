@@ -8,6 +8,7 @@ import { agencyService } from '../services/agencyService';
 import { locationService } from '../services/locationService';
 import { userService, roleService } from '../services/userService';
 import { guestService } from '../services/guestService';
+import { currencyService } from '../services/currencyService';
 import HeaderActions from '../components/HeaderActions';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -177,6 +178,8 @@ const MyOffice = () => {
 
     const [countries, setCountries] = useState([]);
     const [cities, setCities] = useState([]);
+    const [finCities, setFinCities] = useState([]);
+    const [currencies, setCurrencies] = useState([]);
 
     // Single Mount Effect
     useEffect(() => {
@@ -210,12 +213,14 @@ const MyOffice = () => {
     const fetchInitialData = async (signal) => {
         try {
             setLoading(true);
-            const [agencyData, countriesData] = await Promise.all([
+            const [agencyData, countriesData, currenciesData] = await Promise.all([
                 agencyService.getMe(signal),
-                locationService.listCountries(signal)
+                locationService.listCountries(signal),
+                currencyService.listActiveCurrencies(signal)
             ]);
 
             setCountries(countriesData.locationList || []);
+            setCurrencies(currenciesData || []);
 
             let initialCities = [];
             if (agencyData.countryId) {
@@ -225,6 +230,15 @@ const MyOffice = () => {
                 } catch (e) { console.error(e); }
             }
             setCities(initialCities);
+
+            let initialFinCities = [];
+            if (agencyData.agencyFinancialInfo?.countryId) {
+                try {
+                    const finCitiesData = await locationService.listSubRegions(agencyData.agencyFinancialInfo.countryId);
+                    initialFinCities = finCitiesData.locationList || [];
+                } catch (e) { console.error(e); }
+            }
+            setFinCities(initialFinCities);
 
             let lat = agencyData.latitude || agencyData.geoLocation?.latitude || 36.6826845;
             let lng = agencyData.longitude || agencyData.geoLocation?.longitude || 30.9089719;
@@ -239,7 +253,12 @@ const MyOffice = () => {
                 officialTitle: agencyData.agencyFinancialInfo?.title || '',
                 taxOffice: agencyData.agencyFinancialInfo?.taxOffice || '',
                 taxNumber: agencyData.agencyFinancialInfo?.taxNumber || '',
-                agencyFinancialInfo: agencyData.agencyFinancialInfo || {}
+                agencyFinancialInfo: {
+                    ...agencyData.agencyFinancialInfo,
+                    title: agencyData.agencyFinancialInfo?.title || '',
+                    taxOffice: agencyData.agencyFinancialInfo?.taxOffice || '',
+                    taxNumber: agencyData.agencyFinancialInfo?.taxNumber || ''
+                }
             });
 
         } catch (err) {
@@ -328,18 +347,66 @@ const MyOffice = () => {
         } else { setCities([]); }
     };
 
-    const handleInputChange = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
+    const handleFinCountryChange = async (e) => {
+        const countryId = e.target.value;
+        setFormData(prev => ({
+            ...prev,
+            agencyFinancialInfo: { ...prev.agencyFinancialInfo, countryId, cityId: '' }
+        }));
+        if (countryId) {
+            try {
+                const citiesData = await locationService.listSubRegions(countryId);
+                setFinCities(citiesData.locationList || []);
+            } catch (err) { console.error(err); setFinCities([]); }
+        } else { setFinCities([]); }
+    };
+
+    const handleInputChange = (field, value) => {
+        if (field.includes('.')) {
+            const [parent, child] = field.split('.');
+            setFormData(prev => ({
+                ...prev,
+                [parent]: { ...prev[parent], [child]: value }
+            }));
+        } else {
+            setFormData(prev => ({ ...prev, [field]: value }));
+        }
+    };
     const setMapLocation = (latlng) => setFormData(prev => ({ ...prev, latitude: latlng[0], longitude: latlng[1] }));
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             setSaving(true);
-            const { officialTitle, taxOffice, taxNumber, ...cleanData } = formData;
-            const updateData = { ...cleanData, latitude: formData.latitude, longitude: formData.longitude, agencyFinancialInfo: { ...formData.agencyFinancialInfo, title: formData.officialTitle, taxOffice: formData.taxOffice, taxNumber: formData.taxNumber, latitude: formData.latitude, longitude: formData.longitude } };
-            await agencyService.updateAgency(formData.id, updateData);
-            showNotification('Agency profile updated.');
-        } catch (err) { showNotification(err.message || 'Sync failed.', 'error'); } finally { setSaving(false); }
+            
+            const payload = {
+                ...formData,
+                countryId: formData.countryId ? Number(formData.countryId) : null,
+                cityId: formData.cityId ? Number(formData.cityId) : null,
+                agencyFinancialInfo: {
+                    ...formData.agencyFinancialInfo,
+                    countryId: formData.agencyFinancialInfo?.countryId ? Number(formData.agencyFinancialInfo.countryId) : null,
+                    cityId: formData.agencyFinancialInfo?.cityId ? Number(formData.agencyFinancialInfo.cityId) : null,
+                    latitude: formData.latitude,
+                    longitude: formData.longitude
+                }
+            };
+
+            delete payload.officialTitle;
+            delete payload.taxOffice;
+            delete payload.taxNumber;
+            delete payload.geoLocation;
+            delete payload.cityName;
+            delete payload.countryName;
+
+            await agencyService.updateAgency(formData.id, payload);
+            showNotification('Agency profile updated successfully.');
+            await fetchInitialData();
+        } catch (err) { 
+            showNotification(err.message || 'Update failed.', 'error'); 
+        } finally { 
+            setSaving(false); 
+        }
     };
 
     const openAddUser = () => { setEditingUser(null); setUserFormData({ name: '', surname: '', email: '', password: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE', roleIds: [] }); setIsUserModalOpen(true); };
@@ -500,15 +567,281 @@ const MyOffice = () => {
                         {activeTab === 'general' ? (
                             <div className="h-full flex gap-10 overflow-hidden pb-4">
                                 <div className="w-[35%] flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-2 flex-shrink-0">
-                                    <div className="bg-slate-900 dark:bg-slate-800 rounded-[40px] p-8 text-white relative overflow-hidden shadow-2xl"><div className="absolute top-0 right-0 p-6"><div className="size-10 bg-white/10 rounded-xl flex items-center justify-center"><span className="material-icons-round text-xl">security</span></div></div><div className="mt-8 mb-12"><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Agency ID Card</p><h2 className="text-2xl font-bold truncate">{formData.name || 'Your Agency'}</h2><p className="text-xs text-slate-400 mt-1 opacity-80">{formData.officialTitle}</p></div><div className="space-y-6 pt-6 border-t border-white/10"><div><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Base Location</p><p className="text-sm font-semibold">{formData.cityName || 'Antalya'}, {formData.countryName || 'Türkiye'}</p></div><div><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Digital Coordinates</p><p className="text-[11px] font-mono text-primary font-bold">{formData.latitude?.toFixed(4)}, {formData.longitude?.toFixed(4)}</p></div></div></div>
-                                    <div className="map-card h-[600px] relative group border-4 border-white dark:border-slate-800"><MapContainer center={mapCenter} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}><ChangeView center={mapCenter} zoom={zoom} /><TileLayer attribution='&copy; CARTO' url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" /><LocationMarker position={[formData.latitude, formData.longitude]} setPosition={setMapLocation} /></MapContainer><div className="absolute bottom-6 right-6 z-[1000] opacity-0 group-hover:opacity-100 transition-all"><button onClick={openInMaps} className="size-10 bg-white dark:bg-slate-900 rounded-xl shadow-xl flex items-center justify-center text-primary"><span className="material-icons-round">open_in_new</span></button></div></div>
+                                    {/* Agency Identity Card */}
+                                    <div className="bg-slate-900 dark:bg-slate-800 rounded-[40px] p-8 text-white relative overflow-hidden shadow-2xl flex-shrink-0">
+                                        <div className="absolute top-0 right-0 p-6">
+                                            <div className="size-10 bg-white/10 rounded-xl flex items-center justify-center">
+                                                <span className="material-icons-round text-xl">security</span>
+                                            </div>
+                                        </div>
+                                        <div className="mt-8 mb-12">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Agency Identity</p>
+                                            <h2 className="text-2xl font-bold truncate">{formData.name || 'Your Agency'}</h2>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-tight ${formData.agencyType === 'GSA' ? 'bg-primary text-white' : 'bg-emerald-500 text-white'}`}>
+                                                    {formData.agencyType}
+                                                </span>
+                                                <span className="text-xs text-slate-400 font-bold opacity-80">{formData.officialTitle}</span>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-6 pt-6 border-t border-white/10">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Base Location</p>
+                                                    <p className="text-sm font-semibold truncate">{formData.cityName}, {formData.countryName}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Currency</p>
+                                                    <p className="text-sm font-semibold text-primary">{formData.currency}</p>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Integration</p>
+                                                <p className="text-sm font-semibold flex items-center gap-2">
+                                                    <span className="size-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                                                    {formData.integrationType}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Audit & Timeline Card */}
+                                    <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-[40px] p-8 shadow-sm flex-shrink-0">
+                                        <div className="flex items-center gap-3 mb-8">
+                                            <div className="size-8 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400">
+                                                <span className="material-icons-round text-lg">history</span>
+                                            </div>
+                                            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white">Audit Timeline</h3>
+                                        </div>
+                                        <div className="space-y-6">
+                                            <div className="flex gap-4">
+                                                <div className="flex flex-col items-center">
+                                                    <div className="size-2 bg-primary rounded-full mt-1.5"></div>
+                                                    <div className="w-[1px] h-full bg-slate-100 dark:bg-slate-800 my-1"></div>
+                                                </div>
+                                                <div className="pb-4">
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Created</p>
+                                                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-0.5">{new Date(formData.createDateTime).toLocaleString()}</p>
+                                                    <p className="text-[9px] text-slate-400 font-medium italic">by {formData.createdBy}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-4">
+                                                <div className="flex flex-col items-center">
+                                                    <div className="size-2 bg-emerald-500 rounded-full mt-1.5"></div>
+                                                </div>
+                                                <div>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Last Update</p>
+                                                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-0.5">{new Date(formData.updateDateTime).toLocaleString()}</p>
+                                                    <p className="text-[9px] text-slate-400 font-medium italic">by {formData.updatedBy}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Map Preview */}
+                                    <div className="map-card h-[400px] relative group border-4 border-white dark:border-slate-800 flex-shrink-0">
+                                        <MapContainer center={mapCenter} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
+                                            <ChangeView center={mapCenter} zoom={zoom} />
+                                            <TileLayer attribution='&copy; CARTO' url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+                                            <LocationMarker position={[formData.latitude, formData.longitude]} setPosition={setMapLocation} />
+                                        </MapContainer>
+                                        <div className="absolute bottom-6 right-6 z-[1000] opacity-0 group-hover:opacity-100 transition-all">
+                                            <button onClick={openInMaps} className="size-10 bg-white dark:bg-slate-900 rounded-xl shadow-xl flex items-center justify-center text-primary hover:scale-110 active:scale-95 transition-all">
+                                                <span className="material-icons-round">open_in_new</span>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <div className="flex-1 bg-white/50 dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-white/40 dark:border-white/5 p-12 overflow-y-auto custom-scrollbar">
-                                    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-16">
-                                        <div className="space-y-10"><div className="flex items-center gap-4"><div className="size-2 bg-primary rounded-full"></div><h3 className="text-xs font-bold uppercase tracking-[0.3em] text-slate-400">Section 01 / Identity</h3></div><div className="grid grid-cols-2 gap-12"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Agency Name</label><input type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="Commercial Name" /></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Official Title</label><input type="text" value={formData.officialTitle} onChange={(e) => handleInputChange('officialTitle', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="Legal Title" /></div></div></div>
-                                        <div className="space-y-10"><div className="flex items-center gap-4"><div className="size-2 bg-primary rounded-full"></div><h3 className="text-xs font-bold uppercase tracking-[0.3em] text-slate-400">Section 02 / Geography</h3></div><div className="space-y-10"><div className="grid grid-cols-2 gap-12"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Country</label><select value={formData.countryId} onChange={handleCountryChange} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent"><option value="">Select Territory</option>{countries.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}</select></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">City</label><select value={formData.cityId} onChange={(e) => handleInputChange('cityId', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent"><option value="">Select Hub</option>{cities.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}</select></div></div><div className="grid grid-cols-4 gap-12"><div className="col-span-3 space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Street Address</label><input type="text" value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="Full street detail" /></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Zip Code</label><input type="text" value={formData.zipCode} onChange={(e) => handleInputChange('zipCode', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm text-center" placeholder="00000" /></div></div></div></div>
-                                        <div className="space-y-10"><div className="flex items-center gap-4"><div className="size-2 bg-primary rounded-full"></div><h3 className="text-xs font-bold uppercase tracking-[0.3em] text-slate-400">Section 03 / Finance</h3></div><div className="grid grid-cols-2 gap-12"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tax Office</label><input type="text" value={formData.taxOffice} onChange={(e) => handleInputChange('taxOffice', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" /></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tax Number</label><input type="text" value={formData.taxNumber} onChange={(e) => handleInputChange('taxNumber', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" /></div></div></div>
-                                        <div className="pt-10"><button type="submit" disabled={saving} className="w-full h-16 bg-primary text-white rounded-[24px] font-bold text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3">{saving ? 'Synchronizing...' : 'Save Office Profile'}{!saving && <span className="material-icons-round text-xl">check_circle</span>}</button></div>
+                                    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-16 pb-20">
+                                        {/* Section 01: Identity */}
+                                        <div className="space-y-10">
+                                            <div className="flex items-center gap-4">
+                                                <div className="size-2 bg-primary rounded-full"></div>
+                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Section 01 / Identity</h3>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-12">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Agency Name</label>
+                                                    <input type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="Commercial Name" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Official Title</label>
+                                                    <input type="text" value={formData.officialTitle} onChange={(e) => handleInputChange('officialTitle', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="Legal Title" />
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-12">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Type</label>
+                                                    <input type="text" value={formData.agencyType} disabled className="w-full h-12 input-modern outline-none font-bold text-sm opacity-50 cursor-not-allowed" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Language</label>
+                                                    <select value={formData.defaultLanguage} onChange={(e) => handleInputChange('defaultLanguage', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent appearance-none">
+                                                        <option value="EN">English</option>
+                                                        <option value="TR">Turkish</option>
+                                                    </select>
+                                                </div>
+                                                {formData.agencyType !== 'GSA' && (
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Parent ID</label>
+                                                        <input type="text" value={formData.parentId} disabled className="w-full h-12 input-modern outline-none font-bold text-sm opacity-50 cursor-not-allowed" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Section 02: Contact */}
+                                        <div className="space-y-10">
+                                            <div className="flex items-center gap-4">
+                                                <div className="size-2 bg-indigo-500 rounded-full"></div>
+                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Section 02 / Contact</h3>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-12">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Direct Email</label>
+                                                    <input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="contact@agency.com" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Phone Number</label>
+                                                    <div className="flex gap-4">
+                                                        <input type="text" value={formData.phoneCountryCode} onChange={(e) => handleInputChange('phoneCountryCode', e.target.value)} className="w-16 h-12 input-modern outline-none font-bold text-sm text-center" placeholder="90" />
+                                                        <input type="text" value={formData.phoneNumber} onChange={(e) => handleInputChange('phoneNumber', e.target.value)} className="flex-1 h-12 input-modern outline-none font-bold text-sm" placeholder="5XX..." />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Section 03: Geography */}
+                                        <div className="space-y-10">
+                                            <div className="flex items-center gap-4">
+                                                <div className="size-2 bg-emerald-500 rounded-full"></div>
+                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Section 03 / Geography</h3>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-12">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Country</label>
+                                                    <select value={formData.countryId} onChange={handleCountryChange} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
+                                                        <option value="">Select Territory</option>
+                                                        {countries.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">City</label>
+                                                    <select value={formData.cityId} onChange={(e) => handleInputChange('cityId', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
+                                                        <option value="">Select Hub</option>
+                                                        {cities.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-4 gap-12">
+                                                <div className="col-span-3 space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Street Address</label>
+                                                    <input type="text" value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="Full street detail" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Zip Code</label>
+                                                    <input type="text" value={formData.zipCode} onChange={(e) => handleInputChange('zipCode', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm text-center" placeholder="00000" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Section 04: Finance */}
+                                        <div className="space-y-10">
+                                            <div className="flex items-center gap-4">
+                                                <div className="size-2 bg-amber-500 rounded-full"></div>
+                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Section 04 / Finance</h3>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-12">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tax Office</label>
+                                                    <input type="text" value={formData.taxOffice} onChange={(e) => handleInputChange('taxOffice', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tax Number</label>
+                                                    <input type="text" value={formData.taxNumber} onChange={(e) => handleInputChange('taxNumber', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-10 pt-4 border-t border-slate-50 dark:border-white/5">
+                                                <div className="grid grid-cols-2 gap-12">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Accounting Email</label>
+                                                        <input type="email" value={formData.agencyFinancialInfo?.email} onChange={(e) => handleInputChange('agencyFinancialInfo.email', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="accounting@mail.com" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Accounting Phone</label>
+                                                        <div className="flex gap-4">
+                                                            <input type="text" value={formData.agencyFinancialInfo?.phoneCountryCode} onChange={(e) => handleInputChange('agencyFinancialInfo.phoneCountryCode', e.target.value)} className="w-16 h-12 input-modern outline-none font-bold text-sm text-center" placeholder="90" />
+                                                            <input type="text" value={formData.agencyFinancialInfo?.phoneNumber} onChange={(e) => handleInputChange('agencyFinancialInfo.phoneNumber', e.target.value)} className="flex-1 h-12 input-modern outline-none font-bold text-sm" placeholder="5XX..." />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-12">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Accounting Country</label>
+                                                        <select value={formData.agencyFinancialInfo?.countryId} onChange={handleFinCountryChange} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
+                                                            <option value="">Select Territory</option>
+                                                            {countries.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
+                                                        </select>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Accounting City</label>
+                                                        <select value={formData.agencyFinancialInfo?.cityId} onChange={(e) => handleInputChange('agencyFinancialInfo.cityId', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
+                                                            <option value="">Select Hub</option>
+                                                            {finCities.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Accounting Address</label>
+                                                    <input type="text" value={formData.agencyFinancialInfo?.address} onChange={(e) => handleInputChange('agencyFinancialInfo.address', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="Billing address" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Section 05: Settings */}
+                                        <div className="space-y-10">
+                                            <div className="flex items-center gap-4">
+                                                <div className="size-2 bg-purple-500 rounded-full"></div>
+                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Section 05 / Settings</h3>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-12">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Main Currency</label>
+                                                    <select value={formData.currency} onChange={(e) => handleInputChange('currency', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
+                                                        {currencies.map(curr => <option key={curr.code} value={curr.code}>{curr.code}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Integration Type</label>
+                                                    <select value={formData.integrationType} onChange={(e) => handleInputChange('integrationType', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
+                                                        <option value="TGX">TGX</option>
+                                                        <option value="JUNIPER">Juniper</option>
+                                                        <option value="DIRECT">Direct</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-6 pt-4">
+                                                <label className="flex items-center gap-3 cursor-pointer">
+                                                    <div className={`size-10 rounded-xl flex items-center justify-center transition-all ${formData.allowedForSale ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                                                        <span className="material-icons-round text-lg">{formData.allowedForSale ? 'check_circle' : 'block'}</span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[11px] font-black text-slate-800 dark:text-white uppercase leading-none mb-1">Allowed for Sale</p>
+                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Booking status</p>
+                                                    </div>
+                                                    <input type="checkbox" checked={formData.allowedForSale} onChange={(e) => handleInputChange('allowedForSale', e.target.checked)} className="hidden" />
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-10">
+                                            <button type="submit" disabled={saving} className="w-full h-16 bg-primary text-white rounded-[24px] font-bold text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3">
+                                                {saving ? 'Synchronizing...' : 'Save Office Profile'}
+                                                {!saving && <span className="material-icons-round text-xl">check_circle</span>}
+                                            </button>
+                                        </div>
                                     </form>
                                 </div>
                             </div>

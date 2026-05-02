@@ -213,7 +213,12 @@ const DashboardSearch = () => {
             // Retrieve locationId from localStorage if it exists
             const savedLocationId = localStorage.getItem('dashboard_last_locationId');
             const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
-            navigate(`/hotels/${slug}?${getUrlParams()}${locationParam}`);
+            const searchParamsString = getUrlParams() + locationParam;
+
+            localStorage.setItem('last_hotel_search_slug', slug);
+            localStorage.setItem('last_hotel_search_params', searchParamsString);
+
+            navigate(`/hotels/${slug}?${searchParamsString}`);
         }
     };
 
@@ -246,7 +251,12 @@ const DashboardSearch = () => {
         // Immediate navigation with hierarchical slug
         if (!isMapPage) {
             const locationParam = `&locationId=${location.locationId}`;
-            navigate(`/hotels/${slug}?${getUrlParams(fullName)}${locationParam}`);
+            const searchParamsString = getUrlParams(fullName) + locationParam;
+
+            localStorage.setItem('last_hotel_search_slug', slug);
+            localStorage.setItem('last_hotel_search_params', searchParamsString);
+
+            navigate(`/hotels/${slug}?${searchParamsString}`);
         }
     };
 

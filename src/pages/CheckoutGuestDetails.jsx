@@ -355,7 +355,17 @@ const CheckoutGuestDetails = () => {
                                     Back to Dashboard
                                 </button>
                                 <button
-                                    onClick={() => navigate('/hotels')}
+                                    onClick={() => {
+                                        const slug = localStorage.getItem('last_hotel_search_slug');
+                                        const params = localStorage.getItem('last_hotel_search_params');
+                                        if (slug && params) {
+                                            navigate(`/hotels/${slug}?${params}`);
+                                        } else if (params) {
+                                            navigate(`/hotels?${params}`);
+                                        } else {
+                                            navigate('/hotels');
+                                        }
+                                    }}
                                     className="px-8 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
                                 >
                                     Browse Hotels

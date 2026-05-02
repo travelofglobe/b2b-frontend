@@ -222,7 +222,7 @@ const HeaderSearch = () => {
         if (location.locationBreadcrumbs && location.locationBreadcrumbs.length > 0) {
             // parts: [Country, City, District] (hierarchical order from API)
             const breadcrumbs = location.locationBreadcrumbs.map(b => (b.name.translations.en || b.name.defaultName).toLowerCase());
-            
+
             if (breadcrumbs.length > 1) {
                 return breadcrumbs.slice(1).join('/');
             }
@@ -240,16 +240,20 @@ const HeaderSearch = () => {
             // Build hierarchical slug if possible
             const queryParts = query.split(',').map(p => p.trim().toLowerCase());
             let slug = query.toLowerCase();
-            
+
             if (queryParts.length >= 2) {
                 const reversed = queryParts.reverse();
                 slug = reversed.slice(1).join('/');
             }
 
+            const searchParamsString = getUrlParams() + locationParam;
+            localStorage.setItem('last_hotel_search_slug', slug);
+            localStorage.setItem('last_hotel_search_params', searchParamsString);
+
             if (isMapPage) {
-                navigate(`/map?${getUrlParams()}${locationParam}`);
+                navigate(`/map?${searchParamsString}`);
             } else {
-                navigate(`/hotels/${slug}?${getUrlParams()}${locationParam}`);
+                navigate(`/hotels/${slug}?${searchParamsString}`);
             }
         }
     };
@@ -276,7 +280,12 @@ const HeaderSearch = () => {
 
         if (!isMapPage) {
             const locationParam = `&locationId=${location.locationId}`;
-            navigate(`/hotels/${slug}?${getUrlParams(fullName)}${locationParam}`);
+            const searchParamsString = getUrlParams(fullName) + locationParam;
+
+            localStorage.setItem('last_hotel_search_slug', slug);
+            localStorage.setItem('last_hotel_search_params', searchParamsString);
+
+            navigate(`/hotels/${slug}?${searchParamsString}`);
         }
     };
 
@@ -358,7 +367,7 @@ const HeaderSearch = () => {
             <div className="flex items-center px-4 border-r border-slate-300 dark:border-slate-600 relative h-full group/dest" ref={searchWrapperRef}>
                 <span className="material-symbols-outlined text-slate-400 text-xl mr-3 group-hover/dest:text-primary transition-colors">location_on</span>
                 <input
-                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-xs w-[280px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 p-0"
+                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-xs w-[200px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 p-0"
                     placeholder="Where to?"
                     type="text"
                     value={query}
@@ -428,10 +437,10 @@ const HeaderSearch = () => {
             </div>
 
             {/* 2. Date Picker */}
-            <div className="flex items-center px-4 border-r border-slate-300 dark:border-slate-600 cursor-pointer h-full group/date" onClick={() => datePickerRef.current?.setOpen(true)}>
-                <span className="material-symbols-outlined text-slate-400 text-xl mr-3 group-hover/date:text-primary transition-colors">calendar_month</span>
-                <div className="relative flex items-center gap-2">
-                    <div className="w-[180px]">
+            <div className="flex items-center justify-between px-4 border-r border-slate-300 dark:border-slate-600 cursor-pointer h-full group/date w-[340px] shrink-0" onClick={() => datePickerRef.current?.setOpen(true)}>
+                <div className="flex items-center flex-1">
+                    <span className="material-symbols-outlined text-slate-400 text-xl mr-3 group-hover/date:text-primary transition-colors">calendar_month</span>
+                    <div className="w-[180px] min-w-[180px] [&>div]:w-full [&>div>input]:w-full">
                         <DatePicker
                             ref={datePickerRef}
                             selected={checkInDate}
@@ -468,23 +477,25 @@ const HeaderSearch = () => {
                             popperPlacement="bottom-start"
                         />
                     </div>
-                    {checkInDate && checkOutDate && (
-                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 whitespace-nowrap animate-in fade-in zoom-in duration-300">
-                            <span className="material-symbols-outlined text-[14px] leading-none">bedtime</span>
-                            <span className="text-[10px] font-black uppercase tracking-tight">
-                                {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} nights
-                            </span>
-                        </div>
-                    )}
                 </div>
+                {checkInDate && checkOutDate && (
+                    <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 whitespace-nowrap animate-in fade-in zoom-in duration-300">
+                        <span className="material-symbols-outlined text-[14px] leading-none">bedtime</span>
+                        <span className="text-[10px] font-black uppercase tracking-tight">
+                            {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} nights
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* Nationality Selector */}
-            <NationalitySelect
-                value={nationality}
-                onChange={setNationality}
-                compact={true}
-            />
+            <div className="flex items-center px-4 h-full">
+                <NationalitySelect
+                    value={nationality}
+                    onChange={setNationality}
+                    compact={true}
+                />
+            </div>
 
             {/* 3. Guests Dropdown */}
             <div className="flex items-center px-3 relative" ref={guestWrapperRef}>

@@ -154,7 +154,7 @@ const HotelListing = () => {
         ? queryLocation.split(',')[0].trim()
         : slug
             ? getSlugDisplayName(slug)
-            : 'Santorini';
+            : '';
 
     const themeName = theme ? theme.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
     const campaignName = campaign ? campaign.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
@@ -163,7 +163,9 @@ const HotelListing = () => {
         ? `${campaignName} Hotels`
         : themeName
             ? `${themeName} Hotels`
-            : `Hotels in ${locationName}`;
+            : locationName
+                ? `Hotels in ${locationName}`
+                : 'All Hotels';
 
     // Extract locationId from URL params
     const locationId = searchParams.get('locationId');
@@ -294,7 +296,14 @@ const HotelListing = () => {
     // Initial load: fetch location names if possible (mocked for now or from crumbs)
     React.useEffect(() => {
         console.log('HotelListing mounted with locationId:', locationId);
-    }, []);
+        if (slug) {
+            localStorage.setItem('last_hotel_search_slug', slug);
+        }
+        const currentParams = searchParams.toString();
+        if (currentParams) {
+            localStorage.setItem('last_hotel_search_params', currentParams);
+        }
+    }, [slug, searchParams]);
 
     // Load hotels from API
     const loadMoreHotels = React.useCallback(async (isReset = false) => {

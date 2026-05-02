@@ -246,10 +246,14 @@ const HeaderSearch = () => {
                 slug = reversed.slice(1).join('/');
             }
 
+            const searchParamsString = getUrlParams() + locationParam;
+            localStorage.setItem('last_hotel_search_slug', slug);
+            localStorage.setItem('last_hotel_search_params', searchParamsString);
+
             if (isMapPage) {
-                navigate(`/map?${getUrlParams()}${locationParam}`);
+                navigate(`/map?${searchParamsString}`);
             } else {
-                navigate(`/hotels/${slug}?${getUrlParams()}${locationParam}`);
+                navigate(`/hotels/${slug}?${searchParamsString}`);
             }
         }
     };
@@ -276,7 +280,12 @@ const HeaderSearch = () => {
 
         if (!isMapPage) {
             const locationParam = `&locationId=${location.locationId}`;
-            navigate(`/hotels/${slug}?${getUrlParams(fullName)}${locationParam}`);
+            const searchParamsString = getUrlParams(fullName) + locationParam;
+
+            localStorage.setItem('last_hotel_search_slug', slug);
+            localStorage.setItem('last_hotel_search_params', searchParamsString);
+
+            navigate(`/hotels/${slug}?${searchParamsString}`);
         }
     };
 

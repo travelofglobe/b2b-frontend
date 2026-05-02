@@ -38,11 +38,11 @@ const CheckoutResult = () => {
                         </h2>
                         <div className="mb-8">
                             <Link 
-                                to={`/bookings/${bookingRef}`}
-                                title="Click to view full booking details"
+                                to={isSuccess ? `/bookings/${bookingRef}` : '/bookings'}
+                                title={isSuccess ? "Click to view full booking details" : "Go to Bookings"}
                                 className="inline-flex items-center gap-3 text-4xl font-black text-primary hover:text-primary-dark dark:hover:text-primary-light tracking-tighter mb-2 hover:underline decoration-primary/50 underline-offset-4 cursor-pointer transition-all group"
                             >
-                                <span>{bookingRef}</span>
+                                <span>{isSuccess ? bookingRef : 'All Bookings'}</span>
                                 <span className="material-symbols-outlined text-3xl group-hover:translate-x-1 duration-200 transition-transform select-none">
                                     arrow_right_alt
                                 </span>

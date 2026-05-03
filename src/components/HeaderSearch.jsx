@@ -233,6 +233,16 @@ const HeaderSearch = () => {
 
     const handleSearch = () => {
         if (query) {
+            const savedLastSearch = localStorage.getItem('dashboard_last_search');
+            const savedLastType = localStorage.getItem('dashboard_last_type');
+            const savedLastHotelId = localStorage.getItem('dashboard_last_hotelId');
+
+            if (savedLastType === 'HOTEL' && query === savedLastSearch && savedLastHotelId) {
+                const searchParamsString = getUrlParams();
+                navigate(`/hotel/${savedLastHotelId}?${searchParamsString}`);
+                return;
+            }
+
             localStorage.setItem('dashboard_last_search', query);
             const savedLocationId = localStorage.getItem('dashboard_last_locationId');
             const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
@@ -274,6 +284,7 @@ const HeaderSearch = () => {
 
         setQuery(fullName);
         localStorage.setItem('dashboard_last_search', fullName);
+        localStorage.setItem('dashboard_last_type', 'LOCATION');
         if (location.locationId) {
             localStorage.setItem('dashboard_last_locationId', location.locationId);
         }
@@ -302,14 +313,18 @@ const HeaderSearch = () => {
             fullName = `${name}, ${hotel.countryCode}`;
         }
 
+        const hId = hotel.hotelId || hotel.id?.replace('hotel_', '');
+
+        localStorage.setItem('dashboard_last_search', fullName);
+        localStorage.setItem('dashboard_last_type', 'HOTEL');
+        localStorage.setItem('dashboard_last_hotelId', hId);
+
         // Close dropdown FIRST before updating query to prevent reopening
         isUserInteraction.current = false;
         setShowDropdown(false);
 
         setQuery(fullName);
-        localStorage.setItem('dashboard_last_search', fullName);
 
-        const hId = hotel.hotelId || hotel.id?.replace('hotel_', '');
         const searchParamsString = getUrlParams(fullName);
 
         localStorage.setItem('last_hotel_search_slug', hotel.url || hId);

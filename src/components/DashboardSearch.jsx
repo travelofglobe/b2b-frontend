@@ -196,6 +196,16 @@ const DashboardSearch = () => {
         }
 
         if (query) {
+            const savedLastSearch = localStorage.getItem('dashboard_last_search');
+            const savedLastType = localStorage.getItem('dashboard_last_type');
+            const savedLastHotelId = localStorage.getItem('dashboard_last_hotelId');
+
+            if (savedLastType === 'HOTEL' && query === savedLastSearch && savedLastHotelId) {
+                const searchParamsString = getUrlParams();
+                navigate(`/hotel/${savedLastHotelId}?${searchParamsString}`);
+                return;
+            }
+
             localStorage.setItem('dashboard_last_search', query);
             
             // If query contains commas, try to build a hierarchical slug
@@ -234,6 +244,7 @@ const DashboardSearch = () => {
         }
 
         localStorage.setItem('dashboard_last_search', fullName);
+        localStorage.setItem('dashboard_last_type', 'LOCATION');
         // Save locationId for later use with Search button
         if (location.locationId) {
             localStorage.setItem('dashboard_last_locationId', location.locationId);
@@ -273,7 +284,11 @@ const DashboardSearch = () => {
             fullName = `${name}, ${hotel.countryCode}`;
         }
 
+        const hId = hotel.hotelId || hotel.id?.replace('hotel_', '');
+
         localStorage.setItem('dashboard_last_search', fullName);
+        localStorage.setItem('dashboard_last_type', 'HOTEL');
+        localStorage.setItem('dashboard_last_hotelId', hId);
 
         // Reset user interaction flag and close dropdown to prevent reopening
         isUserInteraction.current = false;
@@ -281,7 +296,6 @@ const DashboardSearch = () => {
 
         setQuery(fullName);
 
-        const hId = hotel.hotelId || hotel.id?.replace('hotel_', '');
         const searchParamsString = getUrlParams(fullName);
 
         localStorage.setItem('last_hotel_search_slug', hotel.url || hId);

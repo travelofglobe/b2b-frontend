@@ -239,6 +239,13 @@ const BookingDetail = () => {
                         </div>
 
                         <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => window.open(`/bookings/${booking.voucher || booking.orderId || bookingId}/voucher`, '_blank')}
+                                className="h-10 px-5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary dark:bg-primary/20 dark:hover:bg-primary/30 flex items-center gap-2 font-black text-sm transition-all active:scale-95 shadow-sm border border-primary/20"
+                            >
+                                <span className="material-icons-round text-lg">receipt_long</span>
+                                <span>Voucher</span>
+                            </button>
                             <HeaderActions />
                         </div>
                     </div>

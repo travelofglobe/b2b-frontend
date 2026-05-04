@@ -207,6 +207,14 @@ export const hotelService = {
      */
     deleteCheckoutSession: async (sessionId) => {
         return apiClient.delete(`${API_BASE_URL}/checkout/session/${sessionId}`);
+    },
+
+    /**
+     * Get hotel detail.
+     * @param {number|string} hotelId
+     */
+    getHotelDetail: async (hotelId, signal = null) => {
+        return apiClient.get(`${API_BASE_URL}/detail/${hotelId}`, { signal });
     }
 };
 

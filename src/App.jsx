@@ -16,6 +16,7 @@ import GSAAgencyManagement from './pages/GSAAgencyManagement';
 import UnderConstruction from './pages/UnderConstruction';
 import ProtectedRoute from './components/ProtectedRoute';
 import PortalLayout from './layouts/PortalLayout';
+import VoucherPage from './pages/VoucherPage';
 import { AuthProvider } from './context/AuthContext';
 import './index.css';
 
@@ -49,6 +50,8 @@ function App() {
               <Route path="/gsa/finance" element={<UnderConstruction title="GSA Finance" icon="attach_money" />} />
               <Route path="/gsa/reports" element={<UnderConstruction title="GSA Reports" icon="assessment" />} />
             </Route>
+
+            <Route path="/bookings/:voucherId/voucher" element={<ProtectedRoute><VoucherPage /></ProtectedRoute>} />
 
             {/* Checkout Flow */}
             <Route path="/hotel/checkout/guests" element={<ProtectedRoute><CheckoutGuestDetails /></ProtectedRoute>} />

@@ -169,7 +169,7 @@ const MapInstanceCapture = ({ setMap }) => {
 };
 
 // Mapping of facility IDs to Material Icon names and English labels
-const FACILITY_ICON_MAP = {
+export const FACILITY_ICON_MAP = {
     98445: { icon: 'wifi', label: 'Free Wifi' },
     48325: { icon: 'wifi', label: 'Wifi Access' },
     3664: { icon: 'wifi', label: 'High Speed Internet' },

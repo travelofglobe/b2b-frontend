@@ -11,8 +11,11 @@ import NationalitySelect from '../components/NationalitySelect';
 import { hotelService } from '../services/hotelService';
 import { useToast } from '../context/ToastContext';
 import { parseGuestsParam, serializeGuestsParam } from '../utils/searchParamsUtils';
+import { getBoardTypeLabel, getBoardTypeDescription, BOARD_TYPES } from '../utils/boardTypeUtils';
+import { FACILITY_ICON_MAP } from './MapView';
+import Tooltip from '../components/Tooltip';
 
-const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex }) => {
+const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex, description }) => {
     const handlePrevious = useCallback((e) => {
         e?.stopPropagation();
         setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -40,6 +43,8 @@ const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex 
         };
     }, [isOpen, handlePrevious, handleNext, onClose]);
 
+    const [isDescriptionVisible, setIsDescriptionVisible] = useState(true);
+
     if (!isOpen) return null;
 
     return (
@@ -49,12 +54,26 @@ const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex 
                 <div className="text-white/70 font-black tracking-widest text-xs uppercase">
                     {currentIndex + 1} / {images.length} Photos
                 </div>
-                <button
-                    onClick={onClose}
-                    className="size-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all group"
-                >
-                    <span className="material-symbols-outlined text-3xl group-hover:rotate-90 transition-transform">close</span>
-                </button>
+                <div className="flex items-center gap-3">
+                    {description && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsDescriptionVisible(!isDescriptionVisible);
+                            }}
+                            className={`size-12 rounded-full border border-white/10 flex items-center justify-center transition-all group ${isDescriptionVisible ? 'bg-primary text-white shadow-[0_0_20px_rgba(255,59,92,0.3)]' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                            title={isDescriptionVisible ? "Hide Info" : "Show Info"}
+                        >
+                            <span className="material-symbols-outlined text-2xl">{isDescriptionVisible ? 'visibility_off' : 'info'}</span>
+                        </button>
+                    )}
+                    <button
+                        onClick={onClose}
+                        className="size-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all group"
+                    >
+                        <span className="material-symbols-outlined text-3xl group-hover:rotate-90 transition-transform">close</span>
+                    </button>
+                </div>
             </div>
 
             {/* Navigation Buttons */}
@@ -72,18 +91,43 @@ const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex 
                 <span className="material-symbols-outlined text-4xl group-hover:translate-x-1 transition-transform">chevron_right</span>
             </button>
 
-            {/* Main Image Container */}
-            <div className="relative w-full h-full flex flex-col items-center justify-center p-12 md:p-24 pb-32 md:pb-40" onClick={(e) => e.stopPropagation()}>
+            {/* Main Image Container - Full Space */}
+            <div className="absolute inset-0 flex items-center justify-center p-4 md:p-20 lg:p-32" onClick={(e) => e.stopPropagation()}>
                 <img
                     src={images[currentIndex]}
-                    className="max-w-full max-h-[70vh] object-contain shadow-2xl rounded-lg animate-in zoom-in-95 duration-500"
+                    className="max-w-full max-h-full object-contain shadow-[0_0_80px_rgba(0,0,0,0.5)] rounded-2xl animate-in zoom-in-95 duration-500"
                     alt={`Photo ${currentIndex + 1}`}
                 />
             </div>
 
-            {/* Thumbnail Strip */}
-            <div className="absolute bottom-8 left-0 right-0 flex justify-center px-6 z-30" onClick={(e) => e.stopPropagation()}>
-                <div className="bg-black/40 backdrop-blur-xl p-3 rounded-3xl border border-white/10 flex gap-2 overflow-x-auto no-scrollbar max-w-full">
+            {/* Room Description - Floating Glass Card */}
+            {description && isDescriptionVisible && (
+                <div className="absolute bottom-32 left-8 max-w-sm w-full z-40 hidden md:block" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-black/40 backdrop-blur-2xl p-6 rounded-[32px] border border-white/10 shadow-2xl animate-in slide-in-from-left-8 duration-700 relative group/desc">
+                        <button 
+                            onClick={() => setIsDescriptionVisible(false)}
+                            className="absolute top-4 right-4 size-6 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all flex items-center justify-center opacity-0 group-hover/desc:opacity-100"
+                        >
+                            <span className="material-symbols-outlined text-sm">close</span>
+                        </button>
+                        <div className="flex items-center gap-3 mb-3 text-primary">
+                            <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                                <span className="material-symbols-outlined text-sm">info</span>
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em]">Room Specs</span>
+                        </div>
+                        <div className="max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                            <p className="text-white/80 text-xs font-medium leading-relaxed italic">{description}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Mobile Description Toggle/Indicator could go here, but for now let's focus on the desktop experience requested */}
+
+            {/* Thumbnail Strip - Fixed at bottom */}
+            <div className="absolute bottom-6 left-0 right-0 flex justify-center px-6 z-30 pointer-events-none" onClick={(e) => e.stopPropagation()}>
+                <div className="bg-black/60 backdrop-blur-2xl p-3 rounded-3xl border border-white/10 flex gap-2 overflow-x-auto no-scrollbar max-w-full pointer-events-auto shadow-2xl">
                     {images.map((img, idx) => (
                         <button
                             key={idx}
@@ -176,9 +220,11 @@ const HotelDetail = () => {
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [lightboxImages, setLightboxImages] = useState([]);
+    const [activeLightboxDescription, setActiveLightboxDescription] = useState('');
 
-    const openLightbox = (index, contextImages = images) => {
+    const openLightbox = (index, contextImages = images, description = '') => {
         setLightboxImages(contextImages);
+        setActiveLightboxDescription(description);
         setCurrentImageIndex(index);
         setIsLightboxOpen(true);
     };
@@ -234,6 +280,58 @@ const HotelDetail = () => {
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [selectedRooms, setSelectedRooms] = useState([]);
     const [isCheckingRates, setIsCheckingRates] = useState(false);
+    
+    // -- Local Filters --
+    const [boardTypeFilter, setBoardTypeFilter] = useState('ALL');
+    const [cancelFilter, setCancelFilter] = useState('ALL');
+    const [expandedRates, setExpandedRates] = useState({}); // { roomKey: boolean }
+
+    const hotel = dynamicHotel || {};
+
+    // Grouping rooms by name/type
+    const groupedRooms = React.useMemo(() => {
+        if (!hotel.rooms) return [];
+        
+        const groups = hotel.rooms.reduce((acc, room) => {
+            const key = room.names?.tr || room.names?.en || room.names?.defaultName || 'Standard Room';
+            if (!acc[key]) {
+                acc[key] = {
+                    name: key,
+                    images: room.images || [],
+                    attributes: room.attributes || [],
+                    maxAdult: room.maxAdult,
+                    maxChildren: room.maxChildren,
+                    roomPaxCapacity: room.roomPaxCapacity,
+                    squareMeter: room.attributes?.find(a => a.names?.en?.toLowerCase().includes('sqm') || a.label?.toLowerCase().includes('sqm') || a.names?.en?.toLowerCase().includes('meter'))?.label,
+                    rates: []
+                };
+            }
+            acc[key].rates.push(room);
+            return acc;
+        }, {});
+
+        let result = Object.values(groups);
+
+        // Apply local filters
+        if (boardTypeFilter !== 'ALL') {
+            result = result.map(group => ({
+                ...group,
+                rates: group.rates.filter(r => r.hubRateModel?.boardType === boardTypeFilter)
+            })).filter(group => group.rates.length > 0);
+        }
+
+        if (cancelFilter !== 'ALL') {
+            result = result.map(group => ({
+                ...group,
+                rates: group.rates.filter(r => {
+                    const isFree = r.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0;
+                    return cancelFilter === 'FREE' ? isFree : !isFree;
+                })
+            })).filter(group => group.rates.length > 0);
+        }
+
+        return result;
+    }, [hotel.rooms, boardTypeFilter, cancelFilter]);
 
     // Fetch data when search parameters or hotel ID change
     useEffect(() => {
@@ -296,7 +394,6 @@ const HotelDetail = () => {
         }
     }, [id, searchParams]);
 
-    const hotel = dynamicHotel || {};
 
     const nights = React.useMemo(() => {
         if (!checkInDate || !checkOutDate) return 1;
@@ -307,15 +404,35 @@ const HotelDetail = () => {
         return diffDays || 1;
     }, [checkInDate, checkOutDate]);
 
-    const toggleRoomSelection = (roomType, rate, roomName) => {
+    const toggleRoomSelection = (roomType, rate, roomName, fullRateData) => {
+        const isSelected = selectedRooms.some(r => 
+            (r.hubRateModel?.rateCode === fullRateData?.hubRateModel?.rateCode) || 
+            (r.type === roomType && r.name === roomName && r.rate === rate)
+        );
+
+        if (!isSelected && selectedRooms.length >= 4) {
+            toastError('You can select a maximum of 4 rates per reservation.');
+            return;
+        }
+
         setSelectedRooms(prev => {
-            const index = prev.findIndex(r => r.type === roomType && r.name === roomName);
+            const index = prev.findIndex(r => 
+                (r.hubRateModel?.rateCode === fullRateData?.hubRateModel?.rateCode) || 
+                (r.type === roomType && r.name === roomName && r.rate === rate)
+            );
+            
             if (index > -1) {
                 // Remove if already selected
                 return prev.filter((_, i) => i !== index);
             } else {
-                // Add to selection
-                return [...prev, { type: roomType, rate, name: roomName }];
+                // Add to selection (limit already checked above)
+                return [...prev, { 
+                    type: roomType, 
+                    rate, 
+                    name: roomName, 
+                    currency: fullRateData?.currency || '$',
+                    hubRateModel: fullRateData?.hubRateModel 
+                }];
             }
         });
     };
@@ -461,7 +578,7 @@ const HotelDetail = () => {
     };
 
     const addRoom = () => {
-        if (roomState.length < 5) setRoomState([...roomState, { adults: 2, children: 0, childAges: [] }]);
+        if (roomState.length < 4) setRoomState([...roomState, { adults: 2, children: 0, childAges: [] }]);
     };
 
     const removeRoom = (index) => {
@@ -539,9 +656,6 @@ const HotelDetail = () => {
                                     <span key={i} className="material-symbols-outlined fill-1 text-lg">star</span>
                                 ))}
                             </div>
-                            <span className="bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-black px-2.5 py-1 rounded-lg flex items-center gap-1 backdrop-blur-sm border border-emerald-200/20">
-                                <span className="material-symbols-outlined text-xs">verified</span> VERIFIED
-                            </span>
                         </div>
                         <div className="flex flex-wrap items-center gap-4 mt-3">
                             <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
@@ -549,19 +663,6 @@ const HotelDetail = () => {
                                 <span className="font-semibold text-sm">
                                     {hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location}
                                 </span>
-                            </div>
-
-                            <div className="flex items-center gap-3 py-1.5 px-3 bg-slate-100/50 dark:bg-slate-800/50 rounded-xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm">
-                                <div className="flex items-center gap-1.5 border-r border-slate-200 dark:border-slate-700 pr-3">
-                                    <span className="material-symbols-outlined text-xs text-primary">login</span>
-                                    <span className="text-[10px] font-black tracking-wider text-slate-400 uppercase">In:</span>
-                                    <span className="text-xs font-black text-slate-900 dark:text-white">{hotel.checkIn || '15:00'}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <span className="material-symbols-outlined text-xs text-primary">logout</span>
-                                    <span className="text-[10px] font-black tracking-wider text-slate-400 uppercase">Out:</span>
-                                    <span className="text-xs font-black text-slate-900 dark:text-white">{hotel.checkOut || '11:00'}</span>
-                                </div>
                             </div>
 
                             <button
@@ -580,7 +681,7 @@ const HotelDetail = () => {
                             </span>
                         </div>
                         <div className="bg-primary text-white w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-black shadow-lg shadow-primary/20">
-                            <span className="text-2xl leading-none">{hotel.rating}</span>
+                            <span className="text-2xl leading-none">{hotel.rating > 10 ? (hotel.rating / 10).toFixed(1) : (hotel.rating || '0')}</span>
                             <span className="text-[10px] opacity-70">/10</span>
                         </div>
                     </div>
@@ -734,7 +835,7 @@ const HotelDetail = () => {
                                             </div>
                                         ))}
 
-                                        {roomState.length < 5 && (
+                                        {roomState.length < 4 && (
                                             <button
                                                 onClick={addRoom}
                                                 className="w-full py-3 mt-2 bg-primary/5 text-primary rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-primary/10 transition-all border border-dashed border-primary/20 flex items-center justify-center gap-2"
@@ -788,6 +889,41 @@ const HotelDetail = () => {
                             <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                 {activeTab === 'Rooms & Rates' && (
                                     <div className="relative space-y-4">
+                                        {/* Local Filters Bar */}
+                                        <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-white/20">
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-sm text-primary">restaurant</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Board Type:</span>
+                                                <select 
+                                                    value={boardTypeFilter} 
+                                                    onChange={(e) => setBoardTypeFilter(e.target.value)}
+                                                    className="bg-transparent border-none text-xs font-bold focus:ring-0 cursor-pointer"
+                                                >
+                                                    <option value="ALL">All Boards</option>
+                                                    {Object.keys(BOARD_TYPES).map(code => (
+                                                        <option key={code} value={code}>{getBoardTypeLabel(code)}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 hidden md:block"></div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-sm text-primary">event_busy</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Policy:</span>
+                                                <select 
+                                                    value={cancelFilter} 
+                                                    onChange={(e) => setCancelFilter(e.target.value)}
+                                                    className="bg-transparent border-none text-xs font-bold focus:ring-0 cursor-pointer"
+                                                >
+                                                    <option value="ALL">All Policies</option>
+                                                    <option value="FREE">Free Cancellation</option>
+                                                    <option value="NON_REFUNDABLE">Non-Refundable</option>
+                                                </select>
+                                            </div>
+                                            <div className="ml-auto text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                                {groupedRooms.length} Room Types Found
+                                            </div>
+                                        </div>
+
                                         {isRoomsLoading ? (
                                             // Skeleton loading cards
                                             <div className="space-y-4 animate-in fade-in duration-300">
@@ -848,218 +984,219 @@ const HotelDetail = () => {
                                                 </div>
                                             </div>
                                         ) : (
-                                        <>{(hotel.rooms || []).map((roomItem, roomIndex) => {
-                                            const roomName = roomItem.names?.tr || roomItem.names?.en || roomItem.names?.defaultName || 'Standard Room';
-                                            const roomPrice = roomItem.hubRateModel?.price?.totalPaymentAmount || roomItem.hubRateModel?.price?.calculatedAmount || roomItem.price || 0;
-                                            const currency = roomItem.hubRateModel?.price?.currency || '$';
-                                            const isSelected = selectedRooms.some(r => r.name === roomName && r.roomIndex === roomIndex);
+                                        <>{(groupedRooms || []).map((roomGroup, roomIndex) => {
+                                            const roomName = roomGroup.name;
+                                            const isGroupExpanded = expandedRates[roomName];
+                                            const ratesToShow = isGroupExpanded ? roomGroup.rates : roomGroup.rates.slice(0, 4);
+                                            const hasMoreRates = roomGroup.rates.length > 4;
 
                                             return (
-                                                <div key={roomIndex} className="relative group transition-all duration-500">
-                                                    {/* Glow effect for selected state */}
-                                                    {isSelected && (
-                                                        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 rounded-[36px] blur-xl opacity-100 transition-opacity duration-500"></div>
-                                                    )}
-
-                                                    <div className={`relative flex flex-col md:flex-row rounded-[28px] transition-all duration-500 border ${isSelected ? 'border-primary shadow-[0_0_40px_rgba(255,59,92,0.15)] bg-white/60 dark:bg-slate-900/60' : 'border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40'} backdrop-blur-3xl group-hover:bg-white/50 dark:group-hover:bg-slate-900/50 shadow-2xl shadow-black/5 z-10 hover:z-[60]`}>
-                                                        {/* Image Section */}
-                                                        <div 
-                                                            className="md:w-64 h-52 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px] isolation-isolate z-0" 
-                                                            style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)', maskImage: 'radial-gradient(white, black)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
-                                                            onClick={() => {
-                                                                const roomImages = roomItem.images?.length > 0 
-                                                                    ? roomItem.images.map(img => img.url) 
-                                                                    : images; // Fallback to hotel images if room has none
-                                                                openLightbox(0, roomImages);
-                                                            }}
-                                                        >
-                                                            <img className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px] will-change-transform" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }} src={roomItem.images?.[0]?.url || images[roomIndex % images.length]} alt="" />
-                                                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/room:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[4px] rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px] will-change-transform" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
-                                                                <div className="size-14 rounded-full bg-white/20 backdrop-blur-xl border border-white/40 flex items-center justify-center text-white scale-75 group-hover/room:scale-100 transition-all duration-500 shadow-2xl">
-                                                                    <span className="material-symbols-outlined text-3xl">fullscreen</span>
+                                                <div key={roomIndex} className="relative group transition-all duration-500 mb-8">
+                                                    <div className={`relative flex flex-col rounded-[28px] border border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl group-hover:bg-white/50 dark:group-hover:bg-slate-900/50 shadow-2xl shadow-black/5 z-10 hover:z-[70] transition-all duration-300`}>
+                                                        
+                                                        <div className="flex flex-col md:flex-row rounded-t-[28px]">
+                                                            {/* Image Section */}
+                                                            <div 
+                                                                className="md:w-72 h-64 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room isolation-isolate rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px]" 
+                                                                onClick={() => {
+                                                                    const roomImages = roomGroup.images?.length > 0 
+                                                                        ? roomGroup.images.map(img => img.url) 
+                                                                        : images;
+                                                                    const roomDesc = roomGroup.rates?.[0]?.description || '';
+                                                                    openLightbox(0, roomImages, roomDesc);
+                                                                }}
+                                                            >
+                                                                <img className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 will-change-transform" src={roomGroup.images?.[0]?.url || images[roomIndex % images.length]} alt="" />
+                                                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/room:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[4px] will-change-transform">
+                                                                    <div className="size-14 rounded-full bg-white/20 backdrop-blur-xl border border-white/40 flex items-center justify-center text-white scale-75 group-hover/room:scale-100 transition-all duration-500 shadow-2xl">
+                                                                        <span className="material-symbols-outlined text-3xl">fullscreen</span>
+                                                                    </div>
                                                                 </div>
+                                                                {roomGroup.images?.length > 0 && (
+                                                                    <div className="absolute top-5 left-5 bg-black/40 backdrop-blur-xl text-white text-[10px] font-black px-3.5 py-2 rounded-2xl flex items-center gap-2 border border-white/20 shadow-lg">
+                                                                        <span className="material-symbols-outlined text-sm">photo_library</span> {roomGroup.images.length} PHOTOS
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                            {roomItem.images?.length > 0 && (
-                                                                <div className="absolute top-5 left-5 bg-black/40 backdrop-blur-xl text-white text-[10px] font-black px-3.5 py-2 rounded-2xl flex items-center gap-2 border border-white/20 shadow-lg">
-                                                                    <span className="material-symbols-outlined text-sm">photo_library</span> {roomItem.images.length} PHOTOS
-                                                                </div>
-                                                            )}
-                                                        </div>
 
-                                                        {/* Details Section */}
-                                                        <div className="flex-1 p-4 sm:p-6 flex flex-col justify-between min-w-0 rounded-b-[28px] md:rounded-bl-none md:rounded-r-[28px]">
-                                                            <div className="relative">
-                                                                <div className="absolute top-0 right-0">
-                                                                    <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-wider border border-orange-500/10 backdrop-blur-md whitespace-nowrap">
-                                                                        {roomItem.roomPaxCapacity || roomItem.maxAdult} Pax
-                                                                    </span>
-                                                                </div>
-
-                                                                <div className="mb-4 pr-16 sm:pr-20">
-                                                                    <h3 className="text-xl sm:text-2xl font-black mb-1 uppercase tracking-tight text-slate-900 dark:text-white leading-tight truncate">{roomName}</h3>
-                                                                    <div className="flex gap-3 text-slate-500 dark:text-slate-400">
-                                                                        <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase">
-                                                                            <span className="material-symbols-outlined text-sm text-primary">group</span> {roomItem.maxAdult} Adults
-                                                                        </span>
-                                                                        {roomItem.maxChildren > 0 && (
-                                                                            <span className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold uppercase">
-                                                                                <span className="material-symbols-outlined text-sm text-primary">child_care</span> {roomItem.maxChildren} Children
+                                                            {/* Details Section */}
+                                                            <div className="flex-1 p-6 flex flex-col min-w-0">
+                                                                <div className="relative">
+                                                                    <div className="absolute top-0 right-0 flex gap-2">
+                                                                        {roomGroup.squareMeter && (
+                                                                            <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-wider border border-blue-500/10 backdrop-blur-md">
+                                                                                {roomGroup.squareMeter}
                                                                             </span>
                                                                         )}
+                                                                        <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-wider border border-orange-500/10 backdrop-blur-md">
+                                                                            {roomGroup.roomPaxCapacity || roomGroup.maxAdult} Pax
+                                                                        </span>
                                                                     </div>
-                                                                </div>
 
-                                                                <div className="flex flex-wrap gap-1.5 mb-6 sm:mb-8">
-                                                                     {(roomItem.attributes || []).slice(0, 6).map((attr, i) => (
-                                                                         <span key={i} className="px-2.5 py-1 bg-slate-500/5 dark:bg-white/5 border border-slate-500/10 dark:border-white/10 rounded-xl text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight transition-colors cursor-default">
-                                                                             {attr.names?.tr || attr.names?.en || attr.label || 'Feature'}
-                                                                         </span>
-                                                                     ))}
-                                                                 </div>
-                                                            </div>
-
-                                                            {/* Price Area */}
-                                                            <div
-                                                                onClick={() => {
-                                                                    if (roomPrice <= 0 && !isSelected) return;
-                                                                    const cancellationPolicies = roomItem.hubRateModel?.price?.cancellationPolicies || [];
-                                                                    const roomData = { 
-                                                                        type: roomName, 
-                                                                        rate: roomPrice, 
-                                                                        name: roomName, 
-                                                                        roomIndex, 
-                                                                        currency, 
-                                                                        cancellationPolicies,
-                                                                        hubRateModel: roomItem.hubRateModel 
-                                                                    };
-                                                                    setSelectedRooms(prev => {
-                                                                        const index = prev.findIndex(r => r.name === roomName && r.roomIndex === roomIndex);
-                                                                        if (index > -1) return prev.filter((_, i) => i !== index);
-                                                                        return [...prev, roomData];
-                                                                    });
-                                                                }}
-                                                                className={`relative p-1.5 sm:p-2.5 rounded-[18px] flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2 group/rate transition-all duration-500 border ${roomPrice > 0 ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'} shadow-lg ${isSelected ? 'bg-primary/5 border-primary ring-2 ring-primary/5' : 'bg-white/60 dark:bg-slate-800/60 border-white/40 dark:border-white/10 hover:border-primary/50'}`}
-                                                            >
-                                                                <div className="flex items-center gap-2 z-10 w-full sm:w-auto">
-                                                                    <div className={`size-7 sm:size-9 rounded-lg flex items-center justify-center shrink-0 transition-all duration-500 ${isSelected ? 'bg-primary text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
-                                                                        <span className="material-symbols-outlined text-sm sm:text-base font-black">{isSelected ? 'check' : 'add'}</span>
-                                                                    </div>
-                                                                    <div className="min-w-0 flex-1 sm:flex-none">
-                                                                        <div className="flex items-center gap-1 mb-0.5">
-                                                                            <p className="font-black text-[9px] uppercase tracking-wide text-slate-900 dark:text-white truncate">B2B RATE</p>
-                                                                            {isSelected && (
-                                                                                <span className="bg-primary text-white text-[6px] font-black px-1.5 py-0.5 rounded-full shrink-0">SELECTED</span>
+                                                                    <div className="mb-4 pr-24">
+                                                                        <h3 className="text-2xl font-black mb-1 uppercase tracking-tight text-slate-900 dark:text-white leading-tight truncate">{roomName}</h3>
+                                                                        <div className="flex gap-3 text-slate-500 dark:text-slate-400">
+                                                                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase">
+                                                                                <span className="material-symbols-outlined text-sm text-primary">group</span> {roomGroup.maxAdult} Adults
+                                                                            </span>
+                                                                            {roomGroup.maxChildren > 0 && (
+                                                                                <span className="flex items-center gap-1 text-[10px] font-bold uppercase">
+                                                                                    <span className="material-symbols-outlined text-sm text-primary">child_care</span> {roomGroup.maxChildren} Children
+                                                                                </span>
                                                                             )}
                                                                         </div>
-                                                                        <div className="flex items-center gap-1.5 text-slate-400 font-bold uppercase text-[7px] tracking-tight">
-                                                                            <div className="group/cancel relative">
-                                                                                <span className={`${roomItem.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0 ? 'text-emerald-500/80 shadow-[0_0_10px_rgba(16,185,129,0.1)]' : 'text-orange-500/80'} cursor-help underline decoration-dotted underline-offset-2 transition-all hover:text-primary`}>
-                                                                                    {roomItem.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0 ? 'FREE CANCEL' : 'POLICIES APPLY'}
-                                                                                </span>
-                                                                                {/* Detailed Cancellation Tooltip */}
-                                                                                <div className="absolute bottom-full left-0 mb-3 w-72 p-5 bg-slate-900 dark:bg-slate-950 text-white rounded-[24px] shadow-2xl opacity-0 invisible group-hover/cancel:opacity-100 group-hover/cancel:visible transition-all z-50 border border-slate-700/50 backdrop-blur-xl scale-95 group-hover/cancel:scale-100 origin-bottom-left duration-300">
-                                                                                    <div className="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
-                                                                                        <span className="material-symbols-outlined text-sm text-primary">event_busy</span>
-                                                                                        <p className="text-[10px] uppercase font-black tracking-widest">Cancellation Timeline</p>
-                                                                                    </div>
-                                                                                    <div className="space-y-4">
-                                                                                        {roomItem.hubRateModel?.price?.cancellationPolicies?.length > 0 ? (
-                                                                                            roomItem.hubRateModel.price.cancellationPolicies.map((policy, idx) => (
-                                                                                                <div key={idx} className="relative pl-4 border-l-2 border-slate-800 hover:border-primary transition-colors">
-                                                                                                    <div className="flex justify-between items-start mb-1.5">
-                                                                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Penalty</span>
-                                                                                                        <span className={`text-[11px] font-black ${policy.amount === 0 ? 'text-emerald-400' : 'text-orange-400'}`}>
-                                                                                                            {policy.currency} {policy.amount}
-                                                                                                        </span>
-                                                                                                    </div>
-                                                                                                    <div className="space-y-1">
-                                                                                                        <div className="flex items-center gap-1.5">
-                                                                                                            <span className="material-symbols-outlined text-[10px] text-slate-500">calendar_today</span>
-                                                                                                            <p className="text-[9px] text-slate-300 font-bold">{formatPolicyDate(policy.fromDate)}</p>
+                                                                    </div>
+
+                                                                    <div className="flex flex-wrap gap-2 mb-6">
+                                                                        {(() => {
+                                                                            const groupedAttributes = (roomGroup.attributes || []).reduce((acc, attr) => {
+                                                                                const label = attr.names?.tr || attr.names?.en || attr.label;
+                                                                                const iconMatch = Object.entries(FACILITY_ICON_MAP).find(([id, data]) => 
+                                                                                    attr.label?.toLowerCase().includes(data.label.toLowerCase()) || 
+                                                                                    attr.names?.en?.toLowerCase().includes(data.label.toLowerCase())
+                                                                                );
+                                                                                
+                                                                                const iconKey = iconMatch ? iconMatch[1].icon : 'done';
+                                                                                if (!acc[iconKey]) {
+                                                                                    acc[iconKey] = { icon: iconKey, labels: new Set() };
+                                                                                }
+                                                                                acc[iconKey].labels.add(label);
+                                                                                return acc;
+                                                                            }, {});
+
+                                                                            const items = Object.values(groupedAttributes);
+                                                                            const visibleItems = items.slice(0, 12);
+                                                                            const remainingCount = items.length - 12;
+
+                                                                            return (
+                                                                                <>
+                                                                                    {visibleItems.map((item, i) => (
+                                                                                        <div key={i} className="group/attr relative">
+                                                                                            <div className="size-9 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center transition-all hover:bg-primary/10 hover:border-primary/30 cursor-help shadow-sm">
+                                                                                                <span className="material-symbols-outlined text-lg text-primary">
+                                                                                                    {item.icon}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                            {/* Elegant Tooltip with List */}
+                                                                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-950 text-white text-[10px] font-black uppercase tracking-wider rounded-xl opacity-0 invisible group-hover/attr:opacity-100 group-hover/attr:visible transition-all whitespace-nowrap z-[200] shadow-2xl pointer-events-none border border-white/10 scale-95 group-hover/attr:scale-100 origin-bottom duration-300">
+                                                                                                <div className="flex flex-col gap-1">
+                                                                                                    {Array.from(item.labels).map((lbl, idx) => (
+                                                                                                        <div key={idx} className="flex items-center gap-2">
+                                                                                                            <div className="size-1 rounded-full bg-primary/40"></div>
+                                                                                                            {lbl}
                                                                                                         </div>
-                                                                                                        <div className="flex items-center gap-1.5">
-                                                                                                            <span className="material-symbols-outlined text-[10px] text-slate-500">keyboard_tab</span>
-                                                                                                            <p className="text-[9px] text-slate-400 font-medium italic">{formatPolicyDate(policy.toDate)}</p>
-                                                                                                        </div>
-                                                                                                    </div>
+                                                                                                    ))}
                                                                                                 </div>
-                                                                                            ))
-                                                                                        ) : (
-                                                                                            <p className="text-[10px] text-slate-500 font-medium italic">Standard property policies apply.</p>
-                                                                                        )}
-                                                                                    </div>
-                                                                                    <div className="mt-4 pt-3 border-t border-slate-800 flex items-center gap-2">
-                                                                                        <span className="material-symbols-outlined text-xs text-slate-500">info</span>
-                                                                                        <p className="text-[8px] text-slate-500 font-bold italic uppercase tracking-tighter">All times are in property local time.</p>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <span>• ROOM ONLY</span>
-                                                                        </div>
+                                                                                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900 dark:border-t-slate-950"></div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ))}
+                                                                                    {remainingCount > 0 && (
+                                                                                        <div className="size-9 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-[10px] font-black text-slate-400">
+                                                                                            +{remainingCount}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </>
+                                                                            );
+                                                                        })()}
                                                                     </div>
                                                                 </div>
+                                                            </div>
+                                                        </div>
 
-                                                                <div className="flex items-center gap-2 sm:gap-3 z-10 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-700 pt-1.5 sm:pt-0 sm:pl-3 justify-between sm:justify-end">
-                                                                    <div className="text-right">
-                                                                        <div className="flex items-baseline justify-end gap-0.5">
-                                                                            <span className="text-[9px] font-black text-primary">{currency}</span>
-                                                                            <p className="text-lg sm:text-xl font-black text-primary leading-none tracking-tighter">
-                                                                                {roomPrice.toFixed(2)}
-                                                                            </p>
-                                                                        </div>
-                                                                        <div className="group/taxes relative inline-block">
-                                                                            <p className="text-[6px] text-slate-400 font-bold uppercase tracking-widest leading-none cursor-help hover:text-primary transition-colors flex items-center justify-end gap-1">
-                                                                                TOTAL STAY <span className="material-symbols-outlined text-[8px]">info</span>
-                                                                            </p>
-                                                                            {/* Taxes & Fees Breakdown Tooltip */}
-                                                                            {(roomItem.hubRateModel?.price?.taxes?.length > 0 || roomItem.hubRateModel?.price?.fees?.length > 0) && (
-                                                                                <div className="absolute bottom-full right-0 mb-3 w-60 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl opacity-0 invisible group-hover/taxes:opacity-100 group-hover/taxes:visible transition-all z-50 backdrop-blur-xl scale-95 group-hover/taxes:scale-100 origin-bottom-right duration-300">
-                                                                                    <p className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-[0.2em] border-b dark:border-slate-800 pb-2 flex items-center gap-2">
-                                                                                        <span className="material-symbols-outlined text-sm">receipt_long</span>
-                                                                                        Tax & Fee Breakdown
-                                                                                    </p>
-                                                                                    <div className="space-y-2.5">
-                                                                                        {roomItem.hubRateModel?.price?.taxes?.map((tax, idx) => (
-                                                                                            <div key={idx} className="flex justify-between items-center text-[10px]">
-                                                                                                <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">{tax.type || 'Tax'}</span>
-                                                                                                <span className="font-black text-slate-900 dark:text-white">{getCurrencySymbol(tax.currency)} {tax.amount}</span>
+                                                        {/* Rates List Section */}
+                                                        <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-black/20 p-4 sm:p-6 space-y-3 rounded-b-[28px]">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Available Rates</h4>
+                                                                <div className="text-[9px] font-bold text-slate-400 uppercase">Prices include taxes & fees</div>
+                                                            </div>
+                                                            
+                                                            {ratesToShow.map((rateItem, rateIdx) => {
+                                                                const ratePrice = rateItem.hubRateModel?.price?.totalPaymentAmount || rateItem.hubRateModel?.price?.calculatedAmount || rateItem.price || 0;
+                                                                const currency = rateItem.hubRateModel?.price?.currency || '$';
+                                                                const isSelected = selectedRooms.some(r => r.hubRateModel?.rateCode === rateItem.hubRateModel?.rateCode);
+                                                                const boardType = rateItem.hubRateModel?.boardType || 'RO';
+                                                                const isFreeCancel = rateItem.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0;
+
+                                                                return (
+                                                                    <div
+                                                                        key={rateIdx}
+                                                                        onClick={() => {
+                                                                            if (ratePrice <= 0 && !isSelected) return;
+                                                                            toggleRoomSelection(roomName, ratePrice, roomName, rateItem);
+                                                                        }}
+                                                                        className={`relative p-3 sm:p-4 rounded-[22px] flex flex-col sm:flex-row items-center justify-between gap-3 transition-all duration-300 border ${ratePrice > 0 ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'} ${isSelected ? 'bg-primary/10 border-primary ring-2 ring-primary/5 shadow-lg' : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-white/5 hover:border-primary/50 shadow-sm'}`}
+                                                                    >
+                                                                        <div className="flex items-center gap-4 w-full sm:w-auto">
+                                                                            <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${isSelected ? 'bg-primary text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
+                                                                                <span className="material-symbols-outlined text-xl font-black">{isSelected ? 'check' : 'add'}</span>
+                                                                            </div>
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <div className="flex items-center gap-2 mb-1">
+                                                                                    <p className="font-black text-xs uppercase tracking-wide text-slate-900 dark:text-white">{getBoardTypeLabel(boardType)}</p>
+                                                                                    {isSelected && (
+                                                                                        <span className="bg-primary text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase">Selected</span>
+                                                                                    )}
+                                                                                </div>
+                                                                                <div className="flex flex-wrap items-center gap-2">
+                                                                                    <span className={`text-[8px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'}`}>
+                                                                                        {isFreeCancel ? 'Free Cancellation' : 'Non-Refundable'}
+                                                                                    </span>
+                                                                                    <div className="group/cancel relative">
+                                                                                        <span className="text-[8px] font-bold text-slate-400 hover:text-primary transition-colors cursor-help border-b border-dashed border-slate-300">View Policies</span>
+                                                                                        <div className="absolute bottom-full left-0 mb-3 w-72 p-5 bg-slate-900 dark:bg-slate-950 text-white rounded-[24px] shadow-2xl opacity-0 invisible group-hover/cancel:opacity-100 group-hover/cancel:visible transition-all z-[100] border border-slate-700/50 backdrop-blur-xl scale-95 group-hover/cancel:scale-100 origin-bottom-left duration-300">
+                                                                                            <div className="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
+                                                                                                <span className="material-symbols-outlined text-sm text-primary">event_busy</span>
+                                                                                                <p className="text-[10px] uppercase font-black tracking-widest">Cancellation Timeline</p>
                                                                                             </div>
-                                                                                        ))}
-                                                                                        {roomItem.hubRateModel?.price?.fees?.map((fee, idx) => (
-                                                                                            <div key={idx} className="flex justify-between items-center text-[10px]">
-                                                                                                <span className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">{fee.type || 'Fee'}</span>
-                                                                                                <span className="font-black text-slate-900 dark:text-white">{getCurrencySymbol(fee.currency)} {fee.amount}</span>
+                                                                                            <div className="space-y-4">
+                                                                                                {rateItem.hubRateModel?.price?.cancellationPolicies?.length > 0 ? (
+                                                                                                    rateItem.hubRateModel.price.cancellationPolicies.map((policy, idx) => (
+                                                                                                        <div key={idx} className="relative pl-4 border-l-2 border-slate-800">
+                                                                                                            <div className="flex justify-between items-start mb-1.5">
+                                                                                                                <span className="text-[9px] font-black text-slate-400 uppercase">Penalty</span>
+                                                                                                                <span className={`text-[11px] font-black ${policy.amount === 0 ? 'text-emerald-400' : 'text-orange-400'}`}>
+                                                                                                                    {policy.currency} {policy.amount}
+                                                                                                                </span>
+                                                                                                            </div>
+                                                                                                            <p className="text-[9px] text-slate-300 font-bold">From: {formatPolicyDate(policy.fromDate)}</p>
+                                                                                                        </div>
+                                                                                                    ))
+                                                                                                ) : <p className="text-[10px] text-slate-500 italic">Standard policies apply.</p>}
                                                                                             </div>
-                                                                                        ))}
-                                                                                        <div className="mt-3 pt-2 border-t dark:border-slate-800 flex justify-between items-center">
-                                                                                            <span className="text-[9px] font-black uppercase text-primary">Inclusions Total</span>
-                                                                                            <span className="text-xs font-black text-primary">
-                                                                                                {getCurrencySymbol(currency)} {(
-                                                                                                    (roomItem.hubRateModel.price.taxes?.reduce((sum, t) => sum + (t.amount || 0), 0) || 0) +
-                                                                                                    (roomItem.hubRateModel.price.fees?.reduce((sum, f) => sum + (f.amount || 0), 0) || 0)
-                                                                                                ).toFixed(2)}
-                                                                                            </span>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
-                                                                            )}
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div className="flex items-center gap-4 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-800 pt-3 sm:pt-0 sm:pl-4 justify-between sm:justify-end">
+                                                                            <div className="text-right">
+                                                                                <div className="flex items-baseline justify-end gap-1">
+                                                                                    <span className="text-[10px] font-black text-primary">{currency}</span>
+                                                                                    <p className="text-2xl font-black text-primary leading-none tracking-tighter">
+                                                                                        {ratePrice.toFixed(2)}
+                                                                                    </p>
+                                                                                </div>
+                                                                                <p className="text-[7px] text-slate-400 font-black uppercase tracking-widest mt-1">Total Stay</p>
+                                                                            </div>
+                                                                            <div className={`px-4 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all duration-300 ${isSelected ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-primary text-white hover:scale-105'}`}>
+                                                                                {isSelected ? 'Remove' : 'Select Rate'}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
+                                                                );
+                                                            })}
 
-                                                                    {roomPrice > 0 ? (
-                                                                        <div className={`px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg font-black text-[8px] uppercase tracking-wider transition-all duration-300 ${isSelected ? 'bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900' : 'bg-primary text-white'}`}>
-                                                                            {isSelected ? 'Remove' : 'Select'}
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div className="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg font-black text-[8px] uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed">
-                                                                            Sold Out
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Decorative Background Element */}
-                                                            <div className={`absolute -right-4 -bottom-4 size-16 blur-2xl rounded-full transition-opacity duration-500 ${isSelected ? 'bg-primary/20 opacity-100' : 'bg-primary/10 opacity-0 group-hover/rate:opacity-100'}`}></div>
+                                                            {hasMoreRates && (
+                                                                <button 
+                                                                    onClick={() => setExpandedRates(prev => ({ ...prev, [roomName]: !prev[roomName] }))}
+                                                                    className="w-full py-3 rounded-2xl bg-white/40 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-white/60 transition-all flex items-center justify-center gap-2"
+                                                                >
+                                                                    <span className="material-symbols-outlined">{isGroupExpanded ? 'keyboard_arrow_up' : 'expand_more'}</span>
+                                                                    {isGroupExpanded ? 'Show Less Rates' : `Show ${roomGroup.rates.length - 4} More Rates`}
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1095,14 +1232,23 @@ const HotelDetail = () => {
 
                                 {activeTab === 'Amenities' && (
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-in fade-in zoom-in-95 duration-500">
-                                        {(hotel.facilities || []).map((amenity, idx) => (
-                                            <div key={idx} className="bg-white dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 flex items-center gap-4 hover:border-primary/50 transition-all hover:shadow-lg group">
-                                                <div className="size-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
-                                                    <span className="material-symbols-outlined text-3xl">done_all</span>
+                                        {(hotel.facilities || []).map((amenity, idx) => {
+                                            const id = typeof amenity === 'object' ? (amenity.facilityId || amenity.id) : amenity;
+                                            const match = FACILITY_ICON_MAP[Number(id)];
+                                            
+                                            return (
+                                                <div key={idx} className="bg-white dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 flex items-center gap-4 hover:border-primary/50 transition-all hover:shadow-lg group">
+                                                    <div className="size-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
+                                                        <span className="material-symbols-outlined text-3xl">
+                                                            {match ? match.icon : 'done_all'}
+                                                        </span>
+                                                    </div>
+                                                    <span className="font-black text-sm uppercase tracking-tight">
+                                                        {amenity.names?.tr || amenity.names?.en || amenity.label || (match ? match.label : 'Amenity')}
+                                                    </span>
                                                 </div>
-                                                <span className="font-black text-sm uppercase tracking-tight">{amenity.names?.tr || amenity.names?.en || amenity.label}</span>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
 
@@ -1117,8 +1263,10 @@ const HotelDetail = () => {
                                                         </span>
                                                     </div>
                                                     <div>
-                                                        <h4 className="font-black text-sm uppercase tracking-tight">{t.name}</h4>
-                                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest">{t.type}</p>
+                                                        <h4 className="font-black text-sm uppercase tracking-tight">{t.name || (t.type === 'AIRPORT' ? 'Airport' : t.type === 'RAIL' ? 'Train Station' : 'Location')}</h4>
+                                                        <p className="text-[10px] font-black text-primary uppercase tracking-widest">
+                                                            {t.type === 'AIRPORT' ? 'By Flight' : t.type === 'RAIL' ? 'By Rail' : 'By Road'}
+                                                        </p>
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
@@ -1231,30 +1379,37 @@ const HotelDetail = () => {
 
                                     <div className="space-y-4 mb-8">
                                         {selectedRooms.length > 0 ? (
-                                            selectedRooms.map((room, idx) => (
-                                                <div key={idx} className="relative p-5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm group/item hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setSelectedRooms(prev => prev.filter((_, i) => i !== idx));
-                                                        }}
-                                                        className="absolute -top-1.5 -right-1.5 size-7 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-lg z-20 group/btn"
-                                                    >
-                                                        <span className="material-symbols-outlined text-[16px] group-hover/btn:rotate-90 transition-transform">close</span>
-                                                    </button>
-                                                    <div className="flex justify-between items-start mb-2 pr-4">
-                                                        <span className="font-black text-slate-900 dark:text-white text-[11px] uppercase tracking-tight line-clamp-2">{idx + 1}. {room.name}</span>
-                                                        <div className="flex items-baseline gap-1 shrink-0">
-                                                            <span className="text-[10px] font-black text-primary">{room.currency}</span>
-                                                            <span className="font-black text-primary text-sm leading-none">{room.rate.toFixed(2)}</span>
+                                            selectedRooms.map((room, idx) => {
+                                                const isFreeCancel = room.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0;
+                                                const boardType = room.hubRateModel?.boardType || 'RO';
+                                                
+                                                return (
+                                                    <div key={idx} className="relative p-5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm group/item hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSelectedRooms(prev => prev.filter((_, i) => i !== idx));
+                                                            }}
+                                                            className="absolute -top-1.5 -right-1.5 size-7 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-lg z-20 group/btn"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[16px] group-hover/btn:rotate-90 transition-transform">close</span>
+                                                        </button>
+                                                        <div className="flex justify-between items-start mb-2 pr-4">
+                                                            <span className="font-black text-slate-900 dark:text-white text-[11px] uppercase tracking-tight line-clamp-2">{idx + 1}. {room.name}</span>
+                                                            <div className="flex items-baseline gap-1 shrink-0">
+                                                                <span className="text-[10px] font-black text-primary">{room.currency}</span>
+                                                                <span className="font-black text-primary text-sm leading-none">{room.rate.toFixed(2)}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">{getBoardTypeLabel(boardType)}</span>
+                                                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}>
+                                                                {isFreeCancel ? 'Free Cancellation' : 'Non-Refundable'}
+                                                            </span>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">Room Only</span>
-                                                        <span className="bg-slate-500/10 text-slate-500 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">Non-refundable</span>
-                                                    </div>
-                                                </div>
-                                            ))
+                                                );
+                                            })
                                         ) : (
                                             <div className="py-12 px-6 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center">
                                                 <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-700 mb-2">bed</span>
@@ -1364,6 +1519,7 @@ const HotelDetail = () => {
                 isOpen={isLightboxOpen}
                 onClose={() => setIsLightboxOpen(false)}
                 setCurrentIndex={setCurrentImageIndex}
+                description={activeLightboxDescription}
             />
         </div >
     );

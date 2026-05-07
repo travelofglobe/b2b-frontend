@@ -164,9 +164,23 @@ const DashboardSearch = () => {
         setLoading(true);
         try {
             const data = await autocompleteService.search(query);
-            if (data && data.data) {
-                setResults(data.data);
-                setShowDropdown(true);
+            // Handle both wrapped { data: { ... } } and direct responses
+            const resultsData = data?.data || data;
+            
+            if (resultsData) {
+                const items = resultsData.content || [];
+                
+                // Separate results by type
+                const hotels = items.filter(item => item.type === 'HOTEL');
+                const regions = items.filter(item => item.type === 'LOCATION');
+                
+                if (items.length > 0) {
+                    setResults({ hotels, regions });
+                    setShowDropdown(true);
+                } else {
+                    setResults({ hotels: [], regions: [] });
+                    setShowDropdown(false);
+                }
             }
         } catch (error) {
             console.error(error);

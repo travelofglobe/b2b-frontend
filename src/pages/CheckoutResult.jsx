@@ -111,13 +111,15 @@ const CheckoutResult = () => {
                     >
                         Go to Dashboard
                     </Link>
-                    <button
-                        onClick={() => window.print()}
-                        className="px-8 py-5 rounded-[24px] font-black text-xs uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-2 border border-slate-200 dark:border-slate-800"
-                    >
-                        <span className="material-symbols-outlined text-sm">print</span>
-                        Print Voucher
-                    </button>
+                    {isSuccess && (
+                        <button
+                            onClick={() => window.print()}
+                            className="px-8 py-5 rounded-[24px] font-black text-xs uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-2 border border-slate-200 dark:border-slate-800"
+                        >
+                            <span className="material-symbols-outlined text-sm">print</span>
+                            Print Voucher
+                        </button>
+                    )}
                 </div>
             </main>
             <Footer />

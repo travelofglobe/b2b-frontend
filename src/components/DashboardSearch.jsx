@@ -429,7 +429,7 @@ const DashboardSearch = () => {
                                     setQuery(e.target.value);
                                     if (error) setError(false);
                                 }}
-                                onClick={() => { if (query) setQuery(''); }}
+                                onClick={(e) => e.target.select()}
                                 onFocus={() => { if (results.hotels.length || results.regions.length) setShowDropdown(true); }}
                                 onKeyDown={handleKeyDown}
                             />

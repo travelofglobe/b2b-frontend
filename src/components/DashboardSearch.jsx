@@ -25,7 +25,7 @@ const DashboardSearch = () => {
 
     // Nationality State
     const [nationality, setNationality] = useState(() => {
-        return searchParams.get('nationality') || 'TR';
+        return searchParams.get('nationality') || localStorage.getItem('dashboard_last_nationality') || 'TR';
     });
 
     const [results, setResults] = useState({ hotels: [], regions: [] });
@@ -38,11 +38,10 @@ const DashboardSearch = () => {
         setActiveIndex(-1);
     }, [results]);
 
-    // Default dates: Check-in tomorrow, Check-out day after tomorrow
-    const tomorrow = new Date();
+    // Default dates: Check-in today, Check-out tomorrow
+    const today = new Date();
+    const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const dayAfter = new Date(tomorrow);
-    dayAfter.setDate(dayAfter.getDate() + 1);
 
     const parseDateParam = (param) => {
         if (!param) return null;
@@ -65,17 +64,17 @@ const DashboardSearch = () => {
     };
 
     const [checkInDate, setCheckInDate] = useState(() => {
-        const checkinParam = searchParams.get('checkin');
-        return parseDateParam(checkinParam) || tomorrow;
+        const checkinParam = searchParams.get('checkin') || localStorage.getItem('dashboard_last_checkin');
+        return parseDateParam(checkinParam) || today;
     });
     const [checkOutDate, setCheckOutDate] = useState(() => {
-        const checkoutParam = searchParams.get('checkout');
-        return parseDateParam(checkoutParam) || dayAfter;
+        const checkoutParam = searchParams.get('checkout') || localStorage.getItem('dashboard_last_checkout');
+        return parseDateParam(checkoutParam) || tomorrow;
     });
 
     // -- Guest State --
     const [roomState, setRoomState] = useState(() => {
-        const guestsParam = searchParams.get('guests');
+        const guestsParam = searchParams.get('guests') || localStorage.getItem('dashboard_last_guests');
         if (guestsParam) {
             return parseGuestsParam(guestsParam);
         }
@@ -139,6 +138,27 @@ const DashboardSearch = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    // Save state to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('dashboard_last_nationality', nationality);
+    }, [nationality]);
+
+    useEffect(() => {
+        if (checkInDate) {
+            localStorage.setItem('dashboard_last_checkin', `${checkInDate.getFullYear()}-${String(checkInDate.getMonth() + 1).padStart(2, '0')}-${String(checkInDate.getDate()).padStart(2, '0')}`);
+        }
+    }, [checkInDate]);
+
+    useEffect(() => {
+        if (checkOutDate) {
+            localStorage.setItem('dashboard_last_checkout', `${checkOutDate.getFullYear()}-${String(checkOutDate.getMonth() + 1).padStart(2, '0')}-${String(checkOutDate.getDate()).padStart(2, '0')}`);
+        }
+    }, [checkOutDate]);
+
+    useEffect(() => {
+        localStorage.setItem('dashboard_last_guests', serializeGuestsParam(roomState));
+    }, [roomState]);
 
     const fetchResults = async () => {
         setLoading(true);

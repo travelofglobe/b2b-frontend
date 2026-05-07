@@ -992,12 +992,12 @@ const HotelDetail = () => {
 
                                             return (
                                                 <div key={roomIndex} className="relative group transition-all duration-500 mb-8">
-                                                    <div className={`relative flex flex-col rounded-[28px] border border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl group-hover:bg-white/50 dark:group-hover:bg-slate-900/50 shadow-2xl shadow-black/5 z-10 hover:z-[60] overflow-hidden`}>
+                                                    <div className={`relative flex flex-col rounded-[28px] border border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl group-hover:bg-white/50 dark:group-hover:bg-slate-900/50 shadow-2xl shadow-black/5 z-10 hover:z-[70] transition-all duration-300`}>
                                                         
-                                                        <div className="flex flex-col md:flex-row">
+                                                        <div className="flex flex-col md:flex-row rounded-t-[28px]">
                                                             {/* Image Section */}
                                                             <div 
-                                                                className="md:w-72 h-64 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room isolation-isolate z-0" 
+                                                                className="md:w-72 h-64 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room isolation-isolate rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px]" 
                                                                 onClick={() => {
                                                                     const roomImages = roomGroup.images?.length > 0 
                                                                         ? roomGroup.images.map(img => img.url) 
@@ -1047,33 +1047,65 @@ const HotelDetail = () => {
                                                                         </div>
                                                                     </div>
 
-                                                                    <div className="flex flex-wrap gap-3 mb-6">
-                                                                        {roomGroup.attributes?.slice(0, 8).map((attr, i) => {
-                                                                            const iconMatch = Object.entries(FACILITY_ICON_MAP).find(([id, data]) => 
-                                                                                attr.label?.toLowerCase().includes(data.label.toLowerCase()) || 
-                                                                                attr.names?.en?.toLowerCase().includes(data.label.toLowerCase())
-                                                                            );
-                                                                            
+                                                                    <div className="flex flex-wrap gap-2 mb-6">
+                                                                        {(() => {
+                                                                            const groupedAttributes = (roomGroup.attributes || []).reduce((acc, attr) => {
+                                                                                const label = attr.names?.tr || attr.names?.en || attr.label;
+                                                                                const iconMatch = Object.entries(FACILITY_ICON_MAP).find(([id, data]) => 
+                                                                                    attr.label?.toLowerCase().includes(data.label.toLowerCase()) || 
+                                                                                    attr.names?.en?.toLowerCase().includes(data.label.toLowerCase())
+                                                                                );
+                                                                                
+                                                                                const iconKey = iconMatch ? iconMatch[1].icon : 'done';
+                                                                                if (!acc[iconKey]) {
+                                                                                    acc[iconKey] = { icon: iconKey, labels: new Set() };
+                                                                                }
+                                                                                acc[iconKey].labels.add(label);
+                                                                                return acc;
+                                                                            }, {});
+
+                                                                            const items = Object.values(groupedAttributes);
+                                                                            const visibleItems = items.slice(0, 12);
+                                                                            const remainingCount = items.length - 12;
+
                                                                             return (
-                                                                                <div key={i} className="group/attr relative">
-                                                                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl transition-all hover:border-primary/30">
-                                                                                        <span className="material-symbols-outlined text-sm text-primary">
-                                                                                            {iconMatch ? iconMatch[1].icon : 'done'}
-                                                                                        </span>
-                                                                                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">
-                                                                                            {attr.names?.tr || attr.names?.en || attr.label}
-                                                                                        </span>
-                                                                                    </div>
-                                                                                </div>
+                                                                                <>
+                                                                                    {visibleItems.map((item, i) => (
+                                                                                        <div key={i} className="group/attr relative">
+                                                                                            <div className="size-9 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center transition-all hover:bg-primary/10 hover:border-primary/30 cursor-help shadow-sm">
+                                                                                                <span className="material-symbols-outlined text-lg text-primary">
+                                                                                                    {item.icon}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                            {/* Elegant Tooltip with List */}
+                                                                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-950 text-white text-[10px] font-black uppercase tracking-wider rounded-xl opacity-0 invisible group-hover/attr:opacity-100 group-hover/attr:visible transition-all whitespace-nowrap z-[200] shadow-2xl pointer-events-none border border-white/10 scale-95 group-hover/attr:scale-100 origin-bottom duration-300">
+                                                                                                <div className="flex flex-col gap-1">
+                                                                                                    {Array.from(item.labels).map((lbl, idx) => (
+                                                                                                        <div key={idx} className="flex items-center gap-2">
+                                                                                                            <div className="size-1 rounded-full bg-primary/40"></div>
+                                                                                                            {lbl}
+                                                                                                        </div>
+                                                                                                    ))}
+                                                                                                </div>
+                                                                                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900 dark:border-t-slate-950"></div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ))}
+                                                                                    {remainingCount > 0 && (
+                                                                                        <div className="size-9 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-[10px] font-black text-slate-400">
+                                                                                            +{remainingCount}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </>
                                                                             );
-                                                                        })}
+                                                                        })()}
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
 
                                                         {/* Rates List Section */}
-                                                        <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-black/20 p-4 sm:p-6 space-y-3">
+                                                        <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-black/20 p-4 sm:p-6 space-y-3 rounded-b-[28px]">
                                                             <div className="flex items-center justify-between mb-2">
                                                                 <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Available Rates</h4>
                                                                 <div className="text-[9px] font-bold text-slate-400 uppercase">Prices include taxes & fees</div>

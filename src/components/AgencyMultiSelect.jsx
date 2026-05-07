@@ -69,7 +69,7 @@ const AgencyMultiSelect = ({ selectedValues, onChange }) => {
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full bg-white/20 dark:bg-slate-800/40 border ${isOpen ? 'border-primary/50 ring-2 ring-primary/20 bg-white/40' : 'border-white/40 dark:border-white/5'} rounded-xl py-2 px-2 text-[10px] font-black uppercase tracking-tight flex items-center justify-between transition-all outline-none`}
+                className={`w-full h-11 bg-white/50 dark:bg-slate-800/50 border ${isOpen ? 'border-primary/50 ring-2 ring-primary/20 bg-white/70' : 'border-slate-200 dark:border-white/5'} rounded-2xl py-2 px-4 text-[10px] font-black uppercase tracking-tight flex items-center justify-between transition-all outline-none`}
             >
                 <span className="truncate">{getDisplayText()}</span>
                 <span className={`material-icons-round text-xs transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>expand_more</span>
@@ -103,8 +103,17 @@ const AgencyMultiSelect = ({ selectedValues, onChange }) => {
                                         <div className={`size-4 rounded border flex flex-shrink-0 items-center justify-center transition-all ${isSelected ? 'bg-primary border-primary text-white' : 'border-slate-300 dark:border-slate-600'}`}>
                                             {isSelected && <span className="material-icons-round text-[10px]">check</span>}
                                         </div>
-                                        <div className="flex flex-col overflow-hidden">
+                                        <div className="flex items-center gap-2 overflow-hidden">
                                             <span className="text-[10px] font-black uppercase tracking-tight leading-none truncate">{agency.name}</span>
+                                            {agency.agencyType && (
+                                                <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
+                                                    agency.agencyType === 'GSA' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40' : 
+                                                    agency.agencyType === 'RSA' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40' : 
+                                                    'bg-blue-100 text-blue-700 dark:bg-blue-900/40'
+                                                }`}>
+                                                    {agency.agencyType}
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 );

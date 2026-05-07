@@ -284,8 +284,6 @@ const DashboardSearch = () => {
 
         localStorage.setItem('last_hotel_search_slug', slug);
         localStorage.setItem('last_hotel_search_params', searchParamsString);
-
-        navigate(`/hotels/${slug}?${searchParamsString}`);
     };
 
     const handleSelectHotel = (hotel) => {

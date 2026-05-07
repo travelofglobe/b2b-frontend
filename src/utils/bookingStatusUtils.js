@@ -39,6 +39,16 @@ export const BOOKING_STATUS_CONFIG = {
         label: 'Active',
         colorClass: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
         icon: 'check'
+    },
+    SUCCESS: {
+        label: 'Success',
+        colorClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
+        icon: 'check_circle'
+    },
+    FAILED: {
+        label: 'Failed',
+        colorClass: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+        icon: 'error'
     }
 };
 

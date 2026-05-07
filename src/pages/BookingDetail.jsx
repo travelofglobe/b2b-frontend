@@ -123,6 +123,25 @@ const BookingDetail = () => {
         }
     };
 
+    const getOverallDisplayStatus = () => {
+        if (booking?.status === 'FAILED' || booking?.hotel?.bookingStatus === 'FAILED') {
+            return 'FAILED';
+        }
+        return 'SUCCESS';
+    };
+
+    const formatBoardType = (boardType) => {
+        if (!boardType) return 'N/A';
+        const bt = boardType.toUpperCase();
+        if (bt === 'RO') return 'RO - Room Only';
+        if (bt === 'BB') return 'BB - Bed and Breakfast';
+        if (bt === 'HB') return 'HB - Half Board';
+        if (bt === 'FB') return 'FB - Full Board';
+        if (bt === 'AI') return 'AI - All Inclusive';
+        if (bt === 'UAI') return 'UAI - Ultra All Inclusive';
+        return boardType;
+    };
+
     if (loading || error || !booking) {
         return (
             <div className="flex-1 flex flex-col h-full overflow-hidden relative">
@@ -239,13 +258,15 @@ const BookingDetail = () => {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => window.open(`/bookings/${booking.voucher || booking.orderId || bookingId}/voucher`, '_blank')}
-                                className="h-10 px-5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary dark:bg-primary/20 dark:hover:bg-primary/30 flex items-center gap-2 font-black text-sm transition-all active:scale-95 shadow-sm border border-primary/20"
-                            >
-                                <span className="material-icons-round text-lg">receipt_long</span>
-                                <span>Voucher</span>
-                            </button>
+                            {booking.status !== 'FAILED' && booking.hotel?.bookingStatus !== 'FAILED' && (
+                                <button
+                                    onClick={() => window.open(`/bookings/${booking.voucher || booking.orderId || bookingId}/voucher`, '_blank')}
+                                    className="h-10 px-5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary dark:bg-primary/20 dark:hover:bg-primary/30 flex items-center gap-2 font-black text-sm transition-all active:scale-95 shadow-sm border border-primary/20"
+                                >
+                                    <span className="material-icons-round text-lg">receipt_long</span>
+                                    <span>Voucher</span>
+                                </button>
+                            )}
                             <HeaderActions />
                         </div>
                     </div>
@@ -270,15 +291,7 @@ const BookingDetail = () => {
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Order ID</p>
                                     <p className="text-lg font-black text-primary">#{booking.orderId}</p>
                                 </div>
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">UUID</p>
-                                    <p className="text-xs font-mono text-slate-600 dark:text-slate-300 break-all">{booking.uuid}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</p>
-                                    <BookingStatusBadge status={booking.status} className="px-3 py-1 rounded-xl text-[10px]" showIcon />
-
-                                </div>
+                                {/* Removed UUID and Status as requested */}
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Status</p>
                                     <span className={`inline-block px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${getPaymentStatusColor(booking.payment?.status)}`}>
@@ -289,26 +302,13 @@ const BookingDetail = () => {
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Client Reference ID</p>
                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.clientReferenceId || 'N/A'}</p>
                                 </div>
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Request ID</p>
-                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.requestId || 'N/A'}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Supplier ID</p>
-                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.supplierId || 'N/A'}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Supplier Name</p>
-                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.supplierName || 'N/A'}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Voucher</p>
-                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.voucher || 'N/A'}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Feed ID</p>
-                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.feedId || 'N/A'}</p>
-                                </div>
+                                {/* Removed Request ID, Supplier ID, Supplier Name, Feed ID */}
+                                {booking.status !== 'FAILED' && booking.hotel?.bookingStatus !== 'FAILED' && (
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Voucher</p>
+                                        <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.voucher || 'N/A'}</p>
+                                    </div>
+                                )}
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Check-in</p>
                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatDate(booking.checkIn)}</p>
@@ -374,8 +374,7 @@ const BookingDetail = () => {
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Booking Status</p>
-                                        <BookingStatusBadge status={booking.hotel.bookingStatus} className="px-3 py-1 rounded-xl text-[10px]" showIcon />
-
+                                        <BookingStatusBadge status={getOverallDisplayStatus()} className="px-3 py-1 rounded-xl text-[10px]" showIcon />
                                     </div>
                                 </div>
 
@@ -423,12 +422,8 @@ const BookingDetail = () => {
                                         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
                                             <p className="text-xs text-slate-500 dark:text-slate-400">Room ID: {room.roomId}</p>
                                             <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                                                <span>Status:</span>
-                                                <BookingStatusBadge status={room.status} className="px-2 py-0.5 rounded-md text-[9px]" />
-                                            </div>
-                                            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                                                 <span>Booking Status:</span>
-                                                <BookingStatusBadge status={room.bookingStatus} className="px-2 py-0.5 rounded-md text-[9px]" />
+                                                <BookingStatusBadge status={getOverallDisplayStatus()} className="px-2 py-0.5 rounded-md text-[9px]" />
                                             </div>
                                             <p className="text-xs text-slate-500 dark:text-slate-400">Conf. Code: <span className="font-bold text-slate-700 dark:text-slate-200">{room.roomConfirmationCode || 'N/A'}</span></p>
                                         </div>
@@ -489,7 +484,7 @@ const BookingDetail = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                                             <div className="space-y-1">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Board Type</p>
-                                                <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{rate.boardType}</p>
+                                                <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatBoardType(rate.boardType)}</p>
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Amount</p>
@@ -508,12 +503,7 @@ const BookingDetail = () => {
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rate Category</p>
                                                 <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{rate.rateCategoryId || 'N/A'}</p>
                                             </div>
-                                            <div className="lg:col-span-4 space-y-1">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rate Code</p>
-                                                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
-                                                    <p className="text-[10px] font-mono text-slate-500 break-all">{rate.rateCode || 'N/A'}</p>
-                                                </div>
-                                            </div>
+                                            {/* Removed Rate Code as requested */}
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
@@ -670,11 +660,7 @@ const BookingDetail = () => {
                                         <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatDateTime(booking.audit.updateDateTime)}</p>
                                         <p className="text-xs text-slate-500 dark:text-slate-400">by {booking.audit.updatedBy}</p>
                                     </div>
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</p>
-                                        <BookingStatusBadge status={booking.audit.status} className="px-3 py-1 rounded-xl text-[10px]" showIcon />
-
-                                    </div>
+                                    {/* Removed Status from Audit Info as requested */}
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Version</p>
                                         <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.audit.version}</p>

@@ -329,8 +329,6 @@ const HeaderSearch = () => {
 
         localStorage.setItem('last_hotel_search_slug', hotel.url || hId);
         localStorage.setItem('last_hotel_search_params', searchParamsString);
-
-        navigate(`/hotel/${hId}?${searchParamsString}`);
     };
 
     const getRegionName = (region) => {

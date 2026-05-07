@@ -259,16 +259,13 @@ const DashboardSearch = () => {
 
         setQuery(fullName);
         
-        // Immediate navigation with hierarchical slug
-        if (!isMapPage) {
-            const locationParam = `&locationId=${location.locationId}`;
-            const searchParamsString = getUrlParams(fullName) + locationParam;
+        const locationParam = `&locationId=${location.locationId}`;
+        const searchParamsString = getUrlParams(fullName) + locationParam;
 
-            localStorage.setItem('last_hotel_search_slug', slug);
-            localStorage.setItem('last_hotel_search_params', searchParamsString);
+        localStorage.setItem('last_hotel_search_slug', slug);
+        localStorage.setItem('last_hotel_search_params', searchParamsString);
 
-            navigate(`/hotels/${slug}?${searchParamsString}`);
-        }
+        navigate(`/hotels/${slug}?${searchParamsString}`);
     };
 
     const handleSelectHotel = (hotel) => {
@@ -300,8 +297,6 @@ const DashboardSearch = () => {
 
         localStorage.setItem('last_hotel_search_slug', hotel.url || hId);
         localStorage.setItem('last_hotel_search_params', searchParamsString);
-
-        navigate(`/hotel/${hId}?${searchParamsString}`);
     };
 
     // Helper to get Hotel Name

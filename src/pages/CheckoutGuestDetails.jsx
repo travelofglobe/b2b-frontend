@@ -747,16 +747,16 @@ const CheckoutGuestDetails = () => {
                                                             {idx + 1}
                                                         </div>
                                                         <div>
-                                                            <p className="font-black text-[11px] uppercase tracking-tight text-slate-900 dark:text-white line-clamp-2">{room.name}</p>
+                                                            <p className="font-black text-[13px] uppercase tracking-tight text-slate-900 dark:text-white line-clamp-2">{room.name}</p>
                                                             <div className="flex flex-wrap gap-2 mt-1">
-                                                                <p className="text-[9px] font-bold text-slate-500 uppercase">
+                                                                <p className="text-[11px] font-bold text-slate-500 uppercase">
                                                                     {checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || checkRatesData?.boardName || 'Room Only'}
                                                                 </p>
                                                                 {(() => {
                                                                     const refundable = checkRatesData?.rooms?.[idx]?.rates?.[0]?.refundable ?? checkRatesData?.refundable;
                                                                     if (refundable === undefined) return null;
                                                                     return (
-                                                                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                                                                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
                                                                             {refundable ? 'Refundable' : 'Non-Refundable'}
                                                                         </span>
                                                                     );
@@ -771,7 +771,7 @@ const CheckoutGuestDetails = () => {
                                                                 {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || checkRatesData?.price?.totalPaymentAmount || room.rate).toFixed(2)}
                                                             </span>
                                                         </div>
-                                                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{room.currency || '$'} · {nights} Night{nights > 1 ? 's' : ''}</p>
+                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{room.currency || '$'} · {nights} Night{nights > 1 ? 's' : ''}</p>
                                                     </div>
                                                 </div>
                                                 {/* Cancellation policy */}
@@ -780,18 +780,18 @@ const CheckoutGuestDetails = () => {
                                                         const currentPolicies = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || checkRatesData?.price?.cancellationPolicies || policies;
                                                         if (!currentPolicies || currentPolicies.length === 0) {
                                                             return (
-                                                                <span className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-1">
-                                                                    <span className="material-symbols-outlined text-[10px]">info</span>
+                                                                <span className="text-[11px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                                                                    <span className="material-symbols-outlined text-[12px]">info</span>
                                                                     Standard cancellation applies
                                                                 </span>
                                                             );
                                                         }
                                                         return (
                                                             <div className="space-y-1">
-                                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Cancellation Policy</p>
+                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cancellation Policy</p>
                                                                 {currentPolicies.map((policy, pIdx) => (
                                                                     <div key={pIdx} className="flex justify-between items-center">
-                                                                        <span className="text-[9px] font-bold text-slate-500">
+                                                                        <span className="text-[11px] font-bold text-slate-500">
                                                                             {policy.fromDate 
                                                                                 ? (policy.fromDate.includes('[') 
                                                                                     ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -799,7 +799,7 @@ const CheckoutGuestDetails = () => {
                                                                                 : (policy.amount === 0 ? 'Flexible' : 'Cancellation Penalty')
                                                                             }
                                                                         </span>
-                                                                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-md ${
+                                                                        <span className={`text-[11px] font-black px-2 py-0.5 rounded-md ${
                                                                             policy.amount === 0
                                                                                 ? 'bg-emerald-500/10 text-emerald-500'
                                                                                 : 'bg-orange-500/10 text-orange-500'
@@ -819,7 +819,7 @@ const CheckoutGuestDetails = () => {
                                                     if (!currentDailyPrices || currentDailyPrices.length === 0) return null;
                                                     return (
                                                         <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/50">
-                                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Daily Rates</p>
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Daily Rates</p>
                                                             <div className="space-y-1">
                                                                 {currentDailyPrices.map((dp, dpIdx) => (
                                                                     <div key={dpIdx} className="flex justify-between items-center text-[9px]">

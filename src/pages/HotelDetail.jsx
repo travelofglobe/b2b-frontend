@@ -157,6 +157,133 @@ const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex,
     );
 };
 
+const ShareModal = ({ isOpen, onClose, hotel }) => {
+    if (!isOpen) return null;
+
+    const shareUrl = window.location.href;
+    const hotelName = hotel.names?.tr || hotel.names?.en || hotel.name;
+    const hotelLocation = hotel.address ? `${hotel.address.cityName}, ${hotel.address.countryName || ''}` : '';
+    
+    // Fix image path: handle both array of objects and simple string array
+    const hotelImage = (hotel.images?.[0]?.url || hotel.images?.[0] || hotel.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800');
+
+    const shareOptions = [
+        { 
+            name: 'Facebook', 
+            icon: (
+                <svg className="size-7 fill-white" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+            ), 
+            color: 'bg-[#1877F2]', 
+            shadow: 'shadow-[#1877F2]/30' 
+        },
+        { 
+            name: 'X', 
+            icon: (
+                <svg className="size-6 fill-white" viewBox="0 0 24 24">
+                    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932 6.064-6.932zm-1.292 19.49h2.039L6.486 3.24H4.298l13.311 17.403z"/>
+                </svg>
+            ), 
+            color: 'bg-black', 
+            shadow: 'shadow-black/30' 
+        },
+        { 
+            name: 'Whatsapp', 
+            icon: (
+                <svg className="size-7 fill-white" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 .018 5.396.015 12.03c0 2.12.554 4.189 1.605 6.006L0 24l6.117-1.605a11.77 11.77 0 005.925 1.585h.005c6.637 0 12.032-5.396 12.035-12.032a11.76 11.76 0 00-3.517-8.487"/>
+                </svg>
+            ), 
+            color: 'bg-[#25D366]', 
+            shadow: 'shadow-[#25D366]/30' 
+        },
+        { 
+            name: 'E-Posta', 
+            icon: <span className="material-symbols-outlined text-[32px] font-light">mail</span>, 
+            color: 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300', 
+            shadow: 'shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-700' 
+        },
+        { 
+            name: 'Kopyala', 
+            icon: <span className="material-symbols-outlined text-[32px] font-light">content_copy</span>, 
+            color: 'bg-primary/5 text-primary', 
+            shadow: 'shadow-primary/10 border border-primary/10' 
+        }
+    ];
+
+    const handleShare = (option) => {
+        if (option.name === 'Kopyala') {
+            navigator.clipboard.writeText(shareUrl);
+            // Could add a mini toast here if needed
+        } else if (option.name === 'E-Posta') {
+            window.location.href = `mailto:?subject=Check out this hotel: ${hotelName}&body=${shareUrl}`;
+        } else if (option.name === 'Whatsapp') {
+            window.open(`https://wa.me/?text=${encodeURIComponent(hotelName + ' ' + shareUrl)}`, '_blank');
+        } else if (option.name === 'Facebook') {
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+        } else if (option.name === 'X') {
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(hotelName)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-[5000] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-500" onClick={onClose}></div>
+            <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl w-full max-w-lg rounded-[48px] shadow-[0_32px_128px_rgba(0,0,0,0.4)] border border-white/40 dark:border-white/10 overflow-hidden animate-in zoom-in-95 duration-500">
+                {/* Decorative background element */}
+                <div className="absolute -top-24 -right-24 size-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="absolute -bottom-24 -left-24 size-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div className="p-10 relative z-10">
+                    <div className="flex items-center justify-between mb-10">
+                        <div className="space-y-1">
+                            <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Paylaş ve İlham Ver</h3>
+                            <p className="text-sm text-slate-500 font-medium tracking-wide">Bu harika tesisi sevdiklerinle paylaş</p>
+                        </div>
+                        <button onClick={onClose} className="size-12 rounded-2xl bg-white dark:bg-slate-800 text-slate-400 border border-slate-100 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 transition-all hover:rotate-90 shadow-sm active:scale-90">
+                            <span className="material-symbols-outlined text-2xl">close</span>
+                        </button>
+                    </div>
+
+                    <div className="bg-white/40 dark:bg-slate-800/40 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-[32px] p-6 flex gap-6 mb-12 shadow-xl shadow-slate-200/20 group">
+                        <div className="size-32 rounded-[24px] overflow-hidden shrink-0 shadow-2xl relative">
+                            <img src={hotelImage} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                        </div>
+                        <div className="flex flex-col justify-center min-w-0 flex-1">
+                            <div className="flex items-center gap-1 mb-2 text-amber-400">
+                                {[...Array(hotel.hotelStar?.star || 5)].map((_, i) => (
+                                    <span key={i} className="material-symbols-outlined text-[10px] fill-1">star</span>
+                                ))}
+                            </div>
+                            <h4 className="text-xl font-black text-slate-900 dark:text-white truncate mb-1 leading-tight">{hotelName}</h4>
+                            <div className="flex items-center gap-1.5 text-slate-500 font-bold text-xs truncate">
+                                <span className="material-symbols-outlined text-sm text-primary">location_on</span>
+                                {hotelLocation}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-5 gap-6">
+                        {shareOptions.map((opt) => (
+                            <button key={opt.name} onClick={() => handleShare(opt)} className="flex flex-col items-center gap-4 group">
+                                <div className={`size-16 rounded-3xl ${opt.color} flex items-center justify-center shadow-2xl ${opt.shadow} group-hover:scale-110 group-active:scale-95 transition-all duration-500 relative overflow-hidden`}>
+                                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    <div className="relative z-10 flex items-center justify-center">
+                                        {opt.icon}
+                                    </div>
+                                </div>
+                                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 text-center leading-tight uppercase tracking-[0.15em] group-hover:text-primary transition-colors duration-300">{opt.name}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const BookingConfirmationModal = ({ isOpen, onClose, hotelName }) => {
     if (!isOpen) return null;
     return (
@@ -420,6 +547,8 @@ const HotelDetail = () => {
     const [cancelFilter, setCancelFilter] = useState('ALL');
     const [expandedRates, setExpandedRates] = useState({}); // { roomKey: boolean }
     const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+    const [isLiked, setIsLiked] = useState(false);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     const hotel = dynamicHotel || {};
 
@@ -813,8 +942,22 @@ const HotelDetail = () => {
                             </button>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <div className="flex flex-col items-end">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 mr-4">
+                            <button 
+                                onClick={() => setIsLiked(!isLiked)}
+                                className={`size-12 rounded-2xl flex items-center justify-center transition-all ${isLiked ? 'bg-red-50 text-red-500 border-red-100 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:text-red-500'} border shadow-sm active:scale-90`}
+                            >
+                                <span className={`material-symbols-outlined text-2xl ${isLiked ? 'fill-1' : ''}`}>favorite</span>
+                            </button>
+                            <button 
+                                onClick={() => setIsShareModalOpen(true)}
+                                className="size-12 rounded-2xl bg-white dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:text-primary transition-all shadow-sm active:scale-90"
+                            >
+                                <span className="material-symbols-outlined text-2xl">share</span>
+                            </button>
+                        </div>
+                        <div className="flex flex-col items-end border-l border-slate-200 dark:border-slate-700 pl-6">
                             <span className="text-lg font-black text-slate-900 dark:text-white leading-none">{hotel.ratingLabel}</span>
                             <span className="text-xs text-slate-500 font-bold mt-1">1,240 reviews</span>
                             <span className="text-[10px] text-primary font-black flex items-center gap-1 mt-1 uppercase tracking-tighter">
@@ -1783,6 +1926,11 @@ const HotelDetail = () => {
             <MapModal 
                 isOpen={isMapModalOpen} 
                 onClose={() => setIsMapModalOpen(false)} 
+                hotel={hotel} 
+            />
+            <ShareModal 
+                isOpen={isShareModalOpen} 
+                onClose={() => setIsShareModalOpen(false)} 
                 hotel={hotel} 
             />
         </div >

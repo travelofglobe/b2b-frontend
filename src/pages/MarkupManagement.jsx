@@ -20,6 +20,7 @@ const MarkupManagement = () => {
 
     const [deleteModal, setDeleteModal] = useState({ show: false, id: null, name: '', isDeleting: false });
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [editMarkup, setEditMarkup] = useState(null);
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
     const showNotification = (message, type = 'success') => {
@@ -68,13 +69,38 @@ const MarkupManagement = () => {
 
     const handleToggleStatus = async (markup) => {
         const newStatus = markup.status === 'ACTIVE' ? 'PASSIVE' : 'ACTIVE';
+        
+        // Explicitly construct payload according to MarkupRequestDto
+        const payload = {
+            name: markup.name,
+            agencyIds: markup.agencies?.map(a => a.id) || [],
+            feedIds: markup.feeds?.map(f => f.id) || [],
+            supplierIds: markup.suppliers?.map(s => s.id) || [],
+            priority: markup.priority,
+            value: markup.value,
+            nationalityIds: markup.nationalities?.map(n => n.locationId || n.id) || [],
+            salesStartDateTime: markup.salesStartDateTime ? (markup.salesStartDateTime.includes('T') ? markup.salesStartDateTime : `${markup.salesStartDateTime}T00:00:00.00`) : null,
+            salesEndDateTime: markup.salesEndDateTime ? (markup.salesEndDateTime.includes('T') ? markup.salesEndDateTime : `${markup.salesEndDateTime}T00:00:00.00`) : null,
+            checkinStartDate: markup.checkinStartDate,
+            checkoutEndDate: markup.checkoutEndDate,
+            hotelIds: markup.hotels?.map(h => h.hotelId || h.id) || [],
+            locationIds: markup.locationIds || [],
+            status: newStatus
+        };
+
         try {
-            await markupService.updateStatus(markup.id, newStatus);
+            await markupService.updateMarkup(markup.id, payload);
             showNotification(`Markup marked as ${newStatus}`);
             fetchMarkups();
         } catch (error) {
+            console.error("Status update error:", error);
             showNotification("Failed to update status", "error");
         }
+    };
+
+    const handleEditMarkup = (markup) => {
+        setEditMarkup(markup);
+        setIsAddModalOpen(true);
     };
 
     const handleDeleteMarkup = (markup) => {
@@ -190,14 +216,14 @@ const MarkupManagement = () => {
                                         <div className="flex flex-wrap gap-1.5 items-center">
                                             {m.hotels && m.hotels.length > 0 ? (
                                                 <>
-                                                    {m.hotels.slice(0, 3).map((h, idx) => (
+                                                    {m.hotels.slice(0, 1).map((h, idx) => (
                                                         <span key={idx} className="px-2 py-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg text-[10px] font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">
                                                             {h.name}
                                                         </span>
                                                     ))}
-                                                    {m.hotels.length > 3 && (
+                                                    {m.hotels.length > 1 && (
                                                         <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded-lg text-[10px] font-black">
-                                                            +{m.hotels.length - 3}
+                                                            +{m.hotels.length - 1}
                                                         </span>
                                                     )}
                                                 </>
@@ -210,14 +236,14 @@ const MarkupManagement = () => {
                                         <div className="flex flex-wrap gap-1.5 items-center">
                                             {m.agencies && m.agencies.length > 0 ? (
                                                 <>
-                                                    {m.agencies.slice(0, 3).map((a, idx) => (
+                                                    {m.agencies.slice(0, 1).map((a, idx) => (
                                                         <span key={idx} className="px-2 py-1 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg text-[10px] font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                                                             {a.name}
                                                         </span>
                                                     ))}
-                                                    {m.agencies.length > 3 && (
+                                                    {m.agencies.length > 1 && (
                                                         <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded-lg text-[10px] font-black">
-                                                            +{m.agencies.length - 3}
+                                                            +{m.agencies.length - 1}
                                                         </span>
                                                     )}
                                                 </>
@@ -248,7 +274,10 @@ const MarkupManagement = () => {
                                     </td>
                                     <td className="px-6 py-5 text-right">
                                         <div className="flex items-center justify-end gap-1">
-                                            <button className="size-8 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-primary transition-all active:scale-90">
+                                            <button 
+                                                onClick={() => handleEditMarkup(m)}
+                                                className="size-8 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-primary transition-all active:scale-90"
+                                            >
                                                 <span className="material-icons-round text-lg">edit</span>
                                             </button>
                                             <button 
@@ -351,9 +380,13 @@ const MarkupManagement = () => {
 
             <AddMarkupModal 
                 isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
+                editData={editMarkup}
+                onClose={() => {
+                    setIsAddModalOpen(false);
+                    setEditMarkup(null);
+                }}
                 onSuccess={() => {
-                    showNotification("Markup rule created successfully");
+                    showNotification(editMarkup ? "Markup rule updated successfully" : "Markup rule created successfully");
                     fetchMarkups();
                 }}
             />

@@ -18,5 +18,9 @@ export const markupService = {
 
     createMarkup: async (data) => {
         return apiClient.post(`${API_BASE_URL}/markup`, data);
+    },
+
+    updateMarkup: async (id, data) => {
+        return apiClient.put(`${API_BASE_URL}/markup/update-by-id/${id}`, data);
     }
 };

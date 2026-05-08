@@ -5,7 +5,7 @@ import { locationService } from '../services/locationService';
 import { autocompleteService } from '../services/autocompleteService';
 import AgencyMultiSelect from './AgencyMultiSelect';
 
-const AddMarkupModal = ({ isOpen, onClose, onSuccess }) => {
+const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData }) => {
     const [loading, setLoading] = useState(false);
     const [agencies, setAgencies] = useState([]);
     const [countries, setCountries] = useState([]);
@@ -17,7 +17,21 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess }) => {
     // Helper to get localized name
     const getLocalizedName = (nameObj) => {
         if (!nameObj) return '';
-        return nameObj.translations?.[currentLang] || nameObj.defaultName || nameObj.searchName || '';
+        if (typeof nameObj === 'string') return nameObj;
+        
+        const translations = nameObj.translations || {};
+        
+        // 1. Current locale
+        if (translations[currentLang]) return translations[currentLang];
+        
+        // 2. "tr" (Turkish)
+        if (translations['tr']) return translations['tr'];
+        
+        // 3. First available language data
+        const availableLangs = Object.keys(translations);
+        if (availableLangs.length > 0) return translations[availableLangs[0]];
+        
+        return nameObj.defaultName || nameObj.searchName || '';
     };
 
     // Form state
@@ -37,34 +51,63 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess }) => {
 
     // Selection helper states
     const [selectedHotels, setSelectedHotels] = useState([]);
+    const [selectedNationalities, setSelectedNationalities] = useState([]);
     
-    // Location groups: [{ id, country: {id, name}, cities: [{id, name}], isEditing: boolean }]
-    const [locationGroups, setLocationGroups] = useState([]);
-    const [selectedNationalities, setSelectedNationalities] = useState([]); // [{id, name}]
-
-    // Autocomplete state
+    // Autocomplete & UI states
     const [hotelSearch, setHotelSearch] = useState('');
     const [hotelSuggestions, setHotelSuggestions] = useState([]);
     const [isHotelLoading, setIsHotelLoading] = useState(false);
-    const hotelRef = useRef(null);
+    const [apiError, setApiError] = useState(null);
     const [showHotelSuggestions, setShowHotelSuggestions] = useState(false);
     const [showNationalities, setShowNationalities] = useState(false);
-    const [activeCityDropdown, setActiveCityDropdown] = useState(null); // stores groupId
+    const [showLocations, setShowLocations] = useState(false);
+
+    // Refs
+    const modalBodyRef = useRef(null);
+    const hotelRef = useRef(null);
 
     useEffect(() => {
         if (isOpen) {
             fetchInitialData();
-        } else {
+        }
+        
+        if (isOpen && editData) {
+            // Populate basic form fields
+            setFormData({
+                name: editData.name || '',
+                agencyIds: editData.agencies?.map(a => a.id) || [],
+                priority: editData.priority || '5',
+                value: editData.value || '',
+                nationalityIds: editData.nationalities?.map(n => n.locationId || n.id) || [],
+                salesStartDateTime: editData.salesStartDateTime ? editData.salesStartDateTime.split('T')[0] : '',
+                salesEndDateTime: editData.salesEndDateTime ? editData.salesEndDateTime.split('T')[0] : '',
+                checkinStartDate: editData.checkinStartDate || '',
+                checkoutEndDate: editData.checkoutEndDate || '',
+                locationIds: editData.locations?.map(l => l.locationId) || editData.regions?.map(r => r.locationId) || editData.locationIds || [],
+                hotelIds: editData.hotels?.map(h => h.hotelId || h.id) || []
+            });
+
+            // Populate selection helpers
+            setSelectedHotels(editData.hotels?.map(h => ({
+                id: h.hotelId || h.id,
+                name: h.name
+            })) || []);
+
+            setSelectedNationalities(editData.nationalities?.map(n => ({
+                id: n.locationId || n.id,
+                name: getLocalizedName(n.name)
+            })) || []);
+        } else if (isOpen) {
             resetForm();
         }
-    }, [isOpen]);
+    }, [isOpen, editData]);
 
     const resetForm = () => {
         setFormData({
             name: '',
             agencyIds: [],
-            priority: 5,
-            value: 0,
+            priority: '5',
+            value: '',
             nationalityIds: [],
             salesStartDateTime: '',
             salesEndDateTime: '',
@@ -74,7 +117,6 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess }) => {
             hotelIds: []
         });
         setSelectedHotels([]);
-        setLocationGroups([]);
         setSelectedNationalities([]);
         setHotelSearch('');
     };
@@ -97,9 +139,18 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess }) => {
         }
         setIsHotelLoading(true);
         try {
-            const res = await autocompleteService.search(query);
+            const res = await autocompleteService.search({ 
+                query, 
+                autocompleteTypes: ["HOTEL"] 
+            });
             if (res && res.content) {
-                setHotelSuggestions(res.content.filter(item => item.type === 'HOTEL'));
+                const mappedHotels = res.content
+                    .filter(item => item.type === 'HOTEL')
+                    .map(item => ({
+                        ...item,
+                        hotelId: item.id.includes('hotel_') ? item.id.replace('hotel_', '') : item.id
+                    }));
+                setHotelSuggestions(mappedHotels);
             }
         } catch (error) {
             console.error("Hotel search error:", error);
@@ -134,54 +185,6 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess }) => {
         setSelectedHotels(prev => prev.filter(h => h.id !== id));
     };
 
-    const addLocationGroup = () => {
-        const newGroup = {
-            id: Date.now(),
-            country: null,
-            cities: [],
-            isEditing: true
-        };
-        setLocationGroups(prev => [...prev, newGroup]);
-    };
-
-    const setGroupCountry = async (groupId, countryId, countryName) => {
-        const cId = Number(countryId);
-        await fetchSubRegions(cId);
-        
-        setLocationGroups(prev => prev.map(g => 
-            g.id === groupId ? { ...g, country: { id: cId, name: countryName }, isEditing: false } : g
-        ));
-    };
-
-    const toggleCityInGroup = (groupId, cityId, cityName) => {
-        const cId = Number(cityId);
-        setLocationGroups(prev => prev.map(g => {
-            if (g.id !== groupId) return g;
-            const exists = g.cities.find(c => c.id === cId);
-            return {
-                ...g,
-                cities: exists 
-                    ? g.cities.filter(c => c.id !== cId) 
-                    : [...g.cities, { id: cId, name: cityName }]
-            };
-        }));
-    };
-
-    const removeLocationGroup = (groupId) => {
-        setLocationGroups(prev => prev.filter(g => g.id !== groupId));
-    };
-
-    const fetchSubRegions = async (countryId) => {
-        if (subRegions[countryId]) return;
-        try {
-            const res = await locationService.listSubRegions(countryId);
-            if (res && res.locationList) {
-                setSubRegions(prev => ({ ...prev, [countryId]: res.locationList }));
-            }
-        } catch (error) {
-            console.error("Error fetching sub-regions:", error);
-        }
-    };
 
     const toggleNationality = (id, name) => {
         const natId = Number(id);
@@ -194,45 +197,58 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess }) => {
         }
     };
 
+    const toggleLocation = (id) => {
+        const locId = Number(id);
+        setFormData(prev => ({
+            ...prev,
+            locationIds: prev.locationIds.includes(locId)
+                ? prev.locationIds.filter(id => id !== locId)
+                : [...prev.locationIds, locId]
+        }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setApiError(null);
         try {
-            // ISO format with .00 as requested for specific date fields if needed, 
-            // but standard ISO usually works. 
-            // format: "2026-09-01T00:00:00.00"
             const formatDateForApi = (dateStr) => {
                 if (!dateStr) return null;
                 if (dateStr.includes('T')) return dateStr;
                 return `${dateStr}T00:00:00.00`;
             };
 
-            // Compute final locationIds
-            const finalLocationIds = [];
-            locationGroups.forEach(group => {
-                if (group.country) {
-                    if (group.cities.length > 0) {
-                        group.cities.forEach(c => finalLocationIds.push(c.id));
-                    } else {
-                        finalLocationIds.push(group.country.id);
-                    }
-                }
-            });
-
             const payload = {
-                ...formData,
-                locationIds: [...new Set(finalLocationIds)],
+                name: formData.name,
+                agencyIds: formData.agencyIds,
+                feedIds: [],
+                supplierIds: [],
+                priority: Number(formData.priority) || 0,
+                value: Number(formData.value) || 0,
+                nationalityIds: formData.nationalityIds,
                 salesStartDateTime: formatDateForApi(formData.salesStartDateTime),
                 salesEndDateTime: formatDateForApi(formData.salesEndDateTime),
-                // checkin/checkout usually just yyyy-MM-dd
+                checkinStartDate: formData.checkinStartDate || null,
+                checkoutEndDate: formData.checkoutEndDate || null,
+                hotelIds: formData.hotelIds,
+                locationIds: formData.locationIds,
+                status: editData ? editData.status : "ACTIVE"
             };
 
-            await markupService.createMarkup(payload);
+            if (editData) {
+                await markupService.updateMarkup(editData.id, payload);
+            } else {
+                await markupService.createMarkup(payload);
+            }
             onSuccess();
             onClose();
         } catch (error) {
             console.error("Error creating markup:", error);
-            // Handle error toast?
+            const errorMessage = error.response?.data?.message || error.message || "An unexpected error occurred while saving the markup.";
+            setApiError(errorMessage);
+            if (modalBodyRef.current) {
+                modalBodyRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         } finally {
             setLoading(false);
         }
@@ -247,7 +263,9 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess }) => {
             <div className="relative bg-white dark:bg-[#0B1120] w-full max-w-5xl max-h-[90vh] rounded-[40px] shadow-2xl flex flex-col border border-slate-100 dark:border-white/5 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 <div className="p-8 border-b border-slate-50 dark:border-white/5 flex items-center justify-between">
                     <div>
-                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-2">Create New Markup</h2>
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-2">
+                            {editData ? 'Edit Markup Rule' : 'Create New Markup'}
+                        </h2>
                         <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Define pricing rules and conditions</p>
                     </div>
                     <button onClick={onClose} className="size-10 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-rose-500 transition-colors">
@@ -255,7 +273,29 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess }) => {
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-10 custom-scrollbar space-y-10">
+                <form 
+                    ref={modalBodyRef}
+                    onSubmit={handleSubmit} 
+                    className="flex-1 overflow-y-auto custom-scrollbar p-8 pt-4 space-y-8"
+                >
+                    {apiError && (
+                        <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-500/30 rounded-3xl p-5 flex items-center gap-4 animate-in fade-in slide-in-from-top-2">
+                            <div className="size-10 rounded-2xl bg-rose-500 flex items-center justify-center text-white shadow-lg shadow-rose-500/20">
+                                <span className="material-icons-round text-xl">error_outline</span>
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-[12px] font-black text-rose-700 dark:text-rose-400 uppercase tracking-widest leading-none mb-1">Action Required</p>
+                                <p className="text-sm font-bold text-rose-600 dark:text-rose-300">{apiError}</p>
+                            </div>
+                            <button 
+                                type="button"
+                                onClick={() => setApiError(null)}
+                                className="size-8 rounded-xl flex items-center justify-center text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
+                            >
+                                <span className="material-icons-round text-lg">close</span>
+                            </button>
+                        </div>
+                    )}
                     {/* 1. Identity & Value */}
                     <div className="bg-slate-100/30 dark:bg-white/5 p-8 rounded-[32px] border border-slate-200 dark:border-white/10 space-y-6">
                         <div className="flex items-center gap-3">
@@ -285,7 +325,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess }) => {
                                     type="number" 
                                     min="1" max="10"
                                     value={formData.priority}
-                                    onChange={(e) => setFormData(p => ({ ...p, priority: Number(e.target.value) }))}
+                                    onChange={(e) => setFormData(p => ({ ...p, priority: e.target.value }))}
                                     className="w-full h-11 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl px-4 text-[11px] font-bold outline-none focus:border-primary transition-all"
                                 />
                             </div>
@@ -298,7 +338,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess }) => {
                                         type="number" 
                                         step="0.01"
                                         value={formData.value}
-                                        onChange={(e) => setFormData(p => ({ ...p, value: Number(e.target.value) }))}
+                                        onChange={(e) => setFormData(p => ({ ...p, value: e.target.value }))}
                                         className="w-full h-11 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl px-4 text-[11px] font-bold outline-none focus:border-primary transition-all pr-12"
                                     />
                                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
@@ -481,123 +521,50 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess }) => {
                         </div>
                     </div>
 
-                    {/* 6. Locations filter */}
-                    <div className="bg-slate-100/30 dark:bg-white/5 p-8 rounded-[32px] border border-slate-200 dark:border-white/10 space-y-8">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="size-8 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500">
-                                    <span className="material-icons-round text-lg">map</span>
-                                </div>
-                                <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-slate-800 dark:text-white">Locations & Regions</h3>
+                    {/* 6. Target Locations */}
+                    <div className="bg-slate-100/30 dark:bg-white/5 p-8 rounded-[32px] border border-slate-200 dark:border-white/10 space-y-6">
+                        <div className="flex items-center gap-3">
+                            <div className="size-8 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500">
+                                <span className="material-icons-round text-lg">location_on</span>
                             </div>
-                            <button 
-                                type="button"
-                                onClick={addLocationGroup}
-                                className="h-9 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-slate-900/10"
-                            >
-                                <span className="material-icons-round text-base">add_location</span>
-                                Add Country
-                            </button>
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-slate-800 dark:text-white">Target Locations</h3>
                         </div>
-                        
-                        <div className="space-y-4">
-                            {locationGroups.map((group) => (
-                                <div key={group.id} className="bg-white/50 dark:bg-slate-900/50 p-6 rounded-[28px] border border-slate-200/60 dark:border-white/5 space-y-6 animate-in slide-in-from-left-2">
-                                    <div className="flex flex-wrap items-center gap-6">
-                                        {/* Country Selection */}
-                                        <div className="w-64 space-y-2">
-                                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">Country</label>
-                                            {!group.country ? (
-                                                <select 
-                                                    className="w-full h-11 bg-white dark:bg-slate-900 border-2 border-primary/20 dark:border-primary/10 rounded-2xl px-4 text-[11px] font-bold outline-none cursor-pointer focus:border-primary transition-all animate-pulse"
-                                                    onChange={(e) => {
-                                                        const opt = e.target.options[e.target.selectedIndex];
-                                                        if (opt.value) setGroupCountry(group.id, opt.value, opt.text);
-                                                    }}
-                                                >
-                                                    <option value="">Choose Country...</option>
-                                                    {countries.map(c => (
-                                                        <option key={c.id} value={c.locationId}>{getLocalizedName(c.name)}</option>
-                                                    ))}
-                                                </select>
-                                            ) : (
-                                                <div className="h-11 px-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/30 rounded-2xl flex items-center gap-3">
-                                                    <span className="material-icons-round text-emerald-600 dark:text-emerald-400 text-lg">public</span>
-                                                    <span className="text-[11px] font-black text-emerald-700 dark:text-emerald-300 uppercase truncate flex-1">{group.country.name}</span>
-                                                    <button onClick={() => removeLocationGroup(group.id)} className="text-slate-400 hover:text-rose-500 transition-colors">
-                                                        <span className="material-icons-round text-lg">cancel</span>
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
 
-                                        {/* City Multi-Selection (Optional) */}
-                                        {group.country && (
-                                            <div className="flex-1 min-w-[300px] space-y-2">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">Cities (Optional - Leave blank for all)</label>
-                                                <div className="flex flex-wrap gap-4 items-center">
-                                                    <div className="relative">
-                                                        <div 
-                                                            onClick={() => setActiveCityDropdown(activeCityDropdown === group.id ? null : group.id)}
-                                                            className="h-11 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl flex items-center gap-3 cursor-pointer min-w-[180px]"
-                                                        >
-                                                            <span className="material-icons-round text-slate-400 text-lg">location_city</span>
-                                                            <span className="text-[10px] font-black text-slate-400 uppercase">Add Cities...</span>
-                                                            <span className={`material-icons-round text-slate-400 text-sm ml-auto transition-transform ${activeCityDropdown === group.id ? 'rotate-180' : ''}`}>expand_more</span>
-                                                        </div>
-                                                        
-                                                        {activeCityDropdown === group.id && (
-                                                            <>
-                                                                <div className="fixed inset-0 z-40" onClick={() => setActiveCityDropdown(null)} />
-                                                                <div className="absolute top-full left-0 mt-2 w-72 max-h-60 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl z-50 p-3 custom-scrollbar animate-in fade-in slide-in-from-top-2">
-                                                                    {(subRegions[group.country.id] || []).map(city => (
-                                                                        <div 
-                                                                            key={city.id} 
-                                                                            onClick={() => toggleCityInGroup(group.id, city.locationId, getLocalizedName(city.name))}
-                                                                            className={`px-3 py-2.5 rounded-xl text-[11px] font-bold cursor-pointer transition-colors flex items-center justify-between mb-1 ${group.cities.some(c => c.id === Number(city.locationId)) ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
-                                                                        >
-                                                                            {getLocalizedName(city.name)}
-                                                                            {group.cities.some(c => c.id === Number(city.locationId)) && <span className="material-icons-round text-xs">check</span>}
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </div>
-
-                                                    {/* City Tags */}
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {group.cities.map(city => (
-                                                            <span key={city.id} className="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-xl text-[9px] font-black text-amber-700 dark:text-amber-300 uppercase flex items-center gap-2">
-                                                                {city.name}
-                                                                <span onClick={() => toggleCityInGroup(group.id, city.id, city.name)} className="material-icons-round text-[14px] cursor-pointer hover:text-rose-500">close</span>
-                                                            </span>
-                                                        ))}
-                                                        {group.cities.length === 0 && (
-                                                            <span className="text-[10px] font-bold text-slate-400 italic px-2">All regions in {group.country.name}</span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
+                        <div className="relative max-w-md">
+                            <div 
+                                onClick={() => setShowLocations(!showLocations)}
+                                className="min-h-11 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl px-4 py-2 flex flex-wrap gap-1.5 items-center cursor-pointer"
+                            >
+                                {formData.locationIds.length > 0 ? (
+                                    formData.locationIds.map(locId => {
+                                        const country = countries.find(c => Number(c.locationId) === Number(locId));
+                                        return (
+                                            <span key={locId} className="px-2.5 py-1 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-300 rounded-lg text-[10px] font-bold flex items-center gap-1.5 animate-in zoom-in">
+                                                {country ? getLocalizedName(country.name) : `ID: ${locId}`}
+                                                <span onClick={(e) => { e.stopPropagation(); toggleLocation(locId); }} className="material-icons-round text-[14px] cursor-pointer hover:text-rose-500 transition-colors">close</span>
+                                            </span>
+                                        );
+                                    })
+                                ) : <span className="text-[11px] text-slate-400 font-bold ml-1">Select target countries...</span>}
+                                <span className={`material-icons-round text-slate-400 text-sm ml-auto transition-transform ${showLocations ? 'rotate-180' : ''}`}>expand_more</span>
+                            </div>
                             
-                            {locationGroups.length === 0 && (
-                                <div className="py-12 border-2 border-dashed border-slate-100 dark:border-white/5 rounded-[32px] flex flex-col items-center justify-center space-y-4 opacity-50">
-                                    <div className="size-16 rounded-full bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-300">
-                                        <span className="material-icons-round text-4xl">travel_explore</span>
+                            {showLocations && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setShowLocations(false)} />
+                                    <div className="absolute top-full left-0 right-0 mt-2 max-h-60 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[24px] shadow-2xl z-50 p-3 custom-scrollbar animate-in fade-in slide-in-from-top-2">
+                                        {countries.map(c => (
+                                            <div 
+                                                key={c.id} 
+                                                onClick={() => toggleLocation(c.locationId)}
+                                                className={`px-3 py-2.5 rounded-xl text-[11px] font-bold cursor-pointer transition-colors flex items-center justify-between mb-1 ${formData.locationIds.includes(Number(c.locationId)) ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+                                            >
+                                                {getLocalizedName(c.name)}
+                                                {formData.locationIds.includes(Number(c.locationId)) && <span className="material-icons-round text-xs">check</span>}
+                                            </div>
+                                        ))}
                                     </div>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">No Location Filters Defined</p>
-                                    <button 
-                                        type="button"
-                                        onClick={addLocationGroup}
-                                        className="text-[10px] font-black uppercase text-primary hover:underline underline-offset-4"
-                                    >
-                                        + Click to add your first location
-                                    </button>
-                                </div>
+                                </>
                             )}
                         </div>
                     </div>
@@ -620,7 +587,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess }) => {
                                 <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
                                 <>
-                                    Publish Rule
+                                    {editData ? 'Update Rule' : 'Publish Rule'}
                                     <span className="material-icons-round text-xl">auto_awesome</span>
                                 </>
                             )}

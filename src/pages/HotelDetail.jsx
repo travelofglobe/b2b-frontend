@@ -1186,12 +1186,35 @@ const HotelDetail = () => {
                                                                         {(() => {
                                                                             const groupedAttributes = (roomGroup.attributes || []).reduce((acc, attr) => {
                                                                                 const label = attr.names?.tr || attr.names?.en || attr.label;
+                                                                                const lowerLabel = label?.toLowerCase() || '';
+                                                                                
+                                                                                // 1. Try to find a match in the global facility icon map
                                                                                 const iconMatch = Object.entries(FACILITY_ICON_MAP).find(([id, data]) => 
-                                                                                    attr.label?.toLowerCase().includes(data.label.toLowerCase()) || 
-                                                                                    attr.names?.en?.toLowerCase().includes(data.label.toLowerCase())
+                                                                                    lowerLabel.includes(data.label.toLowerCase()) || 
+                                                                                    data.label.toLowerCase().includes(lowerLabel)
                                                                                 );
                                                                                 
-                                                                                const iconKey = iconMatch ? iconMatch[1].icon : 'done';
+                                                                                let iconKey = iconMatch ? iconMatch[1].icon : 'done';
+
+                                                                                // 2. Room-specific keyword fallbacks for even richer icons
+                                                                                if (iconKey === 'done') {
+                                                                                    if (lowerLabel.includes('bed') || lowerLabel.includes('king') || lowerLabel.includes('queen') || lowerLabel.includes('twin')) iconKey = 'bed';
+                                                                                    else if (lowerLabel.includes('view')) {
+                                                                                        if (lowerLabel.includes('sea') || lowerLabel.includes('ocean')) iconKey = 'waves';
+                                                                                        else if (lowerLabel.includes('city') || lowerLabel.includes('skyline')) iconKey = 'location_city';
+                                                                                        else if (lowerLabel.includes('garden') || lowerLabel.includes('park')) iconKey = 'park';
+                                                                                        else if (lowerLabel.includes('mountain')) iconKey = 'terrain';
+                                                                                        else iconKey = 'visibility';
+                                                                                    }
+                                                                                    else if (lowerLabel.includes('sqm') || lowerLabel.includes('meter') || lowerLabel.includes('square')) iconKey = 'straighten';
+                                                                                    else if (lowerLabel.includes('bath') || lowerLabel.includes('shower') || lowerLabel.includes('tub')) iconKey = 'bathtub';
+                                                                                    else if (lowerLabel.includes('coffee') || lowerLabel.includes('tea') || lowerLabel.includes('kettle')) iconKey = 'coffee_maker';
+                                                                                    else if (lowerLabel.includes('breakfast')) iconKey = 'free_breakfast';
+                                                                                    else if (lowerLabel.includes('safe') || lowerLabel.includes('security')) iconKey = 'lock';
+                                                                                    else if (lowerLabel.includes('non-smoking') || lowerLabel.includes('smoke free')) iconKey = 'smoke_free';
+                                                                                    else if (lowerLabel.includes('balcony') || lowerLabel.includes('terrace')) iconKey = 'balcony';
+                                                                                }
+                                                                                
                                                                                 if (!acc[iconKey]) {
                                                                                     acc[iconKey] = { icon: iconKey, labels: new Set() };
                                                                                 }

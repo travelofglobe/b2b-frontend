@@ -206,7 +206,27 @@ export const FACILITY_ICON_MAP = {
     1981: { icon: 'child_friendly', label: 'Kids Club' },
     3724: { icon: 'beach_access', label: 'Beach' },
     18126: { icon: 'directions_bike', label: 'Bicycle Rental' },
-    98415: { icon: 'airport_shuttle', label: 'Airport Shuttle' }
+    98415: { icon: 'airport_shuttle', label: 'Airport Shuttle' },
+    334: { icon: 'wifi', label: 'Internet' },
+    610: { icon: 'local_parking', label: 'Parking' },
+    1984: { icon: 'self_improvement', label: 'Yoga' },
+    1991: { icon: 'meeting_room', label: 'Meeting Rooms' },
+    611: { icon: 'room_service', label: 'Room Service' },
+    1986: { icon: 'sports_soccer', label: 'Sports' },
+    3184: { icon: 'live_tv', label: 'Satellite TV' },
+    607: { icon: 'coffee_maker', label: 'Coffee Maker' },
+    100065: { icon: 'dry_cleaning', label: 'Dry Cleaning' },
+    637: { icon: 'local_shipping', label: 'Shuttle Service' },
+    18096: { icon: 'storefront', label: 'Gift Shop' },
+    623: { icon: 'library_books', label: 'Library' },
+    1979: { icon: 'medical_services', label: 'Doctor' },
+    1989: { icon: 'local_florist', label: 'Garden' },
+    3174: { icon: 'event_seat', label: 'Banquet Hall' },
+    18226: { icon: 'videogame_asset', label: 'Game Room' },
+    3144: { icon: 'theater_comedy', label: 'Entertainment' },
+    1988: { icon: 'desk', label: 'Work Desk' },
+    639: { icon: 'kitchen', label: 'Kitchenette' },
+    98425: { icon: 'balcony', label: 'Balcony' }
 };
 
 // MapBoundsListener

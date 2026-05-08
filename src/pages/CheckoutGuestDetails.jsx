@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { hotelService } from '../services/hotelService';
+import CheckoutStepper from '../components/CheckoutStepper';
+import PhoneInput from '../components/PhoneInput';
 
 const CheckoutGuestDetails = () => {
     const location = useLocation();
@@ -17,6 +19,7 @@ const CheckoutGuestDetails = () => {
     const [checkRatesData, setCheckRatesData] = useState(() => location.state?.checkRatesData || null);
     const [isLoadingRates, setIsLoadingRates] = useState(!location.state?.checkRatesData);
     const [roomsData, setRoomsData] = useState(() => {
+        if (location.state?.roomsData) return location.state.roomsData;
         if (!location.state?.selectedRooms || !location.state?.roomState) return [];
         return location.state.selectedRooms.map((room, roomIdx) => {
             const config = location.state.roomState[roomIdx] || { adults: 1, children: 0, childAges: [] };
@@ -295,7 +298,8 @@ const CheckoutGuestDetails = () => {
                 email: guest.type === 'Adult' && gIdx === 0 && !validateEmail(guest.email),
                 birthDate: !validateBirthDate(guest.birthDate) || ageMismatch,
                 ageMismatch: ageMismatch,
-                gender: !guest.gender
+                gender: !guest.gender,
+                phone: guest.type === 'Adult' && gIdx === 0 && (!guest.phone || guest.phone.trim().split(' ').length < 2 || guest.phone.trim().split(' ')[1].length < 3)
             };
             newErrors[key] = guestErrors;
             if (Object.values(guestErrors).some(v => v)) {
@@ -423,18 +427,17 @@ const CheckoutGuestDetails = () => {
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
             <main className="max-w-7xl mx-auto px-6 pt-12 pb-20">
-                {/* Top Navigation / Breadcrumb */}
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all shadow-sm">
-                            <span className="material-symbols-outlined">arrow_back</span>
-                        </button>
-                        <div>
-                            <h1 className="text-3xl font-black uppercase tracking-tight leading-none mb-1">Guest Details</h1>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Property Booking • {hotel.name}</p>
-                        </div>
-                    </div>
-                </div>
+                {/* Stepper */}
+                <CheckoutStepper 
+                    currentStep={2} 
+                    onStepClick={(stepId) => {
+                        if (stepId === 1) {
+                            navigate(-1);
+                        } else if (stepId === 3) {
+                            handleNext(); 
+                        }
+                    }}
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
                     <div className="lg:col-span-8">
@@ -459,9 +462,9 @@ const CheckoutGuestDetails = () => {
                             </div>
 
                             {currentRoom.guests.map((guest, gIdx) => (
-                                <div key={gIdx} className="relative group">
+                                <div key={gIdx} className="relative group z-[5] focus-within:z-[50]">
                                     <div className="absolute -inset-1 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-[40px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                    <div className="relative p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-2xl">
+                                    <div className="relative p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-2xl z-10 focus-within:z-[100]">
                                         <div className="flex items-center justify-between mb-10">
                                             <div className="flex items-center gap-4">
                                                 <div className={`size-12 rounded-2xl flex items-center justify-center transition-colors ${guest.type === 'Adult' ? 'bg-slate-100 dark:bg-slate-800 text-primary' : 'bg-emerald-500/10 text-emerald-500'}`}>
@@ -567,8 +570,12 @@ const CheckoutGuestDetails = () => {
                                                         />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Phone Number</label>
-                                                        <input required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold" placeholder="+___ ___ ___ ____" value={guest.phone} onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'phone', e.target.value)} />
+                                                        <PhoneInput 
+                                                            label="Phone Number"
+                                                            value={guest.phone}
+                                                            onChange={(val) => handleInputChange(activeRoomIdx, gIdx, 'phone', val)}
+                                                            error={errors[`${activeRoomIdx}-${gIdx}`]?.phone}
+                                                        />
                                                     </div>
                                                 </>
                                             )}

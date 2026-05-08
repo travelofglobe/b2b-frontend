@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { hotelService } from '../services/hotelService';
 import { useToast } from '../context/ToastContext';
+import CheckoutStepper from '../components/CheckoutStepper';
 
 const CheckoutPayment = () => {
     const location = useLocation();
@@ -275,17 +276,19 @@ const CheckoutPayment = () => {
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
             <main className="max-w-7xl mx-auto px-6 pt-12 pb-20">
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all shadow-sm">
-                            <span className="material-symbols-outlined">arrow_back</span>
-                        </button>
-                        <div>
-                            <h1 className="text-4xl font-black uppercase tracking-tight leading-none mb-1">Secure Payment</h1>
-                            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Step 2 of 3: Finalize Booking</p>
-                        </div>
-                    </div>
-                </div>
+                {/* Stepper */}
+                <CheckoutStepper 
+                    currentStep={3} 
+                    onStepClick={(stepId) => {
+                        const params = new URLSearchParams(window.location.search);
+                        const sid = params.get('sessionId');
+                        if (stepId === 1) {
+                            navigate(-2); // Back to HotelDetail
+                        } else if (stepId === 2) {
+                            navigate(`/hotel/checkout/guests?sessionId=${sid}`, { state: location.state });
+                        }
+                    }}
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                     <div className="lg:col-span-8 space-y-8">

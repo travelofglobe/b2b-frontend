@@ -183,7 +183,8 @@ const CheckoutGuestDetails = () => {
 
     // Fetch latest rates and info on mount if not provided
     useEffect(() => {
-        if (location.state?.checkRatesData || !selectedRooms) {
+        // If we are still loading session from Redis, or already have rates data, don't fetch again
+        if (isLoadingSession || location.state?.checkRatesData || checkRatesData || !selectedRooms) {
             return;
         }
 
@@ -415,7 +416,7 @@ const CheckoutGuestDetails = () => {
     
     // Use price from checkRatesData if available, otherwise fallback to local calculation
     const checkRate = checkRatesData?.rooms?.[0]?.rates?.[0];
-    const grandTotal = checkRatesData?.rooms?.reduce((sum, room) => sum + (room.rates?.[0]?.price?.totalPaymentAmount || 0), 0) || (selectedRooms.reduce((sum, r) => sum + r.rate, 0) * nights);
+    const grandTotal = checkRatesData?.rooms?.reduce((sum, room) => sum + (room.rates?.[0]?.price?.totalPaymentAmount || 0), 0) || selectedRooms.reduce((sum, r) => sum + r.rate, 0);
     const displayCurrency = checkRate?.price?.currency || selectedRooms[0]?.currency || '$';
 
     return (
@@ -742,13 +743,17 @@ const CheckoutGuestDetails = () => {
                                                             <p className="font-black text-[11px] uppercase tracking-tight text-slate-900 dark:text-white line-clamp-2">{room.name}</p>
                                                             <div className="flex flex-wrap gap-2 mt-1">
                                                                 <p className="text-[9px] font-bold text-slate-500 uppercase">
-                                                                    {checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || 'Room Only'}
+                                                                    {checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || checkRatesData?.boardName || 'Room Only'}
                                                                 </p>
-                                                                {checkRatesData?.rooms?.[idx]?.rates?.[0]?.refundable !== undefined && (
-                                                                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${checkRatesData.rooms[idx].rates[0].refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-                                                                        {checkRatesData.rooms[idx].rates[0].refundable ? 'Refundable' : 'Non-Refundable'}
-                                                                    </span>
-                                                                )}
+                                                                {(() => {
+                                                                    const refundable = checkRatesData?.rooms?.[idx]?.rates?.[0]?.refundable ?? checkRatesData?.refundable;
+                                                                    if (refundable === undefined) return null;
+                                                                    return (
+                                                                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                                                                            {refundable ? 'Refundable' : 'Non-Refundable'}
+                                                                        </span>
+                                                                    );
+                                                                })()}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -756,7 +761,7 @@ const CheckoutGuestDetails = () => {
                                                         <div className="flex items-baseline justify-end gap-1">
                                                             <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(room.currency)}</span>
                                                             <span className="font-black text-sm text-primary leading-none">
-                                                                {(checkRatesData?.rooms?.find(cr => cr.id === room.id || cr.name === room.name)?.rates?.[0]?.price?.totalPaymentAmount || (room.rate * nights)).toFixed(2)}
+                                                                {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || checkRatesData?.price?.totalPaymentAmount || room.rate).toFixed(2)}
                                                             </span>
                                                         </div>
                                                         <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{room.currency || '$'} · {nights} Night{nights > 1 ? 's' : ''}</p>
@@ -764,55 +769,65 @@ const CheckoutGuestDetails = () => {
                                                 </div>
                                                 {/* Cancellation policy */}
                                                 <div className="pt-2 border-t border-slate-100 dark:border-slate-700/50">
-                                                    {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || policies).length > 0 ? (
-                                                        <div className="space-y-1">
-                                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Cancellation Policy</p>
-                                                            {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || policies).map((policy, pIdx) => (
-                                                                <div key={pIdx} className="flex justify-between items-center">
-                                                                    <span className="text-[9px] font-bold text-slate-500">
-                                                                        {policy.fromDate 
-                                                                            ? (policy.fromDate.includes('[') 
-                                                                                ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                                                                                : new Date(policy.fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))
-                                                                            : (policy.amount === 0 ? 'Flexible' : 'Cancellation Penalty')
-                                                                        }
-                                                                    </span>
-                                                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-md ${
-                                                                        policy.amount === 0
-                                                                            ? 'bg-emerald-500/10 text-emerald-500'
-                                                                            : 'bg-orange-500/10 text-orange-500'
-                                                                    }`}>
-                                                                        {policy.amount === 0 ? 'Free Cancel' : `${getCurrencySymbol(policy.currency || displayCurrency)} ${policy.amount.toFixed(2)}`}
-                                                                    </span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-1">
-                                                            <span className="material-symbols-outlined text-[10px]">info</span>
-                                                            Standard cancellation applies
-                                                        </span>
-                                                    )}
+                                                    {(() => {
+                                                        const currentPolicies = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || checkRatesData?.price?.cancellationPolicies || policies;
+                                                        if (!currentPolicies || currentPolicies.length === 0) {
+                                                            return (
+                                                                <span className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                                                                    <span className="material-symbols-outlined text-[10px]">info</span>
+                                                                    Standard cancellation applies
+                                                                </span>
+                                                            );
+                                                        }
+                                                        return (
+                                                            <div className="space-y-1">
+                                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Cancellation Policy</p>
+                                                                {currentPolicies.map((policy, pIdx) => (
+                                                                    <div key={pIdx} className="flex justify-between items-center">
+                                                                        <span className="text-[9px] font-bold text-slate-500">
+                                                                            {policy.fromDate 
+                                                                                ? (policy.fromDate.includes('[') 
+                                                                                    ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                                                                                    : new Date(policy.fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))
+                                                                                : (policy.amount === 0 ? 'Flexible' : 'Cancellation Penalty')
+                                                                            }
+                                                                        </span>
+                                                                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-md ${
+                                                                            policy.amount === 0
+                                                                                ? 'bg-emerald-500/10 text-emerald-500'
+                                                                                : 'bg-orange-500/10 text-orange-500'
+                                                                        }`}>
+                                                                            {policy.amount === 0 ? 'Free Cancel' : `${getCurrencySymbol(policy.currency || displayCurrency)} ${policy.amount.toFixed(2)}`}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </div>
 
-                                                {/* Daily Prices - Updated to use correct room index */}
-                                                {checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.dailyPrices && checkRatesData.rooms[idx].rates[0].price.dailyPrices.length > 0 && (
-                                                    <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/50">
-                                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Daily Rates</p>
-                                                        <div className="space-y-1">
-                                                            {checkRatesData.rooms[idx].rates[0].price.dailyPrices.map((dp, dpIdx) => (
-                                                                <div key={dpIdx} className="flex justify-between items-center text-[9px]">
-                                                                    <span className="font-medium text-slate-500">
-                                                                        {new Date(dp.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
-                                                                    </span>
-                                                                    <span className="font-black text-slate-700 dark:text-slate-300">
-                                                                        {getCurrencySymbol(displayCurrency)} {dp.amount.toFixed(2)}
-                                                                    </span>
-                                                                </div>
-                                                            ))}
+                                                {/* Daily Prices - Updated to handle both formats */}
+                                                {(() => {
+                                                    const currentDailyPrices = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.dailyPrices || checkRatesData?.price?.dailyPrices;
+                                                    if (!currentDailyPrices || currentDailyPrices.length === 0) return null;
+                                                    return (
+                                                        <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/50">
+                                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Daily Rates</p>
+                                                            <div className="space-y-1">
+                                                                {currentDailyPrices.map((dp, dpIdx) => (
+                                                                    <div key={dpIdx} className="flex justify-between items-center text-[9px]">
+                                                                        <span className="font-medium text-slate-500">
+                                                                            {new Date(dp.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                                                                        </span>
+                                                                        <span className="font-black text-slate-700 dark:text-slate-300">
+                                                                            {getCurrencySymbol(displayCurrency)} {dp.amount.toFixed(2)}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                )}
+                                                    );
+                                                })()}
                                             </div>
                                         );
                                     })}

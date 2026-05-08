@@ -3,43 +3,33 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { hotelService } from '../services/hotelService';
+import CheckoutStepper from '../components/CheckoutStepper';
+import PhoneInput from '../components/PhoneInput';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const CheckoutGuestDetails = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const [selectedRooms, setSelectedRooms] = useState(() => location.state?.selectedRooms || null);
-    const [hotel, setHotel] = useState(() => location.state?.hotel || null);
-    const [roomState, setRoomState] = useState(() => location.state?.roomState || null);
-    const [checkInDate, setCheckInDate] = useState(() => location.state?.checkInDate || null);
-    const [checkOutDate, setCheckOutDate] = useState(() => location.state?.checkOutDate || null);
-    const [rateSearchUuid, setRateSearchUuid] = useState(() => location.state?.rateSearchUuid || null);
-    const [checkRatesData, setCheckRatesData] = useState(() => location.state?.checkRatesData || null);
-    const [isLoadingRates, setIsLoadingRates] = useState(!location.state?.checkRatesData);
-    const [roomsData, setRoomsData] = useState(() => {
-        if (!location.state?.selectedRooms || !location.state?.roomState) return [];
-        return location.state.selectedRooms.map((room, roomIdx) => {
-            const config = location.state.roomState[roomIdx] || { adults: 1, children: 0, childAges: [] };
-            const guests = [];
-            for (let i = 0; i < config.adults; i++) {
-                guests.push({ type: 'Adult', firstName: '', lastName: '', email: '', phone: '', birthDate: '', gender: '' });
-            }
-            for (let i = 0; i < config.children; i++) {
-                guests.push({ type: 'Child', age: config.childAges[i], firstName: '', lastName: '', birthDate: '', gender: '' });
-            }
-            return { roomName: room.name, guests, cancellationPolicies: room.cancellationPolicies || [], hubRateModel: room.hubRateModel };
-        });
-    });
-    const [clientReferenceId, setClientReferenceId] = useState(() => location.state?.clientReferenceId || '');
-    const [remark, setRemark] = useState(() => location.state?.remark || '');
+    const [selectedRooms, setSelectedRooms] = useState(null);
+    const [hotel, setHotel] = useState(null);
+    const [roomState, setRoomState] = useState(null);
+    const [checkInDate, setCheckInDate] = useState(null);
+    const [checkOutDate, setCheckOutDate] = useState(null);
+    const [rateSearchUuid, setRateSearchUuid] = useState(null);
+    const [checkRatesData, setCheckRatesData] = useState(null);
+    const [originalSearch, setOriginalSearch] = useState('');
+    const [hotelSlug, setHotelSlug] = useState('');
+    const [isLoadingRates, setIsLoadingRates] = useState(true);
+    const [roomsData, setRoomsData] = useState([]);
+    const [clientReferenceId, setClientReferenceId] = useState('');
+    const [remark, setRemark] = useState('');
+    
     const [sessionId, setSessionId] = useState(() => {
         const params = new URLSearchParams(window.location.search);
         return params.get('sessionId') || '';
     });
-    const [isLoadingSession, setIsLoadingSession] = useState(() => {
-        const params = new URLSearchParams(window.location.search);
-        return !!params.get('sessionId') && !location.state;
-    });
+    const [isLoadingSession, setIsLoadingSession] = useState(!!sessionId);
 
     // Calculate nights for accurate pricing
     const nights = React.useMemo(() => {
@@ -61,18 +51,19 @@ const CheckoutGuestDetails = () => {
     }, [checkInDate, checkOutDate]);
 
     const [activeRoomIdx, setActiveRoomIdx] = useState(0);
+    const [showConfirmBack, setShowConfirmBack] = useState(false);
+    const [pendingStepId, setPendingStepId] = useState(null);
 
     // Auto-scroll to top on mount
     useLayoutEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
-    // Load checkout session from Redis if coming from URL param
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const urlSessionId = params.get('sessionId');
 
-        if (urlSessionId && !location.state) {
+        if (urlSessionId) {
             const loadSession = async () => {
                 setIsLoadingRates(true);
                 setIsLoadingSession(true);
@@ -86,9 +77,29 @@ const CheckoutGuestDetails = () => {
                         setCheckOutDate(session.checkOutDate || null);
                         setRateSearchUuid(session.rateSearchUuid || null);
                         setCheckRatesData(session.checkRatesData || null);
-                        setRoomsData(session.roomsData || []);
+                        
+                        // Initial roomsData setup if empty
+                        if (!session.roomsData || session.roomsData.length === 0) {
+                            const initialRoomsData = (session.selectedRooms || []).map((room, roomIdx) => {
+                                const config = (session.roomState || [])[roomIdx] || { adults: 1, children: 0, childAges: [] };
+                                const guests = [];
+                                for (let i = 0; i < config.adults; i++) {
+                                    guests.push({ type: 'Adult', firstName: '', lastName: '', email: '', phone: '', birthDate: '', gender: '' });
+                                }
+                                for (let i = 0; i < config.children; i++) {
+                                    guests.push({ type: 'Child', age: config.childAges[i], firstName: '', lastName: '', birthDate: '', gender: '' });
+                                }
+                                return { roomName: room.name, guests, cancellationPolicies: room.cancellationPolicies || [], hubRateModel: room.hubRateModel };
+                            });
+                            setRoomsData(initialRoomsData);
+                        } else {
+                            setRoomsData(session.roomsData);
+                        }
+
                         setClientReferenceId(session.clientReferenceId || '');
                         setRemark(session.remark || '');
+                        setOriginalSearch(session.originalSearch || '');
+                        setHotelSlug(session.hotelSlug || '');
                         setSessionId(urlSessionId);
                     }
                 } catch (err) {
@@ -99,61 +110,8 @@ const CheckoutGuestDetails = () => {
                 }
             };
             loadSession();
-        } else if (location.state && selectedRooms) {
-            const updateSession = async () => {
-                try {
-                    const concatRateCodes = (selectedRooms || [])
-                        .map(r => r.hubRateModel?.rateCode || r.rateCode || '')
-                        .sort()
-                        .join('_');
-
-                    let sid = '';
-                    if (window.crypto && window.crypto.subtle) {
-                        try {
-                            const encoder = new TextEncoder();
-                            const data = encoder.encode(concatRateCodes);
-                            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                            const hashArray = Array.from(new Uint8Array(hashBuffer));
-                            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                            sid = hashHex.substring(0, 16);
-                        } catch (e) {
-                            console.warn('Subtle crypto failed, falling back to simple hash', e);
-                        }
-                    }
-
-                    // Fallback for non-HTTPS insecure environments or exceptions
-                    if (!sid) {
-                        let hash = 0;
-                        for (let i = 0; i < concatRateCodes.length; i++) {
-                            const char = concatRateCodes.charCodeAt(i);
-                            hash = ((hash << 5) - hash) + char;
-                            hash = hash & hash; // Convert to 32bit integer
-                        }
-                        sid = Math.abs(hash).toString(16).padEnd(16, 'a');
-                    }
-
-                    setSessionId(sid);
-                    window.history.replaceState(null, '', `${window.location.pathname}?sessionId=${sid}`);
-
-                    await hotelService.saveCheckoutSession(sid, {
-                        selectedRooms,
-                        hotel,
-                        roomState,
-                        checkInDate,
-                        checkOutDate,
-                        rateSearchUuid,
-                        checkRatesData,
-                        roomsData,
-                        clientReferenceId,
-                        remark
-                    });
-                } catch (err) {
-                    console.error('Failed to compute/save session:', err);
-                }
-            };
-            updateSession();
         }
-    }, [location.state]);
+    }, [location.search]);
 
     // Save updated context automatically to Redis on any data change (with debounce)
     useEffect(() => {
@@ -171,7 +129,9 @@ const CheckoutGuestDetails = () => {
                     checkRatesData,
                     roomsData,
                     clientReferenceId,
-                    remark
+                    remark,
+                    originalSearch,
+                    hotelSlug
                 });
             } catch (err) {
                 console.error('Failed to save updated checkout context:', err);
@@ -183,7 +143,8 @@ const CheckoutGuestDetails = () => {
 
     // Fetch latest rates and info on mount if not provided
     useEffect(() => {
-        if (location.state?.checkRatesData || !selectedRooms) {
+        // If we are still loading session from Redis, or already have rates data, don't fetch again
+        if (isLoadingSession || location.state?.checkRatesData || checkRatesData || !selectedRooms) {
             return;
         }
 
@@ -199,16 +160,11 @@ const CheckoutGuestDetails = () => {
                 const response = await hotelService.checkRates(checkRatesRequest);
                 console.log('Checkout check-rates response:', response);
 
-                const firstHotel = response?.[0];
-                const firstRoom = firstHotel?.rooms?.[0];
-                const firstRate = firstRoom?.rates?.[0];
-
-                if (firstRate) {
-                    setCheckRatesData(firstRate);
-                }
-
-                if (firstHotel?.rateSearchUuid) {
-                    setRateSearchUuid(firstHotel.rateSearchUuid);
+                if (response && Array.isArray(response) && response.length > 0) {
+                    setCheckRatesData(response[0]); // Store the full hotel object from check-rates
+                    if (response[0].rateSearchUuid) {
+                        setRateSearchUuid(response[0].rateSearchUuid);
+                    }
                 }
             } catch (err) {
                 console.error('Checkout check-rates failed:', err);
@@ -233,7 +189,16 @@ const CheckoutGuestDetails = () => {
 
     const handleInputChange = (roomIdx, guestIdx, field, value) => {
         const newData = [...roomsData];
-        newData[roomIdx].guests[guestIdx][field] = value;
+        
+        // Validation for Name fields: only letters and spaces allowed
+        if (field === 'firstName' || field === 'lastName') {
+            // Remove numbers and special characters (keeping Turkish characters)
+            const filteredValue = value.replace(/[^a-zA-Z\sğüşıöçĞÜŞİÖÇ]/g, '');
+            newData[roomIdx].guests[guestIdx][field] = filteredValue;
+        } else {
+            newData[roomIdx].guests[guestIdx][field] = value;
+        }
+        
         setRoomsData(newData);
     };
 
@@ -254,6 +219,18 @@ const CheckoutGuestDetails = () => {
         return date <= new Date();
     };
 
+    const calculateAge = (birthDate, referenceDate) => {
+        if (!birthDate || !referenceDate) return 0;
+        const birth = new Date(birthDate);
+        const ref = new Date(referenceDate);
+        let age = ref.getFullYear() - birth.getFullYear();
+        const m = ref.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && ref.getDate() < birth.getDate())) {
+            age--;
+        }
+        return age;
+    };
+
     const handleNext = () => {
         const currentRoom = roomsData[activeRoomIdx];
         const newErrors = { ...errors };
@@ -262,12 +239,24 @@ const CheckoutGuestDetails = () => {
 
         currentRoom.guests.forEach((guest, gIdx) => {
             const key = `${activeRoomIdx}-${gIdx}`;
+            
+            // Age validation for children
+            let ageMismatch = false;
+            if (guest.type === 'Child' && guest.birthDate) {
+                const calculatedAge = calculateAge(guest.birthDate, checkInDate);
+                if (calculatedAge !== guest.age) {
+                    ageMismatch = true;
+                }
+            }
+
             const guestErrors = {
                 firstName: !guest.firstName,
                 lastName: !guest.lastName,
                 email: guest.type === 'Adult' && gIdx === 0 && !validateEmail(guest.email),
-                birthDate: !validateBirthDate(guest.birthDate),
-                gender: !guest.gender
+                birthDate: !validateBirthDate(guest.birthDate) || ageMismatch,
+                ageMismatch: ageMismatch,
+                gender: !guest.gender,
+                phone: guest.type === 'Adult' && gIdx === 0 && (!guest.phone || guest.phone.trim().split(' ').length < 2 || guest.phone.trim().split(' ')[1].length < 3)
             };
             newErrors[key] = guestErrors;
             if (Object.values(guestErrors).some(v => v)) {
@@ -387,25 +376,42 @@ const CheckoutGuestDetails = () => {
     const hotelImage = hotel.images?.[0]?.url || hotel.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
     
     // Use price from checkRatesData if available, otherwise fallback to local calculation
-    const grandTotal = checkRatesData?.price?.totalPaymentAmount ?? (selectedRooms.reduce((sum, r) => sum + r.rate, 0) * nights);
-    const displayCurrency = checkRatesData?.price?.currency || selectedRooms[0]?.currency || '$';
+    const checkRate = checkRatesData?.rooms?.[0]?.rates?.[0];
+    const grandTotal = checkRatesData?.rooms?.reduce((sum, room) => sum + (room.rates?.[0]?.price?.totalPaymentAmount || 0), 0) || selectedRooms.reduce((sum, r) => sum + r.rate, 0);
+    const displayCurrency = checkRate?.price?.currency || selectedRooms[0]?.currency || '$';
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
-            <main className="max-w-7xl mx-auto px-6 pt-12 pb-20">
-                {/* Top Navigation / Breadcrumb */}
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => navigate(-1)} className="size-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all shadow-sm">
-                            <span className="material-symbols-outlined">arrow_back</span>
-                        </button>
-                        <div>
-                            <h1 className="text-3xl font-black uppercase tracking-tight leading-none mb-1">Guest Details</h1>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Property Booking • {hotel.name}</p>
-                        </div>
-                    </div>
-                </div>
+            <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
+                {/* Stepper */}
+                <CheckoutStepper 
+                    currentStep={2} 
+                    onStepClick={(stepId) => {
+                        if (stepId === 1) {
+                            setPendingStepId(stepId);
+                            setShowConfirmBack(true);
+                        } else if (stepId === 3) {
+                            handleNext(); 
+                        }
+                    }}
+                />
+
+                <ConfirmationModal 
+                    isOpen={showConfirmBack}
+                    onClose={() => setShowConfirmBack(false)}
+                    onConfirm={() => {
+                        const hId = hotelSlug || hotel?.id || hotel?.giataId || hotel?.slug;
+                        if (pendingStepId === 1 && hId) {
+                            const searchStr = originalSearch || '';
+                            navigate(`/hotel/${hId}${searchStr}`, { state: location.state });
+                        } else {
+                            setShowConfirmBack(false);
+                        }
+                    }}
+                    title="Emin misiniz?"
+                    message="Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir."
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
                     <div className="lg:col-span-8">
@@ -430,9 +436,9 @@ const CheckoutGuestDetails = () => {
                             </div>
 
                             {currentRoom.guests.map((guest, gIdx) => (
-                                <div key={gIdx} className="relative group">
+                                <div key={gIdx} className="relative group z-[5] focus-within:z-[50]">
                                     <div className="absolute -inset-1 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-[40px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                    <div className="relative p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-2xl">
+                                    <div className="relative p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-2xl z-10 focus-within:z-[100]">
                                         <div className="flex items-center justify-between mb-10">
                                             <div className="flex items-center gap-4">
                                                 <div className={`size-12 rounded-2xl flex items-center justify-center transition-colors ${guest.type === 'Adult' ? 'bg-slate-100 dark:bg-slate-800 text-primary' : 'bg-emerald-500/10 text-emerald-500'}`}>
@@ -492,7 +498,14 @@ const CheckoutGuestDetails = () => {
                                                         }
                                                     }}
                                                 />
-                                                {errors[`${activeRoomIdx}-${gIdx}`]?.birthDate && <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-1 ml-1 animate-in fade-in duration-300">Please enter a valid birth date</p>}
+                                                {errors[`${activeRoomIdx}-${gIdx}`]?.birthDate && !errors[`${activeRoomIdx}-${gIdx}`]?.ageMismatch && (
+                                                    <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-1 ml-1 animate-in fade-in duration-300">Please enter a valid birth date</p>
+                                                )}
+                                                {errors[`${activeRoomIdx}-${gIdx}`]?.ageMismatch && (
+                                                    <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-1 ml-1 animate-in fade-in duration-300">
+                                                        Child must be {guest.age} years old on check-in date
+                                                    </p>
+                                                )}
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Gender</label>
@@ -531,8 +544,12 @@ const CheckoutGuestDetails = () => {
                                                         />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Phone Number</label>
-                                                        <input required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold" placeholder="+___ ___ ___ ____" value={guest.phone} onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'phone', e.target.value)} />
+                                                        <PhoneInput 
+                                                            label="Phone Number"
+                                                            value={guest.phone}
+                                                            onChange={(val) => handleInputChange(activeRoomIdx, gIdx, 'phone', val)}
+                                                            error={errors[`${activeRoomIdx}-${gIdx}`]?.phone}
+                                                        />
                                                     </div>
                                                 </>
                                             )}
@@ -682,8 +699,8 @@ const CheckoutGuestDetails = () => {
                                         <div className="flex items-center gap-2">
                                             <span className="material-symbols-outlined text-[13px] text-primary">group</span>
                                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                                {checkRatesData?.occupancy 
-                                                    ? `${checkRatesData.occupancy.adults} Adults${checkRatesData.occupancy.child > 0 ? `, ${checkRatesData.occupancy.child} Children` : ''}`
+                                                {checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy 
+                                                    ? `${checkRatesData.rooms[0].rates[0].occupancy.adults} Adults${checkRatesData.rooms[0].rates[0].occupancy.child > 0 ? `, ${checkRatesData.rooms[0].rates[0].occupancy.child} Children` : ''}`
                                                     : `${roomState.reduce((s, r) => s + r.adults, 0)} Adults${roomState.reduce((s, r) => s + r.children, 0) > 0 ? `, ${roomState.reduce((s, r) => s + r.children, 0)} Children` : ''}`
                                                 }
                                             </span>
@@ -704,95 +721,122 @@ const CheckoutGuestDetails = () => {
                                                             {idx + 1}
                                                         </div>
                                                         <div>
-                                                            <p className="font-black text-[11px] uppercase tracking-tight text-slate-900 dark:text-white line-clamp-2">{room.name}</p>
+                                                            <p className="font-black text-[13px] uppercase tracking-tight text-slate-900 dark:text-white line-clamp-2">{room.name}</p>
                                                             <div className="flex flex-wrap gap-2 mt-1">
-                                                                <p className="text-[9px] font-bold text-slate-500 uppercase">{checkRatesData?.boardName || 'Room Only'}</p>
-                                                                {checkRatesData?.refundable !== undefined && (
-                                                                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${checkRatesData.refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-                                                                        {checkRatesData.refundable ? 'Refundable' : 'Non-Refundable'}
-                                                                    </span>
-                                                                )}
+                                                                <p className="text-[11px] font-bold text-slate-500 uppercase">
+                                                                    {checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || checkRatesData?.boardName || 'Room Only'}
+                                                                </p>
+                                                                {(() => {
+                                                                    const refundable = checkRatesData?.rooms?.[idx]?.rates?.[0]?.refundable ?? checkRatesData?.refundable;
+                                                                    if (refundable === undefined) return null;
+                                                                    return (
+                                                                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                                                                            {refundable ? 'Refundable' : 'Non-Refundable'}
+                                                                        </span>
+                                                                    );
+                                                                })()}
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div className="text-right shrink-0 ml-2">
                                                         <div className="flex items-baseline justify-end gap-1">
                                                             <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(room.currency)}</span>
-                                                            <span className="font-black text-sm text-primary leading-none">{(room.rate * nights).toFixed(2)}</span>
+                                                            <span className="font-black text-sm text-primary leading-none">
+                                                                {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || checkRatesData?.price?.totalPaymentAmount || room.rate).toFixed(2)}
+                                                            </span>
                                                         </div>
-                                                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{room.currency || '$'} · {nights} Night{nights > 1 ? 's' : ''}</p>
+                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{room.currency || '$'} · {nights} Night{nights > 1 ? 's' : ''}</p>
                                                     </div>
                                                 </div>
                                                 {/* Cancellation policy */}
                                                 <div className="pt-2 border-t border-slate-100 dark:border-slate-700/50">
-                                                    {(checkRatesData?.price?.cancellationPolicies || policies).length > 0 ? (
-                                                        <div className="space-y-1">
-                                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Cancellation Policy</p>
-                                                            {(checkRatesData?.price?.cancellationPolicies || policies).map((policy, pIdx) => (
-                                                                <div key={pIdx} className="flex justify-between items-center">
-                                                                    <span className="text-[9px] font-bold text-slate-500">
-                                                                        {policy.fromDate 
-                                                                            ? (policy.fromDate.includes('[') 
-                                                                                ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                                                                                : new Date(policy.fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))
-                                                                            : 'Non-refundable'
-                                                                        }
-                                                                    </span>
-                                                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-md ${
-                                                                        policy.amount === 0
-                                                                            ? 'bg-emerald-500/10 text-emerald-500'
-                                                                            : 'bg-orange-500/10 text-orange-500'
-                                                                    }`}>
-                                                                        {policy.amount === 0 ? 'Free Cancel' : `${getCurrencySymbol(policy.currency || displayCurrency)} ${policy.amount}`}
-                                                                    </span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-1">
-                                                            <span className="material-symbols-outlined text-[10px]">info</span>
-                                                            Standard cancellation applies
-                                                        </span>
-                                                    )}
+                                                    {(() => {
+                                                        const currentPolicies = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || checkRatesData?.price?.cancellationPolicies || policies;
+                                                        if (!currentPolicies || currentPolicies.length === 0) {
+                                                            return (
+                                                                <span className="text-[11px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                                                                    <span className="material-symbols-outlined text-[12px]">info</span>
+                                                                    Standard cancellation applies
+                                                                </span>
+                                                            );
+                                                        }
+                                                        return (
+                                                            <div className="space-y-1">
+                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cancellation Policy</p>
+                                                                {currentPolicies.map((policy, pIdx) => (
+                                                                    <div key={pIdx} className="flex justify-between items-center">
+                                                                        <span className="text-[11px] font-bold text-slate-500">
+                                                                            {policy.fromDate 
+                                                                                ? (policy.fromDate.includes('[') 
+                                                                                    ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                                                                                    : new Date(policy.fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))
+                                                                                : (policy.amount === 0 ? 'Flexible' : 'Cancellation Penalty')
+                                                                            }
+                                                                        </span>
+                                                                        <span className={`text-[11px] font-black px-2 py-0.5 rounded-md ${
+                                                                            policy.amount === 0
+                                                                                ? 'bg-emerald-500/10 text-emerald-500'
+                                                                                : 'bg-orange-500/10 text-orange-500'
+                                                                        }`}>
+                                                                            {policy.amount === 0 ? 'Free Cancel' : `${getCurrencySymbol(policy.currency || displayCurrency)} ${policy.amount.toFixed(2)}`}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        );
+                                                    })()}
                                                 </div>
 
-                                                {/* Daily Prices - Added as per request */}
-                                                {checkRatesData?.price?.dailyPrices && checkRatesData.price.dailyPrices.length > 0 && (
-                                                    <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/50">
-                                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Daily Rates</p>
-                                                        <div className="space-y-1">
-                                                            {checkRatesData.price.dailyPrices.map((dp, dpIdx) => (
-                                                                <div key={dpIdx} className="flex justify-between items-center text-[9px]">
-                                                                    <span className="font-medium text-slate-500">
-                                                                        {new Date(dp.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
-                                                                    </span>
-                                                                    <span className="font-black text-slate-700 dark:text-slate-300">
-                                                                        {getCurrencySymbol(displayCurrency)} {dp.amount.toFixed(2)}
-                                                                    </span>
-                                                                </div>
-                                                            ))}
+                                                {/* Daily Prices - Updated to handle both formats */}
+                                                {(() => {
+                                                    const currentDailyPrices = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.dailyPrices || checkRatesData?.price?.dailyPrices;
+                                                    if (!currentDailyPrices || currentDailyPrices.length === 0) return null;
+                                                    return (
+                                                        <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/50">
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Daily Rates</p>
+                                                            <div className="space-y-1">
+                                                                {currentDailyPrices.map((dp, dpIdx) => (
+                                                                    <div key={dpIdx} className="flex justify-between items-center text-[9px]">
+                                                                        <span className="font-medium text-slate-500">
+                                                                            {new Date(dp.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                                                                        </span>
+                                                                        <span className="font-black text-slate-700 dark:text-slate-300">
+                                                                            {getCurrencySymbol(displayCurrency)} {dp.amount.toFixed(2)}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                )}
+                                                    );
+                                                })()}
                                             </div>
                                         );
                                     })}
                                 </div>
 
-                                {/* Taxes - Added as per request */}
-                                {checkRatesData?.price?.taxes && checkRatesData.price.taxes.length > 0 && (
-                                    <div className="mb-6 space-y-2">
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Taxes & Fees</p>
-                                        {checkRatesData.price.taxes.map((tax, tIdx) => (
-                                            <div key={tIdx} className="flex justify-between items-center text-[9px]">
-                                                <span className="font-medium text-slate-500">{tax.name || 'Tax'}</span>
-                                                <span className="font-black text-slate-700 dark:text-slate-300">
-                                                    {getCurrencySymbol(tax.currency || displayCurrency)} {tax.amount.toFixed(2)}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                {/* Taxes - Updated to sum across all rooms */}
+                                {(() => {
+                                    const allTaxes = [];
+                                    checkRatesData?.rooms?.forEach(room => {
+                                        room.rates?.[0]?.price?.taxes?.forEach(tax => {
+                                            allTaxes.push(tax);
+                                        });
+                                    });
+                                    if (allTaxes.length === 0) return null;
+                                    return (
+                                        <div className="mb-6 space-y-2">
+                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Taxes & Fees</p>
+                                            {allTaxes.map((tax, tIdx) => (
+                                                <div key={tIdx} className="flex justify-between items-center text-[9px]">
+                                                    <span className="font-medium text-slate-500">{tax.name || tax.type || 'Tax'}</span>
+                                                    <span className="font-black text-slate-700 dark:text-slate-300">
+                                                        {getCurrencySymbol(tax.currency || displayCurrency)} {tax.amount.toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                })()}
 
                                 {/* Grand Total */}
                                 <div className="pt-6 border-t border-slate-200 dark:border-slate-800 mb-6">

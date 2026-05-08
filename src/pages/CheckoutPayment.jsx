@@ -11,23 +11,25 @@ const CheckoutPayment = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const [hotel, setHotel] = useState(() => location.state?.hotel || null);
-    const [totalPrice, setTotalPrice] = useState(() => location.state?.totalPrice || null);
-    const [selectedRooms, setSelectedRooms] = useState(() => location.state?.selectedRooms || null);
-    const [roomState, setRoomState] = useState(() => location.state?.roomState || null);
-    const [checkInDate, setCheckInDate] = useState(() => location.state?.checkInDate || null);
-    const [checkOutDate, setCheckOutDate] = useState(() => location.state?.checkOutDate || null);
-    const [roomsData, setRoomsData] = useState(() => location.state?.roomsData || null);
-    const [clientReferenceId, setClientReferenceId] = useState(() => location.state?.clientReferenceId || '');
-    const [remark, setRemark] = useState(() => location.state?.remark || '');
-    const [rateSearchUuid, setRateSearchUuid] = useState(() => location.state?.rateSearchUuid || null);
-    const [checkRatesData, setCheckRatesData] = useState(() => location.state?.checkRatesData || null);
-    const [originalSearch, setOriginalSearch] = useState(() => location.state?.originalSearch || '');
-    const [hotelSlug, setHotelSlug] = useState(() => location.state?.hotelSlug || '');
-    const [isLoadingSession, setIsLoadingSession] = useState(() => {
+    const [hotel, setHotel] = useState(null);
+    const [totalPrice, setTotalPrice] = useState(null);
+    const [selectedRooms, setSelectedRooms] = useState(null);
+    const [roomState, setRoomState] = useState(null);
+    const [checkInDate, setCheckInDate] = useState(null);
+    const [checkOutDate, setCheckOutDate] = useState(null);
+    const [roomsData, setRoomsData] = useState(null);
+    const [clientReferenceId, setClientReferenceId] = useState('');
+    const [remark, setRemark] = useState('');
+    const [rateSearchUuid, setRateSearchUuid] = useState(null);
+    const [checkRatesData, setCheckRatesData] = useState(null);
+    const [originalSearch, setOriginalSearch] = useState('');
+    const [hotelSlug, setHotelSlug] = useState('');
+    
+    const [sessionId, setSessionId] = useState(() => {
         const params = new URLSearchParams(window.location.search);
-        return !!params.get('sessionId') && !location.state;
+        return params.get('sessionId') || '';
     });
+    const [isLoadingSession, setIsLoadingSession] = useState(!!sessionId);
     const [showConfirmBack, setShowConfirmBack] = useState(false);
     const [pendingStepId, setPendingStepId] = useState(null);
 
@@ -37,7 +39,7 @@ const CheckoutPayment = () => {
         const params = new URLSearchParams(window.location.search);
         const urlSessionId = params.get('sessionId');
 
-        if (urlSessionId && !location.state) {
+        if (urlSessionId) {
             const loadSession = async () => {
                 setIsLoadingSession(true);
                 try {
@@ -56,6 +58,7 @@ const CheckoutPayment = () => {
                         setCheckRatesData(session.checkRatesData || null);
                         setOriginalSearch(session.originalSearch || '');
                         setHotelSlug(session.hotelSlug || '');
+                        setSessionId(urlSessionId);
                     }
                 } catch (err) {
                     console.error('Failed to load checkout session in Payment:', err);
@@ -65,7 +68,7 @@ const CheckoutPayment = () => {
             };
             loadSession();
         }
-    }, [location.state]);
+    }, [location.search]);
 
     // Calculate nights for accurate pricing
     const nights = React.useMemo(() => {

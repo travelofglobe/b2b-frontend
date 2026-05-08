@@ -670,21 +670,25 @@ const HotelDetail = () => {
                 const isoCheckIn = checkInDate instanceof Date ? checkInDate.toISOString() : new Date(checkInDate).toISOString();
                 const isoCheckOut = checkOutDate instanceof Date ? checkOutDate.toISOString() : new Date(checkOutDate).toISOString();
 
-                navigate(`/hotel/checkout/guests?sessionId=${sid}`, {
-                    state: {
-                        selectedRooms,
-                        hotel,
-                        roomState,
-                        checkInDate: isoCheckIn,
-                        checkOutDate: isoCheckOut,
-                        totalPrice: selectedRooms.reduce((sum, r) => sum + r.rate, 0),
-                        nights,
-                        rateSearchUuid: rateSearchUuid, // Pass the UUID obtained from checkRates
-                        checkRatesData: firstRate, // Pass rate details directly to prevent duplicate fetch
-                        originalSearch: window.location.search,
-                        hotelSlug: id
-                    }
-                });
+                const sessionData = {
+                    selectedRooms,
+                    hotel,
+                    roomState,
+                    checkInDate: isoCheckIn,
+                    checkOutDate: isoCheckOut,
+                    totalPrice: selectedRooms.reduce((sum, r) => sum + r.rate, 0),
+                    nights,
+                    rateSearchUuid: rateSearchUuid,
+                    checkRatesData: firstRate,
+                    originalSearch: window.location.search,
+                    hotelSlug: id
+                };
+
+                // Save session to backend first
+                await hotelService.saveCheckoutSession(sid, sessionData);
+
+                // Navigate with only sessionId
+                navigate(`/hotel/checkout/guests?sessionId=${sid}`);
             } catch (err) {
                 console.error('Check rates failed:', err);
                 toastError('Rate check failed. The price might have changed or the room is no longer available.');

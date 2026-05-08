@@ -11,41 +11,25 @@ const CheckoutGuestDetails = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const [selectedRooms, setSelectedRooms] = useState(() => location.state?.selectedRooms || null);
-    const [hotel, setHotel] = useState(() => location.state?.hotel || null);
-    const [roomState, setRoomState] = useState(() => location.state?.roomState || null);
-    const [checkInDate, setCheckInDate] = useState(() => location.state?.checkInDate || null);
-    const [checkOutDate, setCheckOutDate] = useState(() => location.state?.checkOutDate || null);
-    const [rateSearchUuid, setRateSearchUuid] = useState(() => location.state?.rateSearchUuid || null);
-    const [checkRatesData, setCheckRatesData] = useState(() => location.state?.checkRatesData || null);
-    const [originalSearch, setOriginalSearch] = useState(() => location.state?.originalSearch || '');
-    const [hotelSlug, setHotelSlug] = useState(() => location.state?.hotelSlug || '');
-    const [isLoadingRates, setIsLoadingRates] = useState(!location.state?.checkRatesData);
-    const [roomsData, setRoomsData] = useState(() => {
-        if (location.state?.roomsData) return location.state.roomsData;
-        if (!location.state?.selectedRooms || !location.state?.roomState) return [];
-        return location.state.selectedRooms.map((room, roomIdx) => {
-            const config = location.state.roomState[roomIdx] || { adults: 1, children: 0, childAges: [] };
-            const guests = [];
-            for (let i = 0; i < config.adults; i++) {
-                guests.push({ type: 'Adult', firstName: '', lastName: '', email: '', phone: '', birthDate: '', gender: '' });
-            }
-            for (let i = 0; i < config.children; i++) {
-                guests.push({ type: 'Child', age: config.childAges[i], firstName: '', lastName: '', birthDate: '', gender: '' });
-            }
-            return { roomName: room.name, guests, cancellationPolicies: room.cancellationPolicies || [], hubRateModel: room.hubRateModel };
-        });
-    });
-    const [clientReferenceId, setClientReferenceId] = useState(() => location.state?.clientReferenceId || '');
-    const [remark, setRemark] = useState(() => location.state?.remark || '');
+    const [selectedRooms, setSelectedRooms] = useState(null);
+    const [hotel, setHotel] = useState(null);
+    const [roomState, setRoomState] = useState(null);
+    const [checkInDate, setCheckInDate] = useState(null);
+    const [checkOutDate, setCheckOutDate] = useState(null);
+    const [rateSearchUuid, setRateSearchUuid] = useState(null);
+    const [checkRatesData, setCheckRatesData] = useState(null);
+    const [originalSearch, setOriginalSearch] = useState('');
+    const [hotelSlug, setHotelSlug] = useState('');
+    const [isLoadingRates, setIsLoadingRates] = useState(true);
+    const [roomsData, setRoomsData] = useState([]);
+    const [clientReferenceId, setClientReferenceId] = useState('');
+    const [remark, setRemark] = useState('');
+    
     const [sessionId, setSessionId] = useState(() => {
         const params = new URLSearchParams(window.location.search);
         return params.get('sessionId') || '';
     });
-    const [isLoadingSession, setIsLoadingSession] = useState(() => {
-        const params = new URLSearchParams(window.location.search);
-        return !!params.get('sessionId') && !location.state;
-    });
+    const [isLoadingSession, setIsLoadingSession] = useState(!!sessionId);
 
     // Calculate nights for accurate pricing
     const nights = React.useMemo(() => {
@@ -75,12 +59,11 @@ const CheckoutGuestDetails = () => {
         window.scrollTo(0, 0);
     }, []);
 
-    // Load checkout session from Redis if coming from URL param
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const urlSessionId = params.get('sessionId');
 
-        if (urlSessionId && !location.state) {
+        if (urlSessionId) {
             const loadSession = async () => {
                 setIsLoadingRates(true);
                 setIsLoadingSession(true);
@@ -94,7 +77,25 @@ const CheckoutGuestDetails = () => {
                         setCheckOutDate(session.checkOutDate || null);
                         setRateSearchUuid(session.rateSearchUuid || null);
                         setCheckRatesData(session.checkRatesData || null);
-                        setRoomsData(session.roomsData || []);
+                        
+                        // Initial roomsData setup if empty
+                        if (!session.roomsData || session.roomsData.length === 0) {
+                            const initialRoomsData = (session.selectedRooms || []).map((room, roomIdx) => {
+                                const config = (session.roomState || [])[roomIdx] || { adults: 1, children: 0, childAges: [] };
+                                const guests = [];
+                                for (let i = 0; i < config.adults; i++) {
+                                    guests.push({ type: 'Adult', firstName: '', lastName: '', email: '', phone: '', birthDate: '', gender: '' });
+                                }
+                                for (let i = 0; i < config.children; i++) {
+                                    guests.push({ type: 'Child', age: config.childAges[i], firstName: '', lastName: '', birthDate: '', gender: '' });
+                                }
+                                return { roomName: room.name, guests, cancellationPolicies: room.cancellationPolicies || [], hubRateModel: room.hubRateModel };
+                            });
+                            setRoomsData(initialRoomsData);
+                        } else {
+                            setRoomsData(session.roomsData);
+                        }
+
                         setClientReferenceId(session.clientReferenceId || '');
                         setRemark(session.remark || '');
                         setOriginalSearch(session.originalSearch || '');
@@ -109,63 +110,8 @@ const CheckoutGuestDetails = () => {
                 }
             };
             loadSession();
-        } else if (location.state && selectedRooms) {
-            const updateSession = async () => {
-                try {
-                    const concatRateCodes = (selectedRooms || [])
-                        .map(r => r.hubRateModel?.rateCode || r.rateCode || '')
-                        .sort()
-                        .join('_');
-
-                    let sid = '';
-                    if (window.crypto && window.crypto.subtle) {
-                        try {
-                            const encoder = new TextEncoder();
-                            const data = encoder.encode(concatRateCodes);
-                            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                            const hashArray = Array.from(new Uint8Array(hashBuffer));
-                            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                            sid = hashHex.substring(0, 16);
-                        } catch (e) {
-                            console.warn('Subtle crypto failed, falling back to simple hash', e);
-                        }
-                    }
-
-                    // Fallback for non-HTTPS insecure environments or exceptions
-                    if (!sid) {
-                        let hash = 0;
-                        for (let i = 0; i < concatRateCodes.length; i++) {
-                            const char = concatRateCodes.charCodeAt(i);
-                            hash = ((hash << 5) - hash) + char;
-                            hash = hash & hash; // Convert to 32bit integer
-                        }
-                        sid = Math.abs(hash).toString(16).padEnd(16, 'a');
-                    }
-
-                    setSessionId(sid);
-                    window.history.replaceState(null, '', `${window.location.pathname}?sessionId=${sid}`);
-
-                    await hotelService.saveCheckoutSession(sid, {
-                        selectedRooms,
-                        hotel,
-                        roomState,
-                        checkInDate,
-                        checkOutDate,
-                        rateSearchUuid,
-                        checkRatesData,
-                        roomsData,
-                        clientReferenceId,
-                        remark,
-                        originalSearch: originalSearch || location.state?.originalSearch || '',
-                        hotelSlug: hotelSlug || location.state?.hotelSlug || ''
-                    });
-                } catch (err) {
-                    console.error('Failed to compute/save session:', err);
-                }
-            };
-            updateSession();
         }
-    }, [location.state]);
+    }, [location.search]);
 
     // Save updated context automatically to Redis on any data change (with debounce)
     useEffect(() => {
@@ -183,7 +129,9 @@ const CheckoutGuestDetails = () => {
                     checkRatesData,
                     roomsData,
                     clientReferenceId,
-                    remark
+                    remark,
+                    originalSearch,
+                    hotelSlug
                 });
             } catch (err) {
                 console.error('Failed to save updated checkout context:', err);

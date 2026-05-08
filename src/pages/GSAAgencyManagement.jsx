@@ -10,10 +10,56 @@ const GSAAgencyManagement = () => {
     const [activeTab, setActiveTab] = useState('agencies');
     const [isLoading, setIsLoading] = useState(false);
     
+    // Localization
+    const currentLang = localStorage.getItem('language') || 'tr';
+    const t = {
+        en: {
+            activeWarning: "There are active agencies associated with this group. Are you sure you want to delete it?",
+            confirmPermanently: "Are you sure you want to permanently delete",
+            undoWarning: "This action cannot be undone.",
+            titleAgency: "Delete Agency",
+            titleGroup: "Delete Agency Group",
+            yesDelete: "Yes, Delete",
+            keep: "Keep",
+            agency: "Agency",
+            group: "Group"
+        },
+        tr: {
+            activeWarning: "Grup ile ilişkili aktif acenteler var. Silmek istediğinize emin misiniz?",
+            confirmPermanently: "isimli kaydı kalıcı olarak silmek istediğinize emin misiniz?",
+            undoWarning: "Bu işlem geri alınamaz.",
+            titleAgency: "Acenteyi Sil",
+            titleGroup: "Acente Grubunu Sil",
+            yesDelete: "Evet, Sil",
+            keep: "Vazgeç",
+            agency: "Acente",
+            group: "Grup"
+        }
+    }[currentLang] || {
+        en: {
+            activeWarning: "There are active agencies associated with this group. Are you sure you want to delete it?",
+            confirmPermanently: "Are you sure you want to permanently delete",
+            undoWarning: "This action cannot be undone.",
+            titleAgency: "Delete Agency",
+            titleGroup: "Delete Agency Group",
+            yesDelete: "Yes, Delete",
+            keep: "Keep",
+            agency: "Agency",
+            group: "Group"
+        }
+    };
+    
     // Modal Management
     const [agencyModal, setAgencyModal] = useState({ isOpen: false, mode: 'add', data: null });
     const [groupModal, setGroupModal] = useState({ isOpen: false, mode: 'add', data: null });
-    const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null, name: '', type: 'agency', isDeleting: false });
+    const [deleteModal, setDeleteModal] = useState({ 
+        isOpen: false, 
+        id: null, 
+        name: '', 
+        type: 'agency', 
+        isDeleting: false,
+        hasActiveAgencies: false 
+    });
     
     // Agencies State
     const [agencies, setAgencies] = useState([]);
@@ -234,8 +280,16 @@ const GSAAgencyManagement = () => {
     
     const handleGroupEditClick = (group) => setGroupModal({ isOpen: true, mode: 'edit', data: group });
 
-    const handleGroupDeleteClick = (id, name) => {
-        setDeleteModal({ isOpen: true, id, name, type: 'group', isDeleting: false });
+    const handleGroupDeleteClick = (group) => {
+        const hasActive = group.agencies?.some(a => a.status === 'ACTIVE');
+        setDeleteModal({ 
+            isOpen: true, 
+            id: group.id, 
+            name: group.name, 
+            type: 'group', 
+            isDeleting: false,
+            hasActiveAgencies: hasActive
+        });
     };
 
     const confirmDelete = async () => {
@@ -250,7 +304,7 @@ const GSAAgencyManagement = () => {
                 fetchAgencyGroups();
                 fetchGroupSummary();
             }
-            setDeleteModal({ isOpen: false, id: null, name: '', type: 'agency', isDeleting: false });
+            setDeleteModal({ isOpen: false, id: null, name: '', type: 'agency', isDeleting: false, hasActiveAgencies: false });
         } catch (error) {
             console.error('Error deleting:', error);
             alert(error.message || `Failed to delete ${deleteModal.type}`);
@@ -259,7 +313,7 @@ const GSAAgencyManagement = () => {
     };
 
     const handleDeleteClick = (id, name) => {
-        setDeleteModal({ isOpen: true, id, name, type: 'agency', isDeleting: false });
+        setDeleteModal({ isOpen: true, id, name, type: 'agency', isDeleting: false, hasActiveAgencies: false });
     };
 
     const handleStatusToggle = async (agency) => {
@@ -749,7 +803,7 @@ const GSAAgencyManagement = () => {
                                                                 <span className="material-icons-round text-lg">edit</span>
                                                             </button>
                                                             <button 
-                                                                onClick={() => handleGroupDeleteClick(group.id, group.name)}
+                                                                onClick={() => handleGroupDeleteClick(group)}
                                                                 className="size-8 rounded-xl flex items-center justify-center text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all active:scale-90"
                                                             >
                                                                 <span className="material-icons-round text-lg">delete_outline</span>
@@ -822,15 +876,29 @@ const GSAAgencyManagement = () => {
                 onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
                 onConfirm={confirmDelete}
                 isLoading={deleteModal.isDeleting}
-                title={deleteModal.type === 'agency' ? 'Delete Agency' : 'Delete Agency Group'}
+                title={deleteModal.type === 'agency' ? t.titleAgency : t.titleGroup}
                 message={
                     <span>
-                        Are you sure you want to permanently delete <b className="text-slate-900 dark:text-white uppercase">{deleteModal.name}</b>? 
-                        This action cannot be undone.
+                        {deleteModal.hasActiveAgencies && deleteModal.type === 'group' ? (
+                            <span className="text-rose-500 block mb-2 font-black">
+                                {t.activeWarning}
+                            </span>
+                        ) : null}
+                        {currentLang === 'tr' ? (
+                            <>
+                                <b className="text-slate-900 dark:text-white uppercase">{deleteModal.name}</b> {t.confirmPermanently}
+                            </>
+                        ) : (
+                            <>
+                                {t.confirmPermanently} <b className="text-slate-900 dark:text-white uppercase">{deleteModal.name}</b>?
+                            </>
+                        )}
+                        <br />
+                        <span className="text-slate-500 dark:text-slate-400 mt-2 block">{t.undoWarning}</span>
                     </span>
                 }
-                confirmText={deleteModal.isDeleting ? "Deleting..." : `Yes, Delete ${deleteModal.type === 'agency' ? 'Agency' : 'Group'}`}
-                cancelText={`Keep ${deleteModal.type === 'agency' ? 'Agency' : 'Group'}`}
+                confirmText={deleteModal.isDeleting ? (currentLang === 'tr' ? "Siliniyor..." : "Deleting...") : `${t.yesDelete} ${deleteModal.type === 'agency' ? t.agency : t.group}`}
+                cancelText={`${t.keep} ${deleteModal.type === 'agency' ? t.agency : t.group}`}
                 type="danger"
             />
         </div>

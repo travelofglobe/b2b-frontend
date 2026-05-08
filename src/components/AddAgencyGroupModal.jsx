@@ -15,6 +15,8 @@ const AddAgencyGroupModal = ({ isOpen, onClose, onSuccess, initialData = null, m
         agencyIds: []
     });
 
+    const [formErrors, setFormErrors] = useState({});
+
     useEffect(() => {
         if (isOpen) {
             if (mode === 'edit' && initialData) {
@@ -27,6 +29,7 @@ const AddAgencyGroupModal = ({ isOpen, onClose, onSuccess, initialData = null, m
                 setForm({ name: '', description: '', agencyIds: [] });
             }
             setError(null);
+            setFormErrors({});
             fetchAvailableAgencies();
         }
     }, [isOpen, initialData, mode]);
@@ -34,8 +37,8 @@ const AddAgencyGroupModal = ({ isOpen, onClose, onSuccess, initialData = null, m
     const fetchAvailableAgencies = async () => {
         setIsFetchingAgencies(true);
         try {
-            // Fetch all ACTIVE agencies for selection
-            const response = await agencyService.filterAgencies({ status: 'ACTIVE', size: 1000 });
+            // Fetch all agencies for selection (both ACTIVE and PASSIVE)
+            const response = await agencyService.filterAgencies({ size: 1000 });
             if (response && response.agencyList) {
                 setAvailableAgencies(response.agencyList);
             }
@@ -49,6 +52,10 @@ const AddAgencyGroupModal = ({ isOpen, onClose, onSuccess, initialData = null, m
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm(prev => ({ ...prev, [name]: value }));
+        // Clear field error when user starts typing
+        if (formErrors[name]) {
+            setFormErrors(prev => ({ ...prev, [name]: null }));
+        }
     };
 
     const toggleAgency = (id) => {
@@ -64,6 +71,17 @@ const AddAgencyGroupModal = ({ isOpen, onClose, onSuccess, initialData = null, m
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validation
+        const errors = {};
+        if (!form.name.trim()) errors.name = 'Group name is required';
+        if (!form.description.trim()) errors.description = 'Description is required';
+        
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            return;
+        }
+
         if (form.agencyIds.length === 0) {
             setError('Please select at least one agency.');
             return;
@@ -133,28 +151,30 @@ const AddAgencyGroupModal = ({ isOpen, onClose, onSuccess, initialData = null, m
                         )}
 
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Group Name</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Group Name *</label>
                             <input 
-                                required name="name" value={form.name} onChange={handleChange}
+                                name="name" value={form.name} onChange={handleChange}
                                 placeholder="e.g. European Partners"
-                                className="w-full h-12 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-white/10 focus:border-primary rounded-2xl px-5 text-[12px] font-bold outline-none transition-all shadow-sm"
+                                className={`w-full h-12 bg-slate-50 dark:bg-slate-950 border ${formErrors.name ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} focus:border-primary rounded-2xl px-5 text-[12px] font-bold outline-none transition-all shadow-sm`}
                             />
+                            {formErrors.name && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors.name}</p>}
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Description</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Description *</label>
                             <textarea 
                                 name="description" value={form.description} onChange={handleChange}
                                 placeholder="Details about this group..."
-                                className="w-full h-24 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-white/10 focus:border-primary rounded-2xl p-5 text-[12px] font-bold outline-none transition-all shadow-sm resize-none"
+                                className={`w-full h-24 bg-slate-50 dark:bg-slate-950 border ${formErrors.description ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} focus:border-primary rounded-2xl p-5 text-[12px] font-bold outline-none transition-all shadow-sm resize-none`}
                             />
+                            {formErrors.description && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors.description}</p>}
                         </div>
 
                         {/* Agency Selector */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Select Agencies ({form.agencyIds.length})</label>
-                                <div className="text-[10px] font-bold text-primary dark:text-blue-400">Status: ACTIVE ONLY</div>
+                                <div className="text-[10px] font-bold text-slate-400">All registered agencies</div>
                             </div>
                             
                             <div className="relative group">
@@ -174,24 +194,39 @@ const AddAgencyGroupModal = ({ isOpen, onClose, onSuccess, initialData = null, m
                                         <div className="p-8 text-center"><div className="size-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto"></div></div>
                                     ) : filteredAgencies.length > 0 ? (
                                         <div className="grid grid-cols-1 divide-y divide-slate-100 dark:divide-white/5">
-                                            {filteredAgencies.map(agency => (
-                                                <div 
-                                                    key={agency.id}
-                                                    onClick={() => toggleAgency(agency.id)}
-                                                    className="flex items-center justify-between p-4 cursor-pointer hover:bg-white dark:hover:bg-white/5 transition-colors group"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`size-5 rounded-lg border-2 flex items-center justify-center transition-all ${form.agencyIds.includes(agency.id) ? 'bg-primary border-primary text-white' : 'border-slate-300 dark:border-slate-700'}`}>
-                                                            {form.agencyIds.includes(agency.id) && <span className="material-icons-round text-sm">check</span>}
+                                            {filteredAgencies.map(agency => {
+                                                const isPassive = agency.status === 'PASSIVE';
+                                                const isRsa = agency.agencyType === 'RSA';
+                                                
+                                                return (
+                                                    <div 
+                                                        key={agency.id}
+                                                        onClick={() => !isPassive && toggleAgency(agency.id)}
+                                                        className={`flex items-center justify-between p-4 transition-colors group ${isPassive ? 'opacity-60 cursor-not-allowed bg-slate-100/50 dark:bg-slate-800/20' : 'cursor-pointer hover:bg-white dark:hover:bg-white/5'}`}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`size-5 rounded-lg border-2 flex items-center justify-center transition-all ${form.agencyIds.includes(agency.id) ? 'bg-primary border-primary text-white' : 'border-slate-300 dark:border-slate-700'} ${isPassive ? 'border-slate-200 dark:border-slate-800' : ''}`}>
+                                                                {form.agencyIds.includes(agency.id) && <span className="material-icons-round text-sm">check</span>}
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">{agency.name}</span>
+                                                                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${isRsa ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                                                                        {agency.agencyType || 'AGENCY'}
+                                                                    </span>
+                                                                    {isPassive && (
+                                                                        <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-500 text-[8px] font-black uppercase tracking-wider">
+                                                                            Passive
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{agency.countryName} | {agency.cityName}</span>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">{agency.name}</span>
-                                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{agency.countryName} | {agency.cityName}</span>
-                                                        </div>
+                                                        <span className="text-[9px] font-black text-slate-400 group-hover:text-primary transition-colors">ID: {agency.id}</span>
                                                     </div>
-                                                    <span className="text-[9px] font-black text-slate-400 group-hover:text-primary transition-colors">ID: {agency.id}</span>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     ) : (
                                         <div className="p-10 text-center text-slate-400">

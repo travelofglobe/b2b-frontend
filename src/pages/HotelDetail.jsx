@@ -1724,13 +1724,17 @@ const HotelDetail = () => {
                                     <button
                                         onClick={handleInstantReservation}
                                         disabled={selectedRooms.length === 0 || isCheckingRates}
-                                        className={`w-full font-black py-5 rounded-[24px] transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] mb-4 group/btn overflow-hidden relative ${selectedRooms.length > 0 && !isCheckingRates ? 'bg-primary text-white shadow-primary/30' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50'}`}>
+                                        className={`w-full font-black py-5 rounded-[24px] transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] mb-4 group/btn overflow-hidden relative ${
+                                            selectedRooms.length > 0 && !isCheckingRates 
+                                                ? 'bg-primary text-white shadow-primary/30 hover:scale-[1.02]' 
+                                                : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50'
+                                        } ${isCheckingRates ? 'animate-pulse ring-4 ring-primary/20' : ''}`}>
                                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
                                         <span className="relative z-10 flex items-center gap-2">
                                             {isCheckingRates ? (
                                                 <>
-                                                    <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                                    Checking Rates...
+                                                    <span className="size-5 border-3 border-white/20 border-t-white rounded-full animate-spin"></span>
+                                                    <span className="animate-pulse">Checking Best Rates...</span>
                                                 </>
                                             ) : (
                                                 <>

@@ -815,10 +815,6 @@ const HotelDetail = () => {
                                 <span className="material-symbols-outlined text-xs fill-1">trending_up</span> Highly Popular
                             </span>
                         </div>
-                        <div className="bg-primary text-white w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-black shadow-lg shadow-primary/20">
-                            <span className="text-2xl leading-none">{hotel.rating > 10 ? (hotel.rating / 10).toFixed(1) : (hotel.rating || '0')}</span>
-                            <span className="text-[10px] opacity-70">/10</span>
-                        </div>
                     </div>
                 </div>
 

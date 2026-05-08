@@ -1344,6 +1344,7 @@ const HotelDetail = () => {
                                 {activeTab === 'Overview' && (
                                     <div className="bg-white dark:bg-slate-900/50 p-10 rounded-[40px] border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-500">
                                         <h2 className="text-3xl font-black mb-6 uppercase tracking-tight">About the Property</h2>
+                                        
                                         <div className="space-y-6">
                                             {hotel.descriptions?.length > 0 ? (
                                                 hotel.descriptions.map((desc, idx) => (
@@ -1361,6 +1362,99 @@ const HotelDetail = () => {
                                                     dangerouslySetInnerHTML={{ __html: hotel.description || "Experience the ultimate luxury at our TOG-certified property." }}
                                                 />
                                             )}
+                                        </div>
+
+                                        {/* Address & Contact Details */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-12 pt-12 border-t border-slate-100 dark:border-slate-800">
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-8">
+                                                    <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                                        <span className="material-symbols-outlined text-2xl">location_on</span>
+                                                    </div>
+                                                    <h3 className="text-2xl font-black uppercase tracking-tight">Location Details</h3>
+                                                </div>
+                                                <div className="grid grid-cols-1 gap-6">
+                                                    {hotel.address?.street && (
+                                                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Street Address</span>
+                                                            <p className="text-sm font-bold text-slate-900 dark:text-white leading-relaxed">{hotel.address.street}</p>
+                                                        </div>
+                                                    )}
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        {(hotel.address?.zipCode || hotel.address?.postalCode) && (
+                                                            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Postal / Zip Code</span>
+                                                                <p className="text-sm font-bold text-slate-900 dark:text-white">{hotel.address.zipCode || hotel.address.postalCode}</p>
+                                                            </div>
+                                                        )}
+                                                        {hotel.address?.cityName && (
+                                                            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">City</span>
+                                                                <p className="text-sm font-bold text-slate-900 dark:text-white">{hotel.address.cityName}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {hotel.address?.countryName && (
+                                                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Country</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{hotel.address.countryName}</span>
+                                                                <span className="text-[10px] font-black text-slate-400 uppercase">({hotel.address.countryCode})</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-8">
+                                                    <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                                        <span className="material-symbols-outlined text-2xl">contact_phone</span>
+                                                    </div>
+                                                    <h3 className="text-2xl font-black uppercase tracking-tight">Contact Property</h3>
+                                                </div>
+                                                <div className="grid grid-cols-1 gap-6">
+                                                    {hotel.contact?.phoneNumber && (
+                                                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
+                                                            <div className="min-w-0">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Phone Number</span>
+                                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{hotel.contact.phoneNumber}</p>
+                                                            </div>
+                                                            <a href={`tel:${hotel.contact.phoneNumber}`} className="size-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                                                <span className="material-symbols-outlined text-xl">call</span>
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                    {hotel.contact?.email && (
+                                                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
+                                                            <div className="min-w-0">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Email Address</span>
+                                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{hotel.contact.email}</p>
+                                                            </div>
+                                                            <a href={`mailto:${hotel.contact.email}`} className="size-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                                                <span className="material-symbols-outlined text-xl">mail</span>
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                    {hotel.contact?.website && (
+                                                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
+                                                            <div className="min-w-0">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Official Website</span>
+                                                                <p className="text-sm font-bold text-primary truncate">{hotel.contact.website}</p>
+                                                            </div>
+                                                            <a href={hotel.contact.website} target="_blank" rel="noopener noreferrer" className="size-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                                                <span className="material-symbols-outlined text-xl">open_in_new</span>
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                    {!hotel.contact?.phoneNumber && !hotel.contact?.email && !hotel.contact?.website && (
+                                                        <div className="p-8 rounded-3xl border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center opacity-50">
+                                                            <span className="material-symbols-outlined text-3xl text-slate-300 mb-2">contact_support</span>
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact details unavailable</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 )}

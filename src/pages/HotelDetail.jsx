@@ -14,6 +14,20 @@ import { parseGuestsParam, serializeGuestsParam } from '../utils/searchParamsUti
 import { getBoardTypeLabel, getBoardTypeDescription, BOARD_TYPES } from '../utils/boardTypeUtils';
 import { FACILITY_ICON_MAP } from './MapView';
 import Tooltip from '../components/Tooltip';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// Fix for default marker icons in Leaflet
+let DefaultIcon = L.icon({
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex, description }) => {
     const handlePrevious = useCallback((e) => {
@@ -178,6 +192,126 @@ const BookingConfirmationModal = ({ isOpen, onClose, hotelName }) => {
 };
 
 
+const MapModal = ({ isOpen, onClose, hotel }) => {
+    if (!isOpen || !hotel) return null;
+
+    const lat = hotel.coordinates?.lat || hotel.lat;
+    const lng = hotel.coordinates?.lon || hotel.lng || hotel.lon;
+
+    if (!lat || !lng) return null;
+
+    // Custom Marker Icon
+    const customIcon = L.divIcon({
+        className: 'custom-hotel-marker',
+        html: `
+            <div class="relative flex flex-col items-center">
+                <div class="bg-primary text-white px-3 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-tighter shadow-2xl border-2 border-white flex items-center gap-1.5 whitespace-nowrap group animate-in zoom-in duration-500">
+                    <span class="material-symbols-outlined text-[14px] fill-1">apartment</span>
+                    ${hotel.names?.tr || hotel.names?.en || hotel.name}
+                </div>
+                <div class="w-0.5 h-3 bg-primary shadow-lg"></div>
+                <div class="size-2 rounded-full bg-primary ring-4 ring-primary/20 shadow-xl"></div>
+            </div>
+        `,
+        iconSize: [200, 50],
+        iconAnchor: [100, 50],
+    });
+
+    return (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 md:p-10 animate-in fade-in duration-300">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={onClose}></div>
+            
+            <div className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-[32px] overflow-hidden shadow-2xl flex flex-col h-[70vh] sm:h-[80vh] animate-in zoom-in-95 duration-500 border border-white/20">
+                {/* Header */}
+                <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
+                    <div className="flex items-center gap-4">
+                        <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm border border-primary/10">
+                            <span className="material-symbols-outlined text-2xl fill-1">map</span>
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-1.5">
+                                Explore Location
+                            </h3>
+                            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
+                                <span className="size-1.5 rounded-full bg-primary animate-pulse"></span>
+                                {hotel.names?.tr || hotel.names?.en || hotel.name}
+                            </p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={onClose}
+                        className="size-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-red-500 hover:text-white transition-all duration-500 shadow-sm border border-transparent hover:border-red-400 group"
+                    >
+                        <span className="material-symbols-outlined text-2xl group-hover:rotate-90 transition-transform duration-500">close</span>
+                    </button>
+                </div>
+
+                {/* Map Body */}
+                <div className="flex-1 relative z-0">
+                    <MapContainer 
+                        center={[lat, lng]} 
+                        zoom={15} 
+                        scrollWheelZoom={true} 
+                        className="w-full h-full"
+                    >
+                        <TileLayer
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                        />
+                        <Marker position={[lat, lng]} icon={customIcon}>
+                            <Popup className="custom-hotel-popup">
+                                <div className="p-2 min-w-[200px]">
+                                    <div className="relative h-24 mb-3 rounded-lg overflow-hidden">
+                                        <img 
+                                            src={hotel.images?.[0]?.url || hotel.image} 
+                                            className="w-full h-full object-cover" 
+                                            alt={hotel.name} 
+                                        />
+                                        <div className="absolute top-2 right-2 bg-primary text-white text-[8px] font-black px-2 py-1 rounded-md shadow-lg">
+                                            {hotel.rating || '8.5'} / 10
+                                        </div>
+                                    </div>
+                                    <h4 className="font-black text-sm uppercase tracking-tight text-slate-900 mb-1">
+                                        {hotel.names?.tr || hotel.names?.en || hotel.name}
+                                    </h4>
+                                    <p className="text-[10px] text-slate-500 font-bold leading-tight">
+                                        {hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location}
+                                    </p>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    </MapContainer>
+                </div>
+                
+                {/* Footer / Instructions */}
+                <div className="px-8 py-4 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-slate-400 text-lg">mouse</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scroll to zoom</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-slate-400 text-lg">info</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Click marker for details</span>
+                        </div>
+                    </div>
+                    <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 bg-white dark:bg-slate-800 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all group"
+                    >
+                        <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest group-hover:text-primary transition-colors">
+                            Google Maps
+                        </span>
+                        <span className="material-symbols-outlined text-primary text-lg">directions</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const HotelDetail = () => {
     const getCurrencySymbol = (code) => {
         const symbols = {
@@ -285,6 +419,7 @@ const HotelDetail = () => {
     const [boardTypeFilter, setBoardTypeFilter] = useState('ALL');
     const [cancelFilter, setCancelFilter] = useState('ALL');
     const [expandedRates, setExpandedRates] = useState({}); // { roomKey: boolean }
+    const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
     const hotel = dynamicHotel || {};
 
@@ -666,7 +801,7 @@ const HotelDetail = () => {
                             </div>
 
                             <button
-                                onClick={() => navigate(`/map?${searchParams.toString()}&hotelIds=${hotel.id}`)}
+                                onClick={() => setIsMapModalOpen(true)}
                                 className="text-primary text-sm font-bold hover:underline">
                                 Show on Map
                             </button>
@@ -679,10 +814,6 @@ const HotelDetail = () => {
                             <span className="text-[10px] text-primary font-black flex items-center gap-1 mt-1 uppercase tracking-tighter">
                                 <span className="material-symbols-outlined text-xs fill-1">trending_up</span> Highly Popular
                             </span>
-                        </div>
-                        <div className="bg-primary text-white w-16 h-16 rounded-2xl flex flex-col items-center justify-center font-black shadow-lg shadow-primary/20">
-                            <span className="text-2xl leading-none">{hotel.rating > 10 ? (hotel.rating / 10).toFixed(1) : (hotel.rating || '0')}</span>
-                            <span className="text-[10px] opacity-70">/10</span>
                         </div>
                     </div>
                 </div>
@@ -1051,12 +1182,35 @@ const HotelDetail = () => {
                                                                         {(() => {
                                                                             const groupedAttributes = (roomGroup.attributes || []).reduce((acc, attr) => {
                                                                                 const label = attr.names?.tr || attr.names?.en || attr.label;
+                                                                                const lowerLabel = label?.toLowerCase() || '';
+                                                                                
+                                                                                // 1. Try to find a match in the global facility icon map
                                                                                 const iconMatch = Object.entries(FACILITY_ICON_MAP).find(([id, data]) => 
-                                                                                    attr.label?.toLowerCase().includes(data.label.toLowerCase()) || 
-                                                                                    attr.names?.en?.toLowerCase().includes(data.label.toLowerCase())
+                                                                                    lowerLabel.includes(data.label.toLowerCase()) || 
+                                                                                    data.label.toLowerCase().includes(lowerLabel)
                                                                                 );
                                                                                 
-                                                                                const iconKey = iconMatch ? iconMatch[1].icon : 'done';
+                                                                                let iconKey = iconMatch ? iconMatch[1].icon : 'done';
+
+                                                                                // 2. Room-specific keyword fallbacks for even richer icons
+                                                                                if (iconKey === 'done') {
+                                                                                    if (lowerLabel.includes('bed') || lowerLabel.includes('king') || lowerLabel.includes('queen') || lowerLabel.includes('twin')) iconKey = 'bed';
+                                                                                    else if (lowerLabel.includes('view')) {
+                                                                                        if (lowerLabel.includes('sea') || lowerLabel.includes('ocean')) iconKey = 'waves';
+                                                                                        else if (lowerLabel.includes('city') || lowerLabel.includes('skyline')) iconKey = 'location_city';
+                                                                                        else if (lowerLabel.includes('garden') || lowerLabel.includes('park')) iconKey = 'park';
+                                                                                        else if (lowerLabel.includes('mountain')) iconKey = 'terrain';
+                                                                                        else iconKey = 'visibility';
+                                                                                    }
+                                                                                    else if (lowerLabel.includes('sqm') || lowerLabel.includes('meter') || lowerLabel.includes('square')) iconKey = 'straighten';
+                                                                                    else if (lowerLabel.includes('bath') || lowerLabel.includes('shower') || lowerLabel.includes('tub')) iconKey = 'bathtub';
+                                                                                    else if (lowerLabel.includes('coffee') || lowerLabel.includes('tea') || lowerLabel.includes('kettle')) iconKey = 'coffee_maker';
+                                                                                    else if (lowerLabel.includes('breakfast')) iconKey = 'free_breakfast';
+                                                                                    else if (lowerLabel.includes('safe') || lowerLabel.includes('security')) iconKey = 'lock';
+                                                                                    else if (lowerLabel.includes('non-smoking') || lowerLabel.includes('smoke free')) iconKey = 'smoke_free';
+                                                                                    else if (lowerLabel.includes('balcony') || lowerLabel.includes('terrace')) iconKey = 'balcony';
+                                                                                }
+                                                                                
                                                                                 if (!acc[iconKey]) {
                                                                                     acc[iconKey] = { icon: iconKey, labels: new Set() };
                                                                                 }
@@ -1209,6 +1363,7 @@ const HotelDetail = () => {
                                 {activeTab === 'Overview' && (
                                     <div className="bg-white dark:bg-slate-900/50 p-10 rounded-[40px] border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-500">
                                         <h2 className="text-3xl font-black mb-6 uppercase tracking-tight">About the Property</h2>
+                                        
                                         <div className="space-y-6">
                                             {hotel.descriptions?.length > 0 ? (
                                                 hotel.descriptions.map((desc, idx) => (
@@ -1226,6 +1381,99 @@ const HotelDetail = () => {
                                                     dangerouslySetInnerHTML={{ __html: hotel.description || "Experience the ultimate luxury at our TOG-certified property." }}
                                                 />
                                             )}
+                                        </div>
+
+                                        {/* Address & Contact Details */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-12 pt-12 border-t border-slate-100 dark:border-slate-800">
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-8">
+                                                    <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                                        <span className="material-symbols-outlined text-2xl">location_on</span>
+                                                    </div>
+                                                    <h3 className="text-2xl font-black uppercase tracking-tight">Location Details</h3>
+                                                </div>
+                                                <div className="grid grid-cols-1 gap-6">
+                                                    {hotel.address?.street && (
+                                                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Street Address</span>
+                                                            <p className="text-sm font-bold text-slate-900 dark:text-white leading-relaxed">{hotel.address.street}</p>
+                                                        </div>
+                                                    )}
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        {(hotel.address?.zipCode || hotel.address?.postalCode) && (
+                                                            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Postal / Zip Code</span>
+                                                                <p className="text-sm font-bold text-slate-900 dark:text-white">{hotel.address.zipCode || hotel.address.postalCode}</p>
+                                                            </div>
+                                                        )}
+                                                        {hotel.address?.cityName && (
+                                                            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">City</span>
+                                                                <p className="text-sm font-bold text-slate-900 dark:text-white">{hotel.address.cityName}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {hotel.address?.countryName && (
+                                                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Country</span>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{hotel.address.countryName}</span>
+                                                                <span className="text-[10px] font-black text-slate-400 uppercase">({hotel.address.countryCode})</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-8">
+                                                    <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                                                        <span className="material-symbols-outlined text-2xl">contact_phone</span>
+                                                    </div>
+                                                    <h3 className="text-2xl font-black uppercase tracking-tight">Contact Property</h3>
+                                                </div>
+                                                <div className="grid grid-cols-1 gap-6">
+                                                    {hotel.contact?.phoneNumber && (
+                                                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
+                                                            <div className="min-w-0">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Phone Number</span>
+                                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{hotel.contact.phoneNumber}</p>
+                                                            </div>
+                                                            <a href={`tel:${hotel.contact.phoneNumber}`} className="size-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                                                <span className="material-symbols-outlined text-xl">call</span>
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                    {hotel.contact?.email && (
+                                                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
+                                                            <div className="min-w-0">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Email Address</span>
+                                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{hotel.contact.email}</p>
+                                                            </div>
+                                                            <a href={`mailto:${hotel.contact.email}`} className="size-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                                                <span className="material-symbols-outlined text-xl">mail</span>
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                    {hotel.contact?.website && (
+                                                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
+                                                            <div className="min-w-0">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Official Website</span>
+                                                                <p className="text-sm font-bold text-primary truncate">{hotel.contact.website}</p>
+                                                            </div>
+                                                            <a href={hotel.contact.website} target="_blank" rel="noopener noreferrer" className="size-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                                                <span className="material-symbols-outlined text-xl">open_in_new</span>
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                    {!hotel.contact?.phoneNumber && !hotel.contact?.email && !hotel.contact?.website && (
+                                                        <div className="p-8 rounded-3xl border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center opacity-50">
+                                                            <span className="material-symbols-outlined text-3xl text-slate-300 mb-2">contact_support</span>
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact details unavailable</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -1520,6 +1768,12 @@ const HotelDetail = () => {
                 onClose={() => setIsLightboxOpen(false)}
                 setCurrentIndex={setCurrentImageIndex}
                 description={activeLightboxDescription}
+            />
+
+            <MapModal 
+                isOpen={isMapModalOpen} 
+                onClose={() => setIsMapModalOpen(false)} 
+                hotel={hotel} 
             />
         </div >
     );

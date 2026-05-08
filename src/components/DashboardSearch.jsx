@@ -441,7 +441,7 @@ const DashboardSearch = () => {
                 </div>
 
                 {/* Refined Search Bar Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 p-1 relative z-10">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 p-1 relative z-10">
                     {/* Destination Input */}
                     <div className="md:col-span-3 relative group/field" ref={searchWrapperRef}>
                         <div className={`flex flex-col gap-1 px-4 py-3 h-[72px] bg-white/60 dark:bg-slate-800/60 rounded-3xl border transition-all duration-300 ${error ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10' : 'border-slate-100 dark:border-slate-800 group-hover/field:border-primary/30 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm'}`}>
@@ -574,7 +574,7 @@ const DashboardSearch = () => {
                                     maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                                     monthsShown={2}
                                     locale="en-GB"
-                                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-sm font-bold text-slate-900 dark:text-white cursor-pointer tracking-tight"
+                                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-[110%] p-0 text-[13px] font-bold text-slate-900 dark:text-white cursor-pointer tracking-tighter whitespace-nowrap"
                                     dateFormat="dd MMM yyyy"
                                     placeholderText="Select range"
                                     calendarClassName="shadow-2xl border-none font-sans mt-4"

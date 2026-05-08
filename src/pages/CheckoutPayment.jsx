@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import { hotelService } from '../services/hotelService';
 import { useToast } from '../context/ToastContext';
 import CheckoutStepper from '../components/CheckoutStepper';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const CheckoutPayment = () => {
     const location = useLocation();
@@ -25,6 +26,8 @@ const CheckoutPayment = () => {
         const params = new URLSearchParams(window.location.search);
         return !!params.get('sessionId') && !location.state;
     });
+    const [showConfirmBack, setShowConfirmBack] = useState(false);
+    const [pendingStepId, setPendingStepId] = useState(null);
 
     const { error: toastError } = useToast();
 
@@ -275,7 +278,7 @@ const CheckoutPayment = () => {
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
-            <main className="max-w-7xl mx-auto px-6 pt-12 pb-20">
+            <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
                 {/* Stepper */}
                 <CheckoutStepper 
                     currentStep={3} 
@@ -283,11 +286,24 @@ const CheckoutPayment = () => {
                         const params = new URLSearchParams(window.location.search);
                         const sid = params.get('sessionId');
                         if (stepId === 1) {
-                            navigate(-2); // Back to HotelDetail
+                            setPendingStepId(stepId);
+                            setShowConfirmBack(true);
                         } else if (stepId === 2) {
                             navigate(`/hotel/checkout/guests?sessionId=${sid}`, { state: location.state });
                         }
                     }}
+                />
+
+                <ConfirmationModal 
+                    isOpen={showConfirmBack}
+                    onClose={() => setShowConfirmBack(false)}
+                    onConfirm={() => {
+                        if (pendingStepId === 1) {
+                            navigate(-2);
+                        }
+                    }}
+                    title="Emin misiniz?"
+                    message="Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir."
                 />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">

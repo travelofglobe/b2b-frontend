@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import { hotelService } from '../services/hotelService';
 import CheckoutStepper from '../components/CheckoutStepper';
 import PhoneInput from '../components/PhoneInput';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const CheckoutGuestDetails = () => {
     const location = useLocation();
@@ -64,6 +65,8 @@ const CheckoutGuestDetails = () => {
     }, [checkInDate, checkOutDate]);
 
     const [activeRoomIdx, setActiveRoomIdx] = useState(0);
+    const [showConfirmBack, setShowConfirmBack] = useState(false);
+    const [pendingStepId, setPendingStepId] = useState(null);
 
     // Auto-scroll to top on mount
     useLayoutEffect(() => {
@@ -426,17 +429,30 @@ const CheckoutGuestDetails = () => {
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
-            <main className="max-w-7xl mx-auto px-6 pt-12 pb-20">
+            <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
                 {/* Stepper */}
                 <CheckoutStepper 
                     currentStep={2} 
                     onStepClick={(stepId) => {
                         if (stepId === 1) {
-                            navigate(-1);
+                            setPendingStepId(stepId);
+                            setShowConfirmBack(true);
                         } else if (stepId === 3) {
                             handleNext(); 
                         }
                     }}
+                />
+
+                <ConfirmationModal 
+                    isOpen={showConfirmBack}
+                    onClose={() => setShowConfirmBack(false)}
+                    onConfirm={() => {
+                        if (pendingStepId === 1) {
+                            navigate(-1);
+                        }
+                    }}
+                    title="Emin misiniz?"
+                    message="Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir."
                 />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">

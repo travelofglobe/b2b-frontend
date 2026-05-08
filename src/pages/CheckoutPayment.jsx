@@ -22,6 +22,8 @@ const CheckoutPayment = () => {
     const [remark, setRemark] = useState(() => location.state?.remark || '');
     const [rateSearchUuid, setRateSearchUuid] = useState(() => location.state?.rateSearchUuid || null);
     const [checkRatesData, setCheckRatesData] = useState(() => location.state?.checkRatesData || null);
+    const [originalSearch, setOriginalSearch] = useState(() => location.state?.originalSearch || '');
+    const [hotelSlug, setHotelSlug] = useState(() => location.state?.hotelSlug || '');
     const [isLoadingSession, setIsLoadingSession] = useState(() => {
         const params = new URLSearchParams(window.location.search);
         return !!params.get('sessionId') && !location.state;
@@ -52,6 +54,8 @@ const CheckoutPayment = () => {
                         setRemark(session.remark || '');
                         setRateSearchUuid(session.rateSearchUuid || null);
                         setCheckRatesData(session.checkRatesData || null);
+                        setOriginalSearch(session.originalSearch || '');
+                        setHotelSlug(session.hotelSlug || '');
                     }
                 } catch (err) {
                     console.error('Failed to load checkout session in Payment:', err);
@@ -160,13 +164,14 @@ const CheckoutPayment = () => {
 
             const response = await hotelService.book(requestBody);
 
-            // Delete session from Redis on successful confirmation with voucher
-            if (response && response.status === 'CONFIRMED' && response.voucher) {
+            // Delete session from Redis on successful booking
+            if (response && (response.status === 'CONFIRMED' || response.status === 'NEW')) {
                 try {
                     const params = new URLSearchParams(window.location.search);
                     const sid = params.get('sessionId');
                     if (sid) {
                         await hotelService.deleteCheckoutSession(sid);
+                        console.log('Checkout session deleted successfully:', sid);
                     }
                 } catch (e) {
                     console.error('Failed to delete session after booking confirmation:', e);
@@ -176,6 +181,8 @@ const CheckoutPayment = () => {
             navigate('/hotel/checkout/result', {
                 state: {
                     ...location.state,
+                    totalPrice: grandTotal,
+                    displayCurrency: displayCurrency,
                     paymentMethod,
                     cardDetails,
                     bookingResponse: response
@@ -298,8 +305,12 @@ const CheckoutPayment = () => {
                     isOpen={showConfirmBack}
                     onClose={() => setShowConfirmBack(false)}
                     onConfirm={() => {
-                        if (pendingStepId === 1) {
-                            navigate(-2);
+                        const hId = hotelSlug || hotel?.id || hotel?.giataId || hotel?.slug;
+                        if (pendingStepId === 1 && hId) {
+                            const searchStr = originalSearch || '';
+                            navigate(`/hotel/${hId}${searchStr}`, { state: location.state });
+                        } else {
+                            setShowConfirmBack(false);
                         }
                     }}
                     title="Emin misiniz?"
@@ -933,7 +944,7 @@ const CheckoutPayment = () => {
                             </div>
 
                             {/* Supplementary technical details if available */}
-                            {(bookingError.timestamp || bookingError.requestId || bookingError.path) && (
+                            {(bookingError.timestamp || bookingError.requestId) && (
                                 <div className="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-3xl border border-slate-100 dark:border-slate-800/80 mb-8 space-y-3">
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Error Information</p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -949,17 +960,19 @@ const CheckoutPayment = () => {
                                                 <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 font-mono tracking-tight truncate select-all">{bookingError.requestId}</p>
                                             </div>
                                         )}
-                                        {bookingError.path && (
-                                            <div className="sm:col-span-2 border-t border-slate-200/40 dark:border-slate-700/40 pt-2">
-                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Path</p>
-                                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 font-mono tracking-tight truncate">{bookingError.path}</p>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             )}
 
                             <div className="flex flex-col sm:flex-row gap-4 justify-end">
+                                {(bookingError.message?.toLowerCase().includes('expired') || bookingError.message?.toLowerCase().includes('yeni bir arama')) && (
+                                    <button
+                                        onClick={() => navigate('/')}
+                                        className="px-8 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-slate-200 dark:hover:bg-slate-700 transition-all shadow-sm flex items-center justify-center gap-2"
+                                    >
+                                        <span className="material-symbols-outlined text-sm">search</span> New Search
+                                    </button>
+                                )}
                                 <button
                                     onClick={() => setBookingError(null)}
                                     className="px-8 py-4 bg-primary text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"

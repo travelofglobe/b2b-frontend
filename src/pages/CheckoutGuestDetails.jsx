@@ -18,6 +18,8 @@ const CheckoutGuestDetails = () => {
     const [checkOutDate, setCheckOutDate] = useState(() => location.state?.checkOutDate || null);
     const [rateSearchUuid, setRateSearchUuid] = useState(() => location.state?.rateSearchUuid || null);
     const [checkRatesData, setCheckRatesData] = useState(() => location.state?.checkRatesData || null);
+    const [originalSearch, setOriginalSearch] = useState(() => location.state?.originalSearch || '');
+    const [hotelSlug, setHotelSlug] = useState(() => location.state?.hotelSlug || '');
     const [isLoadingRates, setIsLoadingRates] = useState(!location.state?.checkRatesData);
     const [roomsData, setRoomsData] = useState(() => {
         if (location.state?.roomsData) return location.state.roomsData;
@@ -95,6 +97,8 @@ const CheckoutGuestDetails = () => {
                         setRoomsData(session.roomsData || []);
                         setClientReferenceId(session.clientReferenceId || '');
                         setRemark(session.remark || '');
+                        setOriginalSearch(session.originalSearch || '');
+                        setHotelSlug(session.hotelSlug || '');
                         setSessionId(urlSessionId);
                     }
                 } catch (err) {
@@ -151,7 +155,9 @@ const CheckoutGuestDetails = () => {
                         checkRatesData,
                         roomsData,
                         clientReferenceId,
-                        remark
+                        remark,
+                        originalSearch: originalSearch || location.state?.originalSearch || '',
+                        hotelSlug: hotelSlug || location.state?.hotelSlug || ''
                     });
                 } catch (err) {
                     console.error('Failed to compute/save session:', err);
@@ -447,8 +453,12 @@ const CheckoutGuestDetails = () => {
                     isOpen={showConfirmBack}
                     onClose={() => setShowConfirmBack(false)}
                     onConfirm={() => {
-                        if (pendingStepId === 1) {
-                            navigate(-1);
+                        const hId = hotelSlug || hotel?.id || hotel?.giataId || hotel?.slug;
+                        if (pendingStepId === 1 && hId) {
+                            const searchStr = originalSearch || '';
+                            navigate(`/hotel/${hId}${searchStr}`, { state: location.state });
+                        } else {
+                            setShowConfirmBack(false);
                         }
                     }}
                     title="Emin misiniz?"

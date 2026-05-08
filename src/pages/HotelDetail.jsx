@@ -680,7 +680,9 @@ const HotelDetail = () => {
                         totalPrice: selectedRooms.reduce((sum, r) => sum + r.rate, 0),
                         nights,
                         rateSearchUuid: rateSearchUuid, // Pass the UUID obtained from checkRates
-                        checkRatesData: firstRate // Pass rate details directly to prevent duplicate fetch
+                        checkRatesData: firstRate, // Pass rate details directly to prevent duplicate fetch
+                        originalSearch: window.location.search,
+                        hotelSlug: id
                     }
                 });
             } catch (err) {

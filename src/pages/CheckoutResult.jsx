@@ -5,7 +5,12 @@ import Footer from '../components/Footer';
 
 const CheckoutResult = () => {
     const location = useLocation();
-    const { hotel, totalPrice, roomsData, bookingResponse } = location.state || {};
+    const { hotel, totalPrice, roomsData, bookingResponse, displayCurrency } = location.state || {};
+
+    const getCurrencySymbol = (code) => {
+        const symbols = { 'USD': '$', 'EUR': '€', 'GBP': '£', 'TRY': '₺', 'AED': 'د.إ', 'SAR': 'ر.س', 'JPY': '¥', 'CHF': 'Fr', 'CAD': 'CA$', 'AUD': 'A$' };
+        return symbols[code] || code || '$';
+    };
 
     const isSuccess = ['NEW', 'CONFIRMED'].includes(bookingResponse?.status) && bookingResponse?.voucher;
     const bookingRef = bookingResponse?.voucher || bookingResponse?.clientReferenceId || ("TOG" + Math.random().toString(36).substring(2, 8).toUpperCase());
@@ -60,7 +65,9 @@ const CheckoutResult = () => {
                             <div className="flex justify-between">
                                 <div>
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Amount</p>
-                                    <p className="text-xl font-black text-primary">${totalPrice?.toFixed(2)}</p>
+                                    <p className="text-xl font-black text-primary">
+                                        {getCurrencySymbol(displayCurrency)} {totalPrice ? totalPrice.toFixed(2) : '0.00'}
+                                    </p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Status</p>

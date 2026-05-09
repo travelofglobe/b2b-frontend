@@ -2,15 +2,57 @@ import React, { useState, useRef, useEffect } from 'react';
 
 const countries = [
     { name: 'Türkiye', code: '+90', flag: '🇹🇷', id: 'TR' },
-    { name: 'İngiltere', code: '+44', flag: '🇬🇧', id: 'GB' },
+    { name: 'Birleşik Krallık', code: '+44', flag: '🇬🇧', id: 'GB' },
     { name: 'Almanya', code: '+49', flag: '🇩🇪', id: 'DE' },
-    { name: 'Rusya', code: '+7', flag: '🇷🇺', id: 'RU' },
-    { name: 'Azerbaycan', code: '+994', flag: '🇦🇿', id: 'AZ' },
-    { name: 'Suudi Arabistan', code: '+966', flag: '🇸🇦', id: 'SA' },
     { name: 'ABD', code: '+1', flag: '🇺🇸', id: 'US' },
     { name: 'Fransa', code: '+33', flag: '🇫🇷', id: 'FR' },
     { name: 'İtalya', code: '+39', flag: '🇮🇹', id: 'IT' },
     { name: 'İspanya', code: '+34', flag: '🇪🇸', id: 'ES' },
+    { name: 'Hollanda', code: '+31', flag: '🇳🇱', id: 'NL' },
+    { name: 'Belçika', code: '+32', flag: '🇧🇪', id: 'BE' },
+    { name: 'İsviçre', code: '+41', flag: '🇨🇭', id: 'CH' },
+    { name: 'Avusturya', code: '+43', flag: '🇦🇹', id: 'AT' },
+    { name: 'Rusya', code: '+7', flag: '🇷🇺', id: 'RU' },
+    { name: 'Azerbaycan', code: '+994', flag: '🇦🇿', id: 'AZ' },
+    { name: 'Kazakistan', code: '+7', flag: '🇰🇿', id: 'KZ' },
+    { name: 'Özbekistan', code: '+998', flag: '🇺🇿', id: 'UZ' },
+    { name: 'Türkmenistan', code: '+993', flag: '🇹🇲', id: 'TM' },
+    { name: 'Kırgızistan', code: '+996', flag: '🇰🇬', id: 'KG' },
+    { name: 'Gürcistan', code: '+995', flag: '🇬🇪', id: 'GE' },
+    { name: 'Ukrayna', code: '+380', flag: '🇺🇦', id: 'UA' },
+    { name: 'Bulgaristan', code: '+359', flag: '🇧🇬', id: 'BG' },
+    { name: 'Yunanistan', code: '+30', flag: '🇬🇷', id: 'GR' },
+    { name: 'Romanya', code: '+40', flag: '🇷🇴', id: 'RO' },
+    { name: 'Suudi Arabistan', code: '+966', flag: '🇸🇦', id: 'SA' },
+    { name: 'Birleşik Arap Emirlikleri', code: '+971', flag: '🇦🇪', id: 'AE' },
+    { name: 'Katar', code: '+974', flag: '🇶🇦', id: 'QA' },
+    { name: 'Kuveyt', code: '+965', flag: '🇰🇼', id: 'KW' },
+    { name: 'Bahreyn', code: '+973', flag: '🇧🇭', id: 'BH' },
+    { name: 'Umman', code: '+968', flag: '🇴🇲', id: 'OM' },
+    { name: 'Ürdün', code: '+962', flag: '🇯🇴', id: 'JO' },
+    { name: 'Lübnan', code: '+961', flag: '🇱🇧', id: 'LB' },
+    { name: 'Mısır', code: '+20', flag: '🇪🇬', id: 'EG' },
+    { name: 'Fas', code: '+212', flag: '🇲🇦', id: 'MA' },
+    { name: 'Cezayir', code: '+213', flag: '🇩🇿', id: 'DZ' },
+    { name: 'Tunus', code: '+216', flag: '🇹🇳', id: 'TN' },
+    { name: 'İran', code: '+98', flag: '🇮🇷', id: 'IR' },
+    { name: 'Irak', code: '+964', flag: '🇮🇶', id: 'IQ' },
+    { name: 'Pakistan', code: '+92', flag: '🇵🇰', id: 'PK' },
+    { name: 'Hindistan', code: '+91', flag: '🇮🇳', id: 'IN' },
+    { name: 'Çin', code: '+86', flag: '🇨🇳', id: 'CN' },
+    { name: 'Japonya', code: '+81', flag: '🇯🇵', id: 'JP' },
+    { name: 'Güney Kore', code: '+82', flag: '🇰🇷', id: 'KR' },
+    { name: 'Malezya', code: '+60', flag: '🇲🇾', id: 'MY' },
+    { name: 'Endonezya', code: '+62', flag: '🇮🇩', id: 'ID' },
+    { name: 'Tayland', code: '+66', flag: '🇹🇭', id: 'TH' },
+    { name: 'Singapur', code: '+65', flag: '🇸🇬', id: 'SG' },
+    { name: 'Brezilya', code: '+55', flag: '🇧🇷', id: 'BR' },
+    { name: 'Arjantin', code: '+54', flag: '🇦🇷', id: 'AR' },
+    { name: 'Meksika', code: '+52', flag: '🇲🇽', id: 'MX' },
+    { name: 'Kanada', code: '+1', flag: '🇨🇦', id: 'CA' },
+    { name: 'Avustralya', code: '+61', flag: '🇦🇺', id: 'AU' },
+    { name: 'Yeni Zelanda', code: '+64', flag: '🇳🇿', id: 'NZ' },
+    { name: 'Güney Afrika', code: '+27', flag: '🇿🇦', id: 'ZA' },
 ];
 
 const PhoneInput = ({ value, onChange, label, error }) => {
@@ -95,9 +137,9 @@ const PhoneInput = ({ value, onChange, label, error }) => {
     };
 
     return (
-        <div className="space-y-2 relative z-[50]" ref={dropdownRef} onKeyDown={handleKeyDown}>
+        <div className="relative z-[9999]" ref={dropdownRef} onKeyDown={handleKeyDown}>
             {label && (
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-2 block">
                     {label}
                 </label>
             )}
@@ -105,7 +147,6 @@ const PhoneInput = ({ value, onChange, label, error }) => {
             <div className={`flex items-stretch bg-slate-50 dark:bg-slate-800/50 border rounded-2xl transition-all duration-300 ${
                 error ? 'border-red-500/50 ring-2 ring-red-500/10' : 'border-slate-200 dark:border-slate-700 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10'
             }`}>
-                {/* Country Selector */}
                 <button
                     type="button"
                     ref={buttonRef}

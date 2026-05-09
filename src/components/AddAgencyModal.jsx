@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { agencyService } from '../services/agencyService';
 import { locationService } from '../services/locationService';
 import { currencyService } from '../services/currencyService';
+import PhoneInput from './PhoneInput';
 
 const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode = 'add' }) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -40,6 +41,14 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
     };
 
     const [form, setForm] = useState(initialFormState);
+    const [formErrors, setFormErrors] = useState({});
+
+    // Localization
+    const currentLang = localStorage.getItem('language') || 'tr';
+    const t = {
+        en: { required: "This field is required", invalidEmail: "Invalid email address" },
+        tr: { required: "Bu alan zorunludur", invalidEmail: "Geçersiz e-posta adresi" }
+    }[currentLang] || { en: { required: "This field is required", invalidEmail: "Invalid email address" } };
 
     // Sync form with initialData for Edit Mode
     useEffect(() => {
@@ -58,6 +67,7 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                 setForm(initialFormState);
             }
             setError(null);
+            setFormErrors({});
             fetchInitialData();
         }
     }, [isOpen, initialData, mode]);
@@ -110,13 +120,64 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                     [child]: val
                 }
             }));
+            // Clear nested error
+            if (formErrors[name]) {
+                const newErrors = { ...formErrors };
+                delete newErrors[name];
+                setFormErrors(newErrors);
+            }
         } else {
             setForm(prev => ({ ...prev, [name]: val }));
+            // Clear top-level error
+            if (formErrors[name]) {
+                const newErrors = { ...formErrors };
+                delete newErrors[name];
+                setFormErrors(newErrors);
+            }
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validation Logic
+        const errors = {};
+        const validateField = (field, label) => {
+            if (!field || (typeof field === 'string' && !field.trim())) {
+                errors[label] = t.required;
+            }
+        };
+
+        // General
+        validateField(form.name, 'name');
+        validateField(form.email, 'email');
+        validateField(form.phoneCountryCode, 'phoneCountryCode');
+        validateField(form.phoneNumber, 'phoneNumber');
+        
+        // Location
+        validateField(form.countryId, 'countryId');
+        validateField(form.cityId, 'cityId');
+        validateField(form.address, 'address');
+        validateField(form.zipCode, 'zipCode');
+
+        // Financial
+        validateField(form.agencyFinancialInfo.title, 'agencyFinancialInfo.title');
+        validateField(form.agencyFinancialInfo.email, 'agencyFinancialInfo.email');
+        validateField(form.agencyFinancialInfo.phoneCountryCode, 'agencyFinancialInfo.phoneCountryCode');
+        validateField(form.agencyFinancialInfo.phoneNumber, 'agencyFinancialInfo.phoneNumber');
+        validateField(form.agencyFinancialInfo.taxOffice, 'agencyFinancialInfo.taxOffice');
+        validateField(form.agencyFinancialInfo.taxNumber, 'agencyFinancialInfo.taxNumber');
+        validateField(form.agencyFinancialInfo.countryId, 'agencyFinancialInfo.countryId');
+        validateField(form.agencyFinancialInfo.cityId, 'agencyFinancialInfo.cityId');
+        validateField(form.agencyFinancialInfo.address, 'agencyFinancialInfo.address');
+
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            const firstErrorField = Object.keys(errors)[0];
+            document.getElementsByName(firstErrorField)[0]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
         try {
@@ -206,7 +267,7 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
 
                     <div className="flex flex-col gap-10">
                         {/* Section 1: General */}
-                        <div className="p-8 border border-slate-100 dark:border-white/5 rounded-[40px] bg-slate-50/30 dark:bg-slate-900/10 shadow-sm relative overflow-hidden group transition-all hover:border-blue-500/20">
+                        <div className="p-8 border border-slate-100 dark:border-white/5 rounded-[40px] bg-slate-50/30 dark:bg-slate-900/10 shadow-sm relative group transition-all hover:border-blue-500/20">
                             <SectionHeader icon="info" title="General Information" color="blue" />
                             
                             <div className="space-y-5">
@@ -215,85 +276,80 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                         Agency Name <span>*</span>
                                     </label>
                                     <input 
-                                        required name="name" value={form.name} onChange={handleChange}
+                                        name="name" value={form.name} onChange={handleChange}
                                         placeholder="e.g. Travel of Globe London"
-                                        className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 focus:border-blue-500/50 shadow-sm focus:shadow-blue-500/5 rounded-2xl px-5 text-[12px] font-bold outline-none transition-all"
+                                        className={`w-full h-12 bg-white dark:bg-slate-950 border ${formErrors.name ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} focus:border-blue-500/50 shadow-sm focus:shadow-blue-500/5 rounded-2xl px-5 text-[12px] font-bold outline-none transition-all`}
                                     />
+                                    {formErrors.name && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors.name}</p>}
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Email Address</label>
                                         <input 
-                                            required type="email" name="email" value={form.email} onChange={handleChange}
+                                            type="email" name="email" value={form.email} onChange={handleChange}
                                             placeholder="agency@example.com"
-                                            className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 focus:border-blue-500/50 shadow-sm rounded-2xl px-5 text-[12px] font-bold outline-none transition-all"
+                                            className={`w-full h-12 bg-white dark:bg-slate-950 border ${formErrors.email ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} focus:border-blue-500/50 shadow-sm rounded-2xl px-5 text-[12px] font-bold outline-none transition-all`}
                                         />
+                                        {formErrors.email && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors.email}</p>}
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Phone Number</label>
-                                        <div className="flex gap-2">
-                                            <input 
-                                                name="phoneCountryCode" value={form.phoneCountryCode} onChange={handleChange}
-                                                className="w-20 h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 focus:border-blue-500/50 shadow-sm rounded-2xl px-4 text-[12px] font-bold outline-none transition-all text-center"
-                                                placeholder="+90"
-                                            />
-                                            <input 
-                                                name="phoneNumber" value={form.phoneNumber} onChange={handleChange}
-                                                className="flex-1 h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 focus:border-blue-500/50 shadow-sm rounded-2xl px-5 text-[12px] font-bold outline-none transition-all"
-                                                placeholder="555..."
-                                            />
-                                        </div>
+                                        <PhoneInput 
+                                            label="Phone Number"
+                                            value={(form.phoneCountryCode?.startsWith('+') ? form.phoneCountryCode : `+${form.phoneCountryCode}`) + ' ' + form.phoneNumber}
+                                            onChange={(val) => {
+                                                const parts = val.split(' ');
+                                                setForm(prev => ({ 
+                                                    ...prev, 
+                                                    phoneCountryCode: parts[0].replace('+', ''), 
+                                                    phoneNumber: parts[1] || '' 
+                                                }));
+                                                // Clear errors
+                                                if (formErrors.phoneCountryCode || formErrors.phoneNumber) {
+                                                    const next = { ...formErrors };
+                                                    delete next.phoneCountryCode;
+                                                    delete next.phoneNumber;
+                                                    setFormErrors(next);
+                                                }
+                                            }}
+                                            error={formErrors.phoneNumber || formErrors.phoneCountryCode}
+                                        />
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Agency Type</label>
-                                            <select 
-                                                name="agencyType" value={form.agencyType} onChange={handleChange}
-                                                className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-4 text-[12px] font-bold outline-none transition-all appearance-none cursor-pointer focus:border-blue-500/50"
-                                            >
-                                                <option value="AGENCY">Agency</option>
-                                                <option value="RSA">RSA</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Integration</label>
-                                            <select 
-                                                name="integrationType" value={form.integrationType} onChange={handleChange}
-                                                className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-4 text-[12px] font-bold outline-none transition-all appearance-none cursor-pointer focus:border-blue-500/50"
-                                            >
-                                                <option value="TGX">TGX</option>
-                                                <option value="JUNIPER">Juniper</option>
-                                                <option value="DIRECT">Direct</option>
-                                            </select>
-                                        </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Agency Type</label>
+                                        <select 
+                                            name="agencyType" value={form.agencyType} onChange={handleChange}
+                                            className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-4 text-[12px] font-bold outline-none transition-all appearance-none cursor-pointer focus:border-blue-500/50"
+                                        >
+                                            <option value="AGENCY">Agency</option>
+                                            <option value="RSA">RSA</option>
+                                        </select>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Currency</label>
-                                            <select 
-                                                name="currency" value={form.currency} onChange={handleChange}
-                                                className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-4 text-[12px] font-bold outline-none transition-all appearance-none cursor-pointer focus:border-blue-500/50"
-                                            >
-                                                {currencies.map(curr => (
-                                                    <option key={curr.code} value={curr.code}>{curr.code}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Language</label>
-                                            <select 
-                                                name="defaultLanguage" value={form.defaultLanguage} onChange={handleChange}
-                                                className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-4 text-[12px] font-bold outline-none transition-all appearance-none cursor-pointer focus:border-blue-500/50"
-                                            >
-                                                <option value="EN">English</option>
-                                                <option value="TR">Turkish</option>
-                                                <option value="DE">German</option>
-                                            </select>
-                                        </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Currency</label>
+                                        <select 
+                                            name="currency" value={form.currency} onChange={handleChange}
+                                            disabled={mode === 'edit'}
+                                            className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-4 text-[12px] font-bold outline-none transition-all appearance-none cursor-pointer focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {currencies.map(curr => (
+                                                <option key={curr.code} value={curr.code}>{curr.code}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Language</label>
+                                        <select 
+                                            name="defaultLanguage" value={form.defaultLanguage} onChange={handleChange}
+                                            className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-4 text-[12px] font-bold outline-none transition-all appearance-none cursor-pointer focus:border-blue-500/50"
+                                        >
+                                            <option value="EN">English</option>
+                                            <option value="TR">Turkish</option>
+                                            <option value="DE">German</option>
+                                        </select>
                                     </div>
                                 </div>
 
@@ -337,25 +393,27 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                         <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Country</label>
                                         <select 
                                             name="countryId" value={form.countryId} onChange={handleChange}
-                                            className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-5 text-[12px] font-bold outline-none cursor-pointer focus:border-indigo-500/50"
+                                            className={`w-full h-12 bg-white dark:bg-slate-950 border ${formErrors.countryId ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} rounded-2xl px-5 text-[12px] font-bold outline-none cursor-pointer focus:border-indigo-500/50`}
                                         >
                                             <option value="">Select Country</option>
                                             {countries.map(c => (
                                                 <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>
                                             ))}
                                         </select>
+                                        {formErrors.countryId && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors.countryId}</p>}
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-black text-slate-400 uppercase ml-1">City</label>
                                         <select 
                                             name="cityId" value={form.cityId} onChange={handleChange} disabled={!form.countryId}
-                                            className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-5 text-[12px] font-bold outline-none cursor-pointer focus:border-indigo-500/50 disabled:opacity-50"
+                                            className={`w-full h-12 bg-white dark:bg-slate-950 border ${formErrors.cityId ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} rounded-2xl px-5 text-[12px] font-bold outline-none cursor-pointer focus:border-indigo-500/50 disabled:opacity-50`}
                                         >
                                             <option value="">{form.countryId ? 'Select City' : 'Select Country First'}</option>
                                             {cities.map(c => (
                                                 <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>
                                             ))}
                                         </select>
+                                        {formErrors.cityId && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors.cityId}</p>}
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
@@ -364,16 +422,18 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                         <input 
                                             name="address" value={form.address} onChange={handleChange}
                                             placeholder="Street, Building, etc."
-                                            className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-5 text-[12px] font-bold outline-none focus:border-indigo-500/50"
+                                            className={`w-full h-12 bg-white dark:bg-slate-950 border ${formErrors.address ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} rounded-2xl px-5 text-[12px] font-bold outline-none focus:border-indigo-500/50`}
                                         />
+                                        {formErrors.address && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors.address}</p>}
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Zip Code</label>
                                         <input 
                                             name="zipCode" value={form.zipCode} onChange={handleChange}
                                             placeholder="07070"
-                                            className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-5 text-[12px] font-bold outline-none focus:border-indigo-500/50"
+                                            className={`w-full h-12 bg-white dark:bg-slate-950 border ${formErrors.zipCode ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} rounded-2xl px-5 text-[12px] font-bold outline-none focus:border-indigo-500/50`}
                                         />
+                                        {formErrors.zipCode && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors.zipCode}</p>}
                                     </div>
                                 </div>
                             </div>
@@ -388,8 +448,9 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                     <input 
                                         name="agencyFinancialInfo.title" value={form.agencyFinancialInfo.title} onChange={handleChange}
                                         placeholder="Legal entity name"
-                                        className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-5 text-[12px] font-bold outline-none focus:border-emerald-500/50 shadow-sm"
+                                        className={`w-full h-12 bg-white dark:bg-slate-950 border ${formErrors['agencyFinancialInfo.title'] ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} rounded-2xl px-5 text-[12px] font-bold outline-none focus:border-emerald-500/50 shadow-sm`}
                                     />
+                                    {formErrors['agencyFinancialInfo.title'] && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors['agencyFinancialInfo.title']}</p>}
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -398,22 +459,36 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                         <input 
                                             name="agencyFinancialInfo.email" value={form.agencyFinancialInfo.email} onChange={handleChange}
                                             placeholder="accounting@example.com"
-                                            className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-5 text-[12px] font-bold outline-none focus:border-emerald-500/50"
+                                            className={`w-full h-12 bg-white dark:bg-slate-950 border ${formErrors['agencyFinancialInfo.email'] ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} rounded-2xl px-5 text-[12px] font-bold outline-none focus:border-emerald-500/50`}
                                         />
+                                        {formErrors['agencyFinancialInfo.email'] && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors['agencyFinancialInfo.email']}</p>}
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Financial Phone</label>
-                                        <div className="flex gap-2">
-                                            <input 
-                                                name="agencyFinancialInfo.phoneCountryCode" value={form.agencyFinancialInfo.phoneCountryCode} onChange={handleChange}
-                                                className="w-20 h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-4 text-[12px] font-bold outline-none text-center"
-                                                placeholder="+90"
-                                            />
-                                            <input 
-                                                name="agencyFinancialInfo.phoneNumber" value={form.agencyFinancialInfo.phoneNumber} onChange={handleChange}
-                                                className="flex-1 h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-5 text-[12px] font-bold outline-none"
-                                            />
-                                        </div>
+                                        <PhoneInput 
+                                            label="Financial Phone"
+                                            value={(form.agencyFinancialInfo.phoneCountryCode?.startsWith('+') ? form.agencyFinancialInfo.phoneCountryCode : `+${form.agencyFinancialInfo.phoneCountryCode}`) + ' ' + form.agencyFinancialInfo.phoneNumber}
+                                            onChange={(val) => {
+                                                const parts = val.split(' ');
+                                                setForm(prev => ({ 
+                                                    ...prev, 
+                                                    agencyFinancialInfo: {
+                                                        ...prev.agencyFinancialInfo,
+                                                        phoneCountryCode: parts[0].replace('+', ''), 
+                                                        phoneNumber: parts[1] || '' 
+                                                    }
+                                                }));
+                                                // Clear errors
+                                                const errKey = 'agencyFinancialInfo.phoneNumber';
+                                                const errKeyCC = 'agencyFinancialInfo.phoneCountryCode';
+                                                if (formErrors[errKey] || formErrors[errKeyCC]) {
+                                                    const next = { ...formErrors };
+                                                    delete next[errKey];
+                                                    delete next[errKeyCC];
+                                                    setFormErrors(next);
+                                                }
+                                            }}
+                                            error={formErrors['agencyFinancialInfo.phoneNumber'] || formErrors['agencyFinancialInfo.phoneCountryCode']}
+                                        />
                                     </div>
                                 </div>
 
@@ -423,16 +498,18 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                         <input 
                                             name="agencyFinancialInfo.taxOffice" value={form.agencyFinancialInfo.taxOffice} onChange={handleChange}
                                             placeholder="Local tax office"
-                                            className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-5 text-[12px] font-bold outline-none"
+                                            className={`w-full h-12 bg-white dark:bg-slate-950 border ${formErrors['agencyFinancialInfo.taxOffice'] ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} rounded-2xl px-5 text-[12px] font-bold outline-none`}
                                         />
+                                        {formErrors['agencyFinancialInfo.taxOffice'] && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors['agencyFinancialInfo.taxOffice']}</p>}
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Tax Number</label>
                                         <input 
                                             name="agencyFinancialInfo.taxNumber" value={form.agencyFinancialInfo.taxNumber} onChange={handleChange}
                                             placeholder="Registration ID"
-                                            className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-5 text-[12px] font-bold outline-none"
+                                            className={`w-full h-12 bg-white dark:bg-slate-950 border ${formErrors['agencyFinancialInfo.taxNumber'] ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} rounded-2xl px-5 text-[12px] font-bold outline-none`}
                                         />
+                                        {formErrors['agencyFinancialInfo.taxNumber'] && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors['agencyFinancialInfo.taxNumber']}</p>}
                                     </div>
                                 </div>
 
@@ -441,25 +518,27 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                         <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Fin. Country</label>
                                         <select 
                                             name="agencyFinancialInfo.countryId" value={form.agencyFinancialInfo.countryId} onChange={handleChange}
-                                            className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-5 text-[12px] font-bold outline-none cursor-pointer appearance-none"
+                                            className={`w-full h-12 bg-white dark:bg-slate-950 border ${formErrors['agencyFinancialInfo.countryId'] ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} rounded-2xl px-5 text-[12px] font-bold outline-none cursor-pointer appearance-none`}
                                         >
                                             <option value="">Select Country</option>
                                             {countries.map(c => (
                                                 <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>
                                             ))}
                                         </select>
+                                        {formErrors['agencyFinancialInfo.countryId'] && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors['agencyFinancialInfo.countryId']}</p>}
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Fin. City</label>
                                         <select 
                                             name="agencyFinancialInfo.cityId" value={form.agencyFinancialInfo.cityId} onChange={handleChange} disabled={!form.agencyFinancialInfo.countryId}
-                                            className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-5 text-[12px] font-bold outline-none cursor-pointer appearance-none disabled:opacity-50"
+                                            className={`w-full h-12 bg-white dark:bg-slate-950 border ${formErrors['agencyFinancialInfo.cityId'] ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} rounded-2xl px-5 text-[12px] font-bold outline-none cursor-pointer appearance-none disabled:opacity-50`}
                                         >
                                             <option value="">{form.agencyFinancialInfo.countryId ? 'Select City' : 'Select Country First'}</option>
                                             {finCities.map(c => (
                                                 <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>
                                             ))}
                                         </select>
+                                        {formErrors['agencyFinancialInfo.cityId'] && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors['agencyFinancialInfo.cityId']}</p>}
                                     </div>
                                 </div>
 
@@ -468,8 +547,9 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                     <input 
                                         name="agencyFinancialInfo.address" value={form.agencyFinancialInfo.address} onChange={handleChange}
                                         placeholder="Official registered address"
-                                        className="w-full h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/10 rounded-2xl px-5 text-[12px] font-bold outline-none"
+                                        className={`w-full h-12 bg-white dark:bg-slate-950 border ${formErrors['agencyFinancialInfo.address'] ? 'border-rose-500' : 'border-slate-100 dark:border-white/10'} rounded-2xl px-5 text-[12px] font-bold outline-none`}
                                     />
+                                    {formErrors['agencyFinancialInfo.address'] && <p className="text-[10px] font-bold text-rose-500 ml-1">{formErrors['agencyFinancialInfo.address']}</p>}
                                 </div>
                             </div>
                         </div>

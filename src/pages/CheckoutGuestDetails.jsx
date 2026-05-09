@@ -6,6 +6,7 @@ import { hotelService } from '../services/hotelService';
 import CheckoutStepper from '../components/CheckoutStepper';
 import PhoneInput from '../components/PhoneInput';
 import ConfirmationModal from '../components/ConfirmationModal';
+import CheckoutTimer from '../components/CheckoutTimer';
 
 const CheckoutGuestDetails = () => {
     const location = useLocation();
@@ -24,6 +25,7 @@ const CheckoutGuestDetails = () => {
     const [roomsData, setRoomsData] = useState([]);
     const [clientReferenceId, setClientReferenceId] = useState('');
     const [remark, setRemark] = useState('');
+    const [expireAt, setExpireAt] = useState(null);
     
     const [sessionId, setSessionId] = useState(() => {
         const params = new URLSearchParams(window.location.search);
@@ -100,6 +102,7 @@ const CheckoutGuestDetails = () => {
                         setRemark(session.remark || '');
                         setOriginalSearch(session.originalSearch || '');
                         setHotelSlug(session.hotelSlug || '');
+                        setExpireAt(session.expireAt || null);
                         setSessionId(urlSessionId);
                     }
                 } catch (err) {
@@ -384,18 +387,22 @@ const CheckoutGuestDetails = () => {
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
             <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
-                {/* Stepper */}
-                <CheckoutStepper 
-                    currentStep={2} 
-                    onStepClick={(stepId) => {
-                        if (stepId === 1) {
-                            setPendingStepId(stepId);
-                            setShowConfirmBack(true);
-                        } else if (stepId === 3) {
-                            handleNext(); 
-                        }
-                    }}
-                />
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div className="flex-1">
+                        <CheckoutStepper 
+                            currentStep={2} 
+                            onStepClick={(stepId) => {
+                                if (stepId === 1) {
+                                    setPendingStepId(stepId);
+                                    setShowConfirmBack(true);
+                                } else if (stepId === 3) {
+                                    handleNext(); 
+                                }
+                            }}
+                        />
+                    </div>
+                    {expireAt && <CheckoutTimer expireAt={expireAt} />}
+                </div>
 
                 <ConfirmationModal 
                     isOpen={showConfirmBack}

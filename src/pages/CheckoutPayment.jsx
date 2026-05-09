@@ -6,6 +6,7 @@ import { hotelService } from '../services/hotelService';
 import { useToast } from '../context/ToastContext';
 import CheckoutStepper from '../components/CheckoutStepper';
 import ConfirmationModal from '../components/ConfirmationModal';
+import CheckoutTimer from '../components/CheckoutTimer';
 
 const CheckoutPayment = () => {
     const location = useLocation();
@@ -24,6 +25,7 @@ const CheckoutPayment = () => {
     const [checkRatesData, setCheckRatesData] = useState(null);
     const [originalSearch, setOriginalSearch] = useState('');
     const [hotelSlug, setHotelSlug] = useState('');
+    const [expireAt, setExpireAt] = useState(null);
     
     const [sessionId, setSessionId] = useState(() => {
         const params = new URLSearchParams(window.location.search);
@@ -58,6 +60,7 @@ const CheckoutPayment = () => {
                         setCheckRatesData(session.checkRatesData || null);
                         setOriginalSearch(session.originalSearch || '');
                         setHotelSlug(session.hotelSlug || '');
+                        setExpireAt(session.expireAt || null);
                         setSessionId(urlSessionId);
                     }
                 } catch (err) {
@@ -289,20 +292,24 @@ const CheckoutPayment = () => {
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
             <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
-                {/* Stepper */}
-                <CheckoutStepper 
-                    currentStep={3} 
-                    onStepClick={(stepId) => {
-                        const params = new URLSearchParams(window.location.search);
-                        const sid = params.get('sessionId');
-                        if (stepId === 1) {
-                            setPendingStepId(stepId);
-                            setShowConfirmBack(true);
-                        } else if (stepId === 2) {
-                            navigate(`/hotel/checkout/guests?sessionId=${sid}`, { state: location.state });
-                        }
-                    }}
-                />
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div className="flex-1">
+                        <CheckoutStepper 
+                            currentStep={3} 
+                            onStepClick={(stepId) => {
+                                const params = new URLSearchParams(window.location.search);
+                                const sid = params.get('sessionId');
+                                if (stepId === 1) {
+                                    setPendingStepId(stepId);
+                                    setShowConfirmBack(true);
+                                } else if (stepId === 2) {
+                                    navigate(`/hotel/checkout/guests?sessionId=${sid}`, { state: location.state });
+                                }
+                            }}
+                        />
+                    </div>
+                    {expireAt && <CheckoutTimer expireAt={expireAt} />}
+                </div>
 
                 <ConfirmationModal 
                     isOpen={showConfirmBack}

@@ -141,7 +141,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData }) => {
         try {
             const res = await autocompleteService.search({ 
                 query, 
-                autocompleteTypes: ["HOTEL"] 
+                types: ["HOTEL"] 
             });
             if (res && res.content) {
                 const mappedHotels = res.content

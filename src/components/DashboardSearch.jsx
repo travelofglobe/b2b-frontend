@@ -163,7 +163,7 @@ const DashboardSearch = () => {
     const fetchResults = async () => {
         setLoading(true);
         try {
-            const data = await autocompleteService.search(query);
+            const data = await autocompleteService.search({ query, types: ['HOTEL', 'LOCATION'] });
             // Handle both wrapped { data: { ... } } and direct responses
             const resultsData = data?.data || data;
             

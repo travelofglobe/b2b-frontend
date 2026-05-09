@@ -174,7 +174,7 @@ const HeaderSearch = () => {
     const fetchResults = async () => {
         setLoading(true);
         try {
-            const data = await autocompleteService.search(query);
+            const data = await autocompleteService.search({ query, types: ['HOTEL', 'LOCATION'] });
             // Handle both wrapped { data: { content } } and direct { content } formats
             const resultsData = data?.data || data;
             

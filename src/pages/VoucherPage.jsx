@@ -100,11 +100,7 @@ const VoucherPage = () => {
     };
 
     const handleBack = () => {
-        if (window.history.state && window.history.state.idx > 0) {
-            navigate(-1);
-        } else {
-            navigate('/bookings');
-        }
+        navigate(`/bookings/${voucherId}`);
     };
 
     if (loading) {

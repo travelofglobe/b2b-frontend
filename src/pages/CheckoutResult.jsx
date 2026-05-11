@@ -20,18 +20,18 @@ const CheckoutResult = () => {
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
             <Header />
-            <main className="max-w-4xl mx-auto px-6 pt-12 pb-20 text-center">
-                <div className="relative mb-12">
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-transparent via-primary/10 to-transparent"></div>
-                    <div className={`relative size-24 mx-auto rounded-full ${isSuccess ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-red-500 shadow-red-500/30'} text-white flex items-center justify-center shadow-2xl animate-in zoom-in duration-700`}>
-                        <span className="material-symbols-outlined text-5xl">{isSuccess ? 'done_all' : 'error'}</span>
+            <main className="max-w-4xl mx-auto px-6 pt-10 pb-20 text-center">
+                <div className="relative mb-8">
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-0.5 bg-gradient-to-r from-transparent via-primary/10 to-transparent"></div>
+                    <div className={`relative size-16 mx-auto rounded-full ${isSuccess ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-rose-500 shadow-rose-500/20'} text-white flex items-center justify-center shadow-xl animate-in zoom-in duration-700`}>
+                        <span className="material-symbols-outlined text-3xl">{isSuccess ? 'done_all' : 'error'}</span>
                     </div>
                 </div>
 
-                <h1 className={`text-5xl font-black uppercase tracking-tight mb-4 animate-in slide-in-from-bottom-4 duration-700 delay-100 ${isSuccess ? '' : 'text-red-500'}`}>
+                <h1 className={`text-3xl sm:text-4xl font-black uppercase tracking-tight mb-3 animate-in slide-in-from-bottom-4 duration-700 delay-100 ${isSuccess ? 'text-slate-900 dark:text-white' : 'text-rose-500'}`}>
                     {isSuccess ? 'Booking Confirmed!' : 'Booking Failed'}
                 </h1>
-                <p className="text-slate-500 font-bold uppercase tracking-widest mb-12 animate-in slide-in-from-bottom-4 duration-700 delay-200">
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-10 animate-in slide-in-from-bottom-4 duration-700 delay-200">
                     {isSuccess ? 'Your reservation has been processed successfully.' : 'There was an issue processing your reservation. Please contact support.'}
                 </p>
 
@@ -41,23 +41,23 @@ const CheckoutResult = () => {
                             <span className="material-symbols-outlined text-sm">confirmation_number</span>
                             Booking Reference
                         </h2>
-                        <div className="mb-8">
+                        <div className="mb-10 bg-slate-50 dark:bg-slate-800/40 p-5 rounded-[32px] border border-slate-100 dark:border-slate-800">
                             <Link 
-                                to={isSuccess ? `/bookings/${bookingRef}` : '/bookings'}
+                                to={isSuccess ? `/bookings/${bookingRef}/voucher` : '/bookings'}
                                 title={isSuccess ? "Click to view full booking details" : "Go to Bookings"}
-                                className="inline-flex items-center gap-3 text-4xl font-black text-primary hover:text-primary-dark dark:hover:text-primary-light tracking-tighter mb-2 hover:underline decoration-primary/50 underline-offset-4 cursor-pointer transition-all group"
+                                className="inline-flex items-center gap-2 text-xl lg:text-2xl font-black text-primary hover:text-primary-dark dark:hover:text-primary-light tracking-tighter mb-2 hover:underline decoration-primary/50 underline-offset-4 cursor-pointer transition-all group max-w-full overflow-hidden"
                             >
-                                <span>{isSuccess ? bookingRef : 'All Bookings'}</span>
-                                <span className="material-symbols-outlined text-3xl group-hover:translate-x-1 duration-200 transition-transform select-none">
+                                <span className="truncate whitespace-nowrap">{isSuccess ? bookingRef : 'All Bookings'}</span>
+                                <span className="material-symbols-outlined text-xl group-hover:translate-x-1 duration-200 transition-transform select-none shrink-0">
                                     arrow_right_alt
                                 </span>
                             </Link>
-                            <p className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1 ${isSuccess ? 'text-emerald-500' : 'text-red-500'}`}>
-                                <span className="material-symbols-outlined text-sm">info</span>
-                                {isSuccess ? 'Instant Confirmation • Click reference to view details' : 'Reservation Failed'}
+                            <p className={`text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-2 mt-1 ${isSuccess ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                <div className={`size-1.5 rounded-full ${isSuccess ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></div>
+                                {isSuccess ? 'Verified • Click for details' : 'Action Required'}
                             </p>
                         </div>
-                        <div className="space-y-4 pt-8 border-t border-slate-200 dark:border-slate-800">
+                        <div className="space-y-6 pt-2">
                             <div>
                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Property</p>
                                 <p className="text-lg font-black uppercase tracking-tight">{hotel.name}</p>

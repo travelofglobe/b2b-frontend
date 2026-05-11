@@ -423,59 +423,59 @@ const CheckoutGuestDetails = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
                     <div className="lg:col-span-8">
                         {/* Room Stepper */}
-                        <div className="flex gap-2 mb-10 overflow-x-auto pb-4 no-scrollbar">
+                        <div className="flex gap-2 mb-8 overflow-x-auto pb-4 no-scrollbar">
                             {roomsData.map((room, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => idx < activeRoomIdx && setActiveRoomIdx(idx)}
-                                    className={`flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all shrink-0 ${idx === activeRoomIdx ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : idx < activeRoomIdx ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-white/40 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed'}`}
+                                    className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border transition-all shrink-0 ${idx === activeRoomIdx ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : idx < activeRoomIdx ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-white/40 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed'}`}
                                 >
-                                    <span className="material-symbols-outlined text-[18px]">{idx < activeRoomIdx ? 'check_circle' : 'bed'}</span>
-                                    <span className="text-xs font-black uppercase tracking-widest whitespace-nowrap">Room {idx + 1}</span>
+                                    <span className="material-symbols-outlined text-[16px]">{idx < activeRoomIdx ? 'check_circle' : 'bed'}</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Room {idx + 1}</span>
                                 </button>
                             ))}
                         </div>
 
-                        <div className="space-y-12 animate-in fade-in slide-in-from-right-4 duration-500" key={activeRoomIdx}>
+                        <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500" key={activeRoomIdx}>
                             <div className="flex items-center justify-between mb-2">
-                                <h2 className="text-2xl font-black uppercase tracking-tight">{currentRoom.roomName}</h2>
-                                <span className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-[10px] font-black text-slate-500 uppercase tracking-widest">Occupancy Info</span>
+                                <h2 className="text-xl font-black uppercase tracking-tight">{currentRoom.roomName}</h2>
+                                <span className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-[9px] font-black text-slate-500 uppercase tracking-widest">Occupancy Info</span>
                             </div>
 
                             {currentRoom.guests.map((guest, gIdx) => (
                                 <div key={gIdx} className="relative group z-[5] focus-within:z-[50]">
                                     <div className="absolute -inset-1 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-[40px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                    <div className="relative p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-2xl z-10 focus-within:z-[100]">
-                                        <div className="flex items-center justify-between mb-10">
-                                            <div className="flex items-center gap-4">
-                                                <div className={`size-12 rounded-2xl flex items-center justify-center transition-colors ${guest.type === 'Adult' ? 'bg-slate-100 dark:bg-slate-800 text-primary' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                                                    <span className="material-symbols-outlined text-2xl">{guest.type === 'Adult' ? 'person' : 'child_care'}</span>
+                                    <div className="relative p-7 rounded-3xl border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-2xl z-10 focus-within:z-[100]">
+                                        <div className="flex items-center justify-between mb-7">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`size-10 rounded-xl flex items-center justify-center transition-colors ${guest.type === 'Adult' ? 'bg-slate-100 dark:bg-slate-800 text-primary' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                                                    <span className="material-symbols-outlined text-xl">{guest.type === 'Adult' ? 'person' : 'child_care'}</span>
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-xl font-black uppercase tracking-tight">{gIdx === 0 && guest.type === 'Adult' ? 'Lead Guest (Contact)' : `${guest.type} Traveler ${gIdx + 1}`}</h3>
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{guest.type === 'Adult' ? 'Standard Adult Policy' : `Child Passenger • Age ${guest.age}`}</p>
+                                                    <h3 className="text-lg font-black uppercase tracking-tight">{gIdx === 0 && guest.type === 'Adult' ? 'Lead Guest (Contact)' : `${guest.type} Traveler ${gIdx + 1}`}</h3>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{guest.type === 'Adult' ? 'Standard Adult Policy' : `Child Passenger • Age ${guest.age}`}</p>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">First Name</label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">First Name</label>
                                                 <input
                                                     data-field={`${activeRoomIdx}-${gIdx}-firstName`}
                                                     required
-                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold`}
+                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm`}
                                                     placeholder="Enter first name"
                                                     value={guest.firstName}
                                                     onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'firstName', e.target.value)}
                                                 />
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Last Name</label>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Last Name</label>
                                                 <input
                                                     data-field={`${activeRoomIdx}-${gIdx}-lastName`}
                                                     required
-                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold`}
+                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm`}
                                                     placeholder="Enter last name"
                                                     value={guest.lastName}
                                                     onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'lastName', e.target.value)}
@@ -483,12 +483,12 @@ const CheckoutGuestDetails = () => {
                                             </div>
 
                                             {/* Birth Date and Gender */}
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Birth Date</label>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Birth Date</label>
                                                 <input
                                                     data-field={`${activeRoomIdx}-${gIdx}-birthDate`}
                                                     type="date"
-                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold uppercase`}
+                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold uppercase text-sm`}
                                                     value={guest.birthDate}
                                                     min="1900-01-01"
                                                     max={new Date().toISOString().split('T')[0]}
@@ -500,7 +500,7 @@ const CheckoutGuestDetails = () => {
                                                         if (val) {
                                                             const year = parseInt(val.split('-')[0], 10);
                                                             if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
-                                                                handleInputChange(activeRoomIdx, gIdx, 'birthDate', '');
+                                                                 handleInputChange(activeRoomIdx, gIdx, 'birthDate', '');
                                                             }
                                                         }
                                                     }}
@@ -514,37 +514,37 @@ const CheckoutGuestDetails = () => {
                                                     </p>
                                                 )}
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Gender</label>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Gender</label>
                                                 <div
                                                     data-field={`${activeRoomIdx}-${gIdx}-gender`}
-                                                    className={`grid grid-cols-2 gap-3 p-1 rounded-2xl border ${errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} bg-slate-50 dark:bg-slate-800`}>
+                                                    className={`grid grid-cols-2 gap-2.5 p-1 rounded-xl border ${errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} bg-slate-50 dark:bg-slate-800`}>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'male')}
-                                                        className={`flex items-center justify-center gap-2 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${guest.gender === 'male' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                                        className={`flex items-center justify-center gap-2 py-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${guest.gender === 'male' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                                                     >
-                                                        <span className="material-symbols-outlined text-lg">male</span> Male
+                                                        <span className="material-symbols-outlined text-base">male</span> Male
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'female')}
-                                                        className={`flex items-center justify-center gap-2 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${guest.gender === 'female' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                                        className={`flex items-center justify-center gap-2 py-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${guest.gender === 'female' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                                                     >
-                                                        <span className="material-symbols-outlined text-lg">female</span> Female
+                                                        <span className="material-symbols-outlined text-base">female</span> Female
                                                     </button>
                                                 </div>
                                             </div>
 
                                             {gIdx === 0 && guest.type === 'Adult' && (
                                                 <>
-                                                    <div className="space-y-2">
-                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
                                                         <input
                                                             data-field={`${activeRoomIdx}-${gIdx}-email`}
                                                             required
                                                             type="email"
-                                                            className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold`}
+                                                            className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm`}
                                                             placeholder="email@example.com"
                                                             value={guest.email}
                                                             onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'email', e.target.value)}
@@ -569,31 +569,31 @@ const CheckoutGuestDetails = () => {
                             {activeRoomIdx === roomsData.length - 1 && (
                                 <div className="relative group animate-in fade-in slide-in-from-bottom-4 duration-700">
                                     <div className="absolute -inset-1 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-[40px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                    <div className="relative p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-2xl">
-                                        <div className="flex items-center gap-4 mb-10">
-                                            <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                                                <span className="material-symbols-outlined text-2xl">receipt_long</span>
+                                    <div className="relative p-7 rounded-3xl border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-2xl">
+                                        <div className="flex items-center gap-3 mb-7">
+                                            <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                                <span className="material-symbols-outlined text-xl">receipt_long</span>
                                             </div>
                                             <div>
-                                                <h3 className="text-xl font-black uppercase tracking-tight">Booking References</h3>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Internal identifiers & special requests</p>
+                                                <h3 className="text-lg font-black uppercase tracking-tight">Booking References</h3>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Internal identifiers & special requests</p>
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Client Reference ID</label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Client Reference ID</label>
                                                 <input
-                                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
+                                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm"
                                                     placeholder="Your internal reference number"
                                                     value={clientReferenceId}
                                                     onChange={(e) => setClientReferenceId(e.target.value)}
                                                 />
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Special Remarks</label>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Special Remarks</label>
                                                 <input
-                                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
+                                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm"
                                                     placeholder="Any special requests or notes"
                                                     value={remark}
                                                     onChange={(e) => setRemark(e.target.value)}

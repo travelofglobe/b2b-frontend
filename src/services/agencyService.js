@@ -30,5 +30,22 @@ export const agencyService = {
 
     deleteAgency: async (id) => {
         return apiClient.delete(`${API_BASE_URL}/agency/${id}`);
+    },
+
+    filterSubAgencyUsers: async (params, signal) => {
+        const { page = 0, size = 10, ...data } = params;
+        return apiClient.post(`${API_BASE_URL}/sub-agency-user/filter?page=${page}&size=${size}`, data, { signal });
+    },
+
+    updateSubAgencyUser: async (id, data) => {
+        return apiClient.put(`${API_BASE_URL}/sub-agency-user/update-by-id/${id}`, data);
+    },
+
+    deleteSubAgencyUser: async (id) => {
+        return apiClient.delete(`${API_BASE_URL}/sub-agency-user/${id}`);
+    },
+
+    assignSubAgencyRole: async (data) => {
+        return apiClient.post(`${API_BASE_URL}/sub-agency-user/assign-role`, data);
     }
 };

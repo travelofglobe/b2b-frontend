@@ -4,6 +4,7 @@ import { agencyGroupService } from '../services/agencyGroupService';
 import { locationService } from '../services/locationService';
 import AddAgencyModal from '../components/AddAgencyModal';
 import AddAgencyGroupModal from '../components/AddAgencyGroupModal';
+import SubAgencyDetailView from '../components/SubAgencyDetailView';
 import ConfirmModal from '../components/ConfirmModal';
 
 const GSAAgencyManagement = () => {
@@ -22,7 +23,8 @@ const GSAAgencyManagement = () => {
             yesDelete: "Yes, Delete",
             keep: "Keep",
             agency: "Agency",
-            group: "Group"
+            group: "Group",
+            agencyDetail: "Agency Detail"
         },
         tr: {
             activeWarning: "Grup ile ilişkili aktif acenteler var. Silmek istediğinize emin misiniz?",
@@ -33,7 +35,8 @@ const GSAAgencyManagement = () => {
             yesDelete: "Evet, Sil",
             keep: "Vazgeç",
             agency: "Acente",
-            group: "Grup"
+            group: "Grup",
+            agencyDetail: "Acente Detay"
         }
     }[currentLang] || {
         en: {
@@ -52,6 +55,7 @@ const GSAAgencyManagement = () => {
     // Modal Management
     const [agencyModal, setAgencyModal] = useState({ isOpen: false, mode: 'add', data: null });
     const [groupModal, setGroupModal] = useState({ isOpen: false, mode: 'add', data: null });
+    const [detailModal, setDetailModal] = useState({ isOpen: false, agency: null });
     const [deleteModal, setDeleteModal] = useState({ 
         isOpen: false, 
         id: null, 
@@ -346,7 +350,14 @@ const GSAAgencyManagement = () => {
 
     return (
         <div className="h-full flex flex-col p-8 space-y-6 overflow-hidden bg-slate-50/50 dark:bg-transparent">
-            {/* Header Area - Clean Title Only */}
+            {detailModal.isOpen ? (
+                <SubAgencyDetailView 
+                    agency={detailModal.agency}
+                    onBack={() => setDetailModal({ isOpen: false, agency: null })}
+                />
+            ) : (
+                <>
+                    {/* Header Area - Clean Title Only */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
                 <div>
                     <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-2">Agency Management</h1>
@@ -588,6 +599,13 @@ const GSAAgencyManagement = () => {
                                                     </td>
                                                     <td className="px-4 py-4 text-right">
                                                         <div className="flex items-center justify-end gap-1">
+                                                            <button 
+                                                                onClick={() => setDetailModal({ isOpen: true, agency })}
+                                                                className="size-8 rounded-xl flex items-center justify-center text-slate-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-500 transition-all active:scale-90"
+                                                                title={t.agencyDetail}
+                                                            >
+                                                                <span className="material-icons-round text-lg">visibility</span>
+                                                            </button>
                                                             <button 
                                                                 onClick={() => handleEditClick(agency)}
                                                                 className="size-8 rounded-xl flex items-center justify-center text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 transition-all active:scale-90"
@@ -901,6 +919,8 @@ const GSAAgencyManagement = () => {
                 cancelText={`${t.keep} ${deleteModal.type === 'agency' ? t.agency : t.group}`}
                 type="danger"
             />
+                </>
+            )}
         </div>
     );
 };

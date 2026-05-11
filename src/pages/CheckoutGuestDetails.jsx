@@ -294,7 +294,7 @@ const CheckoutGuestDetails = () => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
                 navigate(`/hotel/checkout/payment?sessionId=${sessionId}`, {
-                    state: { ...location.state, selectedRooms, hotel, roomState, checkInDate, checkOutDate, roomsData, clientReferenceId, remark, rateSearchUuid, checkRatesData }
+                    state: { ...location.state, selectedRooms, hotel, roomState, checkInDate, checkOutDate, roomsData, clientReferenceId, remark, rateSearchUuid, checkRatesData, expireAt }
                 });
             }
         }
@@ -302,12 +302,26 @@ const CheckoutGuestDetails = () => {
 
     if (isLoadingSession) {
         return (
-            <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white flex flex-col">
+            <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
                 <Header />
-                <main className="flex-1 flex items-center justify-center p-6 pt-32 pb-20">
-                    <div className="flex flex-col items-center gap-6">
-                        <div className="size-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                        <p className="text-sm font-black uppercase tracking-widest text-slate-500">Loading Checkout Session...</p>
+                <main className="max-w-7xl mx-auto px-6 pt-6 pb-20 w-full">
+                    {/* Stepper Skeleton */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                        <div className="flex-1 h-12 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl animate-pulse"></div>
+                        <div className="w-32 h-12 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl animate-pulse"></div>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                        <div className="lg:col-span-8 space-y-6">
+                            <div className="flex gap-2">
+                                <div className="w-28 h-10 bg-slate-200/50 dark:bg-slate-800/50 rounded-xl animate-pulse"></div>
+                                <div className="w-28 h-10 bg-slate-200/50 dark:bg-slate-800/50 rounded-xl animate-pulse"></div>
+                            </div>
+                            <div className="h-56 bg-slate-200/40 dark:bg-slate-800/40 rounded-3xl border border-slate-200/50 dark:border-slate-700/50 animate-pulse"></div>
+                            <div className="h-56 bg-slate-200/40 dark:bg-slate-800/40 rounded-3xl border border-slate-200/50 dark:border-slate-700/50 animate-pulse"></div>
+                        </div>
+                        <div className="lg:col-span-4">
+                            <div className="h-[480px] bg-slate-200/40 dark:bg-slate-800/40 rounded-[40px] border border-slate-200/50 dark:border-slate-700/50 animate-pulse"></div>
+                        </div>
                     </div>
                 </main>
                 <Footer />
@@ -317,7 +331,7 @@ const CheckoutGuestDetails = () => {
 
     if (!selectedRooms) {
         return (
-            <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white flex flex-col">
+            <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white flex flex-col font-sans">
                 <Header />
                 <main className="flex-1 flex items-center justify-center p-6 pt-32 pb-20">
                     <div className="w-full max-w-xl relative group">

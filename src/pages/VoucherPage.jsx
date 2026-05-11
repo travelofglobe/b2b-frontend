@@ -213,8 +213,8 @@ const VoucherPage = () => {
                     {/* Header: Clean & Data Rich */}
                     <div className="relative p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-100 bg-slate-50/50">
                         <div className="flex items-center gap-4">
-                            <div className="size-12 bg-blue-700 rounded-lg flex items-center justify-center text-white">
-                                <span className="material-symbols-outlined text-2xl">apartment</span>
+                            <div className="size-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
+                                <span className="material-symbols-outlined text-2xl fill-1">travel</span>
                             </div>
                             <div className="flex flex-col">
                                 <h1 className="text-xl font-black text-slate-900 tracking-tighter uppercase leading-none">

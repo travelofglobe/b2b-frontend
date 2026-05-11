@@ -1760,9 +1760,6 @@ const HotelDetail = () => {
 
                                 {/* Content */}
                                 <div className="relative p-8 z-10">
-                                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.07] pointer-events-none group-hover/sidebar:scale-110 transition-transform duration-700">
-                                        <span className="material-symbols-outlined text-[140px]">hotel_class</span>
-                                    </div>
 
                                     <div className="flex items-center gap-2 text-primary font-black text-[10px] mb-6 uppercase tracking-[0.2em] bg-primary/5 dark:bg-primary/20 p-3 rounded-2xl border border-primary/10 backdrop-blur-md">
                                         <span className="material-symbols-outlined text-sm fill-1">bolt</span>

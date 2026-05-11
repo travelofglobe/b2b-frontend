@@ -12,26 +12,31 @@ const CheckoutPayment = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const [hotel, setHotel] = useState(null);
-    const [totalPrice, setTotalPrice] = useState(null);
-    const [selectedRooms, setSelectedRooms] = useState(null);
-    const [roomState, setRoomState] = useState(null);
-    const [checkInDate, setCheckInDate] = useState(null);
-    const [checkOutDate, setCheckOutDate] = useState(null);
-    const [roomsData, setRoomsData] = useState(null);
-    const [clientReferenceId, setClientReferenceId] = useState('');
-    const [remark, setRemark] = useState('');
-    const [rateSearchUuid, setRateSearchUuid] = useState(null);
-    const [checkRatesData, setCheckRatesData] = useState(null);
-    const [originalSearch, setOriginalSearch] = useState('');
-    const [hotelSlug, setHotelSlug] = useState('');
-    const [expireAt, setExpireAt] = useState(null);
+    // Pre-populate from location.state if navigating from guests page (instant, no flash)
+    const navState = location.state || {};
+    const hasNavState = !!(navState.hotel || navState.selectedRooms);
+
+    const [hotel, setHotel] = useState(navState.hotel || null);
+    const [totalPrice, setTotalPrice] = useState(navState.totalPrice || null);
+    const [selectedRooms, setSelectedRooms] = useState(navState.selectedRooms || null);
+    const [roomState, setRoomState] = useState(navState.roomState || null);
+    const [checkInDate, setCheckInDate] = useState(navState.checkInDate || null);
+    const [checkOutDate, setCheckOutDate] = useState(navState.checkOutDate || null);
+    const [roomsData, setRoomsData] = useState(navState.roomsData || null);
+    const [clientReferenceId, setClientReferenceId] = useState(navState.clientReferenceId || '');
+    const [remark, setRemark] = useState(navState.remark || '');
+    const [rateSearchUuid, setRateSearchUuid] = useState(navState.rateSearchUuid || null);
+    const [checkRatesData, setCheckRatesData] = useState(navState.checkRatesData || null);
+    const [originalSearch, setOriginalSearch] = useState(navState.originalSearch || '');
+    const [hotelSlug, setHotelSlug] = useState(navState.hotelSlug || '');
+    const [expireAt, setExpireAt] = useState(navState.expireAt || null);
     
     const [sessionId, setSessionId] = useState(() => {
         const params = new URLSearchParams(window.location.search);
         return params.get('sessionId') || '';
     });
-    const [isLoadingSession, setIsLoadingSession] = useState(!!sessionId);
+    // Only show loading skeleton if we DON'T have data from navigation state (i.e. direct URL access)
+    const [isLoadingSession, setIsLoadingSession] = useState(!hasNavState && !!sessionId);
     const [showConfirmBack, setShowConfirmBack] = useState(false);
     const [pendingStepId, setPendingStepId] = useState(null);
 
@@ -41,7 +46,8 @@ const CheckoutPayment = () => {
         const params = new URLSearchParams(window.location.search);
         const urlSessionId = params.get('sessionId');
 
-        if (urlSessionId) {
+        // Skip fetching if we already have data from navigation state (guests → payment transition)
+        if (urlSessionId && !hasNavState) {
             const loadSession = async () => {
                 setIsLoadingSession(true);
                 try {
@@ -289,7 +295,7 @@ const CheckoutPayment = () => {
     const isInsufficientBalance = grandTotal > availableFunds;
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
+        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
             <Header />
             <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">

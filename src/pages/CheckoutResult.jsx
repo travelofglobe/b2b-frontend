@@ -18,7 +18,7 @@ const CheckoutResult = () => {
     if (!hotel) return <div className="p-20 text-center">No active booking session found.</div>;
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
+        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
             <Header />
             <main className="max-w-4xl mx-auto px-6 pt-10 pb-20 text-center">
                 <div className="relative mb-8">

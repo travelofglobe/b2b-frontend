@@ -384,7 +384,7 @@ const CheckoutGuestDetails = () => {
     const displayCurrency = checkRate?.price?.currency || selectedRooms[0]?.currency || '$';
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-['Inter',sans-serif]">
+        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
             <Header />
             <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">

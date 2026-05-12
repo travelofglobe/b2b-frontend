@@ -27,21 +27,28 @@ L.Marker.prototype.options.icon = DefaultIcon;
 // Custom Marker Component
 const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover, searchParams }) => {
     const icon = L.divIcon({
-        className: 'custom-leaflet-marker',
+        className: 'custom-leaflet-marker bg-transparent border-none',
         html: `
-            <div class="relative group cursor-pointer flex flex-col items-center w-max mx-auto">
-                <div class="px-3 py-1.5 rounded-2xl font-black text-sm shadow-2xl transition-all border-2 flex items-center gap-1 whitespace-nowrap ${isSelected || isHovered
-                ? 'bg-[#137fec] text-white border-white scale-110 ring-4 ring-[#137fec]/20'
-                : 'bg-white/90 backdrop-blur-md text-slate-900 border-white/20'
-            }">
-                    <span class="text-[10px] opacity-70 leading-none">$</span>
-                    ${hotel.price}
+            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center justify-end pb-[2px] w-max group cursor-pointer pointer-events-auto">
+                ${isSelected ? '<div class="absolute bottom-1 w-3 h-3 rounded-full bg-[#137fec] animate-ping opacity-60"></div>' : ''}
+                
+                <div class="px-3.5 py-1.5 rounded-full font-black text-[13px] transition-all duration-300 border flex items-center justify-center gap-[1px] whitespace-nowrap z-10 ${isSelected || isHovered
+                ? 'bg-gradient-to-br from-[#137fec] to-[#0e60b5] text-white border-transparent scale-110 shadow-[0_10px_25px_rgba(19,127,236,0.4)] -translate-y-1.5'
+                : 'bg-white/95 backdrop-blur-md text-slate-800 border-slate-200/80 shadow-[0_4px_15px_rgba(0,0,0,0.06)] group-hover:border-slate-300 group-hover:shadow-[0_6px_20px_rgba(0,0,0,0.1)]'
+                }">
+                    <span class="text-[10px] ${isSelected || isHovered ? 'text-blue-200' : 'text-slate-400'} font-bold leading-none -mt-0.5">$</span>
+                    <span class="tracking-tight">${hotel.price}</span>
                 </div>
-                <div class="w-0.5 h-3 mt-0.5 transition-colors ${isSelected || isHovered ? 'bg-[#137fec]' : 'bg-white/40'}"></div>
+                
+                <div class="flex flex-col items-center justify-end z-0 transition-all duration-300 origin-bottom ${isSelected || isHovered ? 'scale-y-[1.5] -translate-y-0.5' : ''}">
+                    <div class="w-[2px] h-2.5 transition-colors duration-300 ${isSelected || isHovered ? 'bg-[#137fec]' : 'bg-slate-300'}"></div>
+                    <div class="w-1.5 h-1.5 rounded-full transition-all duration-300 ${isSelected || isHovered ? 'bg-[#0e60b5] scale-[1.5] shadow-[0_0_8px_rgba(19,127,236,0.8)]' : 'bg-slate-400'}"></div>
+                </div>
             </div>
         `,
-        iconSize: [120, 50],
-        iconAnchor: [60, 50],
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+        popupAnchor: [0, -45]
     });
 
     return (

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { bookingService } from '../services/bookingService';
 import { hotelService } from '../services/hotelService';
 import BookingStatusBadge from '../components/BookingStatusBadge';
+import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 
 const VoucherPage = () => {
     const { voucherId } = useParams();
@@ -346,7 +347,15 @@ const VoucherPage = () => {
                                         {booking.hotel?.rooms?.map((room, idx) => (
                                             <div key={idx} className="border-b border-slate-100 last:border-0 p-6 bg-slate-50/30">
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <span className="text-xs font-black text-blue-800 uppercase tracking-tight">{room.roomName || 'Standard Room'}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs font-black text-blue-800 uppercase tracking-tight">{room.roomName || 'Standard Room'}</span>
+                                                        {room.rates?.[0] && (
+                                                            <RefundPolicyTooltip
+                                                                isRefundable={room.rates[0].refundable}
+                                                                className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider ${room.rates[0].refundable ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'}`}
+                                                            />
+                                                        )}
+                                                    </div>
                                                     <span className="text-[10px] font-bold text-slate-400">UNIT 0{idx + 1}</span>
                                                 </div>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">

@@ -316,6 +316,7 @@ const MapView = () => {
     // Map Instance State
     const [map, setMap] = useState(null);
     const [currentBounds, setCurrentBounds] = useState(null);
+    const [hasFittedInitialBounds, setHasFittedInitialBounds] = useState(false);
 
     // Breadcrumb data for map auto-focus
     const [breadcrumbData, setBreadcrumbData] = useState(null);
@@ -442,6 +443,49 @@ const MapView = () => {
             }
         };
     }, [breadcrumbData, map, isDataLoading]);
+
+    // Reset initial bounds fitting when location changes
+    useEffect(() => {
+        setHasFittedInitialBounds(false);
+    }, [searchParams.get('locationId')]);
+
+    // Auto-fit bounds when initial hotels load to perfectly center the map on properties
+    useEffect(() => {
+        if (!map || isUserPanRef.current || hotels.length === 0 || isLoadingHotels) return;
+        
+        if (!hasFittedInitialBounds) {
+            const lats = hotels.map(h => h.lat).filter(Boolean);
+            const lngs = hotels.map(h => h.lng).filter(Boolean);
+            
+            if (lats.length > 0 && lngs.length > 0) {
+                const minLat = Math.min(...lats);
+                const maxLat = Math.max(...lats);
+                const minLng = Math.min(...lngs);
+                const maxLng = Math.max(...lngs);
+                
+                const bounds = [
+                    [minLat, minLng],
+                    [maxLat, maxLng]
+                ];
+                
+                try {
+                    // Keep isUserPanRef false so it doesn't trigger a new manual search
+                    isUserPanRef.current = false;
+                    map.flyToBounds(bounds, {
+                        padding: [50, 50],
+                        maxZoom: 14,
+                        duration: 1.5,
+                        easeLinearity: 0.25
+                    });
+                    setHasFittedInitialBounds(true);
+                } catch (e) {
+                    console.warn('Map flyToBounds failed:', e);
+                }
+            } else {
+                setHasFittedInitialBounds(true);
+            }
+        }
+    }, [hotels, map, hasFittedInitialBounds, isLoadingHotels]);
 
     const mapApiHotelToModel = React.useCallback((apiHotel) => {
         const hotelNames = apiHotel.names || apiHotel.name;

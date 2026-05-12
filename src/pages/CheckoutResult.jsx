@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 
 const CheckoutResult = () => {
     const location = useLocation();
@@ -87,7 +88,15 @@ const CheckoutResult = () => {
                         <div className="space-y-8 max-h-[350px] overflow-y-auto pr-4 custom-scrollbar">
                             {roomsData?.map((room, rIdx) => (
                                 <div key={rIdx} className="space-y-4">
-                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Room {rIdx + 1}: {room.roomName}</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Room {rIdx + 1}: {room.roomName}</p>
+                                        {room.hubRateModel && room.hubRateModel.refundable !== undefined && (
+                                            <RefundPolicyTooltip
+                                                isRefundable={room.hubRateModel.refundable}
+                                                className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider ${room.hubRateModel.refundable ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'}`}
+                                            />
+                                        )}
+                                    </div>
                                     <div className="space-y-3">
                                         {room.guests.map((guest, gIdx) => (
                                             <div key={gIdx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">

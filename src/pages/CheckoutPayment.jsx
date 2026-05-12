@@ -7,6 +7,7 @@ import { useToast } from '../context/ToastContext';
 import CheckoutStepper from '../components/CheckoutStepper';
 import ConfirmationModal from '../components/ConfirmationModal';
 import CheckoutTimer from '../components/CheckoutTimer';
+import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 
 const CheckoutPayment = () => {
     const location = useLocation();
@@ -648,9 +649,6 @@ const CheckoutPayment = () => {
                             <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[40px] border border-white/40 dark:border-white/10 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.1)] transition-all duration-500 group-hover/sidebar:shadow-[0_48px_96px_-16px_rgba(0,0,0,0.15)]"></div>
 
                             <div className="relative p-8 z-10">
-                                <div className="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.07] pointer-events-none group-hover/sidebar:scale-110 transition-transform duration-700">
-                                    <span className="material-symbols-outlined text-[140px]">hotel_class</span>
-                                </div>
 
                                 {/* Header */}
                                 <div className="flex items-center gap-2 text-primary font-black text-[10px] mb-6 uppercase tracking-[0.2em] bg-primary/5 dark:bg-primary/20 p-3 rounded-2xl border border-primary/10">
@@ -744,9 +742,10 @@ const CheckoutPayment = () => {
                                                                     const refundable = checkRatesData?.rooms?.[idx]?.rates?.[0]?.refundable ?? checkRatesData?.refundable;
                                                                     if (refundable === undefined) return null;
                                                                     return (
-                                                                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-                                                                            {refundable ? 'Refundable' : 'Non-Refundable'}
-                                                                        </span>
+                                                                        <RefundPolicyTooltip
+                                                                            isRefundable={refundable}
+                                                                            className={`text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}
+                                                                        />
                                                                     );
                                                                 })()}
                                                             </div>

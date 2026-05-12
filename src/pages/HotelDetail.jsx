@@ -14,6 +14,7 @@ import { parseGuestsParam, serializeGuestsParam } from '../utils/searchParamsUti
 import { getBoardTypeLabel, getBoardTypeDescription, BOARD_TYPES } from '../utils/boardTypeUtils';
 import { FACILITY_ICON_MAP } from './MapView';
 import Tooltip from '../components/Tooltip';
+import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -1419,7 +1420,7 @@ const HotelDetail = () => {
                                                                 const currency = rateItem.hubRateModel?.price?.currency || '$';
                                                                 const isSelected = selectedRooms.some(r => r.hubRateModel?.rateCode === rateItem.hubRateModel?.rateCode);
                                                                 const boardType = rateItem.hubRateModel?.boardType || 'RO';
-                                                                const isFreeCancel = rateItem.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0;
+                                                                const isFreeCancel = rateItem.hubRateModel?.refundable ?? (rateItem.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0);
 
                                                                 return (
                                                                     <div
@@ -1442,9 +1443,11 @@ const HotelDetail = () => {
                                                                                     )}
                                                                                 </div>
                                                                                 <div className="flex flex-wrap items-center gap-2">
-                                                                                    <span className={`text-[8px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'}`}>
-                                                                                        {isFreeCancel ? 'Free Cancellation' : 'Non-Refundable'}
-                                                                                    </span>
+                                                                                    <RefundPolicyTooltip
+                                                                                        isRefundable={isFreeCancel}
+                                                                                        textOverride={isFreeCancel ? 'Free Cancellation' : 'Non-Refundable'}
+                                                                                        className={`text-[8px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'}`}
+                                                                                    />
                                                                                     <div className="group/cancel relative">
                                                                                         <span className="text-[8px] font-bold text-slate-400 hover:text-primary transition-colors cursor-help border-b border-dashed border-slate-300">View Policies</span>
                                                                                         <div className="absolute bottom-full left-0 mb-3 w-72 p-5 bg-slate-900 dark:bg-slate-950 text-white rounded-[24px] shadow-2xl opacity-0 invisible group-hover/cancel:opacity-100 group-hover/cancel:visible transition-all z-[100] border border-slate-700/50 backdrop-blur-xl scale-95 group-hover/cancel:scale-100 origin-bottom-left duration-300">
@@ -1760,9 +1763,6 @@ const HotelDetail = () => {
 
                                 {/* Content */}
                                 <div className="relative p-8 z-10">
-                                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.07] pointer-events-none group-hover/sidebar:scale-110 transition-transform duration-700">
-                                        <span className="material-symbols-outlined text-[140px]">hotel_class</span>
-                                    </div>
 
                                     <div className="flex items-center gap-2 text-primary font-black text-[10px] mb-6 uppercase tracking-[0.2em] bg-primary/5 dark:bg-primary/20 p-3 rounded-2xl border border-primary/10 backdrop-blur-md">
                                         <span className="material-symbols-outlined text-sm fill-1">bolt</span>
@@ -1777,7 +1777,7 @@ const HotelDetail = () => {
                                     <div className="space-y-4 mb-8">
                                         {selectedRooms.length > 0 ? (
                                             selectedRooms.map((room, idx) => {
-                                                const isFreeCancel = room.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0;
+                                                const isFreeCancel = room.hubRateModel?.refundable ?? (room.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0);
                                                 const boardType = room.hubRateModel?.boardType || 'RO';
                                                 
                                                 return (
@@ -1800,9 +1800,11 @@ const HotelDetail = () => {
                                                         </div>
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">{getBoardTypeLabel(boardType)}</span>
-                                                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}>
-                                                                {isFreeCancel ? 'Free Cancellation' : 'Non-Refundable'}
-                                                            </span>
+                                                            <RefundPolicyTooltip
+                                                                isRefundable={isFreeCancel}
+                                                                textOverride={isFreeCancel ? 'Free Cancellation' : 'Non-Refundable'}
+                                                                className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}
+                                                            />
                                                         </div>
                                                     </div>
                                                 );

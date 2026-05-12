@@ -964,7 +964,7 @@ const MapView = () => {
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5">
                             {filteredHotels.map((hotel) => (
                                 <Link
-                                    to={`/hotel/${hotel.id}?${searchParams.toString()}`}
+                                    to={`/hotel/${hotel.hotelId}?${searchParams.toString()}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     id={`hotel-card-${hotel.id}`}
@@ -1121,7 +1121,7 @@ const MapView = () => {
                             className="absolute top-8 left-1/2 -translate-x-1/2 z-[1000] w-80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-[32px] shadow-[0_32px_96px_-16px_rgba(0,0,0,0.4)] border border-white/20 dark:border-slate-800 overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-top-4"
                         >
                             <Link
-                                to={`/hotel/${hoveredHotel.id}?${searchParams.toString()}`}
+                                to={`/hotel/${hoveredHotel.hotelId}?${searchParams.toString()}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="block"

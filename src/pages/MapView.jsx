@@ -27,21 +27,28 @@ L.Marker.prototype.options.icon = DefaultIcon;
 // Custom Marker Component
 const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover, searchParams }) => {
     const icon = L.divIcon({
-        className: 'custom-leaflet-marker',
+        className: 'custom-leaflet-marker bg-transparent border-none',
         html: `
-            <div class="relative group cursor-pointer flex flex-col items-center w-max mx-auto">
-                <div class="px-3 py-1.5 rounded-2xl font-black text-sm shadow-2xl transition-all border-2 flex items-center gap-1 whitespace-nowrap ${isSelected || isHovered
-                ? 'bg-[#137fec] text-white border-white scale-110 ring-4 ring-[#137fec]/20'
-                : 'bg-white/90 backdrop-blur-md text-slate-900 border-white/20'
-            }">
-                    <span class="text-[10px] opacity-70 leading-none">$</span>
-                    ${hotel.price}
+            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center justify-end pb-[2px] w-max group cursor-pointer pointer-events-auto">
+                ${isSelected ? '<div class="absolute bottom-1 w-3 h-3 rounded-full bg-[#137fec] animate-ping opacity-60"></div>' : ''}
+                
+                <div class="px-3.5 py-1.5 rounded-full font-black text-[13px] transition-all duration-300 border flex items-center justify-center gap-[1px] whitespace-nowrap z-10 ${isSelected || isHovered
+                ? 'bg-gradient-to-br from-[#137fec] to-[#0e60b5] text-white border-transparent scale-110 shadow-[0_10px_25px_rgba(19,127,236,0.4)] -translate-y-1.5'
+                : 'bg-white/95 backdrop-blur-md text-slate-800 border-slate-200/80 shadow-[0_4px_15px_rgba(0,0,0,0.06)] group-hover:border-slate-300 group-hover:shadow-[0_6px_20px_rgba(0,0,0,0.1)]'
+                }">
+                    <span class="text-[10px] ${isSelected || isHovered ? 'text-blue-200' : 'text-slate-400'} font-bold leading-none -mt-0.5">$</span>
+                    <span class="tracking-tight">${hotel.price}</span>
                 </div>
-                <div class="w-0.5 h-3 mt-0.5 transition-colors ${isSelected || isHovered ? 'bg-[#137fec]' : 'bg-white/40'}"></div>
+                
+                <div class="flex flex-col items-center justify-end z-0 transition-all duration-300 origin-bottom ${isSelected || isHovered ? 'scale-y-[1.5] -translate-y-0.5' : ''}">
+                    <div class="w-[2px] h-2.5 transition-colors duration-300 ${isSelected || isHovered ? 'bg-[#137fec]' : 'bg-slate-300'}"></div>
+                    <div class="w-1.5 h-1.5 rounded-full transition-all duration-300 ${isSelected || isHovered ? 'bg-[#0e60b5] scale-[1.5] shadow-[0_0_8px_rgba(19,127,236,0.8)]' : 'bg-slate-400'}"></div>
+                </div>
             </div>
         `,
-        iconSize: [120, 50],
-        iconAnchor: [60, 50],
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+        popupAnchor: [0, -45]
     });
 
     return (
@@ -309,6 +316,7 @@ const MapView = () => {
     // Map Instance State
     const [map, setMap] = useState(null);
     const [currentBounds, setCurrentBounds] = useState(null);
+    const [hasFittedInitialBounds, setHasFittedInitialBounds] = useState(false);
 
     // Breadcrumb data for map auto-focus
     const [breadcrumbData, setBreadcrumbData] = useState(null);
@@ -435,6 +443,49 @@ const MapView = () => {
             }
         };
     }, [breadcrumbData, map, isDataLoading]);
+
+    // Reset initial bounds fitting when location changes
+    useEffect(() => {
+        setHasFittedInitialBounds(false);
+    }, [searchParams.get('locationId')]);
+
+    // Auto-fit bounds when initial hotels load to perfectly center the map on properties
+    useEffect(() => {
+        if (!map || isUserPanRef.current || hotels.length === 0 || isLoadingHotels) return;
+        
+        if (!hasFittedInitialBounds) {
+            const lats = hotels.map(h => h.lat).filter(Boolean);
+            const lngs = hotels.map(h => h.lng).filter(Boolean);
+            
+            if (lats.length > 0 && lngs.length > 0) {
+                const minLat = Math.min(...lats);
+                const maxLat = Math.max(...lats);
+                const minLng = Math.min(...lngs);
+                const maxLng = Math.max(...lngs);
+                
+                const bounds = [
+                    [minLat, minLng],
+                    [maxLat, maxLng]
+                ];
+                
+                try {
+                    // Keep isUserPanRef false so it doesn't trigger a new manual search
+                    isUserPanRef.current = false;
+                    map.flyToBounds(bounds, {
+                        padding: [50, 50],
+                        maxZoom: 14,
+                        duration: 1.5,
+                        easeLinearity: 0.25
+                    });
+                    setHasFittedInitialBounds(true);
+                } catch (e) {
+                    console.warn('Map flyToBounds failed:', e);
+                }
+            } else {
+                setHasFittedInitialBounds(true);
+            }
+        }
+    }, [hotels, map, hasFittedInitialBounds, isLoadingHotels]);
 
     const mapApiHotelToModel = React.useCallback((apiHotel) => {
         const hotelNames = apiHotel.names || apiHotel.name;
@@ -917,6 +968,11 @@ const MapView = () => {
             </div>
 
             <main className="flex-1 flex overflow-hidden relative">
+                {/* Global Top Loading Bar */}
+                <div className={`absolute top-0 left-0 w-full h-[4px] z-[5000] bg-slate-100 dark:bg-slate-800/50 overflow-hidden transition-all duration-500 origin-top ${isLoadingHotels ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0'}`}>
+                    <div className="h-full w-1/3 bg-gradient-to-r from-[#137fec]/50 via-[#137fec] to-[#137fec]/50 shadow-[0_0_15px_#137fec] rounded-full animate-[loading-bar_1.5s_ease-in-out_infinite]"></div>
+                </div>
+
                 {/* Aside: Hotel List Sidebar */}
                 <aside className={`absolute lg:relative z-30 h-full bg-white/80 dark:bg-background-dark/80 backdrop-blur-2xl border-r border-slate-200/50 dark:border-slate-800/50 transition-all duration-500 ease-in-out shadow-2xl overflow-hidden ${isSidebarOpen
                     ? 'w-full md:w-[420px] xl:w-[480px] translate-x-0 opacity-100'
@@ -952,7 +1008,7 @@ const MapView = () => {
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5">
                             {filteredHotels.map((hotel) => (
                                 <Link
-                                    to={`/hotel/${hotel.id}?${searchParams.toString()}`}
+                                    to={`/hotel/${hotel.hotelId}?${searchParams.toString()}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     id={`hotel-card-${hotel.id}`}
@@ -1066,6 +1122,11 @@ const MapView = () => {
                                 </div>
                             )}
 
+                            {/* Block map interaction while searching hotels */}
+                            {isLoadingHotels && (
+                                <div className="absolute inset-0 z-[2000] cursor-wait bg-white/5 dark:bg-black/5 backdrop-blur-[1px] animate-in fade-in duration-300"></div>
+                            )}
+
                             {/* Low Zoom Warning Overlay */}
                             {currentBounds?.zoom < 6 && (
                                 <div className="absolute inset-0 z-[2000] flex items-center justify-center pointer-events-none">
@@ -1104,7 +1165,7 @@ const MapView = () => {
                             className="absolute top-8 left-1/2 -translate-x-1/2 z-[1000] w-80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-[32px] shadow-[0_32px_96px_-16px_rgba(0,0,0,0.4)] border border-white/20 dark:border-slate-800 overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-top-4"
                         >
                             <Link
-                                to={`/hotel/${hoveredHotel.id}?${searchParams.toString()}`}
+                                to={`/hotel/${hoveredHotel.hotelId}?${searchParams.toString()}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="block"

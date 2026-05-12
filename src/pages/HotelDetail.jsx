@@ -809,7 +809,7 @@ const HotelDetail = () => {
                     totalPrice: selectedRooms.reduce((sum, r) => sum + r.rate, 0),
                     nights,
                     rateSearchUuid: rateSearchUuid,
-                    checkRatesData: firstRate,
+                    checkRatesData: firstHotel,
                     originalSearch: window.location.search,
                     hotelSlug: id
                 };

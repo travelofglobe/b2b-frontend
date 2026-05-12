@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { bookingService } from '../services/bookingService';
 import HeaderActions from '../components/HeaderActions';
 import BookingStatusBadge from '../components/BookingStatusBadge';
+import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 
 const BookingDetail = () => {
     const { bookingId } = useParams();
@@ -498,9 +499,11 @@ const BookingDetail = () => {
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Refundable</p>
-                                                <span className={`inline-block px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${rate.refundable ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}>
-                                                    {rate.refundable ? 'Yes' : 'No'}
-                                                </span>
+                                                <RefundPolicyTooltip
+                                                    isRefundable={rate.refundable}
+                                                    textOverride={rate.refundable ? 'Yes' : 'No'}
+                                                    className={`inline-block px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${rate.refundable ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}
+                                                />
                                             </div>
                                             <div className="space-y-1">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rate Category</p>

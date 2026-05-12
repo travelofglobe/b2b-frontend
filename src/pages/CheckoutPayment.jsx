@@ -7,6 +7,7 @@ import { useToast } from '../context/ToastContext';
 import CheckoutStepper from '../components/CheckoutStepper';
 import ConfirmationModal from '../components/ConfirmationModal';
 import CheckoutTimer from '../components/CheckoutTimer';
+import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 
 const CheckoutPayment = () => {
     const location = useLocation();
@@ -741,9 +742,10 @@ const CheckoutPayment = () => {
                                                                     const refundable = checkRatesData?.rooms?.[idx]?.rates?.[0]?.refundable ?? checkRatesData?.refundable;
                                                                     if (refundable === undefined) return null;
                                                                     return (
-                                                                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-                                                                            {refundable ? 'Refundable' : 'Non-Refundable'}
-                                                                        </span>
+                                                                        <RefundPolicyTooltip
+                                                                            isRefundable={refundable}
+                                                                            className={`text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}
+                                                                        />
                                                                     );
                                                                 })()}
                                                             </div>

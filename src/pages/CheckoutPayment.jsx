@@ -736,10 +736,10 @@ const CheckoutPayment = () => {
                                                             <p className="font-black text-[13px] uppercase tracking-tight text-slate-900 dark:text-white line-clamp-2">{room.name}</p>
                                                             <div className="flex flex-wrap gap-2 mt-1">
                                                                 <p className="text-[11px] font-bold text-slate-500 uppercase">
-                                                                    {checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || checkRatesData?.boardName || 'Room Only'}
+                                                                    {checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || 'Room Only'}
                                                                 </p>
                                                                 {(() => {
-                                                                    const refundable = checkRatesData?.rooms?.[idx]?.rates?.[0]?.refundable ?? checkRatesData?.refundable;
+                                                                    const refundable = checkRatesData?.rooms?.[idx]?.rates?.[0]?.refundable;
                                                                     if (refundable === undefined) return null;
                                                                     return (
                                                                         <RefundPolicyTooltip
@@ -755,7 +755,7 @@ const CheckoutPayment = () => {
                                                         <div className="flex items-baseline justify-end gap-1">
                                                             <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(room.currency)}</span>
                                                             <span className="font-black text-sm text-primary leading-none">
-                                                                {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || checkRatesData?.price?.totalPaymentAmount || room.rate).toFixed(2)}
+                                                                {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || room.rate).toFixed(2)}
                                                             </span>
                                                         </div>
                                                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{room.currency || '$'} · {nights} Night{nights > 1 ? 's' : ''}</p>
@@ -764,7 +764,7 @@ const CheckoutPayment = () => {
                                                 {/* Cancellation policy */}
                                                 <div className="pt-2 border-t border-slate-100 dark:border-slate-700/50">
                                                     {(() => {
-                                                        const currentPolicies = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || checkRatesData?.price?.cancellationPolicies || policies;
+                                                        const currentPolicies = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || policies;
                                                         if (!currentPolicies || currentPolicies.length === 0) {
                                                             return (
                                                                 <span className="text-[11px] font-bold text-slate-400 uppercase flex items-center gap-1">
@@ -802,7 +802,7 @@ const CheckoutPayment = () => {
 
                                                 {/* Daily Prices - Updated to handle both formats */}
                                                 {(() => {
-                                                    const currentDailyPrices = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.dailyPrices || checkRatesData?.price?.dailyPrices;
+                                                    const currentDailyPrices = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.dailyPrices;
                                                     if (!currentDailyPrices || currentDailyPrices.length === 0) return null;
                                                     return (
                                                         <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/50">
@@ -844,7 +844,9 @@ const CheckoutPayment = () => {
                                             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Taxes & Fees</p>
                                             {allTaxes.map((tax, tIdx) => (
                                                 <div key={tIdx} className="flex justify-between items-center text-[11px]">
-                                                    <span className="font-medium text-slate-500">{tax.name || tax.type || 'Tax'}</span>
+                                                    <span className="font-medium text-slate-500 capitalize">
+                                                        {(tax.name || tax.type || 'Tax').replace(/_/g, ' ')}
+                                                    </span>
                                                     <span className="font-black text-slate-700 dark:text-slate-300">
                                                         {getCurrencySymbol(tax.currency || displayCurrency)} {tax.amount.toFixed(2)}
                                                     </span>

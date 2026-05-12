@@ -917,6 +917,11 @@ const MapView = () => {
             </div>
 
             <main className="flex-1 flex overflow-hidden relative">
+                {/* Global Top Loading Bar */}
+                <div className={`absolute top-0 left-0 w-full h-[4px] z-[5000] bg-slate-100 dark:bg-slate-800/50 overflow-hidden transition-all duration-500 origin-top ${isLoadingHotels ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0'}`}>
+                    <div className="h-full w-1/3 bg-gradient-to-r from-[#137fec]/50 via-[#137fec] to-[#137fec]/50 shadow-[0_0_15px_#137fec] rounded-full animate-[loading-bar_1.5s_ease-in-out_infinite]"></div>
+                </div>
+
                 {/* Aside: Hotel List Sidebar */}
                 <aside className={`absolute lg:relative z-30 h-full bg-white/80 dark:bg-background-dark/80 backdrop-blur-2xl border-r border-slate-200/50 dark:border-slate-800/50 transition-all duration-500 ease-in-out shadow-2xl overflow-hidden ${isSidebarOpen
                     ? 'w-full md:w-[420px] xl:w-[480px] translate-x-0 opacity-100'
@@ -1064,6 +1069,11 @@ const MapView = () => {
                                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Updating Orbit...</span>
                                     </div>
                                 </div>
+                            )}
+
+                            {/* Block map interaction while searching hotels */}
+                            {isLoadingHotels && (
+                                <div className="absolute inset-0 z-[2000] cursor-wait bg-white/5 dark:bg-black/5 backdrop-blur-[1px] animate-in fade-in duration-300"></div>
                             )}
 
                             {/* Low Zoom Warning Overlay */}

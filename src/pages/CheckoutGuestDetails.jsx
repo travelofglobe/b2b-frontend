@@ -3,11 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { hotelService } from '../services/hotelService';
+import { guestService } from '../services/guestService';
 import CheckoutStepper from '../components/CheckoutStepper';
 import PhoneInput from '../components/PhoneInput';
 import ConfirmationModal from '../components/ConfirmationModal';
 import CheckoutTimer from '../components/CheckoutTimer';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
+import CrmGuestSelectionModal from '../components/CrmGuestSelectionModal';
 
 const CheckoutGuestDetails = () => {
     const location = useLocation();
@@ -56,6 +58,8 @@ const CheckoutGuestDetails = () => {
     const [activeRoomIdx, setActiveRoomIdx] = useState(0);
     const [showConfirmBack, setShowConfirmBack] = useState(false);
     const [pendingStepId, setPendingStepId] = useState(null);
+    const [isCrmModalOpen, setIsCrmModalOpen] = useState(false);
+    const [targetGuestIndex, setTargetGuestIndex] = useState(null);
 
     // Auto-scroll to top on mount
     useLayoutEffect(() => {
@@ -235,7 +239,57 @@ const CheckoutGuestDetails = () => {
         return age;
     };
 
-    const handleNext = () => {
+    const handleCrmGuestSelect = (crmGuest) => {
+        if (!targetGuestIndex) return;
+        const { roomIdx, guestIdx } = targetGuestIndex;
+
+        // Update newData with cloned room and guest to ensure React detects changes and props are preserved
+        const newData = roomsData.map((room, rIdx) => {
+            if (rIdx === roomIdx) {
+                return {
+                    ...room,
+                    guests: room.guests.map((guest, gIdx) => {
+                        if (gIdx === guestIdx) {
+                            const updatedGuest = { ...guest };
+                            
+                            if (crmGuest.firstName) updatedGuest.firstName = crmGuest.firstName.replace(/[^a-zA-Z\sğüşıöçĞÜŞİÖÇ]/g, '');
+                            if (crmGuest.lastName) updatedGuest.lastName = crmGuest.lastName.replace(/[^a-zA-Z\sğüşıöçĞÜŞİÖÇ]/g, '');
+                            
+                            if (crmGuest.email && guest.type === 'Adult' && guestIdx === 0) {
+                                updatedGuest.email = crmGuest.email;
+                            }
+                            
+                            if (crmGuest.phoneNumber && guest.type === 'Adult' && guestIdx === 0) {
+                                updatedGuest.phone = `${crmGuest.phoneCountryCode || '+90'} ${crmGuest.phoneNumber}`;
+                            }
+                            
+                            if (crmGuest.gender) updatedGuest.gender = crmGuest.gender.toLowerCase();
+                            
+                            if (crmGuest.birthDate) {
+                                const parts = crmGuest.birthDate.split('.');
+                                if (parts.length === 3) {
+                                    updatedGuest.birthDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                                }
+                            }
+                            
+                            updatedGuest.crmGuestId = crmGuest.id;
+                            updatedGuest.agencyId = crmGuest.agencyId;
+                            
+                            return updatedGuest;
+                        }
+                        return guest;
+                    })
+                };
+            }
+            return room;
+        });
+
+        setRoomsData(newData);
+        setIsCrmModalOpen(false);
+        setTargetGuestIndex(null);
+    };
+
+    const handleNext = async () => {
         const currentRoom = roomsData[activeRoomIdx];
         const newErrors = { ...errors };
         let hasRoomError = false;
@@ -294,10 +348,51 @@ const CheckoutGuestDetails = () => {
                 setActiveRoomIdx(prev => prev + 1);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
+                // Sync CRM guests in background - non-blocking
+                syncCrmGuests();
+
                 navigate(`/hotel/checkout/payment?sessionId=${sessionId}`, {
                     state: { ...location.state, selectedRooms, hotel, roomState, checkInDate, checkOutDate, roomsData, clientReferenceId, remark, rateSearchUuid, checkRatesData, expireAt }
                 });
             }
+        }
+    };
+
+    const syncCrmGuests = async () => {
+        console.log('Syncing CRM guests... Current roomsData:', roomsData);
+        try {
+            const guestsToUpdate = [];
+            roomsData.forEach(room => {
+                room.guests.forEach(guest => {
+                    if (guest.crmGuestId) {
+                        guestsToUpdate.push(guest);
+                    }
+                });
+            });
+
+            console.log('Guests found to update:', guestsToUpdate);
+            if (guestsToUpdate.length === 0) return;
+
+            await Promise.all(guestsToUpdate.map(async (guest) => {
+                const updateDto = {
+                    firstName: guest.firstName,
+                    lastName: guest.lastName,
+                    gender: guest.gender?.toUpperCase(),
+                    email: guest.email,
+                    phoneNumber: guest.phone?.includes(' ') ? guest.phone.split(' ')[1] : guest.phone,
+                    phoneCountryCode: guest.phone?.includes(' ') ? guest.phone.split(' ')[0].replace('+', '') : '90',
+                    birthDate: guest.birthDate?.includes('-') 
+                        ? guest.birthDate.split('-').reverse().join('.') 
+                        : guest.birthDate
+                };
+                
+                console.log(`Updating guest ${guest.crmGuestId} with data:`, updateDto);
+                const response = await guestService.updateGuest(guest.crmGuestId, updateDto);
+                console.log(`Update response for ${guest.crmGuestId}:`, response);
+                return response;
+            }));
+        } catch (error) {
+            console.error('Failed to sync CRM guests:', error);
         }
     };
 
@@ -435,6 +530,12 @@ const CheckoutGuestDetails = () => {
                     message="Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir."
                 />
 
+                <CrmGuestSelectionModal
+                    isOpen={isCrmModalOpen}
+                    onClose={() => setIsCrmModalOpen(false)}
+                    onSelect={handleCrmGuestSelect}
+                />
+
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
                     <div className="lg:col-span-8">
                         {/* Room Stepper */}
@@ -471,6 +572,18 @@ const CheckoutGuestDetails = () => {
                                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{guest.type === 'Adult' ? 'Standard Adult Policy' : `Child Passenger • Age ${guest.age}`}</p>
                                                 </div>
                                             </div>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => {
+                                                    setTargetGuestIndex({ roomIdx: activeRoomIdx, guestIdx: gIdx });
+                                                    setIsCrmModalOpen(true);
+                                                }}
+                                                className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-colors"
+                                            >
+                                                <span className="material-symbols-outlined text-sm">contact_page</span>
+                                                <span className="hidden sm:inline">CRM'den Doldur</span>
+                                                <span className="sm:hidden">CRM</span>
+                                            </button>
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -829,36 +942,35 @@ const CheckoutGuestDetails = () => {
                                                         </div>
                                                     );
                                                 })()}
+
+                                                {/* Room Specific Taxes */}
+                                                {(() => {
+                                                    const roomTaxes = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.taxes;
+                                                    if (!roomTaxes || roomTaxes.length === 0) return null;
+                                                    return (
+                                                        <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/50">
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Taxes & Fees</p>
+                                                            <div className="space-y-1">
+                                                                {roomTaxes.map((tax, tIdx) => (
+                                                                    <div key={tIdx} className="flex justify-between items-center text-[9px]">
+                                                                        <span className="font-medium text-slate-500 capitalize">
+                                                                            {(tax.name || tax.type || 'Tax').replace(/_/g, ' ')}
+                                                                        </span>
+                                                                        <span className="font-black text-slate-700 dark:text-slate-300">
+                                                                            {getCurrencySymbol(tax.currency || displayCurrency)} {tax.amount.toFixed(2)}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
                                             </div>
                                         );
                                     })}
                                 </div>
 
-                                {/* Taxes - Updated to sum across all rooms */}
-                                {(() => {
-                                    const allTaxes = [];
-                                    checkRatesData?.rooms?.forEach(room => {
-                                        room.rates?.[0]?.price?.taxes?.forEach(tax => {
-                                            allTaxes.push(tax);
-                                        });
-                                    });
-                                    if (allTaxes.length === 0) return null;
-                                    return (
-                                        <div className="mb-6 space-y-2">
-                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Taxes & Fees</p>
-                                            {allTaxes.map((tax, tIdx) => (
-                                                <div key={tIdx} className="flex justify-between items-center text-[9px]">
-                                                    <span className="font-medium text-slate-500 capitalize">
-                                                        {(tax.name || tax.type || 'Tax').replace(/_/g, ' ')}
-                                                    </span>
-                                                    <span className="font-black text-slate-700 dark:text-slate-300">
-                                                        {getCurrencySymbol(tax.currency || displayCurrency)} {tax.amount.toFixed(2)}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    );
-                                })()}
+
 
                                 {/* Grand Total */}
                                 <div className="pt-6 border-t border-slate-200 dark:border-slate-800 mb-6">

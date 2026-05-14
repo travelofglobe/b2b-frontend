@@ -942,36 +942,35 @@ const CheckoutGuestDetails = () => {
                                                         </div>
                                                     );
                                                 })()}
+
+                                                {/* Room Specific Taxes */}
+                                                {(() => {
+                                                    const roomTaxes = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.taxes;
+                                                    if (!roomTaxes || roomTaxes.length === 0) return null;
+                                                    return (
+                                                        <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/50">
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Taxes & Fees</p>
+                                                            <div className="space-y-1">
+                                                                {roomTaxes.map((tax, tIdx) => (
+                                                                    <div key={tIdx} className="flex justify-between items-center text-[9px]">
+                                                                        <span className="font-medium text-slate-500 capitalize">
+                                                                            {(tax.name || tax.type || 'Tax').replace(/_/g, ' ')}
+                                                                        </span>
+                                                                        <span className="font-black text-slate-700 dark:text-slate-300">
+                                                                            {getCurrencySymbol(tax.currency || displayCurrency)} {tax.amount.toFixed(2)}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
                                             </div>
                                         );
                                     })}
                                 </div>
 
-                                {/* Taxes - Updated to sum across all rooms */}
-                                {(() => {
-                                    const allTaxes = [];
-                                    checkRatesData?.rooms?.forEach(room => {
-                                        room.rates?.[0]?.price?.taxes?.forEach(tax => {
-                                            allTaxes.push(tax);
-                                        });
-                                    });
-                                    if (allTaxes.length === 0) return null;
-                                    return (
-                                        <div className="mb-6 space-y-2">
-                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Taxes & Fees</p>
-                                            {allTaxes.map((tax, tIdx) => (
-                                                <div key={tIdx} className="flex justify-between items-center text-[9px]">
-                                                    <span className="font-medium text-slate-500 capitalize">
-                                                        {(tax.name || tax.type || 'Tax').replace(/_/g, ' ')}
-                                                    </span>
-                                                    <span className="font-black text-slate-700 dark:text-slate-300">
-                                                        {getCurrencySymbol(tax.currency || displayCurrency)} {tax.amount.toFixed(2)}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    );
-                                })()}
+
 
                                 {/* Grand Total */}
                                 <div className="pt-6 border-t border-slate-200 dark:border-slate-800 mb-6">

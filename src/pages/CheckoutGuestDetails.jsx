@@ -275,6 +275,16 @@ const CheckoutGuestDetails = () => {
                             updatedGuest.crmGuestId = crmGuest.id;
                             updatedGuest.agencyId = crmGuest.agencyId;
                             
+                            // Store original data snapshot for later comparison
+                            updatedGuest.originalData = {
+                                firstName: updatedGuest.firstName,
+                                lastName: updatedGuest.lastName,
+                                email: updatedGuest.email,
+                                phone: updatedGuest.phone,
+                                gender: updatedGuest.gender,
+                                birthDate: updatedGuest.birthDate
+                            };
+                            
                             return updatedGuest;
                         }
                         return guest;
@@ -374,6 +384,20 @@ const CheckoutGuestDetails = () => {
             if (guestsToUpdate.length === 0) return;
 
             await Promise.all(guestsToUpdate.map(async (guest) => {
+                // Check if any tracked field has actually changed
+                const hasChanged = !guest.originalData || 
+                    guest.firstName !== guest.originalData.firstName ||
+                    guest.lastName !== guest.originalData.lastName ||
+                    guest.email !== guest.originalData.email ||
+                    guest.phone !== guest.originalData.phone ||
+                    guest.gender !== guest.originalData.gender ||
+                    guest.birthDate !== guest.originalData.birthDate;
+
+                if (!hasChanged) {
+                    console.log(`Skipping update for guest ${guest.crmGuestId} - No changes detected.`);
+                    return null;
+                }
+
                 const updateDto = {
                     firstName: guest.firstName,
                     lastName: guest.lastName,

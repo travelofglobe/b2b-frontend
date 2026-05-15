@@ -161,19 +161,36 @@ const MyOffice = () => {
         id: null,
         name: '',
         officialTitle: '',
+        agencyType: '', // Initialized to avoid controlled/uncontrolled warning
+        defaultLanguage: 'EN',
+        parentId: '', // Added missing initial state
         countryId: '',
         cityId: '',
         zipCode: '',
         address: '',
-        latitude: null,
-        longitude: null,
+        latitude: 36.6826845,
+        longitude: 30.9089719,
         phoneCountryCode: '',
         phoneNumber: '',
         email: '',
         website: '',
         taxOffice: '',
         taxNumber: '',
-        agencyFinancialInfo: {}
+        agencyFinancialInfo: {
+            title: '',
+            taxOffice: '',
+            taxNumber: '',
+            email: '',
+            phoneCountryCode: '',
+            phoneNumber: '',
+            countryId: '',
+            cityId: '',
+            address: ''
+        },
+        createDateTime: null,
+        updateDateTime: null,
+        createdBy: '',
+        updatedBy: ''
     });
 
     const [countries, setCountries] = useState([]);
@@ -262,6 +279,7 @@ const MyOffice = () => {
             });
 
         } catch (err) {
+            if (err.name === 'AbortError') return;
             console.error(err);
             setError(err.message);
         } finally {

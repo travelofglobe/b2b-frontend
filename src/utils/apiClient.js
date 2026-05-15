@@ -3,12 +3,15 @@
  * token injection, and error handling (specifically 401 Unauthorized).
  */
 
+let isRefreshing = false;
+let refreshPromise = null;
+
 const apiClient = {
     /**
      * Core fetch wrapper
      */
     request: async (url, options = {}) => {
-        const token = localStorage.getItem('accessToken');
+        let token = localStorage.getItem('accessToken');
 
         // Merge headers
         const headers = {
@@ -27,22 +30,53 @@ const apiClient = {
         };
 
         try {
-            const response = await fetch(url, fetchOptions);
+            let response = await fetch(url, fetchOptions);
 
             // Handle 401 Unauthorized globally
             if (response.status === 401) {
-                console.warn('Session expired (401). Redirecting to login...');
+                const refreshToken = localStorage.getItem('refreshToken');
 
-                // Clear local storage
-                localStorage.removeItem('accessToken');
-                localStorage.removeItem('refreshToken');
-                localStorage.removeItem('user');
+                if (!refreshToken) {
+                    apiClient.handleLogout();
+                    throw new Error('Your session has expired. Please sign in again.');
+                }
 
-                // Absolute redirect to login
-                window.location.href = '/login?expired=true';
+                // If a refresh is already in progress, wait for it
+                if (!isRefreshing) {
+                    isRefreshing = true;
+                    refreshPromise = (async () => {
+                        try {
+                            // Use dynamic import to avoid circular dependency with authService
+                            const { authService } = await import('../services/authService');
+                            return await authService.refreshToken();
+                        } finally {
+                            isRefreshing = false;
+                            refreshPromise = null;
+                        }
+                    })();
+                }
 
-                // Throw to stop execution
-                throw new Error('Your session has expired. Please sign in again.');
+                try {
+                    const newToken = await refreshPromise;
+
+                    // Retry original request with new token
+                    const retryHeaders = {
+                        ...headers,
+                        'Authorization': `Bearer ${newToken}`
+                    };
+
+                    response = await fetch(url, { ...fetchOptions, headers: retryHeaders });
+
+                    // If still 401, the refresh token was likely invalid or expired too
+                    if (response.status === 401) {
+                        apiClient.handleLogout();
+                        throw new Error('Your session has expired. Please sign in again.');
+                    }
+                } catch (refreshError) {
+                    console.error('Token refresh failed:', refreshError);
+                    apiClient.handleLogout();
+                    throw refreshError;
+                }
             }
 
             // Handle other non-ok responses
@@ -65,6 +99,18 @@ const apiClient = {
             if (error.name === 'AbortError') throw error;
             console.error('API Client Error:', error);
             throw error;
+        }
+    },
+
+    handleLogout: () => {
+        console.warn('Session expired. Redirecting to login...');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        
+        // Only redirect if not already on login page to avoid loops
+        if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login?expired=true';
         }
     },
 

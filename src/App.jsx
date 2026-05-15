@@ -18,12 +18,14 @@ import ProtectedRoute from './components/ProtectedRoute';
 import PortalLayout from './layouts/PortalLayout';
 import VoucherPage from './pages/VoucherPage';
 import { AuthProvider } from './context/AuthContext';
+import SessionExpiryWarning from './components/SessionExpiryWarning';
 import './index.css';
 
 function App() {
   return (
     <Router>
       <AuthProvider>
+        <SessionExpiryWarning />
         <div className="bg-background-light dark:bg-background-dark min-h-screen transition-colors duration-200">
           <Routes>
             <Route path="/login" element={<LoginPage />} />

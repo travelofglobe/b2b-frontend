@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import { authService } from '../services/authService';
 
 import { getTokenExpiration } from '../utils/tokenUtils';
@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [remainingSeconds, setRemainingSeconds] = useState(null);
 
-    // Initial auth check and session tracking
+    // Initial auth check - runs only once on mount
     useEffect(() => {
         const checkAuth = () => {
             if (authService.isAuthenticated()) {
@@ -19,7 +19,10 @@ export const AuthProvider = ({ children }) => {
             setLoading(false);
         };
         checkAuth();
+    }, []);
 
+    // Session tracking - runs on mount
+    useEffect(() => {
         const updateTimer = () => {
             const token = authService.getToken();
             if (!token) {
@@ -43,20 +46,20 @@ export const AuthProvider = ({ children }) => {
         const interval = setInterval(updateTimer, 1000);
 
         return () => clearInterval(interval);
-    }, [user]); 
+    }, []); 
 
-    const login = async (email, password) => {
+    const login = useCallback(async (email, password) => {
         const data = await authService.login(email, password);
         setUser(authService.getUser());
         return data;
-    };
+    }, []);
 
-    const logout = () => {
+    const logout = useCallback(() => {
         authService.logout();
         setUser(null);
-    };
+    }, []);
 
-    const renewSession = async () => {
+    const renewSession = useCallback(async () => {
         try {
             await authService.refreshToken();
             // Force re-sync user/token state
@@ -66,10 +69,19 @@ export const AuthProvider = ({ children }) => {
             console.error('Failed to renew session:', error);
             return false;
         }
-    };
+    }, []);
+
+    const value = useMemo(() => ({
+        user,
+        loading,
+        login,
+        logout,
+        remainingSeconds,
+        renewSession
+    }), [user, loading, login, logout, remainingSeconds, renewSession]);
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, remainingSeconds, renewSession }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

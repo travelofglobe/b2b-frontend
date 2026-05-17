@@ -1,11 +1,31 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { markupService } from '../services/markupService';
 import AgencyMultiSelect from '../components/AgencyMultiSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import AddMarkupModal from '../components/AddMarkupModal';
 import HeaderActions from '../components/HeaderActions';
 
+const MK = {
+  en: { title: 'Markup Management', subtitle: 'Define and manage pricing rules for hotels and agencies', searchPh: 'Rule name, ID...', allRules: 'All Rules', active: 'Active', passive: 'Passive', newRule: 'New Rule', colRule: 'Markup Rule', colHotels: 'Associated Hotels', colAgencies: 'Agencies / Groups', colPriority: 'Priority', colValue: 'Value', colStatus: 'Status', colActions: 'Actions', allHotels: 'All Hotels', allAgencies: 'All Agencies', noRules: 'No markup rules found', showing: 'Showing', to2: 'to', of: 'of', rules: 'rules', deleteTitle: 'Delete Markup', yesDelete: 'Yes, Delete Rule', noKeep: 'No, Keep It', failedLoad: 'Failed to load markups', failedStatus: 'Failed to update status', failedDelete: 'Failed to delete markup', deleted: 'Markup rule deleted', created: 'Markup rule created', updated: 'Markup rule updated', markedAs: 'Markup marked as' },
+  tr: { title: 'Markup Yonetimi', subtitle: 'Oteller ve acenteler icin fiyatlandirma kurallarini tanimla', searchPh: 'Kural adi, ID...', allRules: 'Tum Kurallar', active: 'Aktif', passive: 'Pasif', newRule: 'Yeni Kural', colRule: 'Markup Kurali', colHotels: 'Iliskili Oteller', colAgencies: 'Acenteler', colPriority: 'Oncelik', colValue: 'Deger', colStatus: 'Durum', colActions: 'Islemler', allHotels: 'Tum Oteller', allAgencies: 'Tum Acenteler', noRules: 'Markup kurali bulunamadi', showing: 'Gosterilen', to2: '-', of: '/', rules: 'kural', deleteTitle: 'Markup Sil', yesDelete: 'Evet, Sil', noKeep: 'Hayir', failedLoad: 'Markuplar yuklenemedi', failedStatus: 'Durum guncellenemedi', failedDelete: 'Markup silinemedi', deleted: 'Markup silindi', created: 'Markup olusturuldu', updated: 'Markup guncellendi', markedAs: 'Markup isaretlendi:' },
+  ar: { title: 'ادارة الترميز', subtitle: 'تعريف قواعد التسعير للفنادق والوكالات', searchPh: 'اسم القاعدة، ID...', allRules: 'كل القواعد', active: 'نشط', passive: 'غير نشط', newRule: 'قاعدة جديدة', colRule: 'قاعدة الترميز', colHotels: 'الفنادق المرتبطة', colAgencies: 'الوكالات', colPriority: 'الاولوية', colValue: 'القيمة', colStatus: 'الحالة', colActions: 'الاجراءات', allHotels: 'جميع الفنادق', allAgencies: 'جميع الوكالات', noRules: 'لا توجد قواعد ترميز', showing: 'عرض', to2: 'الى', of: 'من', rules: 'قواعد', deleteTitle: 'حذف الترميز', yesDelete: 'نعم، احذف', noKeep: 'لا، احتفظ', failedLoad: 'فشل التحميل', failedStatus: 'فشل التحديث', failedDelete: 'فشل الحذف', deleted: 'تم حذف القاعدة', created: 'تم انشاء القاعدة', updated: 'تم تحديث القاعدة', markedAs: 'تم تحديد الترميز كـ' },
+  es: { title: 'Gestion de Markup', subtitle: 'Definir y gestionar reglas de precios', searchPh: 'Nombre de regla, ID...', allRules: 'Todas las Reglas', active: 'Activo', passive: 'Inactivo', newRule: 'Nueva Regla', colRule: 'Regla de Markup', colHotels: 'Hoteles Asociados', colAgencies: 'Agencias', colPriority: 'Prioridad', colValue: 'Valor', colStatus: 'Estado', colActions: 'Acciones', allHotels: 'Todos los Hoteles', allAgencies: 'Todas las Agencias', noRules: 'No se encontraron reglas', showing: 'Mostrando', to2: 'a', of: 'de', rules: 'reglas', deleteTitle: 'Eliminar Markup', yesDelete: 'Si, Eliminar', noKeep: 'No, Conservar', failedLoad: 'Error al cargar', failedStatus: 'Error al actualizar', failedDelete: 'Error al eliminar', deleted: 'Regla eliminada', created: 'Regla creada', updated: 'Regla actualizada', markedAs: 'Markup marcado como' },
+  ru: { title: 'Upravlenie nakidkoy', subtitle: 'Sozdanie pravil cenoobrazovaniya', searchPh: 'Nazvanie pravila, ID...', allRules: 'Vse pravila', active: 'Aktivnyy', passive: 'Passivnyy', newRule: 'Novoe pravilo', colRule: 'Pravilo nakidki', colHotels: 'Svyazannye oteli', colAgencies: 'Agentstva', colPriority: 'Prioritet', colValue: 'Znachenie', colStatus: 'Status', colActions: 'Deystviya', allHotels: 'Vse oteli', allAgencies: 'Vse agentstva', noRules: 'Pravila ne naydeny', showing: 'Pokazano', to2: '-', of: 'iz', rules: 'pravil', deleteTitle: 'Udalit nakidku', yesDelete: 'Da, udalit', noKeep: 'Net, ostavit', failedLoad: 'Oshibka zagruzki', failedStatus: 'Oshibka obnovleniya', failedDelete: 'Oshibka udaleniya', deleted: 'Pravilo udaleno', created: 'Pravilo sozdano', updated: 'Pravilo obnovleno', markedAs: 'Nakidka pomechena kak' },
+  fr: { title: 'Gestion des Majorations', subtitle: 'Definir et gerer les regles de tarification', searchPh: 'Nom de la regle, ID...', allRules: 'Toutes les regles', active: 'Actif', passive: 'Inactif', newRule: 'Nouvelle regle', colRule: 'Regle de majoration', colHotels: 'Hotels associes', colAgencies: 'Agences', colPriority: 'Priorite', colValue: 'Valeur', colStatus: 'Statut', colActions: 'Actions', allHotels: 'Tous les hotels', allAgencies: 'Toutes les agences', noRules: 'Aucune regle trouvee', showing: 'Affichage', to2: 'a', of: 'sur', rules: 'regles', deleteTitle: 'Supprimer la majoration', yesDelete: 'Oui, supprimer', noKeep: 'Non, conserver', failedLoad: 'Echec du chargement', failedStatus: 'Echec de la mise a jour', failedDelete: 'Echec de la suppression', deleted: 'Regle supprimee', created: 'Regle creee', updated: 'Regle mise a jour', markedAs: 'Majoration marquee comme' },
+};
+const tMK = (lang, key) => { const l = (lang || 'en').split('-')[0].toLowerCase(); return MK[l]?.[key] ?? MK.en[key] ?? key; };
+
 const MarkupManagement = () => {
+    const { i18n } = useTranslation();
+    const [currentLang, setCurrentLang] = useState(() => (i18n.language || localStorage.getItem('i18nextLng') || 'en').split('-')[0].toLowerCase());
+    useEffect(() => {
+        setCurrentLang((i18n.language || 'en').split('-')[0].toLowerCase());
+        const handler = (lng) => setCurrentLang((lng || 'en').split('-')[0].toLowerCase());
+        i18n.on('languageChanged', handler);
+        return () => i18n.off('languageChanged', handler);
+    }, [i18n]);
+    const L = (key) => tMK(currentLang, key);
     const [loading, setLoading] = useState(false);
     const [markups, setMarkups] = useState([]);
     const [totalItems, setTotalItems] = useState(0);
@@ -50,7 +70,7 @@ const MarkupManagement = () => {
             }
         } catch (error) {
             console.error("Error fetching markups:", error);
-            showNotification("Failed to load markups", "error");
+            showNotification(L('failedLoad'), "error");
         } finally {
             setLoading(false);
         }
@@ -91,11 +111,11 @@ const MarkupManagement = () => {
 
         try {
             await markupService.updateMarkup(markup.id, payload);
-            showNotification(`Markup marked as ${newStatus}`);
+            showNotification(`${L('markedAs')} ${newStatus}`);
             fetchMarkups();
         } catch (error) {
             console.error("Status update error:", error);
-            showNotification("Failed to update status", "error");
+            showNotification(L('failedStatus'), "error");
         }
     };
 
@@ -112,11 +132,11 @@ const MarkupManagement = () => {
         try {
             setDeleteModal(prev => ({ ...prev, isDeleting: true }));
             await markupService.deleteMarkup(deleteModal.id);
-            showNotification('Markup rule deleted successfully');
+            showNotification(L('deleted'));
             fetchMarkups();
             setDeleteModal({ show: false, id: null, name: '', isDeleting: false });
         } catch (error) {
-            showNotification("Failed to delete markup", "error");
+            showNotification(L('failedDelete'), "error");
             setDeleteModal(prev => ({ ...prev, isDeleting: false }));
         }
     };
@@ -126,8 +146,8 @@ const MarkupManagement = () => {
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-2 underline decoration-primary/20 decoration-4 underline-offset-8">Markup Management</h1>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-3">Define and manage pricing rules for hotels and agencies</p>
+                    <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-2 underline decoration-primary/20 decoration-4 underline-offset-8">{L('title')}</h1>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-3">{L('subtitle')}</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <HeaderActions />
@@ -141,7 +161,7 @@ const MarkupManagement = () => {
                         <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
                         <input 
                             type="text" 
-                            placeholder="Rule name, ID..." 
+                            placeholder={L('searchPh')} 
                             value={filters.query}
                             onChange={(e) => handleFilterChange('query', e.target.value)}
                             className="w-full h-11 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl pl-12 pr-4 text-[11px] font-bold outline-none focus:border-primary transition-all" 
@@ -160,9 +180,9 @@ const MarkupManagement = () => {
                         onChange={(e) => handleFilterChange('status', e.target.value)}
                         className="h-11 px-6 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-tight outline-none cursor-pointer focus:border-primary transition-all"
                     >
-                        <option value="">All Rules</option>
-                        <option value="ACTIVE">Active</option>
-                        <option value="PASSIVE">Passive</option>
+                        <option value="">{L('allRules')}</option>
+                        <option value="ACTIVE">{L('active')}</option>
+                        <option value="PASSIVE">{L('passive')}</option>
                     </select>
 
                     <button 
@@ -177,7 +197,7 @@ const MarkupManagement = () => {
                         className="h-11 ml-auto px-8 bg-primary text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all"
                     >
                         <span className="material-icons-round text-lg">add</span>
-                        New Rule
+                        {L('newRule')}
                     </button>
                 </div>
             </div>
@@ -189,13 +209,13 @@ const MarkupManagement = () => {
                         <thead>
                             <tr>
                                 <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest w-16 text-center border-b border-slate-50 dark:border-white/5">ID</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 dark:border-white/5">Markup Rule</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 dark:border-white/5">Associated Hotels</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 dark:border-white/5">Agencies / Groups</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center w-24 border-b border-slate-50 dark:border-white/5">Priority</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center w-24 border-b border-slate-50 dark:border-white/5">Value</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center w-24 border-b border-slate-50 dark:border-white/5">Status</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right border-b border-slate-50 dark:border-white/5">Actions</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 dark:border-white/5">{L('colRule')}</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 dark:border-white/5">{L('colHotels')}</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 dark:border-white/5">{L('colAgencies')}</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center w-24 border-b border-slate-50 dark:border-white/5">{L('colPriority')}</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center w-24 border-b border-slate-50 dark:border-white/5">{L('colValue')}</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center w-24 border-b border-slate-50 dark:border-white/5">{L('colStatus')}</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right border-b border-slate-50 dark:border-white/5">{L('colActions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50 dark:divide-white/5">
@@ -232,7 +252,7 @@ const MarkupManagement = () => {
                                                     )}
                                                 </>
                                             ) : (
-                                                <span className="text-[11px] font-bold text-slate-400 italic tracking-tight">All Hotels</span>
+                                                <span className="text-[11px] font-bold text-slate-400 italic tracking-tight">{L('allHotels')}</span>
                                             )}
                                         </div>
                                     </td>
@@ -252,7 +272,7 @@ const MarkupManagement = () => {
                                                     )}
                                                 </>
                                             ) : (
-                                                <span className="text-[11px] font-bold text-slate-400 italic tracking-tight">All Agencies</span>
+                                                <span className="text-[11px] font-bold text-slate-400 italic tracking-tight">{L('allAgencies')}</span>
                                             )}
                                         </div>
                                     </td>
@@ -298,7 +318,7 @@ const MarkupManagement = () => {
                                     <td colSpan="8" className="px-4 py-20 text-center">
                                         <div className="flex flex-col items-center opacity-40">
                                             <span className="material-icons-round text-5xl mb-4">analytics</span>
-                                            <p className="text-sm font-bold uppercase tracking-widest">No markup rules found</p>
+                                            <p className="text-sm font-bold uppercase tracking-widest">{L('noRules')}</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -310,7 +330,7 @@ const MarkupManagement = () => {
                 {/* Footer Section - Pagination */}
                 <div className="px-8 py-5 border-t border-slate-50 dark:border-white/5 bg-slate-50/20 dark:bg-transparent flex items-center justify-between">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        Showing {totalItems > 0 ? filters.page * filters.size + 1 : 0} to {Math.min((filters.page + 1) * filters.size, totalItems)} of {totalItems} rules
+                        {L('showing')} {totalItems > 0 ? filters.page * filters.size + 1 : 0} {L('to2')} {Math.min((filters.page + 1) * filters.size, totalItems)} {L('of')} {totalItems} {L('rules')}
                     </p>
                     <div className="flex items-center gap-2">
                         <button 
@@ -375,10 +395,10 @@ const MarkupManagement = () => {
                 onClose={() => setDeleteModal({ ...deleteModal, show: false })}
                 onConfirm={confirmDelete}
                 isLoading={deleteModal.isDeleting}
-                title="Delete Markup"
-                message={<span>Are you sure you want to delete the markup rule <b>{deleteModal.name}</b>? This action cannot be undone.</span>}
-                confirmText="Yes, Delete Rule"
-                cancelText="No, Keep It"
+                title={L('deleteTitle')}
+                message={<span>Are you sure you want to delete <b>{deleteModal.name}</b>?</span>}
+                confirmText={L('yesDelete')}
+                cancelText={L('noKeep')}
                 type="danger"
             />
 
@@ -390,7 +410,7 @@ const MarkupManagement = () => {
                     setEditMarkup(null);
                 }}
                 onSuccess={() => {
-                    showNotification(editMarkup ? "Markup rule updated successfully" : "Markup rule created successfully");
+                    showNotification(editMarkup ? L('updated') : L('created'));
                     fetchMarkups();
                 }}
             />

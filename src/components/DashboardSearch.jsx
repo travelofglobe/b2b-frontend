@@ -783,10 +783,9 @@ const DashboardSearch = () => {
                     ))}
                 </div>
 
-                {/* Refined Search Bar Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 p-1 relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 p-1 relative z-10">
                     {/* Destination Input */}
-                    <div className="md:col-span-3 relative group/field" ref={searchWrapperRef}>
+                    <div className="lg:col-span-3 relative group/field" ref={searchWrapperRef}>
                         <div className={`flex flex-col gap-1 px-4 py-3 h-[72px] bg-white/60 dark:bg-slate-800/60 rounded-3xl border transition-all duration-300 ${error ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10' : 'border-slate-100 dark:border-slate-800 group-hover/field:border-primary/30 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm'}`}>
                             <label className={`text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 mb-1 ${error ? 'text-red-500' : 'text-slate-400'}`}>
                                 <span className={`material-symbols-outlined text-[14px] ${error ? 'text-red-500' : 'text-primary'}`}>
@@ -868,7 +867,7 @@ const DashboardSearch = () => {
                     </div>
 
                     {/* Date Picker Group */}
-                    <div className="md:col-span-3 relative group/field">
+                    <div className="lg:col-span-3 relative group/field">
                         <div 
                             className="flex flex-col gap-1 px-4 py-3 h-[72px] bg-white/60 dark:bg-slate-800/60 rounded-3xl border border-slate-100 dark:border-slate-800 transition-all duration-300 group-hover/field:border-primary/30 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm cursor-pointer"
                             onClick={() => datePickerRef.current?.setOpen(true)}
@@ -917,7 +916,7 @@ const DashboardSearch = () => {
                                     maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                                     monthsShown={2}
                                     locale={currentLang}
-                                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-[110%] p-0 text-[13px] font-bold text-slate-900 dark:text-white cursor-pointer tracking-tighter whitespace-nowrap"
+                                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[13px] font-bold text-slate-900 dark:text-white cursor-pointer tracking-tighter whitespace-nowrap"
                                     dateFormat="dd MMM yyyy"
                                     placeholderText={ls.placeholder}
                                     calendarClassName="shadow-2xl border-none font-sans mt-4"
@@ -928,7 +927,7 @@ const DashboardSearch = () => {
                     </div>
 
                     {/* Nationality Section */}
-                    <div className="md:col-span-2 relative group/field">
+                    <div className="lg:col-span-2 relative group/field">
                         <div className="flex flex-col gap-1 px-4 py-3 h-[72px] bg-white/60 dark:bg-slate-800/60 rounded-3xl border border-slate-100 dark:border-slate-800 transition-all duration-300 group-hover/field:border-primary/30 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm">
                             <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5 pl-1 mb-1">
                                 <span className="material-symbols-outlined text-[14px] text-primary">public</span>
@@ -941,7 +940,7 @@ const DashboardSearch = () => {
                     </div>
 
                     {/* Elegant Guest Selector */}
-                    <div className="md:col-span-2 relative group/field" ref={guestWrapperRef}>
+                    <div className="lg:col-span-2 relative group/field" ref={guestWrapperRef}>
                         <button
                             onClick={() => setShowGuestDropdown(!showGuestDropdown)}
                             className="w-full h-[72px] flex flex-col items-start gap-1 px-4 py-3 bg-white/60 dark:bg-slate-800/60 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm transition-all duration-300 group-hover/field:border-primary/30 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 text-left"
@@ -1026,7 +1025,7 @@ const DashboardSearch = () => {
                     </div>
 
                     {/* Premium Search Button */}
-                    <div className="md:col-span-2">
+                    <div className="lg:col-span-2">
                         <button
                             onClick={handleSearch}
                             className="w-full h-[72px] bg-primary text-white rounded-3xl font-bold flex items-center justify-center gap-3 shadow-xl shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all group/sbtn relative overflow-hidden"

@@ -761,7 +761,7 @@ const HeaderSearch = () => {
             <div className="flex items-center px-4 border-r border-slate-300 dark:border-slate-600 relative h-full group/dest" ref={searchWrapperRef}>
                 <span className="material-symbols-outlined text-slate-400 text-xl mr-3 group-hover/dest:text-primary transition-colors">location_on</span>
                 <input
-                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-xs w-[200px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 p-0"
+                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-xs w-[180px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 p-0"
                     placeholder={ls.placeholder}
                     type="text"
                     value={query}

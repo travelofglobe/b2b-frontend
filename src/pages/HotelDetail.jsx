@@ -459,7 +459,8 @@ const HotelDetail = () => {
             // Remove timezone info like [Asia/Shanghai] if present for basic parsing
             const cleanDate = dateStr.split('[')[0];
             const date = new Date(cleanDate);
-            return date.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const currentLang = localStorage.getItem('language') || 'tr';
+            return date.toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         } catch {
             return dateStr;
         }

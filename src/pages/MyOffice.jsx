@@ -639,7 +639,7 @@ const MyOffice = () => {
                                                 </div>
                                                 <div className="pb-4">
                                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Created</p>
-                                                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-0.5">{new Date(formData.createDateTime).toLocaleString()}</p>
+                                                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-0.5">{new Date(formData.createDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
                                                     <p className="text-[9px] text-slate-400 font-medium italic">by {formData.createdBy}</p>
                                                 </div>
                                             </div>
@@ -649,7 +649,7 @@ const MyOffice = () => {
                                                 </div>
                                                 <div>
                                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Last Update</p>
-                                                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-0.5">{new Date(formData.updateDateTime).toLocaleString()}</p>
+                                                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-0.5">{new Date(formData.updateDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
                                                     <p className="text-[9px] text-slate-400 font-medium italic">by {formData.updatedBy}</p>
                                                 </div>
                                             </div>

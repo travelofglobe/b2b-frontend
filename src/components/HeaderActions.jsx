@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from './ThemeToggle';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const HeaderActions = () => {
     const { user, logout } = useAuth();
@@ -41,6 +42,7 @@ const HeaderActions = () => {
                 <span className="material-icons-round">notifications</span>
                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
+            <LanguageSwitcher />
             <ThemeToggle />
             <div className="relative" ref={menuRef}>
                 <button

@@ -1,7 +1,24 @@
 import React, { useState, useEffect } from 'react';
 
+const soonLocales = {
+    en: "Soon",
+    tr: "Yakında",
+    ar: "قريباً",
+    es: "Pronto",
+    ru: "Скоро",
+    zh: "即将推出",
+    ja: "まもなく",
+    fa: "به‌زودی",
+    fr: "Bientôt",
+    it: "Presto",
+    el: "Σύντομα",
+    pt: "Em breve"
+};
+
 const FilterSection = ({ title, icon, defaultOpen = true, disabled = false, children }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
+    const currentLang = localStorage.getItem('language') || 'tr';
+    const localizedSoon = soonLocales[currentLang] || soonLocales['tr'];
 
     // Keep it synced if the requirement changes externally
     useEffect(() => {
@@ -18,7 +35,7 @@ const FilterSection = ({ title, icon, defaultOpen = true, disabled = false, chil
                     {icon && <span className="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-[20px]">{icon}</span>}
                     {title}
                     {disabled && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded ml-1">Soon</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded ml-1">{localizedSoon}</span>
                     )}
                 </h3>
                 {!disabled && (

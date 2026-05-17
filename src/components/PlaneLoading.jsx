@@ -1,6 +1,24 @@
 import React from 'react';
 
+const loadingLocales = {
+    en: "Securing your gateway...",
+    tr: "Ağ geçidiniz güvence altına alınıyor...",
+    ar: "تأمين بوابة الدخول الخاصة بك...",
+    es: "Asegurando su pasarela...",
+    ru: "Обеспечение безопасности шлюза...",
+    zh: "正在保护您的网关...",
+    ja: "ゲートウェイのセキュリティ保護中...",
+    fa: "ایمن‌سازی دروازه شما...",
+    fr: "Sécurisation de votre passerelle...",
+    it: "Messa in sicurezza del gateway...",
+    el: "Διασφάλιση της πύλης σας...",
+    pt: "Protegendo seu portal..."
+};
+
 const PlaneLoading = () => {
+    const currentLang = localStorage.getItem('language') || 'tr';
+    const localizedText = loadingLocales[currentLang] || loadingLocales['tr'];
+
     return (
         <div className="fixed top-0 left-0 right-0 z-[9999] h-12 animate-in fade-in duration-500 pointer-events-none">
             {/* Background Bar (Glassmorphic Track) - Shifted down to avoid clipping */}
@@ -26,7 +44,7 @@ const PlaneLoading = () => {
             {/* Subtle "Authenticating" text underneath */}
             <div className="absolute top-10 left-1/2 -translate-x-1/2 w-full text-center">
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/80 animate-pulse whitespace-nowrap">
-                    Securing your gateway...
+                    {localizedText}
                 </p>
             </div>
 

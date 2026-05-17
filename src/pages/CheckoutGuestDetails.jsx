@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { hotelService } from '../services/hotelService';
@@ -11,9 +12,79 @@ import CheckoutTimer from '../components/CheckoutTimer';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import CrmGuestSelectionModal from '../components/CrmGuestSelectionModal';
 
+const crmLocales = {
+    en: "Fill from CRM",
+    tr: "CRM'den Doldur",
+    ar: "ملء من CRM",
+    es: "Llenar de CRM",
+    ru: "Заполнить из CRM",
+    zh: "从 CRM 填充",
+    ja: "CRMから入力",
+    fa: "پر کردن از CRM",
+    fr: "Remplir depuis le CRM",
+    it: "Compila da CRM",
+    el: "Συμπλήρωση από CRM",
+    pt: "Preencher do CRM"
+};
+
+const confirmLocales = {
+    en: {
+        title: "Are you sure?",
+        message: "If you return to room selection, all entered guest details will be lost."
+    },
+    tr: {
+        title: "Emin misiniz?",
+        message: "Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir."
+    },
+    ar: {
+        title: "هل أنت متأكد؟",
+        message: "إذا عدت إلى اختيار الغرفة، فستفقد جميع تفاصيل النزلاء التي تم إدخالها."
+    },
+    es: {
+        title: "¿Está seguro?",
+        message: "Si regresa a la selección de habitación, se perderán todos los datos ingresados de los huéspedes."
+    },
+    ru: {
+        title: "Вы уверены?",
+        message: "Если вы вернетесь к выбору номера, все введенные данные гостей будут утеряны."
+    },
+    zh: {
+        title: "您确定吗？",
+        message: "如果您返回选择客房，所有已输入的旅客信息都将丢失。"
+    },
+    ja: {
+        title: "よろしいですか？",
+        message: "客室選択に戻ると、入力されたすべての宿泊者情報が失われます。"
+    },
+    fa: {
+        title: "آیا مطمئن هستید؟",
+        message: "در صورت بازگشت به انتخاب اتاق، تمام اطلاعات وارد شده مهمانان پاک خواهد شد."
+    },
+    fr: {
+        title: "Êtes-vous sûr ?",
+        message: "Si vous retournez au choix de la chambre, toutes les coordonnées des voyageurs saisies seront perdues."
+    },
+    it: {
+        title: "Sei sicuro?",
+        message: "Se torni alla scelta della camera, tutti i dettagli degli ospiti inseriti andranno persi."
+    },
+    el: {
+        title: "Είστε σίγουροι;",
+        message: "Εάν επιστρέψετε στην επιλογή δωματίου, όλα τα στοιχεία επισκεπτών που καταχωρίσατε θα χαθούν."
+    },
+    pt: {
+        title: "Tem certeza?",
+        message: "Se você retornar à seleção de quartos, todos os detalhes do hóspede inseridos serão perdidos."
+    }
+};
+
 const CheckoutGuestDetails = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { i18n } = useTranslation();
+    const currentLang = i18n.language || localStorage.getItem('language') || 'tr';
+    const cl = confirmLocales[currentLang] || confirmLocales['tr'];
+    const crmText = crmLocales[currentLang] || crmLocales['tr'];
 
     const [selectedRooms, setSelectedRooms] = useState(null);
     const [hotel, setHotel] = useState(null);
@@ -49,9 +120,10 @@ const CheckoutGuestDetails = () => {
     const formattedDates = React.useMemo(() => {
         if (!checkInDate || !checkOutDate) return { start: 'Select Date', end: 'Select Date' };
         const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        const currentLang = localStorage.getItem('language') || 'tr';
         return {
-            start: new Date(checkInDate).toLocaleDateString('en-US', options),
-            end: new Date(checkOutDate).toLocaleDateString('en-US', options)
+            start: new Date(checkInDate).toLocaleDateString(currentLang, options),
+            end: new Date(checkOutDate).toLocaleDateString(currentLang, options)
         };
     }, [checkInDate, checkOutDate]);
 
@@ -550,8 +622,8 @@ const CheckoutGuestDetails = () => {
                             setShowConfirmBack(false);
                         }
                     }}
-                    title="Emin misiniz?"
-                    message="Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir."
+                    title={cl.title}
+                    message={cl.message}
                 />
 
                 <CrmGuestSelectionModal
@@ -605,7 +677,7 @@ const CheckoutGuestDetails = () => {
                                                 className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-colors"
                                             >
                                                 <span className="material-symbols-outlined text-sm">contact_page</span>
-                                                <span className="hidden sm:inline">CRM'den Doldur</span>
+                                                <span className="hidden sm:inline">{crmText}</span>
                                                 <span className="sm:hidden">CRM</span>
                                             </button>
                                         </div>
@@ -920,25 +992,28 @@ const CheckoutGuestDetails = () => {
                                                         return (
                                                             <div className="space-y-1">
                                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cancellation Policy</p>
-                                                                {currentPolicies.map((policy, pIdx) => (
-                                                                    <div key={pIdx} className="flex justify-between items-center">
-                                                                        <span className="text-[11px] font-bold text-slate-500">
-                                                                            {policy.fromDate 
-                                                                                ? (policy.fromDate.includes('[') 
-                                                                                    ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                                                                                    : new Date(policy.fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))
-                                                                                : (policy.amount === 0 ? 'Flexible' : 'Cancellation Penalty')
-                                                                            }
-                                                                        </span>
-                                                                        <span className={`text-[11px] font-black px-2 py-0.5 rounded-md ${
-                                                                            policy.amount === 0
-                                                                                ? 'bg-emerald-500/10 text-emerald-500'
-                                                                                : 'bg-orange-500/10 text-orange-500'
-                                                                        }`}>
-                                                                            {policy.amount === 0 ? 'Free Cancel' : `${getCurrencySymbol(policy.currency || displayCurrency)} ${policy.amount.toFixed(2)}`}
-                                                                        </span>
-                                                                    </div>
-                                                                ))}
+                                                                {currentPolicies.map((policy, pIdx) => {
+                                                                    const currentLang = localStorage.getItem('language') || 'tr';
+                                                                    return (
+                                                                        <div key={pIdx} className="flex justify-between items-center">
+                                                                            <span className="text-[11px] font-bold text-slate-500">
+                                                                                {policy.fromDate 
+                                                                                    ? (policy.fromDate.includes('[') 
+                                                                                        ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
+                                                                                        : new Date(policy.fromDate).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' }))
+                                                                                    : (policy.amount === 0 ? 'Flexible' : 'Cancellation Penalty')
+                                                                                }
+                                                                            </span>
+                                                                            <span className={`text-[11px] font-black px-2 py-0.5 rounded-md ${
+                                                                                policy.amount === 0
+                                                                                    ? 'bg-emerald-500/10 text-emerald-500'
+                                                                                    : 'bg-orange-500/10 text-orange-500'
+                                                                            }`}>
+                                                                                {policy.amount === 0 ? 'Free Cancel' : `${getCurrencySymbol(policy.currency || displayCurrency)} ${policy.amount.toFixed(2)}`}
+                                                                            </span>
+                                                                        </div>
+                                                                    );
+                                                                })}
                                                             </div>
                                                         );
                                                     })()}
@@ -948,6 +1023,7 @@ const CheckoutGuestDetails = () => {
                                                 {(() => {
                                                     const currentDailyPrices = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.dailyPrices;
                                                     if (!currentDailyPrices || currentDailyPrices.length === 0) return null;
+                                                    const currentLang = localStorage.getItem('language') || 'tr';
                                                     return (
                                                         <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/50">
                                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Daily Rates</p>
@@ -955,7 +1031,7 @@ const CheckoutGuestDetails = () => {
                                                                 {currentDailyPrices.map((dp, dpIdx) => (
                                                                     <div key={dpIdx} className="flex justify-between items-center text-[9px]">
                                                                         <span className="font-medium text-slate-500">
-                                                                            {new Date(dp.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                                                                            {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short' })}
                                                                         </span>
                                                                         <span className="font-black text-slate-700 dark:text-slate-300">
                                                                             {getCurrencySymbol(displayCurrency)} {dp.amount.toFixed(2)}

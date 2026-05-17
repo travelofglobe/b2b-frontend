@@ -209,13 +209,15 @@ const MyBookings = () => {
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const currentLang = localStorage.getItem('language') || 'tr';
+        return date.toLocaleDateString(currentLang, { month: 'short', day: 'numeric', year: 'numeric' });
     };
 
     const formatDateTime = (dateTimeString) => {
         if (!dateTimeString) return 'N/A';
         const date = new Date(dateTimeString);
-        return date.toLocaleString('en-US', {
+        const currentLang = localStorage.getItem('language') || 'tr';
+        return date.toLocaleString(currentLang, {
             month: 'short',
             day: 'numeric',
             year: 'numeric',

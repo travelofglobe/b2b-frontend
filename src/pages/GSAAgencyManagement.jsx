@@ -6,6 +6,7 @@ import AddAgencyModal from '../components/AddAgencyModal';
 import AddAgencyGroupModal from '../components/AddAgencyGroupModal';
 import SubAgencyDetailView from '../components/SubAgencyDetailView';
 import ConfirmModal from '../components/ConfirmModal';
+import HeaderActions from '../components/HeaderActions';
 
 const GSAAgencyManagement = () => {
     const [activeTab, setActiveTab] = useState('agencies');
@@ -363,7 +364,9 @@ const GSAAgencyManagement = () => {
                     <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-2">Agency Management</h1>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Manage GSA agencies and users</p>
                 </div>
-                {/* Add Agency button removed from global header */}
+                <div className="flex items-center gap-4">
+                    <HeaderActions />
+                </div>
             </div>
 
             {/* Tabs */}
@@ -786,7 +789,7 @@ const GSAAgencyManagement = () => {
                                                     <td className="px-6 py-4">
                                                         <div className="flex flex-col">
                                                             <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">{group.createdBy || 'System'}</span>
-                                                            <span className="text-[9px] text-slate-400">{new Date(group.createDateTime).toLocaleDateString()}</span>
+                                                            <span className="text-[9px] text-slate-400">{new Date(group.createDateTime).toLocaleDateString(localStorage.getItem('language') || 'tr')}</span>
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4">

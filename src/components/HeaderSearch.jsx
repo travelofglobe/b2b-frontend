@@ -3,16 +3,359 @@ import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { autocompleteService } from '../services/autocompleteService';
 import { useToast } from '../context/ToastContext';
 import DatePicker, { registerLocale } from 'react-datepicker';
-import { enGB } from 'date-fns/locale';
+import { enGB, tr, es, ru, zhCN, ja, faIR, fr, it, el, pt, ar } from 'date-fns/locale';
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
 import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms } from '../utils/searchParamsUtils';
 import NationalitySelect from './NationalitySelect';
+import { useTranslation } from 'react-i18next';
 
-// Register locale with Monday as week start
-registerLocale('en-GB', enGB);
+// Register dynamic locales
+registerLocale('en', enGB);
+registerLocale('tr', tr);
+registerLocale('es', es);
+registerLocale('ru', ru);
+registerLocale('zh', zhCN);
+registerLocale('ja', ja);
+registerLocale('fa', faIR);
+registerLocale('fr', fr);
+registerLocale('it', it);
+registerLocale('el', el);
+registerLocale('pt', pt);
+registerLocale('ar', ar);
+
+const searchLocales = {
+    en: {
+        hotels: "Hotels",
+        transfer: "Transfer",
+        tours: "Tours",
+        carRental: "Car Rental",
+        soon: "SOON",
+        location: "Location",
+        destinationRequired: "Destination Required",
+        placeholder: "Search by city, hotel or region",
+        popularDestinations: "Popular Destinations",
+        featuredHotels: "Featured Hotels",
+        checkInOut: "Check-in / Out",
+        nights: "nights",
+        nightSingle: "night",
+        nationality: "Nationality",
+        occupants: "Occupants",
+        roomsAndGuests: "Rooms and Guests",
+        roomsTotal: "Rooms Total",
+        roomSingle: "Room",
+        adults: "Adults",
+        adultsAge: "12+ yrs",
+        children: "Children",
+        childrenAge: "0-11 yrs",
+        years: "years",
+        addRoom: "Add Another Room",
+        searchBtn: "Search"
+    },
+    tr: {
+        hotels: "Oteller",
+        transfer: "Transfer",
+        tours: "Turlar",
+        carRental: "Araç Kiralama",
+        soon: "YAKINDA",
+        location: "Konum",
+        destinationRequired: "Konum Gerekli",
+        placeholder: "Şehir, otel veya bölge ara",
+        popularDestinations: "Popüler Destanlar",
+        featuredHotels: "Öne Çıkan Oteller",
+        checkInOut: "Giriş / Çıkış",
+        nights: "gece",
+        nightSingle: "gece",
+        nationality: "Uyruk",
+        occupants: "Kişi Sayısı",
+        roomsAndGuests: "Oda ve Konuklar",
+        roomsTotal: "Toplam Oda",
+        roomSingle: "Oda",
+        adults: "Yetişkin",
+        adultsAge: "12+ yaş",
+        children: "Çocuk",
+        childrenAge: "0-11 yaş",
+        years: "yaş",
+        addRoom: "Başka Oda Ekle",
+        searchBtn: "Ara"
+    },
+    ar: {
+        hotels: "فنادق",
+        transfer: "توصيل",
+        tours: "جولات",
+        carRental: "تأجير سيارات",
+        soon: "قريباً",
+        location: "الموقع",
+        destinationRequired: "الوجهة مطلوبة",
+        placeholder: "ابحث عن مدينة، فندق أو منطقة",
+        popularDestinations: "الوجهات الشائعة",
+        featuredHotels: "الفنادق المميزة",
+        checkInOut: "تسجيل الوصول / المغادرة",
+        nights: "ليالي",
+        nightSingle: "ليلة",
+        nationality: "الجنسية",
+        occupants: "النزلاء",
+        roomsAndGuests: "الغرف والنزلاء",
+        roomsTotal: "إجمالي الغرف",
+        roomSingle: "غرفة",
+        adults: "بالغين",
+        adultsAge: "12+ سنة",
+        children: "أطفال",
+        childrenAge: "0-11 سنة",
+        years: "سنة",
+        addRoom: "إضافة غرفة أخرى",
+        searchBtn: "بحث"
+    },
+    es: {
+        hotels: "Hoteles",
+        transfer: "Traslado",
+        tours: "Tours",
+        carRental: "Alquiler de coches",
+        soon: "PRONTO",
+        location: "Ubicación",
+        destinationRequired: "Destino Requerido",
+        placeholder: "Buscar por ciudad, hotel o región",
+        popularDestinations: "Destinos Populares",
+        featuredHotels: "Hoteles Destacados",
+        checkInOut: "Entrada / Salida",
+        nights: "noches",
+        nightSingle: "noche",
+        nationality: "Nacionalidad",
+        occupants: "Ocupantes",
+        roomsAndGuests: "Habitaciones y Huéspedes",
+        roomsTotal: "Habitaciones Totales",
+        roomSingle: "Habitación",
+        adults: "Adultos",
+        adultsAge: "12+ años",
+        children: "Niños",
+        childrenAge: "0-11 años",
+        years: "años",
+        addRoom: "Añadir Otra Habitación",
+        searchBtn: "Buscar"
+    },
+    ru: {
+        hotels: "Отели",
+        transfer: "Трансфер",
+        tours: "Туры",
+        carRental: "Аренда авто",
+        soon: "СКОРО",
+        location: "Местоположение",
+        destinationRequired: "Укажите место назначения",
+        placeholder: "Поиск по городу, отелю или региону",
+        popularDestinations: "Популярные направления",
+        featuredHotels: "Рекомендуемые отели",
+        checkInOut: "Заезд / Выезд",
+        nights: "ночей",
+        nightSingle: "ночь",
+        nationality: "Гражданство",
+        occupants: "Гости",
+        roomsAndGuests: "Номера и Гости",
+        roomsTotal: "Всего номеров",
+        roomSingle: "Номер",
+        adults: "Взрослые",
+        adultsAge: "12+ лет",
+        children: "Дети",
+        childrenAge: "0-11 лет",
+        years: "лет",
+        addRoom: "Добавить еще номер",
+        searchBtn: "Найти"
+    },
+    zh: {
+        hotels: "酒店",
+        transfer: "接送",
+        tours: "一日游",
+        carRental: "租车",
+        soon: "即将推出",
+        location: "位置",
+        destinationRequired: "请输入目的地",
+        placeholder: "按城市、酒店或区域搜索",
+        popularDestinations: "热门目的地",
+        featuredHotels: "推荐酒店",
+        checkInOut: "入住 / 退房",
+        nights: "晚",
+        nightSingle: "晚",
+        nationality: "国籍",
+        occupants: "入住人数",
+        roomsAndGuests: "客房及人数",
+        roomsTotal: "客房总数",
+        roomSingle: "客房",
+        adults: "成人",
+        adultsAge: "12岁以上",
+        children: "儿童",
+        childrenAge: "0-11岁",
+        years: "岁",
+        addRoom: "添加另一个客房",
+        searchBtn: "搜索"
+    },
+    ja: {
+        hotels: "ホテル",
+        transfer: "送迎",
+        tours: "ツアー",
+        carRental: "レンタカー",
+        soon: "まもなく登場",
+        location: "場所",
+        destinationRequired: "目的地を入力してください",
+        placeholder: "都市、ホテル、地域で検索",
+        popularDestinations: "人気の目的地",
+        featuredHotels: "おすすめホテル",
+        checkInOut: "チェックイン / アウト",
+        nights: "泊",
+        nightSingle: "泊",
+        nationality: "国籍",
+        occupants: "宿泊人数",
+        roomsAndGuests: "客房・人数",
+        roomsTotal: "客室総数",
+        roomSingle: "客室",
+        adults: "大人",
+        adultsAge: "12歳以上",
+        children: "子供",
+        childrenAge: "0-11歳",
+        years: "歳",
+        addRoom: "別の客室を追加",
+        searchBtn: "検索"
+    },
+    fa: {
+        hotels: "هتل‌ها",
+        transfer: "ترانسفر",
+        tours: "تورها",
+        carRental: "اجاره خودرو",
+        soon: "به‌زودی",
+        location: "موقعیت",
+        destinationRequired: "انتخاب مقصد الزامی است",
+        placeholder: "جستجوی شهر، هتل یا منطقه",
+        popularDestinations: "مقاصد محبوب",
+        featuredHotels: "هتل‌های ویژه",
+        checkInOut: "ورود / خروج",
+        nights: "شب",
+        nightSingle: "شب",
+        nationality: "ملیت",
+        occupants: "مقیمان",
+        roomsAndGuests: "اتاق‌ها و مهمانان",
+        roomsTotal: "مجموع اتاق‌ها",
+        roomSingle: "اتاق",
+        adults: "بزرگسال",
+        adultsAge: "۱۲+ سال",
+        children: "کودک",
+        childrenAge: "۰-۱۱ سال",
+        years: "سال",
+        addRoom: "افزودن اتاق دیگر",
+        searchBtn: "جستجو"
+    },
+    fr: {
+        hotels: "Hôtels",
+        transfer: "Transfert",
+        tours: "Tours",
+        carRental: "Location voiture",
+        soon: "BIENTÔT",
+        location: "Emplacement",
+        destinationRequired: "Destination requise",
+        placeholder: "Rechercher par ville, hôtel ou région",
+        popularDestinations: "Destinations Populaires",
+        featuredHotels: "Hôtels Vedettes",
+        checkInOut: "Arrivée / Départ",
+        nights: "nuits",
+        nightSingle: "nuit",
+        nationality: "Nationalité",
+        occupants: "Occupants",
+        roomsAndGuests: "Chambres & Voyageurs",
+        roomsTotal: "Chambres Totales",
+        roomSingle: "Chambre",
+        adults: "Adultes",
+        adultsAge: "12+ ans",
+        children: "Enfants",
+        childrenAge: "0-11 ans",
+        years: "ans",
+        addRoom: "Ajouter Une Autre Chambre",
+        searchBtn: "Rechercher"
+    },
+    it: {
+        hotels: "Hotel",
+        transfer: "Trasferimento",
+        tours: "Tour",
+        carRental: "Noleggio auto",
+        soon: "PRESTO",
+        location: "Posizione",
+        destinationRequired: "Destinazione Richiesta",
+        placeholder: "Cerca per città, hotel o regione",
+        popularDestinations: "Destinazioni Popolari",
+        featuredHotels: "Hotel in Evidenza",
+        checkInOut: "Check-in / Out",
+        nights: "notti",
+        nightSingle: "notte",
+        nationality: "Nazionalità",
+        occupants: "Occupanti",
+        roomsAndGuests: "Camere e Ospiti",
+        roomsTotal: "Camere Totali",
+        roomSingle: "Camera",
+        adults: "Adulti",
+        adultsAge: "12+ anni",
+        children: "Bambini",
+        childrenAge: "0-11 anni",
+        years: "anni",
+        addRoom: "Aggiungi Un'Altra Camera",
+        searchBtn: "Cerca"
+    },
+    el: {
+        hotels: "Ξενοδοχεία",
+        transfer: "Μεταφορά",
+        tours: "Εκδρομές",
+        carRental: "Ενοικίαση αυτοκινήτου",
+        soon: "ΣΥΝΤΟΜΑ",
+        location: "Τοποθεσία",
+        destinationRequired: "Απαιτείται Προορισμός",
+        placeholder: "Αναζήτηση με πόλη, ξενοδοχείο ή περιοχή",
+        popularDestinations: "Δημοφιλείς Προορισμοί",
+        featuredHotels: "Προτεινόμενα Ξενοδοχεία",
+        checkInOut: "Check-in / Out",
+        nights: "νύχτες",
+        nightSingle: "νύχτα",
+        nationality: "Εθνικότητα",
+        occupants: "Επισκέπτες",
+        roomsAndGuests: "Δωμάτια & Επισκέπτες",
+        roomsTotal: "Σύνολο Δωματίων",
+        roomSingle: "Δωμάτιο",
+        adults: "Ενήλικες",
+        adultsAge: "12+ ετών",
+        children: "Παιδιά",
+        childrenAge: "0-11 ετών",
+        years: "ετών",
+        addRoom: "Προσθήκη Δωματίου",
+        searchBtn: "Αναζήτηση"
+    },
+    pt: {
+        hotels: "Hotéis",
+        transfer: "Transfer",
+        tours: "Passeios",
+        carRental: "Aluguel de carros",
+        soon: "EM BREVE",
+        location: "Localização",
+        destinationRequired: "Destino Obrigatório",
+        placeholder: "Buscar por cidade, hotel ou região",
+        popularDestinations: "Destinos Populares",
+        featuredHotels: "Hotéis em Destaque",
+        checkInOut: "Entrada / Saída",
+        nights: "noites",
+        nightSingle: "noite",
+        nationality: "Nacionalidad",
+        occupants: "Ocupantes",
+        roomsAndGuests: "Quartos e Hóspedes",
+        roomsTotal: "Quartos Totais",
+        roomSingle: "Quarto",
+        adults: "Adultos",
+        adultsAge: "12+ anos",
+        children: "Crianças",
+        childrenAge: "0-11 anos",
+        years: "anos",
+        addRoom: "Adicionar Outro Quarto",
+        searchBtn: "Buscar"
+    }
+};
 
 const HeaderSearch = () => {
+    const { i18n } = useTranslation();
+    const currentLang = i18n.language || 'en';
+    const ls = searchLocales[currentLang] || searchLocales['en'];
+    
     const navigate = useNavigate();
     const { error } = useToast();
     const [searchParams] = useSearchParams();
@@ -419,7 +762,7 @@ const HeaderSearch = () => {
                 <span className="material-symbols-outlined text-slate-400 text-xl mr-3 group-hover/dest:text-primary transition-colors">location_on</span>
                 <input
                     className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-xs w-[200px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 p-0"
-                    placeholder="Where to?"
+                    placeholder={ls.placeholder}
                     type="text"
                     value={query}
                     onChange={(e) => {
@@ -436,7 +779,7 @@ const HeaderSearch = () => {
                     <div className="absolute top-full left-0 w-[400px] mt-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-2xl max-h-80 overflow-y-auto z-[1200] p-2">
                         {results.regions.length > 0 && (
                             <div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">Destinations</div>
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">{ls.popularDestinations}</div>
                                 {results.regions.map((region, index) => (
                                     <button
                                         key={region.locationId}
@@ -459,7 +802,7 @@ const HeaderSearch = () => {
                         )}
                         {results.hotels.length > 0 && (
                             <div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">Hotels</div>
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">{ls.hotels}</div>
                                 {results.hotels.map((hotel, index) => (
                                     <button
                                         key={hotel.hotelId}
@@ -519,7 +862,7 @@ const HeaderSearch = () => {
                             minDate={new Date()}
                             maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                             monthsShown={2}
-                            locale="en-GB"
+                            locale={currentLang}
                             className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 font-bold"
                             dateFormat="dd MMM yyyy"
                             calendarClassName="shadow-2xl border-none font-sans mt-4"
@@ -531,7 +874,7 @@ const HeaderSearch = () => {
                     <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 whitespace-nowrap animate-in fade-in zoom-in duration-300">
                         <span className="material-symbols-outlined text-[14px] leading-none">bedtime</span>
                         <span className="text-[10px] font-black uppercase tracking-tight">
-                            {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} nights
+                            {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)) === 1 ? ls.nightSingle : ls.nights}
                         </span>
                     </div>
                 )}
@@ -553,7 +896,7 @@ const HeaderSearch = () => {
                     onClick={() => setShowGuestDropdown(!showGuestDropdown)}
                     className="bg-transparent border-none focus:ring-0 text-xs min-w-[80px] text-left text-slate-900 dark:text-white font-medium whitespace-nowrap"
                 >
-                    {totalAdults} Adults, {totalChildren} Child{totalChildren !== 1 ? 'ren' : ''}
+                    {totalAdults} {ls.adults.substring(0, 3)}, {totalChildren} {ls.children.substring(0, 3)}
                 </button>
 
                 {/* Guest Dropdown Panel */}
@@ -562,20 +905,20 @@ const HeaderSearch = () => {
                         {roomState.map((room, index) => (
                             <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0 relative">
                                 <div className="flex items-center justify-between mb-3">
-                                    <div className="text-xs font-black uppercase text-slate-400 tracking-wider">Room {index + 1}</div>
+                                    <div className="text-xs font-black uppercase text-slate-400 tracking-wider">{ls.roomSingle} {index + 1}</div>
                                     {roomState.length > 1 && (
                                         <button
                                             onClick={() => removeRoom(index)}
                                             className="text-red-500 hover:text-red-700 text-[10px] font-bold uppercase"
                                         >
-                                            Remove
+                                            {currentLang === 'tr' ? 'Sil' : currentLang === 'ar' ? 'حذف' : 'Remove'}
                                         </button>
                                     )}
                                 </div>
 
                                 {/* Adults */}
                                 <div className="flex items-center justify-between mb-3">
-                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">Adults</div>
+                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{ls.adults}</div>
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))}
@@ -595,7 +938,7 @@ const HeaderSearch = () => {
 
                                 {/* Children */}
                                 <div className="flex items-center justify-between mb-3">
-                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">Children</div>
+                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{ls.children}</div>
                                     <div className="flex items-center gap-3">
                                         <button
                                             onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))}
@@ -616,7 +959,7 @@ const HeaderSearch = () => {
                                 {/* Child Ages */}
                                 {room.children > 0 && (
                                     <div className="mb-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Child Ages</div>
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{ls.children} {ls.years}</div>
                                         <div className="grid grid-cols-3 gap-2">
                                             {room.childAges.map((age, ageIndex) => (
                                                 <select
@@ -626,7 +969,7 @@ const HeaderSearch = () => {
                                                     className="w-full h-8 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-xs px-1 focus:border-primary focus:ring-0"
                                                 >
                                                     {[...Array(18)].map((_, i) => (
-                                                        <option key={i} value={i}>{i} yr</option>
+                                                        <option key={i} value={i}>{i} {ls.years.substring(0, 2)}</option>
                                                     ))}
                                                 </select>
                                             ))}
@@ -643,7 +986,7 @@ const HeaderSearch = () => {
                                 className="w-full py-2 bg-blue-50 dark:bg-blue-900/20 text-primary rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors flex items-center justify-center gap-2"
                             >
                                 <span className="material-icons-round text-base">add_circle</span>
-                                Add Another Room
+                                {ls.addRoom}
                             </button>
                         )}
                     </div>

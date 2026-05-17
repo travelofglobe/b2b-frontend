@@ -22,11 +22,14 @@ const LanguageSwitcher = () => {
     }, []);
 
     useEffect(() => {
-        document.documentElement.setAttribute('lang', i18n.language || 'en');
+        const lang = i18n.language || 'en';
+        document.documentElement.setAttribute('lang', lang);
+        localStorage.setItem('language', lang);
     }, [i18n.language]);
 
     const handleLanguageChange = (langCode) => {
         i18n.changeLanguage(langCode);
+        localStorage.setItem('language', langCode);
         setIsOpen(false);
     };
 

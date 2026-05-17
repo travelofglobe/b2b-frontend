@@ -869,7 +869,7 @@ const DashboardSearch = () => {
                     {/* Date Picker Group */}
                     <div className="lg:col-span-3 relative group/field">
                         <div 
-                            className="flex flex-col gap-1 px-4 py-3 h-[72px] bg-white/60 dark:bg-slate-800/60 rounded-3xl border border-slate-100 dark:border-slate-800 transition-all duration-300 group-hover/field:border-primary/30 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm cursor-pointer"
+                            className="flex flex-col gap-1 pl-4 pr-2 py-3 h-[72px] bg-white/60 dark:bg-slate-800/60 rounded-3xl border border-slate-100 dark:border-slate-800 transition-all duration-300 group-hover/field:border-primary/30 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm cursor-pointer"
                             onClick={() => datePickerRef.current?.setOpen(true)}
                         >
                             <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center justify-between w-full mb-1">
@@ -917,6 +917,7 @@ const DashboardSearch = () => {
                                     monthsShown={2}
                                     locale={currentLang}
                                     className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[13px] font-bold text-slate-900 dark:text-white cursor-pointer tracking-tighter whitespace-nowrap"
+                                    wrapperClassName="w-full"
                                     dateFormat="dd MMM yyyy"
                                     placeholderText={ls.placeholder}
                                     calendarClassName="shadow-2xl border-none font-sans mt-4"

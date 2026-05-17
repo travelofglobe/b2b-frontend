@@ -664,6 +664,7 @@ const CHECKOUT_SUMMARY_LOCALES = {
 };
 
 const tSummary = (key, lang = 'tr') => {
+    const baseLang = (lang || 'tr').split('-')[0].toLowerCase();
     if (key === 'reservationSummary') {
         const mapping = {
             en: "Reservation Summary",
@@ -679,7 +680,7 @@ const tSummary = (key, lang = 'tr') => {
             el: "Σύνοψη Κράτησης",
             pt: "Resumo da Reserva"
         };
-        return mapping[lang] || mapping['en'];
+        return mapping[baseLang] || mapping['en'];
     }
     if (key === 'authorizePayment') {
         const mapping = {
@@ -696,7 +697,7 @@ const tSummary = (key, lang = 'tr') => {
             el: "Έγκριση Πληρωμής",
             pt: "Autorizar Pagamento"
         };
-        return mapping[lang] || mapping['en'];
+        return mapping[baseLang] || mapping['en'];
     }
     if (key === 'processing') {
         const mapping = {
@@ -713,15 +714,31 @@ const tSummary = (key, lang = 'tr') => {
             el: "Επεξεργασία...",
             pt: "Processando..."
         };
-        return mapping[lang] || mapping['en'];
+        return mapping[baseLang] || mapping['en'];
     }
-    return CHECKOUT_SUMMARY_LOCALES[lang]?.[key] || CHECKOUT_SUMMARY_LOCALES['en']?.[key] || key;
+    return CHECKOUT_SUMMARY_LOCALES[baseLang]?.[key] || CHECKOUT_SUMMARY_LOCALES['en']?.[key] || key;
 };
 const CheckoutPayment = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { i18n } = useTranslation();
-    const currentLang = i18n.language || localStorage.getItem('language') || 'tr';
+    const [currentLang, setCurrentLang] = useState(() => {
+        const rawLang = i18n.language || localStorage.getItem('language') || 'tr';
+        return rawLang.split('-')[0].toLowerCase();
+    });
+
+    useEffect(() => {
+        const handleLangChange = (lng) => {
+            if (lng) {
+                setCurrentLang(lng.split('-')[0].toLowerCase());
+            }
+        };
+        i18n.on('languageChanged', handleLangChange);
+        return () => {
+            i18n.off('languageChanged', handleLangChange);
+        };
+    }, [i18n]);
+
     const cl = confirmLocales[currentLang] || confirmLocales['tr'];
 
     // Pre-populate from location.state if navigating from guests page (instant, no flash)
@@ -804,12 +821,11 @@ const CheckoutPayment = () => {
     const formattedDates = React.useMemo(() => {
         if (!checkInDate || !checkOutDate) return { start: 'Select Date', end: 'Select Date' };
         const options = { month: 'short', day: 'numeric', year: 'numeric' };
-        const currentLang = localStorage.getItem('language') || 'tr';
         return {
             start: new Date(checkInDate).toLocaleDateString(currentLang, options),
             end: new Date(checkOutDate).toLocaleDateString(currentLang, options)
         };
-    }, [checkInDate, checkOutDate]);
+    }, [checkInDate, checkOutDate, currentLang]);
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('deposit'); // 'deposit' or 'credit_card'

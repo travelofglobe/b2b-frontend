@@ -1,9 +1,36 @@
 import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
 import Tooltip from '../components/Tooltip';
 
+const starSuffixes = {
+    en: { star: 'Star', stars: 'Stars' },
+    tr: { star: 'Yıldız', stars: 'Yıldız' },
+    ar: { star: 'نجم', stars: 'نجوم' },
+    de: { star: 'Sterne', stars: 'Sterne' },
+    es: { star: 'estrellas', stars: 'estrellas' },
+    fr: { star: 'étoile', stars: 'étoiles' },
+    it: { star: 'stelle', stars: 'stelle' },
+    ru: { star: 'звезд', stars: 'звезд' },
+    zh: { star: '星', stars: '星' },
+    ja: { star: '星', stars: '星' },
+    fa: { star: 'ستاره', stars: 'ستاره' },
+    el: { star: 'αστέρι', stars: 'αστέρια' },
+    pt: { star: 'estrelas', stars: 'estrelas' }
+};
+
 const HotelCard = ({ hotel, viewMode = 'list' }) => {
+    const { i18n } = useTranslation();
+    const currentLang = i18n.language || 'tr';
+
+    const getStarLabel = () => {
+        if (!hotel.stars) return hotel.type || 'Hotel';
+        const lang = starSuffixes[currentLang] || starSuffixes['en'];
+        const suffix = hotel.stars === 1 ? lang.star : lang.stars;
+        return `${hotel.stars} ${suffix}`;
+    };
+
     const isList = viewMode === 'list';
     const [currentImg, setCurrentImg] = React.useState(0);
     const [isHovered, setIsHovered] = React.useState(false);
@@ -148,7 +175,7 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                                 {[...Array(hotel.stars || 0)].map((_, i) => (
                                     <span key={i} className="material-symbols-outlined text-[10px] fill-1">star</span>
                                 ))}
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">{hotel.type}</span>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">{getStarLabel()}</span>
                             </div>
                             <h3 className={`font-bold leading-tight group-hover:text-primary transition-colors ${isList ? 'text-2xl' : 'text-lg'}`}>{hotel.name}</h3>
                             <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 mt-1 relative">

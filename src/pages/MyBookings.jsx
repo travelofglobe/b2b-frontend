@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { bookingService } from '../services/bookingService';
 import { useAuth } from '../context/AuthContext';
 import HeaderActions from '../components/HeaderActions';
@@ -7,10 +8,24 @@ import BookingStatusBadge from '../components/BookingStatusBadge';
 import StatusMultiSelect from '../components/StatusMultiSelect';
 import AgencyMultiSelect from '../components/AgencyMultiSelect';
 import { BOOKING_STATUS_CONFIG } from '../utils/bookingStatusUtils';
+import { tMB } from '../utils/myBookingsLocales';
 
 const MyBookings = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const { i18n } = useTranslation();
+    const [currentLang, setCurrentLang] = useState(() => {
+        const raw = i18n.language || localStorage.getItem('i18nextLng') || 'en';
+        return raw.split('-')[0].toLowerCase();
+    });
+    useEffect(() => {
+        const raw = i18n.language || localStorage.getItem('i18nextLng') || 'en';
+        setCurrentLang(raw.split('-')[0].toLowerCase());
+        const handler = (lng) => { if (lng) setCurrentLang(lng.split('-')[0].toLowerCase()); };
+        i18n.on('languageChanged', handler);
+        return () => { i18n.off('languageChanged', handler); };
+    }, [i18n]);
+    const L = (key) => tMB(currentLang, key);
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -270,9 +285,9 @@ const MyBookings = () => {
                                 <span className="material-icons-round text-2xl">book_online</span>
                             </div>
                             <div>
-                                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">My Bookings</h1>
+                                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{L('title')}</h1>
                                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                    Manage and monitor all travel reservations
+                                    {L('subtitle')}
                                 </p>
                             </div>
                         </div>
@@ -283,14 +298,14 @@ const MyBookings = () => {
                                 className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 transition-all active:scale-95"
                             >
                                 <span className="material-icons-round text-lg">refresh</span>
-                                Refresh
+                                {L('refresh')}
                             </button>
                             <button
                                 onClick={handleClearFilters}
                                 className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl text-sm font-bold text-red-600 dark:text-red-400 transition-all active:scale-95"
                             >
                                 <span className="material-icons-round text-lg">filter_alt_off</span>
-                                Clear
+                                {L('clear')}
                             </button>
 
                             <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
@@ -311,22 +326,22 @@ const MyBookings = () => {
                             <table className="w-full border-collapse">
                                 <thead>
                                     <tr className="bg-white/30 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-700">
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">ID</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[150px]">Voucher</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[300px]">Hotel</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[160px]">Created</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[160px]">Check-in</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[160px]">Check-out</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">Amount</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">Payment</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">Status</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">Cancel Fee</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[200px]">UUID</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[200px]">Agency Name</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">Agency ID</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[150px]">Hotel ID</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[180px]">Cl. Ref</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">Cancelled?</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">{L('colId')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[150px]">{L('colVoucher')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[300px]">{L('colHotel')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[160px]">{L('colCreated')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[160px]">{L('colCheckIn')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[160px]">{L('colCheckOut')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">{L('colAmount')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">{L('colPayment')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">{L('colStatus')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">{L('colCancelFee')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[200px]">{L('colUuid')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[200px]">{L('colAgencyName')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">{L('colAgencyId')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[150px]">{L('colHotelId')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[180px]">{L('colClRef')}</th>
+                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">{L('colCancelled')}</th>
                                     </tr>
                                     <tr className="bg-slate-50/80 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 relative z-20">
                                         <td className="px-2 py-2">
@@ -335,7 +350,7 @@ const MyBookings = () => {
                                                 value={filters.id}
                                                 onChange={(e) => handleFilterChange('id', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                placeholder="ID"
+                                                placeholder={L('colId')}
                                                 className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
@@ -345,7 +360,7 @@ const MyBookings = () => {
                                                 value={filters.voucher}
                                                 onChange={(e) => handleFilterChange('voucher', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                placeholder="Voucher"
+                                                placeholder={L('phVoucher')}
                                                 className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
@@ -355,7 +370,7 @@ const MyBookings = () => {
                                                 value={filters.hotelName}
                                                 onChange={(e) => handleFilterChange('hotelName', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                placeholder="Hotel Name"
+                                                placeholder={L('phHotelName')}
                                                 className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
@@ -420,7 +435,7 @@ const MyBookings = () => {
                                                     value={filters.minAmount}
                                                     onChange={(e) => handleFilterChange('minAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    placeholder="Min"
+                                                    placeholder={L('phMin')}
                                                     className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
@@ -439,13 +454,13 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
                                                 className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
                                             >
-                                                <option value="">All</option>
-                                                <option value="PENDING_PAYMENT">Pending Payment</option>
-                                                <option value="PAID_CREDIT_CARD">Paid (Credit Card)</option>
-                                                <option value="PAID_ACCOUNT">Paid (Account)</option>
-                                                <option value="REFUNDED_CREDIT_CARD">Refunded (Credit Card)</option>
-                                                <option value="REFUNDED_ACCOUNT">Refunded (Account)</option>
-                                                <option value="FAILED">Failed</option>
+                                                <option value="">{L('all')}</option>
+                                                <option value="PENDING_PAYMENT">{L('pyPending')}</option>
+                                                <option value="PAID_CREDIT_CARD">{L('pyPaidCard')}</option>
+                                                <option value="PAID_ACCOUNT">{L('pyPaidAcc')}</option>
+                                                <option value="REFUNDED_CREDIT_CARD">{L('pyRefCard')}</option>
+                                                <option value="REFUNDED_ACCOUNT">{L('pyRefAcc')}</option>
+                                                <option value="FAILED">{L('pyFailed')}</option>
                                             </select>
                                         </td>
                                         <td className="px-2 py-2">
@@ -461,7 +476,7 @@ const MyBookings = () => {
                                                     value={filters.minCancellationAmount}
                                                     onChange={(e) => handleFilterChange('minCancellationAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    placeholder="Min"
+                                                    placeholder={L('phMin')}
                                                     className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
@@ -469,7 +484,7 @@ const MyBookings = () => {
                                                     value={filters.maxCancellationAmount}
                                                     onChange={(e) => handleFilterChange('maxCancellationAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    placeholder="Max"
+                                                    placeholder={L('phMax')}
                                                     className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
@@ -480,7 +495,7 @@ const MyBookings = () => {
                                                 value={filters.bookingUuid}
                                                 onChange={(e) => handleFilterChange('bookingUuid', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                placeholder="UUID"
+                                                placeholder={L('phUuid')}
                                                 className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
@@ -509,7 +524,7 @@ const MyBookings = () => {
                                                 value={filters.clientReferenceId}
                                                 onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                placeholder="Cl. Ref"
+                                                placeholder={L('phClRef')}
                                                 className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
@@ -519,9 +534,9 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('isCancelled', e.target.value)}
                                                 className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
                                             >
-                                                <option value="">All</option>
-                                                <option value="true">Yes</option>
-                                                <option value="false">No</option>
+                                                <option value="">{L('all')}</option>
+                                                <option value="true">{L('yes')}</option>
+                                                <option value="false">{L('no')}</option>
                                             </select>
                                         </td>
                                     </tr>
@@ -552,13 +567,13 @@ const MyBookings = () => {
                                     ) : error ? (
                                         <tr>
                                             <td colSpan="15" className="px-4 py-12 text-center text-red-500">
-                                                Error: {error}
+                                                {L('errorPrefix')}: {error}
                                             </td>
                                         </tr>
                                     ) : bookings.length === 0 ? (
                                         <tr>
                                             <td colSpan="15" className="px-4 py-12 text-center text-slate-500">
-                                                No bookings found
+                                                {L('noBookings')}
                                             </td>
                                         </tr>
                                     ) : (
@@ -611,7 +626,7 @@ const MyBookings = () => {
                         {totalPages > 0 && (
                             <div className="border-t border-white/20 dark:border-white/5 px-8 py-4 flex items-center justify-between bg-white/10 dark:bg-slate-800/20 backdrop-blur-xl">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">Rows per page:</span>
+                                    <span className="text-sm text-slate-600 dark:text-slate-400">{L('rowsPerPage')}:</span>
                                     <select
                                         value={pageSize}
                                         onChange={(e) => {
@@ -628,7 +643,7 @@ const MyBookings = () => {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm text-slate-600 dark:text-slate-400">
-                                        Page {page + 1} of {totalPages} ({totalElements} total)
+                                        {page + 1} {L('pageOf')} {totalPages} ({totalElements} {L('total')})
                                     </span>
                                     <button
                                         onClick={() => setPage(p => Math.max(0, p - 1))}
@@ -652,8 +667,8 @@ const MyBookings = () => {
                                 {/* Summary Header */}
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h3 className="text-lg font-black text-slate-900 dark:text-white">Booking Summary</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">Overview of your bookings by currency</p>
+                                        <h3 className="text-lg font-black text-slate-900 dark:text-white">{L('summaryTitle')}</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{L('summarySubtitle')}</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -684,7 +699,7 @@ const MyBookings = () => {
 
                                             {/* Booking Count */}
                                             <div className="mb-4">
-                                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Bookings</p>
+                                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">{L('bookings')}</p>
                                                 <p className="text-3xl font-black text-slate-900 dark:text-white">{summary.bookingCount}</p>
                                             </div>
 
@@ -693,7 +708,7 @@ const MyBookings = () => {
 
                                             {/* Amount Section */}
                                             <div>
-                                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Total Amount</p>
+                                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">{L('totalAmount')}</p>
                                                 <div className="flex items-baseline gap-1.5">
                                                     <span className="text-xs font-bold text-slate-400">{summary.currency}</span>
                                                     <span className="text-xl font-black text-primary">

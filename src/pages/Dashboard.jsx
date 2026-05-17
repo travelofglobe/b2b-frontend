@@ -4,7 +4,6 @@ import { bookingService } from '../services/bookingService';
 import HeaderActions from '../components/HeaderActions';
 import { useAuth } from '../context/AuthContext';
 import { userService } from '../services/userService';
-import { guestService } from '../services/guestService';
 import DashboardSearch from '../components/DashboardSearch';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import { useTranslation } from 'react-i18next';
@@ -22,8 +21,10 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchBookings = async () => {
             try {
-                const data = await bookingService.getRecentBookings(5);
-                setBookings(data);
+                const data = await bookingService.findLastFive();
+                // API returns { bookings: { content: [...] }, summaries: [] }
+                const list = data?.bookings?.content ?? data?.content ?? (Array.isArray(data) ? data : []);
+                setBookings(list);
             } catch (err) {
                 setError(err.message || 'Rezervasyonlar yüklenemedi.');
             } finally {
@@ -33,12 +34,12 @@ const Dashboard = () => {
 
         const fetchStats = async () => {
             try {
-                const [totalUsers, activeUsers, totalGuests] = await Promise.all([
-                    userService.getTotalUsersCount(),
-                    userService.getActiveUsersCount(),
-                    guestService.getTotalGuestsCount()
-                ]);
-                setSummary({ totalUsers, activeUsers, totalGuests });
+                const summary = await userService.getSummary();
+                setSummary({
+                    totalUsers: summary?.totalUsers ?? summary?.total ?? 0,
+                    activeUsers: summary?.activeUsers ?? summary?.active ?? 0,
+                    totalGuests: summary?.totalGuests ?? summary?.guests ?? 0,
+                });
             } catch (err) {
                 console.error('Failed to fetch dashboard stats:', err);
             } finally {

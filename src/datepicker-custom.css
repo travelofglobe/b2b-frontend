@@ -170,3 +170,9 @@
     color: #334155 !important;
     opacity: 0.3 !important;
 }
+
+/* Ensure DatePicker wrappers occupy full width */
+.react-datepicker-wrapper,
+.react-datepicker__input-container {
+    width: 100% !important;
+}

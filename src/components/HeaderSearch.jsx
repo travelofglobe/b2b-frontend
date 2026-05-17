@@ -864,6 +864,7 @@ const HeaderSearch = () => {
                             monthsShown={2}
                             locale={currentLang}
                             className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 font-bold"
+                            wrapperClassName="w-full"
                             dateFormat="dd MMM yyyy"
                             calendarClassName="shadow-2xl border-none font-sans mt-4"
                             popperPlacement="bottom-start"

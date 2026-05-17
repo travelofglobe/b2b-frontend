@@ -1,4 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+
+const MO = {
+  en: { title: 'My Office Management', tabGeneral: 'General Information', tabUsers: 'Users', tabGuests: 'Guests', saveBtn: 'Save Office Profile', saving: 'Synchronizing...', agencyId: 'Agency Identity', baseLocation: 'Base Location', currency: 'Currency', integration: 'Integration', auditTimeline: 'Audit Timeline', created: 'Created', lastUpdate: 'Last Update', sec01: 'Section 01 / Identity', sec02: 'Section 02 / Contact', sec03: 'Section 03 / Geography', sec04: 'Section 04 / Finance', sec05: 'Section 05 / Settings', agencyName: 'Agency Name', officialTitle: 'Official Title', type: 'Type', language: 'Language', parentId: 'Parent ID', directEmail: 'Direct Email', phone: 'Phone Number', country: 'Country', city: 'City', streetAddress: 'Street Address', zipCode: 'Zip Code', taxOffice: 'Tax Office', taxNumber: 'Tax Number', accEmail: 'Accounting Email', accPhone: 'Accounting Phone', accCountry: 'Accounting Country', accCity: 'Accounting City', accAddress: 'Accounting Address', mainCurrency: 'Main Currency', integrationType: 'Integration Type', allowedSale: 'Allowed for Sale', bookingStatus: 'Booking status', selectTerritory: 'Select Territory', selectHub: 'Select Hub', commercialName: 'Commercial Name', legalTitle: 'Legal Title', totalUsers: 'Total Users', activeUsers: 'Active Users', passiveUsers: 'Passive Users', totalGuests: 'Total Guests', activeGuests: 'Active Guests', passiveGuests: 'Passive Guests', searchUsers: 'Search by name or email...', searchGuests: 'Search by name, email or passport...', allRoles: 'All Roles', allCountries: 'All Countries', active: 'Active', passive: 'Passive', export: 'Export', addUser: 'Add User', addGuest: 'Add Guest', editUser: 'Edit User', editGuest: 'Edit Guest', userInfo: 'Enter user information', guestInfo: 'Enter guest information', name: 'Name', surname: 'Surname', emailAddr: 'Email Address', password: 'Password', role: 'Role', status: 'Status', gender: 'Gender', firstName: 'First Name', lastName: 'Last Name', birthDate: 'Birth Date', passportNo: 'Passport No', passportExpiry: 'Passport Expiry', cancel: 'Cancel', saveUser: 'Save User', saveGuest: 'Save Guest', processing: 'Processing...', confirm: 'Confirm', colUser: 'User', colContact: 'Contact', colRole: 'Role', colStatus: 'Status', colActions: 'Actions', colGuest: 'Guest', colBirth: 'Birth & Country', colPassport: 'Passport', noUsers: 'No users found', noGuests: 'No guests found', deleteUser: 'Delete User', deleteUserMsg: 'This action cannot be undone. All access for this user will be revoked immediately.', deleteGuest: 'Delete Guest', deleteGuestMsg: 'Are you sure you want to remove this guest from your CRM?' },
+  tr: { title: 'Ofis Yonetimi', tabGeneral: 'Genel Bilgiler', tabUsers: 'Kullanicilar', tabGuests: 'Misafirler', saveBtn: 'Ofis Profilini Kaydet', saving: 'Senkronize ediliyor...', agencyId: 'Acente Kimlik', baseLocation: 'Konum', currency: 'Para Birimi', integration: 'Entegrasyon', auditTimeline: 'Denetim Gecmisi', created: 'Olusturuldu', lastUpdate: 'Son Guncelleme', sec01: 'Bolum 01 / Kimlik', sec02: 'Bolum 02 / Iletisim', sec03: 'Bolum 03 / Cografya', sec04: 'Bolum 04 / Finans', sec05: 'Bolum 05 / Ayarlar', agencyName: 'Acente Adi', officialTitle: 'Resmi Unvan', type: 'Tur', language: 'Dil', parentId: 'Ust ID', directEmail: 'E-posta', phone: 'Telefon', country: 'Ulke', city: 'Sehir', streetAddress: 'Adres', zipCode: 'Posta Kodu', taxOffice: 'Vergi Dairesi', taxNumber: 'Vergi No', accEmail: 'Muhasebe E-posta', accPhone: 'Muhasebe Telefon', accCountry: 'Muhasebe Ulke', accCity: 'Muhasebe Sehir', accAddress: 'Muhasebe Adres', mainCurrency: 'Ana Para Birimi', integrationType: 'Entegrasyon Turu', allowedSale: 'Satisa Acik', bookingStatus: 'Rezervasyon durumu', selectTerritory: 'Bolge Secin', selectHub: 'Sehir Secin', commercialName: 'Ticari Ad', legalTitle: 'Hukuki Unvan', totalUsers: 'Toplam Kullanici', activeUsers: 'Aktif Kullanici', passiveUsers: 'Pasif Kullanici', totalGuests: 'Toplam Misafir', activeGuests: 'Aktif Misafir', passiveGuests: 'Pasif Misafir', searchUsers: 'Ad veya e-posta ara...', searchGuests: 'Ad, e-posta veya pasaport ara...', allRoles: 'Tum Roller', allCountries: 'Tum Ulkeler', active: 'Aktif', passive: 'Pasif', export: 'Disa Aktar', addUser: 'Kullanici Ekle', addGuest: 'Misafir Ekle', editUser: 'Kullanici Duzenle', editGuest: 'Misafir Duzenle', userInfo: 'Kullanici bilgilerini girin', guestInfo: 'Misafir bilgilerini girin', name: 'Ad', surname: 'Soyad', emailAddr: 'E-posta Adresi', password: 'Sifre', role: 'Rol', status: 'Durum', gender: 'Cinsiyet', firstName: 'Ad', lastName: 'Soyad', birthDate: 'Dogum Tarihi', passportNo: 'Pasaport No', passportExpiry: 'Pasaport Bitis', cancel: 'Iptal', saveUser: 'Kullanici Kaydet', saveGuest: 'Misafir Kaydet', processing: 'Isleniyor...', confirm: 'Onayla', colUser: 'Kullanici', colContact: 'Iletisim', colRole: 'Rol', colStatus: 'Durum', colActions: 'Islemler', colGuest: 'Misafir', colBirth: 'Dogum & Ulke', colPassport: 'Pasaport', noUsers: 'Kullanici bulunamadi', noGuests: 'Misafir bulunamadi', deleteUser: 'Kullanici Sil', deleteUserMsg: 'Bu islem geri alinamaz.', deleteGuest: 'Misafir Sil', deleteGuestMsg: 'Bu misafiri CRM sisteminden silmek istediginize emin misiniz?' },
+  ar: { title: 'إدارة المكتب', tabGeneral: 'معلومات عامة', tabUsers: 'المستخدمون', tabGuests: 'الضيوف', saveBtn: 'حفظ ملف المكتب', saving: 'جاري المزامنة...', agencyId: 'هوية الوكالة', baseLocation: 'الموقع', currency: 'العملة', integration: 'التكامل', auditTimeline: 'سجل التدقيق', created: 'تاريخ الإنشاء', lastUpdate: 'آخر تحديث', sec01: 'قسم 01 / الهوية', sec02: 'قسم 02 / التواصل', sec03: 'قسم 03 / الجغرافيا', sec04: 'قسم 04 / المالية', sec05: 'قسم 05 / الإعدادات', agencyName: 'اسم الوكالة', officialTitle: 'اللقب الرسمي', type: 'النوع', language: 'اللغة', parentId: 'معرف الأصل', directEmail: 'البريد الإلكتروني', phone: 'رقم الهاتف', country: 'الدولة', city: 'المدينة', streetAddress: 'العنوان', zipCode: 'الرمز البريدي', taxOffice: 'مكتب الضرائب', taxNumber: 'رقم ضريبي', accEmail: 'بريد المحاسبة', accPhone: 'هاتف المحاسبة', accCountry: 'دولة المحاسبة', accCity: 'مدينة المحاسبة', accAddress: 'عنوان الفواتير', mainCurrency: 'العملة الرئيسية', integrationType: 'نوع التكامل', allowedSale: 'متاح للبيع', bookingStatus: 'حالة الحجز', selectTerritory: 'اختر المنطقة', selectHub: 'اختر المدينة', commercialName: 'الاسم التجاري', legalTitle: 'العنوان القانوني', totalUsers: 'إجمالي المستخدمين', activeUsers: 'مستخدمون نشطون', passiveUsers: 'مستخدمون غير نشطين', totalGuests: 'إجمالي الضيوف', activeGuests: 'ضيوف نشطون', passiveGuests: 'ضيوف غير نشطين', searchUsers: 'بحث بالاسم أو البريد...', searchGuests: 'بحث بالاسم أو جواز السفر...', allRoles: 'جميع الأدوار', allCountries: 'جميع الدول', active: 'نشط', passive: 'غير نشط', export: 'تصدير', addUser: 'إضافة مستخدم', addGuest: 'إضافة ضيف', editUser: 'تعديل مستخدم', editGuest: 'تعديل ضيف', userInfo: 'أدخل بيانات المستخدم', guestInfo: 'أدخل بيانات الضيف', name: 'الاسم', surname: 'اللقب', emailAddr: 'البريد الإلكتروني', password: 'كلمة المرور', role: 'الدور', status: 'الحالة', gender: 'الجنس', firstName: 'الاسم الأول', lastName: 'اسم العائلة', birthDate: 'تاريخ الميلاد', passportNo: 'رقم جواز السفر', passportExpiry: 'انتهاء جواز السفر', cancel: 'إلغاء', saveUser: 'حفظ المستخدم', saveGuest: 'حفظ الضيف', processing: 'جاري المعالجة...', confirm: 'تأكيد', colUser: 'المستخدم', colContact: 'التواصل', colRole: 'الدور', colStatus: 'الحالة', colActions: 'الإجراءات', colGuest: 'الضيف', colBirth: 'الميلاد والدولة', colPassport: 'جواز السفر', noUsers: 'لا يوجد مستخدمون', noGuests: 'لا يوجد ضيوف', deleteUser: 'حذف مستخدم', deleteUserMsg: 'لا يمكن التراجع عن هذا الإجراء.', deleteGuest: 'حذف ضيف', deleteGuestMsg: 'هل أنت متأكد من حذف هذا الضيف?' },
+  es: { title: 'Mi Oficina', tabGeneral: 'Informacion General', tabUsers: 'Usuarios', tabGuests: 'Huespedes', saveBtn: 'Guardar Perfil', saving: 'Sincronizando...', agencyId: 'Identidad de Agencia', baseLocation: 'Ubicacion', currency: 'Moneda', integration: 'Integracion', auditTimeline: 'Historial de Auditoria', created: 'Creado', lastUpdate: 'Ultima Actualizacion', sec01: 'Seccion 01 / Identidad', sec02: 'Seccion 02 / Contacto', sec03: 'Seccion 03 / Geografa', sec04: 'Seccion 04 / Finanzas', sec05: 'Seccion 05 / Configuracion', agencyName: 'Nombre de Agencia', officialTitle: 'Titulo Oficial', type: 'Tipo', language: 'Idioma', parentId: 'ID Padre', directEmail: 'Email Directo', phone: 'Telefono', country: 'Pais', city: 'Ciudad', streetAddress: 'Direccion', zipCode: 'Codigo Postal', taxOffice: 'Oficina Fiscal', taxNumber: 'Numero Fiscal', accEmail: 'Email Contabilidad', accPhone: 'Telefono Contabilidad', accCountry: 'Pais Contabilidad', accCity: 'Ciudad Contabilidad', accAddress: 'Direccion Contabilidad', mainCurrency: 'Moneda Principal', integrationType: 'Tipo de Integracion', allowedSale: 'Permitido para Venta', bookingStatus: 'Estado de reserva', selectTerritory: 'Seleccionar Territorio', selectHub: 'Seleccionar Ciudad', commercialName: 'Nombre Comercial', legalTitle: 'Titulo Legal', totalUsers: 'Total Usuarios', activeUsers: 'Usuarios Activos', passiveUsers: 'Usuarios Inactivos', totalGuests: 'Total Huespedes', activeGuests: 'Huespedes Activos', passiveGuests: 'Huespedes Inactivos', searchUsers: 'Buscar por nombre o email...', searchGuests: 'Buscar por nombre, email o pasaporte...', allRoles: 'Todos los Roles', allCountries: 'Todos los Paises', active: 'Activo', passive: 'Inactivo', export: 'Exportar', addUser: 'Agregar Usuario', addGuest: 'Agregar Huesped', editUser: 'Editar Usuario', editGuest: 'Editar Huesped', userInfo: 'Ingrese informacion del usuario', guestInfo: 'Ingrese informacion del huesped', name: 'Nombre', surname: 'Apellido', emailAddr: 'Correo Electronico', password: 'Contrasena', role: 'Rol', status: 'Estado', gender: 'Genero', firstName: 'Nombre', lastName: 'Apellido', birthDate: 'Fecha de Nacimiento', passportNo: 'No. Pasaporte', passportExpiry: 'Vencimiento Pasaporte', cancel: 'Cancelar', saveUser: 'Guardar Usuario', saveGuest: 'Guardar Huesped', processing: 'Procesando...', confirm: 'Confirmar', colUser: 'Usuario', colContact: 'Contacto', colRole: 'Rol', colStatus: 'Estado', colActions: 'Acciones', colGuest: 'Huesped', colBirth: 'Nacimiento y Pais', colPassport: 'Pasaporte', noUsers: 'No se encontraron usuarios', noGuests: 'No se encontraron huespedes', deleteUser: 'Eliminar Usuario', deleteUserMsg: 'Esta accion no se puede deshacer.', deleteGuest: 'Eliminar Huesped', deleteGuestMsg: '?Esta seguro de eliminar este huesped del CRM?' },
+};
+const tMO = (lang, key) => { const l = (lang || 'en').split('-')[0].toLowerCase(); return MO[l]?.[key] ?? MO.en[key] ?? key; };
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -107,6 +116,15 @@ const LocationMarker = ({ position, setPosition }) => {
 const MyOffice = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const { i18n } = useTranslation();
+    const [currentLang, setCurrentLang] = useState(() => (i18n.language || localStorage.getItem('i18nextLng') || 'en').split('-')[0].toLowerCase());
+    useEffect(() => {
+        setCurrentLang((i18n.language || 'en').split('-')[0].toLowerCase());
+        const handler = (lng) => setCurrentLang((lng || 'en').split('-')[0].toLowerCase());
+        i18n.on('languageChanged', handler);
+        return () => i18n.off('languageChanged', handler);
+    }, [i18n]);
+    const L = (key) => tMO(currentLang, key);
     const [activeTab, setActiveTab] = useState('general');
     const [loading, setLoading] = useState(true);
     const [usersLoading, setUsersLoading] = useState(false);
@@ -551,7 +569,7 @@ const MyOffice = () => {
                     <header className="flex flex-wrap items-center justify-between mb-8 gap-4">
                         <div className="flex items-center gap-2">
                             <span className="material-icons-round text-primary text-xl">corporate_fare</span>
-                            <h1 className="text-lg font-medium">My Office Management</h1>
+                            <h1 className="text-lg font-medium">{L('title')}</h1>
                         </div>
                         <div className="flex items-center gap-4">
                             <HeaderActions />
@@ -561,9 +579,9 @@ const MyOffice = () => {
 
                     <div className="mb-6 flex gap-10 border-b border-slate-200 dark:border-slate-800">
                         {[
-                            { id: 'general', label: 'General Information', icon: 'info' },
-                            { id: 'users', label: 'Users', count: statsLoading ? 'loading' : summary.totalCount, icon: 'groups' },
-                            { id: 'guests', label: 'Guests', count: statsLoading ? 'loading' : summary.totalGuestCount, icon: 'recent_actors' }
+                            { id: 'general', label: L('tabGeneral'), icon: 'info' },
+                            { id: 'users', label: L('tabUsers'), count: statsLoading ? 'loading' : summary.totalCount, icon: 'groups' },
+                            { id: 'guests', label: L('tabGuests'), count: statsLoading ? 'loading' : summary.totalGuestCount, icon: 'recent_actors' }
                         ].map((tab) => (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`pb-4 text-[10px] font-bold uppercase tracking-widest relative flex items-center gap-2.5 transition-all ${activeTab === tab.id ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}>
                                 <span className="material-icons-round text-lg">{tab.icon}</span> {tab.label} 
@@ -605,16 +623,16 @@ const MyOffice = () => {
                                         <div className="space-y-6 pt-6 border-t border-white/10">
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Base Location</p>
+                                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">{L('baseLocation')}</p>
                                                     <p className="text-sm font-semibold truncate">{formData.cityName}, {formData.countryName}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Currency</p>
+                                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">{L('currency')}</p>
                                                     <p className="text-sm font-semibold text-primary">{formData.currency}</p>
                                                 </div>
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Integration</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">{L('integration')}</p>
                                                 <p className="text-sm font-semibold flex items-center gap-2">
                                                     <span className="size-2 bg-emerald-500 rounded-full animate-pulse"></span>
                                                     {formData.integrationType}
@@ -629,7 +647,7 @@ const MyOffice = () => {
                                             <div className="size-8 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400">
                                                 <span className="material-icons-round text-lg">history</span>
                                             </div>
-                                            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white">Audit Timeline</h3>
+                                            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white">{L('auditTimeline')}</h3>
                                         </div>
                                         <div className="space-y-6">
                                             <div className="flex gap-4">
@@ -638,7 +656,7 @@ const MyOffice = () => {
                                                     <div className="w-[1px] h-full bg-slate-100 dark:bg-slate-800 my-1"></div>
                                                 </div>
                                                 <div className="pb-4">
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Created</p>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{L('created')}</p>
                                                     <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-0.5">{new Date(formData.createDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
                                                     <p className="text-[9px] text-slate-400 font-medium italic">by {formData.createdBy}</p>
                                                 </div>
@@ -648,7 +666,7 @@ const MyOffice = () => {
                                                     <div className="size-2 bg-emerald-500 rounded-full mt-1.5"></div>
                                                 </div>
                                                 <div>
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Last Update</p>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{L('lastUpdate')}</p>
                                                     <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-0.5">{new Date(formData.updateDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
                                                     <p className="text-[9px] text-slate-400 font-medium italic">by {formData.updatedBy}</p>
                                                 </div>
@@ -677,25 +695,25 @@ const MyOffice = () => {
                                         <div className="space-y-10">
                                             <div className="flex items-center gap-4">
                                                 <div className="size-2 bg-primary rounded-full"></div>
-                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Section 01 / Identity</h3>
+                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">{L('sec01')}</h3>
                                             </div>
                                             <div className="grid grid-cols-2 gap-12">
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Agency Name</label>
-                                                    <input type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="Commercial Name" />
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('agencyName')}</label>
+                                                    <input type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder={L('commercialName')} />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Official Title</label>
-                                                    <input type="text" value={formData.officialTitle} onChange={(e) => handleInputChange('officialTitle', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="Legal Title" />
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('officialTitle')}</label>
+                                                    <input type="text" value={formData.officialTitle} onChange={(e) => handleInputChange('officialTitle', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder={L('legalTitle')} />
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-3 gap-12">
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Type</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('type')}</label>
                                                     <input type="text" value={formData.agencyType} disabled className="w-full h-12 input-modern outline-none font-bold text-sm opacity-50 cursor-not-allowed" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Language</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('language')}</label>
                                                     <select value={formData.defaultLanguage} onChange={(e) => handleInputChange('defaultLanguage', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent appearance-none">
                                                         <option value="EN">English</option>
                                                         <option value="TR">Turkish</option>
@@ -703,7 +721,7 @@ const MyOffice = () => {
                                                 </div>
                                                 {formData.agencyType !== 'GSA' && (
                                                     <div className="space-y-1">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Parent ID</label>
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('parentId')}</label>
                                                         <input type="text" value={formData.parentId} disabled className="w-full h-12 input-modern outline-none font-bold text-sm opacity-50 cursor-not-allowed" />
                                                     </div>
                                                 )}
@@ -714,15 +732,15 @@ const MyOffice = () => {
                                         <div className="space-y-10">
                                             <div className="flex items-center gap-4">
                                                 <div className="size-2 bg-indigo-500 rounded-full"></div>
-                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Section 02 / Contact</h3>
+                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">{L('sec02')}</h3>
                                             </div>
                                             <div className="grid grid-cols-2 gap-12">
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Direct Email</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('directEmail')}</label>
                                                     <input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="contact@agency.com" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Phone Number</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('phone')}</label>
                                                     <div className="flex gap-4">
                                                         <input type="text" value={formData.phoneCountryCode} onChange={(e) => handleInputChange('phoneCountryCode', e.target.value)} className="w-16 h-12 input-modern outline-none font-bold text-sm text-center" placeholder="90" />
                                                         <input type="text" value={formData.phoneNumber} onChange={(e) => handleInputChange('phoneNumber', e.target.value)} className="flex-1 h-12 input-modern outline-none font-bold text-sm" placeholder="5XX..." />
@@ -735,31 +753,31 @@ const MyOffice = () => {
                                         <div className="space-y-10">
                                             <div className="flex items-center gap-4">
                                                 <div className="size-2 bg-emerald-500 rounded-full"></div>
-                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Section 03 / Geography</h3>
+                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">{L('sec03')}</h3>
                                             </div>
                                             <div className="grid grid-cols-2 gap-12">
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Country</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('country')}</label>
                                                     <select value={formData.countryId} onChange={handleCountryChange} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
-                                                        <option value="">Select Territory</option>
+                                                        <option value="">{L('selectTerritory')}</option>
                                                         {countries.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
                                                     </select>
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">City</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('city')}</label>
                                                     <select value={formData.cityId} onChange={(e) => handleInputChange('cityId', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
-                                                        <option value="">Select Hub</option>
+                                                        <option value="">{L('selectHub')}</option>
                                                         {cities.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
                                                     </select>
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-4 gap-12">
                                                 <div className="col-span-3 space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Street Address</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('streetAddress')}</label>
                                                     <input type="text" value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="Full street detail" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Zip Code</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('zipCode')}</label>
                                                     <input type="text" value={formData.zipCode} onChange={(e) => handleInputChange('zipCode', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm text-center" placeholder="00000" />
                                                 </div>
                                             </div>
@@ -769,26 +787,26 @@ const MyOffice = () => {
                                         <div className="space-y-10">
                                             <div className="flex items-center gap-4">
                                                 <div className="size-2 bg-amber-500 rounded-full"></div>
-                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Section 04 / Finance</h3>
+                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">{L('sec04')}</h3>
                                             </div>
                                             <div className="grid grid-cols-2 gap-12">
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tax Office</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('taxOffice')}</label>
                                                     <input type="text" value={formData.taxOffice} onChange={(e) => handleInputChange('taxOffice', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tax Number</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('taxNumber')}</label>
                                                     <input type="text" value={formData.taxNumber} onChange={(e) => handleInputChange('taxNumber', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" />
                                                 </div>
                                             </div>
                                             <div className="space-y-10 pt-4 border-t border-slate-50 dark:border-white/5">
                                                 <div className="grid grid-cols-2 gap-12">
                                                     <div className="space-y-1">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Accounting Email</label>
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accEmail')}</label>
                                                         <input type="email" value={formData.agencyFinancialInfo?.email} onChange={(e) => handleInputChange('agencyFinancialInfo.email', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="accounting@mail.com" />
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Accounting Phone</label>
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accPhone')}</label>
                                                         <div className="flex gap-4">
                                                             <input type="text" value={formData.agencyFinancialInfo?.phoneCountryCode} onChange={(e) => handleInputChange('agencyFinancialInfo.phoneCountryCode', e.target.value)} className="w-16 h-12 input-modern outline-none font-bold text-sm text-center" placeholder="90" />
                                                             <input type="text" value={formData.agencyFinancialInfo?.phoneNumber} onChange={(e) => handleInputChange('agencyFinancialInfo.phoneNumber', e.target.value)} className="flex-1 h-12 input-modern outline-none font-bold text-sm" placeholder="5XX..." />
@@ -797,22 +815,22 @@ const MyOffice = () => {
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-12">
                                                     <div className="space-y-1">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Accounting Country</label>
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accCountry')}</label>
                                                         <select value={formData.agencyFinancialInfo?.countryId} onChange={handleFinCountryChange} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
-                                                            <option value="">Select Territory</option>
+                                                            <option value="">{L('selectTerritory')}</option>
                                                             {countries.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
                                                         </select>
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Accounting City</label>
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accCity')}</label>
                                                         <select value={formData.agencyFinancialInfo?.cityId} onChange={(e) => handleInputChange('agencyFinancialInfo.cityId', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
-                                                            <option value="">Select Hub</option>
+                                                            <option value="">{L('selectHub')}</option>
                                                             {finCities.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
                                                         </select>
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Accounting Address</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accAddress')}</label>
                                                     <input type="text" value={formData.agencyFinancialInfo?.address} onChange={(e) => handleInputChange('agencyFinancialInfo.address', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="Billing address" />
                                                 </div>
                                             </div>
@@ -822,17 +840,17 @@ const MyOffice = () => {
                                         <div className="space-y-10">
                                             <div className="flex items-center gap-4">
                                                 <div className="size-2 bg-purple-500 rounded-full"></div>
-                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Section 05 / Settings</h3>
+                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">{L('sec05')}</h3>
                                             </div>
                                             <div className="grid grid-cols-2 gap-12">
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Main Currency</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('mainCurrency')}</label>
                                                     <select value={formData.currency} onChange={(e) => handleInputChange('currency', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
                                                         {currencies.map(curr => <option key={curr.code} value={curr.code}>{curr.code}</option>)}
                                                     </select>
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Integration Type</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('integrationType')}</label>
                                                     <select value={formData.integrationType} onChange={(e) => handleInputChange('integrationType', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
                                                         <option value="TGX">TGX</option>
                                                         <option value="JUNIPER">Juniper</option>
@@ -846,8 +864,8 @@ const MyOffice = () => {
                                                         <span className="material-icons-round text-lg">{formData.allowedForSale ? 'check_circle' : 'block'}</span>
                                                     </div>
                                                     <div>
-                                                        <p className="text-[11px] font-black text-slate-800 dark:text-white uppercase leading-none mb-1">Allowed for Sale</p>
-                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Booking status</p>
+                                                        <p className="text-[11px] font-black text-slate-800 dark:text-white uppercase leading-none mb-1">{L('allowedSale')}</p>
+                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">{L('bookingStatus')}</p>
                                                     </div>
                                                     <input type="checkbox" checked={formData.allowedForSale} onChange={(e) => handleInputChange('allowedForSale', e.target.checked)} className="hidden" />
                                                 </label>
@@ -856,7 +874,7 @@ const MyOffice = () => {
 
                                         <div className="pt-10">
                                             <button type="submit" disabled={saving} className="w-full h-16 bg-primary text-white rounded-[24px] font-bold text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3">
-                                                {saving ? 'Synchronizing...' : 'Save Office Profile'}
+                                                {saving ? L('saving') : L('saveBtn')}
                                                 {!saving && <span className="material-icons-round text-xl">check_circle</span>}
                                             </button>
                                         </div>
@@ -869,7 +887,7 @@ const MyOffice = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div className="bg-[#eff6ff] dark:bg-blue-900/10 p-4 rounded-[24px] border border-blue-100/50 dark:border-blue-800/20 shadow-sm">
                                         <div className="flex justify-between items-start mb-4">
-                                            <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">Total Users</span>
+                                            <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">{L('totalUsers')}</span>
                                             <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
                                                 <span className="material-icons-round text-lg">groups</span>
                                             </div>
@@ -882,7 +900,7 @@ const MyOffice = () => {
                                     
                                     <div className="bg-[#f0fdf4] dark:bg-emerald-900/10 p-4 rounded-[24px] border border-emerald-100/50 dark:border-emerald-800/20 shadow-sm">
                                         <div className="flex justify-between items-start mb-4">
-                                            <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">Active Users</span>
+                                            <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">{L('activeUsers')}</span>
                                             <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
                                                 <span className="material-icons-round text-lg">person_check</span>
                                             </div>
@@ -895,7 +913,7 @@ const MyOffice = () => {
                                     
                                     <div className="bg-[#fef2f2] dark:bg-red-900/10 p-4 rounded-[24px] border border-red-100/50 dark:border-red-800/20 shadow-sm">
                                         <div className="flex justify-between items-start mb-4">
-                                            <span className="text-[9px] font-bold text-red-600 dark:text-red-400 uppercase tracking-[0.2em]">Passive Users</span>
+                                            <span className="text-[9px] font-bold text-red-600 dark:text-red-400 uppercase tracking-[0.2em]">{L('passiveUsers')}</span>
                                             <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-red-600 shadow-sm">
                                                 <span className="material-icons-round text-lg">person_off</span>
                                             </div>
@@ -912,10 +930,10 @@ const MyOffice = () => {
                                     <div className="flex items-center gap-4 flex-1 max-w-2xl">
                                         <div className="relative flex-1">
                                             <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                                            <input type="text" placeholder="Search by name or email..." value={userFilters.query} onChange={(e) => handleUserFilterChange({ ...userFilters, query: e.target.value })} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl pl-12 pr-4 text-xs font-semibold outline-none focus:border-primary transition-colors" />
+                                            <input type="text" placeholder={L('searchUsers')} value={userFilters.query} onChange={(e) => handleUserFilterChange({ ...userFilters, query: e.target.value })} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl pl-12 pr-4 text-xs font-semibold outline-none focus:border-primary transition-colors" />
                                         </div>
                                         <select value={userFilters.roleIds[0] || ''} onChange={(e) => handleUserFilterChange({ ...userFilters, roleIds: e.target.value ? [parseInt(e.target.value)] : [] })} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer">
-                                            <option value="">All Roles</option>
+                                            <option value="">{L('allRoles')}</option>
                                             {roles.map(r => <option key={r.id} value={r.id}>{r.roleName || r.name}</option>)}
                                         </select>
                                         <select value={userFilters.status} onChange={(e) => handleUserFilterChange({ ...userFilters, status: e.target.value })} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer">

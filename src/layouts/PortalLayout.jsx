@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const PortalLayout = () => {
     const { t } = useTranslation();
@@ -136,13 +135,6 @@ const PortalLayout = () => {
                         )}
                     </div>
                 </nav>
-                <div className="p-4 border-t border-slate-100 dark:border-slate-800/50 flex items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-950/20 shrink-0">
-                    <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
-                        <span className="material-symbols-outlined text-base">translate</span>
-                        <span className="text-[10px] font-black uppercase tracking-wider">{t('common.language', 'Language')}</span>
-                    </div>
-                    <LanguageSwitcher />
-                </div>
             </aside>
             <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
                 <Outlet />

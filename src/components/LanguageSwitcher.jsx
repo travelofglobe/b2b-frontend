@@ -21,6 +21,10 @@ const LanguageSwitcher = () => {
         };
     }, []);
 
+    useEffect(() => {
+        document.documentElement.setAttribute('lang', i18n.language || 'en');
+    }, [i18n.language]);
+
     const handleLanguageChange = (langCode) => {
         i18n.changeLanguage(langCode);
         setIsOpen(false);

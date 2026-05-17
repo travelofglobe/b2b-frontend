@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useTranslation } from 'react-i18next';
 import Breadcrumbs from '../components/Breadcrumbs';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -440,7 +441,736 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
     );
 };
 
+const LOCAL_TRANSLATIONS = {
+    en: {
+        roomsAndRates: "Rooms & Rates",
+        overview: "Overview",
+        amenities: "Amenities",
+        transportation: "Transportation",
+        policies: "Policies",
+        reviews: "Reviews",
+        boardType: "Board Type:",
+        allBoards: "All Boards",
+        policyLabel: "Policy:",
+        allPolicies: "All Policies",
+        freeCancellation: "Free Cancellation",
+        nonRefundable: "Non-Refundable",
+        roomTypesFound: "Room Types Found",
+        instantConfirmationAvailable: "Instant Confirmation Available",
+        reservationSummary: "Reservation Summary",
+        pleaseSelectARoom: "Please select a room",
+        guests: "Guests",
+        nationality: "Nationality",
+        dates: "Dates",
+        stay: "Stay",
+        nights: "Nights",
+        night: "Night",
+        totalStayPrice: "Total Stay Price (Net)",
+        checkingBestRates: "Checking Best Rates...",
+        instantReservation: "Instant Reservation",
+        b2bAgencyRatesApplied: "B2B AGENCY RATES APPLIED",
+        adults: "Adults",
+        adult: "Adult",
+        children: "Children",
+        child: "Child",
+        room: "Room",
+        remove: "Remove",
+        childAge: "Child Age",
+        addAnotherRoom: "Add Another Room",
+        backToSearch: "Back to Search",
+        tryAgain: "Try Again",
+        showOnMap: "Show on Map",
+        reviewsLabel: "reviews",
+        highlyPopular: "Highly Popular",
+        photos: "Photos",
+        showAllPhotos: "Show All Photos",
+        checkInOut: "Check-in / Out",
+        guestsAndRooms: "Guests & Rooms",
+        yr: "yr",
+        availableRates: "Available Rates",
+        pricesIncludeTaxesAndFees: "Prices include taxes & fees",
+        selected: "Selected",
+        viewPolicies: "View Policies",
+        cancellationTimeline: "Cancellation Timeline",
+        penalty: "Penalty",
+        from: "From",
+        standardPoliciesApply: "Standard policies apply.",
+        totalStay: "Total Stay",
+        selectRate: "Select Rate",
+        showLessRates: "Show Less Rates",
+        show: "Show",
+        moreRates: "More Rates",
+        fetchingBestRates: "Fetching best rates..."
+    },
+    tr: {
+        roomsAndRates: "Odalar & Fiyatlar",
+        overview: "Genel Bakış",
+        amenities: "Olanaklar",
+        transportation: "Ulaşım",
+        policies: "Kurallar",
+        reviews: "Değerlendirmeler",
+        boardType: "Pansiyon Tipi:",
+        allBoards: "Tüm Pansiyonlar",
+        policyLabel: "İptal Kuralı:",
+        allPolicies: "Tüm Kurallar",
+        freeCancellation: "Ücretsiz İptal",
+        nonRefundable: "İade Edilmez",
+        roomTypesFound: "Oda Tipi Bulundu",
+        instantConfirmationAvailable: "Anında Onay Mevcut",
+        reservationSummary: "Rezervasyon Özeti",
+        pleaseSelectARoom: "Lütfen bir oda seçin",
+        guests: "Konuklar",
+        nationality: "Uyruk",
+        dates: "Tarihler",
+        stay: "Konaklama",
+        nights: "Gece",
+        night: "Gece",
+        totalStayPrice: "Toplam Konaklama Tutarı (Net)",
+        checkingBestRates: "En İyi Fiyatlar Sorgulanıyor...",
+        instantReservation: "Anında Rezervasyon",
+        b2bAgencyRatesApplied: "B2B ACENTE FİYATLARI UYGULANMIŞTIR",
+        adults: "Yetişkin",
+        adult: "Yetişkin",
+        children: "Çocuk",
+        child: "Çocuk",
+        room: "Oda",
+        remove: "Kaldır",
+        childAge: "Çocuk Yaşı",
+        addAnotherRoom: "Başka Oda Ekle",
+        backToSearch: "Aramaya Dön",
+        tryAgain: "Tekrar Dene",
+        showOnMap: "Haritada Göster",
+        reviewsLabel: "değerlendirme",
+        highlyPopular: "Çok Popüler",
+        photos: "Fotoğraf",
+        showAllPhotos: "Tüm Fotoğrafları Göster",
+        checkInOut: "Giriş / Çıkış",
+        guestsAndRooms: "Konuklar & Odalar",
+        yr: "yaş",
+        availableRates: "Mevcut Fiyatlar",
+        pricesIncludeTaxesAndFees: "Fiyatlara vergi ve harçlar dahildir",
+        selected: "Seçildi",
+        viewPolicies: "Kuralları Göster",
+        cancellationTimeline: "İptal Takvimi",
+        penalty: "Ceza",
+        from: "İtibaren",
+        standardPoliciesApply: "Standart kurallar geçerlidir.",
+        totalStay: "Toplam Konaklama",
+        selectRate: "Fiyatı Seç",
+        showLessRates: "Daha Az Fiyat Göster",
+        show: "Göster",
+        moreRates: "Daha Fazla Fiyat",
+        fetchingBestRates: "En iyi fiyatlar sorgulanıyor..."
+    },
+    ar: {
+        roomsAndRates: "الغرف والأسعار",
+        overview: "نظرة عامة",
+        amenities: "الخدمات والمرافق",
+        transportation: "وسائل النقل",
+        policies: "السياسات",
+        reviews: "التقييمات",
+        boardType: "نوع الإقامة:",
+        allBoards: "جميع الخيارات",
+        policyLabel: "السياسة:",
+        allPolicies: "جميع السياسات",
+        freeCancellation: "إلغاء مجاني",
+        nonRefundable: "غير مسترد",
+        roomTypesFound: "أنواع الغرف التي تم العثور عليها",
+        instantConfirmationAvailable: "تأكيد فوري متاح",
+        reservationSummary: "ملخص الحجز",
+        pleaseSelectARoom: "يرجى اختيار غرفة",
+        guests: "الضيوف",
+        nationality: "الجنسية",
+        dates: "التواريخ",
+        stay: "مدة الإقامة",
+        nights: "ليالي",
+        night: "ليلة",
+        totalStayPrice: "إجمالي سعر الإقامة (صافي)",
+        checkingBestRates: "جاري التحقق من أفضل الأسعار...",
+        instantReservation: "حجز فوري",
+        b2bAgencyRatesApplied: "تم تطبيق أسعار وكالات B2B",
+        adults: "بالغين",
+        adult: "بالغ",
+        children: "أطفال",
+        child: "طفل",
+        room: "غرفة",
+        remove: "إزالة",
+        childAge: "عمر الطفل",
+        addAnotherRoom: "إضافة غرفة أخرى",
+        backToSearch: "العودة للبحث",
+        tryAgain: "إعادة المحاولة",
+        showOnMap: "عرض على الخريطة",
+        reviewsLabel: "تقييمات",
+        highlyPopular: "شعبية كبيرة",
+        photos: "صور",
+        showAllPhotos: "عرض جميع الصور",
+        checkInOut: "الدخول / المغادرة",
+        guestsAndRooms: "الضيوف والغرف",
+        yr: "سنة",
+        availableRates: "الأسعار المتاحة",
+        pricesIncludeTaxesAndFees: "الأسعار تشمل الضرائب والرسوم",
+        selected: "محدد",
+        viewPolicies: "عرض السياسات",
+        cancellationTimeline: "الجدول الزمني للإلغاء",
+        penalty: "غرامة",
+        from: "من",
+        standardPoliciesApply: "تطبق السياسات القياسية.",
+        totalStay: "إجمالي الإقامة",
+        selectRate: "اختر السعر",
+        showLessRates: "عرض أسعار أقل",
+        show: "عرض",
+        moreRates: "المزيد من الأسعار",
+        fetchingBestRates: "جاري جلب أفضل الأسعار..."
+    },
+    es: {
+        roomsAndRates: "Habitaciones y Tarifas",
+        overview: "Descripción General",
+        amenities: "Servicios",
+        transportation: "Transporte",
+        policies: "Políticas",
+        reviews: "Reseñas",
+        boardType: "Tipo de Régimen:",
+        allBoards: "Todos los Regímenes",
+        policyLabel: "Política:",
+        allPolicies: "Todas las Políticas",
+        freeCancellation: "Cancelación Gratuita",
+        nonRefundable: "No Reembolsable",
+        roomTypesFound: "Tipos de Habitación Encontrados",
+        instantConfirmationAvailable: "Confirmación Instantánea Disponible",
+        reservationSummary: "Resumen de la Reserva",
+        pleaseSelectARoom: "Por favor seleccione una habitación",
+        guests: "Huéspedes",
+        nationality: "Nacionalidad",
+        dates: "Fechas",
+        stay: "Estancia",
+        nights: "Noches",
+        night: "Noche",
+        totalStayPrice: "Precio Total de la Estancia (Neto)",
+        checkingBestRates: "Buscando las Mejores Tarifas...",
+        instantReservation: "Reserva Instantánea",
+        b2bAgencyRatesApplied: "TARIFAS DE AGENCIA B2B APLICADAS",
+        adults: "Adultos",
+        adult: "Adulto",
+        children: "Niños",
+        child: "Niño",
+        room: "Habitación",
+        remove: "Eliminar",
+        childAge: "Edad del Niño",
+        addAnotherRoom: "Añadir Otra Habitación",
+        backToSearch: "Volver a la Búsqueda",
+        tryAgain: "Intentar de Nuevo",
+        showOnMap: "Mostrar en el Mapa",
+        reviewsLabel: "reseñas",
+        highlyPopular: "Muy Popular",
+        photos: "Fotos",
+        showAllPhotos: "Mostrar Todas las Fotos",
+        checkInOut: "Entrada / Salida",
+        guestsAndRooms: "Huéspedes y Habitaciones",
+        yr: "años",
+        availableRates: "Tarifas Disponibles",
+        pricesIncludeTaxesAndFees: "Los precios incluyen tasas y cargos",
+        selected: "Seleccionado",
+        viewPolicies: "Ver Políticas",
+        cancellationTimeline: "Calendario de Cancelación",
+        penalty: "Penalización",
+        from: "Desde",
+        standardPoliciesApply: "Se aplican las políticas estándar.",
+        totalStay: "Estancia Total",
+        selectRate: "Seleccionar Tarifa",
+        showLessRates: "Mostrar Menos Tarifas",
+        show: "Mostrar",
+        moreRates: "Más Tarifas",
+        fetchingBestRates: "Buscando las mejores tarifas..."
+    },
+    ru: {
+        roomsAndRates: "Номера и Цены",
+        overview: "Обзор",
+        amenities: "Удобства",
+        transportation: "Транспорт",
+        policies: "Правила",
+        reviews: "Отзывы",
+        boardType: "Тип питания:",
+        allBoards: "Все варианты питания",
+        policyLabel: "Правило отмены:",
+        allPolicies: "Все правила",
+        freeCancellation: "Бесплатная отмена",
+        nonRefundable: "Невозвратный",
+        roomTypesFound: "Типов номеров найдено",
+        instantConfirmationAvailable: "Доступно моментальное подтверждение",
+        reservationSummary: "Детали бронирования",
+        pleaseSelectARoom: "Пожалуйста, выберите номер",
+        guests: "Гости",
+        nationality: "Гражданство",
+        dates: "Даты",
+        stay: "Пребывание",
+        nights: "Ночей",
+        night: "Ночь",
+        totalStayPrice: "Итого к оплате (Нетто)",
+        checkingBestRates: "Поиск лучших тарифов...",
+        instantReservation: "Моментальное бронирование",
+        b2bAgencyRatesApplied: "ПРИМЕНЕНЫ ТАРИФЫ АГЕНТСТВА B2B",
+        adults: "Взрослых",
+        adult: "Взрослый",
+        children: "Детей",
+        child: "Ребенок",
+        room: "Номер",
+        remove: "Удалить",
+        childAge: "Возраст ребенка",
+        addAnotherRoom: "Добавить еще номер",
+        backToSearch: "Назад к поиску",
+        tryAgain: "Попробовать снова",
+        showOnMap: "Показать на карте",
+        reviewsLabel: "отзывов",
+        highlyPopular: "Очень популярно",
+        photos: "Фото",
+        showAllPhotos: "Показать все фото",
+        checkInOut: "Заезд / Выезд",
+        guestsAndRooms: "Гости и Номера",
+        yr: "лет",
+        availableRates: "Доступные тарифы",
+        pricesIncludeTaxesAndFees: "Цены включают налоги и сборы",
+        selected: "Выбрано",
+        viewPolicies: "Посмотреть правила",
+        cancellationTimeline: "Сроки отмены",
+        penalty: "Штраф",
+        from: "С",
+        standardPoliciesApply: "Применяются стандартные правила.",
+        totalStay: "Всего пребывание",
+        selectRate: "Выбрать тариф",
+        showLessRates: "Показать меньше тарифов",
+        show: "Показать",
+        moreRates: "Еще тарифы",
+        fetchingBestRates: "Получение лучших цен..."
+    },
+    zh: {
+        roomsAndRates: "客房与价格",
+        overview: "概述",
+        amenities: "便利设施",
+        transportation: "交通出行",
+        policies: "政策条款",
+        reviews: "客户评价",
+        boardType: "膳食类型:",
+        allBoards: "所有膳食",
+        policyLabel: "取消政策:",
+        allPolicies: "所有政策",
+        freeCancellation: "免费取消",
+        nonRefundable: "不可退款",
+        roomTypesFound: "找到的客房类型",
+        instantConfirmationAvailable: "可立即确认",
+        reservationSummary: "预订摘要",
+        pleaseSelectARoom: "请选择客房",
+        guests: "宾客人数",
+        nationality: "国籍",
+        dates: "日期",
+        stay: "入住时长",
+        nights: "晚",
+        night: "晚",
+        totalStayPrice: "总房价 (净价)",
+        checkingBestRates: "正在查询最佳价格...",
+        instantReservation: "立即预订",
+        b2bAgencyRatesApplied: "已应用 B2B 代理商特惠价格",
+        adults: "成人",
+        adult: "成人",
+        children: "儿童",
+        child: "儿童",
+        room: "客房",
+        remove: "移除",
+        childAge: "儿童年龄",
+        addAnotherRoom: "添加另一间客房",
+        backToSearch: "返回搜索",
+        tryAgain: "重试",
+        showOnMap: "在地图上显示",
+        reviewsLabel: "条评价",
+        highlyPopular: "极具人气",
+        photos: "张照片",
+        showAllPhotos: "显示所有照片",
+        checkInOut: "入住 / 退房",
+        guestsAndRooms: "宾客与客房",
+        yr: "岁",
+        availableRates: "可用价格",
+        pricesIncludeTaxesAndFees: "价格已含税费",
+        selected: "已选",
+        viewPolicies: "查看政策",
+        cancellationTimeline: "取消期限",
+        penalty: "罚金",
+        from: "自",
+        standardPoliciesApply: "适用标准政策。",
+        totalStay: "总入住",
+        selectRate: "选择价格",
+        showLessRates: "显示较少价格",
+        show: "显示",
+        moreRates: "更多价格",
+        fetchingBestRates: "正在获取最佳价格..."
+    },
+    ja: {
+        roomsAndRates: "客室と料金",
+        overview: "概要",
+        amenities: "アメニティ",
+        transportation: "交通機関",
+        policies: "ポリシー",
+        reviews: "クチコミ",
+        boardType: "食事タイプ:",
+        allBoards: "すべての食事",
+        policyLabel: "ポリシー:",
+        allPolicies: "すべてのポリシー",
+        freeCancellation: "キャンセル無料",
+        nonRefundable: "返金不可",
+        roomTypesFound: "件の部屋タイプが見つかりました",
+        instantConfirmationAvailable: "即時確約可能",
+        reservationSummary: "予約内容",
+        pleaseSelectARoom: "部屋を選択してください",
+        guests: "ゲスト数",
+        nationality: "国籍",
+        dates: "日程",
+        stay: "滞在",
+        nights: "泊",
+        night: "泊",
+        totalStayPrice: "合計滞在料金 (ネット)",
+        checkingBestRates: "最安料金を確認中...",
+        instantReservation: "即時予約",
+        b2bAgencyRatesApplied: "B2B代理店向け料金適用済み",
+        adults: "大人",
+        adult: "大人",
+        children: "子供",
+        child: "子供",
+        room: "部屋",
+        remove: "削除",
+        childAge: "子供の年齢",
+        addAnotherRoom: "別の部屋を追加",
+        backToSearch: "検索に戻る",
+        tryAgain: "もう一度試す",
+        showOnMap: "地図で見る",
+        reviewsLabel: "件のクチコミ",
+        highlyPopular: "大人気",
+        photos: "枚の写真",
+        showAllPhotos: "すべての写真を表示",
+        checkInOut: "チェックイン・アウト",
+        guestsAndRooms: "ゲストと部屋",
+        yr: "歳",
+        availableRates: "利用可能な料金",
+        pricesIncludeTaxesAndFees: "料金には税金と手数料が含まれています",
+        selected: "選択済み",
+        viewPolicies: "ポリシーを表示",
+        cancellationTimeline: "キャンセル期間",
+        penalty: "ペナルティ",
+        from: "から",
+        standardPoliciesApply: "標準ポリシーが適用されます。",
+        totalStay: "合計滞在",
+        selectRate: "料金を選択",
+        showLessRates: "表示数を減らす",
+        show: "表示",
+        moreRates: "件の追加料金",
+        fetchingBestRates: "最安値を検索中..."
+    },
+    fa: {
+        roomsAndRates: "اتاق‌ها و نرخ‌ها",
+        overview: "بررسی اجمالی",
+        amenities: "امکانات رفاهی",
+        transportation: "حمل و نقل",
+        policies: "قوانین و سیاست‌ها",
+        reviews: "نظرات",
+        boardType: "نوع خدمات غذا:",
+        allBoards: "همه وعده‌های غذایی",
+        policyLabel: "قوانین:",
+        allPolicies: "همه قوانین",
+        freeCancellation: "کنسلی رایگان",
+        nonRefundable: "غیرقابل استرداد",
+        roomTypesFound: "نوع اتاق پیدا شد",
+        instantConfirmationAvailable: "تایید فوری در دسترس است",
+        reservationSummary: "خلاصه رزرو",
+        pleaseSelectARoom: "لطفاً یک اتاق انتخاب کنید",
+        guests: "مهمانان",
+        nationality: "ملیت",
+        dates: "تاریخ‌ها",
+        stay: "اقامت",
+        nights: "شب",
+        night: "شب",
+        totalStayPrice: "کل هزینه اقامت (خالص)",
+        checkingBestRates: "در حال بررسی بهترین نرخ‌ها...",
+        instantReservation: "رزرو فوری",
+        b2bAgencyRatesApplied: "نرخ‌های آژانس B2B اعمال شد",
+        adults: "بزرگسال",
+        adult: "بزرگسال",
+        children: "کودک",
+        child: "کودک",
+        room: "اتاق",
+        remove: "حذف",
+        childAge: "سن کودک",
+        addAnotherRoom: "افزودن اتاق دیگر",
+        backToSearch: "بازگشت به جستجو",
+        tryAgain: "تلاش مجدد",
+        showOnMap: "نمایش روی نقشه",
+        reviewsLabel: "نظر",
+        highlyPopular: "بسیار محبوب",
+        photos: "عکس",
+        showAllPhotos: "نمایش همه عکس‌ها",
+        checkInOut: "ورود / خروج",
+        guestsAndRooms: "مهمانان و اتاق‌ها",
+        yr: "سال",
+        availableRates: "نرخ‌های موجود",
+        pricesIncludeTaxesAndFees: "قیمت‌ها شامل مالیات و عوارض است",
+        selected: "انتخاب شده",
+        viewPolicies: "مشاهده قوانین",
+        cancellationTimeline: "جدول زمانی کنسلی",
+        penalty: "جریمه",
+        from: "از",
+        standardPoliciesApply: "قوانین استاندارد اعمال می‌شود.",
+        totalStay: "کل اقامت",
+        selectRate: "انتخاب نرخ",
+        showLessRates: "نمایش نرخ‌های کمتر",
+        show: "نمایش",
+        moreRates: "نرخ‌های بیشتر",
+        fetchingBestRates: "در حال دریافت بهترین نرخ‌ها..."
+    },
+    fr: {
+        roomsAndRates: "Chambres & Tarifs",
+        overview: "Aperçu",
+        amenities: "Équipements",
+        transportation: "Transport",
+        policies: "Politiques",
+        reviews: "Avis",
+        boardType: "Type de Pension:",
+        allBoards: "Toutes les Pensions",
+        policyLabel: "Politique:",
+        allPolicies: "Toutes les Politiques",
+        freeCancellation: "Annulation Gratuite",
+        nonRefundable: "Non Remboursable",
+        roomTypesFound: "Types de Chambres Trouvés",
+        instantConfirmationAvailable: "Confirmation Instantanée Disponible",
+        reservationSummary: "Résumé de la Réservation",
+        pleaseSelectARoom: "Veuillez choisir une chambre",
+        guests: "Voyageurs",
+        nationality: "Nationalité",
+        dates: "Dates",
+        stay: "Séjour",
+        nights: "Nuits",
+        night: "Nuit",
+        totalStayPrice: "Prix Total du Séjour (Net)",
+        checkingBestRates: "Recherche des Meilleurs Tarifs...",
+        instantReservation: "Réservation Instantanée",
+        b2bAgencyRatesApplied: "TARIFS AGENCE B2B APPLIQUÉS",
+        adults: "Adultes",
+        adult: "Adulte",
+        children: "Enfants",
+        child: "Enfant",
+        room: "Chambre",
+        remove: "Supprimer",
+        childAge: "Âge de l'Enfant",
+        addAnotherRoom: "Ajouter une Autre Chambre",
+        backToSearch: "Retour à la Recherche",
+        tryAgain: "Réessayer",
+        showOnMap: "Afficher sur la Carte",
+        reviewsLabel: "avis",
+        highlyPopular: "Très Populaire",
+        photos: "Photos",
+        showAllPhotos: "Afficher Toutes les Photos",
+        checkInOut: "Arrivée / Départ",
+        guestsAndRooms: "Voyageurs & Chambres",
+        yr: "ans",
+        availableRates: "Tarifs Disponibles",
+        pricesIncludeTaxesAndFees: "Les tarifs incluent taxes et frais",
+        selected: "Sélectionné",
+        viewPolicies: "Voir les Politiques",
+        cancellationTimeline: "Calendrier d'Annulation",
+        penalty: "Pénalité",
+        from: "À partir de",
+        standardPoliciesApply: "Les conditions standard s'appliquent.",
+        totalStay: "Séjour Total",
+        selectRate: "Choisir le Tarif",
+        showLessRates: "Afficher Moins de Tarifs",
+        show: "Afficher",
+        moreRates: "Plus de Tarifs",
+        fetchingBestRates: "Recherche des meilleurs tarifs..."
+    },
+    it: {
+        roomsAndRates: "Camere & Tariffe",
+        overview: "Panoramica",
+        amenities: "Servizi",
+        transportation: "Trasporti",
+        policies: "Politiche",
+        reviews: "Recensioni",
+        boardType: "Trattamento:",
+        allBoards: "Tutti i Trattamenti",
+        policyLabel: "Politica:",
+        allPolicies: "Tutte le Politiche",
+        freeCancellation: "Cancellazione Gratuita",
+        nonRefundable: "Non Rimborsabile",
+        roomTypesFound: "Tipi di Camere Trovate",
+        instantConfirmationAvailable: "Conferma Istantanea Disponibile",
+        reservationSummary: "Riepilogo Prenotazione",
+        pleaseSelectARoom: "Seleziona una camera",
+        guests: "Ospiti",
+        nationality: "Nazionalità",
+        dates: "Date",
+        stay: "Soggiorno",
+        nights: "Notti",
+        night: "Notte",
+        totalStayPrice: "Prezzo Totale Soggiorno (Netto)",
+        checkingBestRates: "Verifica delle Migliori Tariffe...",
+        instantReservation: "Prenota Ora",
+        b2bAgencyRatesApplied: "APPLICATE TARIFFE AGENZIA B2B",
+        adults: "Adulti",
+        adult: "Adulto",
+        children: "Bambini",
+        child: "Bambino",
+        room: "Camera",
+        remove: "Rimuovi",
+        childAge: "Età Bambino",
+        addAnotherRoom: "Aggiungi un'Altra Camera",
+        backToSearch: "Torna alla Ricerca",
+        tryAgain: "Riprova",
+        showOnMap: "Mostra sulla Mappa",
+        reviewsLabel: "recensioni",
+        highlyPopular: "Molto Popolare",
+        photos: "Foto",
+        showAllPhotos: "Mostra Tutte le Foto",
+        checkInOut: "Check-in / Out",
+        guestsAndRooms: "Ospiti & Camere",
+        yr: "anni",
+        availableRates: "Tariffe Disponibili",
+        pricesIncludeTaxesAndFees: "I prezzi includono tasse e commissioni",
+        selected: "Selezionato",
+        viewPolicies: "Vedi Politiche",
+        cancellationTimeline: "Termini di Cancellazione",
+        penalty: "Penale",
+        from: "Da",
+        standardPoliciesApply: "Si applicano le condizioni standard.",
+        totalStay: "Soggiorno Totale",
+        selectRate: "Seleziona Tariffa",
+        showLessRates: "Mostra Meno Tariffe",
+        show: "Mostra",
+        moreRates: "Altre Tariffe",
+        fetchingBestRates: "Ricerca delle migliori tariffe..."
+    },
+    el: {
+        roomsAndRates: "Δωμάτια & Τιμές",
+        overview: "Σύνοψη",
+        amenities: "Παροχές",
+        transportation: "Μεταφορές",
+        policies: "Πολιτικές",
+        reviews: "Κριτικές",
+        boardType: "Τύπος Διατροφής:",
+        allBoards: "Όλες οι Διατροφές",
+        policyLabel: "Πολιτική:",
+        allPolicies: "Όλες οι Πολιτικές",
+        freeCancellation: "Δωρεάν Ακύρωση",
+        nonRefundable: "Μη Επιστρεπτέα",
+        roomTypesFound: "Τύποι Δωματίων Βρέθηκαν",
+        instantConfirmationAvailable: "Διαθέσιμη Άμεση Επιβεβαίωση",
+        reservationSummary: "Σύνοψη Κράτησης",
+        pleaseSelectARoom: "Παρακαλώ επιλέξτε δωμάτιο",
+        guests: "Επισκέπτες",
+        nationality: "Υπηκοότητα",
+        dates: "Ημερομηνίες",
+        stay: "Διαμονή",
+        nights: "Νύχτες",
+        night: "Νύχτα",
+        totalStayPrice: "Συνολική Τιμή Διαμονής (Καθαρή)",
+        checkingBestRates: "Έλεγχος Καλύτερων Τιμών...",
+        instantReservation: "Άμεση Κράτηση",
+        b2bAgencyRatesApplied: "ΕΦΑΡΜΟΣΤΗΚΑΝ ΤΙΜΕΣ B2B ΣΥΝΕΡΓΑΤΗ",
+        adults: "Ενήλικες",
+        adult: "Ενήλικας",
+        children: "Παιδιά",
+        child: "Παιδί",
+        room: "Δωμάτιο",
+        remove: "Αφαίρεση",
+        childAge: "Ηλικία Παιδιού",
+        addAnotherRoom: "Προσθήκη Άλλου Δωματίου",
+        backToSearch: "Επιστροφή στην Αναζήτηση",
+        tryAgain: "Δοκιμάστε Ξανά",
+        showOnMap: "Εμφάνιση στο Χάρτη",
+        reviewsLabel: "κριτικές",
+        highlyPopular: "Πολύ Δημοφιλές",
+        photos: "Φωτογραφίες",
+        showAllPhotos: "Εμφάνιση Όλων των Φωτογραφιών",
+        checkInOut: "Check-in / Out",
+        guestsAndRooms: "Επισκέπτες & Δωμάτια",
+        yr: "ετών",
+        availableRates: "Διαθέσιμες Τιμές",
+        pricesIncludeTaxesAndFees: "Οι τιμές περιλαμβάνουν φόρους & τέλη",
+        selected: "Επιλέχθηκε",
+        viewPolicies: "Προβολή Πολιτικών",
+        cancellationTimeline: "Χρονοδιάγραμμα Ακύρωσης",
+        penalty: "Ποινή",
+        from: "Από",
+        standardPoliciesApply: "Ισχύουν οι τυπικές πολιτικές.",
+        totalStay: "Συνολική Διαμονή",
+        selectRate: "Επιλογή Τιμής",
+        showLessRates: "Εμφάνιση Λιγότερων Τιμών",
+        show: "Εμφάνιση",
+        moreRates: "Περισσότερες Τιμές",
+        fetchingBestRates: "Αναζήτηση καλύτερων τιμών..."
+    },
+    pt: {
+        roomsAndRates: "Quartos & Tarifas",
+        overview: "Visão Geral",
+        amenities: "Comodidades",
+        transportation: "Transporte",
+        policies: "Políticas",
+        reviews: "Avaliações",
+        boardType: "Tipo de Pensão:",
+        allBoards: "Todas as Pensões",
+        policyLabel: "Política:",
+        allPolicies: "Todas as Políticas",
+        freeCancellation: "Cancelamento Gratuito",
+        nonRefundable: "Não Reembolsável",
+        roomTypesFound: "Tipos de Quarto Encontrados",
+        instantConfirmationAvailable: "Confirmação Instantânea Disponível",
+        reservationSummary: "Resumo da Reserva",
+        pleaseSelectARoom: "Por favor selecione um quarto",
+        guests: "Hóspedes",
+        nationality: "Nacionalidade",
+        dates: "Datas",
+        stay: "Estadia",
+        nights: "Noites",
+        night: "Noite",
+        totalStayPrice: "Preço Total da Estadia (Líquido)",
+        checkingBestRates: "Verificando Melhores Tarifas...",
+        instantReservation: "Reserva Instantânea",
+        b2bAgencyRatesApplied: "TARIFAS DE AGÊNCIA B2B APLICADAS",
+        adults: "Adultos",
+        adult: "Adulto",
+        children: "Crianças",
+        child: "Criança",
+        room: "Quarto",
+        remove: "Remover",
+        childAge: "Idade da Criança",
+        addAnotherRoom: "Adicionar Outro Quarto",
+        backToSearch: "Voltar à Pesquisa",
+        tryAgain: "Tentar Novamente",
+        showOnMap: "Mostrar no Mapa",
+        reviewsLabel: "avaliações",
+        highlyPopular: "Muito Popular",
+        photos: "Fotos",
+        showAllPhotos: "Mostrar Todas las Fotos",
+        checkInOut: "Entrada / Saída",
+        guestsAndRooms: "Hóspedes e Quartos",
+        yr: "anos",
+        availableRates: "Tarifas Disponíveis",
+        pricesIncludeTaxesAndFees: "Os preços incluem taxas e impostos",
+        selected: "Selecionado",
+        viewPolicies: "Ver Políticas",
+        cancellationTimeline: "Cronograma de Cancelamento",
+        penalty: "Multa",
+        from: "De",
+        standardPoliciesApply: "Aplicam-se as políticas padrão.",
+        totalStay: "Estadia Total",
+        selectRate: "Selecionar Tarifa",
+        showLessRates: "Mostrar Menos Tarifas",
+        show: "Mostrar",
+        moreRates: "Mais Tarifas",
+        fetchingBestRates: "Buscando as melhores tarifas..."
+    }
+};
+
 const HotelDetail = () => {
+    const { i18n } = useTranslation();
+    const currentLang = i18n.language || 'en';
+    const tLocal = (key) => {
+        return LOCAL_TRANSLATIONS[currentLang]?.[key] || LOCAL_TRANSLATIONS['en']?.[key] || key;
+    };
+
     const getCurrencySymbol = (code) => {
         const symbols = {
             'USD': '$',
@@ -880,13 +1610,21 @@ const HotelDetail = () => {
                     onClick={() => window.location.reload()}
                     className="px-8 py-4 bg-primary text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/30"
                 >
-                    Try Again
+                    {tLocal('tryAgain')}
                 </button>
             </div>
         );
     }
 
     const tabs = ['Rooms & Rates', 'Overview', 'Amenities', 'Transportation', 'Policies', 'Reviews'];
+    const tabLabelMap = {
+        'Rooms & Rates': 'roomsAndRates',
+        'Overview': 'overview',
+        'Amenities': 'amenities',
+        'Transportation': 'transportation',
+        'Policies': 'policies',
+        'Reviews': 'reviews'
+    };
 
     return (
         <div className="relative flex min-h-screen flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200 font-sans">
@@ -914,7 +1652,7 @@ const HotelDetail = () => {
                     </div>
                     <Link to={`/hotels?${searchParams.toString()}`} className="flex items-center gap-1.5 text-sm font-bold text-primary group">
                         <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
-                        Back to Search
+                        {tLocal('backToSearch')}
                     </Link>
                 </div>
 
@@ -940,7 +1678,7 @@ const HotelDetail = () => {
                             <button
                                 onClick={() => setIsMapModalOpen(true)}
                                 className="text-primary text-sm font-bold hover:underline">
-                                Show on Map
+                                {tLocal('showOnMap')}
                             </button>
                         </div>
                     </div>
@@ -961,9 +1699,9 @@ const HotelDetail = () => {
                         </div>
                         <div className="flex flex-col items-end border-l border-slate-200 dark:border-slate-700 pl-6">
                             <span className="text-lg font-black text-slate-900 dark:text-white leading-none">{hotel.ratingLabel}</span>
-                            <span className="text-xs text-slate-500 font-bold mt-1">1,240 reviews</span>
+                            <span className="text-xs text-slate-500 font-bold mt-1">1,240 {tLocal('reviewsLabel')}</span>
                             <span className="text-[10px] text-primary font-black flex items-center gap-1 mt-1 uppercase tracking-tighter">
-                                <span className="material-symbols-outlined text-xs fill-1">trending_up</span> Highly Popular
+                                <span className="material-symbols-outlined text-xs fill-1">trending_up</span> {tLocal('highlyPopular')}
                             </span>
                         </div>
                     </div>
@@ -983,7 +1721,7 @@ const HotelDetail = () => {
                     <div className="md:col-span-2 md:row-span-2 relative overflow-hidden ring-1 ring-white/10 shadow-2xl cursor-pointer" onClick={() => openLightbox(0, images)}>
                         <img className="w-full h-full object-cover transition-all duration-700 hover:scale-105" src={images[0]} alt={hotel.name} />
                         <div className="absolute bottom-6 left-6 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-2xl text-xs font-black shadow-2xl border border-white/20">
-                            1 / {images.length} Photos
+                            1 / {images.length} {tLocal('photos')}
                         </div>
                     </div>
                     <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 cursor-pointer" onClick={() => openLightbox(1, images)}>
@@ -1003,7 +1741,7 @@ const HotelDetail = () => {
                         <img className="w-full h-full object-cover group-hover/viewall:scale-110 blur-[2px] transition-all duration-700" src={images[4] || images[0]} alt="" />
                         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center text-white text-center p-4">
                             <span className="material-symbols-outlined text-4xl mb-2 animate-bounce-slow">photo_library</span>
-                            <span className="text-sm font-black uppercase tracking-widest">Show All Photos</span>
+                            <span className="text-sm font-black uppercase tracking-widest">{tLocal('showAllPhotos')}</span>
                         </div>
                     </div>
                 </div>
@@ -1019,12 +1757,12 @@ const HotelDetail = () => {
                                     <span className="material-symbols-outlined text-primary text-xl shrink-0">calendar_month</span>
                                     <div className="flex flex-col flex-1 min-w-0">
                                         <div className="flex items-center justify-between w-full mb-0.5">
-                                            <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400">Check-in / Out</label>
+                                            <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400">{tLocal('checkInOut')}</label>
                                             {checkInDate && checkOutDate && (
                                                 <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 animate-in fade-in zoom-in duration-300">
                                                     <span className="material-symbols-outlined text-[12px] leading-none">bedtime</span>
                                                     <span className="text-[9px] font-black uppercase tracking-tight">
-                                                        {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} nights
+                                                        {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} {tLocal('nights')}
                                                     </span>
                                                 </div>
                                             )}
@@ -1061,9 +1799,9 @@ const HotelDetail = () => {
                                 >
                                     <span className="material-symbols-outlined text-primary text-xl shrink-0 group-hover/guest:scale-110 transition-transform">group</span>
                                     <div className="flex flex-col flex-1 min-w-0">
-                                        <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">Guests & Rooms</label>
+                                        <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">{tLocal('guestsAndRooms')}</label>
                                         <span className="text-[13px] font-black text-slate-900 dark:text-white whitespace-nowrap block truncate">
-                                            {totalAdults} Adults, {totalChildren} Child
+                                            {totalAdults} {totalAdults > 1 ? tLocal('adults') : tLocal('adult')}, {totalChildren} {totalChildren > 1 ? tLocal('children') : tLocal('child')}
                                         </span>
                                     </div>
                                     <span className="material-symbols-outlined text-slate-400 text-lg group-hover/guest:translate-y-0.5 transition-transform">expand_more</span>
@@ -1074,14 +1812,14 @@ const HotelDetail = () => {
                                         {roomState.map((room, index) => (
                                             <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0">
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <div className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Room {index + 1}</div>
+                                                    <div className="text-[9px] font-black uppercase text-slate-400 tracking-widest">{tLocal('room')} {index + 1}</div>
                                                     {roomState.length > 1 && (
-                                                        <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-[9px] font-black uppercase tracking-widest">Remove</button>
+                                                        <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-[9px] font-black uppercase tracking-widest">{tLocal('remove')}</button>
                                                     )}
                                                 </div>
 
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <div className="text-xs font-black uppercase tracking-tight">Adults</div>
+                                                    <div className="text-xs font-black uppercase tracking-tight">{tLocal('adults')}</div>
                                                     <div className="flex items-center gap-3">
                                                         <button onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">remove</span></button>
                                                         <span className="w-4 text-center text-xs font-black">{room.adults}</span>
@@ -1090,7 +1828,7 @@ const HotelDetail = () => {
                                                 </div>
 
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <div className="text-xs font-black uppercase tracking-tight">Children</div>
+                                                    <div className="text-xs font-black uppercase tracking-tight">{tLocal('children')}</div>
                                                     <div className="flex items-center gap-3">
                                                         <button onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">remove</span></button>
                                                         <span className="w-4 text-center text-xs font-black">{room.children}</span>
@@ -1102,13 +1840,13 @@ const HotelDetail = () => {
                                                     <div className="grid grid-cols-2 gap-2 pt-1">
                                                         {room.childAges.map((age, ageIdx) => (
                                                             <div key={ageIdx} className="space-y-1">
-                                                                <label className="text-[8px] font-black uppercase text-slate-400">Child {ageIdx + 1} Age</label>
+                                                                <label className="text-[8px] font-black uppercase text-slate-400">{tLocal('child')} {ageIdx + 1} {tLocal('childAge')}</label>
                                                                 <select
                                                                     value={age}
                                                                     onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
                                                                     className="w-full h-8 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-[10px] px-1 font-black focus:border-primary focus:ring-0"
                                                                 >
-                                                                    {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} yr</option>)}
+                                                                    {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {tLocal('yr')}</option>)}
                                                                 </select>
                                                             </div>
                                                         ))}
@@ -1123,7 +1861,7 @@ const HotelDetail = () => {
                                                 className="w-full py-3 mt-2 bg-primary/5 text-primary rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-primary/10 transition-all border border-dashed border-primary/20 flex items-center justify-center gap-2"
                                             >
                                                 <span className="material-symbols-outlined text-sm">add_circle</span>
-                                                Add Another Room
+                                                {tLocal('addAnotherRoom')}
                                             </button>
                                         )}
                                     </div>
@@ -1133,7 +1871,7 @@ const HotelDetail = () => {
                             <div className="md:col-span-2 relative group/nat">
                                 <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-transparent hover:bg-slate-100 dark:hover:bg-slate-700/50 px-3 rounded-xl transition-all h-full">
                                     <div className="flex flex-col flex-1 min-w-0">
-                                        <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">Nationality</label>
+                                        <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">{tLocal('nationality')}</label>
                                         <NationalitySelect
                                             value={nationality}
                                             onChange={setNationality}
@@ -1162,7 +1900,7 @@ const HotelDetail = () => {
                                         onClick={() => setActiveTab(tab)}
                                         className={`py-4 text-sm font-black whitespace-nowrap transition-all border-b-2 ${activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
                                     >
-                                        {tab}
+                                        {tLocal(tabLabelMap[tab])}
                                     </button>
                                 ))}
                             </div>
@@ -1175,34 +1913,34 @@ const HotelDetail = () => {
                                         <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-white/20">
                                             <div className="flex items-center gap-2">
                                                 <span className="material-symbols-outlined text-sm text-primary">restaurant</span>
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Board Type:</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{tLocal('boardType')}</span>
                                                 <select 
                                                     value={boardTypeFilter} 
                                                     onChange={(e) => setBoardTypeFilter(e.target.value)}
                                                     className="bg-transparent border-none text-xs font-bold focus:ring-0 cursor-pointer"
                                                 >
-                                                    <option value="ALL">All Boards</option>
+                                                    <option value="ALL">{tLocal('allBoards')}</option>
                                                     {Object.keys(BOARD_TYPES).map(code => (
-                                                        <option key={code} value={code}>{getBoardTypeLabel(code)}</option>
+                                                        <option key={code} value={code}>{getBoardTypeLabel(code, currentLang)}</option>
                                                     ))}
                                                 </select>
                                             </div>
                                             <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 hidden md:block"></div>
                                             <div className="flex items-center gap-2">
                                                 <span className="material-symbols-outlined text-sm text-primary">event_busy</span>
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Policy:</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{tLocal('policyLabel')}</span>
                                                 <select 
                                                     value={cancelFilter} 
                                                     onChange={(e) => setCancelFilter(e.target.value)}
                                                     className="bg-transparent border-none text-xs font-bold focus:ring-0 cursor-pointer"
                                                 >
-                                                    <option value="ALL">All Policies</option>
-                                                    <option value="FREE">Free Cancellation</option>
-                                                    <option value="NON_REFUNDABLE">Non-Refundable</option>
+                                                    <option value="ALL">{tLocal('allPolicies')}</option>
+                                                    <option value="FREE">{tLocal('freeCancellation')}</option>
+                                                    <option value="NON_REFUNDABLE">{tLocal('nonRefundable')}</option>
                                                 </select>
                                             </div>
                                             <div className="ml-auto text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                                {groupedRooms.length} Room Types Found
+                                                {groupedRooms.length} {tLocal('roomTypesFound')}
                                             </div>
                                         </div>
 
@@ -1262,7 +2000,7 @@ const HotelDetail = () => {
                                                 {/* Loading label */}
                                                 <div className="flex items-center justify-center gap-3 py-2">
                                                     <div className="size-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Fetching best rates...</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{tLocal('fetchingBestRates')}</p>
                                                 </div>
                                             </div>
                                         ) : (
@@ -1310,20 +2048,20 @@ const HotelDetail = () => {
                                                                                 {roomGroup.squareMeter}
                                                                             </span>
                                                                         )}
-                                                                        <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-wider border border-orange-500/10 backdrop-blur-md">
+                                                                        <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-wider border border-orange-500/10 backdrop-blur-md" lang="en">
                                                                             {roomGroup.roomPaxCapacity || roomGroup.maxAdult} Pax
                                                                         </span>
                                                                     </div>
 
                                                                     <div className="mb-4 pr-24">
-                                                                        <h3 className="text-2xl font-black mb-1 uppercase tracking-tight text-slate-900 dark:text-white leading-tight truncate">{roomName}</h3>
+                                                                        <h3 className="text-2xl font-black mb-1 uppercase tracking-tight text-slate-900 dark:text-white leading-tight truncate" lang="en">{roomName}</h3>
                                                                         <div className="flex gap-3 text-slate-500 dark:text-slate-400">
                                                                             <span className="flex items-center gap-1 text-[10px] font-bold uppercase">
-                                                                                <span className="material-symbols-outlined text-sm text-primary">group</span> {roomGroup.maxAdult} Adults
+                                                                                <span className="material-symbols-outlined text-sm text-primary">group</span> {roomGroup.maxAdult} {roomGroup.maxAdult > 1 ? tLocal('adults') : tLocal('adult')}
                                                                             </span>
                                                                             {roomGroup.maxChildren > 0 && (
                                                                                 <span className="flex items-center gap-1 text-[10px] font-bold uppercase">
-                                                                                    <span className="material-symbols-outlined text-sm text-primary">child_care</span> {roomGroup.maxChildren} Children
+                                                                                    <span className="material-symbols-outlined text-sm text-primary">child_care</span> {roomGroup.maxChildren} {roomGroup.maxChildren > 1 ? tLocal('children') : tLocal('child')}
                                                                                 </span>
                                                                             )}
                                                                         </div>
@@ -1372,7 +2110,6 @@ const HotelDetail = () => {
                                                                             const items = Object.values(groupedAttributes);
                                                                             const visibleItems = items.slice(0, 12);
                                                                             const remainingCount = items.length - 12;
-
                                                                             return (
                                                                                 <>
                                                                                     {visibleItems.map((item, i) => (
@@ -1412,8 +2149,8 @@ const HotelDetail = () => {
                                                         {/* Rates List Section */}
                                                         <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-black/20 p-4 sm:p-6 space-y-3 rounded-b-[28px]">
                                                             <div className="flex items-center justify-between mb-2">
-                                                                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Available Rates</h4>
-                                                                <div className="text-[9px] font-bold text-slate-400 uppercase">Prices include taxes & fees</div>
+                                                                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{tLocal('availableRates')}</h4>
+                                                                <div className="text-[9px] font-bold text-slate-400 uppercase">{tLocal('pricesIncludeTaxesAndFees')}</div>
                                                             </div>
                                                             
                                                             {ratesToShow.map((rateItem, rateIdx) => {
@@ -1438,38 +2175,38 @@ const HotelDetail = () => {
                                                                             </div>
                                                                             <div className="flex-1 min-w-0">
                                                                                 <div className="flex items-center gap-2 mb-1">
-                                                                                    <p className="font-black text-xs uppercase tracking-wide text-slate-900 dark:text-white">{getBoardTypeLabel(boardType)}</p>
+                                                                                    <p className="font-black text-xs uppercase tracking-wide text-slate-900 dark:text-white">{getBoardTypeLabel(boardType, currentLang)}</p>
                                                                                     {isSelected && (
-                                                                                        <span className="bg-primary text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase">Selected</span>
+                                                                                        <span className="bg-primary text-white text-[7px] font-black px-2 py-0.5 rounded-full uppercase" lang="en">{tLocal('selected')}</span>
                                                                                     )}
                                                                                 </div>
                                                                                 <div className="flex flex-wrap items-center gap-2">
                                                                                     <RefundPolicyTooltip
                                                                                         isRefundable={isFreeCancel}
-                                                                                        textOverride={isFreeCancel ? 'Free Cancellation' : 'Non-Refundable'}
+                                                                                        textOverride={isFreeCancel ? tLocal('freeCancellation') : tLocal('nonRefundable')}
                                                                                         className={`text-[8px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'}`}
                                                                                     />
                                                                                     <div className="group/cancel relative">
-                                                                                        <span className="text-[8px] font-bold text-slate-400 hover:text-primary transition-colors cursor-help border-b border-dashed border-slate-300">View Policies</span>
+                                                                                        <span className="text-[8px] font-bold text-slate-400 hover:text-primary transition-colors cursor-help border-b border-dashed border-slate-300">{tLocal('viewPolicies')}</span>
                                                                                         <div className="absolute bottom-full left-0 mb-3 w-72 p-5 bg-slate-900 dark:bg-slate-950 text-white rounded-[24px] shadow-2xl opacity-0 invisible group-hover/cancel:opacity-100 group-hover/cancel:visible transition-all z-[100] border border-slate-700/50 backdrop-blur-xl scale-95 group-hover/cancel:scale-100 origin-bottom-left duration-300">
                                                                                             <div className="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
                                                                                                 <span className="material-symbols-outlined text-sm text-primary">event_busy</span>
-                                                                                                <p className="text-[10px] uppercase font-black tracking-widest">Cancellation Timeline</p>
+                                                                                                <p className="text-[10px] uppercase font-black tracking-widest">{tLocal('cancellationTimeline')}</p>
                                                                                             </div>
                                                                                             <div className="space-y-4">
                                                                                                 {rateItem.hubRateModel?.price?.cancellationPolicies?.length > 0 ? (
                                                                                                     rateItem.hubRateModel.price.cancellationPolicies.map((policy, idx) => (
                                                                                                         <div key={idx} className="relative pl-4 border-l-2 border-slate-800">
                                                                                                             <div className="flex justify-between items-start mb-1.5">
-                                                                                                                <span className="text-[9px] font-black text-slate-400 uppercase">Penalty</span>
-                                                                                                                <span className={`text-[11px] font-black ${policy.amount === 0 ? 'text-emerald-400' : 'text-orange-400'}`}>
+                                                                                                                <span className="text-[9px] font-black text-slate-400 uppercase">{tLocal('penalty')}</span>
+                                                                                                                <span className={`text-[11px] font-black ${policy.amount === 0 ? 'text-emerald-400' : 'text-orange-400'}`} lang="en">
                                                                                                                     {policy.currency} {policy.amount}
                                                                                                                 </span>
                                                                                                             </div>
-                                                                                                            <p className="text-[9px] text-slate-300 font-bold">From: {formatPolicyDate(policy.fromDate)}</p>
+                                                                                                            <p className="text-[9px] text-slate-300 font-bold">{tLocal('from')}: {formatPolicyDate(policy.fromDate)}</p>
                                                                                                         </div>
                                                                                                     ))
-                                                                                                ) : <p className="text-[10px] text-slate-500 italic">Standard policies apply.</p>}
+                                                                                                ) : <p className="text-[10px] text-slate-500 italic">{tLocal('standardPoliciesApply')}</p>}
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
@@ -1765,14 +2502,14 @@ const HotelDetail = () => {
                                 {/* Content */}
                                 <div className="relative p-8 z-10">
 
-                                    <div className="flex items-center gap-2 text-primary font-black text-[10px] mb-6 uppercase tracking-[0.2em] bg-primary/5 dark:bg-primary/20 p-3 rounded-2xl border border-primary/10 backdrop-blur-md">
+                                    <div className="flex items-center gap-2 text-primary font-black text-[10px] mb-6 uppercase tracking-[0.2em] bg-primary/5 dark:bg-primary/20 p-3 rounded-2xl border border-primary/10 backdrop-blur-md" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                         <span className="material-symbols-outlined text-sm fill-1">bolt</span>
-                                        Instant Confirmation Available
+                                        {tLocal('instantConfirmationAvailable')}
                                     </div>
 
-                                    <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                    <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                         <span className="material-symbols-outlined text-sm">auto_awesome</span>
-                                        Reservation Summary
+                                        {tLocal('reservationSummary')}
                                     </h3>
 
                                     <div className="space-y-4 mb-8">
@@ -1793,7 +2530,7 @@ const HotelDetail = () => {
                                                             <span className="material-symbols-outlined text-[16px] group-hover/btn:rotate-90 transition-transform">close</span>
                                                         </button>
                                                         <div className="flex justify-between items-start mb-2 pr-4">
-                                                            <span className="font-black text-slate-900 dark:text-white text-[11px] uppercase tracking-tight line-clamp-2">{idx + 1}. {room.name}</span>
+                                                            <span className="font-black text-slate-900 dark:text-white text-[11px] uppercase tracking-tight line-clamp-2">{idx + 1}. <span lang="en">{room.name}</span></span>
                                                             <div className="flex items-baseline gap-1 shrink-0">
                                                                 <span className="text-[10px] font-black text-primary">{room.currency}</span>
                                                                 <span className="font-black text-primary text-sm leading-none">{room.rate.toFixed(2)}</span>
@@ -1803,7 +2540,7 @@ const HotelDetail = () => {
                                                             <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">{getBoardTypeLabel(boardType)}</span>
                                                             <RefundPolicyTooltip
                                                                 isRefundable={isFreeCancel}
-                                                                textOverride={isFreeCancel ? 'Free Cancellation' : 'Non-Refundable'}
+                                                                textOverride={isFreeCancel ? tLocal('freeCancellation') : tLocal('nonRefundable')}
                                                                 className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}
                                                             />
                                                         </div>
@@ -1813,7 +2550,7 @@ const HotelDetail = () => {
                                         ) : (
                                             <div className="py-12 px-6 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center">
                                                 <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-700 mb-2">bed</span>
-                                                <p className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Please select a room</p>
+                                                <p className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{tLocal('pleaseSelectARoom')}</p>
                                             </div>
                                         )}
                                     </div>
@@ -1821,13 +2558,13 @@ const HotelDetail = () => {
                                     {/* Dynamic Details Section */}
                                     <div className="grid grid-cols-2 gap-3 mb-8">
                                         <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Guests</p>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">{tLocal('guests')}</p>
                                             <p className="text-xs font-black text-slate-900 dark:text-white truncate">
-                                                {totalAdults} Adults, {totalChildren} Child
+                                                {totalAdults} {totalAdults > 1 ? tLocal('adults') : tLocal('adult')}, {totalChildren} {totalChildren > 1 ? tLocal('children') : tLocal('child')}
                                             </p>
                                         </div>
                                         <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Nationality</p>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">{tLocal('nationality')}</p>
                                             <p className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                                                 {nationality}
                                                 <span className="material-symbols-outlined text-[10px] text-primary">verified</span>
@@ -1835,14 +2572,14 @@ const HotelDetail = () => {
                                         </div>
                                         <div className="col-span-2 p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10 flex items-center justify-between">
                                             <div>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Dates</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">{tLocal('dates')}</p>
                                                 <p className="text-xs font-black text-slate-900 dark:text-white">
                                                     {formatDateForUrl(checkInDate)} - {formatDateForUrl(checkOutDate)}
                                                 </p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Stay</p>
-                                                <p className="text-xs font-black text-primary">{nights} Nights</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">{tLocal('stay')}</p>
+                                                <p className="text-xs font-black text-primary">{nights} {nights > 1 ? tLocal('nights') : tLocal('night')}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1852,7 +2589,7 @@ const HotelDetail = () => {
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <span className="material-symbols-outlined text-slate-400 text-sm">receipt_long</span>
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">Total Stay Price (Net)</p>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">{tLocal('totalStayPrice')}</p>
                                                 </div>
                                                 <div className="flex items-baseline gap-1.5 ml-1">
                                                     <span className="text-sm font-black text-primary uppercase tracking-wider">{(selectedRooms[0]?.currency || '$')}</span>
@@ -1880,18 +2617,18 @@ const HotelDetail = () => {
                                             {isCheckingRates ? (
                                                 <>
                                                     <span className="size-5 border-3 border-white/20 border-t-white rounded-full animate-spin"></span>
-                                                    <span className="animate-pulse">Checking Best Rates...</span>
+                                                    <span className="animate-pulse">{tLocal('checkingBestRates')}</span>
                                                 </>
                                             ) : (
                                                 <>
-                                                    Instant Reservation
+                                                    {tLocal('instantReservation')}
                                                     <span className="material-symbols-outlined text-[20px] group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
                                                 </>
                                             )}
                                         </span>
                                     </button>
                                     <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em]">
-                                        B2B AGENCY RATES APPLIED
+                                        {tLocal('b2bAgencyRatesApplied')}
                                     </p>
                                 </div>
                             </div>

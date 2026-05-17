@@ -8,7 +8,21 @@ const NON_REFUNDABLE_TEXT = {
   "fr": "En cas d’annulation ou de non-utilisation de la réservation, le montant de la réservation ne sera pas remboursé.",
   "ru": "В случае отмены бронирования или неиспользования бронирования сумма бронирования не возвращается.",
   "es": "En caso de cancelación o no utilización de la reserva, el importe de la reserva no será reembolsado.",
-  "it": "In caso di cancellazione o mancato utilizzo della prenotazione, l'importo della prenotazione non sarà rimborsato."
+  "it": "In caso di cancellazione o mancato utilizzo della prenotazione, l'importo della prenotazione non sarà rimborsato.",
+  "ar": "في حال إلغاء الحجز أو عدم استخدامه، لن يتم استرداد مبلغ الحجز.",
+  "zh": "如果取消或未使用预订，预订金额将不予退还。",
+  "ja": "予約のキャンセルまたは不使用の場合、予約金額は返金されません。",
+  "fa": "در صورت لغو رزرو یا عدم استفاده از آن، مبلغ رزرو مسترد نخواهد شد.",
+  "el": "Σε περίπτωση ακύρωσης ή μη χρήσης της κράτησης, το ποσό της κράτησης δεν θα επιστραφεί.",
+  "pt": "Em caso de cancelamento ou não utilização da reserva, o valor da reserva não será reembolsado."
+};
+
+const POLICY_TITLE = {
+  en: "Cancellation Policy", tr: "İptal Politikası", ar: "سياسة الإلغاء", es: "Política de Cancelación", ru: "Правила отмены", zh: "取消政策", ja: "キャンセルポリシー", fa: "قوانین کنسلی", fr: "Politique d'Annulation", it: "Politica di Cancellazione", el: "Πολιτική Ακύρωσης", pt: "Política de Cancelamento"
+};
+
+const NO_REFUND_SUB = {
+  en: "No refund", tr: "Geri ödeme yok", ar: "لا يوجد استرداد", es: "Sin reembolso", ru: "Без возврата средств", zh: "不可退款", ja: "返金なし", fa: "بدون استرداد", fr: "Aucun remboursement", it: "Nessun rimborso", el: "Χωρίς επιστροφή χρημάτων", pt: "Sem reembolso"
 };
 
 const RefundPolicyTooltip = ({ isRefundable, className, textOverride }) => {
@@ -83,11 +97,11 @@ const RefundPolicyTooltip = ({ isRefundable, className, textOverride }) => {
                         <div className="flex items-center gap-2 mb-3 pb-3 border-b border-white/10">
                             <span className="material-symbols-outlined text-sm text-red-400">policy</span>
                             <span className="text-[11px] font-black uppercase tracking-widest text-slate-200">
-                                {currentLang === 'tr' ? 'İptal Politikası' : 'Cancellation Policy'}
+                                {POLICY_TITLE[currentLang] || POLICY_TITLE['en']}
                             </span>
                         </div>
                         <div className="mb-2 text-[12px] font-bold text-red-400">
-                            {currentLang === 'tr' ? 'Geri ödeme yok' : 'No refund'}
+                            {NO_REFUND_SUB[currentLang] || NO_REFUND_SUB['en']}
                         </div>
                         <p className="text-[10px] font-medium leading-relaxed whitespace-normal normal-case text-slate-300 text-left">
                             {tooltipText}

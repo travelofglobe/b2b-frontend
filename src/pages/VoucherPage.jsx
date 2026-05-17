@@ -61,11 +61,12 @@ const VoucherPage = () => {
     const formatDateObject = (dateString) => {
         if (!dateString) return { day: '00', month: '---', year: '0000', full: 'N/A' };
         const d = new Date(dateString);
+        const activeLang = localStorage.getItem('language') || 'en';
         return {
             day: String(d.getDate()).padStart(2, '0'),
-            month: d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
+            month: d.toLocaleDateString(activeLang, { month: 'short' }).toUpperCase(),
             year: d.getFullYear(),
-            full: d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+            full: d.toLocaleDateString(activeLang, { month: 'long', day: 'numeric', year: 'numeric' })
         };
     };
 
@@ -84,10 +85,11 @@ const VoucherPage = () => {
             // Remove the [timezone] part for parsing
             let cleanDateString = dateTimeString.replace(/\[([^\]]+)\]/, '');
             const date = new Date(cleanDateString);
+            const activeLang = localStorage.getItem('language') || 'en';
 
             if (isNaN(date.getTime())) return 'Invalid Date';
 
-            return date.toLocaleDateString('en-US', {
+            return date.toLocaleDateString(activeLang, {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric',

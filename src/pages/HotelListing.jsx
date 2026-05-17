@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import HotelCard from '../components/HotelCard';
@@ -10,6 +11,253 @@ import { parseGuestsParam } from '../utils/searchParamsUtils';
 import { hotelService } from '../services/hotelService';
 import { locationService } from '../services/locationService';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
+
+const LISTING_LOCALES = {
+    en: {
+        room: "Room",
+        rooms: "Rooms",
+        guest: "Guest",
+        guests: "Guests",
+        searching: "Searching...",
+        propertiesFound: "properties found",
+        sortBy: "SORT BY:",
+        mapView: "Map View",
+        backToDashboard: "Back to Dashboard",
+        noProperties: "No properties found",
+        recommended: "Most Recommended",
+        ratingDesc: "Guest Rating: High to Low",
+        ratingAsc: "Guest Rating: Low to High",
+        starDesc: "Star Rating: High to Low",
+        starAsc: "Star Rating: Low to High",
+        reachedEnd: "You've reached the end of the list",
+        tryAdjusting: "Try adjusting your filters or location",
+        allHotels: "All Hotels"
+    },
+    tr: {
+        room: "Oda",
+        rooms: "Oda",
+        guest: "Misafir",
+        guests: "Misafir",
+        searching: "Aranıyor...",
+        propertiesFound: "tesis bulundu",
+        sortBy: "SIRALAMA:",
+        mapView: "Harita Görünümü",
+        backToDashboard: "Panele Dön",
+        noProperties: "Tesis bulunamadı",
+        recommended: "En Çok Önerilen",
+        ratingDesc: "Puan: Yüksekten Düşüğe",
+        ratingAsc: "Puan: Düşükten Yükseğe",
+        starDesc: "Yıldız: Yüksekten Düşüğe",
+        starAsc: "Yıldız: Düşükten Yükseğe",
+        reachedEnd: "Listenin sonuna ulaştınız",
+        tryAdjusting: "Filtrelerinizi veya arama kelimenizi değiştirmeyi deneyin",
+        allHotels: "Tüm Oteller"
+    },
+    ar: {
+        room: "غرفة",
+        rooms: "غرف",
+        guest: "نزيل",
+        guests: "نزلاء",
+        searching: "جاري البحث...",
+        propertiesFound: "عقارات تم العثور عليها",
+        sortBy: "ترتيب حسب:",
+        mapView: "عرض الخريطة",
+        backToDashboard: "العودة إلى لوحة القيادة",
+        noProperties: "لم يتم العثور على عقارات",
+        recommended: "الأكثر موصى به",
+        ratingDesc: "تقييم النزلاء: من الأعلى إلى الأقل",
+        ratingAsc: "تقييم النزلاء: من الأقل إلى الأعلى",
+        starDesc: "تصنيف النجوم: من الأعلى إلى الأقل",
+        starAsc: "تصنيف النجوم: من الأقل إلى الأعلى",
+        reachedEnd: "لقد وصلت إلى نهاية القائمة",
+        tryAdjusting: "حاول تعديل الفلاتر أو الموقع",
+        allHotels: "جميع الفنادق"
+    },
+    es: {
+        room: "Habitación",
+        rooms: "Habitaciones",
+        guest: "Huésped",
+        guests: "Huéspedes",
+        searching: "Buscando...",
+        propertiesFound: "propiedades encontradas",
+        sortBy: "ORDENAR POR:",
+        mapView: "Vista de Mapa",
+        backToDashboard: "Volver al Panel",
+        noProperties: "No se encontraron propiedades",
+        recommended: "Más Recomendado",
+        ratingDesc: "Calificación: alta a baja",
+        ratingAsc: "Calificación: baja a alta",
+        starDesc: "Estrellas: alta a baja",
+        starAsc: "Estrellas: baja a alta",
+        reachedEnd: "Has llegado al final de la lista",
+        tryAdjusting: "Intenta ajustar tus filtros o ubicación",
+        allHotels: "Todos los Hoteles"
+    },
+    ru: {
+        room: "Номер",
+        rooms: "Номера",
+        guest: "Гость",
+        guests: "Гости",
+        searching: "Поиск...",
+        propertiesFound: "объектов найдено",
+        sortBy: "СОРТИРОВКА:",
+        mapView: "На карте",
+        backToDashboard: "Панель управления",
+        noProperties: "Объекты не найдены",
+        recommended: "Рекомендуемые",
+        ratingDesc: "Оценка гостей: от высокой к низкой",
+        ratingAsc: "Оценка гостей: от низкой к высокой",
+        starDesc: "Звездность: от высокой к низкой",
+        starAsc: "Звездность: от низкой к высокой",
+        reachedEnd: "Вы дошли до конца списка",
+        tryAdjusting: "Попробуйте изменить фильтры или местоположение",
+        allHotels: "Все отели"
+    },
+    zh: {
+        room: "间客房",
+        rooms: "间客房",
+        guest: "位旅客",
+        guests: "位旅客",
+        searching: "正在搜索...",
+        propertiesFound: "家酒店",
+        sortBy: "排序方式:",
+        mapView: "地图模式",
+        backToDashboard: "返回仪表板",
+        noProperties: "未找到符合条件的酒店",
+        recommended: "推荐",
+        ratingDesc: "评分：从高到低",
+        ratingAsc: "评分：从低到高",
+        starDesc: "星级：从高到低",
+        starAsc: "星级：从低到高",
+        reachedEnd: "您已浏览完所有酒店",
+        tryAdjusting: "请尝试更改筛选条件或搜索位置",
+        allHotels: "所有酒店"
+    },
+    ja: {
+        room: "室",
+        rooms: "室",
+        guest: "名",
+        guests: "名",
+        searching: "検索中...",
+        propertiesFound: "軒のホテルが見つかりました",
+        sortBy: "並べ替え:",
+        mapView: "地図で見る",
+        backToDashboard: "ダッシュボードに戻る",
+        noProperties: "ホテルが見つかりませんでした",
+        recommended: "おすすめ順",
+        ratingDesc: "クチコミ評価：高い順",
+        ratingAsc: "クチコミ評価：低い順",
+        starDesc: "星評価：高い順",
+        starAsc: "星評価：低い順",
+        reachedEnd: "リストの最後に達しました",
+        tryAdjusting: "フィルターまたはエリアを調整してください",
+        allHotels: "すべてのホテル"
+    },
+    fa: {
+        room: "اتاق",
+        rooms: "اتاق",
+        guest: "مسافر",
+        guests: "مسافر",
+        searching: "در حال جستجو...",
+        propertiesFound: "هتل پیدا شد",
+        sortBy: "مرتب‌سازی بر اساس:",
+        mapView: "نمایش روی نقشه",
+        backToDashboard: "بازگشت به پنل کاربری",
+        noProperties: "هیچ هتلی پیدا نشد",
+        recommended: "بیشترین توصیه",
+        ratingDesc: "امتیاز مسافران: زیاد به کم",
+        ratingAsc: "امتیاز مسافران: کم به زیاد",
+        starDesc: "تعداد ستاره: زیاد به کم",
+        starAsc: "تعداد ستاره: کم به زیاد",
+        reachedEnd: "به پایان لیست رسیده‌اید",
+        tryAdjusting: "فیلترها یا موقعیت خود را تغییر دهید",
+        allHotels: "همه هتل‌ها"
+    },
+    fr: {
+        room: "Chambre",
+        rooms: "Chambres",
+        guest: "Voyageur",
+        guests: "Voyageurs",
+        searching: "Recherche...",
+        propertiesFound: "établissements trouvés",
+        sortBy: "TRIER PAR:",
+        mapView: "Vue de Carte",
+        backToDashboard: "Retour au Tableau",
+        noProperties: "Aucun établissement trouvé",
+        recommended: "Plus Recommandés",
+        ratingDesc: "Note des clients : décroissante",
+        ratingAsc: "Note des clients : croissante",
+        starDesc: "Étoiles : décroissant",
+        starAsc: "Étoiles : croissant",
+        reachedEnd: "Vous avez atteint la fin de la liste",
+        tryAdjusting: "Essayez d'ajuster vos filtres ou lieu",
+        allHotels: "Tous les Hôtels"
+    },
+    it: {
+        room: "Camera",
+        rooms: "Camere",
+        guest: "Ospite",
+        guests: "Ospiti",
+        searching: "Ricerca...",
+        propertiesFound: "strutture trovate",
+        sortBy: "ORDINA PER:",
+        mapView: "Mappa",
+        backToDashboard: "Torna alla Dashboard",
+        noProperties: "Nessuna struttura trovata",
+        recommended: "Più Consigliati",
+        ratingDesc: "Valutazione ospiti: alta a bassa",
+        ratingAsc: "Valutazione ospiti: bassa a alta",
+        starDesc: "Stelle: alta a bassa",
+        starAsc: "Stelle: bassa a alta",
+        reachedEnd: "Hai raggiunto la fine della lista",
+        tryAdjusting: "Prova a modificare i filtri o la località",
+        allHotels: "Tutti gli Hotel"
+    },
+    el: {
+        room: "Δωμάτιο",
+        rooms: "Δωμάτια",
+        guest: "Επισκέπτης",
+        guests: "Επισκέπτες",
+        searching: "Αναζήτηση...",
+        propertiesFound: "καταλύματα βρέθηκαν",
+        sortBy: "ΤΑΞΙΝΟΜΗΣΗ ΚΑΤΑ:",
+        mapView: "Προβολή Χάρτη",
+        backToDashboard: "Πίσω στον Πίνακα",
+        noProperties: "Δεν βρέθηκαν καταλύματα",
+        recommended: "Προτεινόμενα",
+        ratingDesc: "Βαθμολογία επισκεπτών: υψηλή προς χαμηλή",
+        ratingAsc: "Βαθμολογία επισκεπτών: χαμηλή προς υψηλή",
+        starDesc: "Αστέρια: υψηλή προς χαμηλή",
+        starAsc: "Αστέρια: χαμηλή προς υψηλή",
+        reachedEnd: "Φτάσατε στο τέλος της λίστας",
+        tryAdjusting: "Δοκιμάστε να αλλάξετε τα φίλτρα ή την τοποθεσία",
+        allHotels: "Όλα τα Ξενοδοχεία"
+    },
+    pt: {
+        room: "Quarto",
+        rooms: "Quartos",
+        guest: "Hóspede",
+        guests: "Hóspedes",
+        searching: "Buscando...",
+        propertiesFound: "propriedades encontradas",
+        sortBy: "ORDENAR POR:",
+        mapView: "Ver no Mapa",
+        backToDashboard: "Voltar ao Painel",
+        noProperties: "Nenhuma propriedade encontrada",
+        recommended: "Mais Recomendados",
+        ratingDesc: "Avaliação: alta para baixa",
+        ratingAsc: "Avaliação: baixa para alta",
+        starDesc: "Estrelas: alta para baixa",
+        starAsc: "Estrelas: baixa para alta",
+        reachedEnd: "Você chegou ao final da lista",
+        tryAdjusting: "Tente ajustar seus filtros ou localidade",
+        allHotels: "Todos os Hotéis"
+    }
+};
+
+const tListing = (key, lang = 'tr') => {
+    return LISTING_LOCALES[lang]?.[key] || LISTING_LOCALES['en']?.[key] || key;
+};
 
 const HotelListing = () => {
     // Mapping of facility IDs to Material Icon names and English labels
@@ -52,6 +300,9 @@ const HotelListing = () => {
         18126: { icon: 'directions_bike', label: 'Bicycle Rental' },
         98415: { icon: 'airport_shuttle', label: 'Airport Shuttle' }
     };
+
+    const { i18n } = useTranslation();
+    const currentLang = i18n.language || localStorage.getItem('language') || 'tr';
 
     const [viewMode, setViewMode] = React.useState('list'); // 'list', 'grid2', 'grid3'
     const params = useParams();
@@ -159,18 +410,35 @@ const HotelListing = () => {
     const themeName = theme ? theme.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
     const campaignName = campaign ? campaign.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
 
-    const pageTitle = campaignName
-        ? `${campaignName} Hotels`
-        : themeName
-            ? `${themeName} Hotels`
-            : locationName
-                ? `Hotels in ${locationName}`
-                : 'All Hotels';
+    const getPageTitle = (lang) => {
+        if (campaignName) {
+            return lang === 'tr' ? `${campaignName} Otelleri` : `${campaignName} Hotels`;
+        }
+        if (themeName) {
+            return lang === 'tr' ? `${themeName} Otelleri` : `${themeName} Hotels`;
+        }
+        if (!locationName) return tListing('allHotels', lang);
+        switch (lang) {
+            case 'tr': return `${locationName} Otelleri`;
+            case 'zh': return `${locationName}酒店`;
+            case 'ja': return `${locationName}のホテル`;
+            case 'ar': return `فنادق في ${locationName}`;
+            case 'fa': return `هتل‌ها در ${locationName}`;
+            case 'ru': return `Отели в ${locationName}`;
+            case 'fr': return `Hôtels à ${locationName}`;
+            case 'it': return `Hotel a ${locationName}`;
+            case 'el': return `Ξενοδοχεία σε ${locationName}`;
+            case 'pt': return `Hotéis em ${locationName}`;
+            case 'es': return `Hoteles en ${locationName}`;
+            default: return `Hotels in ${locationName}`;
+        }
+    };
+    const pageTitle = getPageTitle(currentLang);
 
     // Extract locationId from URL params
     const locationId = searchParams.get('locationId');
 
-    const subtitle = `${totalRooms} Room${totalRooms > 1 ? 's' : ''}, ${totalGuests} Guest${totalGuests !== 1 ? 's' : ''} • ${isLoading && totalProperties === 0 ? 'Searching...' : `${totalProperties || 0} properties found`}`;
+    const subtitle = `${totalRooms} ${totalRooms > 1 ? tListing('rooms', currentLang) : tListing('room', currentLang)}, ${totalGuests} ${totalGuests !== 1 ? tListing('guests', currentLang) : tListing('guest', currentLang)} • ${isLoading && totalProperties === 0 ? tListing('searching', currentLang) : `${totalProperties || 0} ${tListing('propertiesFound', currentLang)}`}`;
 
     // Map API hotel object to UI model
     const mapApiHotelToModel = React.useCallback((apiHotel) => {
@@ -569,7 +837,7 @@ const HotelListing = () => {
                         <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-sm" >
                             <span className="material-symbols-outlined text-lg">arrow_back</span>
                         </div>
-                        Back to Dashboard
+                        {tListing('backToDashboard', currentLang)}
                     </Link>
                 </div>
                 <div className="flex flex-col lg:flex-row gap-8">
@@ -578,21 +846,21 @@ const HotelListing = () => {
                     <div className="flex-1">
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                             <div>
-                                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">{pageTitle}</h1>
+                                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2" lang={currentLang === 'tr' ? 'tr' : 'en'}>{pageTitle}</h1>
                                 <p className="text-slate-500 text-sm font-medium">{subtitle}</p>
                             </div>
                             <div className="flex items-center gap-3">
-                                <span className="text-sm font-bold text-slate-500 whitespace-nowrap">SORT BY:</span>
+                                <span className="text-sm font-bold text-slate-500 whitespace-nowrap">{tListing('sortBy', currentLang)}</span>
                                 <select 
                                     className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-lg text-sm font-bold py-2 pl-4 pr-10 focus:ring-primary focus:border-primary"
                                     onChange={handleSortChange}
                                     value={sortConfig.field ? `${sortConfig.field === 'hotelStarCategoryId' ? 'star' : 'rating'}_${sortConfig.order.toLowerCase()}` : 'recommended'}
                                 >
-                                    <option value="recommended">Most Recommended</option>
-                                    <option value="rating_desc">Guest Rating: High to Low</option>
-                                    <option value="rating_asc">Guest Rating: Low to High</option>
-                                    <option value="star_desc">Star Rating: High to Low</option>
-                                    <option value="star_asc">Star Rating: Low to High</option>
+                                    <option value="recommended">{tListing('recommended', currentLang)}</option>
+                                    <option value="rating_desc">{tListing('ratingDesc', currentLang)}</option>
+                                    <option value="rating_asc">{tListing('ratingAsc', currentLang)}</option>
+                                    <option value="star_desc">{tListing('starDesc', currentLang)}</option>
+                                    <option value="star_asc">{tListing('starAsc', currentLang)}</option>
                                 </select>
                             </div>
                         </div>
@@ -604,7 +872,7 @@ const HotelListing = () => {
                                 className="flex items-center gap-2 text-sm font-bold px-5 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                             >
                                 <span className="material-symbols-outlined text-primary">map</span>
-                                Map View
+                                {tListing('mapView', currentLang)}
                             </Link>
 
                             <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 rounded-lg p-1 border border-slate-100 dark:border-slate-800">
@@ -659,14 +927,14 @@ const HotelListing = () => {
                         <div ref={loaderRef} className="mt-12 py-8 flex flex-col items-center justify-center gap-4">
                             {!hasMore && hotels.length > 0 && (
                                 <p className="text-sm font-black text-slate-400 uppercase tracking-widest border-t border-slate-100 dark:border-slate-800 pt-8 w-full text-center">
-                                    You've reached the end of the list
+                                    {tListing('reachedEnd', currentLang)}
                                 </p>
                             )}
                             {hotels.length === 0 && !isLoading && (
                                 <div className="flex flex-col items-center justify-center py-20 text-center">
                                     <span className="material-symbols-outlined text-6xl text-slate-200 mb-4">search_off</span>
-                                    <h3 className="text-xl font-bold text-slate-400">No properties found</h3>
-                                    <p className="text-slate-500">Try adjusting your filters or location</p>
+                                    <h3 className="text-xl font-bold text-slate-400">{tListing('noProperties', currentLang)}</h3>
+                                    <p className="text-slate-500">{tListing('tryAdjusting', currentLang)}</p>
                                 </div>
                             )}
                         </div>

@@ -3,8 +3,11 @@ import { Link, useLocation } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 import HeaderSearch from './HeaderSearch';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const Header = () => {
+    const { t } = useTranslation();
     const { user, logout } = useAuth();
     const location = useLocation();
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -29,33 +32,33 @@ const Header = () => {
         : user?.email || 'User';
 
     return (
-        <header className="sticky top-0 z-[1100] w-full border-b border-solid border-white/20 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/40 backdrop-blur-xl px-6 lg:px-20 py-3 shadow-sm shadow-slate-200/5 dark:shadow-none">
+        <header className="sticky top-0 z-[1100] w-full border-b border-solid border-white/20 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/40 backdrop-blur-xl px-4 py-2.5 shadow-sm shadow-slate-200/5 dark:shadow-none">
             <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
-                <div className="flex items-center gap-8">
-                    <Link to="/" className="flex items-center gap-3 group">
-                        <div className="size-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20 transition-all duration-500 group-hover:rotate-[15deg] group-hover:scale-110">
-                            <span className="material-symbols-outlined text-2xl fill-1">travel</span>
+                <div className="flex items-center gap-6 flex-grow">
+                    <Link to="/" className="w-[224px] flex-shrink-0 flex items-center gap-3 ltr:border-r rtl:border-l border-slate-200/50 dark:border-slate-800/50 ltr:pr-4 rtl:pl-4 group">
+                        <div className="size-9 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20 transition-all duration-500 group-hover:rotate-[15deg] group-hover:scale-105">
+                            <span className="material-symbols-outlined text-xl fill-1">travel</span>
                         </div>
                         <div className="flex flex-col">
-                            <h2 className="text-slate-900 dark:text-white text-[15px] font-black leading-none tracking-tighter uppercase whitespace-nowrap">
+                            <h2 className="text-slate-900 dark:text-white text-[13px] font-black leading-none tracking-tighter uppercase whitespace-nowrap">
                                 Travel <span className="text-primary">of</span> Globe
                             </h2>
                             <div className="flex items-center gap-1.5 mt-1">
-                                <div className="h-[1px] w-3 bg-primary/40"></div>
+                                <div className="h-[1px] w-2 bg-primary/40"></div>
                                 <p className="text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] whitespace-nowrap leading-none">Global B2B Solutions</p>
                             </div>
                         </div>
                     </Link>
                     {/* Search Bar in Header */}
-                    {/* Search Bar in Header */}
                     <HeaderSearch />
                 </div>
                 <div className="flex items-center gap-6">
 
-                    <div className="flex items-center gap-3 border-l border-slate-200 dark:border-slate-700 pl-6">
+                    <div className="flex items-center gap-3 ltr:border-l rtl:border-r border-slate-200 dark:border-slate-700 ltr:pl-6 rtl:pr-6 gap-x-4">
+                        <LanguageSwitcher />
                         <ThemeToggle />
                         {!user ? (
-                            <Link to="/login" className="text-slate-900 dark:text-white text-sm font-bold px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">Sign In</Link>
+                            <Link to="/login" className="text-slate-900 dark:text-white text-sm font-bold px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">{t('common.signIn')}</Link>
                         ) : (
                             <div className="relative" ref={menuRef}>
                                 <button
@@ -69,24 +72,24 @@ const Header = () => {
                                 </button>
 
                                 {isMenuOpen && (
-                                    <div className="absolute right-0 top-full mt-2 w-[340px] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden z-[9999] animate-in fade-in slide-in-from-top-2">
+                                    <div className="absolute right-0 ltr:right-0 rtl:left-0 top-full mt-2 w-[340px] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden z-[9999] animate-in fade-in slide-in-from-top-2">
                                         <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">My Account</p>
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{t('common.myAccount')}</p>
                                             <p className="text-sm font-bold text-slate-900 dark:text-white truncate" title={userDisplayName}>{userDisplayName}</p>
                                             <p className="text-sm text-slate-500 break-words font-medium mt-0.5">{user.email}</p>
                                         </div>
                                         <div className="p-2 space-y-1">
-                                            <button className="w-full text-left px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-colors">
+                                            <button className="w-full text-left ltr:text-left rtl:text-right px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-colors">
                                                 <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-primary">
                                                     <span className="material-symbols-outlined text-[18px]">person</span>
                                                 </div>
-                                                Profile Details
+                                                {t('common.profileDetails')}
                                             </button>
-                                            <button className="w-full text-left px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-colors">
+                                            <button className="w-full text-left ltr:text-left rtl:text-right px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-colors">
                                                 <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-primary">
                                                     <span className="material-symbols-outlined text-[18px]">settings</span>
                                                 </div>
-                                                Settings
+                                                {t('common.settings')}
                                             </button>
                                             <div className="border-t border-slate-100 dark:border-slate-800 my-1"></div>
                                             <button
@@ -94,12 +97,12 @@ const Header = () => {
                                                     logout();
                                                     setIsMenuOpen(false);
                                                 }}
-                                                className="w-full text-left px-3 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg flex items-center gap-3 transition-colors"
+                                                className="w-full text-left ltr:text-left rtl:text-right px-3 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg flex items-center gap-3 transition-colors"
                                             >
                                                 <div className="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500">
                                                     <span className="material-symbols-outlined text-[18px]">logout</span>
                                                 </div>
-                                                Sign Out
+                                                {t('common.signOut')}
                                             </button>
                                         </div>
                                     </div>

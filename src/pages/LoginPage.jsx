@@ -2,12 +2,15 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import PlaneLoading from '../components/PlaneLoading';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 // Automatically load all images from src/assets/backgrounds
 const backgroundModules = import.meta.glob('../assets/backgrounds/*', { eager: true });
 const backgrounds = Object.values(backgroundModules).map(m => m.default || m);
 
 const LoginPage = () => {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -45,7 +48,7 @@ const LoginPage = () => {
             await login(email, password);
             navigate(from, { replace: true });
         } catch (err) {
-            setError(err.message || 'Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.');
+            setError(err.message || t('login.error'));
         } finally {
             setIsLoading(false);
         }
@@ -70,6 +73,12 @@ const LoginPage = () => {
     return (
         <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden font-sans">
             {isLoading && <PlaneLoading />}
+            
+            {/* Floating Language Switcher for international guests */}
+            <div className="absolute top-6 right-6 z-30">
+                <LanguageSwitcher />
+            </div>
+
             {/* Immersive Background */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute inset-0 bg-slate-900/40 z-10"></div>
@@ -100,7 +109,7 @@ const LoginPage = () => {
                             </h2>
                             <div className="flex items-center gap-2 mt-1.5">
                                 <div className="h-[1px] w-4 bg-primary"></div>
-                                <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.4em] whitespace-nowrap leading-none">B2B Portal</p>
+                                <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.4em] whitespace-nowrap leading-none">Global B2B Solutions</p>
                             </div>
                         </div>
                     </div>
@@ -130,8 +139,8 @@ const LoginPage = () => {
                             <>
                                 {/* Card Header */}
                                 <div className="p-8 pb-0 text-center">
-                                    <h2 className="text-2xl font-black text-white mb-2">Welcome Back</h2>
-                                    <p className="text-slate-400 text-sm font-medium">Please enter your credentials</p>
+                                    <h2 className="text-2xl font-black text-white mb-2">{t('common.signIn')}</h2>
+                                    <p className="text-slate-400 text-sm font-medium">{t('login.subtitle')}</p>
                                 </div>
 
                                 {/* Login Form */}
@@ -146,7 +155,7 @@ const LoginPage = () => {
                                                 required
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
-                                                placeholder="Email Address"
+                                                placeholder={t('login.email')}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-400 font-semibold focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm"
                                             />
                                         </div>
@@ -160,7 +169,7 @@ const LoginPage = () => {
                                                 required
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
-                                                placeholder="Password"
+                                                placeholder={t('login.password')}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-12 text-white placeholder:text-slate-400 font-semibold focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm"
                                             />
                                             <button
@@ -181,7 +190,7 @@ const LoginPage = () => {
                                                 <input type="checkbox" className="appearance-none peer" />
                                                 <div className="hidden peer-checked:block w-2.5 h-2.5 bg-primary rounded-[2px]"></div>
                                             </div>
-                                            <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">Keep me signed in</span>
+                                            <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">{t('login.keepMeSignedIn', 'Keep me signed in')}</span>
                                         </label>
                                         <button 
                                             type="button"
@@ -191,7 +200,7 @@ const LoginPage = () => {
                                             }}
                                             className="text-xs font-bold text-primary hover:text-primary/80 transition-colors"
                                         >
-                                            Recovery?
+                                            {t('login.forgotPassword')}
                                         </button>
                                     </div>
 
@@ -209,7 +218,7 @@ const LoginPage = () => {
                                     >
                                         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                                         <span className="relative flex items-center justify-center gap-2">
-                                            {isLoading ? 'Signing In...' : 'Access Dashboard'}
+                                            {isLoading ? t('login.loggingIn') : t('login.signInButton')}
                                             {!isLoading && <span className="material-symbols-outlined text-sm">arrow_forward</span>}
                                         </span>
                                     </button>

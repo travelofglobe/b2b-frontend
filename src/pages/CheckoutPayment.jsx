@@ -1,5 +1,6 @@
 import React, { useState, useLayoutEffect, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { hotelService } from '../services/hotelService';
@@ -9,9 +10,719 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import CheckoutTimer from '../components/CheckoutTimer';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 
+const confirmLocales = {
+    en: {
+        title: "Are you sure?",
+        message: "If you return to room selection, all entered guest details will be lost."
+    },
+    tr: {
+        title: "Emin misiniz?",
+        message: "Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir."
+    },
+    ar: {
+        title: "هل أنت متأكد؟",
+        message: "إذا عدت إلى اختيار الغرفة، فستفقد جميع تفاصيل النزلاء التي تم إدخالها."
+    },
+    es: {
+        title: "¿Está seguro?",
+        message: "Si regresa a la selección de habitación, se perderán todos los datos ingresados de los huéspedes."
+    },
+    ru: {
+        title: "Вы уверены?",
+        message: "Если вы вернетесь к выбору номера, все введенные данные гостей будут утеряны."
+    },
+    zh: {
+        title: "您确定吗？",
+        message: "如果您返回选择客房，所有已输入的旅客信息都将丢失。"
+    },
+    ja: {
+        title: "よろしいですか？",
+        message: "客室選択に戻ると、入力されたすべての宿泊者情報が失われます。"
+    },
+    fa: {
+        title: "آیا مطمئن هستید؟",
+        message: "در صورت بازگشت به انتخاب اتاق، تمام اطلاعات وارد شده مهمانان پاک خواهد شد."
+    },
+    fr: {
+        title: "Êtes-vous sûr ?",
+        message: "Si vous retournez au choix de la chambre, toutes les coordonnées des voyageurs saisies seront perdues."
+    },
+    it: {
+        title: "Sei sicuro?",
+        message: "Se torni alla scelta della camera, tutti i dettagli degli ospiti inseriti andranno persi."
+    },
+    el: {
+        title: "Είστε σίγουροι;",
+        message: "Εάν επιστρέψετε στην επιλογή δωματίου, όλα τα στοιχεία επισκεπτών που καταχωρίσατε θα χαθούν."
+    },
+    pt: {
+        title: "Tem certeza?",
+        message: "Se você retornar à seleção de quartos, todos os detalhes do hóspede inseridos serão perdidos."
+    }
+};
+const CHECKOUT_SUMMARY_LOCALES = {
+    en: {
+        checkIn: "Check-in",
+        checkOut: "Check-out",
+        nightsStay: "Nights Stay",
+        nightStay: "Night Stay",
+        selectedRooms: "Selected Rooms",
+        dailyRates: "Daily Rates",
+        cancellationPolicy: "Cancellation Policy",
+        flexible: "Flexible",
+        cancellationPenalty: "Cancellation Penalty",
+        freeCancel: "Free Cancel",
+        standardCancellation: "Standard cancellation applies",
+        adults: "Adults",
+        adult: "Adult",
+        children: "Children",
+        child: "Child",
+        roomOnly: "Room Only",
+        night: "Night",
+        nights: "Nights",
+        stay: "Stay",
+        taxesAndFees: "Taxes & Fees",
+        bookingReferences: "Booking References",
+        internalIdentifiers: "Internal identifiers & special requests",
+        clientReferenceId: "Client Reference ID",
+        internalReferenceNumber: "Your internal reference number",
+        specialRemarks: "Special Remarks",
+        enterRemarks: "Any special requests or notes",
+        instantConfirmation: "Instant Confirmation Available",
+        backToRoom: "Back to Room",
+        backToSelection: "Back to Selection",
+        nextRoom: "Next: Room",
+        reviewAndPay: "Review & Pay",
+        totalStayPrice: "Total Stay Price (Net)",
+        taxesIncl: "Taxes Incl.",
+        b2bRates: "B2B AGENCY RATES APPLIED",
+        securePayment: "SECURE PAYMENT",
+        protectedBooking: "TOG Protected Booking",
+        in: "In",
+        out: "Out",
+        leadGuest: "Lead Guest (Contact)",
+        traveler: "Traveler",
+        standardPolicy: "Standard Adult Policy",
+        childPassenger: "Child Passenger",
+        age: "Age",
+        occupancyInfo: "Occupancy Info",
+        rateNotes: "Rate Notes",
+        room: "Room",
+        corporateDepositAccount: "Corporate Deposit Account",
+        verifiedB2bBalance: "Verified B2B Balance",
+        availableFunds: "Available Funds",
+        status: "Status",
+        activeReady: "Active & Ready",
+        insufficientFunds: "Insufficient Funds",
+        deductionAmount: "Deduction Amount",
+        paymentImpact: "Payment Impact",
+        balanceDecrease: "Balance Decrease",
+        deficitAmount: "Deficit Amount",
+        topUpPrompt: "Please top up your account to complete this booking",
+        estimatedNewBalance: "Estimated New Balance"
+    },
+    tr: {
+        checkIn: "Giriş",
+        checkOut: "Çıkış",
+        nightsStay: "Gece Konaklama",
+        nightStay: "Gece Konaklama",
+        selectedRooms: "Seçilen Odalar",
+        dailyRates: "Günlük Fiyatlar",
+        cancellationPolicy: "İptal Kuralı",
+        flexible: "Esnek",
+        cancellationPenalty: "İptal Cezası",
+        freeCancel: "Ücretsiz İptal",
+        standardCancellation: "Standart iptal kuralı geçerlidir",
+        adults: "Yetişkin",
+        adult: "Yetişkin",
+        children: "Çocuk",
+        child: "Çocuk",
+        roomOnly: "Sadece Oda",
+        night: "Gece",
+        nights: "Gece",
+        stay: "Konaklama",
+        taxesAndFees: "Vergiler & Harçlar",
+        bookingReferences: "Rezervasyon Referansları",
+        internalIdentifiers: "Dahili kimlikler ve özel istekler",
+        clientReferenceId: "Müşteri Referans Numarası",
+        internalReferenceNumber: "Dahili referans numaranız",
+        specialRemarks: "Özel Notlar",
+        enterRemarks: "Varsa özel istek ve notlarınızı giriniz",
+        instantConfirmation: "Anında Onaylanabilir Rezervasyon",
+        backToRoom: "Odaya Dön",
+        backToSelection: "Oda Seçimine Dön",
+        nextRoom: "Sonraki: Oda",
+        reviewAndPay: "İncele ve Öde",
+        totalStayPrice: "Toplam Tutar (Net)",
+        taxesIncl: "Vergiler Dahil",
+        b2bRates: "B2B ACENTE FİYATLARI UYGULANDI",
+        securePayment: "GÜVENLİ ÖDEME",
+        protectedBooking: "TOG Korumalı Rezervasyon",
+        in: "Giriş",
+        out: "Çıkış",
+        leadGuest: "Ana Misafir (İletişim)",
+        traveler: "Yolcu",
+        standardPolicy: "Standart Yetişkin Politikası",
+        childPassenger: "Çocuk Yolcu",
+        age: "Yaş",
+        occupancyInfo: "Doluluk Bilgisi",
+        rateNotes: "Fiyat Notları",
+        room: "Oda",
+        corporateDepositAccount: "Kurumsal Depozito Hesabı",
+        verifiedB2bBalance: "Doğrulanmış B2B Bakiyesi",
+        availableFunds: "Kullanılabilir Bakiye",
+        status: "Durum",
+        activeReady: "Aktif ve Hazır",
+        insufficientFunds: "Yetersiz Bakiye",
+        deductionAmount: "Düşülecek Tutar",
+        paymentImpact: "Ödeme Etkisi",
+        balanceDecrease: "Bakiye Azalışı",
+        deficitAmount: "Eksik Tutar",
+        topUpPrompt: "Lütfen bu rezervasyonu tamamlamak için hesabınıza bakiye yükleyin",
+        estimatedNewBalance: "Tahmini Yeni Bakiye"
+    },
+    ar: {
+        checkIn: "تسجيل الوصول",
+        checkOut: "تسجيل المغادرة",
+        nightsStay: "إقامة ليالي",
+        nightStay: "إقامة ليلة",
+        selectedRooms: "الغرف المختارة",
+        dailyRates: "الأسعار اليومية",
+        cancellationPolicy: "سياسة الإلغاء",
+        flexible: "مرن",
+        cancellationPenalty: "غرامة الإلغاء",
+        freeCancel: "إلغاء مجاني",
+        standardCancellation: "تطبق شروط الإلغاء القياسية",
+        adults: "بالغين",
+        adult: "بالغ",
+        children: "أطفال",
+        child: "طفل",
+        roomOnly: "غرفة فقط",
+        night: "ليلة",
+        nights: "ليالي",
+        stay: "إقامة",
+        taxesAndFees: "الضرائب والرسوم",
+        bookingReferences: "مراجع الحجز",
+        internalIdentifiers: "المعرفات الداخلية والطلبات الخاصة",
+        clientReferenceId: "رقم مرجع العميل",
+        internalReferenceNumber: "رقم المرجع الداخلي الخاص بك",
+        specialRemarks: "ملاحظات خاصة",
+        enterRemarks: "أي ملاحظات أو طلبات خاصة",
+        instantConfirmation: "تأكيد فوري متاح",
+        backToRoom: "العودة إلى الغرفة",
+        backToSelection: "العودة إلى الاختيار",
+        nextRoom: "التالي: الغرفة",
+        reviewAndPay: "المراجعة والدفع",
+        totalStayPrice: "إجمالي سعر الإقامة (صافي)",
+        taxesIncl: "شامل الضرائب",
+        b2bRates: "تم تطبيق أسعار وكالات B2B",
+        securePayment: "دفع آمن",
+        protectedBooking: "حجز TOG المحمي",
+        in: "دخول",
+        out: "خروج",
+        leadGuest: "النزيل الرئيسي (الاتصال)",
+        traveler: "مسافر",
+        standardPolicy: "سياسة البالغين القياسية",
+        childPassenger: "مسافر طفل",
+        age: "العمر",
+        occupancyInfo: "معلومات الإشغال",
+        rateNotes: "ملاحظات الأسعار",
+        room: "غرفة"
+    },
+    es: {
+        checkIn: "Entrada",
+        checkOut: "Salida",
+        nightsStay: "Noches de Estancia",
+        nightStay: "Noche de Estancia",
+        selectedRooms: "Habitaciones Seleccionadas",
+        dailyRates: "Tarifas Diarias",
+        cancellationPolicy: "Política de Cancelación",
+        flexible: "Flexible",
+        cancellationPenalty: "Penalización por Cancelación",
+        freeCancel: "Cancelación Gratuita",
+        standardCancellation: "Se aplica la cancelación estándar",
+        adults: "Adultos",
+        adult: "Adulto",
+        children: "Niños",
+        child: "Niño",
+        roomOnly: "Solo Habitación",
+        night: "Noche",
+        nights: "Noches",
+        stay: "Estancia",
+        taxesAndFees: "Impuestos y Tasas",
+        bookingReferences: "Referencias de Reserva",
+        internalIdentifiers: "Identificadores internos y solicitudes especiales",
+        clientReferenceId: "ID de Referencia del Cliente",
+        internalReferenceNumber: "Su número de referencia interno",
+        specialRemarks: "Observaciones Especiales",
+        enterRemarks: "Cualquier solicitud especial o nota",
+        instantConfirmation: "Confirmación Instantánea Disponible",
+        backToRoom: "Volver a la Habitación",
+        backToSelection: "Volver a la Selección",
+        nextRoom: "Siguiente: Habitación",
+        reviewAndPay: "Revisar y Pagar",
+        totalStayPrice: "Precio Total Estancia (Neto)",
+        taxesIncl: "Impuestos Incl.",
+        b2bRates: "TARIFAS DE AGENCIA B2B APLICADAS",
+        securePayment: "PAGO SEGURO",
+        protectedBooking: "Reserva Protegida por TOG",
+        in: "Entrada",
+        out: "Salida",
+        leadGuest: "Huésped Principal (Contacto)",
+        traveler: "Viajero",
+        standardPolicy: "Política de Adultos Estándar",
+        childPassenger: "Pasajero Niño",
+        age: "Edad",
+        occupancyInfo: "Información de Ocupación",
+        rateNotes: "Notas de Tarifa",
+        room: "Habitación"
+    },
+    ru: {
+        checkIn: "Заезд",
+        checkOut: "Выезд",
+        nightsStay: "Ночей пребывания",
+        nightStay: "Ночь пребывания",
+        selectedRooms: "Выбранные номера",
+        dailyRates: "Дневные тарифы",
+        cancellationPolicy: "Правила отмены",
+        flexible: "Гибкий",
+        cancellationPenalty: "Штраф за отмену",
+        freeCancel: "Бесплатная отмена",
+        standardCancellation: "Применяются стандартные правила отмены",
+        adults: "Взрослых",
+        adult: "Взрослый",
+        children: "Детей",
+        child: "Ребенок",
+        roomOnly: "Без питания",
+        night: "Ночь",
+        nights: "Ночей",
+        stay: "Пребывание",
+        taxesAndFees: "Налоги и сборы",
+        bookingReferences: "Ссылки на бронирование",
+        internalIdentifiers: "Внутренние идентификаторы и особые пожелания",
+        clientReferenceId: "ID клиента",
+        internalReferenceNumber: "Ваш внутренний номер",
+        specialRemarks: "Особые отметки",
+        enterRemarks: "Любые особые пожелания или примечания",
+        instantConfirmation: "Мгновенное подтверждение",
+        backToRoom: "Назад к номеру",
+        backToSelection: "Назад к выбору",
+        nextRoom: "Далее: Номер",
+        reviewAndPay: "Проверить и оплатить",
+        totalStayPrice: "Итого стоимость проживания (нетто)",
+        taxesIncl: "Включая налоги",
+        b2bRates: "ПРИМЕНЕНЫ ТАРИФЫ АГЕНТСТВА B2B",
+        securePayment: "БЕЗОПАСНАЯ ОПЛАТА",
+        protectedBooking: "Защищенное бронирование TOG",
+        in: "Заезд",
+        out: "Выезд",
+        leadGuest: "Основной гость (Контакт)",
+        traveler: "Путешественник",
+        standardPolicy: "Стандартные правила для взрослых",
+        childPassenger: "Пассажир-ребенок",
+        age: "Возраст",
+        occupancyInfo: "Информация о размещении",
+        rateNotes: "Примечания к тарифу",
+        room: "Номер"
+    },
+    zh: {
+        checkIn: "入住",
+        checkOut: "退房",
+        nightsStay: "晚住宿",
+        nightStay: "晚住宿",
+        selectedRooms: "已选客房",
+        dailyRates: "每日房价",
+        cancellationPolicy: "取消政策",
+        flexible: "灵活",
+        cancellationPenalty: "取消罚金",
+        freeCancel: "免费取消",
+        standardCancellation: "适用标准取消政策",
+        adults: "成人",
+        adult: "成人",
+        children: "儿童",
+        child: "儿童",
+        roomOnly: "仅限客房",
+        night: "晚",
+        nights: "晚",
+        stay: "住宿",
+        taxesAndFees: "税费",
+        bookingReferences: "预订参考",
+        internalIdentifiers: "内部标识与特殊要求",
+        clientReferenceId: "客户参考编号",
+        internalReferenceNumber: "您的内部参考编号",
+        specialRemarks: "特殊备注",
+        enterRemarks: "任何特殊要求或备注",
+        instantConfirmation: "可即时确认",
+        backToRoom: "返回客房",
+        backToSelection: "返回选择",
+        nextRoom: "下一步：客房",
+        reviewAndPay: "检查并支付",
+        totalStayPrice: "总住宿价格（净价）",
+        taxesIncl: "含税",
+        b2bRates: "已应用 B2B 代理商协议价",
+        securePayment: "安全支付",
+        protectedBooking: "TOG 担保预订",
+        in: "入住",
+        out: "退房",
+        leadGuest: "主要联系人",
+        traveler: "旅客",
+        standardPolicy: "标准成人政策",
+        childPassenger: "儿童旅客",
+        age: "年龄",
+        occupancyInfo: "入住人数信息",
+        rateNotes: "价格备注",
+        room: "客房"
+    },
+    ja: {
+        checkIn: "チェックイン",
+        checkOut: "チェックアウト",
+        nightsStay: "泊の滞在",
+        nightStay: "泊の滞在",
+        selectedRooms: "選択された客室",
+        dailyRates: "日別料金",
+        cancellationPolicy: "キャンセルポリシー",
+        flexible: "柔軟",
+        cancellationPenalty: "キャンセル料",
+        freeCancel: "無料キャンセル",
+        standardCancellation: "標準のキャンセルポリシーが適用されます",
+        adults: "大人",
+        adult: "大人",
+        children: "子供",
+        child: "子供",
+        roomOnly: "食事なし",
+        night: "泊",
+        nights: "泊",
+        stay: "滞在",
+        taxesAndFees: "税金・諸費用",
+        bookingReferences: "予約リファレンス",
+        internalIdentifiers: "内部識別子と特別なリクエスト",
+        clientReferenceId: "クライアント参照ID",
+        internalReferenceNumber: "社内参照番号",
+        specialRemarks: "特別リクエスト",
+        enterRemarks: "特別なリクエストやメモ",
+        instantConfirmation: "即時確定可能",
+        backToRoom: "客室に戻る",
+        backToSelection: "選択に戻る",
+        nextRoom: "次へ: 客室",
+        reviewAndPay: "確認して支払う",
+        totalStayPrice: "合計滞在料金（ネット）",
+        taxesIncl: "税金込",
+        b2bRates: "B2Bエージェンシー料金適用済み",
+        securePayment: "安全な決済",
+        protectedBooking: "TOG保護された予約",
+        in: "イン",
+        out: "アウト",
+        leadGuest: "代表宿泊者（連絡先）",
+        traveler: "宿泊者",
+        standardPolicy: "標準大人ポリシー",
+        childPassenger: "子供の宿泊者",
+        age: "年齢",
+        occupancyInfo: "宿泊人数情報",
+        rateNotes: "料金に関する注意事項",
+        room: "客室"
+    },
+    fa: {
+        checkIn: "ورود",
+        checkOut: "خروج",
+        nightsStay: "شب اقامت",
+        nightStay: "شب اقامت",
+        selectedRooms: "اتاق‌های انتخاب شده",
+        dailyRates: "قیمت‌های روزانه",
+        cancellationPolicy: "قوانین کنسلی",
+        flexible: "قابل انعطاف",
+        cancellationPenalty: "جریمه کنسلی",
+        freeCancel: "کنسلی رایگان",
+        standardCancellation: "کنسلی استاندارد اعمال می‌شود",
+        adults: "بزرگسال",
+        adult: "بزرگسال",
+        children: "کودک",
+        child: "کودک",
+        roomOnly: "فقط اتاق",
+        night: "شب",
+        nights: "شب",
+        stay: "اقامت",
+        taxesAndFees: "مالیات و عوارض",
+        bookingReferences: "مراجع رزرو",
+        internalIdentifiers: "شناسه‌های داخلی و درخواست‌های خاص",
+        clientReferenceId: "شناسه مرجع مشتری",
+        internalReferenceNumber: "شماره مرجع داخلی شما",
+        specialRemarks: "ملاحظات خاص",
+        enterRemarks: "هرگونه درخواست خاص یا یادداشت",
+        instantConfirmation: "تأیید فوری فعال است",
+        backToRoom: "بازگشت به اتاق",
+        backToSelection: "بازگشت به انتخاب",
+        nextRoom: "بعدی: اتاق",
+        reviewAndPay: "بررسی و پرداخت",
+        totalStayPrice: "هزینه کل اقامت (خالص)",
+        taxesIncl: "شامل مالیات",
+        b2bRates: "نرخ‌های آژانس B2B اعمال شد",
+        securePayment: "پرداخت امن",
+        protectedBooking: "رزرو تحت پوشش TOG",
+        in: "ورود",
+        out: "خروج",
+        leadGuest: "مسافر اصلی (تماس)",
+        traveler: "مسافر",
+        standardPolicy: "قانون استاندارد بزرگسال",
+        childPassenger: "مسافر کودک",
+        age: "سن",
+        occupancyInfo: "اطلاعات ظرفیت",
+        rateNotes: "ملاحظات نرخ",
+        room: "اتاق"
+    },
+    fr: {
+        checkIn: "Arrivée",
+        checkOut: "Départ",
+        nightsStay: "Nuits de Séjour",
+        nightStay: "Nuit de Séjour",
+        selectedRooms: "Chambres Sélectionnées",
+        dailyRates: "Tarifs Quotidiens",
+        cancellationPolicy: "Conditions d'Annulation",
+        flexible: "Flexible",
+        cancellationPenalty: "Frais d'Annulation",
+        freeCancel: "Annulation Gratuite",
+        standardCancellation: "Conditions d'annulation standard applicables",
+        adults: "Adultes",
+        adult: "Adulte",
+        children: "Enfants",
+        child: "Enfant",
+        roomOnly: "Chambre Seule",
+        night: "Nuit",
+        nights: "Nuits",
+        stay: "Séjour",
+        taxesAndFees: "Taxes & Frais",
+        bookingReferences: "Références de Réservation",
+        internalIdentifiers: "Identifiants internes & demandes spéciales",
+        clientReferenceId: "Réf. Client",
+        internalReferenceNumber: "Votre numéro de référence interne",
+        specialRemarks: "Remarques Spéciales",
+        enterRemarks: "Demandes spéciales ou notes",
+        instantConfirmation: "Confirmation Instantanée Disponible",
+        backToRoom: "Retour à la Chambre",
+        backToSelection: "Retour à la Sélection",
+        nextRoom: "Suivant: Chambre",
+        reviewAndPay: "Vérifier & Payer",
+        totalStayPrice: "Prix Total Séjour (Net)",
+        taxesIncl: "Taxes Incl.",
+        b2bRates: "TARIFS AGENCE B2B APPLIQUÉS",
+        securePayment: "PAIEMENT SÉCURISÉ",
+        protectedBooking: "Réservation Protégée TOG",
+        in: "Arrivée",
+        out: "Départ",
+        leadGuest: "Client Principal (Contact)",
+        traveler: "Voyageur",
+        standardPolicy: "Politique Adulte Standard",
+        childPassenger: "Voyageur Enfant",
+        age: "Âge",
+        occupancyInfo: "Infos d'Occupation",
+        rateNotes: "Notes de Tarif",
+        room: "Chambre"
+    },
+    it: {
+        checkIn: "Check-in",
+        checkOut: "Check-out",
+        nightsStay: "Notti di Soggiorno",
+        nightStay: "Notte di Soggiorno",
+        selectedRooms: "Camere Selezionate",
+        dailyRates: "Tariffe Giornaliere",
+        cancellationPolicy: "Politica di Cancellazione",
+        flexible: "Flessibile",
+        cancellationPenalty: "Penale di Cancellazione",
+        freeCancel: "Cancellazione Gratuita",
+        standardCancellation: "Si applica la cancellazione standard",
+        adults: "Adulti",
+        adult: "Adulto",
+        children: "Bambini",
+        child: "Bambino",
+        roomOnly: "Solo Pernottamento",
+        night: "Notte",
+        nights: "Notti",
+        stay: "Soggiorno",
+        taxesAndFees: "Tasse & Commissioni",
+        bookingReferences: "Riferimenti di Prenotazione",
+        internalIdentifiers: "Identificativi interni & richieste speciali",
+        clientReferenceId: "ID Riferimento Cliente",
+        internalReferenceNumber: "Tuo numero di riferimento interno",
+        specialRemarks: "Note Particolari",
+        enterRemarks: "Eventuali richieste speciali o note",
+        instantConfirmation: "Conferma Immediata Disponibile",
+        backToRoom: "Torna alla Camera",
+        backToSelection: "Torna alla Selezione",
+        nextRoom: "Successivo: Camera",
+        reviewAndPay: "Verifica & Paga",
+        totalStayPrice: "Prezzo Totale Soggiorno (Netto)",
+        taxesIncl: "Tasse Incl.",
+        b2bRates: "APPLICATE TARIFFE B2B AGENZIA",
+        securePayment: "PAGAMENTO SICURO",
+        protectedBooking: "Prenotazione Protetta TOG",
+        in: "Ingresso",
+        out: "Uscita",
+        leadGuest: "Ospite Principale (Contatto)",
+        traveler: "Ospite",
+        standardPolicy: "Politica Adulti Standard",
+        childPassenger: "Ospite Bambino",
+        age: "Età",
+        occupancyInfo: "Informazioni Occupazione",
+        rateNotes: "Note Tariffa",
+        room: "Camera"
+    },
+    el: {
+        checkIn: "Check-in",
+        checkOut: "Check-out",
+        nightsStay: "Νύχτες Διαμονής",
+        nightStay: "Νύχτα Διαμονής",
+        selectedRooms: "Επιλεγμένα Δωμάτια",
+        dailyRates: "Καθημερινές Χρεώσεις",
+        cancellationPolicy: "Πολιτική Ακύρωσης",
+        flexible: "Ευέλικτο",
+        cancellationPenalty: "Ρήτρα Ακύρωσης",
+        freeCancel: "Δωρεάν Ακύρωση",
+        standardCancellation: "Ισχύει η τυπική πολιτική ακύρωσης",
+        adults: "Ενήλικες",
+        adult: "Ενήλικας",
+        children: "Παιδιά",
+        child: "Παιδί",
+        roomOnly: "Μόνο Δωμάτιο",
+        night: "Νύχτα",
+        nights: "Νύχτες",
+        stay: "Δαμονή",
+        taxesAndFees: "Φόροι & Τέλη",
+        bookingReferences: "Κωδικοί Αναφοράς Κράτησης",
+        internalIdentifiers: "Εσωτερικοί κωδικοί & ειδικά αιτήματα",
+        clientReferenceId: "Κωδικός Αναφοράς Πελάτη",
+        internalReferenceNumber: "Ο δικός σας εσωτερικός κωδικός",
+        specialRemarks: "Ειδικές Παρατηρήσεις",
+        enterRemarks: "Ειδικά αιτήματα ή σημειώσεις",
+        instantConfirmation: "Άμεσα Επιβεβαιώσιμο",
+        backToRoom: "Πίσω στο Δωμάτιο",
+        backToSelection: "Πίσω στην Επιλογή",
+        nextRoom: "Επόμενο: Δωμάτιο",
+        reviewAndPay: "Έλεγχος & Πληρωμή",
+        totalStayPrice: "Συνολικό Κόστος Διαμονής (Net)",
+        taxesIncl: "Περιλαμβάνονται Φόροι",
+        b2bRates: "ΕΦΑΡΜΟΣΤΗΚΑΝ B2B ΤΙΜΕΣ ΚΟΛΕΓΙΟΥ",
+        securePayment: "ΑΣΦΑΛΗΣ ΠΛΗΡΩΜΗ",
+        protectedBooking: "TOG Προστατευμένη Κράτηση",
+        in: "Είσοδος",
+        out: "Έξοδος",
+        leadGuest: "Κύριος Επισκέπτης (Επαφή)",
+        traveler: "Επισκέπτης",
+        standardPolicy: "Τυπική Πολιτική Ενηλίκων",
+        childPassenger: "Παιδί Επισκέπτης",
+        age: "Ηλικία",
+        occupancyInfo: "Πληροφορίες Διαμονής",
+        rateNotes: "Σημειώσεις Χρέωσης",
+        room: "Δωμάτιο"
+    },
+    pt: {
+        checkIn: "Check-in",
+        checkOut: "Check-out",
+        nightsStay: "Noites de Estadia",
+        nightStay: "Noite de Estadia",
+        selectedRooms: "Quartos Selecionados",
+        dailyRates: "Tarifas Diárias",
+        cancellationPolicy: "Política de Cancelamento",
+        flexible: "Flexível",
+        cancellationPenalty: "Multa de Cancelamento",
+        freeCancel: "Cancelamento Grátis",
+        standardCancellation: "Aplica-se o cancelamento padrão",
+        adults: "Adultos",
+        adult: "Adulto",
+        children: "Crianças",
+        child: "Criança",
+        roomOnly: "Apenas Quarto",
+        night: "Noite",
+        nights: "Noites",
+        stay: "Estadia",
+        taxesAndFees: "Impostos & Taxas",
+        bookingReferences: "Referências de Reserva",
+        internalIdentifiers: "Identificadores internos e pedidos especiais",
+        clientReferenceId: "ID de Referência do Cliente",
+        internalReferenceNumber: "Seu número de referência interno",
+        specialRemarks: "Observações Especiais",
+        enterRemarks: "Qualquer pedido especial ou nota",
+        instantConfirmation: "Confirmação Instantânea Disponível",
+        backToRoom: "Voltar para o Quarto",
+        backToSelection: "Voltar para a Seleção",
+        nextRoom: "Seguinte: Quarto",
+        reviewAndPay: "Revisar e Pagar",
+        totalStayPrice: "Preço Total Estadia (Neto)",
+        taxesIncl: "Impostos Incl.",
+        b2bRates: "TARIFAS DE AGÊNCIA B2B APLICADAS",
+        securePayment: "PAGAMENTO SEGURO",
+        protectedBooking: "Reserva TOG Protegida",
+        in: "Entrada",
+        out: "Saída",
+        leadGuest: "Hóspede Principal (Contato)",
+        traveler: "Hóspede",
+        standardPolicy: "Política de Adulto Padrão",
+        childPassenger: "Hóspede Criança",
+        age: "Idade",
+        occupancyInfo: "Informações de Ocupação",
+        rateNotes: "Notas de Tarifa",
+        room: "Quarto"
+    }
+};
+
+const tSummary = (key, lang = 'tr') => {
+    if (key === 'reservationSummary') {
+        const mapping = {
+            en: "Reservation Summary",
+            tr: "Rezervasyon Özeti",
+            ar: "ملخص الحجز",
+            es: "Resumen de la Reserva",
+            ru: "Детали бронирования",
+            zh: "订单汇总",
+            ja: "予約内容の概要",
+            fa: "خلاصه رزرو",
+            fr: "Résumé de la Réservation",
+            it: "Riepilogo della Prenotazione",
+            el: "Σύνοψη Κράτησης",
+            pt: "Resumo da Reserva"
+        };
+        return mapping[lang] || mapping['en'];
+    }
+    if (key === 'authorizePayment') {
+        const mapping = {
+            en: "Authorize Payment",
+            tr: "Ödemeyi Onayla",
+            ar: "تفويض الدفع",
+            es: "Autorizar Pago",
+            ru: "Подтвердить оплату",
+            zh: "授权支付",
+            ja: "支払いを承認する",
+            fa: "تایید پرداخت",
+            fr: "Autoriser le Paiement",
+            it: "Autorizza Pagamento",
+            el: "Έγκριση Πληρωμής",
+            pt: "Autorizar Pagamento"
+        };
+        return mapping[lang] || mapping['en'];
+    }
+    if (key === 'processing') {
+        const mapping = {
+            en: "Processing...",
+            tr: "İşleniyor...",
+            ar: "جاري المعالجة...",
+            es: "Procesando...",
+            ru: "Обработка...",
+            zh: "处理中...",
+            ja: "処理中...",
+            fa: "در حال پردازش...",
+            fr: "Traitement en cours...",
+            it: "Elaborazione...",
+            el: "Επεξεργασία...",
+            pt: "Processando..."
+        };
+        return mapping[lang] || mapping['en'];
+    }
+    return CHECKOUT_SUMMARY_LOCALES[lang]?.[key] || CHECKOUT_SUMMARY_LOCALES['en']?.[key] || key;
+};
 const CheckoutPayment = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { i18n } = useTranslation();
+    const currentLang = i18n.language || localStorage.getItem('language') || 'tr';
+    const cl = confirmLocales[currentLang] || confirmLocales['tr'];
 
     // Pre-populate from location.state if navigating from guests page (instant, no flash)
     const navState = location.state || {};
@@ -93,9 +804,10 @@ const CheckoutPayment = () => {
     const formattedDates = React.useMemo(() => {
         if (!checkInDate || !checkOutDate) return { start: 'Select Date', end: 'Select Date' };
         const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        const currentLang = localStorage.getItem('language') || 'tr';
         return {
-            start: new Date(checkInDate).toLocaleDateString('en-US', options),
-            end: new Date(checkOutDate).toLocaleDateString('en-US', options)
+            start: new Date(checkInDate).toLocaleDateString(currentLang, options),
+            end: new Date(checkOutDate).toLocaleDateString(currentLang, options)
         };
     }, [checkInDate, checkOutDate]);
 
@@ -343,8 +1055,8 @@ const CheckoutPayment = () => {
                             setShowConfirmBack(false);
                         }
                     }}
-                    title="Emin misiniz?"
-                    message="Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir."
+                    title={cl.title}
+                    message={cl.message}
                 />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -562,26 +1274,26 @@ const CheckoutPayment = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div className="p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-700" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                 <div className="flex items-center gap-6 mb-8">
                                     <div className="size-20 rounded-[28px] bg-primary/10 flex items-center justify-center text-primary"><span className="material-symbols-outlined text-4xl">account_balance_wallet</span></div>
-                                    <div><h3 className="text-xl font-black uppercase tracking-tight mb-1">Corporate Deposit Account</h3><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Verified B2B Balance</p></div>
+                                    <div><h3 className="text-xl font-black uppercase tracking-tight mb-1">{tSummary('corporateDepositAccount', currentLang)}</h3><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{tSummary('verifiedB2bBalance', currentLang)}</p></div>
                                 </div>
                                 <div className="space-y-4">
                                     {/* Current Balance */}
                                     <div className="p-6 rounded-3xl bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                                         <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Available Funds</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{tSummary('availableFunds', currentLang)}</p>
                                             <p className="text-2xl font-black tracking-tighter opacity-60">$12,450.00</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isInsufficientBalance ? 'text-red-500' : 'text-emerald-500'}`}>Status</p>
+                                            <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isInsufficientBalance ? 'text-red-500' : 'text-emerald-500'}`}>{tSummary('status', currentLang)}</p>
                                             <span className={`px-3 py-1.5 text-[10px] font-black rounded-xl uppercase tracking-widest border ${
                                                 isInsufficientBalance 
                                                     ? 'bg-red-500/10 text-red-500 border-red-500/10' 
                                                     : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/10'
                                             }`}>
-                                                {isInsufficientBalance ? 'Insufficient Funds' : 'Active & Ready'}
+                                                {isInsufficientBalance ? tSummary('insufficientFunds', currentLang) : tSummary('activeReady', currentLang)}
                                             </span>
                                         </div>
                                     </div>
@@ -592,7 +1304,7 @@ const CheckoutPayment = () => {
                                             <span className="material-symbols-outlined text-8xl text-red-500">trending_down</span>
                                         </div>
                                         <div className="relative z-10">
-                                            <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">Deduction Amount</p>
+                                            <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">{tSummary('deductionAmount', currentLang)}</p>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-4xl font-black text-red-600 leading-none">-</span>
                                                 <p className="text-4xl font-black text-red-600 tracking-tighter leading-none">
@@ -601,8 +1313,8 @@ const CheckoutPayment = () => {
                                             </div>
                                         </div>
                                         <div className="text-right relative z-10">
-                                            <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Payment Impact</p>
-                                            <span className="px-3 py-1.5 bg-red-500/10 text-red-600 text-[10px] font-black rounded-xl uppercase tracking-widest border border-red-500/10">Balance Decrease</span>
+                                            <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">{tSummary('paymentImpact', currentLang)}</p>
+                                            <span className="px-3 py-1.5 bg-red-500/10 text-red-600 text-[10px] font-black rounded-xl uppercase tracking-widest border border-red-500/10">{tSummary('balanceDecrease', currentLang)}</span>
                                         </div>
                                     </div>
 
@@ -611,7 +1323,7 @@ const CheckoutPayment = () => {
                                         <div className="p-6 rounded-[32px] bg-red-600 dark:bg-red-900/40 text-white flex flex-col gap-3 shadow-2xl border border-red-500/20 animate-pulse">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">Deficit Amount</p>
+                                                    <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">{tSummary('deficitAmount', currentLang)}</p>
                                                     <p className="text-3xl font-black tracking-tighter">
                                                         - $ {(grandTotal - availableFunds).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </p>
@@ -621,13 +1333,13 @@ const CheckoutPayment = () => {
                                                 </div>
                                             </div>
                                             <p className="text-[10px] font-bold text-red-100 uppercase tracking-wider bg-black/20 p-2 rounded-xl text-center">
-                                                Please top up your account to complete this booking
+                                                {tSummary('topUpPrompt', currentLang)}
                                             </p>
                                         </div>
                                     ) : (
                                         <div className="p-6 rounded-[32px] bg-slate-900 dark:bg-black text-white flex items-center justify-between shadow-2xl border border-white/5">
                                             <div>
-                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Estimated New Balance</p>
+                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">{tSummary('estimatedNewBalance', currentLang)}</p>
                                                 <p className="text-3xl font-black tracking-tighter">
                                                     $ {(availableFunds - (grandTotal * (displayCurrency === 'USD' ? 1 : 1))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </p>
@@ -651,14 +1363,14 @@ const CheckoutPayment = () => {
                             <div className="relative p-8 z-10">
 
                                 {/* Header */}
-                                <div className="flex items-center gap-2 text-primary font-black text-[10px] mb-6 uppercase tracking-[0.2em] bg-primary/5 dark:bg-primary/20 p-3 rounded-2xl border border-primary/10">
+                                <div className="flex items-center gap-2 text-primary font-black text-[10px] mb-6 uppercase tracking-[0.2em] bg-primary/5 dark:bg-primary/20 p-3 rounded-2xl border border-primary/10" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                     <span className="material-symbols-outlined text-sm fill-1">bolt</span>
-                                    Instant Confirmation Available
+                                    {tSummary('instantConfirmation', currentLang)}
                                 </div>
 
-                                <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                     <span className="material-symbols-outlined text-sm">auto_awesome</span>
-                                    Reservation Summary
+                                    {tSummary('reservationSummary', currentLang)}
                                 </h3>
 
                                 {/* Hotel Info Card */}
@@ -682,14 +1394,14 @@ const CheckoutPayment = () => {
                                                 <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">{hotelAddress}</p>
                                             </div>
                                         )}
-                                        <div className="flex gap-3">
+                                        <div className="flex gap-3" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                             <div className="flex items-center gap-1.5">
                                                 <span className="material-symbols-outlined text-[11px] text-primary">login</span>
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">In: {hotel.checkIn || '15:00'}</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">{tSummary('in', currentLang)}: {hotel.checkIn || '15:00'}</span>
                                             </div>
                                             <div className="flex items-center gap-1.5">
                                                 <span className="material-symbols-outlined text-[11px] text-primary">logout</span>
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Out: {hotel.checkOut || '11:00'}</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">{tSummary('out', currentLang)}: {hotel.checkOut || '11:00'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -698,25 +1410,32 @@ const CheckoutPayment = () => {
                                 {/* Booking Dates */}
                                 <div className="grid grid-cols-2 gap-3 mb-6">
                                     <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Check-in</p>
+                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('checkIn', currentLang)}</p>
                                         <p className="text-sm font-black uppercase text-primary leading-tight">{formattedDates.start}</p>
                                     </div>
                                     <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Check-out</p>
+                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('checkOut', currentLang)}</p>
                                         <p className="text-sm font-black uppercase text-primary leading-tight">{formattedDates.end}</p>
                                     </div>
                                     <div className="col-span-2 p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10 flex justify-between items-center">
                                         <div className="flex items-center gap-2">
                                             <span className="material-symbols-outlined text-[13px] text-primary">nights_stay</span>
-                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{nights} Night{nights > 1 ? 's' : ''} Stay</span>
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                                {currentLang === 'tr' 
+                                                    ? `${nights} Gece Konaklama` 
+                                                    : `${nights} ${nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)} ${tSummary('stay', currentLang)}`}
+                                            </span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span className="material-symbols-outlined text-[13px] text-primary">group</span>
-                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                                {checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy || checkRatesData?.occupancy
-                                                    ? `${(checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy || checkRatesData?.occupancy).adults} Adults${(checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy || checkRatesData?.occupancy).child > 0 ? `, ${(checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy || checkRatesData?.occupancy).child} Children` : ''}`
-                                                    : `${roomState?.reduce((s, r) => s + r.adults, 0)} Adults${roomState?.reduce((s, r) => s + r.children, 0) > 0 ? `, ${roomState.reduce((s, r) => s + r.children, 0)} Children` : ''}`
-                                                }
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                                {(() => {
+                                                    const adultsCount = (checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy || checkRatesData?.occupancy)?.adults || roomState?.reduce((s, r) => s + r.adults, 0) || 0;
+                                                    const childrenCount = (checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy || checkRatesData?.occupancy)?.child || roomState?.reduce((s, r) => s + r.children, 0) || 0;
+                                                    const adultsLabel = adultsCount > 1 ? tSummary('adults', currentLang) : tSummary('adult', currentLang);
+                                                    const childrenLabel = childrenCount > 1 ? tSummary('children', currentLang) : tSummary('child', currentLang);
+                                                    return `${adultsCount} ${adultsLabel}${childrenCount > 0 ? `, ${childrenCount} ${childrenLabel}` : ''}`;
+                                                })()}
                                             </span>
                                         </div>
                                     </div>
@@ -724,7 +1443,7 @@ const CheckoutPayment = () => {
 
                                 {/* Room Breakdown */}
                                 <div className="space-y-4 mb-6">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Selected Rooms</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('selectedRooms', currentLang)}</p>
                                     {selectedRooms?.map((room, idx) => {
                                         const policies = room.cancellationPolicies || [];
                                         return (
@@ -733,10 +1452,10 @@ const CheckoutPayment = () => {
                                                     <div className="flex items-start gap-2.5">
                                                         <div className="size-6 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary shrink-0 mt-0.5">{idx + 1}</div>
                                                         <div>
-                                                            <p className="font-black text-[13px] uppercase tracking-tight text-slate-900 dark:text-white line-clamp-2">{room.name}</p>
-                                                            <div className="flex flex-wrap gap-2 mt-1">
+                                                            <p className="font-black text-[13px] uppercase tracking-tight text-slate-900 dark:text-white line-clamp-2"><span lang="en">{room.name}</span></p>
+                                                            <div className="flex flex-wrap gap-2 mt-1" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                                                 <p className="text-[11px] font-bold text-slate-500 uppercase">
-                                                                    {checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || 'Room Only'}
+                                                                    {checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName === 'RO' || !checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName === 'Room Only' ? tSummary('roomOnly', currentLang) : checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName}
                                                                 </p>
                                                                 {(() => {
                                                                     const refundable = checkRatesData?.rooms?.[idx]?.rates?.[0]?.refundable;
@@ -758,43 +1477,45 @@ const CheckoutPayment = () => {
                                                                 {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || room.rate).toFixed(2)}
                                                             </span>
                                                         </div>
-                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{room.currency || '$'} · {nights} Night{nights > 1 ? 's' : ''}</p>
+                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{room.currency || '$'} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}</p>
                                                     </div>
                                                 </div>
                                                 {/* Cancellation policy */}
-                                                <div className="pt-2 border-t border-slate-100 dark:border-slate-700/50">
+                                                <div className="pt-2 border-t border-slate-100 dark:border-slate-700/50" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                                     {(() => {
                                                         const currentPolicies = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || policies;
                                                         if (!currentPolicies || currentPolicies.length === 0) {
                                                             return (
                                                                 <span className="text-[11px] font-bold text-slate-400 uppercase flex items-center gap-1">
                                                                     <span className="material-symbols-outlined text-[12px]">info</span>
-                                                                    Standard cancellation applies
+                                                                    {tSummary('standardCancellation', currentLang)}
                                                                 </span>
                                                             );
                                                         }
                                                         return (
                                                             <div className="space-y-1">
-                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cancellation Policy</p>
-                                                                {currentPolicies.map((policy, pIdx) => (
-                                                                    <div key={pIdx} className="flex justify-between items-center">
-                                                                        <span className="text-[11px] font-bold text-slate-500">
-                                                                            {policy.fromDate 
-                                                                                ? (policy.fromDate.includes('[') 
-                                                                                    ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                                                                                    : new Date(policy.fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))
-                                                                                : (policy.amount === 0 ? 'Flexible' : 'Cancellation Penalty')
-                                                                            }
-                                                                        </span>
-                                                                        <span className={`text-[11px] font-black px-2 py-0.5 rounded-md ${
-                                                                            policy.amount === 0
-                                                                                ? 'bg-emerald-500/10 text-emerald-500'
-                                                                                : 'bg-orange-500/10 text-orange-500'
-                                                                        }`}>
-                                                                            {policy.amount === 0 ? 'Free Cancel' : `${getCurrencySymbol(policy.currency || displayCurrency)} ${policy.amount.toFixed(2)}`}
-                                                                        </span>
-                                                                    </div>
-                                                                ))}
+                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{tSummary('cancellationPolicy', currentLang)}</p>
+                                                                {currentPolicies.map((policy, pIdx) => {
+                                                                    return (
+                                                                        <div key={pIdx} className="flex justify-between items-center">
+                                                                            <span className="text-[11px] font-bold text-slate-500">
+                                                                                {policy.fromDate 
+                                                                                    ? (policy.fromDate.includes('[') 
+                                                                                        ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
+                                                                                        : new Date(policy.fromDate).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' }))
+                                                                                    : (policy.amount === 0 ? tSummary('flexible', currentLang) : tSummary('cancellationPenalty', currentLang))
+                                                                                }
+                                                                            </span>
+                                                                            <span className={`text-[11px] font-black px-2 py-0.5 rounded-md ${
+                                                                                policy.amount === 0
+                                                                                    ? 'bg-emerald-500/10 text-emerald-500'
+                                                                                    : 'bg-orange-500/10 text-orange-500'
+                                                                            }`}>
+                                                                                {policy.amount === 0 ? tSummary('freeCancel', currentLang) : `${getCurrencySymbol(policy.currency || displayCurrency)} ${policy.amount.toFixed(2)}`}
+                                                                            </span>
+                                                                        </div>
+                                                                    );
+                                                                })}
                                                             </div>
                                                         );
                                                     })()}
@@ -805,13 +1526,13 @@ const CheckoutPayment = () => {
                                                     const currentDailyPrices = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.dailyPrices;
                                                     if (!currentDailyPrices || currentDailyPrices.length === 0) return null;
                                                     return (
-                                                        <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/50">
-                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Daily Rates</p>
+                                                        <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/50" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{tSummary('dailyRates', currentLang)}</p>
                                                             <div className="space-y-1">
                                                                 {currentDailyPrices.map((dp, dpIdx) => (
                                                                     <div key={dpIdx} className="flex justify-between items-center text-[11px]">
                                                                         <span className="font-medium text-slate-500">
-                                                                            {new Date(dp.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                                                                            {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short' })}
                                                                         </span>
                                                                         <span className="font-black text-slate-700 dark:text-slate-300">
                                                                             {getCurrencySymbol(displayCurrency)} {dp.amount.toFixed(2)}
@@ -840,8 +1561,8 @@ const CheckoutPayment = () => {
                                     
                                     if (allTaxes.length === 0) return null;
                                     return (
-                                        <div className="mb-6 space-y-2">
-                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Taxes & Fees</p>
+                                        <div className="mb-6 space-y-2" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{tSummary('taxesAndFees', currentLang)}</p>
                                             {allTaxes.map((tax, tIdx) => (
                                                 <div key={tIdx} className="flex justify-between items-center text-[11px]">
                                                     <span className="font-medium text-slate-500 capitalize">
@@ -857,15 +1578,15 @@ const CheckoutPayment = () => {
                                 })()}
 
                                 {/* Grand Total */}
-                                <div className="pt-6 border-t border-slate-200 dark:border-slate-800 mb-6">
+                                <div className="pt-6 border-t border-slate-200 dark:border-slate-800 mb-6" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                     <div className="flex items-end justify-between">
                                         <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-2">Total Stay Price (Net)</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-2">{tSummary('totalStayPrice', currentLang)}</p>
                                             <div className="flex items-baseline gap-2">
                                                 <span className="text-2xl font-black text-primary leading-none">{getCurrencySymbol(displayCurrency)}</span>
                                                 <p className="text-4xl font-black text-primary leading-none tracking-tighter">{grandTotal.toFixed(2)}</p>
                                             </div>
-                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{displayCurrency} · Taxes Incl. · {nights} Night{nights > 1 ? 's' : ''}</p>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{displayCurrency} · {tSummary('taxesIncl', currentLang)} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}</p>
                                         </div>
                                         <div className="size-10 rounded-2xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">
                                             <span className="material-symbols-outlined">payments</span>
@@ -875,10 +1596,10 @@ const CheckoutPayment = () => {
 
                                 {/* Rate Notes - Added as per request */}
                                 {checkRatesData?.notes && checkRatesData.notes.length > 0 && (
-                                    <div className="mb-6 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10">
+                                    <div className="mb-6 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                         <p className="text-[8px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest mb-2 flex items-center gap-1">
                                             <span className="material-symbols-outlined text-[10px]">info</span>
-                                            Rate Notes
+                                            {tSummary('rateNotes', currentLang)}
                                         </p>
                                         <div 
                                             className="text-[11px] font-medium text-slate-600 dark:text-slate-400 space-y-1 max-h-40 overflow-y-auto pr-2 custom-scrollbar html-content"
@@ -892,24 +1613,25 @@ const CheckoutPayment = () => {
                                     onClick={handlePayment}
                                     disabled={isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv))}
                                     className={`w-full py-5 bg-primary text-white rounded-[24px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 overflow-hidden relative ${isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv)) ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                                    lang={currentLang === 'tr' ? 'tr' : 'en'}
                                 >
-                                    {isProcessing ? <><div className="size-5 rounded-full border-4 border-white/20 border-t-white animate-spin"></div>Processing...</> : <>Authorize Payment<span className="material-symbols-outlined text-[18px]">lock</span></>}
+                                    {isProcessing ? <><div className="size-5 rounded-full border-4 border-white/20 border-t-white animate-spin"></div>{tSummary('processing', currentLang)}</> : <>{tSummary('authorizePayment', currentLang)}<span className="material-symbols-outlined text-[18px]">lock</span></>}
                                 </button>
 
-                                <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em] mt-4">
-                                    B2B AGENCY RATES APPLIED
+                                <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em] mt-4" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                    {tSummary('b2bRates', currentLang)}
                                 </p>
                             </div>
                         </div>
 
                         {/* Security Badge */}
-                        <div className="bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex items-center gap-4">
+                        <div className="bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex items-center gap-4" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                             <div className="size-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm">
                                 <span className="material-symbols-outlined">verified_user</span>
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">SECURE PAYMENT</p>
-                                <p className="text-sm font-black">TOG Protected Booking</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{tSummary('securePayment', currentLang)}</p>
+                                <p className="text-sm font-black">{tSummary('protectedBooking', currentLang)}</p>
                             </div>
                         </div>
                     </div>
@@ -981,7 +1703,7 @@ const CheckoutPayment = () => {
                                         {bookingError.timestamp && (
                                             <div>
                                                 <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Time</p>
-                                                <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 truncate">{new Date(bookingError.timestamp).toLocaleString()}</p>
+                                                <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 truncate">{new Date(bookingError.timestamp).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
                                             </div>
                                         )}
                                         {bookingError.requestId && (

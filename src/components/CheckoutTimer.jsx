@@ -1,9 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+
+const timerLocales = {
+    en: "Complete Booking In",
+    tr: "Rezervasyonu Tamamla",
+    ar: "أكمل الحجز خلال",
+    es: "Completar Reserva En",
+    ru: "Завершите бронирование за",
+    zh: "在此时限内完成预订",
+    ja: "予約完了まであと",
+    fa: "تکمیل رزرو در",
+    fr: "Finaliser la réservation sous",
+    it: "Completa la Prenotazione Entro",
+    el: "Ολοκλήρωση Κράτησης Σε",
+    pt: "Conclua a Reserva Em"
+};
 
 const CheckoutTimer = ({ expireAt }) => {
     const navigate = useNavigate();
     const [timeLeft, setTimeLeft] = useState(null);
+    const { i18n } = useTranslation();
+    const currentLang = i18n.language || localStorage.getItem('language') || 'tr';
+    const localizedText = timerLocales[currentLang] || timerLocales['tr'];
 
     useEffect(() => {
         if (!expireAt) return;
@@ -50,7 +69,7 @@ const CheckoutTimer = ({ expireAt }) => {
             </span>
             <div className="flex flex-col">
                 <span className="text-[10px] font-black uppercase tracking-wider leading-none mb-0.5">
-                    Complete Booking In
+                    {localizedText}
                 </span>
                 <span className="text-sm font-black tabular-nums leading-none">
                     {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}

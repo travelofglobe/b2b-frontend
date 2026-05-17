@@ -40,7 +40,8 @@ const BookingDetail = () => {
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const currentLang = localStorage.getItem('language') || 'tr';
+        return date.toLocaleDateString(currentLang, { month: 'short', day: 'numeric', year: 'numeric' });
     };
 
     const formatDateTime = (dateTimeString) => {
@@ -62,7 +63,8 @@ const BookingDetail = () => {
                 return 'Invalid Date';
             }
 
-            const formattedDate = date.toLocaleString('en-US', {
+            const currentLang = localStorage.getItem('language') || 'tr';
+            const formattedDate = date.toLocaleString(currentLang, {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric',

@@ -1,10 +1,90 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+
+const stepperLocales = {
+    en: {
+        step: "Step",
+        roomSelection: "Room Selection",
+        guestDetails: "Guest Details",
+        payment: "Payment"
+    },
+    tr: {
+        step: "Adım",
+        roomSelection: "Oda Seçimi",
+        guestDetails: "Konuk Bilgileri",
+        payment: "Ödeme"
+    },
+    ar: {
+        step: "الخطوة",
+        roomSelection: "اختيار الغرفة",
+        guestDetails: "تفاصيل النزلاء",
+        payment: "الدفع"
+    },
+    es: {
+        step: "Paso",
+        roomSelection: "Selección de Habitación",
+        guestDetails: "Detalles del Huésped",
+        payment: "Pago"
+    },
+    ru: {
+        step: "Шаг",
+        roomSelection: "Выбор номера",
+        guestDetails: "Данные гостей",
+        payment: "Оплата"
+    },
+    zh: {
+        step: "步骤",
+        roomSelection: "选择客房",
+        guestDetails: "旅客信息",
+        payment: "支付"
+    },
+    ja: {
+        step: "ステップ",
+        roomSelection: "客室選択",
+        guestDetails: "宿泊者情報",
+        payment: "お支払い"
+    },
+    fa: {
+        step: "مرحله",
+        roomSelection: "انتخاب اتاق",
+        guestDetails: "اطلاعات مهمانان",
+        payment: "پرداخت"
+    },
+    fr: {
+        step: "Étape",
+        roomSelection: "Choix de Chambre",
+        guestDetails: "Coordonnées Voyageurs",
+        payment: "Paiement"
+    },
+    it: {
+        step: "Passo",
+        roomSelection: "Scelta della Camera",
+        guestDetails: "Dettagli Ospite",
+        payment: "Pagamento"
+    },
+    el: {
+        step: "Βήμα",
+        roomSelection: "Επιλογή Δωματίου",
+        guestDetails: "Στοιχεία Επισκεπτών",
+        payment: "Πληρωμή"
+    },
+    pt: {
+        step: "Passo",
+        roomSelection: "Seleção do Quarto",
+        guestDetails: "Detalhes do Hóspede",
+        payment: "Pagamento"
+    }
+};
 
 const CheckoutStepper = ({ currentStep, onStepClick }) => {
+    const { i18n } = useTranslation();
+    const currentLang = i18n.language || localStorage.getItem('language') || 'tr';
+    const ls = stepperLocales[currentLang] || stepperLocales['tr'];
+
     const steps = [
-        { id: 1, label: 'Oda Seçimi', icon: 'hotel', desc: 'Step 1' },
-        { id: 2, label: 'Konuk Bilgileri', icon: 'group', desc: 'Step 2' },
-        { id: 3, label: 'Ödeme', icon: 'payments', desc: 'Step 3' }
+        { id: 1, label: ls.roomSelection, icon: 'hotel', desc: `${ls.step} 1` },
+        { id: 2, label: ls.guestDetails, icon: 'group', desc: `${ls.step} 2` },
+        { id: 3, label: ls.payment, icon: 'payments', desc: `${ls.step} 3` }
     ];
 
     return (

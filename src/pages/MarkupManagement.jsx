@@ -3,6 +3,7 @@ import { markupService } from '../services/markupService';
 import AgencyMultiSelect from '../components/AgencyMultiSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import AddMarkupModal from '../components/AddMarkupModal';
+import HeaderActions from '../components/HeaderActions';
 
 const MarkupManagement = () => {
     const [loading, setLoading] = useState(false);
@@ -127,6 +128,9 @@ const MarkupManagement = () => {
                 <div>
                     <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-2 underline decoration-primary/20 decoration-4 underline-offset-8">Markup Management</h1>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-3">Define and manage pricing rules for hotels and agencies</p>
+                </div>
+                <div className="flex items-center gap-4">
+                    <HeaderActions />
                 </div>
             </div>
 

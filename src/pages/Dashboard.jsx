@@ -7,8 +7,10 @@ import { userService } from '../services/userService';
 import { guestService } from '../services/guestService';
 import DashboardSearch from '../components/DashboardSearch';
 import BookingStatusBadge from '../components/BookingStatusBadge';
+import { useTranslation } from 'react-i18next';
 
 const Dashboard = () => {
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
     const [bookings, setBookings] = useState([]);
@@ -18,72 +20,58 @@ const Dashboard = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const abortController = new AbortController();
-
-        const fetchData = async () => {
+        const fetchBookings = async () => {
             try {
-                setLoading(true);
-                setStatsLoading(true);
-                
-                // Fetch bookings and stats in parallel
-                const [bookingsData, totalUsersRes, activeUsersRes, totalGuestsRes] = await Promise.all([
-                    bookingService.findLastFive(abortController.signal),
-                    userService.filterUsers({}, 0, 1, abortController.signal).catch(() => ({})),
-                    userService.filterUsers({ status: 'ACTIVE' }, 0, 1, abortController.signal).catch(() => ({})),
-                    guestService.filterGuests({}, 0, 1, abortController.signal).catch(() => ({}))
-                ]);
-
-                if (!abortController.signal.aborted) {
-                    setBookings(bookingsData.bookings.content || []);
-                    setSummary({
-                        totalUsers: totalUsersRes.numberOfItems ?? totalUsersRes.agencyUsers?.length ?? 0,
-                        activeUsers: activeUsersRes.numberOfItems ?? activeUsersRes.agencyUsers?.length ?? 0,
-                        totalGuests: totalGuestsRes.numberOfItems ?? totalGuestsRes.guests?.length ?? 0
-                    });
-                    setError(null);
-                }
+                const data = await bookingService.getRecentBookings(5);
+                setBookings(data);
             } catch (err) {
-                if (err.name !== 'AbortError') {
-                    console.error('Error fetching dashboard data:', err);
-                    setError(err.message);
-                }
+                setError(err.message || 'Rezervasyonlar yüklenemedi.');
             } finally {
-                if (!abortController.signal.aborted) {
-                    setLoading(false);
-                    setStatsLoading(false);
-                }
+                setLoading(false);
             }
         };
 
-        fetchData();
-
-        return () => {
-            abortController.abort();
+        const fetchStats = async () => {
+            try {
+                const [totalUsers, activeUsers, totalGuests] = await Promise.all([
+                    userService.getTotalUsersCount(),
+                    userService.getActiveUsersCount(),
+                    guestService.getTotalGuestsCount()
+                ]);
+                setSummary({ totalUsers, activeUsers, totalGuests });
+            } catch (err) {
+                console.error('Failed to fetch dashboard stats:', err);
+            } finally {
+                setStatsLoading(false);
+            }
         };
+
+        fetchBookings();
+        fetchStats();
     }, []);
-
-
-
 
     const userDisplayName = user?.name && user?.surname
         ? `${user.name} ${user.surname}`
-        : user?.email || 'Travel Agent';
-
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    };
-
-
+        : user?.email || 'User';
 
     const getInitials = (name) => {
-        if (!name) return '??';
-        const words = name.split(' ');
-        if (words.length >= 2) {
-            return (words[0][0] + words[1][0]).toUpperCase();
-        }
-        return name.substring(0, 2).toUpperCase();
+        if (!name) return 'A';
+        return name
+            .split(' ')
+            .map(n => n[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase();
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString(i18n.language || 'tr', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
     };
 
     return (
@@ -98,12 +86,12 @@ const Dashboard = () => {
                     <header className="flex flex-wrap items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-2">
                             <span className="material-icons-round text-primary text-xl">auto_awesome</span>
-                            <h1 className="text-lg font-medium">Welcome back, <span className="font-bold">{userDisplayName}</span></h1>
+                            <h1 className="text-lg font-medium">{t('dashboard.welcomeBack')}, <span className="font-bold">{userDisplayName}</span></h1>
                         </div>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2 text-emerald-500 font-medium text-sm bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                1,254 bookings today
+                                {t('dashboard.bookingsToday', { count: 1254 })}
                             </div>
                             <HeaderActions />
                         </div>
@@ -126,7 +114,7 @@ const Dashboard = () => {
                                     </span>
                                 </div>
                             </div>
-                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total Users</h3>
+                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{t('dashboard.totalUsers')}</h3>
                             <p className="text-3xl font-black tracking-tight">{statsLoading ? '...' : summary.totalUsers}</p>
                             <div className="mt-4 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                 <div className="h-full bg-primary w-2/3 rounded-full shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]"></div>
@@ -145,7 +133,7 @@ const Dashboard = () => {
                                     </span>
                                 </div>
                             </div>
-                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Active Users</h3>
+                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{t('dashboard.activeUsers')}</h3>
                             <p className="text-3xl font-black tracking-tight">{statsLoading ? '...' : summary.activeUsers}</p>
                             <div className="mt-4 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                 <div className="h-full bg-amber-500 w-1/2 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
@@ -164,7 +152,7 @@ const Dashboard = () => {
                                     </span>
                                 </div>
                             </div>
-                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Total Guests</h3>
+                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{t('dashboard.totalGuests')}</h3>
                             <p className="text-3xl font-black tracking-tight">{statsLoading ? '...' : summary.totalGuests}</p>
                             <div className="mt-4 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                 <div className="h-full bg-purple-500 w-[70%] rounded-full shadow-[0_0_8px_rgba(168,85,247,0.5)]"></div>
@@ -177,34 +165,34 @@ const Dashboard = () => {
                             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                                 <span className="material-icons-round text-primary text-lg">bolt</span>
                             </div>
-                            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Quick Actions</h2>
+                            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">{t('dashboard.quickActions')}</h2>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <button className="flex items-center gap-4 p-5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[28px] border border-white/60 dark:border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
                                 <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-[0_0_15px_rgba(var(--primary-rgb),0)] group-hover:shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]">
                                     <span className="material-icons-round text-xl">description</span>
                                 </div>
-                                <div className="text-left">
-                                    <p className="font-black text-xs uppercase tracking-tight">Create Quotation</p>
-                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Generate proposal</p>
+                                <div className="text-left ltr:text-left rtl:text-right">
+                                    <p className="font-black text-xs uppercase tracking-tight">{t('dashboard.actions.createQuotation')}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">{t('dashboard.actions.createQuotationSub')}</p>
                                 </div>
                             </button>
                             <button className="flex items-center gap-4 p-5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[28px] border border-white/60 dark:border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
                                 <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500 shadow-[0_0_15px_rgba(99,102,241,0)] group-hover:shadow-[0_0_20px_rgba(99,102,241,0.3)]">
                                     <span className="material-icons-round text-xl">receipt_long</span>
                                 </div>
-                                <div className="text-left">
-                                    <p className="font-black text-xs uppercase tracking-tight">Manage Invoices</p>
-                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Review & Send</p>
+                                <div className="text-left ltr:text-left rtl:text-right">
+                                    <p className="font-black text-xs uppercase tracking-tight">{t('dashboard.actions.manageInvoices')}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">{t('dashboard.actions.manageInvoicesSub')}</p>
                                 </div>
                             </button>
                             <button className="flex items-center gap-4 p-5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[28px] border border-white/60 dark:border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
                                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500 shadow-[0_0_15px_rgba(16,185,129,0)] group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]">
                                     <span className="material-icons-round text-xl">fact_check</span>
                                 </div>
-                                <div className="text-left">
-                                    <p className="font-black text-xs uppercase tracking-tight">Check Availability</p>
-                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Real-time lookup</p>
+                                <div className="text-left ltr:text-left rtl:text-right">
+                                    <p className="font-black text-xs uppercase tracking-tight">{t('dashboard.actions.checkAvailability')}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">{t('dashboard.actions.checkAvailabilitySub')}</p>
                                 </div>
                             </button>
                         </div>
@@ -217,8 +205,8 @@ const Dashboard = () => {
                                     <span className="material-icons-round text-primary text-lg">public</span>
                                 </div>
                                 <div>
-                                    <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Popular Destinations</h2>
-                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mt-0.5">Explore top travel spots</p>
+                                    <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">{t('dashboard.popularDestinations')}</h2>
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mt-0.5">{t('dashboard.exploreDestinations')}</p>
                                 </div>
                             </div>
                             <div className="flex gap-2">
@@ -236,23 +224,23 @@ const Dashboard = () => {
                                     <img alt="Dubai skyline" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA44V5Rw3n0d1IRUftf6z8_vB3HBwcJuZJYvR8YmMatQ44JJKuoVOOMZcc324K7w5t1CEj7rrbmQfvu5_L2C40dYKtEcaBr5ly0T2kK_jkA4AEB8UFmJdh9tBTYpY2-EwDPlKBK-hSxTlvOGKO0anJ6RtGIuOBD2wgcngOYuLJCxcsptvI1yl_q818XSF4LsNWF3KF9TlwuW10-EZRTff2f_RLRbTnjZryGus-MPJEtchv29FeLBwrrvu5twYK6Gksekuw7rc8BfLAE" />
                                     <div className="absolute top-4 right-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl px-3 py-1.5 rounded-2xl border border-white/60 dark:border-white/20 flex items-center gap-2 shadow-lg">
                                         <span className="material-icons-round text-primary text-xs">trending_up</span>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#0f172a] dark:text-white">Trending</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#0f172a] dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
                                 </div>
                                 <div className="p-6">
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
-                                            <h4 className="font-black text-lg uppercase tracking-tight">Dubai</h4>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">UAE</p>
+                                            <h4 className="font-black text-lg uppercase tracking-tight">{t('dashboard.destinations.dubai')}</h4>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{t('dashboard.destinations.uae')}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">from</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{t('dashboard.destinations.from')}</p>
                                             <p className="text-primary font-black text-lg">$89</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="bg-primary/5 text-primary text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">1240 Hotels</span>
-                                        <span className="bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">Luxury</span>
+                                        <span className="bg-primary/5 text-primary text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">{t('dashboard.destinations.hotels', { count: 1240 })}</span>
+                                        <span className="bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">{t('dashboard.destinations.luxury')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -261,23 +249,23 @@ const Dashboard = () => {
                                     <img alt="Eiffel Tower Paris" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAKaysBHtmgeqbCgI0hzy0BjMTk-ihUbfPvkwXOo8168DpEmYK3ZwUxnws0XTpi6CmcD9AxZbd3_eEML6dtpH1U4UclGEab2N3lvPHR2NF83mJEoRDl4abqV9dzSRQSgW_hG8DnDAIF2poS3q0EGj7EQwR269k2fBX9DwMIy5gLNy3CNjSgGuy6g3et73S__a185-hjz_rlYOqQXd3J9xxPDU6VuTKmnr7sPPCcfG7YmvzEi-Tg2SmIcvAqYG0Sbd2-iebgBNPsKU_" />
                                     <div className="absolute top-4 right-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl px-3 py-1.5 rounded-2xl border border-white/60 dark:border-white/20 flex items-center gap-2 shadow-lg">
                                         <span className="material-icons-round text-primary text-xs">trending_up</span>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#0f172a] dark:text-white">Trending</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#0f172a] dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
                                 </div>
                                 <div className="p-6">
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
-                                            <h4 className="font-black text-lg uppercase tracking-tight">Paris</h4>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">France</p>
+                                            <h4 className="font-black text-lg uppercase tracking-tight">{t('dashboard.destinations.paris')}</h4>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{t('dashboard.destinations.france')}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">from</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{t('dashboard.destinations.from')}</p>
                                             <p className="text-primary font-black text-lg">$120</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="bg-primary/5 text-primary text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">2100 Hotels</span>
-                                        <span className="bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">Romance</span>
+                                        <span className="bg-primary/5 text-primary text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">{t('dashboard.destinations.hotels', { count: 2100 })}</span>
+                                        <span className="bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">{t('dashboard.destinations.romance')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -286,23 +274,23 @@ const Dashboard = () => {
                                     <img alt="Tokyo tower" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0NEc0GKKnW3d7mB9bVdbYwFNBEpY_nhmkIekHSBPSWraDNin1ulHT4_q9cfhMIcqrg51KW03dH7sambalU3BYZ7y1HYErTyF-Wv08E5_ZTcGFZrbVQoaAWGSJJ-DT_LoEtPdZ6dZ8UDyuHbzkGiRdIafWF85YxePToZg0rHlnEcE09fDEybxGYm1CEGPO7UT-q-ghVu23XP5EZBmMWGnaKFbxyGO7P11p_zKZAvKsILFOdCL3gMmFS3S-e5qWTr12LhS_aHMTOtlm" />
                                     <div className="absolute top-4 right-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl px-3 py-1.5 rounded-2xl border border-white/60 dark:border-white/20 flex items-center gap-2 shadow-lg">
                                         <span className="material-icons-round text-primary text-xs">trending_up</span>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#0f172a] dark:text-white">Trending</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#0f172a] dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
                                 </div>
                                 <div className="p-6">
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
-                                            <h4 className="font-black text-lg uppercase tracking-tight">Tokyo</h4>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Japan</p>
+                                            <h4 className="font-black text-lg uppercase tracking-tight">{t('dashboard.destinations.tokyo')}</h4>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{t('dashboard.destinations.japan')}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">from</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{t('dashboard.destinations.from')}</p>
                                             <p className="text-primary font-black text-lg">$95</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="bg-primary/5 text-primary text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">1850 Hotels</span>
-                                        <span className="bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">Culture</span>
+                                        <span className="bg-primary/5 text-primary text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">{t('dashboard.destinations.hotels', { count: 1850 })}</span>
+                                        <span className="bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">{t('dashboard.destinations.culture')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -311,23 +299,23 @@ const Dashboard = () => {
                                     <img alt="New York City" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtxEUChP8HguBV_GFxz8TEk3Dssxi8xSCtI9Z9T9odllNiM91Ak0hyIkth1y8h7fVd-SgwSm4HxyJenSQHfxcK0mRSw03MGbXy9awP6fWL9o2E6w2zJuTizyr02IqQyZd6m73Z9CBZkHOiHgr0UxqaQ0otgONM7xlmX8jdsLkvqO6E3iPFxcpO5oCVYD2Oeq35OrYztM-6PMWjIP3b1DOmvxfBWs1CLP1K2ycUZSlNdQ7d-ig6xdBpLeQU4BjENmJ-TBFNTw8OLQXD" />
                                     <div className="absolute top-4 right-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl px-3 py-1.5 rounded-2xl border border-white/60 dark:border-white/20 flex items-center gap-2 shadow-lg">
                                         <span className="material-icons-round text-primary text-xs">trending_up</span>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#0f172a] dark:text-white">Trending</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#0f172a] dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
                                 </div>
                                 <div className="p-6">
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
-                                            <h4 className="font-black text-lg uppercase tracking-tight">New York</h4>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">USA</p>
+                                            <h4 className="font-black text-lg uppercase tracking-tight">{t('dashboard.destinations.newYork')}</h4>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{t('dashboard.destinations.usa')}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">from</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{t('dashboard.destinations.from')}</p>
                                             <p className="text-primary font-black text-lg">$150</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="bg-primary/5 text-primary text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">3200 Hotels</span>
-                                        <span className="bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">Metropolis</span>
+                                        <span className="bg-primary/5 text-primary text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">{t('dashboard.destinations.hotels', { count: 3200 })}</span>
+                                        <span className="bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest">{t('dashboard.destinations.metropolis')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -341,26 +329,26 @@ const Dashboard = () => {
                                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                                         <span className="material-icons-round text-primary text-lg">history</span>
                                     </div>
-                                    <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Recent Bookings</h2>
+                                    <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">{t('dashboard.recentBookings')}</h2>
                                 </div>
                                 <button
                                     onClick={() => navigate('/bookings')}
                                     className="px-4 py-2 rounded-xl bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all duration-300"
                                 >
-                                    View All
+                                    {t('dashboard.viewAll')}
                                 </button>
                             </div>
                             <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse">
+                                <table className="w-full text-left ltr:text-left rtl:text-right border-collapse">
                                     <thead>
                                         <tr className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest bg-white/20 dark:bg-slate-800/20 border-b border-slate-200 dark:border-slate-700">
-                                            <th className="px-6 py-4">Booking ID</th>
-                                            <th className="px-6 py-4">Voucher</th>
-                                            <th className="px-6 py-4">Agency</th>
-                                            <th className="px-6 py-4">Hotel</th>
-                                            <th className="px-6 py-4 text-center">Check-in</th>
-                                            <th className="px-6 py-4 text-right">Amount</th>
-                                            <th className="px-6 py-4 text-center">Status</th>
+                                            <th className="px-6 py-4">{t('dashboard.bookingId')}</th>
+                                            <th className="px-6 py-4">{t('dashboard.voucher')}</th>
+                                            <th className="px-6 py-4">{t('dashboard.agency')}</th>
+                                            <th className="px-6 py-4">{t('dashboard.hotel')}</th>
+                                            <th className="px-6 py-4 text-center">{t('dashboard.checkIn')}</th>
+                                            <th className="px-6 py-4 text-right">{t('dashboard.amount')}</th>
+                                            <th className="px-6 py-4 text-center">{t('dashboard.status')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/20 dark:divide-white/5">
@@ -369,7 +357,7 @@ const Dashboard = () => {
                                                 <td colSpan="7" className="px-6 py-12 text-center">
                                                     <div className="flex flex-col items-center justify-center gap-4">
                                                         <div className="size-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Retrieving Data...</span>
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('common.loading')}</span>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -382,7 +370,7 @@ const Dashboard = () => {
                                         ) : bookings.length === 0 ? (
                                             <tr>
                                                 <td colSpan="7" className="px-6 py-12 text-center text-slate-400 uppercase tracking-widest text-[10px] font-black">
-                                                    No recent bookings found
+                                                    {t('dashboard.noRecentBookings')}
                                                 </td>
                                             </tr>
                                         ) : (
@@ -439,8 +427,8 @@ const Dashboard = () => {
                                 <span className="material-icons-round text-xl">verified_user</span>
                             </div>
                             <div>
-                                <p className="text-xs font-bold">Secure Payment</p>
-                                <p className="text-[10px] text-slate-400">256-bit SSL</p>
+                                <p className="text-xs font-bold">{t('dashboard.securePayment')}</p>
+                                <p className="text-[10px] text-slate-400">{t('dashboard.securePaymentSub')}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
@@ -448,8 +436,8 @@ const Dashboard = () => {
                                 <span className="material-icons-round text-xl">loyalty</span>
                             </div>
                             <div>
-                                <p className="text-xs font-bold">Best Price</p>
-                                <p className="text-[10px] text-slate-400">Guaranteed</p>
+                                <p className="text-xs font-bold">{t('dashboard.bestPrice')}</p>
+                                <p className="text-[10px] text-slate-400">{t('dashboard.bestPriceSub')}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
@@ -457,8 +445,8 @@ const Dashboard = () => {
                                 <span className="material-icons-round text-xl">support_agent</span>
                             </div>
                             <div>
-                                <p className="text-xs font-bold">24/7 Support</p>
-                                <p className="text-[10px] text-slate-400">Always here</p>
+                                <p className="text-xs font-bold">{t('dashboard.support247')}</p>
+                                <p className="text-[10px] text-slate-400">{t('dashboard.support247Sub')}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
@@ -466,8 +454,8 @@ const Dashboard = () => {
                                 <span className="material-icons-round text-xl">reviews</span>
                             </div>
                             <div>
-                                <p className="text-xs font-bold">Verified Reviews</p>
-                                <p className="text-[10px] text-slate-400">Real feedback</p>
+                                <p className="text-xs font-bold">{t('dashboard.verifiedReviews')}</p>
+                                <p className="text-[10px] text-slate-400">{t('dashboard.verifiedReviewsSub')}</p>
                             </div>
                         </div>
                     </div>

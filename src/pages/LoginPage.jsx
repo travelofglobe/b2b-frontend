@@ -109,7 +109,7 @@ const LoginPage = () => {
                             </h2>
                             <div className="flex items-center gap-2 mt-1.5">
                                 <div className="h-[1px] w-4 bg-primary"></div>
-                                <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.4em] whitespace-nowrap leading-none">B2B Portal</p>
+                                <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.4em] whitespace-nowrap leading-none">Global B2B Solutions</p>
                             </div>
                         </div>
                     </div>

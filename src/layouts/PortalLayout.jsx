@@ -24,7 +24,7 @@ const PortalLayout = () => {
                         </h2>
                         <div className="flex items-center gap-1.5 mt-1">
                             <div className="h-[1px] w-2 bg-primary/40"></div>
-                            <p className="text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] whitespace-nowrap leading-none">B2B Portal</p>
+                            <p className="text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] whitespace-nowrap leading-none">Global B2B Solutions</p>
                         </div>
                     </div>
                 </div>

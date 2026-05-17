@@ -107,7 +107,19 @@ const CHECKOUT_SUMMARY_LOCALES = {
         age: "Age",
         occupancyInfo: "Occupancy Info",
         rateNotes: "Rate Notes",
-        room: "Room"
+        room: "Room",
+        corporateDepositAccount: "Corporate Deposit Account",
+        verifiedB2bBalance: "Verified B2B Balance",
+        availableFunds: "Available Funds",
+        status: "Status",
+        activeReady: "Active & Ready",
+        insufficientFunds: "Insufficient Funds",
+        deductionAmount: "Deduction Amount",
+        paymentImpact: "Payment Impact",
+        balanceDecrease: "Balance Decrease",
+        deficitAmount: "Deficit Amount",
+        topUpPrompt: "Please top up your account to complete this booking",
+        estimatedNewBalance: "Estimated New Balance"
     },
     tr: {
         checkIn: "Giriş",
@@ -155,7 +167,19 @@ const CHECKOUT_SUMMARY_LOCALES = {
         age: "Yaş",
         occupancyInfo: "Doluluk Bilgisi",
         rateNotes: "Fiyat Notları",
-        room: "Oda"
+        room: "Oda",
+        corporateDepositAccount: "Kurumsal Depozito Hesabı",
+        verifiedB2bBalance: "Doğrulanmış B2B Bakiyesi",
+        availableFunds: "Kullanılabilir Bakiye",
+        status: "Durum",
+        activeReady: "Aktif ve Hazır",
+        insufficientFunds: "Yetersiz Bakiye",
+        deductionAmount: "Düşülecek Tutar",
+        paymentImpact: "Ödeme Etkisi",
+        balanceDecrease: "Bakiye Azalışı",
+        deficitAmount: "Eksik Tutar",
+        topUpPrompt: "Lütfen bu rezervasyonu tamamlamak için hesabınıza bakiye yükleyin",
+        estimatedNewBalance: "Tahmini Yeni Bakiye"
     },
     ar: {
         checkIn: "تسجيل الوصول",
@@ -1250,26 +1274,26 @@ const CheckoutPayment = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div className="p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-700" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                 <div className="flex items-center gap-6 mb-8">
                                     <div className="size-20 rounded-[28px] bg-primary/10 flex items-center justify-center text-primary"><span className="material-symbols-outlined text-4xl">account_balance_wallet</span></div>
-                                    <div><h3 className="text-xl font-black uppercase tracking-tight mb-1">Corporate Deposit Account</h3><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Verified B2B Balance</p></div>
+                                    <div><h3 className="text-xl font-black uppercase tracking-tight mb-1">{tSummary('corporateDepositAccount', currentLang)}</h3><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{tSummary('verifiedB2bBalance', currentLang)}</p></div>
                                 </div>
                                 <div className="space-y-4">
                                     {/* Current Balance */}
                                     <div className="p-6 rounded-3xl bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                                         <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Available Funds</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{tSummary('availableFunds', currentLang)}</p>
                                             <p className="text-2xl font-black tracking-tighter opacity-60">$12,450.00</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isInsufficientBalance ? 'text-red-500' : 'text-emerald-500'}`}>Status</p>
+                                            <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isInsufficientBalance ? 'text-red-500' : 'text-emerald-500'}`}>{tSummary('status', currentLang)}</p>
                                             <span className={`px-3 py-1.5 text-[10px] font-black rounded-xl uppercase tracking-widest border ${
                                                 isInsufficientBalance 
                                                     ? 'bg-red-500/10 text-red-500 border-red-500/10' 
                                                     : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/10'
                                             }`}>
-                                                {isInsufficientBalance ? 'Insufficient Funds' : 'Active & Ready'}
+                                                {isInsufficientBalance ? tSummary('insufficientFunds', currentLang) : tSummary('activeReady', currentLang)}
                                             </span>
                                         </div>
                                     </div>
@@ -1280,7 +1304,7 @@ const CheckoutPayment = () => {
                                             <span className="material-symbols-outlined text-8xl text-red-500">trending_down</span>
                                         </div>
                                         <div className="relative z-10">
-                                            <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">Deduction Amount</p>
+                                            <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">{tSummary('deductionAmount', currentLang)}</p>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-4xl font-black text-red-600 leading-none">-</span>
                                                 <p className="text-4xl font-black text-red-600 tracking-tighter leading-none">
@@ -1289,8 +1313,8 @@ const CheckoutPayment = () => {
                                             </div>
                                         </div>
                                         <div className="text-right relative z-10">
-                                            <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Payment Impact</p>
-                                            <span className="px-3 py-1.5 bg-red-500/10 text-red-600 text-[10px] font-black rounded-xl uppercase tracking-widest border border-red-500/10">Balance Decrease</span>
+                                            <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">{tSummary('paymentImpact', currentLang)}</p>
+                                            <span className="px-3 py-1.5 bg-red-500/10 text-red-600 text-[10px] font-black rounded-xl uppercase tracking-widest border border-red-500/10">{tSummary('balanceDecrease', currentLang)}</span>
                                         </div>
                                     </div>
 
@@ -1299,7 +1323,7 @@ const CheckoutPayment = () => {
                                         <div className="p-6 rounded-[32px] bg-red-600 dark:bg-red-900/40 text-white flex flex-col gap-3 shadow-2xl border border-red-500/20 animate-pulse">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">Deficit Amount</p>
+                                                    <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">{tSummary('deficitAmount', currentLang)}</p>
                                                     <p className="text-3xl font-black tracking-tighter">
                                                         - $ {(grandTotal - availableFunds).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </p>
@@ -1309,13 +1333,13 @@ const CheckoutPayment = () => {
                                                 </div>
                                             </div>
                                             <p className="text-[10px] font-bold text-red-100 uppercase tracking-wider bg-black/20 p-2 rounded-xl text-center">
-                                                Please top up your account to complete this booking
+                                                {tSummary('topUpPrompt', currentLang)}
                                             </p>
                                         </div>
                                     ) : (
                                         <div className="p-6 rounded-[32px] bg-slate-900 dark:bg-black text-white flex items-center justify-between shadow-2xl border border-white/5">
                                             <div>
-                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Estimated New Balance</p>
+                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">{tSummary('estimatedNewBalance', currentLang)}</p>
                                                 <p className="text-3xl font-black tracking-tighter">
                                                     $ {(availableFunds - (grandTotal * (displayCurrency === 'USD' ? 1 : 1))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </p>

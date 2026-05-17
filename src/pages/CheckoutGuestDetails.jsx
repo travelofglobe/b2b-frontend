@@ -247,7 +247,20 @@ const CHECKOUT_SUMMARY_LOCALES = {
         age: "العمر",
         occupancyInfo: "معلومات الإشغال",
         rateNotes: "ملاحظات الأسعار",
-        room: "غرفة"
+        room: "غرفة",
+        firstName: "الاسم الأول",
+        lastName: "اسم العائلة",
+        birthDate: "تاريخ الميلاد",
+        gender: "الجنس",
+        male: "ذكر",
+        female: "أنثى",
+        emailAddress: "البريد الإلكتروني",
+        phoneNumber: "رقم الهاتف",
+        enterFirstName: "أدخل الاسم الأول",
+        enterLastName: "أدخل اسم العائلة",
+        enterEmail: "email@example.com",
+        invalidBirthDate: "يرجى إدخال تاريخ ميلاد صحيح",
+        childAgeMismatch: "يجب أن يكون الطفل في عمر {age} سنوات في تاريخ الوصول"
     },
     es: {
         checkIn: "Entrada",
@@ -295,7 +308,20 @@ const CHECKOUT_SUMMARY_LOCALES = {
         age: "Edad",
         occupancyInfo: "Información de Ocupación",
         rateNotes: "Notas de Tarifa",
-        room: "Habitación"
+        room: "Habitación",
+        firstName: "Nombre",
+        lastName: "Apellido",
+        birthDate: "Fecha de Nacimiento",
+        gender: "Género",
+        male: "Masculino",
+        female: "Femenino",
+        emailAddress: "Correo Electrónico",
+        phoneNumber: "Número de Teléfono",
+        enterFirstName: "Ingrese el nombre",
+        enterLastName: "Ingrese el apellido",
+        enterEmail: "correo@ejemplo.com",
+        invalidBirthDate: "Por favor ingrese una fecha de nacimiento válida",
+        childAgeMismatch: "El niño debe tener {age} años en la fecha de entrada"
     },
     ru: {
         checkIn: "Заезд",
@@ -343,7 +369,20 @@ const CHECKOUT_SUMMARY_LOCALES = {
         age: "Возраст",
         occupancyInfo: "Информация о размещении",
         rateNotes: "Примечания к тарифу",
-        room: "Номер"
+        room: "Номер",
+        firstName: "Имя",
+        lastName: "Фамилия",
+        birthDate: "Дата рождения",
+        gender: "Пол",
+        male: "Мужской",
+        female: "Женский",
+        emailAddress: "Эл. почта",
+        phoneNumber: "Номер телефона",
+        enterFirstName: "Введите имя",
+        enterLastName: "Введите фамилию",
+        enterEmail: "email@example.com",
+        invalidBirthDate: "Пожалуйста, введите корректную дату рождения",
+        childAgeMismatch: "Ребёнку должно быть {age} лет на дату заезда"
     },
     zh: {
         checkIn: "入住",
@@ -391,7 +430,20 @@ const CHECKOUT_SUMMARY_LOCALES = {
         age: "年龄",
         occupancyInfo: "入住人数信息",
         rateNotes: "价格备注",
-        room: "客房"
+        room: "客房",
+        firstName: "名字",
+        lastName: "姓氏",
+        birthDate: "出生日期",
+        gender: "性别",
+        male: "男性",
+        female: "女性",
+        emailAddress: "电子邮箱",
+        phoneNumber: "手机号码",
+        enterFirstName: "请输入名字",
+        enterLastName: "请输入姓氏",
+        enterEmail: "email@example.com",
+        invalidBirthDate: "请输入有效的出生日期",
+        childAgeMismatch: "儿童在入住日期必须满 {age} 岁"
     },
     ja: {
         checkIn: "チェックイン",
@@ -439,7 +491,20 @@ const CHECKOUT_SUMMARY_LOCALES = {
         age: "年齢",
         occupancyInfo: "定員情報",
         rateNotes: "料金メモ",
-        room: "客室"
+        room: "客室",
+        firstName: "名前",
+        lastName: "苗字",
+        birthDate: "生年月日",
+        gender: "性別",
+        male: "男性",
+        female: "女性",
+        emailAddress: "メールアドレス",
+        phoneNumber: "電話番号",
+        enterFirstName: "名前を入力",
+        enterLastName: "苗字を入力",
+        enterEmail: "email@example.com",
+        invalidBirthDate: "有効な生年月日を入力してください",
+        childAgeMismatch: "お子様はチェックイン日に {age} 歳でなければなりません"
     },
     fa: {
         checkIn: "ورود",
@@ -487,7 +552,20 @@ const CHECKOUT_SUMMARY_LOCALES = {
         age: "سن",
         occupancyInfo: "اطلاعات ظرفیت اتاق",
         rateNotes: "یادداشت‌های نرخ",
-        room: "اتاق"
+        room: "اتاق",
+        firstName: "نام",
+        lastName: "نام خانوادگی",
+        birthDate: "تاریخ تولد",
+        gender: "جنسیت",
+        male: "مرد",
+        female: "زن",
+        emailAddress: "آدرس ایمیل",
+        phoneNumber: "شماره تلفن",
+        enterFirstName: "نام را وارد کنید",
+        enterLastName: "نام خانوادگی را وارد کنید",
+        enterEmail: "email@example.com",
+        invalidBirthDate: "لطفاً یک تاریخ تولد معتبر وارد کنید",
+        childAgeMismatch: "کودک باید در تاریخ ورود {age} ساله باشد"
     },
     fr: {
         checkIn: "Arrivée",
@@ -535,7 +613,20 @@ const CHECKOUT_SUMMARY_LOCALES = {
         age: "Âge",
         occupancyInfo: "Informations d'Occupation",
         rateNotes: "Notes de Tarif",
-        room: "Chambre"
+        room: "Chambre",
+        firstName: "Prénom",
+        lastName: "Nom de famille",
+        birthDate: "Date de naissance",
+        gender: "Genre",
+        male: "Masculin",
+        female: "Féminin",
+        emailAddress: "Adresse e-mail",
+        phoneNumber: "Numéro de téléphone",
+        enterFirstName: "Entrez le prénom",
+        enterLastName: "Entrez le nom de famille",
+        enterEmail: "email@exemple.com",
+        invalidBirthDate: "Veuillez entrer une date de naissance valide",
+        childAgeMismatch: "L'enfant doit avoir {age} ans à la date d'arrivée"
     },
     it: {
         checkIn: "Check-in",
@@ -583,7 +674,20 @@ const CHECKOUT_SUMMARY_LOCALES = {
         age: "Età",
         occupancyInfo: "Informazioni Occupazione",
         rateNotes: "Note Tariffa",
-        room: "Camera"
+        room: "Camera",
+        firstName: "Nome",
+        lastName: "Cognome",
+        birthDate: "Data di Nascita",
+        gender: "Sesso",
+        male: "Maschio",
+        female: "Femmina",
+        emailAddress: "Indirizzo e-mail",
+        phoneNumber: "Numero di telefono",
+        enterFirstName: "Inserisci il nome",
+        enterLastName: "Inserisci il cognome",
+        enterEmail: "email@esempio.com",
+        invalidBirthDate: "Inserisci una data di nascita valida",
+        childAgeMismatch: "Il bambino deve avere {age} anni alla data di check-in"
     },
     el: {
         checkIn: "Check-in",
@@ -631,7 +735,20 @@ const CHECKOUT_SUMMARY_LOCALES = {
         age: "Ηλικία",
         occupancyInfo: "Πληροφορίες Διαμονής",
         rateNotes: "Σημειώσεις Τιμής",
-        room: "Δωμάτιο"
+        room: "Δωμάτιο",
+        firstName: "Όνομα",
+        lastName: "Επώνυμο",
+        birthDate: "Ημερομηνία Γέννησης",
+        gender: "Φύλο",
+        male: "Άνδρας",
+        female: "Γυναίκα",
+        emailAddress: "Διεύθυνση e-mail",
+        phoneNumber: "Αριθμός τηλεφώνου",
+        enterFirstName: "Εισάγετε το όνομα",
+        enterLastName: "Εισάγετε το επώνυμο",
+        enterEmail: "email@example.com",
+        invalidBirthDate: "Παρακαλώ εισάγετε έγκυρη ημερομηνία γέννησης",
+        childAgeMismatch: "Το παιδί πρέπει να είναι {age} ετών κατά την ημερομηνία άφιξης"
     },
     pt: {
         checkIn: "Entrada",
@@ -664,11 +781,42 @@ const CHECKOUT_SUMMARY_LOCALES = {
         backToRoom: "Voltar para o Quarto",
         backToSelection: "Voltar para a Seleção",
         nextRoom: "Seguinte: Quarto",
-        reviewAndPay: "Revisar e Pagar"
+        reviewAndPay: "Revisar e Pagar",
+        backToRoom: "Voltar ao Quarto",
+        backToSelection: "Voltar à Seleção",
+        totalStayPrice: "Preço Total Estadia (Líquido)",
+        taxesIncl: "Impostos Incl.",
+        b2bRates: "TARIFAS DE AGÊNCIA B2B APLICADAS",
+        securePayment: "PAGAMENTO SEGURO",
+        protectedBooking: "Reserva Protegida pela TOG",
+        in: "Entrada",
+        out: "Saída",
+        leadGuest: "Hóspede Principal (Contacto)",
+        traveler: "Hóspede",
+        standardPolicy: "Política Padrão de Adultos",
+        childPassenger: "Hóspede Criança",
+        age: "Idade",
+        occupancyInfo: "Informações de Ocupação",
+        rateNotes: "Notas de Tarifa",
+        room: "Quarto",
+        firstName: "Primeiro Nome",
+        lastName: "Apelido",
+        birthDate: "Data de Nascimento",
+        gender: "Género",
+        male: "Masculino",
+        female: "Feminino",
+        emailAddress: "Endereço de e-mail",
+        phoneNumber: "Número de telefone",
+        enterFirstName: "Insira o primeiro nome",
+        enterLastName: "Insira o apelido",
+        enterEmail: "email@exemplo.com",
+        invalidBirthDate: "Por favor insira uma data de nascimento válida",
+        childAgeMismatch: "A criança deve ter {age} anos na data de entrada"
     }
 };
 
 const tSummary = (key, lang = 'tr') => {
+    const baseLang = (lang || 'tr').split('-')[0].toLowerCase();
     if (key === 'reservationSummary') {
         const mapping = {
             en: "Reservation Summary",
@@ -684,16 +832,34 @@ const tSummary = (key, lang = 'tr') => {
             el: "Σύνοψη Κράτησης",
             pt: "Resumo da Reserva"
         };
-        return mapping[lang] || mapping['en'];
+        return mapping[baseLang] || mapping['en'];
     }
-    return CHECKOUT_SUMMARY_LOCALES[lang]?.[key] || CHECKOUT_SUMMARY_LOCALES['en']?.[key] || key;
+    return CHECKOUT_SUMMARY_LOCALES[baseLang]?.[key] || CHECKOUT_SUMMARY_LOCALES['en']?.[key] || key;
 };
 
 const CheckoutGuestDetails = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { i18n } = useTranslation();
-    const currentLang = i18n.language || localStorage.getItem('language') || 'tr';
+    const [currentLang, setCurrentLang] = useState(() => {
+        const rawLang = i18n.language || localStorage.getItem('i18nextLng') || localStorage.getItem('language') || 'en';
+        return rawLang.split('-')[0].toLowerCase();
+    });
+
+    useEffect(() => {
+        // Sync immediately in case language changed before this component mounted
+        const rawLang = i18n.language || localStorage.getItem('i18nextLng') || localStorage.getItem('language') || 'en';
+        setCurrentLang(rawLang.split('-')[0].toLowerCase());
+
+        const handleLangChange = (lng) => {
+            if (lng) setCurrentLang(lng.split('-')[0].toLowerCase());
+        };
+        i18n.on('languageChanged', handleLangChange);
+        return () => {
+            i18n.off('languageChanged', handleLangChange);
+        };
+    }, [i18n]);
+
     const cl = confirmLocales[currentLang] || confirmLocales['tr'];
     const crmText = crmLocales[currentLang] || crmLocales['tr'];
 
@@ -731,12 +897,11 @@ const CheckoutGuestDetails = () => {
     const formattedDates = React.useMemo(() => {
         if (!checkInDate || !checkOutDate) return { start: 'Select Date', end: 'Select Date' };
         const options = { month: 'short', day: 'numeric', year: 'numeric' };
-        const currentLang = localStorage.getItem('language') || 'tr';
         return {
             start: new Date(checkInDate).toLocaleDateString(currentLang, options),
             end: new Date(checkOutDate).toLocaleDateString(currentLang, options)
         };
-    }, [checkInDate, checkOutDate]);
+    }, [checkInDate, checkOutDate, currentLang]);
 
     const [activeRoomIdx, setActiveRoomIdx] = useState(0);
     const [showConfirmBack, setShowConfirmBack] = useState(false);

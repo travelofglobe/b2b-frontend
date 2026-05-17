@@ -23,8 +23,8 @@ const Dashboard = () => {
             try {
                 const data = await bookingService.findLastFive();
                 // API returns { bookings: { content: [...] }, summaries: [] }
-                const list = data?.bookings?.content ?? data?.content ?? (Array.isArray(data) ? data : []);
-                setBookings(list);
+                const list = data?.bookings?.content ?? data?.content ?? data;
+                setBookings(Array.isArray(list) ? list : []);
             } catch (err) {
                 setError(err.message || 'Rezervasyonlar yüklenemedi.');
             } finally {

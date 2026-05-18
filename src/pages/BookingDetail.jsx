@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { bookingService } from '../services/bookingService';
 import HeaderActions from '../components/HeaderActions';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
+import { tBD } from '../utils/bookingDetailLocales';
 
 const BookingDetail = () => {
     const { bookingId } = useParams();
@@ -11,6 +13,21 @@ const BookingDetail = () => {
     const [booking, setBooking] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const { i18n } = useTranslation();
+    const [currentLang, setCurrentLang] = useState(() => {
+        const raw = i18n.language || localStorage.getItem('i18nextLng') || 'en';
+        return raw.split('-')[0].toLowerCase();
+    });
+    useEffect(() => {
+        const raw = i18n.language || localStorage.getItem('i18nextLng') || 'en';
+        setCurrentLang(raw.split('-')[0].toLowerCase());
+        const handler = (lng) => { if (lng) setCurrentLang(lng.split('-')[0].toLowerCase()); };
+        i18n.on('languageChanged', handler);
+        return () => { i18n.off('languageChanged', handler); };
+    }, [i18n]);
+
+    const L = (key) => tBD(currentLang, key);
 
     useEffect(() => {
         const abortController = new AbortController();
@@ -40,7 +57,6 @@ const BookingDetail = () => {
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
-        const currentLang = localStorage.getItem('language') || 'tr';
         return date.toLocaleDateString(currentLang, { month: 'short', day: 'numeric', year: 'numeric' });
     };
 
@@ -63,7 +79,6 @@ const BookingDetail = () => {
                 return 'Invalid Date';
             }
 
-            const currentLang = localStorage.getItem('language') || 'tr';
             const formattedDate = date.toLocaleString(currentLang, {
                 month: 'short',
                 day: 'numeric',
@@ -108,6 +123,53 @@ const BookingDetail = () => {
                 return 'female';
             default:
                 return 'person';
+        }
+    };
+
+    const getGenderLabel = (gender) => {
+        if (!gender) return 'N/A';
+        switch (gender.toUpperCase()) {
+            case 'MALE':
+                return L('genderMale');
+            case 'FEMALE':
+                return L('genderFemale');
+            default:
+                return L('genderOther');
+        }
+    };
+
+    const getGuestTypeLabel = (type) => {
+        if (!type) return 'N/A';
+        switch (type.toUpperCase()) {
+            case 'ADULT':
+                return L('typeAdult');
+            case 'CHILD':
+                return L('typeChild');
+            case 'INFANT':
+                return L('typeInfant');
+            default:
+                return type;
+        }
+    };
+
+    const getPaymentStatusLabel = (status) => {
+        if (!status) return 'N/A';
+        switch (status) {
+            case 'PENDING':
+            case 'PENDING_PAYMENT':
+                return L('pyPending');
+            case 'PAID_CREDIT_CARD':
+                return L('pyPaidCard');
+            case 'PAID_ACCOUNT':
+                return L('pyPaidAcc');
+            case 'REFUNDED_CREDIT_CARD':
+                return L('pyRefCard');
+            case 'REFUNDED_ACCOUNT':
+                return L('pyRefAcc');
+            case 'FAILED':
+                return L('pyFailed');
+            default:
+                return status.replace(/_/g, ' ');
         }
     };
 
@@ -166,16 +228,15 @@ const BookingDetail = () => {
                                     <span className="material-icons-round">arrow_back</span>
                                 </button>
                                 <div>
-                                    <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Booking Details</h1>
+                                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{L('title')}</h1>
                                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                        {loading ? 'Fetching data...' : error ? 'Error loading booking' : 'Booking information'}
+                                        {loading ? L('fetching') : error ? L('errorLoading') : L('bookingInfo')}
                                     </p>
                                 </div>
                             </div>
                             <HeaderActions />
                         </div>
                     </header>
-
                     <div className="flex-1 overflow-auto p-6">
                         {loading ? (
                             <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
@@ -223,13 +284,13 @@ const BookingDetail = () => {
                                     <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-300">
                                         <span className="material-icons-round text-red-500 text-4xl">error_outline</span>
                                     </div>
-                                    <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Unavailable</h3>
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">{L('unavailable')}</h3>
                                     <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{error}</p>
                                     <button
                                         onClick={() => navigate('/bookings')}
                                         className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-blue-600 transition-all shadow-lg shadow-primary/20 active:scale-95"
                                     >
-                                        Back to Bookings
+                                        {L('backToBookings')}
                                     </button>
                                 </div>
                             </div>
@@ -253,9 +314,9 @@ const BookingDetail = () => {
                                 <span className="material-icons-round">arrow_back</span>
                             </button>
                             <div>
-                                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Booking Details</h1>
+                                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{L('title')}</h1>
                                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                    Order #{booking.orderId} • {booking.hotel?.hotelName || 'N/A'}
+                                    {L('orderId')} #{booking.orderId} • {booking.hotel?.hotelName || 'N/A'}
                                 </p>
                             </div>
                         </div>
@@ -271,7 +332,7 @@ const BookingDetail = () => {
                                 }`}
                             >
                                 <span className="material-icons-round text-lg">receipt_long</span>
-                                <span>{booking.voucher ? 'Voucher' : 'Voucher Pending'}</span>
+                                <span>{booking.voucher ? L('voucher') : L('voucherPending')}</span>
                             </button>
                             <HeaderActions />
                         </div>
@@ -287,69 +348,69 @@ const BookingDetail = () => {
                                     <span className="material-icons-round text-2xl">receipt_long</span>
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-black text-slate-900 dark:text-white">Booking Overview</h2>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">Order and reservation details</p>
+                                    <h2 className="text-xl font-black text-slate-900 dark:text-white">{L('overview')}</h2>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">{L('overviewSub')}</p>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Order ID</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('orderId')}</p>
                                     <p className="text-lg font-black text-primary">#{booking.orderId}</p>
                                 </div>
                                 {/* Removed UUID and Status as requested */}
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Status</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('paymentStatus')}</p>
                                     <span className={`inline-block px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${getPaymentStatusColor(booking.payment?.status)}`}>
-                                        {booking.payment?.status?.replace('_', ' ') || 'N/A'}
+                                        {getPaymentStatusLabel(booking.payment?.status)}
                                     </span>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Client Reference ID</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('clientRefId')}</p>
                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.clientReferenceId || 'N/A'}</p>
                                 </div>
                                 {/* Removed Request ID, Supplier ID, Supplier Name, Feed ID */}
                                 {booking.status !== 'FAILED' && booking.hotel?.bookingStatus !== 'FAILED' && (
                                     <div className="space-y-1">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Voucher</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('voucher')}</p>
                                         <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.voucher || 'N/A'}</p>
                                     </div>
                                 )}
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Check-in</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('checkIn')}</p>
                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatDate(booking.checkIn)}</p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Check-out</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('checkOut')}</p>
                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatDate(booking.checkOut)}</p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Amount</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('totalAmount')}</p>
                                     <p className="text-xs font-black text-primary">{booking.totalAmount !== null ? `${booking.totalAmount} ${booking.currency || ''}` : 'N/A'}</p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Penalty Amount</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('penaltyAmount')}</p>
                                     <p className="text-xs font-medium text-red-600">{booking.totalPenaltyAmount !== null ? `${booking.totalPenaltyAmount} ${booking.currency || ''}` : 'N/A'}</p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Refund Amount</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('refundAmount')}</p>
                                     <p className="text-xs font-medium text-green-600">{booking.totalRefundAmount !== null ? `${booking.totalRefundAmount} ${booking.currency || ''}` : 'N/A'}</p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tax Amount</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('taxAmount')}</p>
                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.totalTaxAmount !== null ? `${booking.totalTaxAmount} ${booking.currency || ''}` : 'N/A'}</p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">On Spot Amount</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('onSpotAmount')}</p>
                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.totalOnSpotAmount !== null ? `${booking.totalOnSpotAmount} ${booking.currency || ''}` : 'N/A'}</p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transaction User</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('transactionUser')}</p>
                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.transactionUser || 'N/A'}</p>
                                 </div>
                                 {booking.remark && (
                                     <div className="space-y-1 md:col-span-2 lg:col-span-3">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Remark</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('remark')}</p>
                                         <p className="text-sm text-slate-700 dark:text-slate-200 italic">{booking.remark}</p>
                                     </div>
                                 )}
@@ -364,22 +425,22 @@ const BookingDetail = () => {
                                         <span className="material-icons-round text-2xl">hotel</span>
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-black text-slate-900 dark:text-white">Hotel Information</h2>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">Property and contact details</p>
+                                        <h2 className="text-xl font-black text-slate-900 dark:text-white">{L('hotelInfo')}</h2>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{L('hotelInfoSub')}</p>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                     <div className="space-y-1">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hotel Name</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('hotelName')}</p>
                                         <p className="text-lg font-black text-slate-900 dark:text-white">{booking.hotel.hotelName}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hotel ID</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('hotelId')}</p>
                                         <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.hotel.internalHotelId || 'N/A'}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Booking Status</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('bookingStatus')}</p>
                                         <BookingStatusBadge status={getOverallDisplayStatus()} className="px-3 py-1 rounded-xl text-[10px]" showIcon />
                                     </div>
                                 </div>
@@ -387,26 +448,26 @@ const BookingDetail = () => {
                                 {/* Contact Information */}
                                 {booking.hotel.contact && (
                                     <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
-                                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider mb-4">Contact Information</h3>
+                                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider mb-4">{L('contactInfo')}</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                             <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
                                                 <span className="material-icons-round text-slate-400">person</span>
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Name</p>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">{L('name')}</p>
                                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.hotel.contact.name} {booking.hotel.contact.surname}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
                                                 <span className="material-icons-round text-slate-400">phone</span>
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Phone</p>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">{L('phone')}</p>
                                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.hotel.contact.phoneCountryCode} {booking.hotel.contact.phoneNumber}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
                                                 <span className="material-icons-round text-slate-400">email</span>
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Email</p>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">{L('email')}</p>
                                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.hotel.contact.email}</p>
                                                 </div>
                                             </div>
@@ -424,14 +485,14 @@ const BookingDetail = () => {
                                         <span className="material-icons-round text-2xl">meeting_room</span>
                                     </div>
                                     <div className="flex-1">
-                                        <h2 className="text-xl font-black text-slate-900 dark:text-white">Room {roomIndex + 1}: {room.roomName}</h2>
+                                        <h2 className="text-xl font-black text-slate-900 dark:text-white">{L('room')} {roomIndex + 1}: {room.roomName}</h2>
                                         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">Room ID: {room.roomId}</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">{L('roomId')}: {room.roomId}</p>
                                             <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                                                <span>Booking Status:</span>
+                                                <span>{L('bookingStatus')}:</span>
                                                 <BookingStatusBadge status={getOverallDisplayStatus()} className="px-2 py-0.5 rounded-md text-[9px]" />
                                             </div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">Conf. Code: <span className="font-bold text-slate-700 dark:text-slate-200">{room.roomConfirmationCode || 'N/A'}</span></p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">{L('confCode')}: <span className="font-bold text-slate-700 dark:text-slate-200">{room.roomConfirmationCode || 'N/A'}</span></p>
                                         </div>
                                     </div>
                                 </div>
@@ -439,16 +500,16 @@ const BookingDetail = () => {
                                 {/* Occupancies */}
                                 {room.occupancies && room.occupancies.length > 0 && (
                                     <div className="mb-6">
-                                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider mb-4">Guests</h3>
+                                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider mb-4">{L('guests')}</h3>
                                         <div className="overflow-x-auto">
                                             <table className="w-full border-collapse">
                                                 <thead>
                                                     <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Name</th>
-                                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Nationality</th>
-                                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Birth Date</th>
-                                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Gender</th>
-                                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Type</th>
+                                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('name')}</th>
+                                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('nationality')}</th>
+                                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('birthDate')}</th>
+                                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('gender')}</th>
+                                                        <th className="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('type')}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -466,12 +527,12 @@ const BookingDetail = () => {
                                                             <td className="px-4 py-3">
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="material-icons-round text-slate-400 text-sm">{getGenderIcon(guest.gender)}</span>
-                                                                    <p className="text-xs text-slate-600 dark:text-slate-300">{guest.gender}</p>
+                                                                    <p className="text-xs text-slate-600 dark:text-slate-300">{getGenderLabel(guest.gender)}</p>
                                                                 </div>
                                                             </td>
                                                             <td className="px-4 py-3">
                                                                 <span className="px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold">
-                                                                    {guest.guestType}
+                                                                    {getGuestTypeLabel(guest.guestType)}
                                                                 </span>
                                                             </td>
                                                         </tr>
@@ -485,30 +546,30 @@ const BookingDetail = () => {
                                 {/* Rates */}
                                 {room.rates && room.rates.length > 0 && room.rates.map((rate, rateIndex) => (
                                     <div key={rateIndex} className="border-t border-slate-100 dark:border-slate-800 pt-6 mt-6">
-                                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider mb-4">Rate Details</h3>
+                                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider mb-4">{L('rateDetails')}</h3>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Board Type</p>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('boardType')}</p>
                                                 <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatBoardType(rate.boardType)}</p>
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Amount</p>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('totalAmount')}</p>
                                                 <div className="flex items-center gap-2">
                                                     <p className="text-lg font-black text-primary">{rate.totalAmount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                                                     <span className="text-sm font-bold text-slate-400">{rate.currency}</span>
                                                 </div>
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Refundable</p>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('refundable')}</p>
                                                 <RefundPolicyTooltip
                                                     isRefundable={rate.refundable}
-                                                    textOverride={rate.refundable ? 'Yes' : 'No'}
+                                                    textOverride={rate.refundable ? L('yes') : L('no')}
                                                     className={`inline-block px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${rate.refundable ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rate Category</p>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('rateCategory')}</p>
                                                 <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{rate.rateCategoryId || 'N/A'}</p>
                                             </div>
                                             {/* Removed Rate Code as requested */}
@@ -517,13 +578,13 @@ const BookingDetail = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
                                             {/* Fees */}
                                             <div>
-                                                <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">Fees</h4>
+                                                <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">{L('fees')}</h4>
                                                 <div className="overflow-x-auto">
                                                     <table className="w-full border-collapse">
                                                         <thead>
                                                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                                                                <th className="px-4 py-2 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Type</th>
-                                                                <th className="px-4 py-2 text-right text-[10px] font-black text-slate-400 uppercase tracking-wider">Amount</th>
+                                                                <th className="px-4 py-2 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('type')}</th>
+                                                                <th className="px-4 py-2 text-right text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('amount')}</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -538,7 +599,7 @@ const BookingDetail = () => {
                                                                 </tr>
                                                             )) : (
                                                                 <tr>
-                                                                    <td colSpan="2" className="px-4 py-3 text-center text-xs text-slate-400 italic">No fees recorded</td>
+                                                                    <td colSpan="2" className="px-4 py-3 text-center text-xs text-slate-400 italic">{L('noFees')}</td>
                                                                 </tr>
                                                             )}
                                                         </tbody>
@@ -548,13 +609,13 @@ const BookingDetail = () => {
 
                                             {/* Taxes */}
                                             <div>
-                                                <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">Taxes</h4>
+                                                <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">{L('taxes')}</h4>
                                                 <div className="overflow-x-auto">
                                                     <table className="w-full border-collapse">
                                                         <thead>
                                                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                                                                <th className="px-4 py-2 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Type</th>
-                                                                <th className="px-4 py-2 text-right text-[10px] font-black text-slate-400 uppercase tracking-wider">Amount</th>
+                                                                <th className="px-4 py-2 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('type')}</th>
+                                                                <th className="px-4 py-2 text-right text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('amount')}</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -569,7 +630,7 @@ const BookingDetail = () => {
                                                                 </tr>
                                                             )) : (
                                                                 <tr>
-                                                                    <td colSpan="2" className="px-4 py-3 text-center text-xs text-slate-400 italic">No taxes recorded</td>
+                                                                    <td colSpan="2" className="px-4 py-3 text-center text-xs text-slate-400 italic">{L('noTaxes')}</td>
                                                                 </tr>
                                                             )}
                                                         </tbody>
@@ -581,13 +642,13 @@ const BookingDetail = () => {
                                         {/* Daily Prices */}
                                         {rate.dailyPrices && rate.dailyPrices.length > 0 && (
                                             <div className="mb-6">
-                                                <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">Daily Prices</h4>
+                                                <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">{L('dailyPrices')}</h4>
                                                 <div className="overflow-x-auto">
                                                     <table className="w-full border-collapse">
                                                         <thead>
                                                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                                                                <th className="px-4 py-2 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">Date</th>
-                                                                <th className="px-4 py-2 text-right text-[10px] font-black text-slate-400 uppercase tracking-wider">Amount</th>
+                                                                <th className="px-4 py-2 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('date')}</th>
+                                                                <th className="px-4 py-2 text-right text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('amount')}</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -610,14 +671,14 @@ const BookingDetail = () => {
                                         {/* Cancellation Policies */}
                                         {rate.cancellationPolicies && rate.cancellationPolicies.length > 0 && (
                                             <div>
-                                                <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">Cancellation Policies</h4>
+                                                <h4 className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">{L('cancelPolicies')}</h4>
                                                 <div className="overflow-x-auto">
                                                     <table className="w-full border-collapse">
                                                         <thead>
                                                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-                                                                <th className="px-4 py-2 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">From Date</th>
-                                                                <th className="px-4 py-2 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">To Date</th>
-                                                                <th className="px-4 py-2 text-right text-[10px] font-black text-slate-400 uppercase tracking-wider">Penalty Amount</th>
+                                                                <th className="px-4 py-2 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('fromDate')}</th>
+                                                                <th className="px-4 py-2 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('toDate')}</th>
+                                                                <th className="px-4 py-2 text-right text-[10px] font-black text-slate-400 uppercase tracking-wider">{L('penaltyAmount')}</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -652,25 +713,25 @@ const BookingDetail = () => {
                                         <span className="material-icons-round text-2xl">history</span>
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-black text-slate-900 dark:text-white">Audit Information</h2>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">Creation and modification history</p>
+                                        <h2 className="text-xl font-black text-slate-900 dark:text-white">{L('auditInfo')}</h2>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{L('auditInfoSub')}</p>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-1">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Created</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('created')}</p>
                                         <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatDateTime(booking.audit.createDateTime)}</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">by {booking.audit.createdBy}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">{L('by')} {booking.audit.createdBy}</p>
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Updated</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('updated')}</p>
                                         <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{formatDateTime(booking.audit.updateDateTime)}</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">by {booking.audit.updatedBy}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">{L('by')} {booking.audit.updatedBy}</p>
                                     </div>
                                     {/* Removed Status from Audit Info as requested */}
                                     <div className="space-y-1">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Version</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('version')}</p>
                                         <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.audit.version}</p>
                                     </div>
                                 </div>

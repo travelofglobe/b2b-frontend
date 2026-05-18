@@ -47,12 +47,12 @@ const HeaderActions = () => {
             <div className="relative" ref={menuRef}>
                 <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="flex items-center gap-2 transition-transform active:scale-95 focus:outline-none"
+                    className="flex items-center gap-1.5 transition-transform active:scale-95 focus:outline-none"
                 >
-                    <div className="size-10 rounded-lg shadow-sm hover:shadow-md transition-shadow flex items-center justify-center bg-slate-100 dark:bg-[#233648]" title={userDisplayName}>
-                        <span className="material-symbols-outlined text-slate-600 dark:text-slate-300 text-[24px]">person</span>
+                    <div className="size-8 rounded-lg shadow-sm hover:shadow-md transition-shadow flex items-center justify-center bg-slate-100 dark:bg-[#233648]" title={userDisplayName}>
+                        <span className="material-symbols-outlined text-slate-600 dark:text-slate-300 text-[18px]">person</span>
                     </div>
-                    <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">expand_more</span>
+                    <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[18px]">expand_more</span>
                 </button>
 
                 {isMenuOpen && (
@@ -63,19 +63,6 @@ const HeaderActions = () => {
                             <p className="text-sm text-slate-500 break-words font-medium mt-0.5">{user?.email}</p>
                         </div>
                         <div className="p-2 space-y-1">
-                            <button className="w-full text-left px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-colors">
-                                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-primary">
-                                    <span className="material-symbols-outlined text-[18px]">person</span>
-                                </div>
-                                Profile Details
-                            </button>
-                            <button className="w-full text-left px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center gap-3 transition-colors">
-                                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-slate-800 flex items-center justify-center text-primary">
-                                    <span className="material-symbols-outlined text-[18px]">settings</span>
-                                </div>
-                                Settings
-                            </button>
-                            <div className="border-t border-slate-100 dark:border-slate-800 my-1"></div>
                             <button
                                 onClick={() => {
                                     handleLogout();

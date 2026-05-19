@@ -189,10 +189,13 @@ const BookingDetail = () => {
     };
 
     const getOverallDisplayStatus = () => {
-        if (booking?.status === 'FAILED' || booking?.hotel?.bookingStatus === 'FAILED') {
-            return 'FAILED';
+        if (booking?.hotel?.bookingStatus) {
+            return booking.hotel.bookingStatus;
         }
-        return 'SUCCESS';
+        if (booking?.status) {
+            return booking.status;
+        }
+        return 'UNKNOWN';
     };
 
     const formatBoardType = (boardType) => {
@@ -324,9 +327,9 @@ const BookingDetail = () => {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => booking.voucher && window.open(`/bookings/${booking.voucher}/voucher`, '_blank')}
-                                disabled={!booking.voucher || booking.status === 'FAILED' || booking.hotel?.bookingStatus === 'FAILED'}
+                                disabled={!booking.voucher || booking.status === 'FAILED' || booking.status === 'ERROR' || booking.hotel?.bookingStatus === 'FAILED' || booking.hotel?.bookingStatus === 'ERROR'}
                                 className={`h-10 px-5 rounded-xl flex items-center gap-2 font-black text-sm transition-all shadow-sm border ${
-                                    !booking.voucher || booking.status === 'FAILED' || booking.hotel?.bookingStatus === 'FAILED'
+                                    !booking.voucher || booking.status === 'FAILED' || booking.status === 'ERROR' || booking.hotel?.bookingStatus === 'FAILED' || booking.hotel?.bookingStatus === 'ERROR'
                                         ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed grayscale opacity-60'
                                         : 'bg-primary/10 hover:bg-primary/20 text-primary dark:bg-primary/20 dark:hover:bg-primary/30 border-primary/20 active:scale-95'
                                 }`}
@@ -370,7 +373,7 @@ const BookingDetail = () => {
                                     <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.clientReferenceId || 'N/A'}</p>
                                 </div>
                                 {/* Removed Request ID, Supplier ID, Supplier Name, Feed ID */}
-                                {booking.status !== 'FAILED' && booking.hotel?.bookingStatus !== 'FAILED' && (
+                                {booking.status !== 'FAILED' && booking.status !== 'ERROR' && booking.hotel?.bookingStatus !== 'FAILED' && booking.hotel?.bookingStatus !== 'ERROR' && (
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{L('voucher')}</p>
                                         <p className="text-xs font-medium text-slate-700 dark:text-slate-200">{booking.voucher || 'N/A'}</p>

@@ -599,9 +599,8 @@ const HotelListing = () => {
                 setTotalProperties(0);
             }
 
-            const response = await hotelService.searchHotels({
+            const baseRequest = {
                 locationId,
-                page: currentPage,
                 size: 20,
                 filters: {
                     locationIds: filters.locations?.length > 0 ? filters.locations : (locationId ? [parseInt(locationId)] : null),
@@ -625,27 +624,41 @@ const HotelListing = () => {
                 })(),
                 sort: sortConfig.field ? sortConfig : null,
                 signal: controller.signal
-            });
+            };
 
-            if (response && response.data) {
-                const pageData = response.data;
-                const filtersData = response.filters || response.data.filters;
-                const content = pageData.content || [];
-                const mappedHotels = content.map(h => mapApiHotelToModel(h));
+            // Fetch two pages in parallel
+            const req1 = hotelService.searchHotels({ ...baseRequest, page: currentPage });
+            const req2 = hotelService.searchHotels({ ...baseRequest, page: currentPage + 1 });
+            
+            // Wait for both to complete
+            const results = await Promise.allSettled([req1, req2]);
+            
+            const res1 = results[0].status === 'fulfilled' ? results[0].value : null;
+            const res2 = results[1].status === 'fulfilled' ? results[1].value : null;
+
+            if (res1 && res1.data) {
+                const pageData1 = res1.data;
+                const pageData2 = (res2 && res2.data) ? res2.data : { content: [], last: true };
+                
+                const filtersData = res1.filters || res1.data.filters;
+                const content1 = pageData1.content || [];
+                const content2 = pageData2.content || [];
+                const combinedContent = [...content1, ...content2];
+                const mappedHotels = combinedContent.map(h => mapApiHotelToModel(h));
 
                 setHotels(prev => currentPage === 0 ? mappedHotels : [...prev, ...mappedHotels]);
-                setTotalProperties(pageData.totalElements || 0);
+                setTotalProperties(pageData1.totalElements || 0);
 
                 if (currentPage === 0 && filtersData) {
                     setDynamicFilters(filtersData);
                 }
 
-                setHasMore(!pageData.last);
-                setPage(currentPage + 1);
+                setHasMore(!pageData1.last && !pageData2.last);
+                setPage(currentPage + 2);
 
                 // Extract location names from breadcrumbs continuously across all pages
                 const newLocationNames = {};
-                content.forEach(hotel => {
+                combinedContent.forEach(hotel => {
                     if (hotel.locationBreadcrumbs) {
                         hotel.locationBreadcrumbs.forEach(crumb => {
                             if (crumb.locationId && crumb.name) {
@@ -815,7 +828,7 @@ const HotelListing = () => {
             if (entries[0].isIntersecting && hasMore && !isLoading && hotels.length > 0) {
                 loadMoreHotels();
             }
-        }, { threshold: 0, rootMargin: '2000px' });
+        }, { threshold: 0, rootMargin: '5000px' });
 
         if (loaderRef.current) {
             observer.observe(loaderRef.current);

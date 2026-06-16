@@ -118,6 +118,13 @@ const PortalLayout = () => {
                                     {t('sidebar.agencyManagement')}
                                 </button>
                                 <button
+                                    onClick={() => navigate('/gsa/markups')}
+                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/gsa/markups' ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                >
+                                    <span className="material-icons-round text-[18px]">payments</span>
+                                    {t('sidebar.subAgencyMarkups')}
+                                </button>
+                                <button
                                     onClick={() => navigate('/gsa/finance')}
                                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/gsa/finance' ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                                 >

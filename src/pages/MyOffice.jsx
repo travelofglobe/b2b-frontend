@@ -640,13 +640,6 @@ const MyOffice = () => {
                                                     <p className="text-sm font-semibold text-primary">{formData.currency}</p>
                                                 </div>
                                             </div>
-                                            <div>
-                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">{L('integration')}</p>
-                                                <p className="text-sm font-semibold flex items-center gap-2">
-                                                    <span className="size-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                                                    {formData.integrationType}
-                                                </p>
-                                            </div>
                                         </div>
                                     </div>
 
@@ -709,11 +702,11 @@ const MyOffice = () => {
                                             <div className="grid grid-cols-2 gap-12">
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('agencyName')}</label>
-                                                    <input type="text" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder={L('commercialName')} />
+                                                    <input type="text" value={formData.name} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder={L('commercialName')} />
                                                 </div>
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('officialTitle')}</label>
-                                                    <input type="text" value={formData.officialTitle} onChange={(e) => handleInputChange('officialTitle', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder={L('legalTitle')} />
+                                                    <input type="text" value={formData.officialTitle} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder={L('legalTitle')} />
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-3 gap-12">
@@ -723,7 +716,7 @@ const MyOffice = () => {
                                                 </div>
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('language')}</label>
-                                                    <select value={formData.defaultLanguage} onChange={(e) => handleInputChange('defaultLanguage', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent appearance-none">
+                                                    <select value={formData.defaultLanguage} disabled className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent appearance-none opacity-80">
                                                         <option value="EN">English</option>
                                                         <option value="TR">Turkish</option>
                                                     </select>
@@ -746,13 +739,13 @@ const MyOffice = () => {
                                             <div className="grid grid-cols-2 gap-12">
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('directEmail')}</label>
-                                                    <input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="contact@agency.com" />
+                                                    <input type="email" value={formData.email} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder="contact@agency.com" />
                                                 </div>
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('phone')}</label>
                                                     <div className="flex gap-4">
-                                                        <input type="text" value={formData.phoneCountryCode} onChange={(e) => handleInputChange('phoneCountryCode', e.target.value)} className="w-16 h-12 input-modern outline-none font-bold text-sm text-center" placeholder="90" />
-                                                        <input type="text" value={formData.phoneNumber} onChange={(e) => handleInputChange('phoneNumber', e.target.value)} className="flex-1 h-12 input-modern outline-none font-bold text-sm" placeholder="5XX..." />
+                                                        <input type="text" value={formData.phoneCountryCode} readOnly className="w-16 h-12 input-modern outline-none font-bold text-sm text-center bg-transparent opacity-80" placeholder="90" />
+                                                        <input type="text" value={formData.phoneNumber} readOnly className="flex-1 h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder="5XX..." />
                                                     </div>
                                                 </div>
                                             </div>
@@ -767,14 +760,14 @@ const MyOffice = () => {
                                             <div className="grid grid-cols-2 gap-12">
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('country')}</label>
-                                                    <select value={formData.countryId} onChange={handleCountryChange} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
+                                                    <select value={formData.countryId} disabled className="w-full h-12 input-modern outline-none font-bold text-sm cursor-not-allowed appearance-none bg-transparent opacity-80">
                                                         <option value="">{L('selectTerritory')}</option>
                                                         {countries.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
                                                     </select>
                                                 </div>
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('city')}</label>
-                                                    <select value={formData.cityId} onChange={(e) => handleInputChange('cityId', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
+                                                    <select value={formData.cityId} disabled className="w-full h-12 input-modern outline-none font-bold text-sm cursor-not-allowed appearance-none bg-transparent opacity-80">
                                                         <option value="">{L('selectHub')}</option>
                                                         {cities.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
                                                     </select>
@@ -783,11 +776,11 @@ const MyOffice = () => {
                                             <div className="grid grid-cols-4 gap-12">
                                                 <div className="col-span-3 space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('streetAddress')}</label>
-                                                    <input type="text" value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="Full street detail" />
+                                                    <input type="text" value={formData.address} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder="Full street detail" />
                                                 </div>
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('zipCode')}</label>
-                                                    <input type="text" value={formData.zipCode} onChange={(e) => handleInputChange('zipCode', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm text-center" placeholder="00000" />
+                                                    <input type="text" value={formData.zipCode} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm text-center bg-transparent opacity-80" placeholder="00000" />
                                                 </div>
                                             </div>
                                         </div>
@@ -801,38 +794,38 @@ const MyOffice = () => {
                                             <div className="grid grid-cols-2 gap-12">
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('taxOffice')}</label>
-                                                    <input type="text" value={formData.taxOffice} onChange={(e) => handleInputChange('taxOffice', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" />
+                                                    <input type="text" value={formData.taxOffice} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" />
                                                 </div>
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('taxNumber')}</label>
-                                                    <input type="text" value={formData.taxNumber} onChange={(e) => handleInputChange('taxNumber', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" />
+                                                    <input type="text" value={formData.taxNumber} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" />
                                                 </div>
                                             </div>
                                             <div className="space-y-10 pt-4 border-t border-slate-50 dark:border-white/5">
                                                 <div className="grid grid-cols-2 gap-12">
                                                     <div className="space-y-1">
                                                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accEmail')}</label>
-                                                        <input type="email" value={formData.agencyFinancialInfo?.email} onChange={(e) => handleInputChange('agencyFinancialInfo.email', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="accounting@mail.com" />
+                                                        <input type="email" value={formData.agencyFinancialInfo?.email} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder="accounting@mail.com" />
                                                     </div>
                                                     <div className="space-y-1">
                                                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accPhone')}</label>
                                                         <div className="flex gap-4">
-                                                            <input type="text" value={formData.agencyFinancialInfo?.phoneCountryCode} onChange={(e) => handleInputChange('agencyFinancialInfo.phoneCountryCode', e.target.value)} className="w-16 h-12 input-modern outline-none font-bold text-sm text-center" placeholder="90" />
-                                                            <input type="text" value={formData.agencyFinancialInfo?.phoneNumber} onChange={(e) => handleInputChange('agencyFinancialInfo.phoneNumber', e.target.value)} className="flex-1 h-12 input-modern outline-none font-bold text-sm" placeholder="5XX..." />
+                                                            <input type="text" value={formData.agencyFinancialInfo?.phoneCountryCode} readOnly className="w-16 h-12 input-modern outline-none font-bold text-sm text-center bg-transparent opacity-80" placeholder="90" />
+                                                            <input type="text" value={formData.agencyFinancialInfo?.phoneNumber} readOnly className="flex-1 h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder="5XX..." />
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-12">
                                                     <div className="space-y-1">
                                                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accCountry')}</label>
-                                                        <select value={formData.agencyFinancialInfo?.countryId} onChange={handleFinCountryChange} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
+                                                        <select value={formData.agencyFinancialInfo?.countryId} disabled className="w-full h-12 input-modern outline-none font-bold text-sm cursor-not-allowed appearance-none bg-transparent opacity-80">
                                                             <option value="">{L('selectTerritory')}</option>
                                                             {countries.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
                                                         </select>
                                                     </div>
                                                     <div className="space-y-1">
                                                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accCity')}</label>
-                                                        <select value={formData.agencyFinancialInfo?.cityId} onChange={(e) => handleInputChange('agencyFinancialInfo.cityId', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
+                                                        <select value={formData.agencyFinancialInfo?.cityId} disabled className="w-full h-12 input-modern outline-none font-bold text-sm cursor-not-allowed appearance-none bg-transparent opacity-80">
                                                             <option value="">{L('selectHub')}</option>
                                                             {finCities.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
                                                         </select>
@@ -840,7 +833,7 @@ const MyOffice = () => {
                                                 </div>
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accAddress')}</label>
-                                                    <input type="text" value={formData.agencyFinancialInfo?.address} onChange={(e) => handleInputChange('agencyFinancialInfo.address', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm" placeholder="Billing address" />
+                                                    <input type="text" value={formData.agencyFinancialInfo?.address} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder="Billing address" />
                                                 </div>
                                             </div>
                                         </div>
@@ -854,39 +847,17 @@ const MyOffice = () => {
                                             <div className="grid grid-cols-2 gap-12">
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('mainCurrency')}</label>
-                                                    <select value={formData.currency} onChange={(e) => handleInputChange('currency', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
+                                                    <select value={formData.currency} disabled className="w-full h-12 input-modern outline-none font-bold text-sm cursor-not-allowed appearance-none bg-transparent opacity-80">
                                                         {currencies.map(curr => <option key={curr.code} value={curr.code}>{curr.code}</option>)}
                                                     </select>
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('integrationType')}</label>
-                                                    <select value={formData.integrationType} onChange={(e) => handleInputChange('integrationType', e.target.value)} className="w-full h-12 input-modern outline-none font-bold text-sm cursor-pointer appearance-none bg-transparent">
-                                                        <option value="TGX">TGX</option>
-                                                        <option value="JUNIPER">Juniper</option>
-                                                        <option value="DIRECT">Direct</option>
-                                                    </select>
-                                                </div>
+                                                {/* Integration Type removed */}
+                                                <div></div>
                                             </div>
-                                            <div className="flex items-center gap-6 pt-4">
-                                                <label className="flex items-center gap-3 cursor-pointer">
-                                                    <div className={`size-10 rounded-xl flex items-center justify-center transition-all ${formData.allowedForSale ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                                                        <span className="material-icons-round text-lg">{formData.allowedForSale ? 'check_circle' : 'block'}</span>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[11px] font-black text-slate-800 dark:text-white uppercase leading-none mb-1">{L('allowedSale')}</p>
-                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">{L('bookingStatus')}</p>
-                                                    </div>
-                                                    <input type="checkbox" checked={formData.allowedForSale} onChange={(e) => handleInputChange('allowedForSale', e.target.checked)} className="hidden" />
-                                                </label>
-                                            </div>
+                                            {/* Allowed for Sale removed */}
                                         </div>
 
-                                        <div className="pt-10">
-                                            <button type="submit" disabled={saving} className="w-full h-16 bg-primary text-white rounded-[24px] font-bold text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3">
-                                                {saving ? L('saving') : L('saveBtn')}
-                                                {!saving && <span className="material-icons-round text-xl">check_circle</span>}
-                                            </button>
-                                        </div>
+                                        {/* Save action removed */}
                                     </form>
                                 </div>
                             </div>

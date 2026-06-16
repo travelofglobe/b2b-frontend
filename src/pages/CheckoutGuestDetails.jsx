@@ -782,8 +782,6 @@ const CHECKOUT_SUMMARY_LOCALES = {
         backToSelection: "Voltar para a Seleção",
         nextRoom: "Seguinte: Quarto",
         reviewAndPay: "Revisar e Pagar",
-        backToRoom: "Voltar ao Quarto",
-        backToSelection: "Voltar à Seleção",
         totalStayPrice: "Preço Total Estadia (Líquido)",
         taxesIncl: "Impostos Incl.",
         b2bRates: "TARIFAS DE AGÊNCIA B2B APLICADAS",

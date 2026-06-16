@@ -5,7 +5,7 @@ import { locationService } from '../services/locationService';
 import { autocompleteService } from '../services/autocompleteService';
 import AgencyMultiSelect from './AgencyMultiSelect';
 
-const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData }) => {
+const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect = false }) => {
     const [loading, setLoading] = useState(false);
     const [agencies, setAgencies] = useState([]);
     const [countries, setCountries] = useState([]);
@@ -347,21 +347,23 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         </div>
                     </div>
 
-                    {/* 2. Target Agencies */}
-                    <div className="bg-slate-100/30 dark:bg-white/5 p-8 rounded-[32px] border border-slate-200 dark:border-white/10 space-y-6">
-                        <div className="flex items-center gap-3">
-                            <div className="size-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                                <span className="material-icons-round text-lg">corporate_fare</span>
+                    {!hideAgencySelect && (
+                        <div className="bg-slate-100/30 dark:bg-white/5 p-8 rounded-[32px] border border-slate-200 dark:border-white/10 space-y-6">
+                            <div className="flex items-center gap-3">
+                                <div className="size-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                    <span className="material-icons-round text-lg">corporate_fare</span>
+                                </div>
+                                <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-slate-800 dark:text-white">Target Agencies</h3>
                             </div>
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-slate-800 dark:text-white">Target Agencies</h3>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Agencies & Agency Groups</label>
+                                <AgencyMultiSelect 
+                                    selectedValues={formData.agencyIds}
+                                    onChange={(values) => setFormData(prev => ({ ...prev, agencyIds: values }))}
+                                />
+                            </div>
                         </div>
-                        <div className="max-w-md">
-                            <AgencyMultiSelect 
-                                selectedValues={formData.agencyIds} 
-                                onChange={val => setFormData(p => ({ ...p, agencyIds: val }))} 
-                            />
-                        </div>
-                    </div>
+                    )}
 
                     {/* 3. Nationalities */}
                     <div className="bg-slate-100/30 dark:bg-white/5 p-8 rounded-[32px] border border-slate-200 dark:border-white/10 space-y-6">

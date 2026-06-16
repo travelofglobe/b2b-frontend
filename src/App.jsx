@@ -13,6 +13,7 @@ import CheckoutResult from './pages/CheckoutResult';
 import MyOffice from './pages/MyOffice';
 import MarkupManagement from './pages/MarkupManagement';
 import GSAAgencyManagement from './pages/GSAAgencyManagement';
+import SubAgencyMarkups from './pages/SubAgencyMarkups';
 import UnderConstruction from './pages/UnderConstruction';
 import ProtectedRoute from './components/ProtectedRoute';
 import PortalLayout from './layouts/PortalLayout';
@@ -49,6 +50,7 @@ function App() {
               <Route path="/accounting" element={<UnderConstruction title="Accounting" icon="analytics" />} />
               <Route path="/operations" element={<UnderConstruction title="Operations" icon="settings" />} />
               <Route path="/gsa/agency" element={<GSAAgencyManagement />} />
+              <Route path="/gsa/markups" element={<SubAgencyMarkups />} />
               <Route path="/gsa/finance" element={<UnderConstruction title="GSA Finance" icon="attach_money" />} />
               <Route path="/gsa/reports" element={<UnderConstruction title="GSA Reports" icon="assessment" />} />
             </Route>

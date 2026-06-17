@@ -1326,6 +1326,23 @@ const HotelDetail = () => {
             })).filter(group => group.rates.length > 0);
         }
 
+        // Sort rates inside each room group by price ascending
+        function getRatePrice(r) {
+            return r.hubRateModel?.price?.totalPaymentAmount || r.hubRateModel?.price?.calculatedAmount || r.price || 0;
+        }
+
+        result = result.map(group => ({
+            ...group,
+            rates: [...group.rates].sort((a, b) => getRatePrice(a) - getRatePrice(b))
+        }));
+
+        // Sort room groups by their cheapest rate price ascending
+        result.sort((a, b) => {
+            const priceA = a.rates.length > 0 ? getRatePrice(a.rates[0]) : 0;
+            const priceB = b.rates.length > 0 ? getRatePrice(b.rates[0]) : 0;
+            return priceA - priceB;
+        });
+
         return result;
     }, [hotel.rooms, boardTypeFilter, cancelFilter]);
 

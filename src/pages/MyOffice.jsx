@@ -170,6 +170,7 @@ const MyOffice = () => {
     const [userFilters, setUserFilters] = useState({ query: '', status: 'ACTIVE', roleIds: [] });
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+    const [userApiError, setUserApiError] = useState(null);
     const [userFormData, setUserFormData] = useState({ name: '', surname: '', email: '', password: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE', roleIds: [] });
 
     // Guest management state
@@ -177,6 +178,7 @@ const MyOffice = () => {
     const [guestFilters, setGuestFilters] = useState({ query: '', status: 'ACTIVE', countryCodes: [] });
     const [isGuestModalOpen, setIsGuestModalOpen] = useState(false);
     const [editingGuest, setEditingGuest] = useState(null);
+    const [guestApiError, setGuestApiError] = useState(null);
     const [guestFormData, setGuestFormData] = useState({
         gender: 'MALE',
         firstName: '',
@@ -464,12 +466,13 @@ const MyOffice = () => {
         }
     };
 
-    const openAddUser = () => { setEditingUser(null); setUserFormData({ name: '', surname: '', email: '', password: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE', roleIds: [] }); setIsUserModalOpen(true); };
-    const openEditUser = (u) => { setEditingUser(u); setUserFormData({ name: u.name, surname: u.surname, email: u.email, phoneCountryCode: u.phoneCountryCode || '90', phoneNumber: u.phoneNumber || '', status: u.status || 'ACTIVE', roleIds: u.roles?.map(r => r.id) || [] }); setIsUserModalOpen(true); };
+    const openAddUser = () => { setUserApiError(null); setEditingUser(null); setUserFormData({ name: '', surname: '', email: '', password: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE', roleIds: [] }); setIsUserModalOpen(true); };
+    const openEditUser = (u) => { setUserApiError(null); setEditingUser(u); setUserFormData({ name: u.name, surname: u.surname, email: u.email, phoneCountryCode: u.phoneCountryCode || '90', phoneNumber: u.phoneNumber || '', status: u.status || 'ACTIVE', roleIds: u.roles?.map(r => r.id) || [] }); setIsUserModalOpen(true); };
     const handleUserSubmit = async (e) => {
         e.preventDefault();
         try {
             setSaving(true);
+            setUserApiError(null);
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (userFormData.email && !emailRegex.test(userFormData.email)) { 
                 showNotification(L('invalidEmail'), 'error'); 
@@ -487,7 +490,11 @@ const MyOffice = () => {
             }
             setIsUserModalOpen(false); fetchUsersData();
             const sumData = await userService.getSummary(); setSummary(prev => ({ ...prev, totalCount: sumData.totalCount, activeCount: sumData.activeCount, passiveCount: sumData.passiveCount }));
-        } catch (err) { showNotification(err.message || L('errorSavingUser'), 'error'); } finally { setSaving(false); }
+        } catch (err) { 
+            const msg = err.response?.data?.message || err.message || L('errorSavingUser');
+            setUserApiError(msg);
+            showNotification(msg, 'error'); 
+        } finally { setSaving(false); }
     };
 
     const requestConfirmation = (title, message, onConfirm, type = 'danger') => {
@@ -517,19 +524,24 @@ const MyOffice = () => {
         showNotification(L('usersExported'));
     };
 
-    const openAddGuest = () => { setEditingGuest(null); setGuestFormData({ gender: 'MALE', firstName: '', lastName: '', birthDate: '', country: '', passportNo: '', passportExpiry: '', email: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE' }); setIsGuestModalOpen(true); };
-    const openEditGuest = (g) => { setEditingGuest(g); setGuestFormData({ gender: g.gender || 'MALE', firstName: g.firstName, lastName: g.lastName, birthDate: g.birthDate, country: g.country, passportNo: g.passportNo, passportExpiry: g.passportExpiry, email: g.email, phoneCountryCode: g.phoneCountryCode || '90', phoneNumber: g.phoneNumber || '', status: g.status || 'ACTIVE' }); setIsGuestModalOpen(true); };
+    const openAddGuest = () => { setGuestApiError(null); setEditingGuest(null); setGuestFormData({ gender: 'MALE', firstName: '', lastName: '', birthDate: '', country: '', passportNo: '', passportExpiry: '', email: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE' }); setIsGuestModalOpen(true); };
+    const openEditGuest = (g) => { setGuestApiError(null); setEditingGuest(g); setGuestFormData({ gender: g.gender || 'MALE', firstName: g.firstName, lastName: g.lastName, birthDate: g.birthDate, country: g.country, passportNo: g.passportNo, passportExpiry: g.passportExpiry, email: g.email, phoneCountryCode: g.phoneCountryCode || '90', phoneNumber: g.phoneNumber || '', status: g.status || 'ACTIVE' }); setIsGuestModalOpen(true); };
     const handleGuestSubmit = async (e) => {
         e.preventDefault();
         try {
             setSaving(true);
+            setGuestApiError(null);
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (guestFormData.email && !emailRegex.test(guestFormData.email)) { showNotification(L('invalidEmail'), 'error'); setSaving(false); return; }
             if (editingGuest) { await guestService.updateGuest(editingGuest.id, guestFormData); showNotification(L('guestUpdated')); }
             else { await guestService.saveGuest(guestFormData); showNotification(L('guestCreated')); }
             setIsGuestModalOpen(false); fetchGuestsData();
             const sumData = await guestService.getSummary(); setSummary(prev => ({ ...prev, totalGuestCount: sumData.totalCount, activeGuestCount: sumData.activeCount, passiveGuestCount: sumData.passiveCount }));
-        } catch (err) { showNotification(err.message || L('errorSavingGuest'), 'error'); } finally { setSaving(false); }
+        } catch (err) { 
+            const msg = err.response?.data?.message || err.message || L('errorSavingGuest');
+            setGuestApiError(msg);
+            showNotification(msg, 'error'); 
+        } finally { setSaving(false); }
     };
 
     const handleDeleteGuest = (id) => {
@@ -1048,6 +1060,17 @@ const MyOffice = () => {
                     <div className="relative bg-white dark:bg-slate-900 w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
                         <div className="p-8 border-b border-slate-50 dark:border-white/5"><div className="flex items-center justify-between"><div><h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingUser ? L('editUser') : L('addUser')}</h3><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('userInfo')}</p></div><button onClick={() => setIsUserModalOpen(false)} className="size-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round">close</span></button></div></div>
                         <form onSubmit={handleUserSubmit} className="p-8 space-y-6">
+                            {userApiError && (
+                                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-center gap-4 animate-in slide-in-from-top-2">
+                                    <div className="size-10 bg-red-500 rounded-xl flex items-center justify-center text-white shrink-0">
+                                        <span className="material-icons-round">error_outline</span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[10px] font-black text-red-500 uppercase tracking-widest leading-none mb-1">Hata Oluştu</p>
+                                        <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 break-words">{userApiError}</p>
+                                    </div>
+                                </div>
+                            )}
                             <div className="grid grid-cols-2 gap-4"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Name</label><input type="text" required value={userFormData.name} onChange={(e) => setUserFormData(prev => ({ ...prev, name: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" /></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Surname</label><input type="text" required value={userFormData.surname} onChange={(e) => setUserFormData(prev => ({ ...prev, surname: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" /></div></div>
                             <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label><input type="email" required value={userFormData.email} onChange={(e) => setUserFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" /></div>
                             {!editingUser && <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label><input type="password" required value={userFormData.password} onChange={(e) => setUserFormData(prev => ({ ...prev, password: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" /></div>}
@@ -1066,6 +1089,17 @@ const MyOffice = () => {
                     <div className="relative bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
                         <div className="p-8 border-b border-slate-50 dark:border-white/5"><div className="flex items-center justify-between"><div><h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingGuest ? L('editGuest') : L('addGuest')}</h3><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('guestInfo')}</p></div><button onClick={() => setIsGuestModalOpen(false)} className="size-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round">close</span></button></div></div>
                         <form onSubmit={handleGuestSubmit} className="p-8 space-y-6">
+                            {guestApiError && (
+                                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-center gap-4 animate-in slide-in-from-top-2">
+                                    <div className="size-10 bg-red-500 rounded-xl flex items-center justify-center text-white shrink-0">
+                                        <span className="material-icons-round">error_outline</span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[10px] font-black text-red-500 uppercase tracking-widest leading-none mb-1">Hata Oluştu</p>
+                                        <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 break-words">{guestApiError}</p>
+                                    </div>
+                                </div>
+                            )}
                             <div className="grid grid-cols-3 gap-4"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gender</label><select value={guestFormData.gender} onChange={(e) => setGuestFormData(prev => ({ ...prev, gender: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary"><option value="MALE">Mr</option><option value="FEMALE">Mrs</option></select></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">First Name</label><input type="text" required value={guestFormData.firstName} onChange={(e) => setGuestFormData(prev => ({ ...prev, firstName: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" /></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Last Name</label><input type="text" required value={guestFormData.lastName} onChange={(e) => setGuestFormData(prev => ({ ...prev, lastName: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" /></div></div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">

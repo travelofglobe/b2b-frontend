@@ -30,6 +30,7 @@ import { currencyService } from '../services/currencyService';
 import HeaderActions from '../components/HeaderActions';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import PhoneInput from '../components/PhoneInput';
 import '../datepicker-custom.css';
 
 // Fix Leaflet marker icon issue in React
@@ -58,6 +59,13 @@ const formatToPickerDate = (dateStr) => {
     if (!dateStr || !dateStr.includes('.')) return '';
     const [day, month, year] = dateStr.split('.');
     return `${year}-${month}-${day}`;
+};
+
+const getCountryName = (countries, alphaTwoCode, lang = 'en') => {
+    if (!alphaTwoCode) return '';
+    const c = countries.find(x => x.alphaTwoCode === alphaTwoCode);
+    if (!c) return alphaTwoCode;
+    return c.name?.translations?.[lang] || c.name?.translations?.en || c.name?.defaultName || alphaTwoCode;
 };
 
 // Export to CSV Helper
@@ -182,6 +190,8 @@ const MyOffice = () => {
         phoneNumber: '',
         status: 'ACTIVE'
     });
+    const [guestCountrySearch, setGuestCountrySearch] = useState('');
+    const [showGuestCountries, setShowGuestCountries] = useState(false);
 
     // Form data (General Info)
     const [formData, setFormData] = useState({
@@ -990,7 +1000,7 @@ const MyOffice = () => {
                                         </div>
                                         <select value={guestFilters.countryCodes[0] || ''} onChange={(e) => handleGuestFilterChange({ ...guestFilters, countryCodes: e.target.value ? [e.target.value] : [] })} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer">
                                             <option value="">All Countries</option>
-                                            {countries.slice(0, 20).map(c => <option key={c.locationId} value={c.isoCode}>{c.name?.defaultName}</option>)}
+                                            {countries.map(c => <option key={c.locationId} value={c.alphaTwoCode}>{getCountryName(countries, c.alphaTwoCode, currentLang)}</option>)}
                                         </select>
                                         <select value={guestFilters.status} onChange={(e) => handleGuestFilterChange({ ...guestFilters, status: e.target.value })} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer">
                                             <option value="ACTIVE">Active</option>
@@ -1008,7 +1018,7 @@ const MyOffice = () => {
                                         <thead><tr><th>Guest</th><th>Birth & Country</th><th>Passport</th><th>Contact</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                                         <tbody>
                                             {guestsLoading ? <TableSkeleton columns={6} /> : guests.length > 0 ? guests.map((g) => (
-                                                <tr key={g.id} className="data-row transition-colors"><td><div className="flex items-center gap-3"><div className={`size-10 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br from-purple-500 to-indigo-600`}>{g.firstName?.[0]}{g.lastName?.[0]}</div><div><p className="font-bold text-slate-900 dark:text-white leading-none mb-1">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p><p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {g.id}</p></div></div></td><td><div className="flex items-center gap-3"><div className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-slate-500">{g.country || 'TR'}</div><div><p className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-0.5">Born: {g.birthDate || 'Unknown'}</p></div></div></td><td><div className="flex items-center gap-2"><div className="size-6 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-sm">badge</span></div><div><p className="text-xs font-bold text-slate-900 dark:text-white">{g.passportNo || 'N/A'}</p><p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p></div></div></td><td><div className="space-y-1"><div className="flex items-center gap-2 text-slate-500"><span className="material-icons-round text-sm">mail_outline</span> {g.email}</div>{g.phoneNumber && <div className="flex items-center gap-2 text-slate-400 text-xs"><span className="material-icons-round text-sm">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}</div></td><td><div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${g.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}><div className={`size-1.5 rounded-full ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditGuest(g)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-lg">edit</span></button><button onClick={() => handleDeleteGuest(g.id)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-lg">delete_outline</span></button></div></td></tr>
+                                                <tr key={g.id} className="data-row transition-colors"><td><div className="flex items-center gap-3"><div className={`size-10 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br from-purple-500 to-indigo-600`}>{g.firstName?.[0]}{g.lastName?.[0]}</div><div><p className="font-bold text-slate-900 dark:text-white leading-none mb-1">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p><p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {g.id}</p></div></div></td><td><div className="flex items-center gap-3"><div className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-slate-500">{g.country || 'N/A'}</div><div><p className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-0.5">{getCountryName(countries, g.country, currentLang)}</p><p className="text-[10px] text-slate-400 font-bold">Born: {g.birthDate || 'Unknown'}</p></div></div></td><td><div className="flex items-center gap-2"><div className="size-6 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-sm">badge</span></div><div><p className="text-xs font-bold text-slate-900 dark:text-white">{g.passportNo || 'N/A'}</p><p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p></div></div></td><td><div className="space-y-1"><div className="flex items-center gap-2 text-slate-500"><span className="material-icons-round text-sm">mail_outline</span> {g.email}</div>{g.phoneNumber && <div className="flex items-center gap-2 text-slate-400 text-xs"><span className="material-icons-round text-sm">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}</div></td><td><div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${g.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}><div className={`size-1.5 rounded-full ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditGuest(g)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-lg">edit</span></button><button onClick={() => handleDeleteGuest(g.id)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-lg">delete_outline</span></button></div></td></tr>
                                             )) : (<tr><td colSpan="6" className="py-20 text-center"><p className="text-slate-400 text-sm font-medium italic">No guests found</p></td></tr>)}
                                         </tbody>
                                     </table>
@@ -1072,10 +1082,68 @@ const MyOffice = () => {
                                         wrapperClassName="w-full"
                                     />
                                 </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Country</label>
-                                    <input type="text" value={guestFormData.country} onChange={(e) => setGuestFormData(prev => ({ ...prev, country: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none uppercase" placeholder="TR" />
-                                </div>
+                                 <div className="space-y-1 relative">
+                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Country</label>
+                                     <div 
+                                         onClick={() => setShowGuestCountries(!showGuestCountries)}
+                                         className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 flex items-center justify-between cursor-pointer group"
+                                     >
+                                         <span className={`text-xs font-bold ${guestFormData.country ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>
+                                             {guestFormData.country ? (
+                                                 <div className="flex items-center gap-2">
+                                                     <span className="opacity-50 text-[10px]">{guestFormData.country}</span>
+                                                     <span>{getCountryName(countries, guestFormData.country, currentLang)}</span>
+                                                 </div>
+                                             ) : 'Select country...'}
+                                         </span>
+                                         <span className={`material-icons-round text-slate-400 text-sm transition-transform ${showGuestCountries ? 'rotate-180' : ''}`}>expand_more</span>
+                                     </div>
+
+                                     {showGuestCountries && (
+                                         <>
+                                             <div className="fixed inset-0 z-[1001]" onClick={() => { setShowGuestCountries(false); setGuestCountrySearch(''); }} />
+                                             <div className="absolute top-full left-0 right-0 mt-2 max-h-64 overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-[1002] flex flex-col animate-in fade-in slide-in-from-top-2">
+                                                 <div className="p-2 border-b border-slate-50 dark:border-white/5">
+                                                     <div className="relative">
+                                                         <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                                                         <input 
+                                                             type="text" 
+                                                             placeholder="Search country..." 
+                                                             value={guestCountrySearch}
+                                                             onChange={(e) => setGuestCountrySearch(e.target.value)}
+                                                             autoFocus
+                                                             className="w-full h-9 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-xl pl-9 pr-3 text-[11px] font-bold outline-none focus:border-primary transition-all"
+                                                         />
+                                                     </div>
+                                                 </div>
+                                                 <div className="flex-1 overflow-y-auto p-1 custom-scrollbar">
+                                                     {countries
+                                                         .filter(c => {
+                                                             const name = (c.name?.translations?.[currentLang] || c.name?.translations?.en || c.name?.defaultName || '').toLowerCase();
+                                                             return name.includes(guestCountrySearch.toLowerCase()) || c.alphaTwoCode.toLowerCase().includes(guestCountrySearch.toLowerCase());
+                                                         })
+                                                         .map(c => (
+                                                             <div 
+                                                                 key={c.id} 
+                                                                 onClick={() => {
+                                                                     setGuestFormData(prev => ({ ...prev, country: c.alphaTwoCode }));
+                                                                     setShowGuestCountries(false);
+                                                                     setGuestCountrySearch('');
+                                                                 }}
+                                                                 className={`px-3 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${guestFormData.country === c.alphaTwoCode ? 'bg-primary text-white' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+                                                             >
+                                                                 <div className="flex items-center gap-2">
+                                                                     <span className="opacity-60 text-[9px] w-6 uppercase">{c.alphaTwoCode}</span>
+                                                                     <span>{c.name?.translations?.[currentLang] || c.name?.translations?.en || c.name?.defaultName}</span>
+                                                                 </div>
+                                                                 {guestFormData.country === c.alphaTwoCode && <span className="material-icons-round text-xs">check</span>}
+                                                             </div>
+                                                         ))}
+                                                 </div>
+                                             </div>
+                                         </>
+                                     )}
+                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
@@ -1101,7 +1169,20 @@ const MyOffice = () => {
                                 <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label><input type="email" required value={guestFormData.email} onChange={(e) => setGuestFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" placeholder="example@mail.com" /></div>
                                 <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Status</label><select value={guestFormData.status} onChange={(e) => setGuestFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary"><option value="ACTIVE">Active</option><option value="PASSIVE">Passive</option></select></div>
                             </div>
-                            <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label><div className="grid grid-cols-4 gap-2"><input type="text" value={guestFormData.phoneCountryCode} onChange={(e) => setGuestFormData(prev => ({ ...prev, phoneCountryCode: e.target.value }))} className="h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-center text-xs font-bold outline-none" placeholder="+90" /><input type="text" value={guestFormData.phoneNumber} onChange={(e) => setGuestFormData(prev => ({ ...prev, phoneNumber: e.target.value }))} className="col-span-3 h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" placeholder="5XX..." /></div></div>
+                            <div className="space-y-1">
+                                <PhoneInput 
+                                    label="Phone Number"
+                                    value={(guestFormData.phoneCountryCode?.startsWith('+') ? guestFormData.phoneCountryCode : `+${guestFormData.phoneCountryCode}`) + ' ' + guestFormData.phoneNumber}
+                                    onChange={(val) => {
+                                        const parts = val.split(' ');
+                                        setGuestFormData(prev => ({ 
+                                            ...prev, 
+                                            phoneCountryCode: parts[0]?.replace('+', '') || '90', 
+                                            phoneNumber: parts[1] || '' 
+                                        }));
+                                    }}
+                                />
+                            </div>
                             <div className="pt-4 flex items-center justify-end gap-3"><button type="button" onClick={() => setIsGuestModalOpen(false)} className="h-11 px-6 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">{L('cancel')}</button><button type="submit" disabled={saving} className="h-11 px-8 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">{saving ? L('processing') : L('saveGuest')}</button></div>
                         </form>
                     </div>

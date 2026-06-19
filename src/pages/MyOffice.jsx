@@ -469,11 +469,30 @@ const MyOffice = () => {
 
     const openAddUser = () => { setUserApiError(null); setShowPassword(false); setEditingUser(null); setUserFormData({ name: '', surname: '', email: '', password: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE', roleIds: [] }); setIsUserModalOpen(true); };
     const openEditUser = (u) => { setUserApiError(null); setShowPassword(false); setEditingUser(u); setUserFormData({ name: u.name, surname: u.surname, email: u.email, phoneCountryCode: u.phoneCountryCode || '90', phoneNumber: u.phoneNumber || '', status: u.status || 'ACTIVE', roleIds: u.roles?.map(r => r.id) || [] }); setIsUserModalOpen(true); };
+
+    const validatePassword = (p) => ({
+        length: p.length >= 12 && p.length <= 16,
+        uppercase: /[A-Z]/.test(p),
+        lowercase: /[a-z]/.test(p),
+        number: /[0-9]/.test(p),
+        special: /[!@#$%^&*]/.test(p)
+    });
+
     const handleUserSubmit = async (e) => {
         e.preventDefault();
         try {
             setSaving(true);
             setUserApiError(null);
+
+            if (!editingUser) {
+                const v = validatePassword(userFormData.password);
+                if (!v.length || !v.uppercase || !v.lowercase || !v.number || !v.special) {
+                    setUserApiError("Lütfen tüm şifre kurallarını karşılayın.");
+                    setSaving(false);
+                    return;
+                }
+            }
+
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (userFormData.email && !emailRegex.test(userFormData.email)) { 
                 showNotification(L('invalidEmail'), 'error'); 
@@ -1096,9 +1115,41 @@ const MyOffice = () => {
                                             </span>
                                         </button>
                                     </div>
+                                    <div className="mt-3 grid grid-cols-1 gap-1.5 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-white/5">
+                                        {[
+                                            { key: 'length', label: 'Minimum 12 - Maksimum 16 karakter' },
+                                            { key: 'uppercase', label: 'En az 1 büyük harf (A-Z)' },
+                                            { key: 'lowercase', label: 'En az 1 küçük harf (a-z)' },
+                                            { key: 'number', label: 'En az 1 rakam (0-9)' },
+                                            { key: 'special', label: 'En az 1 özel karakter (!@#$%^&*)' },
+                                        ].map(rule => {
+                                            const isValid = validatePassword(userFormData.password)[rule.key];
+                                            return (
+                                                <div key={rule.key} className="flex items-center gap-2">
+                                                    <div className={`size-4 rounded-full flex items-center justify-center transition-colors ${isValid ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500'}`}>
+                                                        <span className="material-icons-round text-[10px] font-bold">{isValid ? 'check' : 'close'}</span>
+                                                    </div>
+                                                    <span className={`text-[10px] font-bold transition-colors ${isValid ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{rule.label}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             )}
-                            <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label><div className="grid grid-cols-4 gap-2"><input type="text" value={userFormData.phoneCountryCode} onChange={(e) => setUserFormData(prev => ({ ...prev, phoneCountryCode: e.target.value }))} className="h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-center text-xs font-bold outline-none" placeholder="+90" /><input type="text" value={userFormData.phoneNumber} onChange={(e) => setUserFormData(prev => ({ ...prev, phoneNumber: e.target.value }))} className="col-span-3 h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" placeholder="5XX..." /></div></div>
+                            <div className="space-y-1">
+                                <PhoneInput 
+                                    label="Phone Number"
+                                    value={(userFormData.phoneCountryCode?.startsWith('+') ? userFormData.phoneCountryCode : `+${userFormData.phoneCountryCode}`) + ' ' + userFormData.phoneNumber}
+                                    onChange={(val) => {
+                                        const parts = val.split(' ');
+                                        setUserFormData(prev => ({ 
+                                            ...prev, 
+                                            phoneCountryCode: parts[0]?.replace('+', '') || '90', 
+                                            phoneNumber: parts[1] || '' 
+                                        }));
+                                    }}
+                                />
+                            </div>
                             <div className="grid grid-cols-2 gap-4"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Role</label><select multiple value={userFormData.roleIds} onChange={(e) => setUserFormData(prev => ({ ...prev, roleIds: Array.from(e.target.selectedOptions, option => parseInt(option.value)) }))} className="w-full min-h-[80px] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl p-2 text-xs font-bold outline-none focus:border-primary">{roles.map(r => <option key={r.id} value={r.id}>{r.roleName || r.name}</option>)}</select></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Status</label><select value={userFormData.status} onChange={(e) => setUserFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary"><option value="ACTIVE">Active</option><option value="PASSIVE">Passive</option></select></div></div>
                             <div className="pt-4 flex items-center justify-end gap-3"><button type="button" onClick={() => setIsUserModalOpen(false)} className="h-11 px-6 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">{L('cancel')}</button><button type="submit" disabled={saving} className="h-11 px-8 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">{saving ? L('processing') : L('saveUser')}</button></div>
                         </form>

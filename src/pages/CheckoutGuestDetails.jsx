@@ -1762,15 +1762,15 @@ const CheckoutGuestDetails = () => {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div className="text-right shrink-0 ml-2">
+                                                                                    <div className="text-right shrink-0 ml-2">
                                                         <div className="flex items-baseline justify-end gap-1" lang="en">
-                                                            <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(room.currency)}</span>
+                                                            <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(displayCurrency)}</span>
                                                             <span className="font-black text-sm text-primary leading-none">
                                                                 {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || room.rate).toFixed(2)}
                                                             </span>
                                                         </div>
                                                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                            {room.currency || '$'} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}
+                                                            {displayCurrency} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}
                                                         </p>
                                                     </div>
                                                 </div>

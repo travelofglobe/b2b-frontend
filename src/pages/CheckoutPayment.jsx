@@ -1300,7 +1300,7 @@ const CheckoutPayment = () => {
                                     <div className="p-6 rounded-3xl bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                                         <div>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{tSummary('availableFunds', currentLang)}</p>
-                                            <p className="text-2xl font-black tracking-tighter opacity-60">$12,450.00</p>
+                                            <p className="text-2xl font-black tracking-tighter opacity-60">{getCurrencySymbol(displayCurrency)}12,450.00</p>
                                         </div>
                                         <div className="text-right">
                                             <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isInsufficientBalance ? 'text-red-500' : 'text-emerald-500'}`}>{tSummary('status', currentLang)}</p>
@@ -1341,7 +1341,7 @@ const CheckoutPayment = () => {
                                                 <div>
                                                     <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">{tSummary('deficitAmount', currentLang)}</p>
                                                     <p className="text-3xl font-black tracking-tighter">
-                                                        - $ {(grandTotal - availableFunds).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                        - {getCurrencySymbol(displayCurrency)} {(grandTotal - availableFunds).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </p>
                                                 </div>
                                                 <div className="size-12 rounded-2xl bg-white/20 flex items-center justify-center">
@@ -1357,7 +1357,7 @@ const CheckoutPayment = () => {
                                             <div>
                                                 <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">{tSummary('estimatedNewBalance', currentLang)}</p>
                                                 <p className="text-3xl font-black tracking-tighter">
-                                                    $ {(availableFunds - (grandTotal * (displayCurrency === 'USD' ? 1 : 1))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    {getCurrencySymbol(displayCurrency)} {(availableFunds - grandTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </p>
                                             </div>
                                             <div className="size-12 rounded-2xl bg-white/10 flex items-center justify-center">
@@ -1488,12 +1488,12 @@ const CheckoutPayment = () => {
                                                     </div>
                                                     <div className="text-right shrink-0 ml-2">
                                                         <div className="flex items-baseline justify-end gap-1">
-                                                            <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(room.currency)}</span>
+                                                            <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(displayCurrency)}</span>
                                                             <span className="font-black text-sm text-primary leading-none">
                                                                 {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || room.rate).toFixed(2)}
                                                             </span>
                                                         </div>
-                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{room.currency || '$'} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}</p>
+                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{displayCurrency} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}</p>
                                                     </div>
                                                 </div>
                                                 {/* Cancellation policy */}

@@ -545,12 +545,27 @@ const MapView = () => {
             imagesToMap = [placeholderHotel];
         }
 
-        // Extract dynamic price and currency from the first room
-        const firstRoom = apiHotel.rooms?.[0];
-        const ratePrice = firstRoom?.hubRateModel?.price;
-        const priceValue = ratePrice?.markupCalculatedPrice?.holder?.saleAmount || ratePrice?.totalPaymentAmount || ratePrice?.calculatedAmount || 0;
+        // Extract dynamic price and currency (find lowest price among all rooms)
+        let lowestRoom = null;
+        let lowestPrice = Infinity;
+
+        if (apiHotel.rooms && apiHotel.rooms.length > 0) {
+            apiHotel.rooms.forEach(room => {
+                const ratePrice = room?.hubRateModel?.price;
+                const priceValue = ratePrice?.markupCalculatedPrice?.holder?.saleAmount || ratePrice?.totalPaymentAmount || ratePrice?.calculatedAmount || 0;
+                if (priceValue > 0 && priceValue < lowestPrice) {
+                    lowestPrice = priceValue;
+                    lowestRoom = room;
+                }
+            });
+        }
+
+        const selectedRoom = lowestRoom || apiHotel.rooms?.[0];
+        const ratePrice = selectedRoom?.hubRateModel?.price;
+        const priceValue = lowestPrice !== Infinity ? lowestPrice : (ratePrice?.markupCalculatedPrice?.holder?.saleAmount || ratePrice?.totalPaymentAmount || ratePrice?.calculatedAmount || 0);
         const currencyCode = ratePrice?.currency || 'USD';
         const totalTaxAmount = ratePrice?.totalTaxAmount || 0;
+
 
         return {
             id: apiHotel.id,

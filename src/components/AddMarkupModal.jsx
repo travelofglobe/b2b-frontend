@@ -58,6 +58,8 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
     const [hotelSuggestions, setHotelSuggestions] = useState([]);
     const [isHotelLoading, setIsHotelLoading] = useState(false);
     const [apiError, setApiError] = useState(null);
+    const [nationalitySearch, setNationalitySearch] = useState('');
+    const [locationSearch, setLocationSearch] = useState('');
     const [showHotelSuggestions, setShowHotelSuggestions] = useState(false);
     const [showNationalities, setShowNationalities] = useState(false);
     const [showLocations, setShowLocations] = useState(false);
@@ -119,6 +121,8 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
         setSelectedHotels([]);
         setSelectedNationalities([]);
         setHotelSearch('');
+        setNationalitySearch('');
+        setLocationSearch('');
     };
 
     const fetchInitialData = async () => {
@@ -318,31 +322,54 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                 />
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Priority (1-10) *</label>
-                                <input 
-                                    required
-                                    type="number" 
-                                    min="1" max="10"
-                                    value={formData.priority}
-                                    onChange={(e) => setFormData(p => ({ ...p, priority: e.target.value }))}
-                                    className="w-full h-11 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl px-4 text-[11px] font-bold outline-none focus:border-primary transition-all"
-                                />
-                            </div>
+                             <div className="space-y-1.5">
+                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Priority *</label>
+                                 <div className="relative">
+                                     <select 
+                                         required
+                                         value={formData.priority}
+                                         onChange={(e) => setFormData(p => ({ ...p, priority: e.target.value }))}
+                                         className="w-full h-11 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl px-4 text-[11px] font-bold outline-none focus:border-primary transition-all appearance-none cursor-pointer"
+                                     >
+                                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(p => (
+                                             <option key={p} value={p}>{p}</option>
+                                         ))}
+                                     </select>
+                                     <span className="material-icons-round absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
+                                 </div>
+                             </div>
                             
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Markup Value (%) *</label>
-                                <div className="relative">
-                                    <input 
-                                        required
-                                        type="number" 
-                                        step="0.01"
-                                        value={formData.value}
-                                        onChange={(e) => setFormData(p => ({ ...p, value: e.target.value }))}
-                                        className="w-full h-11 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl px-4 text-[11px] font-bold outline-none focus:border-primary transition-all pr-12"
-                                    />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
-                                </div>
+                                 <div className="relative">
+                                     <input 
+                                         required
+                                         type="text" 
+                                         value={formData.value}
+                                         onChange={(e) => {
+                                             const val = e.target.value;
+                                             if (val === '') {
+                                                 setFormData(p => ({ ...p, value: '' }));
+                                                 return;
+                                             }
+                                             // Only allow numbers and one dot
+                                             const cleanVal = val.replace(/[^0-9.]/g, '');
+                                             const parts = cleanVal.split('.');
+                                             if (parts.length > 2) return;
+                                             
+                                             // Enforce max 2 characters for integer part (prevents 100+)
+                                             if (parts[0].length > 2) return;
+
+                                             // Enforce max 1 character after decimal point
+                                             if (parts[1] && parts[1].length > 1) return;
+
+                                             setFormData(p => ({ ...p, value: cleanVal }));
+                                         }}
+                                         className="w-full h-11 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl px-4 text-[11px] font-bold outline-none focus:border-primary transition-all pr-12"
+                                         placeholder="0.00"
+                                     />
+                                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
+                                 </div>
                             </div>
                         </div>
                     </div>
@@ -389,23 +416,43 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                 <span className={`material-icons-round text-slate-400 text-sm ml-auto transition-transform ${showNationalities ? 'rotate-180' : ''}`}>expand_more</span>
                             </div>
                             
-                            {showNationalities && (
-                                <>
-                                    <div className="fixed inset-0 z-40" onClick={() => setShowNationalities(false)} />
-                                    <div className="absolute top-full left-0 right-0 mt-2 max-h-60 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[24px] shadow-2xl z-50 p-3 custom-scrollbar animate-in fade-in slide-in-from-top-2">
-                                        {countries.map(c => (
-                                            <div 
-                                                key={c.id} 
-                                                onClick={() => toggleNationality(c.locationId, getLocalizedName(c.name))}
-                                                className={`px-3 py-2.5 rounded-xl text-[11px] font-bold cursor-pointer transition-colors flex items-center justify-between mb-1 ${formData.nationalityIds.includes(Number(c.locationId)) ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
-                                            >
-                                                {getLocalizedName(c.name)}
-                                                {formData.nationalityIds.includes(Number(c.locationId)) && <span className="material-icons-round text-xs">check</span>}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
+                             {showNationalities && (
+                                 <>
+                                     <div className="fixed inset-0 z-40" onClick={() => { setShowNationalities(false); setNationalitySearch(''); }} />
+                                     <div className="absolute top-full left-0 right-0 mt-2 max-h-80 overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[28px] shadow-2xl z-50 flex flex-col animate-in fade-in slide-in-from-top-2">
+                                         <div className="p-3 border-b border-slate-50 dark:border-white/5">
+                                             <div className="relative">
+                                                 <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                                                 <input 
+                                                     type="text" 
+                                                     placeholder="Search nationalities..." 
+                                                     value={nationalitySearch}
+                                                     onChange={(e) => setNationalitySearch(e.target.value)}
+                                                     autoFocus
+                                                     className="w-full h-9 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-xl pl-9 pr-3 text-[11px] font-bold outline-none focus:border-primary transition-all"
+                                                 />
+                                             </div>
+                                         </div>
+                                         <div className="flex-1 overflow-y-auto p-2 custom-scrollbar max-h-60">
+                                             {countries
+                                                 .filter(c => getLocalizedName(c.name).toLowerCase().includes(nationalitySearch.toLowerCase()))
+                                                 .map(c => (
+                                                     <div 
+                                                         key={c.id} 
+                                                         onClick={() => toggleNationality(c.locationId, getLocalizedName(c.name))}
+                                                         className={`px-3 py-2.5 rounded-xl text-[11px] font-bold cursor-pointer transition-colors flex items-center justify-between mb-1 ${formData.nationalityIds.includes(Number(c.locationId)) ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+                                                     >
+                                                         {getLocalizedName(c.name)}
+                                                         {formData.nationalityIds.includes(Number(c.locationId)) && <span className="material-icons-round text-xs">check</span>}
+                                                     </div>
+                                                 ))}
+                                             {countries.filter(c => getLocalizedName(c.name).toLowerCase().includes(nationalitySearch.toLowerCase())).length === 0 && (
+                                                 <div className="p-4 text-center text-[11px] font-bold text-slate-400">No results found</div>
+                                             )}
+                                         </div>
+                                     </div>
+                                 </>
+                             )}
                         </div>
                     </div>
 
@@ -551,23 +598,43 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                 <span className={`material-icons-round text-slate-400 text-sm ml-auto transition-transform ${showLocations ? 'rotate-180' : ''}`}>expand_more</span>
                             </div>
                             
-                            {showLocations && (
-                                <>
-                                    <div className="fixed inset-0 z-40" onClick={() => setShowLocations(false)} />
-                                    <div className="absolute top-full left-0 right-0 mt-2 max-h-60 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[24px] shadow-2xl z-50 p-3 custom-scrollbar animate-in fade-in slide-in-from-top-2">
-                                        {countries.map(c => (
-                                            <div 
-                                                key={c.id} 
-                                                onClick={() => toggleLocation(c.locationId)}
-                                                className={`px-3 py-2.5 rounded-xl text-[11px] font-bold cursor-pointer transition-colors flex items-center justify-between mb-1 ${formData.locationIds.includes(Number(c.locationId)) ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
-                                            >
-                                                {getLocalizedName(c.name)}
-                                                {formData.locationIds.includes(Number(c.locationId)) && <span className="material-icons-round text-xs">check</span>}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
+                             {showLocations && (
+                                 <>
+                                     <div className="fixed inset-0 z-40" onClick={() => { setShowLocations(false); setLocationSearch(''); }} />
+                                     <div className="absolute top-full left-0 right-0 mt-2 max-h-80 overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[28px] shadow-2xl z-50 flex flex-col animate-in fade-in slide-in-from-top-2">
+                                         <div className="p-3 border-b border-slate-50 dark:border-white/5">
+                                             <div className="relative">
+                                                 <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                                                 <input 
+                                                     type="text" 
+                                                     placeholder="Search locations..." 
+                                                     value={locationSearch}
+                                                     onChange={(e) => setLocationSearch(e.target.value)}
+                                                     autoFocus
+                                                     className="w-full h-9 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-xl pl-9 pr-3 text-[11px] font-bold outline-none focus:border-primary transition-all"
+                                                 />
+                                             </div>
+                                         </div>
+                                         <div className="flex-1 overflow-y-auto p-2 custom-scrollbar max-h-60">
+                                              {countries
+                                                 .filter(c => getLocalizedName(c.name).toLowerCase().includes(locationSearch.toLowerCase()))
+                                                 .map(c => (
+                                                     <div 
+                                                         key={c.id} 
+                                                         onClick={() => toggleLocation(c.locationId)}
+                                                         className={`px-3 py-2.5 rounded-xl text-[11px] font-bold cursor-pointer transition-colors flex items-center justify-between mb-1 ${formData.locationIds.includes(Number(c.locationId)) ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+                                                     >
+                                                         {getLocalizedName(c.name)}
+                                                         {formData.locationIds.includes(Number(c.locationId)) && <span className="material-icons-round text-xs">check</span>}
+                                                     </div>
+                                                 ))}
+                                             {countries.filter(c => getLocalizedName(c.name).toLowerCase().includes(locationSearch.toLowerCase())).length === 0 && (
+                                                 <div className="p-4 text-center text-[11px] font-bold text-slate-400">No results found</div>
+                                             )}
+                                         </div>
+                                     </div>
+                                 </>
+                             )}
                         </div>
                     </div>
 

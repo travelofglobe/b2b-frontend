@@ -1312,7 +1312,7 @@ const HotelDetail = () => {
         if (boardTypeFilter !== 'ALL') {
             result = result.map(group => ({
                 ...group,
-                rates: group.rates.filter(r => r.hubRateModel?.boardType === boardTypeFilter)
+                rates: group.rates.filter(r => r.hubRateModel?.boardCode === boardTypeFilter)
             })).filter(group => group.rates.length > 0);
         }
 
@@ -2174,7 +2174,7 @@ const HotelDetail = () => {
                                                                     const ratePrice = rateItem.hubRateModel?.price?.totalPaymentAmount || rateItem.hubRateModel?.price?.calculatedAmount || rateItem.price || 0;
                                                                     const currency = rateItem.hubRateModel?.price?.currency || '$';
                                                                     const isSelected = selectedRooms.some(r => r.hubRateModel?.rateCode === rateItem.hubRateModel?.rateCode);
-                                                                    const boardType = rateItem.hubRateModel?.boardType || 'RO';
+                                                                    const boardType = rateItem.hubRateModel?.boardCode || 'RO';
                                                                     const isFreeCancel = rateItem.hubRateModel?.refundable ?? (rateItem.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0);
 
                                                                     return (
@@ -2542,7 +2542,7 @@ const HotelDetail = () => {
                         {selectedRooms.length > 0 ? (
                             selectedRooms.map((room, idx) => {
                                 const isFreeCancel = room.hubRateModel?.refundable ?? (room.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0);
-                                const boardType = room.hubRateModel?.boardType || 'RO';
+                                const boardType = room.hubRateModel?.boardCode || 'RO';
 
                                 return (
                                     <div key={idx} className="relative p-5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm group/item hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">

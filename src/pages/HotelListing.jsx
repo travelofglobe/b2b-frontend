@@ -843,7 +843,7 @@ const HotelListing = () => {
             if (entries[0].isIntersecting && hasMore && !isLoading && hotels.length > 0) {
                 loadMoreHotels();
             }
-        }, { threshold: 0, rootMargin: '5000px' });
+        }, { threshold: 0, rootMargin: '400px' });
 
         if (loaderRef.current) {
             observer.observe(loaderRef.current);

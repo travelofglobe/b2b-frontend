@@ -121,5 +121,41 @@ export const authService = {
     getUser: () => {
         const user = localStorage.getItem('user');
         return user ? JSON.parse(user) : null;
+    },
+
+    forgotPassword: async (email) => {
+        const url = 'http://72.62.17.189:8000/b2b-backend/v1/reset-password/forgot-password';
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email }),
+            });
+
+            const text = await response.text();
+            
+            if (!response.ok) {
+                let errorMessage = 'Şifre sıfırlama isteği başarısız oldu.';
+                try {
+                    const parsed = JSON.parse(text);
+                    errorMessage = parsed.message || errorMessage;
+                } catch (e) {
+                    errorMessage = text || errorMessage;
+                }
+                throw new Error(errorMessage);
+            }
+
+            const cleanText = text.trim().replace(/^"|"$/g, '');
+            if (cleanText === 'SUCCESSFUL') {
+                return cleanText;
+            } else {
+                throw new Error('Beklenmedik bir yanıt alındı.');
+            }
+        } catch (error) {
+            console.error('ForgotPassword error:', error);
+            throw error;
+        }
     }
 };

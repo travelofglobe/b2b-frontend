@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { authService } from '../services/authService';
 import PlaneLoading from '../components/PlaneLoading';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
@@ -60,11 +61,10 @@ const LoginPage = () => {
         setIsLoading(true);
 
         try {
-            // Simulated password reset API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            await authService.forgotPassword(resetEmail);
             setResetSuccess(true);
         } catch (err) {
-            setError('Şifre sıfırlama isteği gönderilemedi.');
+            setError(err.message || 'Şifre sıfırlama isteği gönderilemedi.');
         } finally {
             setIsLoading(false);
         }

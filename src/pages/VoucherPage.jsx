@@ -424,26 +424,9 @@ const VoucherPage = () => {
                             </div>
                         </div>
 
-                        {/* 5. Footer Data: QR & Network Details */}
-                        <div className="avoid-break pt-4 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-8">
-                            <div className="flex items-center gap-5">
-                                <div className="size-16 bg-white border border-slate-200 p-1 rounded-lg">
-                                    <img 
-                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.href.replace('localhost', '72.62.17.189'))}`} 
-                                        alt="Verify" 
-                                        className="w-full h-full"
-                                        crossOrigin="anonymous"
-                                    />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] font-black text-blue-700 uppercase tracking-widest">Verification QR</span>
-                                    <p className="text-[8px] font-bold text-slate-400 max-w-[180px] mt-1 leading-relaxed">
-                                        This document is digitally signed. Scan to verify real-time status.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col md:items-end text-center md:text-right gap-1 opacity-60">
+                        {/* 5. Footer Data: Network Details */}
+                        <div className="avoid-break pt-4 border-t border-slate-100 flex flex-col items-center justify-center text-center gap-1">
+                            <div className="flex flex-col items-center text-center gap-1 opacity-60">
                                 <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest">Travel Of Globe Network</span>
                                 <p className="text-[8px] font-bold text-slate-400">© 2026. All rights reserved. Powered by TOG Reservation Engine.</p>
                                 <span className="text-[8px] font-mono text-slate-300 mt-1">{booking.uuid || 'N/A'}</span>

@@ -302,7 +302,7 @@ const LoginPage = () => {
                         )}
                         {/* Card Footer */}
                         <div className="p-6 pt-2 text-center border-t border-white/5 bg-white/[0.02]">
-                            <p className="text-xs text-slate-500 font-medium">New Partner? <a href="#" className="text-white font-bold hover:underline">Apply here</a></p>
+                            <p className="text-xs text-slate-500 font-medium">New Partner? <a href="#" onClick={(e) => { e.preventDefault(); navigate('/agency-application'); }} className="text-white font-bold hover:underline">Apply here</a></p>
                         </div>
                     </div>
 

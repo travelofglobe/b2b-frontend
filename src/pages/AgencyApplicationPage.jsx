@@ -6,13 +6,121 @@ import PlaneLoading from '../components/PlaneLoading';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
 
+// Local translation dictionary mapping for Agency Application page
+const localTranslations = {
+    en: {
+        title: "Agency Application",
+        subtitle: "Become our partner and access global luxury B2B inventory.",
+        step1: "Company Details",
+        step2: "Authorized Person",
+        step3: "Business Profile",
+        step1Header: "Step 1: Company Information",
+        step2Header: "Step 2: Authorized Representative",
+        step3Header: "Step 3: Business Profile",
+        companyLegalName: "Company Legal Name *",
+        brandName: "Brand Name",
+        taxNumber: "Tax Number / VAT ID *",
+        taxOffice: "Tax Office",
+        country: "Country *",
+        city: "City *",
+        businessAddress: "Business Address *",
+        postalCode: "Postal Code",
+        website: "Website",
+        companyRegNumber: "Company Reg Number",
+        firstName: "First Name *",
+        lastName: "Last Name *",
+        jobTitle: "Job Title",
+        emailAddress: "Email Address *",
+        mobilePhone: "Mobile Phone *",
+        whatsAppNumber: "WhatsApp Number",
+        preferredLanguage: "Preferred Language *",
+        timeZone: "Time Zone *",
+        profilePhoto: "Profile Photo",
+        agencyType: "Agency Type *",
+        monthlyVolume: "Monthly Booking Volume *",
+        preferredCurrency: "Preferred Currency *",
+        mainMarkets: "Main Markets Served * (Select Multi)",
+        apiIntegration: "API Integration Needed",
+        apiIntegrationSub: "Do you require dynamic XML/JSON feeds?",
+        currentSuppliers: "Current Suppliers",
+        additionalNotes: "Additional Notes",
+        gdprConsent: "I authorize the processing of my personal data under GDPR/KVKK compliance guidelines for evaluation purposes.",
+        recaptchaLabel: "I am not a robot",
+        back: "Back",
+        backToLogin: "Back to Login",
+        continue: "Continue",
+        submit: "Submit Application",
+        successTitle: "Application Received!",
+        successMessage: "Thank you for applying. We have successfully registered your application. Our onboarding team will evaluate your business profile within 24-48 hours.",
+        successDispatched: "A confirmation email has been dispatched to:",
+        returnToLogin: "Return to Login",
+        enterManually: "Enter manually",
+        selectFromList: "Select from list",
+        searchCountry: "Search and select country..."
+    },
+    tr: {
+        title: "Acente Başvurusu",
+        subtitle: "İş ortağımız olun ve küresel lüks B2B envanterine erişin.",
+        step1: "Şirket Bilgileri",
+        step2: "Yetkili Temsilci",
+        step3: "İş Profili",
+        step1Header: "Adım 1: Şirket Bilgileri",
+        step2Header: "Adım 2: Yetkili Temsilci",
+        step3Header: "Adım 3: İş Profili",
+        companyLegalName: "Şirket Resmi Unvanı *",
+        brandName: "Marka / Ticari Unvan",
+        taxNumber: "Vergi Numarası / VAT ID *",
+        taxOffice: "Vergi Dairesi",
+        country: "Ülke *",
+        city: "Şehir *",
+        businessAddress: "İş Adresi *",
+        postalCode: "Posta Kodu",
+        website: "Web Sitesi",
+        companyRegNumber: "Ticari Sicil Numarası",
+        firstName: "Ad *",
+        lastName: "Soyad *",
+        jobTitle: "Görev Unvanı",
+        emailAddress: "E-posta Adresi *",
+        mobilePhone: "Cep Telefonu *",
+        whatsAppNumber: "WhatsApp Numarası",
+        preferredLanguage: "Tercih Edilen Dil *",
+        timeZone: "Saat Dilimi *",
+        profilePhoto: "Profil Fotoğrafı",
+        agencyType: "Acente Türü *",
+        monthlyVolume: "Aylık Rezervasyon Hacmi *",
+        preferredCurrency: "Tercih Edilen Para Birimi *",
+        mainMarkets: "Hizmet Verilen Ana Pazarlar * (Çoklu Seçim)",
+        apiIntegration: "API Entegrasyonu Gerekli mi?",
+        apiIntegrationSub: "Dinamik XML/JSON veri akışı talep ediyor musunuz?",
+        currentSuppliers: "Mevcut Tedarikçiler",
+        additionalNotes: "Ek Notlar",
+        gdprConsent: "Kişisel verilerimin KVKK/GDPR uyum çerçevesinde işlenmesine ve değerlendirme amacıyla kullanılmasına izin veriyorum.",
+        recaptchaLabel: "Ben robot değilim",
+        back: "Geri",
+        backToLogin: "Girişe Dön",
+        continue: "Devam Et",
+        submit: "Başvuruyu Tamamla",
+        successTitle: "Başvuru Alındı!",
+        successMessage: "Başvurunuz için teşekkür ederiz. Bilgileriniz başarıyla kaydedilmiştir. Onboarding ekibimiz 24-48 saat içinde başvurunuzu değerlendirecektir.",
+        successDispatched: "Onay e-postası şu adrese gönderilmiştir:",
+        returnToLogin: "Giriş Ekranına Dön",
+        enterManually: "Elle girin",
+        selectFromList: "Listeden seçin",
+        searchCountry: "Ülke arayın ve seçin..."
+    }
+};
+
 // Automatically load backgrounds from assets
 const backgroundModules = import.meta.glob('../assets/backgrounds/*', { eager: true });
 const backgrounds = Object.values(backgroundModules).map(m => m.default || m);
 
 const AgencyApplicationPage = () => {
-    const { t } = useTranslation();
+    const { i18n } = useTranslation();
     const navigate = useNavigate();
+
+    // Select translation bundle
+    const currentLang = i18n.language?.startsWith('tr') ? 'tr' : 'en';
+    const loc = localTranslations[currentLang] || localTranslations.en;
     
     // UI States
     const [step, setStep] = useState(1);
@@ -39,6 +147,8 @@ const AgencyApplicationPage = () => {
         countryId: '',
         countryName: '',
         cityId: '',
+        cityName: '',
+        isCustomCity: false,
         businessAddress: '',
         postalCode: '',
         website: '',
@@ -92,7 +202,7 @@ const AgencyApplicationPage = () => {
     useEffect(() => {
         if (!formData.countryId) {
             setCities([]);
-            setFormData(prev => ({ ...prev, cityId: '' }));
+            setFormData(prev => ({ ...prev, cityId: '', cityName: '', isCustomCity: false }));
             return;
         }
         const fetchCities = async () => {
@@ -100,9 +210,12 @@ const AgencyApplicationPage = () => {
                 const res = await locationService.listSubRegions(formData.countryId);
                 if (res && res.locationList) {
                     setCities(res.locationList);
+                } else {
+                    setCities([]);
                 }
             } catch (err) {
                 console.error("Failed to load cities:", err);
+                setCities([]);
             }
         };
         fetchCities();
@@ -114,7 +227,7 @@ const AgencyApplicationPage = () => {
         try {
             const isDuplicate = await agencyApplicationService.checkDuplicateTax(formData.taxNumber);
             if (isDuplicate) {
-                setTaxError('An application with this Tax Number already exists.');
+                setTaxError(currentLang === 'tr' ? 'Bu Vergi Numarası ile daha önce başvuru yapılmış.' : 'An application with this Tax Number already exists.');
             } else {
                 setTaxError('');
             }
@@ -129,7 +242,7 @@ const AgencyApplicationPage = () => {
         try {
             const isDuplicate = await agencyApplicationService.checkDuplicateEmail(formData.emailAddress);
             if (isDuplicate) {
-                setEmailError('An application with this Email Address already exists.');
+                setEmailError(currentLang === 'tr' ? 'Bu E-posta Adresi ile daha önce başvuru yapılmış.' : 'An application with this Email Address already exists.');
             } else {
                 setEmailError('');
             }
@@ -178,48 +291,55 @@ const AgencyApplicationPage = () => {
     }, [countries, countrySearch]);
 
     const selectCountry = (id, name) => {
-        setFormData(prev => ({ ...prev, countryId: id, countryName: name, cityId: '' }));
+        setFormData(prev => ({ ...prev, countryId: id, countryName: name, cityId: '', cityName: '', isCustomCity: false }));
         setCountrySearch(name);
         setShowCountryDropdown(false);
     };
 
     // Form Validators
     const validateStep1 = () => {
-        if (!formData.companyLegalName) return 'Company Legal Name is required';
-        if (!formData.taxNumber) return 'Tax Number is required';
+        if (!formData.companyLegalName) return currentLang === 'tr' ? 'Şirket Resmi Unvanı zorunludur' : 'Company Legal Name is required';
+        if (!formData.taxNumber) return currentLang === 'tr' ? 'Vergi Numarası zorunludur' : 'Tax Number is required';
         if (taxError) return taxError;
-        if (!formData.countryId) return 'Country is required';
-        if (!formData.cityId) return 'City is required';
-        if (!formData.businessAddress) return 'Business Address is required';
+        if (!formData.countryId) return currentLang === 'tr' ? 'Ülke seçimi zorunludur' : 'Country is required';
+        
+        // Validation for city: either cityId must be selected OR cityName must be typed
+        const hasCityId = !!formData.cityId;
+        const hasCityName = !!formData.cityName && formData.cityName.trim().length > 0;
+        if (!hasCityId && !hasCityName) {
+            return currentLang === 'tr' ? 'Şehir bilgisi zorunludur' : 'City is required';
+        }
+
+        if (!formData.businessAddress) return currentLang === 'tr' ? 'İş Adresi zorunludur' : 'Business Address is required';
         if (formData.website) {
             const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/;
             if (!urlPattern.test(formData.website)) {
-                return 'Website must be a valid URL';
+                return currentLang === 'tr' ? 'Web sitesi adresi geçerli bir URL olmalıdır' : 'Website must be a valid URL';
             }
         }
         return '';
     };
 
     const validateStep2 = () => {
-        if (!formData.firstName) return 'First Name is required';
-        if (!formData.lastName) return 'Last Name is required';
-        if (!formData.emailAddress) return 'Email Address is required';
+        if (!formData.firstName) return currentLang === 'tr' ? 'Ad zorunludur' : 'First Name is required';
+        if (!formData.lastName) return currentLang === 'tr' ? 'Soyad zorunludur' : 'Last Name is required';
+        if (!formData.emailAddress) return currentLang === 'tr' ? 'E-posta Adresi zorunludur' : 'Email Address is required';
         if (emailError) return emailError;
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(formData.emailAddress)) {
-            return 'Email must be a valid email address';
+            return currentLang === 'tr' ? 'Geçerli bir e-posta adresi giriniz' : 'Email must be a valid email address';
         }
-        if (!formData.mobilePhoneNumber) return 'Mobile Phone Number is required';
+        if (!formData.mobilePhoneNumber) return currentLang === 'tr' ? 'Cep Telefonu zorunludur' : 'Mobile Phone Number is required';
         if (!/^\d+$/.test(formData.mobilePhoneNumber)) {
-            return 'Mobile Phone Number must contain digits only';
+            return currentLang === 'tr' ? 'Cep Telefonu sadece rakamlardan oluşmalıdır' : 'Mobile Phone Number must contain digits only';
         }
         return '';
     };
 
     const validateStep3 = () => {
-        if (!formData.agencyType) return 'Agency Type is required';
-        if (formData.mainMarketsServed.length === 0) return 'Please select at least one Market Served';
-        if (!formData.kvkkAccepted) return 'You must accept the KVKK / GDPR compliance terms';
+        if (!formData.agencyType) return currentLang === 'tr' ? 'Acente Türü zorunludur' : 'Agency Type is required';
+        if (formData.mainMarketsServed.length === 0) return currentLang === 'tr' ? 'Lütfen en az bir hizmet verilen pazar seçin' : 'Please select at least one Market Served';
+        if (!formData.kvkkAccepted) return currentLang === 'tr' ? 'KVKK / GDPR onayını kabul etmelisiniz' : 'You must accept the KVKK / GDPR compliance terms';
         return '';
     };
 
@@ -256,7 +376,7 @@ const AgencyApplicationPage = () => {
             await agencyApplicationService.submitApplication(formData);
             setSuccessMode(true);
         } catch (error) {
-            setFormError(error.message || 'Submission failed. Please try again.');
+            setFormError(error.message || (currentLang === 'tr' ? 'Başvuru gönderilirken bir hata oluştu.' : 'Submission failed. Please try again.'));
         } finally {
             setIsLoading(false);
         }
@@ -292,8 +412,8 @@ const AgencyApplicationPage = () => {
                     <div className="bg-white/[0.03] backdrop-blur-[40px] rounded-[32px] border border-white/10 shadow-[0_32px_96px_-16px_rgba(0,0,0,0.5)] overflow-hidden">
                         {/* Header & Steps Indicator */}
                         <div className="p-8 pb-4 text-center border-b border-white/5 bg-white/[0.01]">
-                            <h2 className="text-3xl font-black text-white mb-2">Agency Application</h2>
-                            <p className="text-slate-400 text-sm mb-6">Become our partner and access global luxury B2B inventory.</p>
+                            <h2 className="text-3xl font-black text-white mb-2">{loc.title}</h2>
+                            <p className="text-slate-400 text-sm mb-6">{loc.subtitle}</p>
 
                             {/* Stepper Progress Bar */}
                             <div className="flex items-center justify-center max-w-md mx-auto relative mb-4">
@@ -302,7 +422,7 @@ const AgencyApplicationPage = () => {
                                 
                                 <div className="flex justify-between w-full relative z-10">
                                     {[1, 2, 3].map((num, idx) => {
-                                        const labels = ['Company Details', 'Authorized Person', 'Business Profile'];
+                                        const labels = [loc.step1, loc.step2, loc.step3];
                                         return (
                                             <div key={num} className="flex flex-col items-center">
                                                 <button
@@ -333,30 +453,30 @@ const AgencyApplicationPage = () => {
                             {/* Step 1: Company Details */}
                             {step === 1 && (
                                 <div className="space-y-4 animate-in fade-in duration-300">
-                                    <h3 className="text-lg font-black text-white/90 border-l-4 border-primary pl-3 mb-6">Step 1: Company Information</h3>
+                                    <h3 className="text-lg font-black text-white/90 border-l-4 border-primary pl-3 mb-6">{loc.step1Header}</h3>
                                     
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Company Legal Name *</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.companyLegalName}</label>
                                             <input
                                                 type="text"
                                                 name="companyLegalName"
                                                 required
                                                 value={formData.companyLegalName}
                                                 onChange={handleInputChange}
-                                                placeholder="Legal Company Name"
+                                                placeholder={loc.companyLegalName.replace(' *', '')}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
                                             />
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Brand Name</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.brandName}</label>
                                             <input
                                                 type="text"
                                                 name="brandName"
                                                 value={formData.brandName}
                                                 onChange={handleInputChange}
-                                                placeholder="Brand/Trading Name"
+                                                placeholder={loc.brandName}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
                                             />
                                         </div>
@@ -364,7 +484,7 @@ const AgencyApplicationPage = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Tax Number / VAT ID *</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.taxNumber}</label>
                                             <input
                                                 type="text"
                                                 name="taxNumber"
@@ -372,7 +492,7 @@ const AgencyApplicationPage = () => {
                                                 value={formData.taxNumber}
                                                 onChange={handleInputChange}
                                                 onBlur={handleTaxBlur}
-                                                placeholder="VAT/Tax ID"
+                                                placeholder={loc.taxNumber.replace(' *', '')}
                                                 className={`w-full bg-white/5 border rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 transition-all text-sm font-semibold ${
                                                     taxError ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:border-primary/50'
                                                 }`}
@@ -381,13 +501,13 @@ const AgencyApplicationPage = () => {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Tax Office</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.taxOffice}</label>
                                             <input
                                                 type="text"
                                                 name="taxOffice"
                                                 value={formData.taxOffice}
                                                 onChange={handleInputChange}
-                                                placeholder="Tax Administration Office"
+                                                placeholder={loc.taxOffice}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
                                             />
                                         </div>
@@ -396,10 +516,10 @@ const AgencyApplicationPage = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* Searchable Autocomplete Country Field */}
                                         <div className="space-y-1 relative">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Country *</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.country}</label>
                                             <input
                                                 type="text"
-                                                placeholder="Search and select country..."
+                                                placeholder={loc.searchCountry}
                                                 value={countrySearch || formData.countryName}
                                                 onChange={(e) => {
                                                     setCountrySearch(e.target.value);
@@ -423,54 +543,89 @@ const AgencyApplicationPage = () => {
                                             )}
                                         </div>
 
+                                        {/* Dynamic City Selector (List + Manual override) */}
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">City *</label>
-                                            <select
-                                                name="cityId"
-                                                required
-                                                disabled={!formData.countryId}
-                                                value={formData.cityId}
-                                                onChange={handleInputChange}
-                                                className="w-full bg-slate-900 border border-white/10 rounded-2xl py-3 px-4 text-white focus:outline-none focus:bg-slate-800 transition-all text-sm font-semibold disabled:opacity-50"
-                                            >
-                                                <option value="">Select City</option>
-                                                {cities.map((city) => (
-                                                    <option key={city.id} value={city.id}>
-                                                        {city.name?.defaultName}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            <div className="flex justify-between items-center">
+                                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.city}</label>
+                                                {formData.countryId && cities.length > 0 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFormData(prev => ({
+                                                                ...prev,
+                                                                cityId: '',
+                                                                cityName: '',
+                                                                isCustomCity: !prev.isCustomCity
+                                                            }));
+                                                        }}
+                                                        className="text-[10px] font-bold text-primary hover:underline uppercase"
+                                                    >
+                                                        {formData.isCustomCity ? loc.selectFromList : loc.enterManually}
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {formData.isCustomCity || cities.length === 0 ? (
+                                                <input
+                                                    type="text"
+                                                    name="cityName"
+                                                    required
+                                                    value={formData.cityName || ''}
+                                                    onChange={handleInputChange}
+                                                    placeholder={loc.city.replace(' *', '')}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                />
+                                            ) : (
+                                                <select
+                                                    name="cityId"
+                                                    required
+                                                    disabled={!formData.countryId}
+                                                    value={formData.cityId}
+                                                    onChange={(e) => {
+                                                        const id = e.target.value;
+                                                        const name = cities.find(c => String(c.id) === String(id))?.name?.defaultName || '';
+                                                        setFormData(prev => ({ ...prev, cityId: id, cityName: name }));
+                                                    }}
+                                                    className="w-full bg-slate-900 border border-white/10 rounded-2xl py-3 px-4 text-white focus:outline-none focus:bg-slate-800 transition-all text-sm font-semibold disabled:opacity-50"
+                                                >
+                                                    <option value="">Select City</option>
+                                                    {cities.map((city) => (
+                                                        <option key={city.id} value={city.id}>
+                                                            {city.name?.defaultName}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            )}
                                         </div>
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Business Address *</label>
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.businessAddress}</label>
                                         <textarea
                                             name="businessAddress"
                                             required
                                             rows="3"
                                             value={formData.businessAddress}
                                             onChange={handleInputChange}
-                                            placeholder="Full physical address"
+                                            placeholder={loc.businessAddress.replace(' *', '')}
                                             className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold resize-none"
                                         ></textarea>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Postal Code</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.postalCode}</label>
                                             <input
                                                 type="text"
                                                 name="postalCode"
                                                 value={formData.postalCode}
                                                 onChange={handleInputChange}
-                                                placeholder="Zip Code"
+                                                placeholder={loc.postalCode}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
                                             />
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Website</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.website}</label>
                                             <input
                                                 type="text"
                                                 name="website"
@@ -482,13 +637,13 @@ const AgencyApplicationPage = () => {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Company Reg Number</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.companyRegNumber}</label>
                                             <input
                                                 type="text"
                                                 name="companyRegistrationNumber"
                                                 value={formData.companyRegistrationNumber}
                                                 onChange={handleInputChange}
-                                                placeholder="Registration No."
+                                                placeholder={loc.companyRegNumber}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
                                             />
                                         </div>
@@ -499,31 +654,31 @@ const AgencyApplicationPage = () => {
                             {/* Step 2: Authorized Representative */}
                             {step === 2 && (
                                 <div className="space-y-4 animate-in fade-in duration-300">
-                                    <h3 className="text-lg font-black text-white/90 border-l-4 border-primary pl-3 mb-6">Step 2: Authorized Representative</h3>
+                                    <h3 className="text-lg font-black text-white/90 border-l-4 border-primary pl-3 mb-6">{loc.step2Header}</h3>
                                     
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">First Name *</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.firstName}</label>
                                             <input
                                                 type="text"
                                                 name="firstName"
                                                 required
                                                 value={formData.firstName}
                                                 onChange={handleInputChange}
-                                                placeholder="First name"
+                                                placeholder={loc.firstName.replace(' *', '')}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
                                             />
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Last Name *</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.lastName}</label>
                                             <input
                                                 type="text"
                                                 name="lastName"
                                                 required
                                                 value={formData.lastName}
                                                 onChange={handleInputChange}
-                                                placeholder="Last name"
+                                                placeholder={loc.lastName.replace(' *', '')}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
                                             />
                                         </div>
@@ -531,19 +686,19 @@ const AgencyApplicationPage = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Job Title</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.jobTitle}</label>
                                             <input
                                                 type="text"
                                                 name="jobTitle"
                                                 value={formData.jobTitle}
                                                 onChange={handleInputChange}
-                                                placeholder="e.g. Agency Manager"
+                                                placeholder={loc.jobTitle}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
                                             />
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Email Address *</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.emailAddress}</label>
                                             <input
                                                 type="email"
                                                 name="emailAddress"
@@ -563,7 +718,7 @@ const AgencyApplicationPage = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* Mobile Phone country code select + digits input */}
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Mobile Phone *</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.mobilePhone}</label>
                                             <div className="flex gap-2">
                                                 <select
                                                     name="mobilePhoneCountryCode"
@@ -595,13 +750,13 @@ const AgencyApplicationPage = () => {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">WhatsApp Number</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.whatsAppNumber}</label>
                                             <input
                                                 type="text"
                                                 name="whatsAppNumber"
                                                 value={formData.whatsAppNumber}
                                                 onChange={handleInputChange}
-                                                placeholder="WhatsApp Contact No"
+                                                placeholder={loc.whatsAppNumber}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
                                             />
                                         </div>
@@ -609,7 +764,7 @@ const AgencyApplicationPage = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Preferred Language *</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.preferredLanguage}</label>
                                             <select
                                                 name="preferredLanguage"
                                                 required
@@ -626,7 +781,7 @@ const AgencyApplicationPage = () => {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Time Zone *</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.timeZone}</label>
                                             <select
                                                 name="timeZone"
                                                 required
@@ -647,7 +802,7 @@ const AgencyApplicationPage = () => {
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Profile Photo</label>
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.profilePhoto}</label>
                                         <div className="flex items-center gap-4">
                                             {formData.profilePhoto && (
                                                 <img
@@ -670,10 +825,10 @@ const AgencyApplicationPage = () => {
                             {/* Step 3: Business Profile */}
                             {step === 3 && (
                                 <div className="space-y-6 animate-in fade-in duration-300">
-                                    <h3 className="text-lg font-black text-white/90 border-l-4 border-primary pl-3 mb-4">Step 3: Business Profile</h3>
+                                    <h3 className="text-lg font-black text-white/90 border-l-4 border-primary pl-3 mb-4">{loc.step3Header}</h3>
                                     
                                     <div className="space-y-2">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Agency Type *</label>
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.agencyType}</label>
                                         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                                             {['Retail Agency', 'OTA', 'DMC', 'Wholesaler', 'Corporate'].map((type) => (
                                                 <label
@@ -700,7 +855,7 @@ const AgencyApplicationPage = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Monthly Booking Volume *</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.monthlyVolume}</label>
                                             <select
                                                 name="monthlyBookingVolume"
                                                 required
@@ -717,7 +872,7 @@ const AgencyApplicationPage = () => {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Preferred Currency *</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.preferredCurrency}</label>
                                             <select
                                                 name="preferredCurrency"
                                                 required
@@ -735,7 +890,7 @@ const AgencyApplicationPage = () => {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Main Markets Served * (Select Multi)</label>
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.mainMarkets}</label>
                                         <div className="flex flex-wrap gap-2">
                                             {['Europe', 'Middle East', 'North America', 'South America', 'Asia Pacific', 'Africa', 'Central Asia', 'GCC Countries', 'Mediterranean'].map((market) => {
                                                 const selected = formData.mainMarketsServed.includes(market);
@@ -759,8 +914,8 @@ const AgencyApplicationPage = () => {
 
                                     <div className="flex items-center justify-between border border-white/10 bg-white/[0.02] rounded-2xl p-4">
                                         <div>
-                                            <p className="text-sm font-bold text-white">API Integration Needed</p>
-                                            <p className="text-xs text-slate-400">Do you require dynamic XML/JSON feeds?</p>
+                                            <p className="text-sm font-bold text-white">{loc.apiIntegration}</p>
+                                            <p className="text-xs text-slate-400">{loc.apiIntegrationSub}</p>
                                         </div>
                                         <label className="relative inline-flex items-center cursor-pointer">
                                             <input
@@ -776,7 +931,7 @@ const AgencyApplicationPage = () => {
 
                                     <div className="grid grid-cols-1 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Current Suppliers</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.currentSuppliers}</label>
                                             <input
                                                 type="text"
                                                 name="currentSuppliers"
@@ -788,14 +943,14 @@ const AgencyApplicationPage = () => {
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Additional Notes</label>
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.additionalNotes}</label>
                                             <textarea
                                                 name="additionalNotes"
                                                 maxLength="1000"
                                                 rows="3"
                                                 value={formData.additionalNotes}
                                                 onChange={handleInputChange}
-                                                placeholder="Special requests or extra information (max 1000 characters)"
+                                                placeholder={loc.additionalNotes}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold resize-none"
                                             ></textarea>
                                         </div>
@@ -816,7 +971,7 @@ const AgencyApplicationPage = () => {
                                                 <div className="hidden peer-checked:block size-3 bg-primary rounded-[2px]"></div>
                                             </div>
                                             <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors select-none leading-relaxed">
-                                                I authorize the processing of my personal data under GDPR/KVKK compliance guidelines for evaluation purposes.
+                                                {loc.gdprConsent}
                                             </span>
                                         </label>
 
@@ -837,7 +992,7 @@ const AgencyApplicationPage = () => {
                                                     />
                                                     <div className="hidden peer-checked:block size-3 bg-emerald-500 rounded-[2px]"></div>
                                                 </label>
-                                                <span className="text-xs font-black text-white/90">I am not a robot</span>
+                                                <span className="text-xs font-black text-white/90">{loc.recaptchaLabel}</span>
                                             </div>
                                             <div className="flex flex-col items-center opacity-60">
                                                 <span className="material-symbols-outlined text-[24px] text-primary">security</span>
@@ -864,7 +1019,7 @@ const AgencyApplicationPage = () => {
                                         onClick={() => setStep(step - 1)}
                                         className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black uppercase text-xs tracking-wider transition-all"
                                     >
-                                        Back
+                                        {loc.back}
                                     </button>
                                 ) : (
                                     <button
@@ -872,7 +1027,7 @@ const AgencyApplicationPage = () => {
                                         onClick={() => navigate('/login')}
                                         className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black uppercase text-xs tracking-wider transition-all"
                                     >
-                                        Back to Login
+                                        {loc.backToLogin}
                                     </button>
                                 )}
 
@@ -882,14 +1037,14 @@ const AgencyApplicationPage = () => {
                                         onClick={handleContinue}
                                         className="px-6 py-3 bg-gradient-to-r from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/25 text-white rounded-2xl font-black uppercase text-xs tracking-wider transition-all"
                                     >
-                                        Continue
+                                        {loc.continue}
                                     </button>
                                 ) : (
                                     <button
                                         type="submit"
                                         className="px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:shadow-lg hover:shadow-emerald-500/25 text-white rounded-2xl font-black uppercase text-xs tracking-wider transition-all"
                                     >
-                                        Submit Application
+                                        {loc.submit}
                                     </button>
                                 )}
                             </div>
@@ -902,12 +1057,12 @@ const AgencyApplicationPage = () => {
                             <span className="material-symbols-outlined text-5xl">task_alt</span>
                         </div>
                         <div className="space-y-3">
-                            <h2 className="text-2xl font-black text-white">Application Received!</h2>
+                            <h2 className="text-2xl font-black text-white">{loc.successTitle}</h2>
                             <p className="text-slate-400 text-sm leading-relaxed">
-                                Thank you for applying. We have successfully registered your application. Our onboarding team will evaluate your business profile within 24-48 hours.
+                                {loc.successMessage}
                             </p>
                             <p className="text-slate-400 text-xs font-semibold bg-white/5 border border-white/5 py-2 px-4 rounded-xl max-w-sm mx-auto">
-                                A confirmation email has been dispatched to:<br/>
+                                {loc.successDispatched}<br/>
                                 <span className="text-white font-bold">{formData.emailAddress}</span>
                             </p>
                         </div>
@@ -915,7 +1070,7 @@ const AgencyApplicationPage = () => {
                             onClick={() => navigate('/login')}
                             className="w-full bg-white/10 hover:bg-white/15 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] border border-white/5 transition-all shadow-md active:scale-[0.98]"
                         >
-                            Return to Login
+                            {loc.returnToLogin}
                         </button>
                     </div>
                 )}

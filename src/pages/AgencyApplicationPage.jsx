@@ -925,7 +925,7 @@ const AgencyApplicationPage = () => {
                                                 onChange={handleInputChange}
                                                 className="sr-only peer"
                                             />
-                                            <div className="w-11 h-6 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:height-5 after:width-5 after:transition-all peer-checked:bg-primary"></div>
+                                            <div className="w-11 h-6 bg-slate-800 rounded-full transition-all duration-300 peer peer-checked:bg-primary peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:duration-300"></div>
                                         </label>
                                     </div>
 
@@ -959,16 +959,18 @@ const AgencyApplicationPage = () => {
                                     {/* KVKK Compliance */}
                                     <div className="space-y-4 border-t border-white/5 pt-4">
                                         <label className="flex items-start gap-3 cursor-pointer group">
-                                            <div className="mt-1 relative flex items-center justify-center size-5 rounded border border-slate-600 bg-transparent hover:border-primary transition-colors flex-shrink-0">
+                                            <div className="flex items-center justify-center w-5 h-5 rounded border border-white/20 bg-white/5 hover:border-primary transition-colors flex-shrink-0 relative">
                                                 <input
                                                     type="checkbox"
                                                     name="kvkkAccepted"
                                                     required
                                                     checked={formData.kvkkAccepted}
                                                     onChange={handleInputChange}
-                                                    className="appearance-none peer size-full cursor-pointer"
+                                                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10 peer"
                                                 />
-                                                <div className="hidden peer-checked:block size-3 bg-primary rounded-[2px]"></div>
+                                                <div className="hidden peer-checked:flex items-center justify-center absolute inset-0 bg-primary rounded-[3px] text-white">
+                                                    <span className="material-symbols-outlined text-[14px] font-black">check</span>
+                                                </div>
                                             </div>
                                             <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors select-none leading-relaxed">
                                                 {loc.gdprConsent}
@@ -978,7 +980,7 @@ const AgencyApplicationPage = () => {
                                         {/* Custom Premium Security reCAPTCHA Check */}
                                         <div className="bg-slate-950/80 rounded-2xl p-4 border border-white/10 flex items-center justify-between max-w-sm">
                                             <div className="flex items-center gap-3">
-                                                <label className="relative flex items-center justify-center size-6 rounded border border-slate-600 bg-transparent cursor-pointer flex-shrink-0">
+                                                <div className="flex items-center justify-center w-6 h-6 rounded-lg border border-white/20 bg-white/5 hover:border-emerald-500 transition-colors flex-shrink-0 relative">
                                                     <input
                                                         type="checkbox"
                                                         required
@@ -988,10 +990,12 @@ const AgencyApplicationPage = () => {
                                                                 recaptchaToken: e.target.checked ? 'verified-mock-token' : ''
                                                             }));
                                                         }}
-                                                        className="appearance-none peer size-full cursor-pointer"
+                                                        className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10 peer"
                                                     />
-                                                    <div className="hidden peer-checked:block size-3 bg-emerald-500 rounded-[2px]"></div>
-                                                </label>
+                                                    <div className="hidden peer-checked:flex items-center justify-center absolute inset-0 bg-emerald-500 rounded-lg text-white">
+                                                        <span className="material-symbols-outlined text-[16px] font-black">check</span>
+                                                    </div>
+                                                </div>
                                                 <span className="text-xs font-black text-white/90">{loc.recaptchaLabel}</span>
                                             </div>
                                             <div className="flex flex-col items-center opacity-60">

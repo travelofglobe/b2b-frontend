@@ -4,6 +4,7 @@ import { bookingService } from '../services/bookingService';
 import HeaderActions from '../components/HeaderActions';
 import { useAuth } from '../context/AuthContext';
 import { userService } from '../services/userService';
+import { agencyService } from '../services/agencyService';
 import DashboardSearch from '../components/DashboardSearch';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import { useTranslation } from 'react-i18next';
@@ -34,11 +35,11 @@ const Dashboard = () => {
 
         const fetchStats = async () => {
             try {
-                const summary = await userService.getSummary();
+                const summary = await agencyService.getDashboardSummary();
                 setSummary({
-                    totalUsers: summary?.totalUsers ?? summary?.total ?? 0,
-                    activeUsers: summary?.activeUsers ?? summary?.active ?? 0,
-                    totalGuests: summary?.totalGuests ?? summary?.guests ?? 0,
+                    totalUsers: summary?.totalUsers ?? 0,
+                    activeUsers: summary?.activeUsers ?? 0,
+                    totalGuests: summary?.totalGuests ?? 0,
                 });
             } catch (err) {
                 console.error('Failed to fetch dashboard stats:', err);

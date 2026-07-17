@@ -24,6 +24,10 @@ export const agencyService = {
         return apiClient.get(`${API_BASE_URL}/agency/get-summary`);
     },
 
+    getDashboardSummary: async () => {
+        return apiClient.get(`${API_BASE_URL}/agency/dashboard/gsa-summary`);
+    },
+
     createAgency: async (data) => {
         return apiClient.post(`${API_BASE_URL}/agency`, data);
     },

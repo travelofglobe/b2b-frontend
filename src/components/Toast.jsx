@@ -32,20 +32,23 @@ const Toast = ({ message, type = 'info', onClose }) => {
         <div
             className={`
                 pointer-events-auto
-                flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg backdrop-blur-md
+                flex items-start gap-3 px-4 py-3 rounded-2xl border shadow-xl backdrop-blur-md
                 transition-all duration-300 ease-in-out transform
+                w-[calc(100vw-2rem)] md:w-[400px]
                 ${styles[type]}
                 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
             `}
             role="alert"
         >
-            <span className="material-symbols-outlined text-xl">
+            <span className="material-symbols-outlined text-xl shrink-0 mt-0.5">
                 {icons[type]}
             </span>
-            <p className="text-sm font-bold pr-2">{message}</p>
+            <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold leading-relaxed break-words">{message}</p>
+            </div>
             <button
                 onClick={handleClose}
-                className="opacity-60 hover:opacity-100 transition-opacity"
+                className="opacity-60 hover:opacity-100 transition-opacity shrink-0 mt-0.5"
             >
                 <span className="material-symbols-outlined text-lg">close</span>
             </button>

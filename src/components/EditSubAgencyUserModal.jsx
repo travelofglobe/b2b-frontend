@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { agencyService } from '../services/agencyService';
 import PhoneInput from './PhoneInput';
+import { useToast } from '../context/ToastContext';
 
 const EditSubAgencyUserModal = ({ isOpen, onClose, user, agency, onUpdate }) => {
+    const toast = useToast();
+    const isEdit = !!user;
     const [formData, setFormData] = useState({
         name: '',
         surname: '',
+        email: '',
+        password: '',
         phoneCountryCode: '90',
         phoneNumber: '',
         status: 'ACTIVE',
@@ -15,23 +20,53 @@ const EditSubAgencyUserModal = ({ isOpen, onClose, user, agency, onUpdate }) => 
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
-        if (user) {
-            setFormData({
-                name: user.name || '',
-                surname: user.surname || '',
-                phoneCountryCode: user.phoneCountryCode || '90',
-                phoneNumber: user.phoneNumber || '',
-                status: user.status || 'ACTIVE',
-                agencyId: agency?.id
-            });
+        if (isOpen) {
+            if (user) {
+                setFormData({
+                    name: user.name || '',
+                    surname: user.surname || '',
+                    email: user.email || '',
+                    password: '',
+                    phoneCountryCode: user.phoneCountryCode || '90',
+                    phoneNumber: user.phoneNumber || '',
+                    status: user.status || 'ACTIVE',
+                    agencyId: agency?.id
+                });
+            } else {
+                setFormData({
+                    name: '',
+                    surname: '',
+                    email: '',
+                    password: '',
+                    phoneCountryCode: '90',
+                    phoneNumber: '',
+                    status: 'ACTIVE',
+                    agencyId: agency?.id
+                });
+            }
+            setErrors({});
         }
-    }, [user, agency]);
+    }, [isOpen, user, agency]);
 
     const validate = () => {
         const newErrors = {};
         if (!formData.name) newErrors.name = 'Name is required';
         if (!formData.surname) newErrors.surname = 'Surname is required';
         if (!formData.phoneNumber) newErrors.phoneNumber = 'Phone number is required';
+        
+        if (!isEdit) {
+            if (!formData.email) {
+                newErrors.email = 'Email is required';
+            } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+                newErrors.email = 'Invalid email address';
+            }
+            if (!formData.password) {
+                newErrors.password = 'Password is required';
+            } else if (formData.password.length < 6) {
+                newErrors.password = 'Password must be at least 6 characters';
+            }
+        }
+        
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -46,12 +81,16 @@ const EditSubAgencyUserModal = ({ isOpen, onClose, user, agency, onUpdate }) => 
                 ...formData,
                 phoneCountryCode: formData.phoneCountryCode.replace('+', '')
             };
-            await agencyService.updateSubAgencyUser(user.id, payload);
+            if (isEdit) {
+                await agencyService.updateSubAgencyUser(user.id, payload);
+            } else {
+                await agencyService.createSubAgencyUser(payload);
+            }
             onUpdate();
             onClose();
         } catch (error) {
-            console.error('Error updating sub-agency user:', error);
-            alert('Failed to update user');
+            console.error(isEdit ? 'Error updating sub-agency user:' : 'Error creating sub-agency user:', error);
+            toast.error(error.message || (isEdit ? 'Failed to update user' : 'Failed to create user'));
         } finally {
             setIsSaving(false);
         }
@@ -71,10 +110,10 @@ const EditSubAgencyUserModal = ({ isOpen, onClose, user, agency, onUpdate }) => 
                 <div className="p-8 border-b border-slate-50 dark:border-white/5 flex items-center justify-between bg-slate-50/30 dark:bg-transparent">
                     <div>
                         <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-1">
-                            Edit User
+                            {isEdit ? 'Edit User' : 'New User'}
                         </h2>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            Update account details for {user?.name}
+                            {isEdit ? `Update account details for ${user?.name}` : 'Create a new sub-agency user'}
                         </p>
                     </div>
                     <button 
@@ -109,6 +148,31 @@ const EditSubAgencyUserModal = ({ isOpen, onClose, user, agency, onUpdate }) => 
                             />
                         </div>
                     </div>
+
+                    {!isEdit && (
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email</label>
+                                <input 
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                                    className={`w-full h-12 bg-slate-50 dark:bg-slate-800/50 border ${errors.email ? 'border-rose-500' : 'border-slate-100 dark:border-slate-700'} rounded-2xl px-5 text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-primary transition-all`}
+                                    placeholder="Enter email"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
+                                <input 
+                                    type="password"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                                    className={`w-full h-12 bg-slate-50 dark:bg-slate-800/50 border ${errors.password ? 'border-rose-500' : 'border-slate-100 dark:border-slate-700'} rounded-2xl px-5 text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-primary transition-all`}
+                                    placeholder="Enter password"
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
@@ -160,7 +224,7 @@ const EditSubAgencyUserModal = ({ isOpen, onClose, user, agency, onUpdate }) => 
                             ) : (
                                 <span className="material-icons-round text-lg">check_circle</span>
                             )}
-                            Save Changes
+                            {isEdit ? 'Save Changes' : 'Create User'}
                         </button>
                     </div>
                 </form>

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { agencyService } from '../services/agencyService';
 import { roleService } from '../services/userService';
+import { useToast } from '../context/ToastContext';
 import EditSubAgencyUserModal from './EditSubAgencyUserModal';
 import ConfirmModal from './ConfirmModal';
 import AssignRoleModal from './AssignRoleModal';
 
 const SubAgencyDetailView = ({ onBack, agency }) => {
+    const toast = useToast();
     const [activeTab, setActiveTab] = useState('users');
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
@@ -90,7 +92,7 @@ const SubAgencyDetailView = ({ onBack, agency }) => {
             console.error('Error toggling user status:', error);
             // Revert on error
             setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: user.status } : u));
-            alert('Failed to update status');
+            toast.error(error.message || 'Failed to update status');
         }
     };
 
@@ -103,7 +105,7 @@ const SubAgencyDetailView = ({ onBack, agency }) => {
             fetchUsers();
         } catch (error) {
             console.error('Error deleting sub-agency user:', error);
-            alert('Failed to delete user');
+            toast.error(error.message || 'Failed to delete user');
             setDeleteConfirm(prev => ({ ...prev, isLoading: false }));
         }
     };
@@ -173,7 +175,10 @@ const SubAgencyDetailView = ({ onBack, agency }) => {
                                     <h3 className="text-[12px] font-black text-slate-800 dark:text-white uppercase tracking-tight">Agency Users</h3>
                                     <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md text-[10px] font-bold text-slate-500 uppercase">{totalCount}</span>
                                 </div>
-                                <button className="h-10 px-6 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/20">
+                                <button 
+                                    onClick={() => setEditModal({ isOpen: true, user: null })}
+                                    className="h-10 px-6 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/20"
+                                >
                                     <span className="material-icons-round text-base">person_add</span>
                                     New User
                                 </button>

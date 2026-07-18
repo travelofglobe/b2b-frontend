@@ -49,6 +49,10 @@ export const agencyService = {
         return apiClient.delete(`${API_BASE_URL}/sub-agency-user/${id}`);
     },
 
+    createSubAgencyUser: async (data) => {
+        return apiClient.post(`${API_BASE_URL}/sub-agency-user`, data);
+    },
+
     assignSubAgencyRole: async (data) => {
         return apiClient.post(`${API_BASE_URL}/sub-agency-user/assign-role`, data);
     }

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { agencyService } from '../services/agencyService';
+import { useToast } from '../context/ToastContext';
 
 const AssignRoleModal = ({ isOpen, onClose, user, roles, onUpdate }) => {
+    const toast = useToast();
     const [selectedRoleIds, setSelectedRoleIds] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -32,7 +34,7 @@ const AssignRoleModal = ({ isOpen, onClose, user, roles, onUpdate }) => {
             onClose();
         } catch (error) {
             console.error('Error assigning roles:', error);
-            alert('Failed to assign roles');
+            toast.error(error.message || 'Failed to assign roles');
         } finally {
             setIsSaving(false);
         }

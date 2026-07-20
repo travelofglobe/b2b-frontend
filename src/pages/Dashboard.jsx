@@ -14,7 +14,7 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
     const [bookings, setBookings] = useState([]);
-    const [summary, setSummary] = useState({ totalUsers: 0, activeUsers: 0, totalGuests: 0 });
+    const [summary, setSummary] = useState({ totalUsers: 0, activeUsers: 0, totalGuests: 0, bookingsToday: 0 });
     const [loading, setLoading] = useState(true);
     const [statsLoading, setStatsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -40,6 +40,7 @@ const Dashboard = () => {
                     totalUsers: summary?.totalUsers ?? 0,
                     activeUsers: summary?.activeUsers ?? 0,
                     totalGuests: summary?.totalGuests ?? 0,
+                    bookingsToday: summary?.bookingsToday ?? 0,
                 });
             } catch (err) {
                 console.error('Failed to fetch dashboard stats:', err);
@@ -88,12 +89,12 @@ const Dashboard = () => {
                     <header className="flex flex-wrap items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-2">
                             <span className="material-icons-round text-primary text-xl">auto_awesome</span>
-                            <h1 className="text-lg font-medium">{t('dashboard.welcomeBack')}, <span className="font-bold">{userDisplayName}</span></h1>
+                            <h1 className="text-lg font-medium">Welcome, <span className="font-bold">{userDisplayName}</span></h1>
                         </div>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2 text-emerald-500 font-medium text-sm bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                {t('dashboard.bookingsToday', { count: 1254 })}
+                                {t('dashboard.bookingsToday', { count: summary.bookingsToday })}
                             </div>
                             <HeaderActions />
                         </div>
@@ -161,44 +162,6 @@ const Dashboard = () => {
                             </div>
                         </div>
                     </div>
-
-                    <section className="mb-10">
-                        <div className="flex items-center gap-2 mb-5">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                <span className="material-icons-round text-primary text-lg">bolt</span>
-                            </div>
-                            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">{t('dashboard.quickActions')}</h2>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <button className="flex items-center gap-4 p-5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[28px] border border-white/60 dark:border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
-                                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-[0_0_15px_rgba(var(--primary-rgb),0)] group-hover:shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]">
-                                    <span className="material-icons-round text-xl">description</span>
-                                </div>
-                                <div className="text-left ltr:text-left rtl:text-right">
-                                    <p className="font-black text-xs uppercase tracking-tight">{t('dashboard.actions.createQuotation')}</p>
-                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">{t('dashboard.actions.createQuotationSub')}</p>
-                                </div>
-                            </button>
-                            <button className="flex items-center gap-4 p-5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[28px] border border-white/60 dark:border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
-                                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500 shadow-[0_0_15px_rgba(99,102,241,0)] group-hover:shadow-[0_0_20px_rgba(99,102,241,0.3)]">
-                                    <span className="material-icons-round text-xl">receipt_long</span>
-                                </div>
-                                <div className="text-left ltr:text-left rtl:text-right">
-                                    <p className="font-black text-xs uppercase tracking-tight">{t('dashboard.actions.manageInvoices')}</p>
-                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">{t('dashboard.actions.manageInvoicesSub')}</p>
-                                </div>
-                            </button>
-                            <button className="flex items-center gap-4 p-5 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[28px] border border-white/60 dark:border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
-                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500 shadow-[0_0_15px_rgba(16,185,129,0)] group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-                                    <span className="material-icons-round text-xl">fact_check</span>
-                                </div>
-                                <div className="text-left ltr:text-left rtl:text-right">
-                                    <p className="font-black text-xs uppercase tracking-tight">{t('dashboard.actions.checkAvailability')}</p>
-                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">{t('dashboard.actions.checkAvailabilitySub')}</p>
-                                </div>
-                            </button>
-                        </div>
-                    </section>
 
                     <section className="mb-12">
                         <div className="flex items-center justify-between mb-8">

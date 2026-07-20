@@ -5,12 +5,14 @@ import { useAuth } from '../context/AuthContext';
 import HeaderSearch from './HeaderSearch';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
+import { agencyService } from '../services/agencyService';
 
 const Header = () => {
     const { t } = useTranslation();
     const { user, logout } = useAuth();
     const location = useLocation();
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+    const [agencyInfo, setAgencyInfo] = React.useState(null);
     const menuRef = React.useRef(null);
 
     React.useEffect(() => {
@@ -25,6 +27,27 @@ const Header = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
+
+    React.useEffect(() => {
+        if (user) {
+            const controller = new AbortController();
+            agencyService.getMe(controller.signal)
+                .then(res => {
+                    if (res) {
+                        setAgencyInfo(res);
+                    }
+                })
+                .catch(err => {
+                    if (err?.name !== 'AbortError') {
+                        console.error('Failed to fetch agency info for header:', err);
+                    }
+                });
+            return () => controller.abort();
+        } else {
+            setAgencyInfo(null);
+        }
+    }, [user]);
+
     const isMap = location.pathname === '/map';
 
     const userDisplayName = user?.name && user?.surname
@@ -53,6 +76,13 @@ const Header = () => {
                     <HeaderSearch />
                 </div>
                 <div className="flex items-center gap-6">
+
+                    {user && agencyInfo && (
+                        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-black text-primary tracking-tight">
+                            <span className="material-symbols-outlined text-[16px]">domain</span>
+                            <span>{`${agencyInfo.agencyType || ''} - ${agencyInfo.id || ''} - ${agencyInfo.name || ''}`}</span>
+                        </div>
+                    )}
 
                     <div className="flex items-center gap-3 ltr:border-l rtl:border-r border-slate-200 dark:border-slate-700 ltr:pl-6 rtl:pr-6 gap-x-4">
                         <LanguageSwitcher />

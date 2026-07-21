@@ -318,6 +318,9 @@ const HotelListing = () => {
     const [dynamicFilters, setDynamicFilters] = React.useState(null);
     const [sortConfig, setSortConfig] = React.useState({ field: null, order: 'DESC' });
     const abortControllerRef = React.useRef(null);
+    const isFetchingRef = React.useRef(false);
+    const pageRef = React.useRef(0);
+    const hasMoreRef = React.useRef(true);
 
     /**
      * Returns default check-in (tomorrow) and check-out (day after) as yyyy-MM-dd strings.
@@ -594,12 +597,25 @@ const HotelListing = () => {
         if (isReset && abortControllerRef.current) {
             abortControllerRef.current.abort();
             setIsLoading(false);
+            isFetchingRef.current = false;
         }
 
-        // If not a reset and already loading, skip
-        if (!isReset && (isLoading || !hasMore)) return;
+        // If not a reset, prevent concurrent duplicate calls or calls when no more pages
+        if (!isReset) {
+            if (isFetchingRef.current || !hasMoreRef.current) return;
+        }
 
-        setIsLoading(true);
+        isFetchingRef.current = true;
+
+        if (isReset) {
+            setIsLoading(true);
+            setHotels([]);
+            setTotalProperties(0);
+            pageRef.current = 0;
+            hasMoreRef.current = true;
+            setPage(0);
+            setHasMore(true);
+        }
         
         // Create new AbortController for this request
         const controller = new AbortController();
@@ -607,16 +623,11 @@ const HotelListing = () => {
 
         try {
             const filters = getSearchParams();
-            const currentPage = isReset ? 0 : page;
-
-            if (isReset) {
-                setHotels([]);
-                setTotalProperties(0);
-            }
+            const currentPage = isReset ? 0 : pageRef.current;
 
             const baseRequest = {
                 locationId,
-                size: 20,
+                size: 100,
                 filters: {
                     locationIds: filters.locations?.length > 0 ? filters.locations : (locationId ? [parseInt(locationId)] : null),
                     stars: filters.stars,
@@ -641,7 +652,7 @@ const HotelListing = () => {
                 signal: controller.signal
             };
 
-            // Fetch two pages in parallel
+            // Fetch two pages of size 100 in parallel (total 200 hotels)
             const req1 = hotelService.searchHotels({ ...baseRequest, page: currentPage });
             const req2 = hotelService.searchHotels({ ...baseRequest, page: currentPage + 1 });
             
@@ -661,15 +672,26 @@ const HotelListing = () => {
                 const combinedContent = [...content1, ...content2];
                 const mappedHotels = combinedContent.map(h => mapApiHotelToModel(h));
 
-                setHotels(prev => currentPage === 0 ? mappedHotels : [...prev, ...mappedHotels]);
+                setHotels(prev => {
+                    if (currentPage === 0) return mappedHotels;
+                    const existingIds = new Set(prev.map(h => h.id));
+                    const uniqueNew = mappedHotels.filter(h => !existingIds.has(h.id));
+                    return [...prev, ...uniqueNew];
+                });
                 setTotalProperties(pageData1.totalElements || 0);
 
                 if (currentPage === 0 && filtersData) {
                     setDynamicFilters(filtersData);
                 }
 
-                setHasMore(!pageData1.last && !pageData2.last);
-                setPage(currentPage + 2);
+                const noMore = pageData1.last || pageData2.last || combinedContent.length === 0;
+                const nextHasMore = !noMore;
+                setHasMore(nextHasMore);
+                hasMoreRef.current = nextHasMore;
+
+                const nextPage = currentPage + 2;
+                setPage(nextPage);
+                pageRef.current = nextPage;
 
                 // Extract location names from breadcrumbs continuously across all pages
                 const newLocationNames = {};
@@ -686,8 +708,20 @@ const HotelListing = () => {
                 if (Object.keys(newLocationNames).length > 0) {
                     setLocationNames(prev => ({ ...prev, ...newLocationNames }));
                 }
+
+                // Proactive Background Prefetch:
+                // If this was initial load (currentPage === 0) and more pages exist,
+                // immediately kick off background prefetch for next 2 pages (pages 2 & 3)!
+                if (currentPage === 0 && nextHasMore) {
+                    isFetchingRef.current = false;
+                    setTimeout(() => {
+                        loadMoreHotels(false);
+                    }, 50);
+                    return;
+                }
             } else {
                 setHasMore(false);
+                hasMoreRef.current = false;
             }
         } catch (error) {
             if (error.name === 'AbortError') {
@@ -695,13 +729,15 @@ const HotelListing = () => {
             } else {
                 console.error('Error fetching hotels:', error);
                 setHasMore(false);
+                hasMoreRef.current = false;
             }
         } finally {
             if (abortControllerRef.current === controller) {
                 setIsLoading(false);
+                isFetchingRef.current = false;
             }
         }
-    }, [page, isLoading, hasMore, locationId, mapApiHotelToModel, searchParams, sortConfig]);
+    }, [locationId, mapApiHotelToModel, roomState, searchParams, sortConfig]);
 
     // Fetch names for any locations in the filters that we haven't seen in the hotel results yet
     React.useEffect(() => {
@@ -840,17 +876,17 @@ const HotelListing = () => {
 
     React.useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && hasMore && !isLoading && hotels.length > 0) {
-                loadMoreHotels();
+            if (entries[0].isIntersecting && hasMoreRef.current && !isFetchingRef.current && hotels.length > 0) {
+                loadMoreHotels(false);
             }
-        }, { threshold: 0, rootMargin: '400px' });
+        }, { threshold: 0, rootMargin: '2500px' });
 
         if (loaderRef.current) {
             observer.observe(loaderRef.current);
         }
 
         return () => observer.disconnect();
-    }, [loadMoreHotels, hasMore, isLoading, hotels.length]);
+    }, [loadMoreHotels, hotels.length]);
 
     return (
         <div className="relative flex min-h-screen flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200 font-sans">

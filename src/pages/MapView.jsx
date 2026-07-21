@@ -645,21 +645,11 @@ const MapView = () => {
         try {
             const zoom = boundsData.zoom;
             
-            // Limit search based on zoom level to prevent performance issues
-            // If zoom is too low (viewing a whole country/continent), don't fetch thousands
-            if (zoom < 6) {
+            if (zoom < 5) {
                 setHotels([]);
                 setIsLoadingHotels(false);
                 return;
             }
-
-            // Calculate dynamic page size based on zoom
-            // More zoom = more specific area = we can show more hotels
-            let dynamicSize = 100;
-            if (zoom < 9) dynamicSize = 25;
-            else if (zoom < 12) dynamicSize = 50;
-            else if (zoom < 15) dynamicSize = 100;
-            else dynamicSize = 150;
 
             // Include all dynamic filters in map request
             const params = getSearchFilters();
@@ -677,34 +667,65 @@ const MapView = () => {
                 facilities: params.facilities || [],
                 hotelIds: params.hotelIds || []
             };
-            
-            const response = await hotelService.searchHotels({
-                locationId: !boundsData.isUserPan ? searchParams.get('locationId') : null,
-                geo: boundsData.bounds,
-                zoom: zoom,
-                page: 0,
-                size: dynamicSize,
-                filters: filtersBody,
-                searchCriteria: {
-                    checkin: params._checkin,
-                    checkout: params._checkout,
-                    nationality: searchParams.get('nationality') || 'TR',
-                    rooms: roomState
-                },
-                signal: controller.signal
-            });
 
-            if (response && response.data) {
-                const { content } = response.data;
-                const filtersData = response.filters || response.data.filters;
+            const searchCriteria = {
+                checkin: params._checkin,
+                checkout: params._checkout,
+                nationality: searchParams.get('nationality') || 'TR',
+                rooms: roomState
+            };
+
+            const locationIdParam = !boundsData.isUserPan ? searchParams.get('locationId') : null;
+
+            // Fetch multiple pages in parallel (size 100 each) to cover all sub-regions in the visible area
+            const numPages = zoom < 9 ? 10 : 8;
+            const pageIndices = Array.from({ length: numPages }, (_, i) => i);
+
+            const requests = pageIndices.map(p =>
+                hotelService.searchHotels({
+                    locationId: locationIdParam,
+                    geo: boundsData.bounds,
+                    zoom: zoom,
+                    page: p,
+                    size: 100,
+                    filters: filtersBody,
+                    searchCriteria: searchCriteria,
+                    signal: controller.signal
+                })
+            );
+
+            const results = await Promise.allSettled(requests);
+
+            const successfulResponses = results
+                .filter(r => r.status === 'fulfilled' && r.value && r.value.data)
+                .map(r => r.value);
+
+            if (successfulResponses.length > 0) {
+                const firstRes = successfulResponses[0];
+                const filtersData = firstRes.filters || firstRes.data?.filters;
                 
                 if (filtersData) {
                     setDynamicFilters(filtersData);
                 }
 
+                // Combine content from all parallel page responses and deduplicate by hotel ID
+                const allContent = [];
+                const seenIds = new Set();
+
+                successfulResponses.forEach(res => {
+                    const content = res.data?.content || [];
+                    content.forEach(h => {
+                        const id = h.id || h.hotelId;
+                        if (id && !seenIds.has(id)) {
+                            seenIds.add(id);
+                            allContent.push(h);
+                        }
+                    });
+                });
+
                 // Extract location names from breadcrumbs
                 const newLocationNames = {};
-                (content || []).forEach(hotel => {
+                allContent.forEach(hotel => {
                     if (hotel.locationBreadcrumbs) {
                         hotel.locationBreadcrumbs.forEach(crumb => {
                             if (crumb.locationId && crumb.name) {
@@ -718,7 +739,7 @@ const MapView = () => {
                     setLocationNames(prev => ({ ...prev, ...newLocationNames }));
                 }
 
-                const mappedHotels = (content || []).map(mapApiHotelToModel);
+                const mappedHotels = allContent.map(mapApiHotelToModel);
                 
                 // Add jitter for identical coordinates
                 const coordinateMap = new Map();
@@ -754,7 +775,7 @@ const MapView = () => {
                 setIsLoadingHotels(false);
             }
         }
-    }, [mapApiHotelToModel, searchParams, getSearchFilters]);
+    }, [mapApiHotelToModel, searchParams, roomState, getSearchFilters]);
 
     // Trigger fetch on bounds change or search parameter change
     useEffect(() => {

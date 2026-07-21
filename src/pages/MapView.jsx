@@ -84,7 +84,7 @@ const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover, se
 };
 
 // Map Controller for FlyTo
-const MapController = ({ selectedHotel }) => {
+const MapController = ({ selectedHotel, isProgrammaticMoveRef }) => {
     const map = useMap();
     const isMounted = useRef(true);
 
@@ -112,6 +112,7 @@ const MapController = ({ selectedHotel }) => {
                     point.y -= 30; // Shift up 30px so the marker body is centered
                     const newCenter = map.unproject(point, 15);
 
+                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
                     map.flyTo(newCenter, 15, {
                         duration: 1.5,
                         easeLinearity: 0.25
@@ -128,7 +129,7 @@ const MapController = ({ selectedHotel }) => {
                 } catch (e) {}
             };
         }
-    }, [selectedHotel, map]);
+    }, [selectedHotel, map, isProgrammaticMoveRef]);
     return null;
 };
 
@@ -138,15 +139,24 @@ const FilterModal = ({ isOpen, onClose, filters, locationNames, facilityNames })
 
     if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
-            <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                onClick={onClose}
-            ></div>
-            <div className="relative w-full max-w-3xl bg-white dark:bg-slate-900 rounded-[40px] shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)] border border-white/20 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in duration-300 h-[85vh] max-h-[800px] flex flex-col">
-                
-                <div className="flex-1 overflow-hidden">
-                    <FilterPanel 
+        <div className="fixed inset-0 z-[5000] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-300">
+            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-white/20 dark:border-slate-800 rounded-[40px] w-full max-w-lg overflow-hidden shadow-2xl max-h-[85vh] flex flex-col">
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="size-10 rounded-2xl bg-[#137fec]/10 flex items-center justify-center text-[#137fec]">
+                            <span className="material-symbols-outlined">tune</span>
+                        </div>
+                        <h2 className="font-black text-lg uppercase tracking-tight text-slate-900 dark:text-white">Filter Hotels</h2>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="size-10 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-white flex items-center justify-center transition-colors"
+                    >
+                        <span className="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                    <FilterPanel
                         filters={filters}
                         locationNames={locationNames}
                         facilityNames={facilityNames}
@@ -159,6 +169,38 @@ const FilterModal = ({ isOpen, onClose, filters, locationNames, facilityNames })
             </div>
         </div>
     );
+};
+
+// MapBoundsListener
+const MapBoundsListener = ({ onBoundsChange, isUserPanRef, isProgrammaticMoveRef }) => {
+    useMapEvents({
+        mousedown: () => { isUserPanRef.current = true; },
+        wheel: () => { isUserPanRef.current = true; },
+        touchstart: () => { isUserPanRef.current = true; },
+        moveend: (e) => {
+            if (isProgrammaticMoveRef && isProgrammaticMoveRef.current) {
+                isProgrammaticMoveRef.current = false;
+                return;
+            }
+            const map = e.target;
+            // Force recalculation of container dimensions before calculating bounds
+            map.invalidateSize();
+            
+            const bounds = map.getBounds();
+            const nw = bounds.getNorthWest();
+            const se = bounds.getSouthEast();
+
+            onBoundsChange({
+                bounds: {
+                    topLeft: { lat: nw.lat, lon: nw.lng },
+                    bottomRight: { lat: se.lat, lon: se.lng }
+                },
+                isUserPan: isUserPanRef.current,
+                zoom: map.getZoom()
+            });
+        }
+    });
+    return null;
 };
 
 // Map Instances & Events
@@ -236,33 +278,6 @@ export const FACILITY_ICON_MAP = {
     98425: { icon: 'balcony', label: 'Balcony' }
 };
 
-// MapBoundsListener
-const MapBoundsListener = ({ onBoundsChange, isUserPanRef }) => {
-    useMapEvents({
-        mousedown: () => { isUserPanRef.current = true; },
-        wheel: () => { isUserPanRef.current = true; },
-        moveend: (e) => {
-            const map = e.target;
-            // Force recalculation of container dimensions before calculating bounds
-            map.invalidateSize();
-            
-            const bounds = map.getBounds();
-            const nw = bounds.getNorthWest();
-            const se = bounds.getSouthEast();
-
-            onBoundsChange({
-                bounds: {
-                    topLeft: { lat: nw.lat, lon: nw.lng },
-                    bottomRight: { lat: se.lat, lon: se.lng }
-                },
-                isUserPan: isUserPanRef.current,
-                zoom: map.getZoom()
-            });
-        }
-    });
-    return null;
-};
-
 // MapView Component
 const MapView = () => {
     const navigate = useNavigate();
@@ -272,6 +287,7 @@ const MapView = () => {
     const [hoveredHotel, setHoveredHotel] = useState(null);
     const hoverTimeoutRef = useRef(null);
     const isUserPanRef = useRef(false);
+    const isProgrammaticMoveRef = useRef(false);
     const abortControllerRef = useRef(null);
     const roomState = React.useMemo(() => {
         const guestsParam = searchParams.get('guests');
@@ -423,6 +439,7 @@ const MapView = () => {
                         map.stop();
                         map.invalidateSize();
                         // Fly to location with smooth animation
+                        isProgrammaticMoveRef.current = true;
                         map.flyTo([lat, lon], zoom, {
                             duration: 1.5,
                             easeLinearity: 0.25
@@ -444,9 +461,11 @@ const MapView = () => {
         };
     }, [breadcrumbData, map, isDataLoading]);
 
-    // Reset initial bounds fitting when location changes
+    // Reset initial bounds fitting ONLY when location explicitly changes from user search, NOT during manual panning
     useEffect(() => {
-        setHasFittedInitialBounds(false);
+        if (!isUserPanRef.current) {
+            setHasFittedInitialBounds(false);
+        }
     }, [searchParams.get('locationId')]);
 
     // Auto-fit bounds when initial hotels load to perfectly center the map on properties
@@ -469,8 +488,7 @@ const MapView = () => {
                 ];
                 
                 try {
-                    // Keep isUserPanRef false so it doesn't trigger a new manual search
-                    isUserPanRef.current = false;
+                    isProgrammaticMoveRef.current = true;
                     map.flyToBounds(bounds, {
                         padding: [50, 50],
                         maxZoom: 14,
@@ -1131,9 +1149,10 @@ const MapView = () => {
                                 <MapBoundsListener 
                                     onBoundsChange={setCurrentBounds} 
                                     isUserPanRef={isUserPanRef}
+                                    isProgrammaticMoveRef={isProgrammaticMoveRef}
                                 />
 
-                                <MapController selectedHotel={selectedHotel} />
+                                <MapController selectedHotel={selectedHotel} isProgrammaticMoveRef={isProgrammaticMoveRef} />
 
                                 {filteredHotels.map((hotel) => (
                                     <CustomPriceMarker
@@ -1148,19 +1167,14 @@ const MapView = () => {
                                 ))}
                             </MapContainer>
 
-                            {/* Subsequent Data Loading Overlay */}
+                            {/* Subsequent Data Loading Overlay (Non-blocking) */}
                             {isDataLoading && (
-                                <div className="absolute inset-0 z-[2000] bg-white/20 dark:bg-black/20 backdrop-blur-[2px] flex items-center justify-center animate-in fade-in duration-300">
+                                <div className="absolute inset-0 z-[2000] bg-white/10 dark:bg-black/10 backdrop-blur-[1px] flex items-center justify-center animate-in fade-in duration-300 pointer-events-none">
                                     <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl px-6 py-4 rounded-[20px] shadow-2xl border border-white/20 flex items-center gap-3">
                                         <div className="w-5 h-5 border-2 border-[#137fec] border-t-transparent rounded-full animate-spin"></div>
                                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Updating Orbit...</span>
                                     </div>
                                 </div>
-                            )}
-
-                            {/* Block map interaction while searching hotels */}
-                            {isLoadingHotels && (
-                                <div className="absolute inset-0 z-[2000] cursor-wait bg-white/5 dark:bg-black/5 backdrop-blur-[1px] animate-in fade-in duration-300"></div>
                             )}
 
                             {/* Low Zoom Warning Overlay */}

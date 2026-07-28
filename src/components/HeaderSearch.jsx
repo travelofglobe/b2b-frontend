@@ -6,7 +6,7 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import { enGB, tr, es, ru, zhCN, ja, faIR, fr, it, el, pt, ar } from 'date-fns/locale';
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
-import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms } from '../utils/searchParamsUtils';
+import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, formatDateForUrl } from '../utils/searchParamsUtils';
 import NationalitySelect from './NationalitySelect';
 import { useTranslation } from 'react-i18next';
 
@@ -355,7 +355,7 @@ const HeaderSearch = () => {
     const { i18n } = useTranslation();
     const currentLang = i18n.language || 'en';
     const ls = searchLocales[currentLang] || searchLocales['en'];
-    
+
     const navigate = useNavigate();
     const { error } = useToast();
     const [searchParams] = useSearchParams();
@@ -374,38 +374,17 @@ const HeaderSearch = () => {
         return searchParams.get('nationality') || localStorage.getItem('dashboard_last_nationality') || 'TR';
     });
 
-    // Default dates: Check-in today, Check-out tomorrow
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const parseDateParam = (param) => {
-        if (!param) return null;
-        // Support both yyyy-MM-dd (new, backend format) and dd-MM-yyyy (legacy)
-        const isNewFormat = /^\d{4}-\d{2}-\d{2}$/.test(param.trim());
-        const parts = param.split('-').map(Number);
-        let year, month, day;
-        if (isNewFormat) {
-            [year, month, day] = parts;
-        } else {
-            [day, month, year] = parts;
-        }
-        if (day && month && year) {
-            const date = new Date(year, month - 1, day);
-            if (date instanceof Date && !isNaN(date.getTime())) {
-                return date;
-            }
-        }
-        return null;
-    };
-
+    // Initialize & sanitize search dates (guarantees checkIn is not in the past and checkOut > checkIn)
     const [checkInDate, setCheckInDate] = useState(() => {
         const checkinParam = searchParams.get('checkin') || localStorage.getItem('dashboard_last_checkin');
-        return parseDateParam(checkinParam) || today;
-    });
-    const [checkOutDate, setCheckOutDate] = useState(() => {
         const checkoutParam = searchParams.get('checkout') || localStorage.getItem('dashboard_last_checkout');
-        return parseDateParam(checkoutParam) || tomorrow;
+        return validateAndSanitizeDates(checkinParam, checkoutParam).checkInDate;
+    });
+
+    const [checkOutDate, setCheckOutDate] = useState(() => {
+        const checkinParam = searchParams.get('checkin') || localStorage.getItem('dashboard_last_checkin');
+        const checkoutParam = searchParams.get('checkout') || localStorage.getItem('dashboard_last_checkout');
+        return validateAndSanitizeDates(checkinParam, checkoutParam).checkOutDate;
     });
 
     // -- Guest State --
@@ -520,14 +499,14 @@ const HeaderSearch = () => {
             const data = await autocompleteService.search({ query, types: ['HOTEL', 'LOCATION'] });
             // Handle both wrapped { data: { content } } and direct { content } formats
             const resultsData = data?.data || data;
-            
+
             if (resultsData) {
                 const items = resultsData.content || [];
-                
+
                 // Separate results by type
                 const hotels = items.filter(item => item.type === 'HOTEL');
                 const regions = items.filter(item => item.type === 'LOCATION');
-                
+
                 if (items.length > 0) {
                     setResults({ hotels, regions });
                     setShowDropdown(true);

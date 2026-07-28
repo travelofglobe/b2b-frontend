@@ -6,7 +6,7 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import { enGB, tr, es, ru, zhCN, ja, faIR, fr, it, el, pt, ar } from 'date-fns/locale';
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
-import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms } from '../utils/searchParamsUtils';
+import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, formatDateForUrl } from '../utils/searchParamsUtils';
 import { useTranslation } from 'react-i18next';
 
 import NationalitySelect from './NationalitySelect';
@@ -381,38 +381,17 @@ const DashboardSearch = () => {
         setActiveIndex(-1);
     }, [results]);
 
-    // Default dates: Check-in today, Check-out tomorrow
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const parseDateParam = (param) => {
-        if (!param) return null;
-        // Support both yyyy-MM-dd (new, backend format) and dd-MM-yyyy (legacy)
-        const isNewFormat = /^\d{4}-\d{2}-\d{2}$/.test(param.trim());
-        const parts = param.split('-').map(Number);
-        let year, month, day;
-        if (isNewFormat) {
-            [year, month, day] = parts;
-        } else {
-            [day, month, year] = parts;
-        }
-        if (day && month && year) {
-            const date = new Date(year, month - 1, day);
-            if (date instanceof Date && !isNaN(date.getTime())) {
-                return date;
-            }
-        }
-        return null;
-    };
-
+    // Initialize & sanitize search dates (guarantees checkIn is not in the past and checkOut > checkIn)
     const [checkInDate, setCheckInDate] = useState(() => {
         const checkinParam = searchParams.get('checkin') || localStorage.getItem('dashboard_last_checkin');
-        return parseDateParam(checkinParam) || today;
-    });
-    const [checkOutDate, setCheckOutDate] = useState(() => {
         const checkoutParam = searchParams.get('checkout') || localStorage.getItem('dashboard_last_checkout');
-        return parseDateParam(checkoutParam) || tomorrow;
+        return validateAndSanitizeDates(checkinParam, checkoutParam).checkInDate;
+    });
+
+    const [checkOutDate, setCheckOutDate] = useState(() => {
+        const checkinParam = searchParams.get('checkin') || localStorage.getItem('dashboard_last_checkin');
+        const checkoutParam = searchParams.get('checkout') || localStorage.getItem('dashboard_last_checkout');
+        return validateAndSanitizeDates(checkinParam, checkoutParam).checkOutDate;
     });
 
     // -- Guest State --

@@ -11,7 +11,7 @@ import { mockHotels } from '../data/mockHotels';
 import NationalitySelect from '../components/NationalitySelect';
 import { hotelService } from '../services/hotelService';
 import { useToast } from '../context/ToastContext';
-import { parseGuestsParam, serializeGuestsParam } from '../utils/searchParamsUtils';
+import { parseGuestsParam, serializeGuestsParam, validateAndSanitizeDates } from '../utils/searchParamsUtils';
 import { getBoardTypeLabel, getBoardTypeDescription, BOARD_TYPES } from '../utils/boardTypeUtils';
 import { FACILITY_ICON_MAP } from './MapView';
 import Tooltip from '../components/Tooltip';
@@ -1244,10 +1244,10 @@ const HotelDetail = () => {
     dayAfter.setDate(dayAfter.getDate() + 1);
 
     const [checkInDate, setCheckInDate] = useState(() => {
-        return parseDateParam(searchParams.get('checkin')) || tomorrow;
+        return validateAndSanitizeDates(searchParams.get('checkin'), searchParams.get('checkout')).checkInDate;
     });
     const [checkOutDate, setCheckOutDate] = useState(() => {
-        return parseDateParam(searchParams.get('checkout')) || dayAfter;
+        return validateAndSanitizeDates(searchParams.get('checkin'), searchParams.get('checkout')).checkOutDate;
     });
 
     const [nationality, setNationality] = useState(() => {
@@ -1355,8 +1355,9 @@ const HotelDetail = () => {
         // Clear previous selection when a new search is initiated
         setSelectedRooms([]);
 
-        const fetchCheckIn = parseDateParam(searchParams.get('checkin')) || tomorrow;
-        const fetchCheckOut = parseDateParam(searchParams.get('checkout')) || dayAfter;
+        const sanitizedDates = validateAndSanitizeDates(searchParams.get('checkin'), searchParams.get('checkout'));
+        const fetchCheckIn = sanitizedDates.checkInDate;
+        const fetchCheckOut = sanitizedDates.checkOutDate;
         const fetchNationality = searchParams.get('nationality') || 'TR';
         const fetchRooms = parseGuestsParam(searchParams.get('guests'));
 

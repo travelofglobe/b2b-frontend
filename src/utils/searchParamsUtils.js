@@ -97,3 +97,70 @@ export const convertOldParamsToRooms = (adults, children, childAgesStr) => {
         childAges: ages
     }];
 };
+
+/**
+ * Parses a date string (supporting yyyy-MM-dd and dd-MM-yyyy).
+ */
+export const parseDateParam = (param) => {
+    if (!param) return null;
+    const isNewFormat = /^\d{4}-\d{2}-\d{2}$/.test(param.trim());
+    const parts = param.split('-').map(Number);
+    let year, month, day;
+    if (isNewFormat) {
+        [year, month, day] = parts;
+    } else {
+        [day, month, year] = parts;
+    }
+    if (day && month && year) {
+        const date = new Date(year, month - 1, day);
+        if (date instanceof Date && !isNaN(date.getTime())) {
+            return date;
+        }
+    }
+    return null;
+};
+
+/**
+ * Validates and sanitizes check-in and check-out date parameters.
+ * Guarantees check-in is not in the past (< today) and check-out is at least 1 day after check-in.
+ */
+export const validateAndSanitizeDates = (checkinParam, checkoutParam) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const parsedCheckin = parseDateParam(checkinParam);
+    let validCheckIn = today;
+    if (parsedCheckin) {
+        const checkinDay = new Date(parsedCheckin.getFullYear(), parsedCheckin.getMonth(), parsedCheckin.getDate());
+        if (checkinDay >= today) {
+            validCheckIn = checkinDay;
+        }
+    }
+
+    const minCheckout = new Date(validCheckIn.getFullYear(), validCheckIn.getMonth(), validCheckIn.getDate() + 1);
+    const parsedCheckout = parseDateParam(checkoutParam);
+    let validCheckOut = minCheckout;
+    if (parsedCheckout) {
+        const checkoutDay = new Date(parsedCheckout.getFullYear(), parsedCheckout.getMonth(), parsedCheckout.getDate());
+        if (checkoutDay >= minCheckout) {
+            validCheckOut = checkoutDay;
+        }
+    }
+
+    return { checkInDate: validCheckIn, checkOutDate: validCheckOut };
+};
+
+/**
+ * Formats a Date object to YYYY-MM-DD string.
+ */
+export const formatDateForUrl = (date) => {
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+

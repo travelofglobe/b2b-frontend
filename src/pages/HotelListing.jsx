@@ -7,7 +7,7 @@ import HotelCard from '../components/HotelCard';
 import HotelCardSkeleton from '../components/HotelCardSkeleton';
 import Footer from '../components/Footer';
 import Breadcrumbs from '../components/Breadcrumbs';
-import { parseGuestsParam } from '../utils/searchParamsUtils';
+import { parseGuestsParam, validateAndSanitizeDates, formatDateForUrl } from '../utils/searchParamsUtils';
 import { hotelService } from '../services/hotelService';
 import { locationService } from '../services/locationService';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
@@ -640,10 +640,10 @@ const HotelListing = () => {
                     facilities: filters.facilities
                 },
                 searchCriteria: (() => {
-                    const defaults = getDefaultDates();
+                    const sanitized = validateAndSanitizeDates(searchParams.get('checkin'), searchParams.get('checkout'));
                     return {
-                        checkin: searchParams.get('checkin') || defaults.checkin,
-                        checkout: searchParams.get('checkout') || defaults.checkout,
+                        checkin: formatDateForUrl(sanitized.checkInDate),
+                        checkout: formatDateForUrl(sanitized.checkOutDate),
                         nationality: searchParams.get('nationality') || 'TR',
                         rooms: roomState
                     };

@@ -500,7 +500,8 @@ const LOCAL_TRANSLATIONS = {
         showLessRates: "Show Less Rates",
         show: "Show",
         moreRates: "More Rates",
-        fetchingBestRates: "Fetching best rates..."
+        fetchingBestRates: "Fetching best rates...",
+        maxRoomsSelectedError: "You searched for {{count}} room(s). You can select a maximum of {{count}} room(s)."
     },
     tr: {
         roomsAndRates: "Odalar & Fiyatlar",
@@ -560,7 +561,8 @@ const LOCAL_TRANSLATIONS = {
         showLessRates: "Daha Az Fiyat Göster",
         show: "Göster",
         moreRates: "Daha Fazla Fiyat",
-        fetchingBestRates: "En iyi fiyatlar sorgulanıyor..."
+        fetchingBestRates: "En iyi fiyatlar sorgulanıyor...",
+        maxRoomsSelectedError: "Aramanızda {{count}} oda belirttiniz. En fazla {{count}} oda seçebilirsiniz."
     },
     ar: {
         roomsAndRates: "الغرف والأسعار",
@@ -1424,9 +1426,28 @@ const HotelDetail = () => {
             (r.type === roomType && r.name === roomName && r.rate === rate)
         );
 
-        if (!isSelected && selectedRooms.length >= 4) {
-            toastError('You can select a maximum of 4 rates per reservation.');
-            return;
+        const maxAllowedRooms = Math.min(roomState.length || 1, 4);
+
+        if (!isSelected) {
+            // If single room search, selecting a new room rate replaces the current selection
+            if (maxAllowedRooms === 1) {
+                setSelectedRooms([{
+                    type: roomType,
+                    rate,
+                    name: roomName,
+                    currency: fullRateData?.currency || '$',
+                    hubRateModel: fullRateData?.hubRateModel
+                }]);
+                return;
+            }
+
+            // If multi-room search, enforce max selection limit equal to requested rooms count
+            if (selectedRooms.length >= maxAllowedRooms) {
+                const errorTemplate = tLocal('maxRoomsSelectedError') || 'Aramanızda {{count}} oda belirttiniz. En fazla {{count}} oda seçebilirsiniz.';
+                const errorMsg = errorTemplate.replace(/\{\{count\}\}/g, maxAllowedRooms);
+                toastError(errorMsg);
+                return;
+            }
         }
 
         setSelectedRooms(prev => {
@@ -1439,7 +1460,7 @@ const HotelDetail = () => {
                 // Remove if already selected
                 return prev.filter((_, i) => i !== index);
             } else {
-                // Add to selection (limit already checked above)
+                // Add to selection
                 return [...prev, {
                     type: roomType,
                     rate,
@@ -1495,6 +1516,13 @@ const HotelDetail = () => {
 
     const handleInstantReservation = async () => {
         if (isRequestingRef.current || isCheckingRates) return;
+        const maxAllowedRooms = Math.min(roomState.length || 1, 4);
+        if (selectedRooms.length > maxAllowedRooms) {
+            const errorTemplate = tLocal('maxRoomsSelectedError') || 'Aramanızda {{count}} oda belirttiniz. En fazla {{count}} oda seçebilirsiniz.';
+            const errorMsg = errorTemplate.replace(/\{\{count\}\}/g, maxAllowedRooms);
+            toastError(errorMsg);
+            return;
+        }
         if (selectedRooms.length > 0) {
             isRequestingRef.current = true;
             setIsCheckingRates(true);
@@ -2534,10 +2562,15 @@ const HotelDetail = () => {
                         {tLocal('instantConfirmationAvailable')}
                     </div>
 
-                    <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                        <span className="material-symbols-outlined text-sm">auto_awesome</span>
-                        {tLocal('reservationSummary')}
-                    </h3>
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                            <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                            {tLocal('reservationSummary')}
+                        </h3>
+                        <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+                            {selectedRooms.length} / {roomState.length} {tLocal('room')}
+                        </span>
+                    </div>
 
                     <div className="space-y-4 mb-8">
                         {selectedRooms.length > 0 ? (

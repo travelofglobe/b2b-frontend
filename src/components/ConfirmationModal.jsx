@@ -1,18 +1,19 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+    const modalContent = (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div 
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+                className="fixed inset-0 bg-slate-950/50 backdrop-blur-md animate-in fade-in duration-200"
                 onClick={onClose}
             ></div>
             
             {/* Modal */}
-            <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[32px] shadow-2xl border border-white/50 dark:border-white/5 overflow-hidden animate-in zoom-in-95 fade-in duration-300">
+            <div className="relative z-10 w-full max-w-md bg-white dark:bg-slate-900 rounded-[32px] shadow-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 fade-in duration-200">
                 <div className="p-8">
                     {/* Icon */}
                     <div className="size-16 rounded-3xl bg-orange-500/10 flex items-center justify-center mb-6 mx-auto">
@@ -47,6 +48,8 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default ConfirmationModal;

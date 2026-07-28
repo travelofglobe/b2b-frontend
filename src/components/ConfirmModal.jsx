@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 
 const ConfirmModal = ({ 
@@ -21,16 +22,16 @@ const ConfirmModal = ({
         ? `${user.name} ${user.surname}` 
         : userEmail || 'Account';
 
-    return (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+    const modalContent = (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div 
-                className="absolute inset-0 bg-slate-950/40 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
+                className="fixed inset-0 bg-slate-950/50 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
                 onClick={onClose}
             />
 
             {/* Modal Card */}
-            <div className="relative w-full max-w-[360px] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/80 dark:border-slate-800 p-5 overflow-hidden animate-in zoom-in-95 fade-in duration-200">
+            <div className="relative z-10 w-full max-w-[360px] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/80 dark:border-slate-800 p-5 overflow-hidden animate-in zoom-in-95 fade-in duration-200">
                 {/* Header Row */}
                 <div className="flex items-start gap-3.5 mb-3.5">
                     <div className="size-10 rounded-xl bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 flex items-center justify-center flex-shrink-0">
@@ -89,6 +90,8 @@ const ConfirmModal = ({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default ConfirmModal;

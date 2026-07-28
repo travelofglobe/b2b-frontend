@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText = "Confirm", cancelText = "Cancel", type = "danger", isLoading = false }) => {
+const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText = "Confirm", cancelText = "Cancel", type = "danger", icon, isLoading = false }) => {
     if (!isOpen) return null;
 
     const colors = {
@@ -27,7 +27,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText 
     };
 
     return (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 overflow-hidden">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-6 overflow-hidden">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" onClick={onClose} />
 
@@ -37,7 +37,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText 
                 <div className="p-10 flex flex-col items-center text-center">
                     {/* Icon Circle */}
                     <div className={`size-20 ${colors.light} dark:bg-opacity-10 rounded-[32px] flex items-center justify-center ${colors.text} mb-8 shadow-xl ${colors.shadow} border ${colors.border} dark:border-opacity-10`}>
-                        <span className="material-icons-round text-4xl">{type === 'danger' ? 'delete_sweep' : 'warning'}</span>
+                        <span className="material-icons-round text-4xl">{icon || (type === 'danger' ? 'delete_sweep' : 'warning')}</span>
                     </div>
 
                     <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-3">

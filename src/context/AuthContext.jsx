@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import { authService } from '../services/authService';
+import { agencyService } from '../services/agencyService';
+import { currencyService } from '../services/currencyService';
 
 import { getTokenExpiration } from '../utils/tokenUtils';
 
@@ -9,6 +11,9 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [remainingSeconds, setRemainingSeconds] = useState(null);
+    const [agencyCurrency, setAgencyCurrency] = useState(null);
+    // Map of currency code -> symbol fetched from backend
+    const [currencySymbolMap, setCurrencySymbolMap] = useState({});
 
     // Initial auth check - runs only once on mount
     useEffect(() => {
@@ -20,6 +25,52 @@ export const AuthProvider = ({ children }) => {
         };
         checkAuth();
     }, []);
+
+    // Fetch currency list (code -> symbol map) once on mount
+    useEffect(() => {
+        const controller = new AbortController();
+        currencyService.listActiveCurrencies(controller.signal)
+            .then(list => {
+                if (Array.isArray(list)) {
+                    const map = {};
+                    list.forEach(c => {
+                        if (c.code && c.symbol) {
+                            map[c.code] = c.symbol;
+                        }
+                    });
+                    setCurrencySymbolMap(map);
+                }
+            })
+            .catch(err => {
+                if (err?.name !== 'AbortError') {
+                    console.error('Failed to fetch currency list:', err);
+                }
+            });
+        return () => controller.abort();
+    }, []);
+
+    // Fetch agency info (including currency) when user is authenticated
+    useEffect(() => {
+        if (!user) {
+            setAgencyCurrency(null);
+            return;
+        }
+
+        const controller = new AbortController();
+        agencyService.getMe(controller.signal)
+            .then(res => {
+                if (res && res.currency) {
+                    setAgencyCurrency(res.currency);
+                }
+            })
+            .catch(err => {
+                if (err?.name !== 'AbortError') {
+                    console.error('Failed to fetch agency currency:', err);
+                }
+            });
+
+        return () => controller.abort();
+    }, [user]);
 
     // Session tracking - runs on mount
     useEffect(() => {
@@ -57,6 +108,7 @@ export const AuthProvider = ({ children }) => {
     const logout = useCallback(() => {
         authService.logout();
         setUser(null);
+        setAgencyCurrency(null);
     }, []);
 
     const renewSession = useCallback(async () => {
@@ -77,8 +129,10 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         remainingSeconds,
-        renewSession
-    }), [user, loading, login, logout, remainingSeconds, renewSession]);
+        renewSession,
+        agencyCurrency,
+        currencySymbolMap
+    }), [user, loading, login, logout, remainingSeconds, renewSession, agencyCurrency, currencySymbolMap]);
 
     return (
         <AuthContext.Provider value={value}>
@@ -93,4 +147,16 @@ export const useAuth = () => {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
+};
+
+/**
+ * Returns the currency symbol for the given code using the backend symbol map.
+ * Falls back to the code itself if not found.
+ * @param {string} code - Currency code (e.g. "EUR", "USD")
+ * @param {Object} symbolMap - Map of code -> symbol from AuthContext
+ * @returns {string}
+ */
+export const getCurrencySymbol = (code, symbolMap = {}) => {
+    if (!code) return '';
+    return symbolMap[code] || code;
 };

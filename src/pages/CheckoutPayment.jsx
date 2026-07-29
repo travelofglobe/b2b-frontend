@@ -9,6 +9,7 @@ import CheckoutStepper from '../components/CheckoutStepper';
 import ConfirmationModal from '../components/ConfirmationModal';
 import CheckoutTimer from '../components/CheckoutTimer';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
+import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 
 const confirmLocales = {
     en: {
@@ -722,6 +723,7 @@ const CheckoutPayment = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { i18n } = useTranslation();
+    const { agencyCurrency, currencySymbolMap } = useAuth();
     const [currentLang, setCurrentLang] = useState(() => {
         const rawLang = i18n.language || localStorage.getItem('language') || 'tr';
         return rawLang.split('-')[0].toLowerCase();
@@ -937,10 +939,7 @@ const CheckoutPayment = () => {
         }
     };
 
-    const getCurrencySymbol = (code) => {
-        const symbols = { 'USD': '$', 'EUR': '€', 'GBP': '£', 'TRY': '₺', 'AED': 'د.إ', 'SAR': 'ر.س', 'JPY': '¥', 'CHF': 'Fr', 'CAD': 'CA$', 'AUD': 'A$' };
-        return symbols[code] || code || '$';
-    };
+
 
     const decodeHTMLEntities = (text) => {
         if (!text) return '';
@@ -1031,7 +1030,7 @@ const CheckoutPayment = () => {
     // Use price from checkRatesData if available, otherwise fallback to local calculation
     const checkRate = checkRatesData?.rooms?.[0]?.rates?.[0];
     const grandTotal = checkRatesData?.rooms?.reduce((sum, room) => sum + (room.rates?.[0]?.price?.totalPaymentAmount || 0), 0) || checkRatesData?.price?.totalPaymentAmount || ((selectedRooms?.reduce((sum, r) => sum + r.rate, 0) || 0));
-    const displayCurrency = checkRate?.price?.currency || checkRatesData?.price?.currency || selectedRooms?.[0]?.currency || '$';
+    const displayCurrency = checkRate?.price?.currency || checkRatesData?.price?.currency || selectedRooms?.[0]?.currency || agencyCurrency || 'USD';
 
     const availableFunds = 12450.00;
     const isInsufficientBalance = grandTotal > availableFunds;
@@ -1300,7 +1299,7 @@ const CheckoutPayment = () => {
                                     <div className="p-6 rounded-3xl bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
                                         <div>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{tSummary('availableFunds', currentLang)}</p>
-                                            <p className="text-2xl font-black tracking-tighter opacity-60">{getCurrencySymbol(displayCurrency)}12,450.00</p>
+                                            <p className="text-2xl font-black tracking-tighter opacity-60">{getCurrencySymbol(displayCurrency, currencySymbolMap)}12,450.00</p>
                                         </div>
                                         <div className="text-right">
                                             <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isInsufficientBalance ? 'text-red-500' : 'text-emerald-500'}`}>{tSummary('status', currentLang)}</p>
@@ -1324,7 +1323,7 @@ const CheckoutPayment = () => {
                                             <div className="flex items-center gap-2">
                                                 <span className="text-4xl font-black text-red-600 leading-none">-</span>
                                                 <p className="text-4xl font-black text-red-600 tracking-tighter leading-none">
-                                                    {getCurrencySymbol(displayCurrency)} {grandTotal.toFixed(2)}
+                                                    {getCurrencySymbol(displayCurrency, currencySymbolMap)} {grandTotal.toFixed(2)}
                                                 </p>
                                             </div>
                                         </div>
@@ -1341,7 +1340,7 @@ const CheckoutPayment = () => {
                                                 <div>
                                                     <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">{tSummary('deficitAmount', currentLang)}</p>
                                                     <p className="text-3xl font-black tracking-tighter">
-                                                        - {getCurrencySymbol(displayCurrency)} {(grandTotal - availableFunds).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                        - {getCurrencySymbol(displayCurrency, currencySymbolMap)} {(grandTotal - availableFunds).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </p>
                                                 </div>
                                                 <div className="size-12 rounded-2xl bg-white/20 flex items-center justify-center">
@@ -1357,7 +1356,7 @@ const CheckoutPayment = () => {
                                             <div>
                                                 <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">{tSummary('estimatedNewBalance', currentLang)}</p>
                                                 <p className="text-3xl font-black tracking-tighter">
-                                                    {getCurrencySymbol(displayCurrency)} {(availableFunds - grandTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    {getCurrencySymbol(displayCurrency, currencySymbolMap)} {(availableFunds - grandTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </p>
                                             </div>
                                             <div className="size-12 rounded-2xl bg-white/10 flex items-center justify-center">
@@ -1488,7 +1487,7 @@ const CheckoutPayment = () => {
                                                     </div>
                                                     <div className="text-right shrink-0 ml-2">
                                                         <div className="flex items-baseline justify-end gap-1">
-                                                            <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(displayCurrency)}</span>
+                                                            <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(displayCurrency, currencySymbolMap)}</span>
                                                             <span className="font-black text-sm text-primary leading-none">
                                                                 {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || room.rate).toFixed(2)}
                                                             </span>
@@ -1527,7 +1526,7 @@ const CheckoutPayment = () => {
                                                                                     ? 'bg-emerald-500/10 text-emerald-500'
                                                                                     : 'bg-orange-500/10 text-orange-500'
                                                                             }`}>
-                                                                                {policy.amount === 0 ? tSummary('freeCancel', currentLang) : `${getCurrencySymbol(policy.currency || displayCurrency)} ${policy.amount.toFixed(2)}`}
+                                                                                {policy.amount === 0 ? tSummary('freeCancel', currentLang) : `${getCurrencySymbol(policy.currency || displayCurrency, currencySymbolMap)} ${policy.amount.toFixed(2)}`}
                                                                             </span>
                                                                         </div>
                                                                     );
@@ -1551,7 +1550,7 @@ const CheckoutPayment = () => {
                                                                             {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short' })}
                                                                         </span>
                                                                         <span className="font-black text-slate-700 dark:text-slate-300">
-                                                                            {getCurrencySymbol(displayCurrency)} {dp.amount.toFixed(2)}
+                                                                            {getCurrencySymbol(displayCurrency, currencySymbolMap)} {dp.amount.toFixed(2)}
                                                                         </span>
                                                                     </div>
                                                                 ))}
@@ -1585,7 +1584,7 @@ const CheckoutPayment = () => {
                                                         {(tax.name || tax.type || 'Tax').replace(/_/g, ' ')}
                                                     </span>
                                                     <span className="font-black text-slate-700 dark:text-slate-300">
-                                                        {getCurrencySymbol(tax.currency || displayCurrency)} {tax.amount.toFixed(2)}
+                                                        {getCurrencySymbol(tax.currency || displayCurrency, currencySymbolMap)} {tax.amount.toFixed(2)}
                                                     </span>
                                                 </div>
                                             ))}
@@ -1599,7 +1598,7 @@ const CheckoutPayment = () => {
                                         <div>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-2">{tSummary('totalStayPrice', currentLang)}</p>
                                             <div className="flex items-baseline gap-2">
-                                                <span className="text-2xl font-black text-primary leading-none">{getCurrencySymbol(displayCurrency)}</span>
+                                                <span className="text-2xl font-black text-primary leading-none">{getCurrencySymbol(displayCurrency, currencySymbolMap)}</span>
                                                 <p className="text-4xl font-black text-primary leading-none tracking-tighter">{grandTotal.toFixed(2)}</p>
                                             </div>
                                             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{displayCurrency} · {tSummary('taxesIncl', currentLang)} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}</p>

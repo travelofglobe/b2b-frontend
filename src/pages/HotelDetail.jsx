@@ -13,6 +13,7 @@ import { hotelService } from '../services/hotelService';
 import { useToast } from '../context/ToastContext';
 import { parseGuestsParam, serializeGuestsParam, validateAndSanitizeDates } from '../utils/searchParamsUtils';
 import { getBoardTypeLabel, getBoardTypeDescription, BOARD_TYPES } from '../utils/boardTypeUtils';
+import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 import { FACILITY_ICON_MAP } from './MapView';
 import Tooltip from '../components/Tooltip';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
@@ -1168,22 +1169,13 @@ const LOCAL_TRANSLATIONS = {
 
 const HotelDetail = () => {
     const { i18n } = useTranslation();
+    const { agencyCurrency, currencySymbolMap } = useAuth();
     const currentLang = i18n.language || 'en';
     const tLocal = (key) => {
         return LOCAL_TRANSLATIONS[currentLang]?.[key] || LOCAL_TRANSLATIONS['en']?.[key] || key;
     };
 
-    const getCurrencySymbol = (code) => {
-        const symbols = {
-            'USD': '$',
-            'EUR': '€',
-            'GBP': '£',
-            'TRY': '₺',
-            'AED': 'د.إ',
-            'SAR': 'ر.س',
-        };
-        return symbols[code] || code || '$';
-    };
+
 
     const formatPolicyDate = (dateStr) => {
         if (!dateStr) return '';
@@ -1435,7 +1427,7 @@ const HotelDetail = () => {
                     type: roomType,
                     rate,
                     name: roomName,
-                    currency: fullRateData?.currency || '$',
+                    currency: fullRateData?.currency || agencyCurrency || 'USD',
                     hubRateModel: fullRateData?.hubRateModel
                 }]);
                 return;
@@ -1465,7 +1457,7 @@ const HotelDetail = () => {
                     type: roomType,
                     rate,
                     name: roomName,
-                    currency: fullRateData?.currency || '$',
+                    currency: fullRateData?.currency || agencyCurrency || 'USD',
                     hubRateModel: fullRateData?.hubRateModel
                 }];
             }
@@ -2201,7 +2193,7 @@ const HotelDetail = () => {
 
                                                                 {ratesToShow.map((rateItem, rateIdx) => {
                                                                     const ratePrice = rateItem.hubRateModel?.price?.totalPaymentAmount || rateItem.hubRateModel?.price?.calculatedAmount || rateItem.price || 0;
-                                                                    const currency = rateItem.hubRateModel?.price?.currency || '$';
+                                                                    const currency = rateItem.hubRateModel?.price?.currency || agencyCurrency || 'USD';
                                                                     const isSelected = selectedRooms.some(r => r.hubRateModel?.rateCode === rateItem.hubRateModel?.rateCode);
                                                                     const boardType = rateItem.hubRateModel?.boardCode || 'RO';
                                                                     const isFreeCancel = rateItem.hubRateModel?.refundable ?? (rateItem.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0);
@@ -2263,7 +2255,7 @@ const HotelDetail = () => {
                                                                         <div className="flex items-center gap-4 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-800 pt-3 sm:pt-0 sm:pl-4 justify-between sm:justify-end">
                                                                             <div className="text-right">
                                                                                 <div className="flex items-baseline justify-end gap-1">
-                                                                                    <span className="text-[10px] font-black text-primary">{currency}</span>
+                                                                                    <span className="text-[10px] font-black text-primary">{getCurrencySymbol(currency, currencySymbolMap)}</span>
                                                                                     <p className="text-2xl font-black text-primary leading-none tracking-tighter">
                                                                                         {ratePrice.toFixed(2)}
                                                                                     </p>
@@ -2592,7 +2584,7 @@ const HotelDetail = () => {
                                         <div className="flex justify-between items-start mb-2 pr-4">
                                             <span className="font-black text-slate-900 dark:text-white text-[11px] uppercase tracking-tight line-clamp-2">{idx + 1}. <span lang="en">{room.name}</span></span>
                                             <div className="flex items-baseline gap-1 shrink-0">
-                                                <span className="text-[10px] font-black text-primary">{room.currency}</span>
+                                                <span className="text-[10px] font-black text-primary">{getCurrencySymbol(room.currency, currencySymbolMap)}</span>
                                                 <span className="font-black text-primary text-sm leading-none">{room.rate.toFixed(2)}</span>
                                             </div>
                                         </div>
@@ -2652,7 +2644,7 @@ const HotelDetail = () => {
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">{tLocal('totalStayPrice')}</p>
                                 </div>
                                 <div className="flex items-baseline gap-1.5 ml-1">
-                                    <span className="text-sm font-black text-primary uppercase tracking-wider">{(selectedRooms[0]?.currency || '$')}</span>
+                                    <span className="text-sm font-black text-primary uppercase tracking-wider">{getCurrencySymbol(selectedRooms[0]?.currency || agencyCurrency || 'USD', currencySymbolMap)}</span>
                                     <p className="text-4xl font-black text-primary leading-none tracking-tighter shadow-primary/10">
                                         {(selectedRooms.reduce((sum, r) => sum + r.rate, 0)).toFixed(2)}
                                     </p>

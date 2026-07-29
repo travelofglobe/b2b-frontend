@@ -11,6 +11,7 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import CheckoutTimer from '../components/CheckoutTimer';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import CrmGuestSelectionModal from '../components/CrmGuestSelectionModal';
+import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 
 const crmLocales = {
     en: "Fill from CRM",
@@ -839,6 +840,7 @@ const CheckoutGuestDetails = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { i18n } = useTranslation();
+    const { agencyCurrency, currencySymbolMap } = useAuth();
     const [currentLang, setCurrentLang] = useState(() => {
         const rawLang = i18n.language || localStorage.getItem('i18nextLng') || localStorage.getItem('language') || 'en';
         return rawLang.split('-')[0].toLowerCase();
@@ -1036,10 +1038,7 @@ const CheckoutGuestDetails = () => {
 
     const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-    const getCurrencySymbol = (code) => {
-        const symbols = { 'USD': '$', 'EUR': '€', 'GBP': '£', 'TRY': '₺', 'AED': 'د.إ', 'SAR': 'ر.س', 'JPY': '¥', 'CHF': 'Fr', 'CAD': 'CA$', 'AUD': 'A$' };
-        return symbols[code] || code || '$';
-    };
+
 
     const handleInputChange = (roomIdx, guestIdx, field, value) => {
         const newData = [...roomsData];
@@ -1361,7 +1360,7 @@ const CheckoutGuestDetails = () => {
     // Use price from checkRatesData if available, otherwise fallback to local calculation
     const checkRate = checkRatesData?.rooms?.[0]?.rates?.[0];
     const grandTotal = checkRatesData?.rooms?.reduce((sum, room) => sum + (room.rates?.[0]?.price?.totalPaymentAmount || 0), 0) || selectedRooms.reduce((sum, r) => sum + r.rate, 0);
-    const displayCurrency = checkRate?.price?.currency || selectedRooms[0]?.currency || '$';
+    const displayCurrency = checkRate?.price?.currency || selectedRooms[0]?.currency || agencyCurrency || 'USD';
 
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
@@ -1764,7 +1763,7 @@ const CheckoutGuestDetails = () => {
                                                     </div>
                                                                                     <div className="text-right shrink-0 ml-2">
                                                         <div className="flex items-baseline justify-end gap-1" lang="en">
-                                                            <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(displayCurrency)}</span>
+                                                            <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(displayCurrency, currencySymbolMap)}</span>
                                                             <span className="font-black text-sm text-primary leading-none">
                                                                 {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || room.rate).toFixed(2)}
                                                             </span>
@@ -1805,7 +1804,7 @@ const CheckoutGuestDetails = () => {
                                                                                     ? 'bg-emerald-500/10 text-emerald-500'
                                                                                     : 'bg-orange-500/10 text-orange-500'
                                                                             }`} lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                                                {policy.amount === 0 ? tSummary('freeCancel', currentLang) : `${getCurrencySymbol(policy.currency || displayCurrency)} ${policy.amount.toFixed(2)}`}
+                                                                                {policy.amount === 0 ? tSummary('freeCancel', currentLang) : `${getCurrencySymbol(policy.currency || displayCurrency, currencySymbolMap)} ${policy.amount.toFixed(2)}`}
                                                                             </span>
                                                                         </div>
                                                                     );
@@ -1829,7 +1828,7 @@ const CheckoutGuestDetails = () => {
                                                                             {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short' })}
                                                                         </span>
                                                                         <span className="font-black text-slate-700 dark:text-slate-300" lang="en">
-                                                                            {getCurrencySymbol(displayCurrency)} {dp.amount.toFixed(2)}
+                                                                            {getCurrencySymbol(displayCurrency, currencySymbolMap)} {dp.amount.toFixed(2)}
                                                                         </span>
                                                                     </div>
                                                                 ))}
@@ -1852,7 +1851,7 @@ const CheckoutGuestDetails = () => {
                                                                             {(tax.name || tax.type || 'Tax').replace(/_/g, ' ')}
                                                                         </span>
                                                                         <span className="font-black text-slate-700 dark:text-slate-300">
-                                                                            {getCurrencySymbol(tax.currency || displayCurrency)} {tax.amount.toFixed(2)}
+                                                                            {getCurrencySymbol(tax.currency || displayCurrency, currencySymbolMap)} {tax.amount.toFixed(2)}
                                                                         </span>
                                                                     </div>
                                                                 ))}
@@ -1873,7 +1872,7 @@ const CheckoutGuestDetails = () => {
                                         <div>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-2">{tSummary('totalStayPrice', currentLang)}</p>
                                             <div className="flex items-baseline gap-2">
-                                                <span className="text-2xl font-black text-primary leading-none">{getCurrencySymbol(displayCurrency)}</span>
+                                                <span className="text-2xl font-black text-primary leading-none">{getCurrencySymbol(displayCurrency, currencySymbolMap)}</span>
                                                 <p className="text-4xl font-black text-primary leading-none tracking-tighter">
                                                     {isLoadingRates ? '...' : grandTotal.toFixed(2)}
                                                 </p>

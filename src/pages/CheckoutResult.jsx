@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
+import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 
 const CR = {
     en: { confirmed: 'Booking Confirmed!', failed: 'Booking Failed', successMsg: 'Your reservation has been processed successfully.', failMsg: 'There was an issue processing your reservation. Please contact support.', bookingRef: 'Booking Reference', viewDetails: 'Click to view full booking details', goBookings: 'Go to Bookings', allBookings: 'All Bookings', verified: 'Verified • Click for details', actionRequired: 'Action Required', property: 'Property', totalAmount: 'Total Amount', status: 'Status', travelerBreakdown: 'Traveler Breakdown', room: 'Room', noSession: 'No active booking session found.', dashboard: 'Go to Dashboard', printVoucher: 'Print Voucher' },
@@ -27,6 +28,7 @@ const CheckoutResult = () => {
     const location = useLocation();
     const { hotel, totalPrice, roomsData, bookingResponse, displayCurrency } = location.state || {};
     const { i18n } = useTranslation();
+    const { currencySymbolMap } = useAuth();
     const [currentLang, setCurrentLang] = useState(() => (i18n.language || localStorage.getItem('i18nextLng') || 'en').split('-')[0].toLowerCase());
     useEffect(() => {
         setCurrentLang((i18n.language || 'en').split('-')[0].toLowerCase());
@@ -36,10 +38,7 @@ const CheckoutResult = () => {
     }, [i18n]);
     const L = (key) => tCR(currentLang, key);
 
-    const getCurrencySymbol = (code) => {
-        const symbols = { 'USD': '$', 'EUR': '€', 'GBP': '£', 'TRY': '₺', 'AED': 'د.إ', 'SAR': 'ر.س', 'JPY': '¥', 'CHF': 'Fr', 'CAD': 'CA$', 'AUD': 'A$' };
-        return symbols[code] || code || '$';
-    };
+
 
     const isSuccess = ['NEW', 'CONFIRMED'].includes(bookingResponse?.status) && bookingResponse?.voucher;
     const bookingRef = bookingResponse?.voucher || bookingResponse?.clientReferenceId || ("TOG" + Math.random().toString(36).substring(2, 8).toUpperCase());
@@ -95,7 +94,7 @@ const CheckoutResult = () => {
                                 <div>
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">{L('totalAmount')}</p>
                                     <p className="text-xl font-black text-primary">
-                                        {getCurrencySymbol(displayCurrency)} {totalPrice ? totalPrice.toFixed(2) : '0.00'}
+                                        {getCurrencySymbol(displayCurrency, currencySymbolMap)} {totalPrice ? totalPrice.toFixed(2) : '0.00'}
                                     </p>
                                 </div>
                                 <div className="text-right">

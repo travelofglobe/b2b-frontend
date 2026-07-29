@@ -8,6 +8,7 @@ import MyBookings from './pages/MyBookings';
 import BookingDetail from './pages/BookingDetail';
 import LoginPage from './pages/LoginPage';
 import AgencyApplicationPage from './pages/AgencyApplicationPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import CheckoutGuestDetails from './pages/CheckoutGuestDetails';
 import CheckoutPayment from './pages/CheckoutPayment';
 import CheckoutResult from './pages/CheckoutResult';
@@ -32,6 +33,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/agency-application" element={<AgencyApplicationPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/hotels" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
             <Route path="/hotels/*" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
             <Route path="/hotels/theme/:theme" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />

@@ -157,5 +157,36 @@ export const authService = {
             console.error('ForgotPassword error:', error);
             throw error;
         }
+    },
+
+    changePassword: async (token, newPassword, newPasswordAgain) => {
+        const url = 'http://72.62.17.189:8000/b2b-backend/v1/reset-password/change-password';
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token, newPassword, newPasswordAgain }),
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                let errorMessage = 'Şifre değiştirme işlemi başarısız oldu.';
+                try {
+                    const parsed = JSON.parse(text);
+                    errorMessage = parsed.message || errorMessage;
+                } catch (e) {
+                    errorMessage = text || errorMessage;
+                }
+                throw new Error(errorMessage);
+            }
+
+            // HTTP 200 is success
+            return true;
+        } catch (error) {
+            console.error('ChangePassword error:', error);
+            throw error;
+        }
     }
 };

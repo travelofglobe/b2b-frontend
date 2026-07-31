@@ -1359,7 +1359,7 @@ const CheckoutGuestDetails = () => {
     
     // Use price from checkRatesData if available, otherwise fallback to local calculation
     const checkRate = checkRatesData?.rooms?.[0]?.rates?.[0];
-    const grandTotal = checkRatesData?.rooms?.reduce((sum, room) => sum + (room.rates?.[0]?.price?.totalPaymentAmount || 0), 0) || selectedRooms.reduce((sum, r) => sum + r.rate, 0);
+    const grandTotal = checkRatesData?.rooms?.reduce((sum, room) => sum + (room.rates?.[0]?.price?.calculatedAmount || room.rates?.[0]?.price?.totalPaymentAmount || 0), 0) || selectedRooms.reduce((sum, r) => sum + r.rate, 0);
     const displayCurrency = checkRate?.price?.currency || selectedRooms[0]?.currency || agencyCurrency || 'USD';
 
     return (
@@ -1765,7 +1765,7 @@ const CheckoutGuestDetails = () => {
                                                         <div className="flex items-baseline justify-end gap-1" lang="en">
                                                             <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(displayCurrency, currencySymbolMap)}</span>
                                                             <span className="font-black text-sm text-primary leading-none">
-                                                                {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || room.rate).toFixed(2)}
+                                                                {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.calculatedAmount || checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || room.rate).toFixed(2)}
                                                             </span>
                                                         </div>
                                                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>
@@ -1828,7 +1828,7 @@ const CheckoutGuestDetails = () => {
                                                                             {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short' })}
                                                                         </span>
                                                                         <span className="font-black text-slate-700 dark:text-slate-300" lang="en">
-                                                                            {getCurrencySymbol(displayCurrency, currencySymbolMap)} {dp.amount.toFixed(2)}
+                                                                            {getCurrencySymbol(displayCurrency, currencySymbolMap)} {(dp.calculatedAmount || dp.amount).toFixed(2)}
                                                                         </span>
                                                                     </div>
                                                                 ))}

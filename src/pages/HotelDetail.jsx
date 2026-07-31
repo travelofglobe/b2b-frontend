@@ -1322,7 +1322,7 @@ const HotelDetail = () => {
 
         // Sort rates inside each room group by price ascending
         function getRatePrice(r) {
-            return r.hubRateModel?.price?.totalPaymentAmount || r.hubRateModel?.price?.calculatedAmount || r.price || 0;
+            return r.hubRateModel?.price?.calculatedAmount || r.hubRateModel?.price?.totalPaymentAmount || r.price || 0;
         }
 
         result = result.map(group => ({
@@ -2192,7 +2192,7 @@ const HotelDetail = () => {
                                                                 </div>
 
                                                                 {ratesToShow.map((rateItem, rateIdx) => {
-                                                                    const ratePrice = rateItem.hubRateModel?.price?.totalPaymentAmount || rateItem.hubRateModel?.price?.calculatedAmount || rateItem.price || 0;
+                                                                    const ratePrice = rateItem.hubRateModel?.price?.calculatedAmount || rateItem.hubRateModel?.price?.totalPaymentAmount || rateItem.price || 0;
                                                                     const currency = rateItem.hubRateModel?.price?.currency || agencyCurrency || 'USD';
                                                                     const isSelected = selectedRooms.some(r => r.hubRateModel?.rateCode === rateItem.hubRateModel?.rateCode);
                                                                     const boardType = rateItem.hubRateModel?.boardCode || 'RO';

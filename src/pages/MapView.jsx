@@ -570,7 +570,7 @@ const MapView = () => {
         if (apiHotel.rooms && apiHotel.rooms.length > 0) {
             apiHotel.rooms.forEach(room => {
                 const ratePrice = room?.hubRateModel?.price;
-                const priceValue = ratePrice?.markupCalculatedPrice?.holder?.saleAmount || ratePrice?.totalPaymentAmount || ratePrice?.calculatedAmount || 0;
+                const priceValue = ratePrice?.calculatedAmount || ratePrice?.totalPaymentAmount || ratePrice?.markupCalculatedPrice?.holder?.saleAmount || 0;
                 if (priceValue > 0 && priceValue < lowestPrice) {
                     lowestPrice = priceValue;
                     lowestRoom = room;
@@ -580,7 +580,7 @@ const MapView = () => {
 
         const selectedRoom = lowestRoom || apiHotel.rooms?.[0];
         const ratePrice = selectedRoom?.hubRateModel?.price;
-        const priceValue = lowestPrice !== Infinity ? lowestPrice : (ratePrice?.markupCalculatedPrice?.holder?.saleAmount || ratePrice?.totalPaymentAmount || ratePrice?.calculatedAmount || 0);
+        const priceValue = lowestPrice !== Infinity ? lowestPrice : (ratePrice?.calculatedAmount || ratePrice?.totalPaymentAmount || ratePrice?.markupCalculatedPrice?.holder?.saleAmount || 0);
         const currencyCode = ratePrice?.currency || 'USD';
         const totalTaxAmount = ratePrice?.totalTaxAmount || 0;
 

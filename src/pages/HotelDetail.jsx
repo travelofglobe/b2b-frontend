@@ -1428,7 +1428,8 @@ const HotelDetail = () => {
                     rate,
                     name: roomName,
                     currency: fullRateData?.currency || agencyCurrency || 'USD',
-                    hubRateModel: fullRateData?.hubRateModel
+                    hubRateModel: fullRateData?.hubRateModel,
+                    dailyPrices: fullRateData?.hubRateModel?.price?.dailyPrices || []
                 }]);
                 return;
             }
@@ -1458,7 +1459,8 @@ const HotelDetail = () => {
                     rate,
                     name: roomName,
                     currency: fullRateData?.currency || agencyCurrency || 'USD',
-                    hubRateModel: fullRateData?.hubRateModel
+                    hubRateModel: fullRateData?.hubRateModel,
+                    dailyPrices: fullRateData?.hubRateModel?.price?.dailyPrices || []
                 }];
             }
         });
@@ -2635,6 +2637,40 @@ const HotelDetail = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Daily Prices Section - Show for each selected room */}
+                    {selectedRooms.length > 0 && selectedRooms.some(r => r.dailyPrices && r.dailyPrices.length > 0) && (
+                        <div className="mb-6 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-xs">calendar_month</span>
+                                {tLocal('dailyRates')}
+                            </p>
+                            {selectedRooms.map((room, idx) => {
+                                if (!room.dailyPrices || room.dailyPrices.length === 0) return null;
+                                return (
+                                    <div key={idx} className="mb-3 last:mb-0">
+                                        {selectedRooms.length > 1 && (
+                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                                                {tLocal('room')} {idx + 1}
+                                            </p>
+                                        )}
+                                        <div className="space-y-1.5">
+                                            {room.dailyPrices.map((dp, dpIdx) => (
+                                                <div key={dpIdx} className="flex justify-between items-center">
+                                                    <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                                                        {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                    </span>
+                                                    <span className="text-[11px] font-black text-slate-700 dark:text-slate-300">
+                                                        {getCurrencySymbol(room.currency || agencyCurrency || 'USD', currencySymbolMap)} {(dp.calculatedAmount || dp.amount).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
 
                     <div className="pt-8 border-t border-slate-200 dark:border-slate-800 mb-8">
                         <div className="flex items-end justify-between">

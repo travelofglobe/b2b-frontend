@@ -2541,126 +2541,126 @@ const HotelDetail = () => {
                         </div >
                     </div >
 
-    {/* Booking Sidebar - Sticky Behavior Refined */ }
-    < div className = "lg:col-span-4 h-fit" >
-        <div className="lg:sticky lg:top-[96px] space-y-6">
+    {/* Booking Sidebar - Sticky Behavior Refined */}
+    <div className="lg:col-span-4 h-fit">
+        <div className="lg:sticky lg:top-[96px] space-y-4">
             <div className="relative group/sidebar">
                 {/* Glass Background */}
-                <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[40px] border border-white/40 dark:border-white/10 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.1)] transition-all duration-500 group-hover/sidebar:shadow-[0_48px_96px_-16px_rgba(0,0,0,0.15)] group-hover/sidebar:bg-white/50 dark:group-hover/sidebar:bg-slate-900/50"></div>
+                <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-2xl border border-white/40 dark:border-white/10 shadow-lg transition-all duration-500"></div>
 
                 {/* Content */}
-                <div className="relative p-8 z-10">
+                <div className="relative p-5 z-10">
 
-                    <div className="flex items-center gap-2 text-primary font-black text-[10px] mb-6 uppercase tracking-[0.2em] bg-primary/5 dark:bg-primary/20 p-3 rounded-2xl border border-primary/10 backdrop-blur-md" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                    <div className="flex items-center gap-2 text-primary font-semibold text-[9px] mb-4 uppercase tracking-wider bg-primary/5 dark:bg-primary/20 p-2.5 rounded-xl border border-primary/10" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                         <span className="material-symbols-outlined text-sm fill-1">bolt</span>
                         {tLocal('instantConfirmationAvailable')}
                     </div>
 
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                             <span className="material-symbols-outlined text-sm">auto_awesome</span>
                             {tLocal('reservationSummary')}
                         </h3>
-                        <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+                        <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                             {selectedRooms.length} / {roomState.length} {tLocal('room')}
                         </span>
                     </div>
 
-                    <div className="space-y-4 mb-8">
+                    <div className="space-y-3 mb-4">
                         {selectedRooms.length > 0 ? (
                             selectedRooms.map((room, idx) => {
                                 const isFreeCancel = room.hubRateModel?.refundable ?? (room.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0);
                                 const boardType = room.hubRateModel?.boardCode || 'RO';
 
                                 return (
-                                    <div key={idx} className="relative p-5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm group/item hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">
+                                    <div key={idx} className="relative p-3 rounded-xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-xs group/item hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setSelectedRooms(prev => prev.filter((_, i) => i !== idx));
                                             }}
-                                            className="absolute -top-1.5 -right-1.5 size-7 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-lg z-20 group/btn"
+                                            className="absolute -top-1.5 -right-1.5 size-5 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-md z-20 group/btn"
                                         >
-                                            <span className="material-symbols-outlined text-[16px] group-hover/btn:rotate-90 transition-transform">close</span>
+                                            <span className="material-symbols-outlined text-[13px] group-hover/btn:rotate-90 transition-transform">close</span>
                                         </button>
-                                        <div className="flex justify-between items-start mb-2 pr-4">
-                                            <span className="font-black text-slate-900 dark:text-white text-[11px] uppercase tracking-tight line-clamp-2">{idx + 1}. <span lang="en">{room.name}</span></span>
+                                        <div className="flex justify-between items-start mb-1.5 pr-3">
+                                            <span className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-tight line-clamp-2">{idx + 1}. <span lang="en">{room.name}</span></span>
                                             <div className="flex items-baseline gap-1 shrink-0">
-                                                <span className="text-[10px] font-black text-primary">{getCurrencySymbol(room.currency, currencySymbolMap)}</span>
-                                                <span className="font-black text-primary text-sm leading-none">{room.rate.toFixed(2)}</span>
+                                                <span className="text-[9px] font-bold text-primary">{getCurrencySymbol(room.currency, currencySymbolMap)}</span>
+                                                <span className="font-bold text-primary text-xs leading-none">{room.rate.toFixed(2)}</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">{getBoardTypeLabel(boardType)}</span>
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wider">{getBoardTypeLabel(boardType)}</span>
                                             <RefundPolicyTooltip
                                                 isRefundable={isFreeCancel}
                                                 textOverride={isFreeCancel ? tLocal('freeCancellation') : tLocal('nonRefundable')}
-                                                className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}
+                                                className={`text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wider ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}
                                             />
                                         </div>
                                     </div>
                                 );
                             })
                         ) : (
-                            <div className="py-12 px-6 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center">
-                                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-700 mb-2">bed</span>
-                                <p className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{tLocal('pleaseSelectARoom')}</p>
+                            <div className="py-8 px-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center">
+                                <span className="material-symbols-outlined text-3xl text-slate-300 dark:text-slate-700 mb-1">bed</span>
+                                <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{tLocal('pleaseSelectARoom')}</p>
                             </div>
                         )}
                     </div>
 
                     {/* Dynamic Details Section */}
-                    <div className="grid grid-cols-2 gap-3 mb-8">
-                        <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">{tLocal('guests')}</p>
-                            <p className="text-xs font-black text-slate-900 dark:text-white truncate">
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                        <div className="p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10">
+                            <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5 leading-none">{tLocal('guests')}</p>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
                                 {totalAdults} {totalAdults > 1 ? tLocal('adults') : tLocal('adult')}, {totalChildren} {totalChildren > 1 ? tLocal('children') : tLocal('child')}
                             </p>
                         </div>
-                        <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">{tLocal('nationality')}</p>
-                            <p className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <div className="p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10">
+                            <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5 leading-none">{tLocal('nationality')}</p>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1">
                                 {nationality}
                                 <span className="material-symbols-outlined text-[10px] text-primary">verified</span>
                             </p>
                         </div>
-                        <div className="col-span-2 p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10 flex items-center justify-between">
+                        <div className="col-span-2 p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10 flex items-center justify-between">
                             <div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">{tLocal('dates')}</p>
-                                <p className="text-xs font-black text-slate-900 dark:text-white">
+                                <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5 leading-none">{tLocal('dates')}</p>
+                                <p className="text-xs font-bold text-slate-900 dark:text-white">
                                     {formatDateForUrl(checkInDate)} - {formatDateForUrl(checkOutDate)}
                                 </p>
                             </div>
                             <div className="text-right">
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">{tLocal('stay')}</p>
-                                <p className="text-xs font-black text-primary">{nights} {nights > 1 ? tLocal('nights') : tLocal('night')}</p>
+                                <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5 leading-none">{tLocal('stay')}</p>
+                                <p className="text-xs font-bold text-primary">{nights} {nights > 1 ? tLocal('nights') : tLocal('night')}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Daily Prices Section - Show for each selected room */}
                     {selectedRooms.length > 0 && selectedRooms.some(r => r.dailyPrices && r.dailyPrices.length > 0) && (
-                        <div className="mb-6 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <div className="mb-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
+                            <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                 <span className="material-symbols-outlined text-xs">calendar_month</span>
                                 {tLocal('dailyRates')}
                             </p>
                             {selectedRooms.map((room, idx) => {
                                 if (!room.dailyPrices || room.dailyPrices.length === 0) return null;
                                 return (
-                                    <div key={idx} className="mb-3 last:mb-0">
+                                    <div key={idx} className="mb-2 last:mb-0">
                                         {selectedRooms.length > 1 && (
-                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                                            <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
                                                 {tLocal('room')} {idx + 1}
                                             </p>
                                         )}
-                                        <div className="space-y-1.5">
+                                        <div className="space-y-1">
                                             {room.dailyPrices.map((dp, dpIdx) => (
-                                                <div key={dpIdx} className="flex justify-between items-center">
-                                                    <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                                                <div key={dpIdx} className="flex justify-between items-center text-[10px]">
+                                                    <span className="font-medium text-slate-500 dark:text-slate-400">
                                                         {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })}
                                                     </span>
-                                                    <span className="text-[11px] font-black text-slate-700 dark:text-slate-300">
+                                                    <span className="font-bold text-slate-700 dark:text-slate-300">
                                                         {getCurrencySymbol(room.currency || agencyCurrency || 'USD', currencySymbolMap)} {(dp.calculatedAmount || dp.amount).toFixed(2)}
                                                     </span>
                                                 </div>
@@ -2672,22 +2672,22 @@ const HotelDetail = () => {
                         </div>
                     )}
 
-                    <div className="pt-8 border-t border-slate-200 dark:border-slate-800 mb-8">
+                    <div className="pt-4 border-t border-slate-200 dark:border-slate-800 mb-4">
                         <div className="flex items-end justify-between">
                             <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="material-symbols-outlined text-slate-400 text-sm">receipt_long</span>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">{tLocal('totalStayPrice')}</p>
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                    <span className="material-symbols-outlined text-slate-400 text-xs">receipt_long</span>
+                                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider leading-none">{tLocal('totalStayPrice')}</p>
                                 </div>
-                                <div className="flex items-baseline gap-1.5 ml-1">
-                                    <span className="text-sm font-black text-primary uppercase tracking-wider">{getCurrencySymbol(selectedRooms[0]?.currency || agencyCurrency || 'USD', currencySymbolMap)}</span>
-                                    <p className="text-4xl font-black text-primary leading-none tracking-tighter shadow-primary/10">
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-xs font-bold text-primary uppercase tracking-wider">{getCurrencySymbol(selectedRooms[0]?.currency || agencyCurrency || 'USD', currencySymbolMap)}</span>
+                                    <p className="text-2xl font-bold text-primary leading-none tracking-tight">
                                         {(selectedRooms.reduce((sum, r) => sum + r.rate, 0)).toFixed(2)}
                                     </p>
                                 </div>
                             </div>
-                            <div className="size-10 rounded-2xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">
-                                <span className="material-symbols-outlined">payments</span>
+                            <div className="size-8 rounded-xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">
+                                <span className="material-symbols-outlined text-base">payments</span>
                             </div>
                         </div>
                     </div>
@@ -2695,38 +2695,38 @@ const HotelDetail = () => {
                     <button
                         onClick={handleInstantReservation}
                         disabled={selectedRooms.length === 0 || isCheckingRates}
-                        className={`w-full font-black py-5 rounded-[24px] transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] mb-4 group/btn overflow-hidden relative ${selectedRooms.length > 0 && !isCheckingRates
-                                ? 'bg-primary text-white shadow-primary/30 hover:scale-[1.02]'
+                        className={`w-full font-semibold py-3 rounded-xl transition-all text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] mb-3 group/btn overflow-hidden relative ${selectedRooms.length > 0 && !isCheckingRates
+                                ? 'bg-primary text-white shadow-primary/20 hover:scale-[1.01]'
                                 : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50'
-                            } ${isCheckingRates ? 'animate-pulse ring-4 ring-primary/20' : ''}`}>
+                            } ${isCheckingRates ? 'animate-pulse ring-2 ring-primary/20' : ''}`}>
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
                         <span className="relative z-10 flex items-center gap-2">
                             {isCheckingRates ? (
                                 <>
-                                    <span className="size-5 border-3 border-white/20 border-t-white rounded-full animate-spin"></span>
+                                    <span className="size-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
                                     <span className="animate-pulse">{tLocal('checkingBestRates')}</span>
                                 </>
                             ) : (
                                 <>
                                     {tLocal('instantReservation')}
-                                    <span className="material-symbols-outlined text-[20px] group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                                    <span className="material-symbols-outlined text-[16px] group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
                                 </>
                             )}
                         </span>
                     </button>
-                    <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em]">
+                    <p className="text-[9px] text-center text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider">
                         {tLocal('b2bAgencyRatesApplied')}
                     </p>
                 </div>
             </div>
 
-            <div className="mt-6 bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex items-center gap-4">
-                <div className="size-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm">
-                    <span className="material-symbols-outlined">verified_user</span>
+            <div className="mt-4 bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex items-center gap-3">
+                <div className="size-9 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-xs shrink-0">
+                    <span className="material-symbols-outlined text-lg">verified_user</span>
                 </div>
                 <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">SECURE PAYMENT</p>
-                    <p className="text-sm font-black">TOG Protected Booking</p>
+                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider leading-none mb-0.5">SECURE PAYMENT</p>
+                    <p className="text-xs font-bold text-slate-800 dark:text-white">TOG Protected Booking</p>
                 </div>
             </div>
         </div>

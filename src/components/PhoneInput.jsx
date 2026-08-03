@@ -139,12 +139,12 @@ const PhoneInput = ({ value, onChange, label, error }) => {
     return (
         <div className="relative z-[9999]" ref={dropdownRef} onKeyDown={handleKeyDown}>
             {label && (
-                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-1 mb-1.5 block">
+                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-0.5 mb-1 block">
                     {label}
                 </label>
             )}
             
-            <div className={`flex items-stretch bg-slate-50 dark:bg-slate-800/50 border rounded-xl transition-all duration-300 ${
+            <div className={`flex items-stretch h-9 bg-slate-50/80 dark:bg-slate-800/80 border rounded-xl transition-all duration-300 ${
                 error ? 'border-red-500/50 ring-2 ring-red-500/10' : 'border-slate-200 dark:border-slate-700 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10'
             }`}>
                 <button
@@ -153,9 +153,9 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                     onClick={() => setIsOpen(!isOpen)}
                     className="flex items-center gap-1.5 px-3 border-r border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors rounded-l-xl shrink-0"
                 >
-                    <span className="text-lg leading-none">{selectedCountry.flag}</span>
+                    <span className="text-base leading-none">{selectedCountry.flag}</span>
                     <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{selectedCountry.code}</span>
-                    <span className={`material-symbols-outlined text-sm text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+                    <span className={`material-symbols-outlined text-xs text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
                         expand_more
                     </span>
                 </button>
@@ -165,7 +165,7 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                     type="text"
                     value={phoneNumber}
                     onChange={handlePhoneChange}
-                    className="flex-1 bg-transparent py-2.5 px-3 outline-none font-semibold text-xs text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-normal"
+                    className="flex-1 bg-transparent py-2 px-3 outline-none font-semibold text-xs text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-normal"
                     placeholder="5__ ___ __ __"
                 />
             </div>

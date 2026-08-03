@@ -896,10 +896,10 @@ const HotelListing = () => {
                     <Breadcrumbs locationId={locationId} />
                     <Link
                         to="/"
-                        className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
+                        className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
                     >
-                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-sm" >
-                            <span className="material-symbols-outlined text-lg">arrow_back</span>
+                        <div className="w-6.5 h-6.5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-xs">
+                            <span className="material-symbols-outlined text-sm">arrow_back</span>
                         </div>
                         {tListing('backToDashboard', currentLang)}
                     </Link>

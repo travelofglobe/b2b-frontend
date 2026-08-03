@@ -65,7 +65,7 @@ const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover, se
             <Popup className="hotel-marker-popup" minWidth={240} autoPan={false}>
                 <div className="p-1 group/popup">
                     <img src={hotel.image} className="w-full h-32 object-cover rounded-xl mb-3" alt={hotel.name} />
-                    <h3 className="font-black text-sm uppercase tracking-tight text-slate-900 dark:text-white mb-1">{hotel.names?.tr || hotel.names?.en || hotel.name}</h3>
+                    <h3 className="font-semibold text-xs sm:text-sm uppercase tracking-tight text-slate-900 dark:text-white mb-1">{hotel.names?.tr || hotel.names?.en || hotel.name}</h3>
                     <div className="flex items-center justify-between mt-3">
                         <span className="text-lg font-black text-primary leading-none tracking-tighter">${hotel.price}</span>
                         <Link
@@ -1010,10 +1010,10 @@ const MapView = () => {
                         </button>
                         <Link
                             to="/"
-                            className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
+                            className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
                         >
-                            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
-                                <span className="material-symbols-outlined text-lg">arrow_back</span>
+                            <div className="w-6.5 h-6.5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-xs">
+                                <span className="material-symbols-outlined text-sm">arrow_back</span>
                             </div>
                             Back to Dashboard
                         </Link>
@@ -1103,7 +1103,7 @@ const MapView = () => {
                                                     <span key={i} className="material-symbols-outlined text-[10px] text-amber-400 fill-1">star</span>
                                                 ))}
                                             </div>
-                                            <h3 className="font-black text-slate-900 dark:text-white leading-tight uppercase tracking-tight truncate group-hover:text-primary transition-colors text-sm">{hotel.name}</h3>
+                                            <h3 className="font-semibold text-slate-900 dark:text-white leading-tight uppercase tracking-tight truncate group-hover:text-primary transition-colors text-xs sm:text-sm">{hotel.name}</h3>
                                             <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1 mt-1.5 uppercase tracking-widest">
                                                 <span className="material-symbols-outlined text-[14px]">location_on</span>
                                                 {hotel.location}

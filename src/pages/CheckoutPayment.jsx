@@ -1038,7 +1038,7 @@ const CheckoutPayment = () => {
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
             <Header />
-            <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
+            <main className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-16 py-8 lg:py-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div className="flex-1">
                         <CheckoutStepper 

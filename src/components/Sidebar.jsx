@@ -390,7 +390,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                                     <input
                                                         checked={selectedLocations.includes(locFilter.value)}
                                                         onChange={() => handleLocationToggle(locFilter.value)}
-                                                        className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0"
+                                                        className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0"
                                                         type="checkbox"
                                                     />
                                                     <div className="flex items-center gap-2 overflow-hidden">
@@ -441,7 +441,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                             <input
                                                 checked={selectedStars.includes(starFilter.value)}
                                                 onChange={() => handleStarToggle(starFilter.value)}
-                                                className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                                className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                                 type="checkbox"
                                             />
                                             <div className="flex items-center gap-1">
@@ -468,7 +468,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                     <input
                                         checked={selectedStars.includes(star)}
                                         onChange={() => handleStarToggle(star)}
-                                        className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                        className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                         type="checkbox"
                                     />
                                     <div className="flex items-center gap-1">
@@ -500,7 +500,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                         type="checkbox"
                                         checked={freeCancellation === f.value}
                                         onChange={() => handleBoolToggle(setFreeCancellation, freeCancellation, f.value)}
-                                        className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                        className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                     />
                                     <div className="flex items-center gap-2">
                                         <span className={`material-symbols-outlined text-[18px] transition-colors ${f.value ? 'text-emerald-500' : 'text-slate-400'}`}>
@@ -532,7 +532,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                         type="checkbox"
                                         checked={prePayment === f.value}
                                         onChange={() => handleBoolToggle(setPrePayment, prePayment, f.value)}
-                                        className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                        className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                     />
                                     <div className="flex items-center gap-2">
                                         <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">
@@ -564,7 +564,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                         type="checkbox"
                                         checked={roomTwin === f.value}
                                         onChange={() => handleBoolToggle(setRoomTwin, roomTwin, f.value)}
-                                        className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                        className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                     />
                                     <div className="flex items-center gap-2 text-slate-500">
                                         <span className="material-symbols-outlined text-[18px]">bed</span>
@@ -594,7 +594,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                             <input
                                                 checked={selectedMaxAdult.includes(f.value)}
                                                 onChange={() => handleMaxAdultToggle(f.value)}
-                                                className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                                className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                                 type="checkbox"
                                             />
                                             <div className="flex items-center gap-2">
@@ -629,7 +629,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                             <input
                                                 checked={selectedMaxChildren.includes(f.value)}
                                                 onChange={() => handleMaxChildrenToggle(f.value)}
-                                                className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                                className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                                 type="checkbox"
                                             />
                                             <div className="flex items-center gap-2">
@@ -664,7 +664,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                             <input
                                                 checked={selectedMaxExtraBed.includes(f.value)}
                                                 onChange={() => handleMaxExtraBedToggle(f.value)}
-                                                className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                                className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                                 type="checkbox"
                                             />
                                             <div className="flex items-center gap-2">
@@ -729,7 +729,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                                     <input
                                                         checked={selectedFacilities.includes(facFilter.value)}
                                                         onChange={() => handleFacilityToggle(facFilter.value)}
-                                                        className="h-5 w-5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0"
+                                                        className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0"
                                                         type="checkbox"
                                                     />
                                                     <div className="flex items-center gap-2 overflow-hidden">

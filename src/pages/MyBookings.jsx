@@ -351,7 +351,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('id', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder={L('colId')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -361,7 +361,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('voucher', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder={L('phVoucher')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -371,7 +371,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('hotelName', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder={L('phHotelName')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -381,14 +381,14 @@ const MyBookings = () => {
                                                     value={filters.createDateStart}
                                                     onChange={(e) => handleFilterChange('createDateStart', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="date"
                                                     value={filters.createDateEnd}
                                                     onChange={(e) => handleFilterChange('createDateEnd', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -399,14 +399,14 @@ const MyBookings = () => {
                                                     value={filters.checkInStart}
                                                     onChange={(e) => handleFilterChange('checkInStart', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="date"
                                                     value={filters.checkInEnd}
                                                     onChange={(e) => handleFilterChange('checkInEnd', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -417,14 +417,14 @@ const MyBookings = () => {
                                                     value={filters.checkOutStart}
                                                     onChange={(e) => handleFilterChange('checkOutStart', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="date"
                                                     value={filters.checkOutEnd}
                                                     onChange={(e) => handleFilterChange('checkOutEnd', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -436,7 +436,7 @@ const MyBookings = () => {
                                                     onChange={(e) => handleFilterChange('minAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                     placeholder={L('phMin')}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="number"
@@ -444,7 +444,7 @@ const MyBookings = () => {
                                                     onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                     placeholder="Max"
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -452,15 +452,15 @@ const MyBookings = () => {
                                             <select
                                                 value={filters.paymentStatus}
                                                 onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
                                             >
-                                                <option value="">{L('all')}</option>
-                                                <option value="PENDING_PAYMENT">{L('pyPending')}</option>
-                                                <option value="PAID_CREDIT_CARD">{L('pyPaidCard')}</option>
-                                                <option value="PAID_ACCOUNT">{L('pyPaidAcc')}</option>
-                                                <option value="REFUNDED_CREDIT_CARD">{L('pyRefCard')}</option>
-                                                <option value="REFUNDED_ACCOUNT">{L('pyRefAcc')}</option>
-                                                <option value="FAILED">{L('pyFailed')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="">{L('all')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="PENDING_PAYMENT">{L('pyPending')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="PAID_CREDIT_CARD">{L('pyPaidCard')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="PAID_ACCOUNT">{L('pyPaidAcc')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="REFUNDED_CREDIT_CARD">{L('pyRefCard')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="REFUNDED_ACCOUNT">{L('pyRefAcc')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="FAILED">{L('pyFailed')}</option>
                                             </select>
                                         </td>
                                         <td className="px-2 py-2">
@@ -477,7 +477,7 @@ const MyBookings = () => {
                                                     onChange={(e) => handleFilterChange('minCancellationAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                     placeholder={L('phMin')}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="number"
@@ -485,7 +485,7 @@ const MyBookings = () => {
                                                     onChange={(e) => handleFilterChange('maxCancellationAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                     placeholder={L('phMax')}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -496,7 +496,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('bookingUuid', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder={L('phUuid')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -515,7 +515,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('internalHotelId', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder="Hotel ID"
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -525,18 +525,18 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder={L('phClRef')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
                                             <select
                                                 value={filters.isCancelled}
                                                 onChange={(e) => handleFilterChange('isCancelled', e.target.value)}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
                                             >
-                                                <option value="">{L('all')}</option>
-                                                <option value="true">{L('yes')}</option>
-                                                <option value="false">{L('no')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="">{L('all')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="true">{L('yes')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="false">{L('no')}</option>
                                             </select>
                                         </td>
                                     </tr>

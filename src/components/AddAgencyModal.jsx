@@ -3,6 +3,7 @@ import { agencyService } from '../services/agencyService';
 import { locationService } from '../services/locationService';
 import { currencyService } from '../services/currencyService';
 import PhoneInput from './PhoneInput';
+import AppleSwitch from './AppleSwitch';
 
 const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode = 'add' }) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -353,20 +354,18 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4 border-t border-slate-100 dark:border-white/5">
-                                    <label className="flex items-center gap-4 cursor-pointer group w-fit">
-                                        <div className={`size-11 rounded-2xl flex items-center justify-center transition-all ${form.allowedForSale ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                                            <span className="material-icons-round text-xl">{form.allowedForSale ? 'check_circle' : 'block'}</span>
-                                        </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4 border-t border-slate-100 dark:border-white/5 items-center">
+                                    <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-white/5">
                                         <div>
-                                            <p className="text-[12px] font-black text-slate-800 dark:text-white uppercase leading-none mb-1">Allowed for Sale</p>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Booking capabilities</p>
+                                            <p className="text-xs font-semibold text-slate-800 dark:text-white mb-0.5">Allowed for Sale</p>
+                                            <p className="text-[10px] font-normal text-slate-400">Enable booking capabilities</p>
                                         </div>
-                                        <input 
-                                            type="checkbox" name="allowedForSale" checked={form.allowedForSale} onChange={handleChange}
-                                            className="hidden"
+                                        <AppleSwitch
+                                            checked={form.allowedForSale}
+                                            onChange={(val) => handleChange({ target: { name: 'allowedForSale', type: 'checkbox', checked: val } })}
+                                            size="md"
                                         />
-                                    </label>
+                                    </div>
 
                                     {mode === 'edit' && (
                                         <div className="space-y-1.5">

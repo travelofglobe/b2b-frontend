@@ -321,25 +321,25 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
             <div className="bg-white/80 dark:bg-[#111a22]/80 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-800/50 shadow-2xl shadow-black/5 dark:shadow-white/5 max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar relative">
                 {/* Sticky Header with Actions */}
                 <div className="sticky top-0 z-50 px-6 py-5 bg-white dark:bg-[#111a22] border-b border-slate-100/50 dark:border-slate-800/50 flex items-center justify-between shadow-lg shadow-black/[0.03] dark:shadow-white/[0.02]">
-                    <h2 className="text-lg font-black tracking-tight text-slate-800 dark:text-slate-100" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                    <h2 className="text-base font-bold tracking-tight text-slate-800 dark:text-slate-100" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                         {tFilter('filters', currentLang)}
                     </h2>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={handleClearAll}
-                            className="text-[10px] font-bold text-slate-400 hover:text-red-500 uppercase tracking-widest px-2 py-1 transition-colors"
+                            className="text-[10px] font-semibold text-slate-400 hover:text-red-500 uppercase tracking-wider px-2 py-1 transition-colors"
                             lang={currentLang === 'tr' ? 'tr' : 'en'}
                         >
                             {tFilter('reset', currentLang)}
                         </button>
                         <button
                             onClick={handleApplyFilters}
-                            className="group flex items-center gap-2 bg-primary hover:bg-primary-hover text-white text-[10px] font-extrabold uppercase tracking-widest px-4 py-2 rounded-xl transition-all shadow-lg shadow-primary/20 active:scale-95 whitespace-nowrap relative"
+                            className="group flex items-center gap-2 bg-primary hover:bg-primary-hover text-white text-[10px] font-semibold uppercase tracking-wider px-4 py-2 rounded-xl transition-all shadow-md shadow-primary/20 active:scale-95 whitespace-nowrap relative"
                             lang={currentLang === 'tr' ? 'tr' : 'en'}
                         >
                             {tFilter('apply', currentLang)}
                             {activeFilterCount > 0 && (
-                                <span className="flex items-center justify-center min-w-[14px] h-[14px] bg-white text-primary text-[9px] font-black rounded-full px-1 animate-in zoom-in duration-300">
+                                <span className="flex items-center justify-center min-w-[14px] h-[14px] bg-white text-primary text-[9px] font-bold rounded-full px-1 animate-in zoom-in duration-300">
                                     {activeFilterCount}
                                 </span>
                             )}
@@ -410,7 +410,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                 {!locationSearch && filters.locationId.length > 10 && (
                                     <button
                                         onClick={() => setIsLocationsExpanded(!isLocationsExpanded)}
-                                        className="text-xs font-bold text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8"
+                                        className="text-xs font-semibold text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8"
                                         lang={currentLang === 'tr' ? 'tr' : 'en'}
                                     >
                                         {isLocationsExpanded ? (
@@ -749,7 +749,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                 {!facilitySearch && filters.hotelFacilityIds.length > 10 && (
                                     <button
                                         onClick={() => setIsFacilitiesExpanded(!isFacilitiesExpanded)}
-                                        className="text-xs font-bold text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8"
+                                        className="text-xs font-semibold text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8"
                                         lang={currentLang === 'tr' ? 'tr' : 'en'}
                                     >
                                         {isFacilitiesExpanded ? (

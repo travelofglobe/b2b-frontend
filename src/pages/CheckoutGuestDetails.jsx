@@ -1408,41 +1408,41 @@ const CheckoutGuestDetails = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
                     <div className="lg:col-span-8">
                         {/* Room Stepper */}
-                        <div className="flex gap-2 mb-8 overflow-x-auto pb-4 no-scrollbar">
+                        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
                             {roomsData.map((room, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => idx < activeRoomIdx && setActiveRoomIdx(idx)}
-                                    className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border transition-all shrink-0 ${idx === activeRoomIdx ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : idx < activeRoomIdx ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-white/40 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed'}`}
+                                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border transition-all shrink-0 ${idx === activeRoomIdx ? 'bg-primary border-primary text-white shadow-md shadow-primary/20' : idx < activeRoomIdx ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-white/40 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed'}`}
                                 >
                                     <span className="material-symbols-outlined text-[16px]">{idx < activeRoomIdx ? 'check_circle' : 'bed'}</span>
-                                    <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Room {idx + 1}</span>
+                                    <span className="text-xs font-semibold uppercase tracking-wider whitespace-nowrap">Room {idx + 1}</span>
                                 </button>
                             ))}
                         </div>
 
-                        <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500" key={activeRoomIdx}>
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500" key={activeRoomIdx}>
                             <div className="flex items-center justify-between mb-2" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                <h2 className="text-xl font-black uppercase tracking-tight">{currentRoom.roomName}</h2>
-                                <span className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-[9px] font-black text-slate-500 uppercase tracking-widest">{tSummary('occupancyInfo', currentLang)}</span>
+                                <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">{currentRoom.roomName}</h2>
+                                <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[9px] font-semibold text-slate-500 uppercase tracking-wider">{tSummary('occupancyInfo', currentLang)}</span>
                             </div>
 
                             {currentRoom.guests.map((guest, gIdx) => (
                                 <div key={gIdx} className="relative group z-[5] focus-within:z-[50]">
-                                    <div className="absolute -inset-1 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-[40px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                                    <div className="relative p-7 rounded-3xl border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-2xl z-10 focus-within:z-[100]" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                        <div className="flex items-center justify-between mb-7">
+                                    <div className="absolute -inset-1 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-2xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                    <div className="relative p-5 rounded-2xl border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl z-10 focus-within:z-[100]" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                        <div className="flex items-center justify-between mb-5">
                                             <div className="flex items-center gap-3">
-                                                <div className={`size-10 rounded-xl flex items-center justify-center transition-colors ${guest.type === 'Adult' ? 'bg-slate-100 dark:bg-slate-800 text-primary' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                                                    <span className="material-symbols-outlined text-xl">{guest.type === 'Adult' ? 'person' : 'child_care'}</span>
+                                                <div className={`size-9 rounded-xl flex items-center justify-center transition-colors ${guest.type === 'Adult' ? 'bg-slate-100 dark:bg-slate-800 text-primary' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                                                    <span className="material-symbols-outlined text-lg">{guest.type === 'Adult' ? 'person' : 'child_care'}</span>
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-lg font-black uppercase tracking-tight">
+                                                    <h3 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
                                                         {gIdx === 0 && guest.type === 'Adult' 
                                                             ? tSummary('leadGuest', currentLang) 
                                                             : `${guest.type === 'Adult' ? tSummary('adult', currentLang) : tSummary('child', currentLang)} ${tSummary('traveler', currentLang)} ${gIdx + 1}`}
                                                     </h3>
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">
                                                         {guest.type === 'Adult' 
                                                             ? tSummary('standardPolicy', currentLang) 
                                                             : `${tSummary('childPassenger', currentLang)} • ${tSummary('age', currentLang)} ${guest.age}`}
@@ -1455,7 +1455,7 @@ const CheckoutGuestDetails = () => {
                                                     setTargetGuestIndex({ roomIdx: activeRoomIdx, guestIdx: gIdx });
                                                     setIsCrmModalOpen(true);
                                                 }}
-                                                className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-colors"
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-primary/20 transition-colors"
                                             >
                                                 <span className="material-symbols-outlined text-sm">contact_page</span>
                                                 <span className="hidden sm:inline">{crmText}</span>
@@ -1463,24 +1463,24 @@ const CheckoutGuestDetails = () => {
                                             </button>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                            <div className="space-y-1.5">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">{tSummary('firstName', currentLang)}</label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-1">{tSummary('firstName', currentLang)}</label>
                                                 <input
                                                     data-field={`${activeRoomIdx}-${gIdx}-firstName`}
                                                     required
-                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm`}
+                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} py-2.5 px-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-xs`}
                                                     placeholder={tSummary('enterFirstName', currentLang)}
                                                     value={guest.firstName}
                                                     onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'firstName', e.target.value)}
                                                 />
                                             </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">{tSummary('lastName', currentLang)}</label>
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-1">{tSummary('lastName', currentLang)}</label>
                                                 <input
                                                     data-field={`${activeRoomIdx}-${gIdx}-lastName`}
                                                     required
-                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm`}
+                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} py-2.5 px-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-xs`}
                                                     placeholder={tSummary('enterLastName', currentLang)}
                                                     value={guest.lastName}
                                                     onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'lastName', e.target.value)}
@@ -1488,12 +1488,12 @@ const CheckoutGuestDetails = () => {
                                             </div>
 
                                             {/* Birth Date and Gender */}
-                                            <div className="space-y-1.5">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">{tSummary('birthDate', currentLang)}</label>
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-1">{tSummary('birthDate', currentLang)}</label>
                                                 <input
                                                     data-field={`${activeRoomIdx}-${gIdx}-birthDate`}
                                                     type="date"
-                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold uppercase text-sm`}
+                                                    className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} py-2.5 px-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-xs uppercase`}
                                                     value={guest.birthDate}
                                                     min="1900-01-01"
                                                     max={new Date().toISOString().split('T')[0]}
@@ -1511,51 +1511,51 @@ const CheckoutGuestDetails = () => {
                                                     }}
                                                 />
                                                 {errors[`${activeRoomIdx}-${gIdx}`]?.birthDate && !errors[`${activeRoomIdx}-${gIdx}`]?.ageMismatch && (
-                                                    <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-1 ml-1 animate-in fade-in duration-300">{tSummary('invalidBirthDate', currentLang)}</p>
+                                                    <p className="text-red-500 text-[10px] font-semibold uppercase tracking-wider mt-1 ml-1 animate-in fade-in duration-300">{tSummary('invalidBirthDate', currentLang)}</p>
                                                 )}
                                                 {errors[`${activeRoomIdx}-${gIdx}`]?.ageMismatch && (
-                                                    <p className="text-red-500 text-[10px] font-black uppercase tracking-wider mt-1 ml-1 animate-in fade-in duration-300">
+                                                    <p className="text-red-500 text-[10px] font-semibold uppercase tracking-wider mt-1 ml-1 animate-in fade-in duration-300">
                                                         {tSummary('childAgeMismatch', currentLang).replace('{age}', guest.age)}
                                                     </p>
                                                 )}
                                             </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">{tSummary('gender', currentLang)}</label>
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-1">{tSummary('gender', currentLang)}</label>
                                                 <div
                                                     data-field={`${activeRoomIdx}-${gIdx}-gender`}
-                                                    className={`grid grid-cols-2 gap-2.5 p-1 rounded-xl border ${errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} bg-slate-50 dark:bg-slate-800`}>
+                                                    className={`grid grid-cols-2 gap-1 p-0.5 rounded-xl h-[38px] items-center border ${errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} bg-slate-50 dark:bg-slate-800`}>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'male')}
-                                                        className={`flex items-center justify-center gap-2 py-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${guest.gender === 'male' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                                        className={`h-full flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${guest.gender === 'male' ? 'bg-primary text-white shadow-xs' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                                                     >
-                                                        <span className="material-symbols-outlined text-base">male</span> {tSummary('male', currentLang)}
+                                                        <span className="material-symbols-outlined text-sm">male</span> {tSummary('male', currentLang)}
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'female')}
-                                                        className={`flex items-center justify-center gap-2 py-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${guest.gender === 'female' ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                                        className={`h-full flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${guest.gender === 'female' ? 'bg-primary text-white shadow-xs' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                                                     >
-                                                        <span className="material-symbols-outlined text-base">female</span> {tSummary('female', currentLang)}
+                                                        <span className="material-symbols-outlined text-sm">female</span> {tSummary('female', currentLang)}
                                                     </button>
                                                 </div>
                                             </div>
 
                                             {gIdx === 0 && guest.type === 'Adult' && (
                                                 <>
-                                                    <div className="space-y-1.5">
-                                                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">{tSummary('emailAddress', currentLang)}</label>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-1">{tSummary('emailAddress', currentLang)}</label>
                                                         <input
                                                             data-field={`${activeRoomIdx}-${gIdx}-email`}
                                                             required
                                                             type="email"
-                                                            className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm`}
+                                                            className={`w-full bg-slate-50 dark:bg-slate-800 border ${errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} py-2.5 px-3.5 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-xs`}
                                                             placeholder={tSummary('enterEmail', currentLang)}
                                                             value={guest.email}
                                                             onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'email', e.target.value)}
                                                         />
                                                     </div>
-                                                    <div className="space-y-2">
+                                                    <div className="space-y-1">
                                                         <PhoneInput 
                                                             label={tSummary('phoneNumber', currentLang)}
                                                             value={guest.phone}

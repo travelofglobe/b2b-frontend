@@ -7,6 +7,7 @@ import AddAgencyGroupModal from '../components/AddAgencyGroupModal';
 import SubAgencyDetailView from '../components/SubAgencyDetailView';
 import ConfirmModal from '../components/ConfirmModal';
 import HeaderActions from '../components/HeaderActions';
+import AppleSwitch from '../components/AppleSwitch';
 
 const GSAAgencyManagement = () => {
     const [activeTab, setActiveTab] = useState('agencies');
@@ -578,27 +579,18 @@ const GSAAgencyManagement = () => {
                                                     </td>
                                                     <td className="px-4 py-4 text-[11px] font-black text-slate-700 dark:text-slate-300 text-center">{agency.currency}</td>
                                                     <td className="px-4 py-4">
-                                                        <div className="flex flex-col items-center gap-1 group/status">
-                                                            <div 
-                                                                onClick={() => handleStatusToggle(agency)}
-                                                                className={`relative inline-flex h-4.5 w-9 items-center rounded-full transition-all cursor-pointer shadow-sm hover:scale-110 active:scale-95 duration-300 ${
-                                                                    agency.status === 'ACTIVE' 
-                                                                    ? 'bg-emerald-500 shadow-md shadow-emerald-500/20' 
-                                                                    : 'bg-slate-200 dark:bg-slate-800'
-                                                                }`}
-                                                            >
-                                                                <span 
-                                                                    className={`inline-block size-3 transform rounded-full bg-white shadow-sm transition-all duration-300 ${
-                                                                        agency.status === 'ACTIVE' ? 'translate-x-[22px]' : 'translate-x-0.5'
-                                                                    }`} 
-                                                                />
-                                                            </div>
-                                                            <span className={`text-[9px] font-black uppercase tracking-widest transition-colors duration-300 ${
-                                                                agency.status === 'ACTIVE' ? 'text-emerald-500' : 'text-slate-400'
-                                                            }`}>
-                                                                {agency.status === 'ACTIVE' ? 'Active' : 'Passive'}
-                                                            </span>
-                                                        </div>
+                                                         <div className="flex flex-col items-center gap-1 group/status">
+                                                             <AppleSwitch
+                                                                 checked={agency.status === 'ACTIVE'}
+                                                                 onChange={() => handleStatusToggle(agency)}
+                                                                 size="sm"
+                                                             />
+                                                             <span className={`text-[10px] font-semibold uppercase tracking-wider transition-colors duration-300 ${
+                                                                 agency.status === 'ACTIVE' ? 'text-emerald-500' : 'text-slate-400'
+                                                             }`}>
+                                                                 {agency.status === 'ACTIVE' ? 'Active' : 'Passive'}
+                                                             </span>
+                                                         </div>
                                                     </td>
                                                     <td className="px-4 py-4 text-right">
                                                         <div className="flex items-center justify-end gap-1">
@@ -793,22 +785,13 @@ const GSAAgencyManagement = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div 
-                                                                onClick={() => handleGroupStatusToggle(group)}
-                                                                className={`relative inline-flex h-4.5 w-9 items-center rounded-full transition-all cursor-pointer shadow-sm hover:scale-110 active:scale-95 duration-300 ${
-                                                                    group.status === 'ACTIVE' 
-                                                                    ? 'bg-emerald-500 shadow-md shadow-emerald-500/20' 
-                                                                    : 'bg-slate-200 dark:bg-slate-800'
-                                                                }`}
-                                                            >
-                                                                <span 
-                                                                    className={`inline-block size-3 transform rounded-full bg-white shadow-sm transition-all duration-300 ${
-                                                                        group.status === 'ACTIVE' ? 'translate-x-[22px]' : 'translate-x-0.5'
-                                                                    }`} 
-                                                                />
-                                                            </div>
-                                                            <span className={`text-[9px] font-black uppercase tracking-widest transition-colors duration-300 ${
+                                                        <div className="flex items-center gap-2">
+                                                            <AppleSwitch
+                                                                checked={group.status === 'ACTIVE'}
+                                                                onChange={() => handleGroupStatusToggle(group)}
+                                                                size="sm"
+                                                            />
+                                                            <span className={`text-[10px] font-semibold uppercase tracking-wider transition-colors duration-300 ${
                                                                 group.status === 'ACTIVE' ? 'text-emerald-500' : 'text-slate-400'
                                                             }`}>
                                                                 {group.status === 'ACTIVE' ? 'Active' : 'Passive'}

@@ -145,11 +145,11 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                     )}
                 </div>
 
-                <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+                <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
                     {hotel.badges?.map((badge, idx) => (
                         <div
                             key={idx}
-                            className={`${badge.color} text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-lg flex items-center gap-1.5 animate-in fade-in slide-in-from-left-4 duration-700 backdrop-blur-sm border border-white/10`}
+                            className={`${badge.color} text-white text-[9px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1.5 animate-in fade-in slide-in-from-left-4 duration-500 backdrop-blur-sm border border-white/10`}
                         >
                             {badge.type === 'featured' && <span className="material-symbols-outlined text-xs fill-1">workspace_premium</span>}
                             {badge.type === 'opportunity' && <span className="material-symbols-outlined text-xs fill-1">local_fire_department</span>}
@@ -162,12 +162,12 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                 </div>
                 <button
                     onClick={handleFavorite}
-                    className="absolute top-4 right-4 z-10 size-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-slate-900 shadow-md hover:text-red-500 transition-all"
+                    className="absolute top-3 right-3 z-10 size-9 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-slate-900 shadow-md hover:text-red-500 transition-all"
                 >
-                    <span className="material-symbols-outlined text-xl">favorite</span>
+                    <span className="material-symbols-outlined text-lg">favorite</span>
                 </button>
             </div>
-            <div className="p-6 flex-1 flex flex-col justify-between">
+            <div className="p-5 flex-1 flex flex-col justify-between">
                 <div>
                     <div className="flex justify-between items-start mb-1">
                         <div>
@@ -175,9 +175,9 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                                 {[...Array(hotel.stars || 0)].map((_, i) => (
                                     <span key={i} className="material-symbols-outlined text-[10px] fill-1">star</span>
                                 ))}
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">{getStarLabel()}</span>
+                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider ml-1">{getStarLabel()}</span>
                             </div>
-                            <h3 className={`font-bold leading-tight group-hover:text-primary transition-colors ${isList ? 'text-2xl' : 'text-lg'}`}>{hotel.name}</h3>
+                            <h3 className={`font-bold leading-tight group-hover:text-primary transition-colors ${isList ? 'text-xl' : 'text-base'}`}>{hotel.name}</h3>
                             <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 mt-1 relative">
                                 <span className="material-symbols-outlined text-sm text-primary">location_on</span>
                                 <div className="group/transport relative">
@@ -228,36 +228,36 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-primary/10 px-2 py-1.5 rounded-xl text-right shrink-0">
-                            <div className="text-sm font-black text-primary leading-none">{hotel.rating}</div>
-                            <div className="text-[8px] font-bold text-primary uppercase leading-none mt-1">{hotel.ratingLabel}</div>
+                        <div className="bg-primary/10 px-2 py-1 rounded-lg text-right shrink-0">
+                            <div className="text-sm font-bold text-primary leading-none">{hotel.rating}</div>
+                            <div className="text-[8px] font-semibold text-primary uppercase leading-none mt-1">{hotel.ratingLabel}</div>
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 my-4">
+                    <div className="flex flex-wrap gap-1.5 my-3">
                         {hotel.amenities.slice(0, 10).map((amenity, index) => (
                             <Tooltip key={index} text={amenity.label}>
-                                <div className="size-8 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 rounded-xl text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-800 hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all cursor-help">
-                                    <span className="material-symbols-outlined text-lg">{amenity.icon}</span>
+                                <div className="size-7 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 rounded-lg text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-800 hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all cursor-help">
+                                    <span className="material-symbols-outlined text-base">{amenity.icon}</span>
                                 </div>
                             </Tooltip>
                         ))}
                     </div>
                 </div>
 
-                <div className={`flex items-center justify-between pt-4 ${isList ? 'border-t border-slate-100 dark:border-[#233648]' : ''}`}>
+                <div className={`flex items-center justify-between pt-3.5 ${isList ? 'border-t border-slate-100 dark:border-[#233648]' : ''}`}>
                     <div className="flex flex-col">
                         <div className="flex items-baseline gap-1">
                             {hotel.price > 0 ? (
                                 <>
                                     <div className="flex items-baseline gap-1">
-                                        <span className={`font-black ${isList ? 'text-2xl' : 'text-xl'}`}>
+                                        <span className={`font-bold text-slate-900 dark:text-white ${isList ? 'text-xl' : 'text-lg'}`}>
                                             {currencySymbol}{Math.round(hotel.price)}
                                         </span>
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{hotel.currency}</span>
+                                        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-tight">{hotel.currency}</span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[7px] text-slate-400 font-bold uppercase leading-none">
+                                        <span className="text-[8px] text-slate-400 font-medium uppercase leading-none">
                                             {hotel.tax > 0 
                                                 ? `incl. ${currencySymbol}${hotel.tax.toFixed(2)} tax` 
                                                 : 'incl. taxes'}
@@ -265,12 +265,12 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                                     </div>
                                 </>
                             ) : (
-                                <span className="text-sm font-bold text-slate-500 uppercase">Check Availability</span>
+                                <span className="text-xs font-semibold text-slate-500 uppercase">Check Availability</span>
                             )}
                         </div>
                     </div>
                     <div
-                        className={`bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-primary/20 active:scale-95 flex items-center justify-center whitespace-nowrap ${isList ? 'text-sm py-3 px-8' : 'text-xs py-2.5 px-4'}`}
+                        className={`bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-primary/20 active:scale-95 flex items-center justify-center whitespace-nowrap ${isList ? 'text-xs py-2.5 px-6' : 'text-xs py-2 px-3.5'}`}
                     >
                         View Details
                     </div>

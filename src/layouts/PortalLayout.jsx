@@ -18,12 +18,12 @@ const PortalLayout = () => {
                         <span className="material-symbols-outlined text-xl fill-1">travel</span>
                     </div>
                     <div className="flex flex-col">
-                        <h2 className="text-slate-900 dark:text-white text-[13px] font-black leading-none tracking-tighter uppercase whitespace-nowrap">
+                        <h2 className="text-slate-900 dark:text-white text-[13px] font-bold leading-none tracking-tight uppercase whitespace-nowrap">
                             Travel <span className="text-primary">of</span> Globe
                         </h2>
                         <div className="flex items-center gap-1.5 mt-1">
                             <div className="h-[1px] w-2 bg-primary/40"></div>
-                            <p className="text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] whitespace-nowrap leading-none">Global B2B Solutions</p>
+                            <p className="text-[8px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap leading-none">Global B2B Solutions</p>
                         </div>
                     </div>
                 </div>

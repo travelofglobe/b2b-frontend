@@ -740,7 +740,7 @@ const HeaderSearch = () => {
             <div className="flex items-center px-4 border-r border-slate-300 dark:border-slate-600 relative h-full group/dest" ref={searchWrapperRef}>
                 <span className="material-symbols-outlined text-slate-400 text-xl mr-3 group-hover/dest:text-primary transition-colors">location_on</span>
                 <input
-                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-xs w-[180px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 p-0"
+                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-xs w-[180px] font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 p-0"
                     placeholder={ls.placeholder}
                     type="text"
                     value={query}
@@ -758,7 +758,7 @@ const HeaderSearch = () => {
                     <div className="absolute top-full left-0 w-[400px] mt-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-2xl max-h-80 overflow-y-auto z-[1200] p-2">
                         {results.regions.length > 0 && (
                             <div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">{ls.popularDestinations}</div>
+                                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 py-2">{ls.popularDestinations}</div>
                                 {results.regions.map((region, index) => (
                                     <button
                                         key={region.locationId}
@@ -769,8 +769,8 @@ const HeaderSearch = () => {
                                             <span className="material-icons-round text-lg">location_on</span>
                                         </div>
                                         <div>
-                                            <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{region.name.translations.en || region.name.defaultName}</div>
-                                            <div className="text-[10px] text-slate-400 font-medium">{getRegionName(region)}</div>
+                                            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">{region.name.translations.en || region.name.defaultName}</div>
+                                            <div className="text-[10px] text-slate-400 font-normal">{getRegionName(region)}</div>
                                         </div>
                                     </button>
                                 ))}
@@ -781,7 +781,7 @@ const HeaderSearch = () => {
                         )}
                         {results.hotels.length > 0 && (
                             <div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">{ls.hotels}</div>
+                                <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 py-2">{ls.hotels}</div>
                                 {results.hotels.map((hotel, index) => (
                                     <button
                                         key={hotel.hotelId}
@@ -792,8 +792,8 @@ const HeaderSearch = () => {
                                             <span className="material-icons-round text-lg">hotel</span>
                                         </div>
                                         <div>
-                                            <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{getHotelName(hotel)}</div>
-                                            <div className="text-[10px] text-slate-400 font-medium">
+                                            <div className="text-sm font-semibold text-slate-700 dark:text-slate-200">{getHotelName(hotel)}</div>
+                                            <div className="text-[10px] text-slate-400 font-normal">
                                                 {hotel.locationBreadcrumbs ?
                                                     hotel.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName).reverse().join(', ')
                                                     : hotel.countryCode}
@@ -842,7 +842,7 @@ const HeaderSearch = () => {
                             maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                             monthsShown={2}
                             locale={currentLang}
-                            className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 font-bold"
+                            className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 font-semibold"
                             wrapperClassName="w-full"
                             dateFormat="dd MMM yyyy"
                             calendarClassName="shadow-2xl border-none font-sans mt-4"
@@ -853,7 +853,7 @@ const HeaderSearch = () => {
                 {checkInDate && checkOutDate && (
                     <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 whitespace-nowrap animate-in fade-in zoom-in duration-300">
                         <span className="material-symbols-outlined text-[14px] leading-none">bedtime</span>
-                        <span className="text-[10px] font-black uppercase tracking-tight">
+                        <span className="text-[10px] font-semibold uppercase tracking-tight">
                             {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)) === 1 ? ls.nightSingle : ls.nights}
                         </span>
                     </div>
@@ -885,7 +885,7 @@ const HeaderSearch = () => {
                         {roomState.map((room, index) => (
                             <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0 relative">
                                 <div className="flex items-center justify-between mb-3">
-                                    <div className="text-xs font-black uppercase text-slate-400 tracking-wider">{ls.roomSingle} {index + 1}</div>
+                                    <div className="text-xs font-semibold uppercase text-slate-400 tracking-wider">{ls.roomSingle} {index + 1}</div>
                                     {roomState.length > 1 && (
                                         <button
                                             onClick={() => removeRoom(index)}

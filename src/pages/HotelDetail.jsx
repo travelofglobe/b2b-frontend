@@ -1700,24 +1700,24 @@ const HotelDetail = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
                     <div>
                         <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-4xl font-black tracking-tight">{hotel.names?.tr || hotel.names?.en || hotel.name}</h1>
+                            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{hotel.names?.tr || hotel.names?.en || hotel.name}</h1>
                             <div className="flex text-amber-400">
                                 {[...Array(hotel.hotelStar?.star || 5)].map((_, i) => (
-                                    <span key={i} className="material-symbols-outlined fill-1 text-lg">star</span>
+                                    <span key={i} className="material-symbols-outlined fill-1 text-base">star</span>
                                 ))}
                             </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-4 mt-3">
-                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                        <div className="flex flex-wrap items-center gap-4 mt-2">
+                            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                                 <span className="material-symbols-outlined text-sm text-primary">location_on</span>
-                                <span className="font-semibold text-sm">
+                                <span className="font-semibold text-xs">
                                     {hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location}
                                 </span>
                             </div>
 
                             <button
                                 onClick={() => setIsMapModalOpen(true)}
-                                className="text-primary text-sm font-bold hover:underline">
+                                className="text-primary text-xs font-semibold hover:underline">
                                 {tLocal('showOnMap')}
                             </button>
                         </div>
@@ -1726,21 +1726,21 @@ const HotelDetail = () => {
                         <div className="flex items-center gap-2 mr-4">
                             <button
                                 onClick={() => setIsLiked(!isLiked)}
-                                className={`size-12 rounded-2xl flex items-center justify-center transition-all ${isLiked ? 'bg-red-50 text-red-500 border-red-100 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:text-red-500'} border shadow-sm active:scale-90`}
+                                className={`size-10 rounded-xl flex items-center justify-center transition-all ${isLiked ? 'bg-red-50 text-red-500 border-red-100 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:text-red-500'} border shadow-sm active:scale-90`}
                             >
-                                <span className={`material-symbols-outlined text-2xl ${isLiked ? 'fill-1' : ''}`}>favorite</span>
+                                <span className={`material-symbols-outlined text-xl ${isLiked ? 'fill-1' : ''}`}>favorite</span>
                             </button>
                             <button
                                 onClick={() => setIsShareModalOpen(true)}
-                                className="size-12 rounded-2xl bg-white dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:text-primary transition-all shadow-sm active:scale-90"
+                                className="size-10 rounded-xl bg-white dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:text-primary transition-all shadow-sm active:scale-90"
                             >
-                                <span className="material-symbols-outlined text-2xl">share</span>
+                                <span className="material-symbols-outlined text-xl">share</span>
                             </button>
                         </div>
-                        <div className="flex flex-col items-end border-l border-slate-200 dark:border-slate-700 pl-6">
-                            <span className="text-lg font-black text-slate-900 dark:text-white leading-none">{hotel.ratingLabel}</span>
-                            <span className="text-xs text-slate-500 font-bold mt-1">1,240 {tLocal('reviewsLabel')}</span>
-                            <span className="text-[10px] text-primary font-black flex items-center gap-1 mt-1 uppercase tracking-tighter">
+                        <div className="flex flex-col items-end border-l border-slate-200 dark:border-slate-700 pl-5">
+                            <span className="text-base font-bold text-slate-900 dark:text-white leading-none">{hotel.ratingLabel}</span>
+                            <span className="text-xs text-slate-500 font-normal mt-1">1,240 {tLocal('reviewsLabel')}</span>
+                            <span className="text-[10px] text-primary font-semibold flex items-center gap-1 mt-1 uppercase tracking-tight">
                                 <span className="material-symbols-outlined text-xs fill-1">trending_up</span> {tLocal('highlyPopular')}
                             </span>
                         </div>
@@ -1748,19 +1748,19 @@ const HotelDetail = () => {
                 </div>
 
                 {/* Quick Info Badges */}
-                <div className="flex flex-wrap gap-2 mb-8">
+                <div className="flex flex-wrap gap-2 mb-6">
                     {(hotel.facilities?.slice(0, 5).map(f => f.names?.tr || f.names?.en) || ['Free WiFi', 'Free Parking', 'Breakfast Available']).map((item, i) => (
-                        <span key={i} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all cursor-default backdrop-blur-md shadow-sm">
+                        <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all cursor-default backdrop-blur-md shadow-sm">
                             <span className="material-symbols-outlined text-sm text-primary">check_circle</span> {item}
                         </span>
                     ))}
                 </div>
 
                 {/* Benton Grid Gallery */}
-                <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-3 h-[540px] mb-8 overflow-hidden rounded-[32px] relative group/gallery">
+                <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-3 h-[480px] mb-8 overflow-hidden rounded-2xl relative group/gallery">
                     <div className="md:col-span-2 md:row-span-2 relative overflow-hidden ring-1 ring-white/10 shadow-2xl cursor-pointer" onClick={() => openLightbox(0, images)}>
                         <img className="w-full h-full object-cover transition-all duration-700 hover:scale-105" src={images[0]} alt={hotel.name} />
-                        <div className="absolute bottom-6 left-6 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-2xl text-xs font-black shadow-2xl border border-white/20">
+                        <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xl border border-white/20">
                             1 / {images.length} {tLocal('photos')}
                         </div>
                     </div>
@@ -1797,11 +1797,11 @@ const HotelDetail = () => {
                                     <span className="material-symbols-outlined text-primary text-xl shrink-0">calendar_month</span>
                                     <div className="flex flex-col flex-1 min-w-0">
                                         <div className="flex items-center justify-between w-full mb-0.5">
-                                            <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400">{tLocal('checkInOut')}</label>
+                                            <label className="text-[9px] uppercase tracking-wider font-semibold text-slate-400">{tLocal('checkInOut')}</label>
                                             {checkInDate && checkOutDate && (
                                                 <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 animate-in fade-in zoom-in duration-300">
                                                     <span className="material-symbols-outlined text-[12px] leading-none">bedtime</span>
-                                                    <span className="text-[9px] font-black uppercase tracking-tight">
+                                                    <span className="text-[9px] font-semibold uppercase tracking-tight">
                                                         {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} {tLocal('nights')}
                                                     </span>
                                                 </div>
@@ -1822,7 +1822,7 @@ const HotelDetail = () => {
                                             maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                                             monthsShown={2}
                                             locale="en-GB"
-                                            className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[13px] font-black text-slate-900 dark:text-white cursor-pointer whitespace-nowrap"
+                                            className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-xs font-semibold text-slate-900 dark:text-white cursor-pointer whitespace-nowrap"
                                             wrapperClassName="w-full"
                                             dateFormat="dd MMM yyyy"
                                             calendarClassName="shadow-2xl border-none font-sans mt-4"
@@ -1839,8 +1839,8 @@ const HotelDetail = () => {
                                 >
                                     <span className="material-symbols-outlined text-primary text-xl shrink-0 group-hover/guest:scale-110 transition-transform">group</span>
                                     <div className="flex flex-col flex-1 min-w-0">
-                                        <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">{tLocal('guestsAndRooms')}</label>
-                                        <span className="text-[13px] font-black text-slate-900 dark:text-white whitespace-nowrap block truncate">
+                                        <label className="text-[9px] uppercase tracking-wider font-semibold text-slate-400 mb-0.5">{tLocal('guestsAndRooms')}</label>
+                                        <span className="text-xs font-semibold text-slate-900 dark:text-white whitespace-nowrap block truncate">
                                             {totalAdults} {totalAdults > 1 ? tLocal('adults') : tLocal('adult')}, {totalChildren} {totalChildren > 1 ? tLocal('children') : tLocal('child')}
                                         </span>
                                     </div>
@@ -1848,13 +1848,13 @@ const HotelDetail = () => {
                                 </button>
 
                                 {showGuestDropdown && (
-                                    <div className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-slate-900 rounded-[28px] border border-slate-100 dark:border-slate-700 shadow-2xl p-5 z-[100] max-h-[60vh] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
+                                    <div className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-2xl p-4 z-[100] max-h-[60vh] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
                                         {roomState.map((room, index) => (
                                             <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0">
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <div className="text-[9px] font-black uppercase text-slate-400 tracking-widest">{tLocal('room')} {index + 1}</div>
+                                                    <div className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider">{tLocal('room')} {index + 1}</div>
                                                     {roomState.length > 1 && (
-                                                        <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-[9px] font-black uppercase tracking-widest">{tLocal('remove')}</button>
+                                                        <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-[10px] font-semibold uppercase tracking-wider">{tLocal('remove')}</button>
                                                     )}
                                                 </div>
 
@@ -2084,23 +2084,23 @@ const HotelDetail = () => {
                                                                     <div className="relative">
                                                                         <div className="absolute top-0 right-0 flex gap-2">
                                                                             {roomGroup.squareMeter && (
-                                                                                <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-wider border border-blue-500/10 backdrop-blur-md">
+                                                                                <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-semibold px-2 py-0.5 rounded-lg uppercase tracking-wider border border-blue-500/10 backdrop-blur-md">
                                                                                     {roomGroup.squareMeter}
                                                                                 </span>
                                                                             )}
-                                                                            <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-wider border border-orange-500/10 backdrop-blur-md" lang="en">
+                                                                            <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[9px] font-semibold px-2 py-0.5 rounded-lg uppercase tracking-wider border border-orange-500/10 backdrop-blur-md" lang="en">
                                                                                 {roomGroup.roomPaxCapacity || roomGroup.maxAdult} Pax
                                                                             </span>
                                                                         </div>
 
-                                                                        <div className="mb-4 pr-24">
-                                                                            <h3 className="text-2xl font-black mb-1 uppercase tracking-tight text-slate-900 dark:text-white leading-tight truncate" lang="en">{roomName}</h3>
+                                                                        <div className="mb-3 pr-24">
+                                                                            <h3 className="text-lg font-bold mb-1 tracking-tight text-slate-900 dark:text-white leading-tight truncate" lang="en">{roomName}</h3>
                                                                             <div className="flex gap-3 text-slate-500 dark:text-slate-400">
-                                                                                <span className="flex items-center gap-1 text-[10px] font-bold uppercase">
+                                                                                <span className="flex items-center gap-1 text-xs font-semibold uppercase">
                                                                                     <span className="material-symbols-outlined text-sm text-primary">group</span> {roomGroup.maxAdult} {roomGroup.maxAdult > 1 ? tLocal('adults') : tLocal('adult')}
                                                                                 </span>
                                                                                 {roomGroup.maxChildren > 0 && (
-                                                                                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase">
+                                                                                    <span className="flex items-center gap-1 text-xs font-semibold uppercase">
                                                                                         <span className="material-symbols-outlined text-sm text-primary">child_care</span> {roomGroup.maxChildren} {roomGroup.maxChildren > 1 ? tLocal('children') : tLocal('child')}
                                                                                     </span>
                                                                                 )}

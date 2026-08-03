@@ -910,13 +910,13 @@ const HotelListing = () => {
                     <div className="flex-1">
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                             <div>
-                                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2" lang={currentLang === 'tr' ? 'tr' : 'en'}>{pageTitle}</h1>
-                                <p className="text-slate-500 text-sm font-medium">{subtitle}</p>
+                                <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-1 tracking-tight" lang={currentLang === 'tr' ? 'tr' : 'en'}>{pageTitle}</h1>
+                                <p className="text-slate-500 dark:text-slate-400 text-xs font-normal">{subtitle}</p>
                             </div>
                             <div className="flex items-center gap-3">
-                                <span className="text-sm font-bold text-slate-500 whitespace-nowrap">{tListing('sortBy', currentLang)}</span>
+                                <span className="text-xs font-semibold text-slate-400 whitespace-nowrap">{tListing('sortBy', currentLang)}</span>
                                 <select 
-                                    className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-lg text-sm font-bold py-2 pl-4 pr-10 focus:ring-primary focus:border-primary"
+                                    className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-xl text-xs font-semibold py-2 pl-3 pr-8 focus:ring-primary focus:border-primary text-slate-800 dark:text-slate-200 outline-none"
                                     onChange={handleSortChange}
                                     value={sortConfig.field ? `${sortConfig.field === 'hotelStarCategoryId' ? 'star' : 'rating'}_${sortConfig.order.toLowerCase()}` : 'recommended'}
                                 >
@@ -930,39 +930,39 @@ const HotelListing = () => {
                         </div>
 
                         {/* View Controls Toolbar */}
-                        <div className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-xl p-3 mb-8 flex items-center justify-between shadow-sm">
+                        <div className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-xl p-2 mb-6 flex items-center justify-between shadow-xs">
                             <Link
                                 to={`/map?${searchParams.toString()}`}
-                                className="flex items-center gap-2 text-sm font-bold px-5 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 border border-slate-200 dark:border-slate-700/80 rounded-lg bg-slate-50/50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-200 hover:text-primary hover:border-primary/50 transition-all shadow-xs"
                             >
-                                <span className="material-symbols-outlined text-primary">map</span>
+                                <span className="material-symbols-outlined text-base text-primary">map</span>
                                 {tListing('mapView', currentLang)}
                             </Link>
 
-                            <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 rounded-lg p-1 border border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center gap-0.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg p-0.5 border border-slate-100 dark:border-slate-800">
                                 <button
                                     onClick={() => setViewMode('list')}
-                                    className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm border border-slate-200 dark:border-slate-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                                    className={`p-1 rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-primary shadow-xs border border-slate-200 dark:border-slate-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
                                 >
-                                    <span className="material-symbols-outlined text-xl">view_list</span>
+                                    <span className="material-symbols-outlined text-lg">view_list</span>
                                 </button>
                                 <button
                                     onClick={() => setViewMode('grid2')}
-                                    className={`p-1.5 rounded-md transition-all ${viewMode === 'grid2' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm border border-slate-200 dark:border-slate-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                                    className={`p-1 rounded-md transition-all ${viewMode === 'grid2' ? 'bg-white dark:bg-slate-700 text-primary shadow-xs border border-slate-200 dark:border-slate-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
                                 >
-                                    <span className="material-symbols-outlined text-xl">grid_view</span>
+                                    <span className="material-symbols-outlined text-lg">grid_view</span>
                                 </button>
                                 <button
                                     onClick={() => setViewMode('grid3')}
-                                    className={`p-1.5 rounded-md transition-all ${viewMode === 'grid3' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm border border-slate-200 dark:border-slate-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                                    className={`p-1 rounded-md transition-all ${viewMode === 'grid3' ? 'bg-white dark:bg-slate-700 text-primary shadow-xs border border-slate-200 dark:border-slate-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
                                 >
-                                    <span className="material-symbols-outlined text-xl">grid_on</span>
+                                    <span className="material-symbols-outlined text-lg">grid_on</span>
                                 </button>
                                 <button
                                     onClick={() => setViewMode('grid4')}
-                                    className={`p-1.5 rounded-md transition-all ${viewMode === 'grid4' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm border border-slate-200 dark:border-slate-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                                    className={`p-1 rounded-md transition-all ${viewMode === 'grid4' ? 'bg-white dark:bg-slate-700 text-primary shadow-xs border border-slate-200 dark:border-slate-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
                                 >
-                                    <span className="material-symbols-outlined text-xl">apps</span>
+                                    <span className="material-symbols-outlined text-lg">apps</span>
                                 </button>
                             </div>
                         </div>
@@ -990,7 +990,7 @@ const HotelListing = () => {
                         {/* Loading Sentinel */}
                         <div ref={loaderRef} className="mt-12 py-8 flex flex-col items-center justify-center gap-4">
                             {!hasMore && hotels.length > 0 && (
-                                <p className="text-sm font-black text-slate-400 uppercase tracking-widest border-t border-slate-100 dark:border-slate-800 pt-8 w-full text-center">
+                                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider border-t border-slate-100 dark:border-slate-800 pt-8 w-full text-center">
                                     {tListing('reachedEnd', currentLang)}
                                 </p>
                             )}

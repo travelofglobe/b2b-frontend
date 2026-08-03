@@ -6,6 +6,7 @@ import AgencyMultiSelect from '../components/AgencyMultiSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import AddMarkupModal from '../components/AddMarkupModal';
 import HeaderActions from '../components/HeaderActions';
+import AppleSwitch from '../components/AppleSwitch';
 
 const MK = {
   en: { title: 'Sub Agency Markups', subtitle: 'Define and manage pricing rules for sub agencies', searchPh: 'Rule name, ID...', allRules: 'All Rules', active: 'Active', passive: 'Passive', newRule: 'New Rule', colRule: 'Markup Rule', colHotels: 'Associated Hotels', colAgencies: 'Agencies / Groups', colPriority: 'Priority', colValue: 'Value', colStatus: 'Status', colActions: 'Actions', allHotels: 'All Hotels', allAgencies: 'All Agencies', noRules: 'No markup rules found', showing: 'Showing', to2: 'to', of: 'of', rules: 'rules', deleteTitle: 'Delete Markup', yesDelete: 'Yes, Delete Rule', noKeep: 'No, Keep It', failedLoad: 'Failed to load markups', failedStatus: 'Failed to update status', failedDelete: 'Failed to delete markup', deleted: 'Markup rule deleted', created: 'Markup rule created', updated: 'Markup rule updated', markedAs: 'Markup marked as' },
@@ -150,27 +151,27 @@ const SubAgencyMarkups = () => {
     };
 
     return (
-        <div className="h-full flex flex-col p-8 space-y-6 overflow-hidden">
+        <div className="h-full flex flex-col p-6 space-y-5 overflow-hidden">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none mb-2 underline decoration-primary/20 decoration-4 underline-offset-8">{L('title')}</h1>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-3">{L('subtitle')}</p>
+                    <h1 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-none mb-1.5">{L('title')}</h1>
+                    <p className="text-xs font-medium text-slate-400 mt-1">{L('subtitle')}</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <HeaderActions />
                 </div>
             </div>
 
-            <div className="relative z-[60] bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-5 rounded-[32px] border border-slate-200/50 dark:border-white/5">
-                <div className="flex flex-wrap items-center gap-4">
+            <div className="relative z-[60] bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-4 rounded-2xl border border-slate-200/50 dark:border-white/5">
+                <div className="flex flex-wrap items-center gap-3">
                     <div className="relative flex-[2] min-w-[200px]">
-                        <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+                        <span className="material-icons-round absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
                         <input 
                             type="text" 
                             placeholder={L('searchPh')} 
                             value={filters.query}
                             onChange={(e) => handleFilterChange('query', e.target.value)}
-                            className="w-full h-11 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl pl-12 pr-4 text-[11px] font-bold outline-none focus:border-primary transition-all" 
+                            className="w-full h-10 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-xl pl-10 pr-3.5 text-xs font-medium outline-none focus:border-primary transition-all" 
                         />
                     </div>
                     
@@ -184,7 +185,7 @@ const SubAgencyMarkups = () => {
                     <select 
                         value={filters.status}
                         onChange={(e) => handleFilterChange('status', e.target.value)}
-                        className="h-11 px-6 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-tight outline-none cursor-pointer focus:border-primary transition-all"
+                        className="h-10 px-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-xl text-xs font-semibold uppercase tracking-wider outline-none cursor-pointer focus:border-primary transition-all"
                     >
                         <option value="">{L('allRules')}</option>
                         <option value="ACTIVE">{L('active')}</option>
@@ -193,51 +194,51 @@ const SubAgencyMarkups = () => {
 
                     <button 
                         onClick={fetchMarkups}
-                        className={`size-11 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 transition-all text-slate-500 shadow-sm ${loading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}
+                        className={`size-10 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 transition-all text-slate-500 shadow-sm ${loading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}
                     >
                         <span className="material-icons-round text-lg">refresh</span>
                     </button>
 
                     <button 
                         onClick={() => setIsAddModalOpen(true)}
-                        className="h-11 ml-auto px-8 bg-primary text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 flex items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all"
+                        className="h-10 ml-auto px-6 bg-primary text-white rounded-xl text-xs font-semibold uppercase tracking-wider shadow-md shadow-primary/20 flex items-center gap-2 hover:bg-primary/90 active:scale-95 transition-all"
                     >
-                        <span className="material-icons-round text-lg">add</span>
+                        <span className="material-icons-round text-base">add</span>
                         {L('newRule')}
                     </button>
                 </div>
             </div>
 
-            <div className="flex-1 bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm flex flex-col">
+            <div className="flex-1 bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-2xl border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm flex flex-col">
                 <div className="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
                     <table className="w-full text-left border-separate border-spacing-0">
                         <thead>
                             <tr>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest w-16 text-center border-b border-slate-50 dark:border-white/5">ID</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 dark:border-white/5">{L('colRule')}</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 dark:border-white/5">{L('colHotels')}</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 dark:border-white/5">{L('colAgencies')}</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center w-24 border-b border-slate-50 dark:border-white/5">{L('colPriority')}</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center w-24 border-b border-slate-50 dark:border-white/5">{L('colValue')}</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center w-24 border-b border-slate-50 dark:border-white/5">{L('colStatus')}</th>
-                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right border-b border-slate-50 dark:border-white/5">{L('colActions')}</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider w-16 text-center border-b border-slate-100 dark:border-white/5">ID</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-white/5">{L('colRule')}</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-white/5">{L('colHotels')}</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-white/5">{L('colAgencies')}</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center w-24 border-b border-slate-100 dark:border-white/5">{L('colPriority')}</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center w-24 border-b border-slate-100 dark:border-white/5">{L('colValue')}</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center w-24 border-b border-slate-100 dark:border-white/5">{L('colStatus')}</th>
+                                <th className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur px-5 py-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-right border-b border-slate-100 dark:border-white/5">{L('colActions')}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50 dark:divide-white/5">
+                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
                                         {Array(8).fill(0).map((_, j) => (
-                                            <td key={j} className="px-4 py-5"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded-lg w-full"></div></td>
+                                            <td key={j} className="px-4 py-4"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded-lg w-full"></div></td>
                                         ))}
                                     </tr>
                                 ))
                             ) : markups.length > 0 ? markups.map((m) => (
                                 <tr key={m.id} className="group hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors">
-                                    <td className="px-6 py-5 text-[11px] font-black text-slate-400 text-center">#{m.id}</td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-5 py-3.5 text-xs font-semibold text-slate-400 text-center">#{m.id}</td>
+                                    <td className="px-5 py-3.5">
                                         <div className="flex flex-col">
-                                            <span className="font-black text-slate-800 dark:text-white text-[12px]">{m.name}</span>
+                                            <span className="font-semibold text-slate-800 dark:text-white text-xs">{m.name}</span>
                                             <span className="text-[10px] text-slate-400 font-bold tracking-tight mt-0.5">By: {m.updatedBy || m.createdBy}</span>
                                         </div>
                                     </td>
@@ -293,12 +294,11 @@ const SubAgencyMarkups = () => {
                                     </td>
                                     <td className="px-6 py-5">
                                         <div className="flex justify-center">
-                                            <button 
-                                                onClick={() => handleToggleStatus(m)}
-                                                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-all focus:outline-none ${m.status === 'ACTIVE' ? 'bg-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-slate-200 dark:bg-slate-700'}`}
-                                            >
-                                                <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${m.status === 'ACTIVE' ? 'translate-x-5' : 'translate-x-1'}`} />
-                                            </button>
+                                            <AppleSwitch 
+                                                checked={m.status === 'ACTIVE'}
+                                                onChange={() => handleToggleStatus(m)}
+                                                size="sm"
+                                            />
                                         </div>
                                     </td>
                                     <td className="px-6 py-5 text-right">

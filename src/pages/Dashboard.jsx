@@ -104,53 +104,54 @@ const Dashboard = () => {
                         <DashboardSearch />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    {/* Compact Dashboard Summary Stats */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
                         {/* Total Users Card */}
-                        <div className="group bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
-                                    <span className="material-icons-round text-xl">supervised_user_circle</span>
+                        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-3 rounded-xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex items-center justify-between group hover:border-primary/30 transition-all duration-300">
+                            <div className="flex items-center gap-3">
+                                <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                    <span className="material-icons-round text-lg">supervised_user_circle</span>
                                 </div>
-                                <span className="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 border border-emerald-100 dark:border-emerald-800/30">
-                                    <span className="material-icons-round text-xs">trending_up</span> Live
-                                </span>
+                                <div>
+                                    <p className="text-[9px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-1">{t('dashboard.totalUsers')}</p>
+                                    <p className="text-base font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalUsers}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">{t('dashboard.totalUsers')}</p>
-                                <h3 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">{statsLoading ? '...' : summary.totalUsers}</h3>
-                            </div>
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-semibold uppercase tracking-wider border border-emerald-500/20 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live
+                            </span>
                         </div>
 
                         {/* Active Users Card */}
-                        <div className="group bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="size-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-105 transition-transform">
-                                    <span className="material-icons-round text-xl">bolt</span>
+                        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-3 rounded-xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex items-center justify-between group hover:border-amber-500/30 transition-all duration-300">
+                            <div className="flex items-center gap-3">
+                                <div className="size-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                    <span className="material-icons-round text-lg">bolt</span>
                                 </div>
-                                <span className="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 border border-amber-100 dark:border-amber-800/30">
-                                    <span className="material-icons-round text-xs animate-pulse">sensors</span> Online
-                                </span>
+                                <div>
+                                    <p className="text-[9px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-1">{t('dashboard.activeUsers')}</p>
+                                    <p className="text-base font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.activeUsers}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">{t('dashboard.activeUsers')}</p>
-                                <h3 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">{statsLoading ? '...' : summary.activeUsers}</h3>
-                            </div>
+                            <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-semibold uppercase tracking-wider border border-amber-500/20 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Online
+                            </span>
                         </div>
 
                         {/* Total Guests Card */}
-                        <div className="group bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="size-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 group-hover:scale-105 transition-transform">
-                                    <span className="material-icons-round text-xl">group</span>
+                        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-3 rounded-xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex items-center justify-between group hover:border-purple-500/30 transition-all duration-300">
+                            <div className="flex items-center gap-3">
+                                <div className="size-8 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                    <span className="material-icons-round text-lg">group</span>
                                 </div>
-                                <span className="px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 border border-purple-100 dark:border-purple-800/30">
-                                    <span className="material-icons-round text-xs">people</span> CRM
-                                </span>
+                                <div>
+                                    <p className="text-[9px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-1">{t('dashboard.totalGuests')}</p>
+                                    <p className="text-base font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalGuests}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">{t('dashboard.totalGuests')}</p>
-                                <h3 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">{statsLoading ? '...' : summary.totalGuests}</h3>
-                            </div>
+                            <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[9px] font-semibold uppercase tracking-wider border border-purple-500/20 flex items-center gap-1">
+                                <span className="material-icons-round text-[10px]">people</span> CRM
+                            </span>
                         </div>
                     </div>
 

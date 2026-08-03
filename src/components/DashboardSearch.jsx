@@ -766,14 +766,14 @@ const DashboardSearch = () => {
                     {/* Destination Input */}
                     <div className="lg:col-span-3 relative group/field" ref={searchWrapperRef}>
                         <div className={`flex flex-col gap-0.5 px-3.5 py-2 h-[58px] bg-white/60 dark:bg-slate-800/60 rounded-xl border transition-all duration-200 ${error ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10' : 'border-slate-200/60 dark:border-slate-700/60 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm'}`}>
-                            <label className={`text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5 ${error ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`}>
+                            <label className={`text-[10px] font-medium uppercase tracking-wider flex items-center gap-1.5 ${error ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`}>
                                 <span className={`material-symbols-outlined text-[13px] ${error ? 'text-red-500' : 'text-primary'}`}>
                                     {error ? 'error' : 'location_on'}
                                 </span>
                                 {error ? ls.destinationRequired : ls.location}
                             </label>
                             <input
-                                className="bg-transparent border-none outline-none focus:ring-0 w-full p-0 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400/60 tracking-tight"
+                                className="bg-transparent border-none outline-none focus:ring-0 w-full p-0 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400/60 tracking-tight"
                                 placeholder={ls.placeholder}
                                 type="text"
                                 value={query}
@@ -851,7 +851,7 @@ const DashboardSearch = () => {
                             className="flex flex-col gap-0.5 px-3.5 py-2 h-[58px] bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 transition-all duration-200 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm cursor-pointer"
                             onClick={() => datePickerRef.current?.setOpen(true)}
                         >
-                            <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between w-full">
+                            <label className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between w-full">
                                 <div className="flex items-center gap-1.5">
                                     <span className="material-symbols-outlined text-[13px] text-primary">calendar_today</span>
                                     {ls.checkInOut}
@@ -859,7 +859,7 @@ const DashboardSearch = () => {
                                 {checkInDate && checkOutDate && (
                                     <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 animate-in fade-in">
                                         <span className="material-symbols-outlined text-[11px] leading-none">bedtime</span>
-                                        <span className="text-[9px] font-semibold uppercase tracking-tight">
+                                        <span className="text-[9px] font-medium uppercase tracking-tight">
                                             {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)) === 1 ? ls.nightSingle : ls.nights}
                                         </span>
                                     </div>
@@ -895,7 +895,7 @@ const DashboardSearch = () => {
                                     maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                                     monthsShown={2}
                                     locale={currentLang}
-                                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-xs font-semibold text-slate-900 dark:text-white cursor-pointer tracking-tight whitespace-nowrap"
+                                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-xs font-medium text-slate-900 dark:text-white cursor-pointer tracking-tight whitespace-nowrap"
                                     wrapperClassName="w-full"
                                     dateFormat="dd MMM yyyy"
                                     placeholderText={ls.placeholder}
@@ -909,7 +909,7 @@ const DashboardSearch = () => {
                     {/* Nationality Section */}
                     <div className="lg:col-span-2 relative group/field">
                         <div className="flex flex-col gap-0.5 px-3.5 py-2 h-[58px] bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 transition-all duration-200 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm">
-                            <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                            <label className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
                                 <span className="material-symbols-outlined text-[13px] text-primary">public</span>
                                 {ls.nationality}
                             </label>
@@ -925,12 +925,12 @@ const DashboardSearch = () => {
                             onClick={() => setShowGuestDropdown(!showGuestDropdown)}
                             className="w-full h-[58px] flex flex-col items-start gap-0.5 px-3.5 py-2 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm transition-all duration-200 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 text-left"
                         >
-                            <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                            <label className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
                                 <span className="material-symbols-outlined text-[13px] text-primary">group</span>
                                 {ls.occupants}
                             </label>
                             <div className="flex items-center justify-between w-full">
-                                <span className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate w-full">
+                                <span className="text-xs font-medium text-slate-900 dark:text-white tracking-tight truncate w-full">
                                     {totalAdults} {ls.adults.substring(0, 3)}, {totalChildren} {ls.children.substring(0, 3)}
                                 </span>
                                 <span className="material-symbols-outlined text-slate-400 text-base transition-transform group-hover/field:translate-y-0.5">expand_more</span>

@@ -89,7 +89,7 @@ const Dashboard = () => {
                     <header className="flex flex-wrap items-center justify-between mb-6 gap-4">
                         <div className="flex items-center gap-2">
                             <span className="material-icons-round text-primary text-xl">auto_awesome</span>
-                            <h1 className="text-lg font-medium">Welcome, <span className="font-bold">{userDisplayName}</span></h1>
+                            <h1 className="text-lg font-medium">Welcome, <span className="font-semibold">{userDisplayName}</span></h1>
                         </div>
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2 text-emerald-500 font-medium text-sm bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full">

@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { hotelService } from '../services/hotelService';
-import { useToast } from '../context/ToastContext';
 import CheckoutStepper from '../components/CheckoutStepper';
 import ConfirmationModal from '../components/ConfirmationModal';
 import CheckoutTimer from '../components/CheckoutTimer';
@@ -772,6 +771,7 @@ const CheckoutPayment = () => {
     const hasNavState = !!(navState.hotel || navState.selectedRooms);
 
     const [hotel, setHotel] = useState(navState.hotel || null);
+    const [, setTotalPrice] = useState(navState.totalPrice || null);
     const [selectedRooms, setSelectedRooms] = useState(navState.selectedRooms || null);
     const [roomState, setRoomState] = useState(navState.roomState || null);
     const [checkInDate, setCheckInDate] = useState(navState.checkInDate || null);
@@ -793,8 +793,6 @@ const CheckoutPayment = () => {
     const [isLoadingSession, setIsLoadingSession] = useState(!hasNavState && !!sessionId);
     const [showConfirmBack, setShowConfirmBack] = useState(false);
     const [pendingStepId, setPendingStepId] = useState(null);
-
-    const { error: toastError } = useToast();
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -981,15 +979,15 @@ const CheckoutPayment = () => {
                         <div className="flex-1 h-12 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl animate-pulse"></div>
                         <div className="w-32 h-12 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl animate-pulse"></div>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-                        <div className="lg:col-span-8 space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                        <div className="lg:col-span-7 space-y-6">
                             <div className="max-w-[420px] mx-auto grid grid-cols-2 gap-4">
                                 <div className="h-32 bg-slate-200/50 dark:bg-slate-800/50 rounded-3xl animate-pulse"></div>
                                 <div className="h-32 bg-slate-200/50 dark:bg-slate-800/50 rounded-3xl animate-pulse"></div>
                             </div>
                             <div className="h-80 bg-slate-200/40 dark:bg-slate-800/40 rounded-[40px] border border-slate-200/50 dark:border-slate-700/50 animate-pulse"></div>
                         </div>
-                        <div className="lg:col-span-4">
+                        <div className="lg:col-span-5">
                             <div className="h-[480px] bg-slate-200/40 dark:bg-slate-800/40 rounded-[40px] border border-slate-200/50 dark:border-slate-700/50 animate-pulse"></div>
                         </div>
                     </div>
@@ -1061,7 +1059,7 @@ const CheckoutPayment = () => {
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
             <Header />
-            <main className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-16 py-8 lg:py-10">
+            <main className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-8 lg:py-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div className="flex-1">
                         <CheckoutStepper 
@@ -1099,8 +1097,8 @@ const CheckoutPayment = () => {
                     confirmText={cl.confirm}
                 />
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                    <div className="lg:col-span-8 space-y-8">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div className="lg:col-span-7 space-y-8">
                         {/* Refined Payment Method Selection - Compact */}
                         <div className="max-w-md mx-auto mb-2">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1377,7 +1375,7 @@ const CheckoutPayment = () => {
                     </div>
 
                     {/* Sticky Reservation Summary Sidebar */}
-                    <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-4">
+                    <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
                         <div className="relative group/sidebar">
                             {/* Glass Background */}
                             <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-2xl border border-white/40 dark:border-white/10 shadow-lg transition-all duration-500"></div>

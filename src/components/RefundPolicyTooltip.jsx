@@ -77,10 +77,10 @@ const RefundPolicyTooltip = ({ isRefundable, className, textOverride }) => {
                 ref={triggerRef}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
-                className={`relative inline-flex items-center gap-1 cursor-help ${className}`}
+                className={`relative inline-flex items-center gap-1 cursor-help whitespace-nowrap shrink-0 select-none ${className}`}
             >
-                <span>{textOverride || 'Non-Refundable'}</span>
-                <span className="material-symbols-outlined text-[1.2em]">info</span>
+                <span className="whitespace-nowrap">{textOverride || 'Non-Refundable'}</span>
+                <span className="material-symbols-outlined text-[1.2em] shrink-0">info</span>
             </div>
 
             {isHovered && createPortal(

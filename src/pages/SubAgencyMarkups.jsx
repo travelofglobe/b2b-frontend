@@ -33,7 +33,7 @@ const SubAgencyMarkups = () => {
         i18n.on('languageChanged', handler);
         return () => i18n.off('languageChanged', handler);
     }, [i18n]);
-    const L = (key) => tMK(currentLang, key);
+    const L = useCallback((key) => tMK(currentLang, key), [currentLang]);
     const [loading, setLoading] = useState(false);
     const [markups, setMarkups] = useState([]);
     const [totalItems, setTotalItems] = useState(0);
@@ -52,10 +52,10 @@ const SubAgencyMarkups = () => {
     const [editMarkup, setEditMarkup] = useState(null);
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
-    const showNotification = (message, type = 'success') => {
+    const showNotification = useCallback((message, type = 'success') => {
         setToast({ show: true, message, type });
         setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
-    };
+    }, []);
 
     const fetchMarkups = useCallback(async (signal) => {
         setLoading(true);
@@ -85,7 +85,7 @@ const SubAgencyMarkups = () => {
         } finally {
             setLoading(false);
         }
-    }, [filters, L]);
+    }, [filters, L, showNotification]);
 
     useEffect(() => {
         const controller = new AbortController();

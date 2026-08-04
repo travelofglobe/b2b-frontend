@@ -2,17 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { bookingService } from '../services/bookingService';
-import { useAuth } from '../context/AuthContext';
 import HeaderActions from '../components/HeaderActions';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import StatusMultiSelect from '../components/StatusMultiSelect';
 import AgencyMultiSelect from '../components/AgencyMultiSelect';
+import * as XLSX from 'xlsx';
 import { BOOKING_STATUS_CONFIG } from '../utils/bookingStatusUtils';
 import { tMB } from '../utils/myBookingsLocales';
 
 const MyBookings = () => {
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
     const { i18n } = useTranslation();
     const [currentLang, setCurrentLang] = useState(() => {
         const raw = i18n.language || localStorage.getItem('i18nextLng') || 'en';
@@ -28,6 +27,8 @@ const MyBookings = () => {
     const L = (key) => tMB(currentLang, key);
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [isExportingExcel, setIsExportingExcel] = useState(false);
+    const [isExportingPdf, setIsExportingPdf] = useState(false);
     const [error, setError] = useState(null);
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
@@ -65,8 +66,6 @@ const MyBookings = () => {
         cancelReason: '',
         isCancelled: '',
     });
-
-    const [showFilters, setShowFilters] = useState(false);
 
     // Integrated Search Effect (Handles mount, filters, pagination, and refresh)
     useEffect(() => {
@@ -115,52 +114,41 @@ const MyBookings = () => {
         filters.isCancelled
     ]);
 
+    const buildFilterPayload = () => {
+        const filterObj = {};
+        Object.keys(filters).forEach(key => {
+            const value = filters[key];
+            if (value === '' || value === null || value === undefined || (Array.isArray(value) && value.length === 0)) {
+                filterObj[key] = null;
+            } else {
+                if (['id', 'supplierId', 'minAmount', 'maxAmount', 'minCancellationAmount', 'maxCancellationAmount', 'internalHotelId'].includes(key)) {
+                    filterObj[key] = value === '' ? null : Number(value);
+                } else if (key === 'isCancelled') {
+                    filterObj[key] = value === 'true';
+                } else if ((key.includes('checkIn') || key.includes('checkOut')) && (key.endsWith('Start') || key.endsWith('End'))) {
+                    filterObj[key] = value;
+                } else if (key === 'createDateStart') {
+                    filterObj[key] = value + 'T00:00:00';
+                } else if (key === 'createDateEnd') {
+                    filterObj[key] = value + 'T23:59:59';
+                } else if (['currencies', 'principalAgencyIds'].includes(key) && Array.isArray(value) && value.length > 0) {
+                    filterObj[key] = value;
+                } else {
+                    filterObj[key] = value;
+                }
+            }
+        });
+        return filterObj;
+    };
+
     const searchBookings = async (signal) => {
         try {
             setLoading(true);
             setError(null);
-
-            // Build filter object (matching API request structure)
-            const filterObj = {};
-            Object.keys(filters).forEach(key => {
-                const value = filters[key];
-                if (value === '' || value === null || value === undefined || (Array.isArray(value) && value.length === 0)) {
-                    filterObj[key] = null;
-                } else {
-                    // Handle numeric fields
-                    if (['id', 'supplierId', 'minAmount', 'maxAmount', 'minCancellationAmount', 'maxCancellationAmount', 'internalHotelId'].includes(key)) {
-                        filterObj[key] = value === '' ? null : Number(value);
-                    }
-                    // Handle boolean fields
-                    else if (key === 'isCancelled') {
-                        filterObj[key] = value === 'true';
-                    }
-                    // Handle Date fields (LocalDate) - No time
-                    else if ((key.includes('checkIn') || key.includes('checkOut')) && (key.endsWith('Start') || key.endsWith('End'))) {
-                        filterObj[key] = value;
-                    }
-                    // Handle DateTime fields (LocalDateTime) - with T00:00:00 or T23:59:59
-                    else if (key === 'createDateStart') {
-                        filterObj[key] = value + 'T00:00:00';
-                    }
-                    else if (key === 'createDateEnd') {
-                        filterObj[key] = value + 'T23:59:59';
-                    }
-                    // Handle List fields
-                    else if (['currencies', 'principalAgencyIds'].includes(key) && Array.isArray(value) && value.length > 0) {
-                        filterObj[key] = value;
-                    }
-                    // Default string handling (voucher, name, uuid, reference, requestId, hotelId)
-                    else {
-                        filterObj[key] = value;
-                    }
-                }
-            });
-
+            const filterObj = buildFilterPayload();
             const data = await bookingService.searchBookings(filterObj, page, pageSize, signal);
 
             if (!signal?.aborted) {
-                // Extract data from nested structure: data.bookings contains pagination info
                 const bookingsData = data.bookings || {};
                 setBookings(bookingsData.content || []);
                 setTotalPages(bookingsData.totalPages || 0);
@@ -174,6 +162,177 @@ const MyBookings = () => {
             }
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAllFilteredBookings = async () => {
+        const filterObj = buildFilterPayload();
+        // Fetch up to 10000 records matching the exact current date/filters across all pages
+        const data = await bookingService.searchBookings(filterObj, 0, 10000);
+        const bookingsData = data.bookings || {};
+        return bookingsData.content || [];
+    };
+
+    const exportToExcel = async () => {
+        if (isExportingExcel || isExportingPdf) return;
+        setIsExportingExcel(true);
+        try {
+            const allBookings = await fetchAllFilteredBookings();
+            if (!allBookings || allBookings.length === 0) {
+                alert(L('noBookings'));
+                return;
+            }
+
+            const exportData = allBookings.map(b => ({
+                [L('colId')]: b.bookingId ?? b.id ?? '',
+                [L('colVoucher')]: b.voucher ?? '-',
+                [L('colHotel')]: b.hotelName ?? '-',
+                [L('colCreated')]: formatDateTime(b.createDateTime || b.createDate),
+                [L('colCheckIn')]: formatDate(b.checkInDate || b.checkInStart),
+                [L('colCheckOut')]: formatDate(b.checkOutDate || b.checkOutEnd),
+                [L('colAmount')]: `${b.currency || ''} ${b.totalAmount != null ? Number(b.totalAmount).toFixed(2) : '0.00'}`,
+                [L('colPayment')]: b.paymentStatus ? String(b.paymentStatus).replace(/_/g, ' ') : '-',
+                [L('colStatus')]: b.bookingStatus ?? '-',
+                [L('colCancelFee')]: (b.totalCancellationAmount || b.cancellationAmount) > 0 ? `${b.currency || ''} ${Number(b.totalCancellationAmount || b.cancellationAmount).toFixed(2)}` : '-',
+                [L('colUuid')]: b.bookingUuid ?? '-',
+                [L('colAgencyName')]: b.principalAgencyName || b.agencyName || '-',
+                [L('colAgencyId')]: b.principalAgencyId ?? '-',
+                [L('colHotelId')]: b.internalHotelId ?? '-',
+                [L('colClRef')]: b.clientReferenceId ?? '-',
+                [L('colCancelled')]: b.isCancelled ? L('yes') : L('no')
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            
+            // Auto column widths for all 16 columns
+            worksheet['!cols'] = [
+                { wch: 8 },   // ID
+                { wch: 18 },  // Voucher
+                { wch: 28 },  // Hotel
+                { wch: 18 },  // Created
+                { wch: 14 },  // Check-in
+                { wch: 14 },  // Check-out
+                { wch: 14 },  // Amount
+                { wch: 20 },  // Payment
+                { wch: 16 },  // Status
+                { wch: 14 },  // Cancel Fee
+                { wch: 32 },  // UUID
+                { wch: 24 },  // Agency Name
+                { wch: 12 },  // Agency ID
+                { wch: 12 },  // Hotel ID
+                { wch: 18 },  // Client Ref
+                { wch: 12 },  // Cancelled?
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Bookings');
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `Bookings_Report_${dateStr}.xlsx`);
+        } catch (err) {
+            console.error('Excel Export Error:', err);
+            alert('Failed to export Excel: ' + (err.message || err));
+        } finally {
+            setIsExportingExcel(false);
+        }
+    };
+
+    const exportToPdf = async () => {
+        if (isExportingExcel || isExportingPdf) return;
+        setIsExportingPdf(true);
+        try {
+            const allBookings = await fetchAllFilteredBookings();
+            if (!allBookings || allBookings.length === 0) {
+                alert(L('noBookings'));
+                return;
+            }
+
+            const { jsPDF } = await import('jspdf');
+            const autoTable = (await import('jspdf-autotable')).default;
+
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            // Document Header
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Travel of Globe - Bookings Report', 10, 12);
+
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100);
+            doc.text(`Generated: ${new Date().toLocaleString()}  |  Total Matching Bookings: ${allBookings.length}`, 10, 17);
+
+            const headers = [
+                L('colId'),
+                L('colVoucher'),
+                L('colHotel'),
+                L('colCreated'),
+                L('colCheckIn'),
+                L('colCheckOut'),
+                L('colAmount'),
+                L('colPayment'),
+                L('colStatus'),
+                L('colCancelFee'),
+                L('colUuid'),
+                L('colAgencyName'),
+                L('colAgencyId'),
+                L('colHotelId'),
+                L('colClRef'),
+                L('colCancelled')
+            ];
+
+            const rows = allBookings.map(b => [
+                b.bookingId ?? b.id ?? '',
+                b.voucher ?? '-',
+                b.hotelName ?? '-',
+                formatDateTime(b.createDateTime || b.createDate),
+                formatDate(b.checkInDate || b.checkInStart),
+                formatDate(b.checkOutDate || b.checkOutEnd),
+                `${b.currency || ''} ${b.totalAmount != null ? Number(b.totalAmount).toFixed(2) : '0.00'}`,
+                b.paymentStatus ? String(b.paymentStatus).replace(/_/g, ' ') : '-',
+                b.bookingStatus ?? '-',
+                (b.totalCancellationAmount || b.cancellationAmount) > 0 ? `${b.currency || ''} ${Number(b.totalCancellationAmount || b.cancellationAmount).toFixed(2)}` : '-',
+                b.bookingUuid ?? '-',
+                b.principalAgencyName || b.agencyName || '-',
+                b.principalAgencyId ?? '-',
+                b.internalHotelId ?? '-',
+                b.clientReferenceId ?? '-',
+                b.isCancelled ? L('yes') : L('no')
+            ]);
+
+            autoTable(doc, {
+                startY: 21,
+                head: [headers],
+                body: rows,
+                theme: 'striped',
+                styles: {
+                    fontSize: 5.5,
+                    cellPadding: 1,
+                    overflow: 'linebreak'
+                },
+                headStyles: {
+                    fillColor: [15, 23, 42],
+                    textColor: [255, 255, 255],
+                    fontSize: 6,
+                    fontStyle: 'bold',
+                    halign: 'left'
+                },
+                bodyStyles: {
+                    textColor: [30, 41, 59]
+                },
+                alternateRowStyles: {
+                    fillColor: [248, 250, 252]
+                },
+                margin: { top: 21, left: 6, right: 6, bottom: 10 }
+            });
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            doc.save(`Bookings_Report_${dateStr}.pdf`);
+        } catch (err) {
+            console.error('PDF Export Error:', err);
+            alert('Failed to export PDF: ' + (err.message || err));
+        } finally {
+            setIsExportingPdf(false);
         }
     };
 
@@ -260,15 +419,6 @@ const MyBookings = () => {
         }
     };
 
-    const getInitials = (name) => {
-        if (!name) return '??';
-        const words = name.split(' ');
-        if (words.length >= 2) {
-            return (words[0][0] + words[1][0]).toUpperCase();
-        }
-        return name.substring(0, 2).toUpperCase();
-    };
-
     return (
         <>
             {/* Ambient Background Glows */}
@@ -293,6 +443,34 @@ const MyBookings = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
+                            <button
+                                onClick={exportToExcel}
+                                disabled={isExportingExcel || isExportingPdf || loading}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-lg text-xs font-semibold text-emerald-700 dark:text-emerald-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                title="Export all matching records to Excel"
+                            >
+                                {isExportingExcel ? (
+                                    <div className="size-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <span className="material-icons-round text-base">grid_on</span>
+                                )}
+                                {isExportingExcel ? L('exporting') : L('exportExcel')}
+                            </button>
+
+                            <button
+                                onClick={exportToPdf}
+                                disabled={isExportingExcel || isExportingPdf || loading}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 rounded-lg text-xs font-semibold text-rose-700 dark:text-rose-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                title="Export all matching records to PDF"
+                            >
+                                {isExportingPdf ? (
+                                    <div className="size-3.5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <span className="material-icons-round text-base">picture_as_pdf</span>
+                                )}
+                                {isExportingPdf ? L('exporting') : L('exportPdf')}
+                            </button>
+
                             <button
                                 onClick={handleSearch}
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 transition-all active:scale-95"

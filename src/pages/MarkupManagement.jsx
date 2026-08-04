@@ -57,37 +57,40 @@ const MarkupManagement = () => {
         setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
     };
 
-    const fetchMarkups = useCallback(async () => {
+    const fetchMarkups = useCallback(async (signal) => {
         setLoading(true);
         try {
             const params = {
-                ...filters,
+                page: filters.page,
+                size: filters.size,
                 query: filters.query || undefined,
                 status: filters.status || undefined,
-                agencyIds: filters.agencyIds.length > 0 ? filters.agencyIds : undefined
+                agencyIds: filters.agencyIds?.length > 0 ? filters.agencyIds : undefined
             };
-            const response = await markupService.filterMarkups(params);
-            if (response && response.markups) {
-                // Filter: Only show markups without agencies (global markups)
-                const globalMarkups = response.markups.filter(m => !m.agencies || m.agencies.length === 0);
-                setMarkups(globalMarkups);
-                setTotalItems(response.numberOfItems || 0); // Note: Pagination might be slightly off due to client-side filtering
-                setTotalPages(response.numberOfPages || 0);
-            } else {
-                setMarkups([]);
-                setTotalItems(0);
-                setTotalPages(0);
-            }
+            const response = await markupService.filterMarkups(params, signal);
+            
+            const markupsList = Array.isArray(response) 
+                ? response 
+                : (response?.markups || response?.content || response?.data || []);
+
+            // Filter: Only show markups without agencies (global markups)
+            const globalMarkups = markupsList.filter(m => !m.agencies || m.agencies.length === 0);
+            setMarkups(globalMarkups);
+            setTotalItems(response?.numberOfItems ?? globalMarkups.length);
+            setTotalPages(response?.numberOfPages ?? 1);
         } catch (error) {
+            if (error?.name === 'AbortError') return;
             console.error("Error fetching markups:", error);
             showNotification(L('failedLoad'), "error");
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, [filters, L]);
 
     useEffect(() => {
-        fetchMarkups();
+        const controller = new AbortController();
+        fetchMarkups(controller.signal);
+        return () => controller.abort();
     }, [fetchMarkups]);
 
     const handleFilterChange = (field, value) => {
@@ -146,6 +149,7 @@ const MarkupManagement = () => {
             fetchMarkups();
             setDeleteModal({ show: false, id: null, name: '', isDeleting: false });
         } catch (error) {
+            console.error("Delete error:", error);
             showNotification(L('failedDelete'), "error");
             setDeleteModal(prev => ({ ...prev, isDeleting: false }));
         }

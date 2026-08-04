@@ -79,12 +79,29 @@ const apiClient = {
                 }
             }
 
+            // Handle 403 Forbidden globally
+            if (response.status === 403) {
+                if (!window.location.pathname.includes('/forbidden') && !window.location.pathname.includes('/403')) {
+                    window.location.href = '/forbidden';
+                }
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch {
+                    errorData = null;
+                }
+                const err = new Error(errorData?.message || 'Access Forbidden (403)');
+                err.status = 403;
+                err.response = errorData;
+                throw err;
+            }
+
             // Handle other non-ok responses
             if (!response.ok) {
                 let errorData;
                 try {
                     errorData = await response.json();
-                } catch (e) {
+                } catch {
                     throw new Error(`API Error: ${response.status}`);
                 }
                 const err = new Error(errorData.message || `API Error: ${response.status}`);

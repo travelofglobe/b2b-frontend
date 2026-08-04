@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGUAGES } from '../i18n';
 
-const LanguageSwitcher = () => {
+const LanguageSwitcher = ({ mode }) => {
     const { i18n } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -32,6 +32,60 @@ const LanguageSwitcher = () => {
         localStorage.setItem('language', langCode);
         setIsOpen(false);
     };
+
+    if (mode === 'menu') {
+        return (
+            <div className="w-full border-b border-slate-100 dark:border-slate-800" ref={dropdownRef}>
+                <button
+                    type="button"
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="w-full px-4 py-3 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between transition-colors cursor-pointer"
+                >
+                    <span className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                        <span className="material-symbols-outlined text-base">language</span>
+                        Language
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-sm leading-none">{currentLanguage.flag}</span>
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{currentLanguage.name}</span>
+                        <span className={`material-symbols-outlined text-[16px] text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+                            expand_more
+                        </span>
+                    </div>
+                </button>
+
+                {isOpen && (
+                    <div className="px-2 pb-2.5 space-y-0.5 bg-slate-50/80 dark:bg-slate-900/60 max-h-52 overflow-y-auto custom-scrollbar border-t border-slate-100 dark:border-slate-800/60 pt-1.5">
+                        {SUPPORTED_LANGUAGES.map((lang) => {
+                            const isSelected = lang.code === i18n.language;
+                            return (
+                                <button
+                                    key={lang.code}
+                                    type="button"
+                                    onClick={() => handleLanguageChange(lang.code)}
+                                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                                        isSelected
+                                            ? 'bg-primary/10 text-primary dark:bg-primary/25 dark:text-blue-300 font-semibold'
+                                            : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800'
+                                    }`}
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <span className="text-base leading-none">{lang.flag}</span>
+                                        <span>{lang.name}</span>
+                                    </span>
+                                    {isSelected && (
+                                        <span className="material-symbols-outlined text-sm text-primary leading-none font-bold">
+                                            check
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        );
+    }
 
     return (
         <div className="relative" ref={dropdownRef}>

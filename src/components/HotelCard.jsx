@@ -88,7 +88,6 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
         return symbols[code] || code || '$';
     };
 
-    const displayPrice = hotel.price ? Math.round(hotel.price) : '---';
     const currencySymbol = getCurrencySymbol(hotel.currency);
 
     return (
@@ -121,15 +120,17 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                         <>
                             <button
                                 onClick={prevImg}
-                                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 size-7.5 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all border border-white/30"
+                                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 size-9 bg-black/40 hover:bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all border border-white/20 shadow-md active:scale-95 cursor-pointer"
+                                title="Previous image"
                             >
-                                <span className="material-symbols-outlined text-base">chevron_left</span>
+                                <span className="material-symbols-outlined text-xl font-bold">chevron_left</span>
                             </button>
                             <button
                                 onClick={nextImg}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 size-7.5 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all border border-white/30"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 size-9 bg-black/40 hover:bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all border border-white/20 shadow-md active:scale-95 cursor-pointer"
+                                title="Next image"
                             >
-                                <span className="material-symbols-outlined text-base">chevron_right</span>
+                                <span className="material-symbols-outlined text-xl font-bold">chevron_right</span>
                             </button>
 
                             {/* Dots Indicators */}
@@ -228,10 +229,11 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-primary/10 px-2 py-1 rounded-lg text-right shrink-0">
+                        {/* Rating badge temporarily hidden */}
+                        {/* <div className="bg-primary/10 px-2 py-1 rounded-lg text-right shrink-0">
                             <div className="text-xs font-bold text-primary leading-none">{hotel.rating}</div>
                             <div className="text-[8px] font-semibold text-primary uppercase leading-none mt-0.5">{hotel.ratingLabel}</div>
-                        </div>
+                        </div> */}
                     </div>
 
                     <div className="flex flex-wrap gap-1.5 my-2.5">

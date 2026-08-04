@@ -1010,10 +1010,10 @@ const MapView = () => {
                         </button>
                         <Link
                             to="/"
-                            className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
+                            className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
                         >
-                            <div className="w-6.5 h-6.5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-xs">
-                                <span className="material-symbols-outlined text-sm">arrow_back</span>
+                            <div className="size-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-xs shrink-0">
+                                <span className="material-symbols-outlined text-base font-bold group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
                             </div>
                             Back to Dashboard
                         </Link>
@@ -1110,13 +1110,8 @@ const MapView = () => {
                                             </p>
                                         </div>
 
-                                        <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-100/60 dark:border-slate-800/60">
-                                            <div className="flex items-center gap-1">
-                                                <div className="px-1.5 py-0.5 rounded-md bg-primary/10 flex items-center justify-center text-primary font-bold text-[9px]">
-                                                    {hotel.rating}
-                                                </div>
-                                                <span className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider leading-none">Rating</span>
-                                            </div>
+                                        <div className="flex items-center justify-end mt-2 pt-1 border-t border-slate-100/60 dark:border-slate-800/60">
+                                            {/* Rating badge temporarily hidden */}
                                             <div className="text-right">
                                                 <p className="text-sm font-bold text-primary leading-none tracking-tight">${hotel.price}</p>
                                                 <p className="text-[7px] text-slate-400 font-medium uppercase tracking-wider mt-0.5">Starting At</p>

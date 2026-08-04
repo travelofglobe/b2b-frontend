@@ -1293,14 +1293,14 @@ const CheckoutGuestDetails = () => {
         return (
             <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
                 <Header />
-                <main className="max-w-7xl mx-auto px-6 pt-6 pb-20 w-full">
+                <main className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-8 lg:py-10">
                     {/* Stepper Skeleton */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                         <div className="flex-1 h-12 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl animate-pulse"></div>
                         <div className="w-32 h-12 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl animate-pulse"></div>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-                        <div className="lg:col-span-8 space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                        <div className="lg:col-span-7 space-y-6">
                             <div className="flex gap-2">
                                 <div className="w-28 h-10 bg-slate-200/50 dark:bg-slate-800/50 rounded-xl animate-pulse"></div>
                                 <div className="w-28 h-10 bg-slate-200/50 dark:bg-slate-800/50 rounded-xl animate-pulse"></div>
@@ -1308,7 +1308,7 @@ const CheckoutGuestDetails = () => {
                             <div className="h-56 bg-slate-200/40 dark:bg-slate-800/40 rounded-3xl border border-slate-200/50 dark:border-slate-700/50 animate-pulse"></div>
                             <div className="h-56 bg-slate-200/40 dark:bg-slate-800/40 rounded-3xl border border-slate-200/50 dark:border-slate-700/50 animate-pulse"></div>
                         </div>
-                        <div className="lg:col-span-4">
+                        <div className="lg:col-span-5">
                             <div className="h-[480px] bg-slate-200/40 dark:bg-slate-800/40 rounded-[40px] border border-slate-200/50 dark:border-slate-700/50 animate-pulse"></div>
                         </div>
                     </div>
@@ -1389,7 +1389,7 @@ const CheckoutGuestDetails = () => {
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
             <Header />
-            <main className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-16 py-8 lg:py-10">
+            <main className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-8 lg:py-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div className="flex-1">
                         <CheckoutStepper 
@@ -1431,8 +1431,8 @@ const CheckoutGuestDetails = () => {
                     onSelect={handleCrmGuestSelect}
                 />
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-                    <div className="lg:col-span-8">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <div className="lg:col-span-7">
                         {/* Room Stepper */}
                         <div className="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
                             {roomsData.map((room, idx) => (
@@ -1686,7 +1686,7 @@ const CheckoutGuestDetails = () => {
                     </div>
 
                     {/* Sticky Reservation Summary Sidebar */}
-                    <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-4">
+                    <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
                         <div className="relative group/sidebar">
                             {/* Glass Background */}
                             <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-2xl border border-white/40 dark:border-white/10 shadow-lg transition-all duration-500"></div>

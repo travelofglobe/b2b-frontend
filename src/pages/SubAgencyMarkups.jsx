@@ -145,6 +145,7 @@ const SubAgencyMarkups = () => {
             fetchMarkups();
             setDeleteModal({ show: false, id: null, name: '', isDeleting: false });
         } catch (error) {
+            console.error("Delete error:", error);
             showNotification(L('failedDelete'), "error");
             setDeleteModal(prev => ({ ...prev, isDeleting: false }));
         }
@@ -371,3 +372,41 @@ const SubAgencyMarkups = () => {
                     </div>
                 </div>
             </div>
+
+            {toast.show && (
+                <div className={`fixed bottom-8 right-8 z-[50000] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl animate-in slide-in-from-right-10 duration-300 ${toast.type === 'error' ? 'bg-red-500 text-white' : 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'}`}>
+                    <span className="material-icons-round text-xl">{toast.type === 'error' ? 'error_outline' : 'check_circle_outline'}</span>
+                    <p className="text-[11px] font-black uppercase tracking-widest">{toast.message}</p>
+                </div>
+            )}
+
+            <ConfirmModal 
+                isOpen={deleteModal.show}
+                onClose={() => setDeleteModal({ ...deleteModal, show: false })}
+                onConfirm={confirmDelete}
+                isLoading={deleteModal.isDeleting}
+                title={L('deleteTitle')}
+                message={<span>Are you sure you want to delete <b>{deleteModal.name}</b>?</span>}
+                confirmText={L('yesDelete')}
+                cancelText={L('noKeep')}
+                type="danger"
+            />
+
+            <AddMarkupModal 
+                isOpen={isAddModalOpen}
+                editData={editMarkup}
+                onClose={() => {
+                    setIsAddModalOpen(false);
+                    setEditMarkup(null);
+                }}
+                onSuccess={() => {
+                    showNotification(editMarkup ? L('updated') : L('created'));
+                    fetchMarkups();
+                }}
+            />
+        </div>
+    );
+};
+
+export default SubAgencyMarkups;
+

@@ -498,6 +498,47 @@ const MyBookings = () => {
                     {/* Background Intensity Glow for Table */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[50%] bg-primary/5 blur-[150px] rounded-full pointer-events-none"></div>
 
+                    {/* Compact Summary Cards Section Above Table */}
+                    {summaries.length > 0 && (
+                        <div className="mb-4 relative z-10">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                {summaries.map((summary, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center justify-between p-2.5 px-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-xl border border-slate-200/70 dark:border-slate-800 shadow-2xs hover:border-primary/30 transition-all"
+                                    >
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <div className="size-7 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary shrink-0">
+                                                {summary.currency === 'EUR' ? (
+                                                    <span className="material-icons-round text-base">euro</span>
+                                                ) : summary.currency === 'USD' ? (
+                                                    <span className="material-icons-round text-base">attach_money</span>
+                                                ) : summary.currency === 'TRY' ? (
+                                                    <span className="material-icons-round text-base">currency_lira</span>
+                                                ) : (
+                                                    <span className="material-icons-round text-base">receipt_long</span>
+                                                )}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">{summary.currency || 'Total'}</span>
+                                                    <span className="text-[10px] text-slate-400">•</span>
+                                                    <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-200">{summary.bookingCount} {L('bookings')}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="text-right shrink-0">
+                                            <span className="text-xs font-bold text-primary">
+                                                {summary.totalAmountSum?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Table with Premium Design */}
                     <div className="relative bg-transparent transition-all duration-500">
                         <div className="overflow-x-auto">
@@ -840,66 +881,9 @@ const MyBookings = () => {
                                 </div>
                             </div>
                         )}
-                        {summaries.length > 0 && (
-                            <div className="mt-8 pl-4 pb-4 space-y-4">
-                                {/* Summary Header */}
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-base font-bold text-slate-900 dark:text-white">{L('summaryTitle')}</h3>
-                                        <p className="text-xs font-normal text-slate-500 dark:text-slate-400">{L('summarySubtitle')}</p>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                                    {summaries.map((summary, index) => (
-                                        <div
-                                            key={index}
-                                            className="group relative bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-xl border border-slate-200/80 dark:border-slate-800 p-4 hover:shadow-md transition-all duration-300"
-                                        >
-                                            {/* Top Section - Icon and Badge */}
-                                            <div className="flex items-start justify-between mb-2.5">
-                                                <div className="w-8 h-8 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
-                                                    {summary.currency === 'EUR' ? (
-                                                        <span className="material-icons-round text-primary text-lg">euro</span>
-                                                    ) : summary.currency === 'USD' ? (
-                                                        <span className="material-icons-round text-primary text-lg">attach_money</span>
-                                                    ) : summary.currency === 'TRY' ? (
-                                                        <span className="material-icons-round text-primary text-lg">currency_lira</span>
-                                                    ) : (
-                                                        <span className="material-icons-round text-primary text-lg">receipt_long</span>
-                                                    )}
-                                                </div>
-                                                <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[9px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
-                                                    {summary.currency || 'Total'}
-                                                </span>
-                                            </div>
-
-                                            {/* Booking Count */}
-                                            <div className="mb-2">
-                                                <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-0.5">{L('bookings')}</p>
-                                                <p className="text-xl font-bold text-slate-900 dark:text-white">{summary.bookingCount}</p>
-                                            </div>
-
-                                            {/* Divider */}
-                                            <div className="h-px bg-slate-100 dark:bg-slate-800 mb-2"></div>
-
-                                            {/* Amount Section */}
-                                            <div>
-                                                <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-1">{L('totalAmount')}</p>
-                                                <div className="flex items-baseline gap-1">
-                                                    <span className="text-[10px] font-semibold text-slate-400">{summary.currency}</span>
-                                                    <span className="text-base font-bold text-primary">
-                                                        {summary.totalAmountSum?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
                     </div>
-                </div >
-            </div >
+                </div>
+            </div>
         </>
     );
 };

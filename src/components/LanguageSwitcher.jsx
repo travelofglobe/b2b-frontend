@@ -30,6 +30,7 @@ const LanguageSwitcher = ({ mode }) => {
     const handleLanguageChange = (langCode) => {
         i18n.changeLanguage(langCode);
         localStorage.setItem('language', langCode);
+        localStorage.setItem('user_manual_lang_override', 'true');
         setIsOpen(false);
     };
 

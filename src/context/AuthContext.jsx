@@ -3,6 +3,8 @@ import { authService } from '../services/authService';
 import { agencyService } from '../services/agencyService';
 import { currencyService } from '../services/currencyService';
 
+import i18n from '../i18n';
+import { getCountryCodeFromName, getUserCountryCode } from '../utils/geoUtils';
 import { getTokenExpiration } from '../utils/tokenUtils';
 
 const AuthContext = createContext(null);
@@ -51,16 +53,30 @@ export const AuthProvider = ({ children }) => {
 
     // Fetch agency info (including currency) when user is authenticated
     useEffect(() => {
-        if (!user) {
-            setAgencyCurrency(null);
-            return;
-        }
+        if (!user) return;
 
         const controller = new AbortController();
         agencyService.getMe(controller.signal)
             .then(res => {
-                if (res && res.currency) {
-                    setAgencyCurrency(res.currency);
+                if (res) {
+                    if (res.currency) {
+                        setAgencyCurrency(res.currency);
+                    }
+
+                    // Store sales channel (agency) country code
+                    const countryCode = getCountryCodeFromName(res.countryName) || getUserCountryCode();
+                    if (countryCode) {
+                        localStorage.setItem('agency_country_code', countryCode);
+                    }
+
+                    // Auto-set language based on agency defaultLanguage (fallback to 'en')
+                    const rawLang = res.defaultLanguage ? String(res.defaultLanguage).trim().toLowerCase() : 'en';
+                    const targetLang = ['en', 'tr', 'ar', 'es', 'ru', 'zh', 'ja', 'fa', 'fr', 'it', 'el', 'pt'].includes(rawLang) ? rawLang : 'en';
+                    
+                    const isUserOverridden = localStorage.getItem('user_manual_lang_override');
+                    if (!isUserOverridden) {
+                        i18n.changeLanguage(targetLang);
+                    }
                 }
             })
             .catch(err => {
@@ -141,6 +157,7 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
+/* eslint-disable react-refresh/only-export-components */
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {

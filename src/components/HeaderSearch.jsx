@@ -8,6 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
 import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, formatDateForUrl } from '../utils/searchParamsUtils';
 import NationalitySelect from './NationalitySelect';
+import { getUserCountryCode } from '../utils/geoUtils';
 import { useTranslation } from 'react-i18next';
 
 // Register dynamic locales
@@ -371,7 +372,7 @@ const HeaderSearch = () => {
 
     // Nationality
     const [nationality, setNationality] = useState(() => {
-        return searchParams.get('nationality') || localStorage.getItem('dashboard_last_nationality') || 'TR';
+        return searchParams.get('nationality') || localStorage.getItem('dashboard_last_nationality') || getUserCountryCode();
     });
 
     // Initialize & sanitize search dates (guarantees checkIn is not in the past and checkOut > checkIn)

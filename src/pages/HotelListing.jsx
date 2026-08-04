@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Header from '../components/Header';
@@ -896,10 +896,10 @@ const HotelListing = () => {
                     <Breadcrumbs locationId={locationId} />
                     <Link
                         to="/"
-                        className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
+                        className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
                     >
-                        <div className="w-6.5 h-6.5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-xs">
-                            <span className="material-symbols-outlined text-sm">arrow_back</span>
+                        <div className="size-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-xs shrink-0">
+                            <span className="material-symbols-outlined text-base font-bold group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
                         </div>
                         {tListing('backToDashboard', currentLang)}
                     </Link>

@@ -1,12 +1,65 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { countries } from '../data/countries';
+import { getUserCountryCode } from '../utils/geoUtils';
+
+const PRIORITY_COUNTRY_CODES = ['GB', 'FR', 'DE', 'RU', 'US', 'CN', 'ES', 'NL', 'AT', 'JP'];
 
 const NationalitySelect = ({ value, onChange, compact = false }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const wrapperRef = useRef(null);
 
-    const selectedCountry = countries.find(c => c.code === value) || countries.find(c => c.code === 'TR');
+    // Sales channel country (or fallback user country)
+    const agencyCountryCode = useMemo(() => {
+        return localStorage.getItem('agency_country_code') || getUserCountryCode();
+    }, []);
+
+    // 1st Country: Agency/Sales channel country
+    const firstCode = agencyCountryCode || 'TR';
+    const firstCountry = useMemo(() => countries.find(c => c.code === firstCode), [firstCode]);
+
+    // 2nd Country: Always Turkey (TR) if not already 1st
+    const secondCountry = useMemo(() => {
+        if (firstCode === 'TR') return null;
+        return countries.find(c => c.code === 'TR');
+    }, [firstCode]);
+
+    // Priority popular countries (excluding 1st and 2nd)
+    const priorityCountries = useMemo(() => {
+        return PRIORITY_COUNTRY_CODES
+            .filter(code => code !== firstCode && (firstCode === 'TR' || code !== 'TR'))
+            .map(code => countries.find(c => c.code === code))
+            .filter(Boolean);
+    }, [firstCode]);
+
+    // Used codes set for top section
+    const topSectionCodes = useMemo(() => {
+        const set = new Set();
+        if (firstCountry) set.add(firstCountry.code);
+        if (secondCountry) set.add(secondCountry.code);
+        priorityCountries.forEach(c => set.add(c.code));
+        return set;
+    }, [firstCountry, secondCountry, priorityCountries]);
+
+    // Top section items list
+    const topSectionList = useMemo(() => {
+        const list = [];
+        if (firstCountry) list.push({ ...firstCountry, isAgency: true });
+        if (secondCountry) list.push(secondCountry);
+        list.push(...priorityCountries);
+        return list;
+    }, [firstCountry, secondCountry, priorityCountries]);
+
+    // Remaining countries sorted alphabetically
+    const otherCountries = useMemo(() => {
+        return countries
+            .filter(c => !topSectionCodes.has(c.code))
+            .sort((a, b) => a.name.localeCompare(b.name));
+    }, [topSectionCodes]);
+
+    const selectedCountry = useMemo(() => {
+        return countries.find(c => c.code === value) || firstCountry || countries.find(c => c.code === 'TR');
+    }, [value, firstCountry]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -18,9 +71,14 @@ const NationalitySelect = ({ value, onChange, compact = false }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const filteredCountries = countries.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const searchFilteredCountries = useMemo(() => {
+        if (!searchTerm.trim()) return [];
+        const term = searchTerm.toLowerCase();
+        return countries.filter(c =>
+            c.name.toLowerCase().includes(term) ||
+            c.code.toLowerCase().includes(term)
+        );
+    }, [searchTerm]);
 
     return (
         <div className="relative w-full" ref={wrapperRef}>
@@ -36,7 +94,7 @@ const NationalitySelect = ({ value, onChange, compact = false }) => {
             </button>
 
             {isOpen && (
-                <div className="absolute top-full left-0 mt-2 w-[240px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-2xl z-[1300] overflow-hidden">
+                <div className={`absolute top-full ${compact ? 'left-0' : '-left-3.5'} mt-2.5 w-[240px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-2xl z-[1300] overflow-hidden`}>
                     <div className="p-2 border-b border-slate-100 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
                         <div className="relative">
                             <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
@@ -51,23 +109,73 @@ const NationalitySelect = ({ value, onChange, compact = false }) => {
                         </div>
                     </div>
                     <div className="max-h-[220px] overflow-y-auto custom-scrollbar p-1">
-                        {filteredCountries.map(country => (
-                            <button
-                                key={country.code}
-                                onClick={() => {
-                                    onChange(country.code);
-                                    setIsOpen(false);
-                                }}
-                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left ${value === country.code ? 'bg-blue-50 dark:bg-blue-900/20 text-primary' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
-                            >
-                                <span className="text-lg">{country.flag}</span>
-                                <span className="text-sm font-medium truncate">{country.name}</span>
-                                {value === country.code && (
-                                    <span className="material-symbols-outlined text-primary text-sm ml-auto">check</span>
-                                )}
-                            </button>
-                        ))}
-                        {filteredCountries.length === 0 && (
+                        {!searchTerm.trim() ? (
+                            <>
+                                <div className="px-3 pt-1.5 pb-1 flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                                    <span>Popular & Priority</span>
+                                    <span className="material-symbols-outlined text-xs text-primary">star</span>
+                                </div>
+                                {topSectionList.map(country => (
+                                    <button
+                                        key={country.code}
+                                        onClick={() => {
+                                            onChange(country.code);
+                                            setIsOpen(false);
+                                        }}
+                                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left font-semibold ${value === country.code ? 'bg-primary/10 text-primary' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-white'}`}
+                                    >
+                                        <span className="text-lg">{country.flag}</span>
+                                        <span className="text-sm truncate flex-1">{country.name}</span>
+                                        {country.isAgency && (
+                                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/15 text-primary font-bold uppercase tracking-tight shrink-0">Channel</span>
+                                        )}
+                                        {value === country.code && (
+                                            <span className="material-symbols-outlined text-primary text-sm shrink-0">check</span>
+                                        )}
+                                    </button>
+                                ))}
+
+                                <div className="h-px bg-slate-100 dark:bg-slate-800 my-1.5 mx-2"></div>
+                                <div className="px-3 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                                    All Countries
+                                </div>
+                                {otherCountries.map(country => (
+                                    <button
+                                        key={country.code}
+                                        onClick={() => {
+                                            onChange(country.code);
+                                            setIsOpen(false);
+                                        }}
+                                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left ${value === country.code ? 'bg-blue-50 dark:bg-blue-900/20 text-primary' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
+                                    >
+                                        <span className="text-lg">{country.flag}</span>
+                                        <span className="text-sm font-medium truncate">{country.name}</span>
+                                        {value === country.code && (
+                                            <span className="material-symbols-outlined text-primary text-sm ml-auto">check</span>
+                                        )}
+                                    </button>
+                                ))}
+                            </>
+                        ) : (
+                            searchFilteredCountries.map(country => (
+                                <button
+                                    key={country.code}
+                                    onClick={() => {
+                                        onChange(country.code);
+                                        setIsOpen(false);
+                                    }}
+                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left ${value === country.code ? 'bg-blue-50 dark:bg-blue-900/20 text-primary' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
+                                >
+                                    <span className="text-lg">{country.flag}</span>
+                                    <span className="text-sm font-medium truncate">{country.name}</span>
+                                    {value === country.code && (
+                                        <span className="material-symbols-outlined text-primary text-sm ml-auto">check</span>
+                                    )}
+                                </button>
+                            ))
+                        )}
+
+                        {searchTerm.trim() && searchFilteredCountries.length === 0 && (
                             <div className="p-4 text-center text-xs text-slate-400 font-medium">
                                 No countries found
                             </div>

@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { autocompleteService } from '../services/autocompleteService';
-import { useToast } from '../context/ToastContext';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { enGB, tr, es, ru, zhCN, ja, faIR, fr, it, el, pt, ar } from 'date-fns/locale';
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
-import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, formatDateForUrl } from '../utils/searchParamsUtils';
+import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates } from '../utils/searchParamsUtils';
 import { useTranslation } from 'react-i18next';
 
+import { getUserCountryCode } from '../utils/geoUtils';
 import NationalitySelect from './NationalitySelect';
+
+// Rest of imports...
 
 // Register dynamic locales
 registerLocale('en', enGB);
@@ -358,7 +360,6 @@ const DashboardSearch = () => {
     const ls = searchLocales[currentLang] || searchLocales['en'];
     
     const navigate = useNavigate();
-    const { error: toastError } = useToast(); // Renamed to avoid conflict with local 'error' state
     const [searchParams] = useSearchParams();
 
     // Initialize state from URL params or defaults
@@ -368,7 +369,7 @@ const DashboardSearch = () => {
 
     // Nationality State
     const [nationality, setNationality] = useState(() => {
-        return searchParams.get('nationality') || localStorage.getItem('dashboard_last_nationality') || 'TR';
+        return searchParams.get('nationality') || localStorage.getItem('dashboard_last_nationality') || getUserCountryCode();
     });
 
     const [results, setResults] = useState({ hotels: [], regions: [] });
@@ -913,7 +914,7 @@ const DashboardSearch = () => {
                                 <span className="material-symbols-outlined text-[13px] text-primary">public</span>
                                 {ls.nationality}
                             </label>
-                            <div className="flex-1 -mt-1 scale-[0.95] origin-left">
+                            <div className="flex-1 mt-0.5">
                                 <NationalitySelect value={nationality} onChange={setNationality} compact={false} />
                             </div>
                         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { COMMON, getLang } from '../utils/sharedLocales';
 import { useTranslation } from 'react-i18next';
 import Header from '../components/Header';
@@ -30,113 +30,126 @@ const CheckoutResult = () => {
     const { i18n } = useTranslation();
     const { currencySymbolMap } = useAuth();
     const [currentLang, setCurrentLang] = useState(() => (i18n.language || localStorage.getItem('i18nextLng') || 'en').split('-')[0].toLowerCase());
+    
     useEffect(() => {
-        setCurrentLang((i18n.language || 'en').split('-')[0].toLowerCase());
         const handler = (lng) => setCurrentLang((lng || 'en').split('-')[0].toLowerCase());
         i18n.on('languageChanged', handler);
         return () => i18n.off('languageChanged', handler);
     }, [i18n]);
+    
     const L = (key) => tCR(currentLang, key);
 
-
-
     const isSuccess = ['NEW', 'CONFIRMED'].includes(bookingResponse?.status) && bookingResponse?.voucher;
-    const bookingRef = bookingResponse?.voucher || bookingResponse?.clientReferenceId || ("TOG" + Math.random().toString(36).substring(2, 8).toUpperCase());
+    const bookingRef = bookingResponse?.voucher || bookingResponse?.clientReferenceId || "TOG-REF-SUCCESS";
 
-    if (!hotel) return <div className="p-20 text-center">{L('noSession')}</div>;
+    if (!hotel) return (
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col justify-between">
+            <Header />
+            <div className="p-12 text-center text-sm font-semibold text-slate-500">{L('noSession')}</div>
+            <Footer />
+        </div>
+    );
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
+        <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-white font-sans flex flex-col justify-between">
             <Header />
-            <main className="max-w-4xl mx-auto px-6 pt-10 pb-20 text-center">
-                <div className="relative mb-8">
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-0.5 bg-gradient-to-r from-transparent via-primary/10 to-transparent"></div>
-                    <div className={`relative size-16 mx-auto rounded-full ${isSuccess ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-rose-500 shadow-rose-500/20'} text-white flex items-center justify-center shadow-xl animate-in zoom-in duration-700`}>
-                        <span className="material-symbols-outlined text-3xl">{isSuccess ? 'done_all' : 'error'}</span>
+            
+            <main className="max-w-3xl mx-auto px-4 py-8 sm:py-12 w-full flex-1">
+                {/* Header status icon & title */}
+                <div className="text-center mb-8">
+                    <div className={`size-14 mx-auto rounded-full ${isSuccess ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'} flex items-center justify-center mb-3 shadow-sm`}>
+                        <span className="material-symbols-outlined text-2xl">{isSuccess ? 'check_circle' : 'error'}</span>
                     </div>
+
+                    <h1 className={`text-xl sm:text-2xl font-bold tracking-tight mb-1 ${isSuccess ? 'text-slate-900 dark:text-white' : 'text-rose-600 dark:text-rose-400'}`}>
+                        {isSuccess ? L('confirmed') : L('failed')}
+                    </h1>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        {isSuccess ? L('successMsg') : L('failMsg')}
+                    </p>
                 </div>
 
-                <h1 className={`text-3xl sm:text-4xl font-black uppercase tracking-tight mb-3 animate-in slide-in-from-bottom-4 duration-700 delay-100 ${isSuccess ? 'text-slate-900 dark:text-white' : 'text-rose-500'}`}>
-                    {isSuccess ? L('confirmed') : L('failed')}
-                </h1>
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-10 animate-in slide-in-from-bottom-4 duration-700 delay-200">
-                    {isSuccess ? L('successMsg') : L('failMsg')}
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 text-left">
-                    <div className="p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl animate-in slide-in-from-left-4 duration-700 delay-300">
-                        <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-sm">confirmation_number</span>
-                            {L('bookingRef')}
-                        </h2>
-                        <div className="mb-10 bg-slate-50 dark:bg-slate-800/40 p-5 rounded-[32px] border border-slate-100 dark:border-slate-800">
-                            <Link
-                                to={isSuccess ? `/bookings/${bookingRef}/voucher` : '/bookings'}
-                                title={isSuccess ? L('viewDetails') : L('goBookings')}
-                                className="inline-flex items-center gap-2 text-xl lg:text-2xl font-black text-primary hover:text-primary-dark dark:hover:text-primary-light tracking-tighter mb-2 hover:underline decoration-primary/50 underline-offset-4 cursor-pointer transition-all group max-w-full overflow-hidden"
-                            >
-                                <span className="truncate whitespace-nowrap">{isSuccess ? bookingRef : L('allBookings')}</span>
-                                <span className="material-symbols-outlined text-xl group-hover:translate-x-1 duration-200 transition-transform select-none shrink-0">
-                                    arrow_right_alt
-                                </span>
-                            </Link>
-                            <p className={`text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-2 mt-1 ${isSuccess ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                <div className={`size-1.5 rounded-full ${isSuccess ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></div>
-                                {isSuccess ? L('verified') : L('actionRequired')}
-                            </p>
-                        </div>
-                        <div className="space-y-6 pt-2">
-                            <div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">{L('property')}</p>
-                                <p className="text-lg font-black uppercase tracking-tight">{hotel.name}</p>
+                {/* Details Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                    {/* Reservation Summary Card */}
+                    <div className="p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div className="flex items-center gap-2 mb-4 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                                <span className="material-symbols-outlined text-sm text-primary">confirmation_number</span>
+                                <h2>{L('bookingRef')}</h2>
                             </div>
-                            <div className="flex justify-between">
-                                <div>
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">{L('totalAmount')}</p>
-                                    <p className="text-xl font-black text-primary">
-                                        {getCurrencySymbol(displayCurrency, currencySymbolMap)} {totalPrice ? totalPrice.toFixed(2) : '0.00'}
-                                    </p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">{L('status')}</p>
-                                    <span className={`px-3 py-1 text-white text-[10px] font-black rounded-lg uppercase tracking-widest ${isSuccess ? 'bg-emerald-500' : 'bg-red-500'}`}>
-                                        {isSuccess ? 'PAID' : 'FAILED'}
+
+                            <div className="mb-5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                                <Link
+                                    to={isSuccess ? `/bookings/${bookingRef}/voucher` : '/bookings'}
+                                    title={isSuccess ? L('viewDetails') : L('goBookings')}
+                                    className="inline-flex items-center gap-1.5 text-lg font-bold text-primary hover:text-primary-dark dark:hover:text-primary-light transition-colors group truncate max-w-full"
+                                >
+                                    <span className="truncate">{isSuccess ? bookingRef : L('allBookings')}</span>
+                                    <span className="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform shrink-0">
+                                        arrow_forward
                                     </span>
+                                </Link>
+                                <div className={`text-[11px] font-semibold flex items-center gap-1.5 mt-1 ${isSuccess ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                    <span className={`size-1.5 rounded-full ${isSuccess ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></span>
+                                    {isSuccess ? L('verified') : L('actionRequired')}
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-0.5">{L('property')}</p>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{hotel.name}</p>
+                                </div>
+
+                                <div className="flex justify-between items-end pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                                    <div>
+                                        <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-0.5">{L('totalAmount')}</p>
+                                        <p className="text-base font-bold text-primary">
+                                            {getCurrencySymbol(displayCurrency, currencySymbolMap)} {totalPrice ? totalPrice.toFixed(2) : '0.00'}
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wide mb-0.5">{L('status')}</p>
+                                        <span className={`px-2.5 py-0.5 text-white text-[11px] font-semibold rounded-md ${isSuccess ? 'bg-emerald-500' : 'bg-rose-500'}`}>
+                                            {isSuccess ? 'PAID' : 'FAILED'}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl animate-in slide-in-from-right-4 duration-700 delay-400">
-                        <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-sm">group</span>
-                            {L('travelerBreakdown')}
-                        </h2>
-                        <div className="space-y-8 max-h-[350px] overflow-y-auto pr-4 custom-scrollbar">
+                    {/* Traveler Breakdown Card */}
+                    <div className="p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex flex-col">
+                        <div className="flex items-center gap-2 mb-4 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                            <span className="material-symbols-outlined text-sm text-primary">group</span>
+                            <h2>{L('travelerBreakdown')}</h2>
+                        </div>
+
+                        <div className="space-y-4 max-h-[280px] overflow-y-auto pr-1 custom-scrollbar flex-1">
                             {roomsData?.map((room, rIdx) => (
-                                <div key={rIdx} className="space-y-4">
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">{L('room')} {rIdx + 1}: {room.roomName}</p>
+                                <div key={rIdx} className="space-y-2.5">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <p className="text-xs font-semibold text-primary break-words flex-1 min-w-0">{L('room')} {rIdx + 1}: {room.roomName}</p>
                                         {room.hubRateModel && room.hubRateModel.refundable !== undefined && (
                                             <RefundPolicyTooltip
                                                 isRefundable={room.hubRateModel.refundable}
-                                                className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider ${room.hubRateModel.refundable ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'}`}
+                                                className={`text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wider whitespace-nowrap shrink-0 ${room.hubRateModel.refundable ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-600 border border-orange-500/20'}`}
                                             />
                                         )}
                                     </div>
-                                    <div className="space-y-3">
+                                    <div className="space-y-2">
                                         {room.guests.map((guest, gIdx) => (
-                                            <div key={gIdx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-                                                <div className="flex justify-between items-start mb-1">
-                                                    <p className="text-sm font-black uppercase tracking-tight">{guest.firstName} {guest.lastName}</p>
-                                                    <span className="text-[8px] font-black px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-500 uppercase">{guest.type}</span>
+                                            <div key={gIdx} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                                <div className="flex justify-between items-center">
+                                                    <p className="text-xs font-bold text-slate-900 dark:text-white">{guest.firstName} {guest.lastName}</p>
+                                                    <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-slate-200/70 dark:bg-slate-700 text-slate-600 dark:text-slate-300 uppercase">{guest.type}</span>
                                                 </div>
-                                                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-                                                    <p className="text-[9px] font-bold text-slate-400 uppercase">
-                                                        {guest.gender} • {guest.birthDate}
-                                                    </p>
-                                                    {guest.email && <p className="text-[9px] font-bold text-primary uppercase">{guest.email}</p>}
-                                                    {guest.phone && <p className="text-[9px] font-bold text-slate-500 uppercase">{guest.phone}</p>}
+                                                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                                                    <span>{guest.gender} • {guest.birthDate}</span>
+                                                    {guest.email && <span className="text-primary truncate">{guest.email}</span>}
+                                                    {guest.phone && <span>{guest.phone}</span>}
                                                 </div>
                                             </div>
                                         ))}
@@ -147,24 +160,27 @@ const CheckoutResult = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-in fade-in duration-1000 delay-500">
+                {/* Bottom Actions */}
+                <div className="flex items-center justify-center gap-3">
                     <Link
                         to="/dashboard"
-                        className="px-12 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[24px] font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all"
+                        className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl font-semibold text-xs shadow-md transition-all flex items-center gap-1.5"
                     >
+                        <span className="material-symbols-outlined text-base">dashboard</span>
                         {L('dashboard')}
                     </Link>
                     {isSuccess && (
                         <button
                             onClick={() => window.print()}
-                            className="px-8 py-5 rounded-[24px] font-black text-xs uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-2 border border-slate-200 dark:border-slate-800"
+                            className="px-4 py-2.5 rounded-xl font-semibold text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 shadow-sm"
                         >
-                            <span className="material-symbols-outlined text-sm">print</span>
+                            <span className="material-symbols-outlined text-base">print</span>
                             {L('printVoucher')}
                         </button>
                     )}
                 </div>
             </main>
+
             <Footer />
         </div>
     );

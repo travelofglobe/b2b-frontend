@@ -21,6 +21,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import PortalLayout from './layouts/PortalLayout';
 import VoucherPage from './pages/VoucherPage';
 import { AuthProvider } from './context/AuthContext';
+import SessionExpiryWarning from './components/SessionExpiryWarning';
 import ForbiddenPage from './pages/ForbiddenPage';
 import './index.css';
 

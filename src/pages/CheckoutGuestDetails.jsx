@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Header from '../components/Header';
@@ -31,51 +31,75 @@ const crmLocales = {
 const confirmLocales = {
     en: {
         title: "Are you sure?",
-        message: "If you return to room selection, all entered guest details will be lost."
+        message: "If you return to room selection, all entered guest details will be lost.",
+        cancel: "Cancel",
+        confirm: "Yes, Continue"
     },
     tr: {
         title: "Emin misiniz?",
-        message: "Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir."
+        message: "Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir.",
+        cancel: "İptal",
+        confirm: "Evet, Devam Et"
     },
     ar: {
         title: "هل أنت متأكد؟",
-        message: "إذا عدت إلى اختيار الغرفة، فستفقد جميع تفاصيل النزلاء التي تم إدخالها."
+        message: "إذا عدت إلى اختيار الغرفة، فستفقد جميع تفاصيل النزلاء التي تم إدخالها.",
+        cancel: "إلغاء",
+        confirm: "نعم، استمر"
     },
     es: {
         title: "¿Está seguro?",
-        message: "Si regresa a la selección de habitación, se perderán todos los datos ingresados de los huéspedes."
+        message: "Si regresa a la selección de habitación, se perderán todos los datos ingresados de los huéspedes.",
+        cancel: "Cancelar",
+        confirm: "Sí, continuar"
     },
     ru: {
         title: "Вы уверены?",
-        message: "Если вы вернетесь к выбору номера, все введенные данные гостей будут утеряны."
+        message: "Если вы вернетесь к выбору номера, все введенные данные гостей будут утеряны.",
+        cancel: "Отмена",
+        confirm: "Да, продолжить"
     },
     zh: {
         title: "您确定吗？",
-        message: "如果您返回选择客房，所有已输入的旅客信息都将丢失。"
+        message: "如果您返回选择客房，所有已输入的旅客信息都将丢失。",
+        cancel: "取消",
+        confirm: "是的，继续"
     },
     ja: {
         title: "よろしいですか？",
-        message: "客室選択に戻ると、入力されたすべての宿泊者情報が失われます。"
+        message: "客室選択に戻ると、入力されたすべての宿泊者情報が失われます。",
+        cancel: "キャンセル",
+        confirm: "はい、続行します"
     },
     fa: {
         title: "آیا مطمئن هستید؟",
-        message: "در صورت بازگشت به انتخاب اتاق، تمام اطلاعات وارد شده مهمانان پاک خواهد شد."
+        message: "در صورت بازگشت به انتخاب اتاق، تمام اطلاعات وارد شده مهمانان پاک خواهد شد.",
+        cancel: "لغو",
+        confirm: "بله، ادامه دهید"
     },
     fr: {
         title: "Êtes-vous sûr ?",
-        message: "Si vous retournez au choix de la chambre, toutes les coordonnées des voyageurs saisies seront perdues."
+        message: "Si vous retournez au choix de la chambre, toutes les coordonnées des voyageurs saisies seront perdues.",
+        cancel: "Annuler",
+        confirm: "Oui, continuer"
     },
     it: {
         title: "Sei sicuro?",
-        message: "Se torni alla scelta della camera, tutti i dettagli degli ospiti inseriti andranno persi."
+        message: "Se torni alla scelta della camera, tutti i dettagli degli ospiti inseriti andranno persi.",
+        cancel: "Annulla",
+        confirm: "Sì, continua"
     },
     el: {
         title: "Είστε σίγουροι;",
-        message: "Εάν επιστρέψετε στην επιλογή δωματίου, όλα τα στοιχεία επισκεπτών που καταχωρίσατε θα χαθούν."
+        message: "Εάν επιστρέψετε στην επιλογή δωματίου, όλα τα στοιχεία επισκεπτών που καταχωρίσατε θα χαθούν.",
+        cancel: "Ακύρωση",
+        confirm: "Ναι, συνέχεια"
     },
     pt: {
         title: "Tem certeza?",
-        message: "Se você retornar à seleção de quartos, todos os detalhes do hóspede inseridos serão perdidos."
+        message: "Se você retornar à seleção de quartos, todos os detalhes do hóspede inseridos serão perdidos.",
+        cancel: "Cancelar",
+        confirm: "Sim, continuar"
     }
 };
 
@@ -1397,6 +1421,8 @@ const CheckoutGuestDetails = () => {
                     }}
                     title={cl.title}
                     message={cl.message}
+                    cancelText={cl.cancel}
+                    confirmText={cl.confirm}
                 />
 
                 <CrmGuestSelectionModal
@@ -1504,7 +1530,7 @@ const CheckoutGuestDetails = () => {
                                                         if (val) {
                                                             const year = parseInt(val.split('-')[0], 10);
                                                             if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
-                                                                 handleInputChange(activeRoomIdx, gIdx, 'birthDate', '');
+                                                                handleInputChange(activeRoomIdx, gIdx, 'birthDate', '');
                                                             }
                                                         }
                                                     }}
@@ -1518,24 +1544,50 @@ const CheckoutGuestDetails = () => {
                                                     </p>
                                                 )}
                                             </div>
+
                                             <div className="space-y-1">
                                                 <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-0.5 mb-1 block">{tSummary('gender', currentLang)}</label>
                                                 <div
                                                     data-field={`${activeRoomIdx}-${gIdx}-gender`}
-                                                    className={`grid grid-cols-2 gap-1 p-0.5 rounded-xl h-9 items-center border ${errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} bg-slate-50/80 dark:bg-slate-800/80`}>
+                                                    className={`relative p-1 rounded-xl h-10 flex items-center border transition-all duration-300 ${
+                                                        errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-red-500 ring-2 ring-red-500/10' : 'border-slate-200/90 dark:border-slate-700/80'
+                                                    } bg-slate-100/90 dark:bg-slate-800/90`}
+                                                >
+                                                    {/* Animated Sliding Background Indicator */}
+                                                    <div
+                                                        className={`absolute top-1 bottom-1 w-[calc(50%-6px)] rounded-lg transition-all duration-300 ease-out shadow-xs ${
+                                                            guest.gender === 'male'
+                                                                ? 'left-1 bg-blue-600 opacity-100 scale-100'
+                                                                : guest.gender === 'female'
+                                                                ? 'left-[calc(50%+2px)] bg-pink-500 opacity-100 scale-100'
+                                                                : 'left-1 bg-transparent opacity-0 scale-95'
+                                                        }`}
+                                                    />
+
                                                     <button
                                                         type="button"
                                                         onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'male')}
-                                                        className={`h-full flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${guest.gender === 'male' ? 'bg-primary text-white shadow-xs' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                                        className={`relative z-10 w-1/2 h-full flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer active:scale-95 ${
+                                                            guest.gender === 'male'
+                                                                ? 'text-white'
+                                                                : 'text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400'
+                                                        }`}
                                                     >
-                                                        <span className="material-symbols-outlined text-sm">male</span> {tSummary('male', currentLang)}
+                                                        <span className={`material-symbols-outlined text-base transition-transform duration-300 ${guest.gender === 'male' ? 'scale-110' : 'scale-100 opacity-70'}`}>male</span>
+                                                        <span>{tSummary('male', currentLang)}</span>
                                                     </button>
+
                                                     <button
                                                         type="button"
                                                         onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'female')}
-                                                        className={`h-full flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${guest.gender === 'female' ? 'bg-primary text-white shadow-xs' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                                        className={`relative z-10 w-1/2 h-full flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer active:scale-95 ${
+                                                            guest.gender === 'female'
+                                                                ? 'text-white'
+                                                                : 'text-slate-500 dark:text-slate-400 hover:text-pink-500 dark:hover:text-pink-400'
+                                                        }`}
                                                     >
-                                                        <span className="material-symbols-outlined text-sm">female</span> {tSummary('female', currentLang)}
+                                                        <span className={`material-symbols-outlined text-base transition-transform duration-300 ${guest.gender === 'female' ? 'scale-110' : 'scale-100 opacity-70'}`}>female</span>
+                                                        <span>{tSummary('female', currentLang)}</span>
                                                     </button>
                                                 </div>
                                             </div>

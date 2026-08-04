@@ -14,51 +14,75 @@ import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 const confirmLocales = {
     en: {
         title: "Are you sure?",
-        message: "If you return to room selection, all entered guest details will be lost."
+        message: "If you return to room selection, all entered guest details will be lost.",
+        cancel: "Cancel",
+        confirm: "Yes, Continue"
     },
     tr: {
         title: "Emin misiniz?",
-        message: "Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir."
+        message: "Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir.",
+        cancel: "İptal",
+        confirm: "Evet, Devam Et"
     },
     ar: {
         title: "هل أنت متأكد؟",
-        message: "إذا عدت إلى اختيار الغرفة، فستفقد جميع تفاصيل النزلاء التي تم إدخالها."
+        message: "إذا عدت إلى اختيار الغرفة، فستفقد جميع تفاصيل النزلاء التي تم إدخالها.",
+        cancel: "إلغاء",
+        confirm: "نعم، استمر"
     },
     es: {
         title: "¿Está seguro?",
-        message: "Si regresa a la selección de habitación, se perderán todos los datos ingresados de los huéspedes."
+        message: "Si regresa a la selección de habitación, se perderán todos los datos ingresados de los huéspedes.",
+        cancel: "Cancelar",
+        confirm: "Sí, continuar"
     },
     ru: {
         title: "Вы уверены?",
-        message: "Если вы вернетесь к выбору номера, все введенные данные гостей будут утеряны."
+        message: "Если вы вернетесь к выбору номера, все введенные данные гостей будут утеряны.",
+        cancel: "Отмена",
+        confirm: "Да, продолжить"
     },
     zh: {
         title: "您确定吗？",
-        message: "如果您返回选择客房，所有已输入的旅客信息都将丢失。"
+        message: "如果您返回选择客房，所有已输入的旅客信息都将丢失。",
+        cancel: "取消",
+        confirm: "是的，继续"
     },
     ja: {
         title: "よろしいですか？",
-        message: "客室選択に戻ると、入力されたすべての宿泊者情報が失われます。"
+        message: "客室選択に戻ると、入力されたすべての宿泊者情報が失われます。",
+        cancel: "キャンセル",
+        confirm: "はい、続行します"
     },
     fa: {
         title: "آیا مطمئن هستید؟",
-        message: "در صورت بازگشت به انتخاب اتاق، تمام اطلاعات وارد شده مهمانان پاک خواهد شد."
+        message: "در صورت بازگشت به انتخاب اتاق، تمام اطلاعات وارد شده مهمانان پاک خواهد شد.",
+        cancel: "لغو",
+        confirm: "بله، ادامه دهید"
     },
     fr: {
         title: "Êtes-vous sûr ?",
-        message: "Si vous retournez au choix de la chambre, toutes les coordonnées des voyageurs saisies seront perdues."
+        message: "Si vous retournez au choix de la chambre, toutes les coordonnées des voyageurs saisies seront perdues.",
+        cancel: "Annuler",
+        confirm: "Oui, continuer"
     },
     it: {
         title: "Sei sicuro?",
-        message: "Se torni alla scelta della camera, tutti i dettagli degli ospiti inseriti andranno persi."
+        message: "Se torni alla scelta della camera, tutti i dettagli degli ospiti inseriti andranno persi.",
+        cancel: "Annulla",
+        confirm: "Sì, continua"
     },
     el: {
         title: "Είστε σίγουροι;",
-        message: "Εάν επιστρέψετε στην επιλογή δωματίου, όλα τα στοιχεία επισκεπτών που καταχωρίσατε θα χαθούν."
+        message: "Εάν επιστρέψετε στην επιλογή δωματίου, όλα τα στοιχεία επισκεπτών που καταχωρίσατε θα χαθούν.",
+        cancel: "Ακύρωση",
+        confirm: "Ναι, συνέχεια"
     },
     pt: {
         title: "Tem certeza?",
-        message: "Se você retornar à seleção de quartos, todos os detalhes do hóspede inseridos serão perdidos."
+        message: "Se você retornar à seleção de quartos, todos os detalhes do hóspede inseridos serão perdidos.",
+        cancel: "Cancelar",
+        confirm: "Sim, continuar"
     }
 };
 const CHECKOUT_SUMMARY_LOCALES = {
@@ -748,7 +772,6 @@ const CheckoutPayment = () => {
     const hasNavState = !!(navState.hotel || navState.selectedRooms);
 
     const [hotel, setHotel] = useState(navState.hotel || null);
-    const [totalPrice, setTotalPrice] = useState(navState.totalPrice || null);
     const [selectedRooms, setSelectedRooms] = useState(navState.selectedRooms || null);
     const [roomState, setRoomState] = useState(navState.roomState || null);
     const [checkInDate, setCheckInDate] = useState(navState.checkInDate || null);
@@ -892,7 +915,7 @@ const CheckoutPayment = () => {
                 rateSearchUuid: finalRateSearchUuid || '',
                 rooms: roomsData.map((room, roomIdx) => ({
                     rateCode: room.hubRateModel?.rateCode,
-                    occupancies: room.guests.map((guest, guestIdx) => ({
+                    occupancies: room.guests.map((guest) => ({
                         roomId: roomIdx + 1, // Sequential room identifier
                         type: guest.type === 'Adult' ? 'ADULT' : 'CHILD',
                         gender: guest.gender === 'male' ? 'MALE' : (guest.gender === 'female' ? 'FEMALE' : 'UNDEFINED'),
@@ -1072,6 +1095,8 @@ const CheckoutPayment = () => {
                     }}
                     title={cl.title}
                     message={cl.message}
+                    cancelText={cl.cancel}
+                    confirmText={cl.confirm}
                 />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">

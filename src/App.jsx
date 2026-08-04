@@ -21,7 +21,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import PortalLayout from './layouts/PortalLayout';
 import VoucherPage from './pages/VoucherPage';
 import { AuthProvider } from './context/AuthContext';
-import SessionExpiryWarning from './components/SessionExpiryWarning';
+import ForbiddenPage from './pages/ForbiddenPage';
 import './index.css';
 
 function App() {
@@ -65,6 +65,10 @@ function App() {
             <Route path="/hotel/checkout/guests" element={<ProtectedRoute><CheckoutGuestDetails /></ProtectedRoute>} />
             <Route path="/hotel/checkout/payment" element={<ProtectedRoute><CheckoutPayment /></ProtectedRoute>} />
             <Route path="/hotel/checkout/result" element={<ProtectedRoute><CheckoutResult /></ProtectedRoute>} />
+
+            {/* Error / Forbidden Pages */}
+            <Route path="/forbidden" element={<ProtectedRoute><ForbiddenPage /></ProtectedRoute>} />
+            <Route path="/403" element={<ProtectedRoute><ForbiddenPage /></ProtectedRoute>} />
             {/* Redirect root to hotels (ProtectedRoute will handle auth check) */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>

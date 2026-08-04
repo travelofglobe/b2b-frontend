@@ -4,9 +4,9 @@ const HotelCardSkeleton = ({ viewMode = 'list' }) => {
     const isList = viewMode === 'list';
 
     return (
-        <div className={`group bg-white dark:bg-[#111a22] rounded-2xl border border-slate-200 dark:border-[#233648] shadow-sm flex animate-pulse ${isList ? 'flex-col md:flex-row' : 'flex-col'}`}>
+        <div className={`group bg-white dark:bg-[#111a22] rounded-xl border border-slate-200 dark:border-[#233648] shadow-xs flex animate-pulse ${isList ? 'flex-col md:flex-row' : 'flex-col'}`}>
             {/* Image Skeleton */}
-            <div className={`relative overflow-hidden ${isList ? 'rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none h-64 md:h-auto md:w-[400px] shrink-0' : 'rounded-t-2xl h-60'}`}>
+            <div className={`relative overflow-hidden ${isList ? 'rounded-t-xl md:rounded-l-xl md:rounded-tr-none h-52 md:h-auto md:w-[330px] lg:w-[350px] shrink-0' : 'rounded-t-xl h-52'}`}>
                 <div className="w-full h-full animate-shimmer" />
                 
                 {/* Badge Skeletons */}
@@ -19,52 +19,52 @@ const HotelCardSkeleton = ({ viewMode = 'list' }) => {
             </div>
 
             {/* Content Skeleton */}
-            <div className="p-6 flex-1 flex flex-col justify-between">
+            <div className="p-4 sm:p-4.5 flex-1 flex flex-col justify-between">
                 <div>
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1 mr-4">
+                    <div className="flex justify-between items-start mb-1">
+                        <div className="flex-1 mr-3">
                             {/* Stars & Category */}
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="flex gap-1">
+                            <div className="flex items-center gap-1 mb-1">
+                                <div className="flex gap-0.5">
                                     {[...Array(5)].map((_, i) => (
-                                        <div key={i} className="size-3 rounded-full animate-shimmer" />
+                                        <div key={i} className="size-2.5 rounded-full animate-shimmer" />
                                     ))}
                                 </div>
-                                <div className="w-16 h-3 rounded animate-shimmer" />
+                                <div className="w-12 h-2.5 rounded animate-shimmer ml-1" />
                             </div>
-                            
+
                             {/* Hotel Name */}
-                            <div className={`h-8 rounded-lg animate-shimmer mb-3 ${isList ? 'w-3/4' : 'w-full'}`} />
-                            
+                            <div className={`h-6 rounded animate-shimmer mb-1 ${isList ? 'w-3/4' : 'w-full'}`} />
+
                             {/* Location */}
-                            <div className="flex items-center gap-2">
-                                <div className="size-4 rounded animate-shimmer" />
-                                <div className="h-4 w-1/2 rounded animate-shimmer" />
+                            <div className="flex items-center gap-1 mt-1">
+                                <div className="size-3 rounded animate-shimmer" />
+                                <div className="h-3 w-1/2 rounded animate-shimmer" />
                             </div>
                         </div>
-                        
+
                         {/* Rating Badge Skeleton */}
-                        <div className="w-12 h-12 rounded-xl animate-shimmer shrink-0" />
+                        <div className="w-10 h-9 rounded-lg animate-shimmer shrink-0" />
                     </div>
 
                     {/* Amenities Skeleton */}
-                    <div className="flex flex-wrap gap-2 my-6">
-                        {[...Array(6)].map((_, i) => (
-                            <div key={i} className="size-8 rounded-xl animate-shimmer" />
+                    <div className="flex flex-wrap gap-1.5 my-2.5">
+                        {[...Array(8)].map((_, i) => (
+                            <div key={i} className="size-6.5 rounded-md animate-shimmer" />
                         ))}
                     </div>
                 </div>
 
-                <div className={`flex items-center justify-between pt-4 ${isList ? 'border-t border-slate-100 dark:border-[#233648]' : ''}`}>
-                    <div className="flex flex-col gap-1">
+                <div className={`flex items-center justify-between pt-3 ${isList ? 'border-t border-slate-100 dark:border-[#233648]' : ''}`}>
+                    <div className="flex flex-col gap-0.5">
                         {/* Price Skeleton */}
-                        <div className="h-8 w-24 rounded-lg animate-shimmer" />
+                        <div className="h-6 w-20 rounded animate-shimmer" />
                         {/* Tax Skeleton */}
-                        <div className="h-3 w-16 rounded animate-shimmer" />
+                        <div className="h-2.5 w-14 rounded animate-shimmer" />
                     </div>
-                    
+
                     {/* Button Skeleton */}
-                    <div className={`rounded-xl animate-shimmer ${isList ? 'h-12 w-32' : 'h-10 w-24'}`} />
+                    <div className={`rounded-lg animate-shimmer ${isList ? 'h-9 w-24' : 'h-8 w-20'}`} />
                 </div>
             </div>
         </div>

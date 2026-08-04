@@ -98,10 +98,10 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
             rel="noopener noreferrer"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className={`group bg-white dark:bg-[#111a22] rounded-2xl border border-slate-200 dark:border-[#233648] shadow-sm hover:shadow-xl transition-all duration-300 flex ${isList ? 'flex-col md:flex-row' : 'flex-col'}`}
+            className={`group bg-white dark:bg-[#111a22] rounded-xl border border-slate-200 dark:border-[#233648] shadow-xs hover:shadow-lg transition-all duration-300 flex ${isList ? 'flex-col md:flex-row' : 'flex-col'}`}
         >
             <div 
-                className={`relative overflow-hidden isolate z-0 transform-gpu ${isList ? 'rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none h-64 md:h-auto md:w-[400px] shrink-0' : 'rounded-t-2xl h-60'}`}
+                className={`relative overflow-hidden isolate z-0 transform-gpu ${isList ? 'rounded-t-xl md:rounded-l-xl md:rounded-tr-none h-52 md:h-auto md:w-[330px] lg:w-[350px] shrink-0' : 'rounded-t-xl h-52'}`}
                 style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)' }}
             >
                 {/* Image Slider */}
@@ -121,23 +121,23 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                         <>
                             <button
                                 onClick={prevImg}
-                                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 size-8 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all border border-white/30"
+                                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 size-7.5 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all border border-white/30"
                             >
-                                <span className="material-symbols-outlined text-lg">chevron_left</span>
+                                <span className="material-symbols-outlined text-base">chevron_left</span>
                             </button>
                             <button
                                 onClick={nextImg}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 size-8 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all border border-white/30"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 size-7.5 bg-white/20 hover:bg-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all border border-white/30"
                             >
-                                <span className="material-symbols-outlined text-lg">chevron_right</span>
+                                <span className="material-symbols-outlined text-base">chevron_right</span>
                             </button>
 
                             {/* Dots Indicators */}
-                            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex gap-1.5 px-2 py-1 rounded-full bg-black/10 backdrop-blur-sm border border-white/10">
+                            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-10 flex gap-1 px-1.5 py-0.5 rounded-full bg-black/10 backdrop-blur-xs border border-white/10">
                                 {images.map((_, idx) => (
                                     <div
                                         key={idx}
-                                        className={`size-1.5 rounded-full transition-all duration-300 ${idx === currentImg ? 'bg-white w-3' : 'bg-white/40 hover:bg-white/60'}`}
+                                        className={`size-1 rounded-full transition-all duration-300 ${idx === currentImg ? 'bg-white w-2.5' : 'bg-white/40 hover:bg-white/60'}`}
                                     />
                                 ))}
                             </div>
@@ -145,29 +145,29 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                     )}
                 </div>
 
-                <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
+                <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
                     {hotel.badges?.map((badge, idx) => (
                         <div
                             key={idx}
-                            className={`${badge.color} text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-lg flex items-center gap-1.5 animate-in fade-in slide-in-from-left-4 duration-700 backdrop-blur-sm border border-white/10`}
+                            className={`${badge.color} text-white text-[8px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 animate-in fade-in slide-in-from-left-4 duration-500 backdrop-blur-xs border border-white/10`}
                         >
-                            {badge.type === 'featured' && <span className="material-symbols-outlined text-xs fill-1">workspace_premium</span>}
-                            {badge.type === 'opportunity' && <span className="material-symbols-outlined text-xs fill-1">local_fire_department</span>}
-                            {badge.type === 'discount' && <span className="material-symbols-outlined text-xs fill-1">sell</span>}
-                            {badge.type === 'popular' && <span className="material-symbols-outlined text-xs fill-1">trending_up</span>}
-                            {badge.type === 'exclusive' && <span className="material-symbols-outlined text-xs fill-1">verified</span>}
+                            {badge.type === 'featured' && <span className="material-symbols-outlined text-[10px] fill-1">workspace_premium</span>}
+                            {badge.type === 'opportunity' && <span className="material-symbols-outlined text-[10px] fill-1">local_fire_department</span>}
+                            {badge.type === 'discount' && <span className="material-symbols-outlined text-[10px] fill-1">sell</span>}
+                            {badge.type === 'popular' && <span className="material-symbols-outlined text-[10px] fill-1">trending_up</span>}
+                            {badge.type === 'exclusive' && <span className="material-symbols-outlined text-[10px] fill-1">verified</span>}
                             {badge.label}
                         </div>
                     ))}
                 </div>
                 <button
                     onClick={handleFavorite}
-                    className="absolute top-4 right-4 z-10 size-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-slate-900 shadow-md hover:text-red-500 transition-all"
+                    className="absolute top-2.5 right-2.5 z-10 size-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-slate-900 shadow-xs hover:text-red-500 transition-all"
                 >
-                    <span className="material-symbols-outlined text-xl">favorite</span>
+                    <span className="material-symbols-outlined text-base">favorite</span>
                 </button>
             </div>
-            <div className="p-6 flex-1 flex flex-col justify-between">
+            <div className="p-4 sm:p-4.5 flex-1 flex flex-col justify-between">
                 <div>
                     <div className="flex justify-between items-start mb-1">
                         <div>
@@ -175,13 +175,13 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                                 {[...Array(hotel.stars || 0)].map((_, i) => (
                                     <span key={i} className="material-symbols-outlined text-[10px] fill-1">star</span>
                                 ))}
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">{getStarLabel()}</span>
+                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider ml-1">{getStarLabel()}</span>
                             </div>
-                            <h3 className={`font-bold leading-tight group-hover:text-primary transition-colors ${isList ? 'text-2xl' : 'text-lg'}`}>{hotel.name}</h3>
+                            <h3 className={`font-semibold leading-tight group-hover:text-primary transition-colors ${isList ? 'text-base sm:text-lg' : 'text-xs sm:text-sm'}`}>{hotel.name}</h3>
                             <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 mt-1 relative">
-                                <span className="material-symbols-outlined text-sm text-primary">location_on</span>
+                                <span className="material-symbols-outlined text-xs text-primary">location_on</span>
                                 <div className="group/transport relative">
-                                    <span className="text-xs font-semibold cursor-help">
+                                    <span className="text-xs font-medium cursor-help">
                                         {(() => {
                                             const validTransports = hotel.transportations?.filter(t => typeof t.distanceKm === 'number');
                                             const nearest = validTransports?.length > 0 ? [...validTransports].sort((a, b) => a.distanceKm - b.distanceKm)[0] : null;
@@ -228,36 +228,36 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-primary/10 px-2 py-1.5 rounded-xl text-right shrink-0">
-                            <div className="text-sm font-black text-primary leading-none">{hotel.rating}</div>
-                            <div className="text-[8px] font-bold text-primary uppercase leading-none mt-1">{hotel.ratingLabel}</div>
+                        <div className="bg-primary/10 px-2 py-1 rounded-lg text-right shrink-0">
+                            <div className="text-xs font-bold text-primary leading-none">{hotel.rating}</div>
+                            <div className="text-[8px] font-semibold text-primary uppercase leading-none mt-0.5">{hotel.ratingLabel}</div>
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 my-4">
+                    <div className="flex flex-wrap gap-1.5 my-2.5">
                         {hotel.amenities.slice(0, 10).map((amenity, index) => (
                             <Tooltip key={index} text={amenity.label}>
-                                <div className="size-8 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 rounded-xl text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-800 hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all cursor-help">
-                                    <span className="material-symbols-outlined text-lg">{amenity.icon}</span>
+                                <div className="size-6.5 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 rounded-md text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-800 hover:bg-primary/10 hover:text-primary hover:border-primary/20 transition-all cursor-help">
+                                    <span className="material-symbols-outlined text-xs">{amenity.icon}</span>
                                 </div>
                             </Tooltip>
                         ))}
                     </div>
                 </div>
 
-                <div className={`flex items-center justify-between pt-4 ${isList ? 'border-t border-slate-100 dark:border-[#233648]' : ''}`}>
+                <div className={`flex items-center justify-between pt-3 ${isList ? 'border-t border-slate-100 dark:border-[#233648]' : ''}`}>
                     <div className="flex flex-col">
                         <div className="flex items-baseline gap-1">
                             {hotel.price > 0 ? (
                                 <>
                                     <div className="flex items-baseline gap-1">
-                                        <span className={`font-black ${isList ? 'text-2xl' : 'text-xl'}`}>
+                                        <span className={`font-bold text-slate-900 dark:text-white ${isList ? 'text-lg sm:text-xl' : 'text-base font-bold'}`}>
                                             {currencySymbol}{Math.round(hotel.price)}
                                         </span>
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{hotel.currency}</span>
+                                        <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-tight">{hotel.currency}</span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[7px] text-slate-400 font-bold uppercase leading-none">
+                                        <span className="text-[8px] text-slate-400 font-medium uppercase leading-none">
                                             {hotel.tax > 0 
                                                 ? `incl. ${currencySymbol}${hotel.tax.toFixed(2)} tax` 
                                                 : 'incl. taxes'}
@@ -265,12 +265,12 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                                     </div>
                                 </>
                             ) : (
-                                <span className="text-sm font-bold text-slate-500 uppercase">Check Availability</span>
+                                <span className="text-xs font-semibold text-slate-500 uppercase">Check Availability</span>
                             )}
                         </div>
                     </div>
                     <div
-                        className={`bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-primary/20 active:scale-95 flex items-center justify-center whitespace-nowrap ${isList ? 'text-sm py-3 px-8' : 'text-xs py-2.5 px-4'}`}
+                        className={`bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-all shadow-xs hover:shadow-primary/20 active:scale-95 flex items-center justify-center shrink-0 whitespace-nowrap ${isList ? 'text-xs py-2.5 px-5' : 'text-xs py-2 px-4'}`}
                     >
                         View Details
                     </div>

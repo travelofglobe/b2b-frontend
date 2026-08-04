@@ -1700,24 +1700,24 @@ const HotelDetail = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
                     <div>
                         <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-4xl font-black tracking-tight">{hotel.names?.tr || hotel.names?.en || hotel.name}</h1>
+                            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{hotel.names?.tr || hotel.names?.en || hotel.name}</h1>
                             <div className="flex text-amber-400">
                                 {[...Array(hotel.hotelStar?.star || 5)].map((_, i) => (
-                                    <span key={i} className="material-symbols-outlined fill-1 text-lg">star</span>
+                                    <span key={i} className="material-symbols-outlined fill-1 text-base">star</span>
                                 ))}
                             </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-4 mt-3">
-                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                        <div className="flex flex-wrap items-center gap-4 mt-2">
+                            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                                 <span className="material-symbols-outlined text-sm text-primary">location_on</span>
-                                <span className="font-semibold text-sm">
+                                <span className="font-semibold text-xs">
                                     {hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location}
                                 </span>
                             </div>
 
                             <button
                                 onClick={() => setIsMapModalOpen(true)}
-                                className="text-primary text-sm font-bold hover:underline">
+                                className="text-primary text-xs font-semibold hover:underline">
                                 {tLocal('showOnMap')}
                             </button>
                         </div>
@@ -1726,21 +1726,21 @@ const HotelDetail = () => {
                         <div className="flex items-center gap-2 mr-4">
                             <button
                                 onClick={() => setIsLiked(!isLiked)}
-                                className={`size-12 rounded-2xl flex items-center justify-center transition-all ${isLiked ? 'bg-red-50 text-red-500 border-red-100 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:text-red-500'} border shadow-sm active:scale-90`}
+                                className={`size-10 rounded-xl flex items-center justify-center transition-all ${isLiked ? 'bg-red-50 text-red-500 border-red-100 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:text-red-500'} border shadow-sm active:scale-90`}
                             >
-                                <span className={`material-symbols-outlined text-2xl ${isLiked ? 'fill-1' : ''}`}>favorite</span>
+                                <span className={`material-symbols-outlined text-xl ${isLiked ? 'fill-1' : ''}`}>favorite</span>
                             </button>
                             <button
                                 onClick={() => setIsShareModalOpen(true)}
-                                className="size-12 rounded-2xl bg-white dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:text-primary transition-all shadow-sm active:scale-90"
+                                className="size-10 rounded-xl bg-white dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:text-primary transition-all shadow-sm active:scale-90"
                             >
-                                <span className="material-symbols-outlined text-2xl">share</span>
+                                <span className="material-symbols-outlined text-xl">share</span>
                             </button>
                         </div>
-                        <div className="flex flex-col items-end border-l border-slate-200 dark:border-slate-700 pl-6">
-                            <span className="text-lg font-black text-slate-900 dark:text-white leading-none">{hotel.ratingLabel}</span>
-                            <span className="text-xs text-slate-500 font-bold mt-1">1,240 {tLocal('reviewsLabel')}</span>
-                            <span className="text-[10px] text-primary font-black flex items-center gap-1 mt-1 uppercase tracking-tighter">
+                        <div className="flex flex-col items-end border-l border-slate-200 dark:border-slate-700 pl-5">
+                            <span className="text-base font-bold text-slate-900 dark:text-white leading-none">{hotel.ratingLabel}</span>
+                            <span className="text-xs text-slate-500 font-normal mt-1">1,240 {tLocal('reviewsLabel')}</span>
+                            <span className="text-[10px] text-primary font-semibold flex items-center gap-1 mt-1 uppercase tracking-tight">
                                 <span className="material-symbols-outlined text-xs fill-1">trending_up</span> {tLocal('highlyPopular')}
                             </span>
                         </div>
@@ -1748,19 +1748,19 @@ const HotelDetail = () => {
                 </div>
 
                 {/* Quick Info Badges */}
-                <div className="flex flex-wrap gap-2 mb-8">
+                <div className="flex flex-wrap gap-2 mb-6">
                     {(hotel.facilities?.slice(0, 5).map(f => f.names?.tr || f.names?.en) || ['Free WiFi', 'Free Parking', 'Breakfast Available']).map((item, i) => (
-                        <span key={i} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 rounded-full text-xs font-bold border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all cursor-default backdrop-blur-md shadow-sm">
+                        <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all cursor-default backdrop-blur-md shadow-sm">
                             <span className="material-symbols-outlined text-sm text-primary">check_circle</span> {item}
                         </span>
                     ))}
                 </div>
 
                 {/* Benton Grid Gallery */}
-                <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-3 h-[540px] mb-8 overflow-hidden rounded-[32px] relative group/gallery">
+                <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-3 h-[480px] mb-8 overflow-hidden rounded-2xl relative group/gallery">
                     <div className="md:col-span-2 md:row-span-2 relative overflow-hidden ring-1 ring-white/10 shadow-2xl cursor-pointer" onClick={() => openLightbox(0, images)}>
                         <img className="w-full h-full object-cover transition-all duration-700 hover:scale-105" src={images[0]} alt={hotel.name} />
-                        <div className="absolute bottom-6 left-6 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-2xl text-xs font-black shadow-2xl border border-white/20">
+                        <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xl border border-white/20">
                             1 / {images.length} {tLocal('photos')}
                         </div>
                     </div>
@@ -1797,11 +1797,11 @@ const HotelDetail = () => {
                                     <span className="material-symbols-outlined text-primary text-xl shrink-0">calendar_month</span>
                                     <div className="flex flex-col flex-1 min-w-0">
                                         <div className="flex items-center justify-between w-full mb-0.5">
-                                            <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400">{tLocal('checkInOut')}</label>
+                                            <label className="text-[9px] uppercase tracking-wider font-semibold text-slate-400">{tLocal('checkInOut')}</label>
                                             {checkInDate && checkOutDate && (
                                                 <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 animate-in fade-in zoom-in duration-300">
                                                     <span className="material-symbols-outlined text-[12px] leading-none">bedtime</span>
-                                                    <span className="text-[9px] font-black uppercase tracking-tight">
+                                                    <span className="text-[9px] font-semibold uppercase tracking-tight">
                                                         {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} {tLocal('nights')}
                                                     </span>
                                                 </div>
@@ -1822,7 +1822,7 @@ const HotelDetail = () => {
                                             maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                                             monthsShown={2}
                                             locale="en-GB"
-                                            className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[13px] font-black text-slate-900 dark:text-white cursor-pointer whitespace-nowrap"
+                                            className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-xs font-semibold text-slate-900 dark:text-white cursor-pointer whitespace-nowrap"
                                             wrapperClassName="w-full"
                                             dateFormat="dd MMM yyyy"
                                             calendarClassName="shadow-2xl border-none font-sans mt-4"
@@ -1839,8 +1839,8 @@ const HotelDetail = () => {
                                 >
                                     <span className="material-symbols-outlined text-primary text-xl shrink-0 group-hover/guest:scale-110 transition-transform">group</span>
                                     <div className="flex flex-col flex-1 min-w-0">
-                                        <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">{tLocal('guestsAndRooms')}</label>
-                                        <span className="text-[13px] font-black text-slate-900 dark:text-white whitespace-nowrap block truncate">
+                                        <label className="text-[9px] uppercase tracking-wider font-semibold text-slate-400 mb-0.5">{tLocal('guestsAndRooms')}</label>
+                                        <span className="text-xs font-semibold text-slate-900 dark:text-white whitespace-nowrap block truncate">
                                             {totalAdults} {totalAdults > 1 ? tLocal('adults') : tLocal('adult')}, {totalChildren} {totalChildren > 1 ? tLocal('children') : tLocal('child')}
                                         </span>
                                     </div>
@@ -1848,30 +1848,30 @@ const HotelDetail = () => {
                                 </button>
 
                                 {showGuestDropdown && (
-                                    <div className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-slate-900 rounded-[28px] border border-slate-100 dark:border-slate-700 shadow-2xl p-5 z-[100] max-h-[60vh] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
+                                    <div className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-2xl p-4 z-[100] max-h-[60vh] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
                                         {roomState.map((room, index) => (
                                             <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0">
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <div className="text-[9px] font-black uppercase text-slate-400 tracking-widest">{tLocal('room')} {index + 1}</div>
+                                                    <div className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider">{tLocal('room')} {index + 1}</div>
                                                     {roomState.length > 1 && (
-                                                        <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-[9px] font-black uppercase tracking-widest">{tLocal('remove')}</button>
+                                                        <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-[10px] font-semibold uppercase tracking-wider">{tLocal('remove')}</button>
                                                     )}
                                                 </div>
 
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <div className="text-xs font-black uppercase tracking-tight">{tLocal('adults')}</div>
+                                                    <div className="text-xs font-semibold uppercase tracking-tight">{tLocal('adults')}</div>
                                                     <div className="flex items-center gap-3">
                                                         <button onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">remove</span></button>
-                                                        <span className="w-4 text-center text-xs font-black">{room.adults}</span>
+                                                        <span className="w-4 text-center text-xs font-semibold">{room.adults}</span>
                                                         <button onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">add</span></button>
                                                     </div>
                                                 </div>
 
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <div className="text-xs font-black uppercase tracking-tight">{tLocal('children')}</div>
+                                                    <div className="text-xs font-semibold uppercase tracking-tight">{tLocal('children')}</div>
                                                     <div className="flex items-center gap-3">
                                                         <button onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">remove</span></button>
-                                                        <span className="w-4 text-center text-xs font-black">{room.children}</span>
+                                                        <span className="w-4 text-center text-xs font-semibold">{room.children}</span>
                                                         <button onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">add</span></button>
                                                     </div>
                                                 </div>
@@ -1880,11 +1880,11 @@ const HotelDetail = () => {
                                                     <div className="grid grid-cols-2 gap-2 pt-1">
                                                         {room.childAges.map((age, ageIdx) => (
                                                             <div key={ageIdx} className="space-y-1">
-                                                                <label className="text-[8px] font-black uppercase text-slate-400">{tLocal('child')} {ageIdx + 1} {tLocal('childAge')}</label>
+                                                                <label className="text-[8px] font-semibold uppercase text-slate-400">{tLocal('child')} {ageIdx + 1} {tLocal('childAge')}</label>
                                                                 <select
                                                                     value={age}
                                                                     onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
-                                                                    className="w-full h-8 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-[10px] px-1 font-black focus:border-primary focus:ring-0"
+                                                                    className="w-full h-8 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-[10px] px-1 font-medium focus:border-primary focus:ring-0"
                                                                 >
                                                                     {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {tLocal('yr')}</option>)}
                                                                 </select>
@@ -1898,7 +1898,7 @@ const HotelDetail = () => {
                                         {roomState.length < 4 && (
                                             <button
                                                 onClick={addRoom}
-                                                className="w-full py-3 mt-2 bg-primary/5 text-primary rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-primary/10 transition-all border border-dashed border-primary/20 flex items-center justify-center gap-2"
+                                                className="w-full py-2.5 mt-2 bg-primary/5 text-primary rounded-xl text-[9px] font-semibold uppercase tracking-wider hover:bg-primary/10 transition-all border border-dashed border-primary/20 flex items-center justify-center gap-2"
                                             >
                                                 <span className="material-symbols-outlined text-sm">add_circle</span>
                                                 {tLocal('addAnotherRoom')}
@@ -1938,7 +1938,7 @@ const HotelDetail = () => {
                                     <button
                                         key={i}
                                         onClick={() => setActiveTab(tab)}
-                                        className={`py-4 text-sm font-black whitespace-nowrap transition-all border-b-2 ${activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                                        className={`py-3 text-xs font-semibold whitespace-nowrap transition-all border-b-2 ${activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
                                     >
                                         {tLocal(tabLabelMap[tab])}
                                     </button>
@@ -1988,52 +1988,79 @@ const HotelDetail = () => {
                                             // Skeleton loading cards
                                             <div className="space-y-4 animate-in fade-in duration-300">
                                                 {[...Array(3)].map((_, i) => (
-                                                    <div key={i} className="flex flex-col md:flex-row rounded-[28px] border border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl shadow-xl overflow-hidden">
-                                                        {/* Image skeleton */}
-                                                        <div className="md:w-64 h-52 md:h-auto shrink-0 relative overflow-hidden bg-slate-200 dark:bg-slate-800 rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px]">
-                                                            <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15}s` }}></div>
-                                                        </div>
-                                                        {/* Content skeleton */}
-                                                        <div className="flex-1 p-6 flex flex-col justify-between gap-4">
-                                                            <div className="space-y-3">
-                                                                {/* Title */}
-                                                                <div className="relative overflow-hidden h-7 w-3/5 bg-slate-200 dark:bg-slate-800 rounded-xl">
+                                                    <div key={i} className="flex flex-col rounded-[28px] border border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl shadow-xl overflow-hidden">
+                                                        {/* Top: image + details — matches real card rounded-t-[28px] flex-row layout */}
+                                                        <div className="flex flex-col md:flex-row rounded-t-[28px]">
+                                                            {/* Image skeleton — md:w-72 h-64 matching real card */}
+                                                            <div className="md:w-72 h-64 md:h-auto shrink-0 relative overflow-hidden bg-slate-200 dark:bg-slate-800 rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px]">
+                                                                <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15}s` }}></div>
+                                                            </div>
+                                                            {/* Content skeleton — p-6 matching real card */}
+                                                            <div className="flex-1 p-6 flex flex-col min-w-0">
+                                                                {/* Badge row */}
+                                                                <div className="flex justify-end gap-2 mb-3">
+                                                                    <div className="relative overflow-hidden h-5 w-12 bg-slate-100 dark:bg-slate-700/60 rounded-lg">
+                                                                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15}s` }}></div>
+                                                                    </div>
+                                                                    <div className="relative overflow-hidden h-5 w-10 bg-slate-100 dark:bg-slate-700/60 rounded-lg">
+                                                                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + 0.05}s` }}></div>
+                                                                    </div>
+                                                                </div>
+                                                                {/* Room name */}
+                                                                <div className="relative overflow-hidden h-6 w-3/5 bg-slate-200 dark:bg-slate-800 rounded-lg mb-1.5">
                                                                     <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15}s` }}></div>
                                                                 </div>
-                                                                {/* Subtitle */}
-                                                                <div className="relative overflow-hidden h-4 w-2/5 bg-slate-100 dark:bg-slate-700/60 rounded-lg">
-                                                                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + 0.1}s` }}></div>
+                                                                {/* Adults / children */}
+                                                                <div className="flex gap-3 mb-6">
+                                                                    <div className="relative overflow-hidden h-4 w-16 bg-slate-100 dark:bg-slate-700/60 rounded-md">
+                                                                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + 0.05}s` }}></div>
+                                                                    </div>
+                                                                    <div className="relative overflow-hidden h-4 w-16 bg-slate-100 dark:bg-slate-700/60 rounded-md">
+                                                                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + 0.1}s` }}></div>
+                                                                    </div>
                                                                 </div>
-                                                                {/* Attribute tags */}
-                                                                <div className="flex gap-2 mt-2">
-                                                                    {[40, 56, 44, 36].map((w, j) => (
-                                                                        <div key={j} className={`relative overflow-hidden h-6 bg-slate-100 dark:bg-slate-700/60 rounded-xl`} style={{ width: `${w}px` }}>
-                                                                            <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + j * 0.05}s` }}></div>
+                                                                {/* Attribute icon tags — size-9 matching real */}
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {[...Array(8)].map((_, j) => (
+                                                                        <div key={j} className="relative overflow-hidden size-9 bg-slate-100 dark:bg-slate-700/60 rounded-xl">
+                                                                            <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + j * 0.04}s` }}></div>
                                                                         </div>
                                                                     ))}
                                                                 </div>
                                                             </div>
-                                                            {/* Price bar skeleton */}
-                                                            <div className="relative overflow-hidden h-14 w-full bg-slate-100 dark:bg-slate-800/60 rounded-[18px]">
-                                                                <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + 0.2}s` }}></div>
-                                                                {/* Inner price placeholders */}
-                                                                <div className="absolute inset-0 flex items-center justify-between px-4">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <div className="size-8 rounded-lg bg-slate-200 dark:bg-slate-700"></div>
-                                                                        <div className="space-y-1.5">
-                                                                            <div className="h-2.5 w-16 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
-                                                                            <div className="h-2 w-24 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-3">
-                                                                        <div className="space-y-1 text-right">
-                                                                            <div className="h-5 w-20 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
-                                                                            <div className="h-2 w-14 bg-slate-200 dark:bg-slate-700 rounded-md ml-auto"></div>
-                                                                        </div>
-                                                                        <div className="h-8 w-16 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
-                                                                    </div>
+                                                        </div>
+                                                        {/* Bottom rates section — matches border-t + p-4 sm:p-6 rates list */}
+                                                        <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-black/20 p-4 sm:p-6 space-y-3 rounded-b-[28px]">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <div className="relative overflow-hidden h-3 w-24 bg-slate-200 dark:bg-slate-700 rounded-md">
+                                                                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15}s` }}></div>
+                                                                </div>
+                                                                <div className="relative overflow-hidden h-3 w-32 bg-slate-100 dark:bg-slate-700/60 rounded-md">
+                                                                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + 0.05}s` }}></div>
                                                                 </div>
                                                             </div>
+                                                            {/* Rate rows */}
+                                                            {[...Array(2)].map((_, r) => (
+                                                                <div key={r} className="relative overflow-hidden h-14 w-full bg-slate-100 dark:bg-slate-800/60 rounded-[18px]">
+                                                                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + r * 0.1 + 0.2}s` }}></div>
+                                                                    <div className="absolute inset-0 flex items-center justify-between px-4">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <div className="size-8 rounded-lg bg-slate-200 dark:bg-slate-700"></div>
+                                                                            <div className="space-y-1.5">
+                                                                                <div className="h-2.5 w-16 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+                                                                                <div className="h-2 w-24 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className="space-y-1 text-right">
+                                                                                <div className="h-5 w-20 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+                                                                                <div className="h-2 w-14 bg-slate-200 dark:bg-slate-700 rounded-md ml-auto"></div>
+                                                                            </div>
+                                                                            <div className="h-8 w-16 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
                                                         </div>
                                                     </div>
                                                 ))}
@@ -2084,23 +2111,23 @@ const HotelDetail = () => {
                                                                     <div className="relative">
                                                                         <div className="absolute top-0 right-0 flex gap-2">
                                                                             {roomGroup.squareMeter && (
-                                                                                <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-wider border border-blue-500/10 backdrop-blur-md">
+                                                                                <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-semibold px-2 py-0.5 rounded-lg uppercase tracking-wider border border-blue-500/10 backdrop-blur-md">
                                                                                     {roomGroup.squareMeter}
                                                                                 </span>
                                                                             )}
-                                                                            <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-wider border border-orange-500/10 backdrop-blur-md" lang="en">
+                                                                            <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[9px] font-semibold px-2 py-0.5 rounded-lg uppercase tracking-wider border border-orange-500/10 backdrop-blur-md" lang="en">
                                                                                 {roomGroup.roomPaxCapacity || roomGroup.maxAdult} Pax
                                                                             </span>
                                                                         </div>
 
-                                                                        <div className="mb-4 pr-24">
-                                                                            <h3 className="text-2xl font-black mb-1 uppercase tracking-tight text-slate-900 dark:text-white leading-tight truncate" lang="en">{roomName}</h3>
+                                                                        <div className="mb-3 pr-24">
+                                                                            <h3 className="text-lg font-bold mb-1 tracking-tight text-slate-900 dark:text-white leading-tight truncate" lang="en">{roomName}</h3>
                                                                             <div className="flex gap-3 text-slate-500 dark:text-slate-400">
-                                                                                <span className="flex items-center gap-1 text-[10px] font-bold uppercase">
+                                                                                <span className="flex items-center gap-1 text-xs font-semibold uppercase">
                                                                                     <span className="material-symbols-outlined text-sm text-primary">group</span> {roomGroup.maxAdult} {roomGroup.maxAdult > 1 ? tLocal('adults') : tLocal('adult')}
                                                                                 </span>
                                                                                 {roomGroup.maxChildren > 0 && (
-                                                                                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase">
+                                                                                    <span className="flex items-center gap-1 text-xs font-semibold uppercase">
                                                                                         <span className="material-symbols-outlined text-sm text-primary">child_care</span> {roomGroup.maxChildren} {roomGroup.maxChildren > 1 ? tLocal('children') : tLocal('child')}
                                                                                     </span>
                                                                                 )}
@@ -2291,64 +2318,64 @@ const HotelDetail = () => {
                                                 )}
 
                                                 {activeTab === 'Overview' && (
-        <div className="bg-white dark:bg-slate-900/50 p-10 rounded-[40px] border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-500">
-            <h2 className="text-3xl font-black mb-6 uppercase tracking-tight">About the Property</h2>
+        <div className="bg-white dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-500">
+            <h2 className="text-base font-semibold mb-4 tracking-tight">About the Property</h2>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
                 {hotel.descriptions?.length > 0 ? (
                     hotel.descriptions.map((desc, idx) => (
-                        <div key={idx} className="space-y-2">
-                            <h4 className="text-[10px] font-black uppercase text-primary tracking-[0.2em]">{desc.type}</h4>
+                        <div key={idx} className="space-y-1.5">
+                            <h4 className="text-[9px] font-semibold uppercase text-primary tracking-wider">{desc.type}</h4>
                             <p
-                                className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium"
+                                className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed"
                                 dangerouslySetInnerHTML={{ __html: desc.text }}
                             />
                         </div>
                     ))
                 ) : (
                     <p
-                        className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium"
+                        className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed"
                         dangerouslySetInnerHTML={{ __html: hotel.description || "Experience the ultimate luxury at our TOG-certified property." }}
                     />
                 )}
             </div>
 
             {/* Address & Contact Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-12 pt-12 border-t border-slate-100 dark:border-slate-800">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
                 <div>
-                    <div className="flex items-center gap-3 mb-8">
-                        <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-                            <span className="material-symbols-outlined text-2xl">location_on</span>
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                            <span className="material-symbols-outlined text-base">location_on</span>
                         </div>
-                        <h3 className="text-2xl font-black uppercase tracking-tight">Location Details</h3>
+                        <h3 className="text-sm font-semibold">Location Details</h3>
                     </div>
-                    <div className="grid grid-cols-1 gap-6">
+                    <div className="grid grid-cols-1 gap-3">
                         {hotel.address?.street && (
-                            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Street Address</span>
-                                <p className="text-sm font-bold text-slate-900 dark:text-white leading-relaxed">{hotel.address.street}</p>
+                            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Street Address</span>
+                                <p className="text-xs font-medium text-slate-900 dark:text-white leading-relaxed">{hotel.address.street}</p>
                             </div>
                         )}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-3">
                             {(hotel.address?.zipCode || hotel.address?.postalCode) && (
-                                <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Postal / Zip Code</span>
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{hotel.address.zipCode || hotel.address.postalCode}</p>
+                                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                    <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Postal / Zip</span>
+                                    <p className="text-xs font-medium text-slate-900 dark:text-white">{hotel.address.zipCode || hotel.address.postalCode}</p>
                                 </div>
                             )}
                             {hotel.address?.cityName && (
-                                <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">City</span>
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{hotel.address.cityName}</p>
+                                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                    <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">City</span>
+                                    <p className="text-xs font-medium text-slate-900 dark:text-white">{hotel.address.cityName}</p>
                                 </div>
                             )}
                         </div>
                         {hotel.address?.countryName && (
-                            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Country</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-slate-900 dark:text-white">{hotel.address.countryName}</span>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase">({hotel.address.countryCode})</span>
+                            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Country</span>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-xs font-medium text-slate-900 dark:text-white">{hotel.address.countryName}</span>
+                                    <span className="text-[9px] font-semibold text-slate-400 uppercase">({hotel.address.countryCode})</span>
                                 </div>
                             </div>
                         )}
@@ -2356,50 +2383,50 @@ const HotelDetail = () => {
                 </div>
 
                 <div>
-                    <div className="flex items-center gap-3 mb-8">
-                        <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-                            <span className="material-symbols-outlined text-2xl">contact_phone</span>
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                            <span className="material-symbols-outlined text-base">contact_phone</span>
                         </div>
-                        <h3 className="text-2xl font-black uppercase tracking-tight">Contact Property</h3>
+                        <h3 className="text-sm font-semibold">Contact Property</h3>
                     </div>
-                    <div className="grid grid-cols-1 gap-6">
+                    <div className="grid grid-cols-1 gap-3">
                         {hotel.contact?.phoneNumber && (
-                            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
+                            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
                                 <div className="min-w-0">
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Phone Number</span>
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{hotel.contact.phoneNumber}</p>
+                                    <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Phone Number</span>
+                                    <p className="text-xs font-medium text-slate-900 dark:text-white truncate">{hotel.contact.phoneNumber}</p>
                                 </div>
-                                <a href={`tel:${hotel.contact.phoneNumber}`} className="size-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
-                                    <span className="material-symbols-outlined text-xl">call</span>
+                                <a href={`tel:${hotel.contact.phoneNumber}`} className="size-8 rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                    <span className="material-symbols-outlined text-base">call</span>
                                 </a>
                             </div>
                         )}
                         {hotel.contact?.email && (
-                            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
+                            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
                                 <div className="min-w-0">
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Email Address</span>
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{hotel.contact.email}</p>
+                                    <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Email Address</span>
+                                    <p className="text-xs font-medium text-slate-900 dark:text-white truncate">{hotel.contact.email}</p>
                                 </div>
-                                <a href={`mailto:${hotel.contact.email}`} className="size-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
-                                    <span className="material-symbols-outlined text-xl">mail</span>
+                                <a href={`mailto:${hotel.contact.email}`} className="size-8 rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                    <span className="material-symbols-outlined text-base">mail</span>
                                 </a>
                             </div>
                         )}
                         {hotel.contact?.website && (
-                            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
+                            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
                                 <div className="min-w-0">
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Official Website</span>
-                                    <p className="text-sm font-bold text-primary truncate">{hotel.contact.website}</p>
+                                    <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Official Website</span>
+                                    <p className="text-xs font-medium text-primary truncate">{hotel.contact.website}</p>
                                 </div>
-                                <a href={hotel.contact.website} target="_blank" rel="noopener noreferrer" className="size-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
-                                    <span className="material-symbols-outlined text-xl">open_in_new</span>
+                                <a href={hotel.contact.website} target="_blank" rel="noopener noreferrer" className="size-8 rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                    <span className="material-symbols-outlined text-base">open_in_new</span>
                                 </a>
                             </div>
                         )}
                         {!hotel.contact?.phoneNumber && !hotel.contact?.email && !hotel.contact?.website && (
-                            <div className="p-8 rounded-3xl border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center opacity-50">
-                                <span className="material-symbols-outlined text-3xl text-slate-300 mb-2">contact_support</span>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact details unavailable</p>
+                            <div className="p-6 rounded-xl border border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center opacity-50">
+                                <span className="material-symbols-outlined text-2xl text-slate-300 mb-2">contact_support</span>
+                                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Contact details unavailable</p>
                             </div>
                         )}
                     </div>
@@ -2411,19 +2438,19 @@ const HotelDetail = () => {
 
 {
     activeTab === 'Amenities' && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-in fade-in zoom-in-95 duration-500">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 animate-in fade-in zoom-in-95 duration-500">
             {(hotel.facilities || []).map((amenity, idx) => {
                 const id = typeof amenity === 'object' ? (amenity.facilityId || amenity.id) : amenity;
                 const match = FACILITY_ICON_MAP[Number(id)];
 
                 return (
-                    <div key={idx} className="bg-white dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 flex items-center gap-4 hover:border-primary/50 transition-all hover:shadow-lg group">
-                        <div className="size-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
-                            <span className="material-symbols-outlined text-3xl">
+                    <div key={idx} className="bg-white dark:bg-slate-900/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-3 hover:border-primary/50 transition-all hover:shadow-sm group">
+                        <div className="size-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors shrink-0">
+                            <span className="material-symbols-outlined text-base">
                                 {match ? match.icon : 'done_all'}
                             </span>
                         </div>
-                        <span className="font-black text-sm uppercase tracking-tight">
+                        <span className="font-medium text-xs text-slate-700 dark:text-slate-300">
                             {amenity.names?.tr || amenity.names?.en || amenity.label || (match ? match.label : 'Amenity')}
                         </span>
                     </div>
@@ -2435,33 +2462,33 @@ const HotelDetail = () => {
 
 {
     activeTab === 'Transportation' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-500">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-in fade-in zoom-in-95 duration-500">
             {(hotel.transportations || []).map((t, idx) => (
-                <div key={idx} className="bg-white dark:bg-slate-900/50 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all group">
-                    <div className="flex items-center gap-4 mb-4">
-                        <div className="size-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm">
-                            <span className="material-symbols-outlined text-2xl">
+                <div key={idx} className="bg-white dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all group">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="size-9 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm shrink-0">
+                            <span className="material-symbols-outlined text-base">
                                 {t.type === 'AIRPORT' ? 'flight_takeoff' : t.type === 'RAIL' ? 'train' : 'directions_car'}
                             </span>
                         </div>
                         <div>
-                            <h4 className="font-black text-sm uppercase tracking-tight">{t.name || (t.type === 'AIRPORT' ? 'Airport' : t.type === 'RAIL' ? 'Train Station' : 'Location')}</h4>
-                            <p className="text-[10px] font-black text-primary uppercase tracking-widest">
+                            <h4 className="font-semibold text-xs text-slate-900 dark:text-white">{t.name || (t.type === 'AIRPORT' ? 'Airport' : t.type === 'RAIL' ? 'Train Station' : 'Location')}</h4>
+                            <p className="text-[9px] font-semibold text-primary uppercase tracking-wider">
                                 {t.type === 'AIRPORT' ? 'By Flight' : t.type === 'RAIL' ? 'By Rail' : 'By Road'}
                             </p>
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <div className="flex justify-between text-xs font-bold">
-                            <span className="text-slate-400">Distance:</span>
-                            <span>{t.distanceKm} km</span>
+                    <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs">
+                            <span className="text-slate-400 font-medium">Distance:</span>
+                            <span className="font-semibold">{t.distanceKm} km</span>
                         </div>
-                        <div className="flex justify-between text-xs font-bold">
-                            <span className="text-slate-400">Duration:</span>
-                            <span>{t.durationMinutes} min</span>
+                        <div className="flex justify-between text-xs">
+                            <span className="text-slate-400 font-medium">Duration:</span>
+                            <span className="font-semibold">{t.durationMinutes} min</span>
                         </div>
                         {t.directions && (
-                            <p className="text-[10px] text-slate-400 italic mt-2 border-t border-slate-100 dark:border-slate-800 pt-2">
+                            <p className="text-[9px] text-slate-400 italic mt-1.5 border-t border-slate-100 dark:border-slate-800 pt-1.5">
                                 Via {t.directions}
                             </p>
                         )}
@@ -2475,49 +2502,49 @@ const HotelDetail = () => {
 {
     activeTab === 'Policies' && (
         <div className="animate-in fade-in zoom-in-95 duration-500">
-            <div className="bg-white dark:bg-slate-900/50 p-10 rounded-[40px] border border-slate-200 dark:border-slate-800">
-                <div className="flex items-center gap-3 mb-8">
-                    <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
-                        <span className="material-symbols-outlined text-2xl">info</span>
+            <div className="bg-white dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-2 mb-5">
+                    <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                        <span className="material-symbols-outlined text-base">info</span>
                     </div>
-                    <h2 className="text-3xl font-black uppercase tracking-tight">Hotel Policies</h2>
+                    <h2 className="text-base font-semibold">Hotel Policies</h2>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="p-8 rounded-[32px] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 group hover:border-primary/30 transition-all">
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="size-14 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
-                                <span className="material-symbols-outlined text-3xl">login</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 group hover:border-primary/30 transition-all">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="size-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                <span className="material-symbols-outlined text-lg">login</span>
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Standard Check-In</p>
-                                <h4 className="text-2xl font-black text-primary">{hotel.checkIn || '15:00'}</h4>
+                                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Standard Check-In</p>
+                                <h4 className="text-base font-semibold text-primary">{hotel.checkIn || '15:00'}</h4>
                             </div>
                         </div>
-                        <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                        <p className="text-xs text-slate-500 leading-relaxed">
                             Guests are required to show a photo identification and credit card upon check-in.
                         </p>
                     </div>
 
-                    <div className="p-8 rounded-[32px] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 group hover:border-primary/30 transition-all">
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="size-14 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
-                                <span className="material-symbols-outlined text-3xl">logout</span>
+                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 group hover:border-primary/30 transition-all">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="size-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                <span className="material-symbols-outlined text-lg">logout</span>
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Standard Check-Out</p>
-                                <h4 className="text-2xl font-black text-primary">{hotel.checkOut || '11:00'}</h4>
+                                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Standard Check-Out</p>
+                                <h4 className="text-base font-semibold text-primary">{hotel.checkOut || '11:00'}</h4>
                             </div>
                         </div>
-                        <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                        <p className="text-xs text-slate-500 leading-relaxed">
                             Please ensure your balance is settled and keys are returned to the front desk.
                         </p>
                     </div>
                 </div>
 
-                <div className="mt-8 p-6 bg-amber-500/5 rounded-3xl border border-amber-500/10 flex items-start gap-4">
-                    <span className="material-symbols-outlined text-amber-500">warning</span>
-                    <p className="text-xs font-bold text-amber-700/80 dark:text-amber-400/80 leading-relaxed">
+                <div className="mt-4 p-4 bg-amber-500/5 rounded-xl border border-amber-500/10 flex items-start gap-3">
+                    <span className="material-symbols-outlined text-amber-500 text-base shrink-0">warning</span>
+                    <p className="text-xs text-amber-700/80 dark:text-amber-400/80 leading-relaxed">
                         Special requests are subject to availability and cannot be guaranteed. They may incur additional charges.
                     </p>
                 </div>
@@ -2528,12 +2555,12 @@ const HotelDetail = () => {
 
 {
     activeTab === 'Reviews' && (
-        <div className="bg-white dark:bg-slate-900/50 p-20 rounded-[40px] border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center">
-            <div className="size-20 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-6 font-black uppercase tracking-widest">
+        <div className="bg-white dark:bg-slate-900/50 p-10 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center">
+            <div className="size-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-4 text-sm font-semibold uppercase">
                 R
             </div>
-            <h3 className="text-xl font-black uppercase mb-2">Guest Reviews</h3>
-            <p className="text-slate-500 font-medium tracking-tight">Real-time feedback from verified Travel of Globe guests.</p>
+            <h3 className="text-sm font-semibold mb-1">Guest Reviews</h3>
+            <p className="text-xs text-slate-500">Real-time feedback from verified Travel of Globe guests.</p>
         </div>
     )
 }
@@ -2541,126 +2568,126 @@ const HotelDetail = () => {
                         </div >
                     </div >
 
-    {/* Booking Sidebar - Sticky Behavior Refined */ }
-    < div className = "lg:col-span-4 h-fit" >
-        <div className="lg:sticky lg:top-[96px] space-y-6">
+    {/* Booking Sidebar - Sticky Behavior Refined */}
+    <div className="lg:col-span-4 h-fit">
+        <div className="lg:sticky lg:top-[96px] space-y-4">
             <div className="relative group/sidebar">
                 {/* Glass Background */}
-                <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[40px] border border-white/40 dark:border-white/10 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.1)] transition-all duration-500 group-hover/sidebar:shadow-[0_48px_96px_-16px_rgba(0,0,0,0.15)] group-hover/sidebar:bg-white/50 dark:group-hover/sidebar:bg-slate-900/50"></div>
+                <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-2xl border border-white/40 dark:border-white/10 shadow-lg transition-all duration-500"></div>
 
                 {/* Content */}
-                <div className="relative p-8 z-10">
+                <div className="relative p-5 z-10">
 
-                    <div className="flex items-center gap-2 text-primary font-black text-[10px] mb-6 uppercase tracking-[0.2em] bg-primary/5 dark:bg-primary/20 p-3 rounded-2xl border border-primary/10 backdrop-blur-md" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                    <div className="flex items-center gap-2 text-primary font-semibold text-[9px] mb-4 uppercase tracking-wider bg-primary/5 dark:bg-primary/20 p-2.5 rounded-xl border border-primary/10" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                         <span className="material-symbols-outlined text-sm fill-1">bolt</span>
                         {tLocal('instantConfirmationAvailable')}
                     </div>
 
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                             <span className="material-symbols-outlined text-sm">auto_awesome</span>
                             {tLocal('reservationSummary')}
                         </h3>
-                        <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+                        <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                             {selectedRooms.length} / {roomState.length} {tLocal('room')}
                         </span>
                     </div>
 
-                    <div className="space-y-4 mb-8">
+                    <div className="space-y-3 mb-4">
                         {selectedRooms.length > 0 ? (
                             selectedRooms.map((room, idx) => {
                                 const isFreeCancel = room.hubRateModel?.refundable ?? (room.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0);
                                 const boardType = room.hubRateModel?.boardCode || 'RO';
 
                                 return (
-                                    <div key={idx} className="relative p-5 rounded-3xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm group/item hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">
+                                    <div key={idx} className="relative p-3 rounded-xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-xs group/item hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setSelectedRooms(prev => prev.filter((_, i) => i !== idx));
                                             }}
-                                            className="absolute -top-1.5 -right-1.5 size-7 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-lg z-20 group/btn"
+                                            className="absolute -top-1.5 -right-1.5 size-5 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-md z-20 group/btn"
                                         >
-                                            <span className="material-symbols-outlined text-[16px] group-hover/btn:rotate-90 transition-transform">close</span>
+                                            <span className="material-symbols-outlined text-[13px] group-hover/btn:rotate-90 transition-transform">close</span>
                                         </button>
-                                        <div className="flex justify-between items-start mb-2 pr-4">
-                                            <span className="font-black text-slate-900 dark:text-white text-[11px] uppercase tracking-tight line-clamp-2">{idx + 1}. <span lang="en">{room.name}</span></span>
+                                        <div className="flex justify-between items-start mb-1.5 pr-3">
+                                            <span className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-tight line-clamp-2">{idx + 1}. <span lang="en">{room.name}</span></span>
                                             <div className="flex items-baseline gap-1 shrink-0">
-                                                <span className="text-[10px] font-black text-primary">{getCurrencySymbol(room.currency, currencySymbolMap)}</span>
-                                                <span className="font-black text-primary text-sm leading-none">{room.rate.toFixed(2)}</span>
+                                                <span className="text-[9px] font-bold text-primary">{getCurrencySymbol(room.currency, currencySymbolMap)}</span>
+                                                <span className="font-bold text-primary text-xs leading-none">{room.rate.toFixed(2)}</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">{getBoardTypeLabel(boardType)}</span>
+                                        <div className="flex items-center gap-1.5 mt-1">
+                                            <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wider">{getBoardTypeLabel(boardType)}</span>
                                             <RefundPolicyTooltip
                                                 isRefundable={isFreeCancel}
                                                 textOverride={isFreeCancel ? tLocal('freeCancellation') : tLocal('nonRefundable')}
-                                                className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}
+                                                className={`text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wider ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}
                                             />
                                         </div>
                                     </div>
                                 );
                             })
                         ) : (
-                            <div className="py-12 px-6 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center">
-                                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-700 mb-2">bed</span>
-                                <p className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{tLocal('pleaseSelectARoom')}</p>
+                            <div className="py-8 px-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center">
+                                <span className="material-symbols-outlined text-3xl text-slate-300 dark:text-slate-700 mb-1">bed</span>
+                                <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{tLocal('pleaseSelectARoom')}</p>
                             </div>
                         )}
                     </div>
 
                     {/* Dynamic Details Section */}
-                    <div className="grid grid-cols-2 gap-3 mb-8">
-                        <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">{tLocal('guests')}</p>
-                            <p className="text-xs font-black text-slate-900 dark:text-white truncate">
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                        <div className="p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10">
+                            <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5 leading-none">{tLocal('guests')}</p>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
                                 {totalAdults} {totalAdults > 1 ? tLocal('adults') : tLocal('adult')}, {totalChildren} {totalChildren > 1 ? tLocal('children') : tLocal('child')}
                             </p>
                         </div>
-                        <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">{tLocal('nationality')}</p>
-                            <p className="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <div className="p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10">
+                            <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5 leading-none">{tLocal('nationality')}</p>
+                            <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1">
                                 {nationality}
                                 <span className="material-symbols-outlined text-[10px] text-primary">verified</span>
                             </p>
                         </div>
-                        <div className="col-span-2 p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10 flex items-center justify-between">
+                        <div className="col-span-2 p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10 flex items-center justify-between">
                             <div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">{tLocal('dates')}</p>
-                                <p className="text-xs font-black text-slate-900 dark:text-white">
+                                <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5 leading-none">{tLocal('dates')}</p>
+                                <p className="text-xs font-bold text-slate-900 dark:text-white">
                                     {formatDateForUrl(checkInDate)} - {formatDateForUrl(checkOutDate)}
                                 </p>
                             </div>
                             <div className="text-right">
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">{tLocal('stay')}</p>
-                                <p className="text-xs font-black text-primary">{nights} {nights > 1 ? tLocal('nights') : tLocal('night')}</p>
+                                <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5 leading-none">{tLocal('stay')}</p>
+                                <p className="text-xs font-bold text-primary">{nights} {nights > 1 ? tLocal('nights') : tLocal('night')}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Daily Prices Section - Show for each selected room */}
                     {selectedRooms.length > 0 && selectedRooms.some(r => r.dailyPrices && r.dailyPrices.length > 0) && (
-                        <div className="mb-6 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <div className="mb-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
+                            <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                 <span className="material-symbols-outlined text-xs">calendar_month</span>
                                 {tLocal('dailyRates')}
                             </p>
                             {selectedRooms.map((room, idx) => {
                                 if (!room.dailyPrices || room.dailyPrices.length === 0) return null;
                                 return (
-                                    <div key={idx} className="mb-3 last:mb-0">
+                                    <div key={idx} className="mb-2 last:mb-0">
                                         {selectedRooms.length > 1 && (
-                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                                            <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
                                                 {tLocal('room')} {idx + 1}
                                             </p>
                                         )}
-                                        <div className="space-y-1.5">
+                                        <div className="space-y-1">
                                             {room.dailyPrices.map((dp, dpIdx) => (
-                                                <div key={dpIdx} className="flex justify-between items-center">
-                                                    <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                                                <div key={dpIdx} className="flex justify-between items-center text-[10px]">
+                                                    <span className="font-medium text-slate-500 dark:text-slate-400">
                                                         {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })}
                                                     </span>
-                                                    <span className="text-[11px] font-black text-slate-700 dark:text-slate-300">
+                                                    <span className="font-bold text-slate-700 dark:text-slate-300">
                                                         {getCurrencySymbol(room.currency || agencyCurrency || 'USD', currencySymbolMap)} {(dp.calculatedAmount || dp.amount).toFixed(2)}
                                                     </span>
                                                 </div>
@@ -2672,22 +2699,22 @@ const HotelDetail = () => {
                         </div>
                     )}
 
-                    <div className="pt-8 border-t border-slate-200 dark:border-slate-800 mb-8">
+                    <div className="pt-4 border-t border-slate-200 dark:border-slate-800 mb-4">
                         <div className="flex items-end justify-between">
                             <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="material-symbols-outlined text-slate-400 text-sm">receipt_long</span>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">{tLocal('totalStayPrice')}</p>
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                    <span className="material-symbols-outlined text-slate-400 text-xs">receipt_long</span>
+                                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider leading-none">{tLocal('totalStayPrice')}</p>
                                 </div>
-                                <div className="flex items-baseline gap-1.5 ml-1">
-                                    <span className="text-sm font-black text-primary uppercase tracking-wider">{getCurrencySymbol(selectedRooms[0]?.currency || agencyCurrency || 'USD', currencySymbolMap)}</span>
-                                    <p className="text-4xl font-black text-primary leading-none tracking-tighter shadow-primary/10">
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-xs font-bold text-primary uppercase tracking-wider">{getCurrencySymbol(selectedRooms[0]?.currency || agencyCurrency || 'USD', currencySymbolMap)}</span>
+                                    <p className="text-2xl font-bold text-primary leading-none tracking-tight">
                                         {(selectedRooms.reduce((sum, r) => sum + r.rate, 0)).toFixed(2)}
                                     </p>
                                 </div>
                             </div>
-                            <div className="size-10 rounded-2xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">
-                                <span className="material-symbols-outlined">payments</span>
+                            <div className="size-8 rounded-xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">
+                                <span className="material-symbols-outlined text-base">payments</span>
                             </div>
                         </div>
                     </div>
@@ -2695,38 +2722,38 @@ const HotelDetail = () => {
                     <button
                         onClick={handleInstantReservation}
                         disabled={selectedRooms.length === 0 || isCheckingRates}
-                        className={`w-full font-black py-5 rounded-[24px] transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-[0.98] mb-4 group/btn overflow-hidden relative ${selectedRooms.length > 0 && !isCheckingRates
-                                ? 'bg-primary text-white shadow-primary/30 hover:scale-[1.02]'
+                        className={`w-full font-semibold py-3 rounded-xl transition-all text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] mb-3 group/btn overflow-hidden relative ${selectedRooms.length > 0 && !isCheckingRates
+                                ? 'bg-primary text-white shadow-primary/20 hover:scale-[1.01]'
                                 : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50'
-                            } ${isCheckingRates ? 'animate-pulse ring-4 ring-primary/20' : ''}`}>
+                            } ${isCheckingRates ? 'animate-pulse ring-2 ring-primary/20' : ''}`}>
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
                         <span className="relative z-10 flex items-center gap-2">
                             {isCheckingRates ? (
                                 <>
-                                    <span className="size-5 border-3 border-white/20 border-t-white rounded-full animate-spin"></span>
+                                    <span className="size-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
                                     <span className="animate-pulse">{tLocal('checkingBestRates')}</span>
                                 </>
                             ) : (
                                 <>
                                     {tLocal('instantReservation')}
-                                    <span className="material-symbols-outlined text-[20px] group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                                    <span className="material-symbols-outlined text-[16px] group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
                                 </>
                             )}
                         </span>
                     </button>
-                    <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em]">
+                    <p className="text-[9px] text-center text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider">
                         {tLocal('b2bAgencyRatesApplied')}
                     </p>
                 </div>
             </div>
 
-            <div className="mt-6 bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex items-center gap-4">
-                <div className="size-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm">
-                    <span className="material-symbols-outlined">verified_user</span>
+            <div className="mt-4 bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex items-center gap-3">
+                <div className="size-9 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-xs shrink-0">
+                    <span className="material-symbols-outlined text-lg">verified_user</span>
                 </div>
                 <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">SECURE PAYMENT</p>
-                    <p className="text-sm font-black">TOG Protected Booking</p>
+                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider leading-none mb-0.5">SECURE PAYMENT</p>
+                    <p className="text-xs font-bold text-slate-800 dark:text-white">TOG Protected Booking</p>
                 </div>
             </div>
         </div>

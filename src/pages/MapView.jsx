@@ -32,17 +32,17 @@ const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover, se
             <div class="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center justify-end pb-[2px] w-max group cursor-pointer pointer-events-auto">
                 ${isSelected ? '<div class="absolute bottom-1 w-3 h-3 rounded-full bg-[#137fec] animate-ping opacity-60"></div>' : ''}
                 
-                <div class="px-3.5 py-1.5 rounded-full font-black text-[13px] transition-all duration-300 border flex items-center justify-center gap-[1px] whitespace-nowrap z-10 ${isSelected || isHovered
-                ? 'bg-gradient-to-br from-[#137fec] to-[#0e60b5] text-white border-transparent scale-110 shadow-[0_10px_25px_rgba(19,127,236,0.4)] -translate-y-1.5'
-                : 'bg-white/95 backdrop-blur-md text-slate-800 border-slate-200/80 shadow-[0_4px_15px_rgba(0,0,0,0.06)] group-hover:border-slate-300 group-hover:shadow-[0_6px_20px_rgba(0,0,0,0.1)]'
+                <div class="px-2 py-0.5 rounded-full font-bold text-[11px] transition-all duration-300 border flex items-center justify-center gap-[1px] whitespace-nowrap z-10 ${isSelected || isHovered
+                ? 'bg-gradient-to-br from-[#137fec] to-[#0e60b5] text-white border-transparent scale-105 shadow-md -translate-y-1'
+                : 'bg-white/95 backdrop-blur-md text-slate-800 border-slate-200/80 shadow-xs group-hover:border-slate-300'
                 }">
-                    <span class="text-[10px] ${isSelected || isHovered ? 'text-blue-200' : 'text-slate-400'} font-bold leading-none -mt-0.5">$</span>
+                    <span class="text-[9px] ${isSelected || isHovered ? 'text-blue-200' : 'text-slate-400'} font-bold leading-none">$</span>
                     <span class="tracking-tight">${hotel.price}</span>
                 </div>
                 
-                <div class="flex flex-col items-center justify-end z-0 transition-all duration-300 origin-bottom ${isSelected || isHovered ? 'scale-y-[1.5] -translate-y-0.5' : ''}">
-                    <div class="w-[2px] h-2.5 transition-colors duration-300 ${isSelected || isHovered ? 'bg-[#137fec]' : 'bg-slate-300'}"></div>
-                    <div class="w-1.5 h-1.5 rounded-full transition-all duration-300 ${isSelected || isHovered ? 'bg-[#0e60b5] scale-[1.5] shadow-[0_0_8px_rgba(19,127,236,0.8)]' : 'bg-slate-400'}"></div>
+                <div class="flex flex-col items-center justify-end z-0 transition-all duration-300 origin-bottom ${isSelected || isHovered ? 'scale-y-125 -translate-y-0.5' : ''}">
+                    <div class="w-[2px] h-2 transition-colors duration-300 ${isSelected || isHovered ? 'bg-[#137fec]' : 'bg-slate-300'}"></div>
+                    <div class="w-1 h-1 rounded-full transition-all duration-300 ${isSelected || isHovered ? 'bg-[#0e60b5] scale-125 shadow-xs' : 'bg-slate-400'}"></div>
                 </div>
             </div>
         `,
@@ -65,7 +65,7 @@ const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover, se
             <Popup className="hotel-marker-popup" minWidth={240} autoPan={false}>
                 <div className="p-1 group/popup">
                     <img src={hotel.image} className="w-full h-32 object-cover rounded-xl mb-3" alt={hotel.name} />
-                    <h3 className="font-black text-sm uppercase tracking-tight text-slate-900 dark:text-white mb-1">{hotel.names?.tr || hotel.names?.en || hotel.name}</h3>
+                    <h3 className="font-semibold text-xs sm:text-sm uppercase tracking-tight text-slate-900 dark:text-white mb-1">{hotel.names?.tr || hotel.names?.en || hotel.name}</h3>
                     <div className="flex items-center justify-between mt-3">
                         <span className="text-lg font-black text-primary leading-none tracking-tighter">${hotel.price}</span>
                         <Link
@@ -992,28 +992,28 @@ const MapView = () => {
             <Header />
 
             {/* Breadcrumbs Section - matches HotelListing.jsx structure */}
-            <div className="max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <Breadcrumbs
                         locationId={searchParams.get('locationId') || '174737'}
                         initialData={breadcrumbData}
                     />
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4">
                         <button
                             onClick={handleBackToList}
-                            className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
+                            className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
                         >
-                            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
-                                <span className="material-symbols-outlined text-lg">format_list_bulleted</span>
+                            <div className="w-6.5 h-6.5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-xs">
+                                <span className="material-symbols-outlined text-sm">format_list_bulleted</span>
                             </div>
                             Back to List
                         </button>
                         <Link
                             to="/"
-                            className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
+                            className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
                         >
-                            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-sm">
-                                <span className="material-symbols-outlined text-lg">arrow_back</span>
+                            <div className="w-6.5 h-6.5 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shadow-xs">
+                                <span className="material-symbols-outlined text-sm">arrow_back</span>
                             </div>
                             Back to Dashboard
                         </Link>
@@ -1023,43 +1023,43 @@ const MapView = () => {
 
             <main className="flex-1 flex overflow-hidden relative">
                 {/* Global Top Loading Bar */}
-                <div className={`absolute top-0 left-0 w-full h-[4px] z-[5000] bg-slate-100 dark:bg-slate-800/50 overflow-hidden transition-all duration-500 origin-top ${isLoadingHotels ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0'}`}>
+                <div className={`absolute top-0 left-0 w-full h-[3px] z-[5000] bg-slate-100 dark:bg-slate-800/50 overflow-hidden transition-all duration-500 origin-top ${isLoadingHotels ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0'}`}>
                     <div className="h-full w-1/3 bg-gradient-to-r from-[#137fec]/50 via-[#137fec] to-[#137fec]/50 shadow-[0_0_15px_#137fec] rounded-full animate-[loading-bar_1.5s_ease-in-out_infinite]"></div>
                 </div>
 
                 {/* Aside: Hotel List Sidebar */}
-                <aside className={`absolute lg:relative z-30 h-full bg-white/80 dark:bg-background-dark/80 backdrop-blur-2xl border-r border-slate-200/50 dark:border-slate-800/50 transition-all duration-500 ease-in-out shadow-2xl overflow-hidden ${isSidebarOpen
-                    ? 'w-full md:w-[420px] xl:w-[480px] translate-x-0 opacity-100'
+                <aside className={`absolute lg:relative z-30 h-full bg-white/90 dark:bg-background-dark/90 backdrop-blur-xl border-r border-slate-200/80 dark:border-slate-800 transition-all duration-500 ease-in-out shadow-xl overflow-hidden ${isSidebarOpen
+                    ? 'w-full md:w-[340px] xl:w-[380px] translate-x-0 opacity-100'
                     : 'w-0 -translate-x-full opacity-0 pointer-events-none'
                     }`}>
-                    <div className="h-full flex flex-col w-[420px] xl:w-[480px]">
-                        <div className="p-8 border-b border-slate-100/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50">
-                            <div className="flex items-center justify-between mb-1">
+                    <div className="h-full flex flex-col w-[340px] xl:w-[380px]">
+                        <div className="px-4 py-3.5 border-b border-slate-100 dark:border-slate-800/80 bg-white/50 dark:bg-slate-900/50">
+                            <div className="flex items-center justify-between">
                                 <div>
-                                    <h1 className="font-black text-2xl tracking-tighter text-slate-900 dark:text-white uppercase leading-none">{locationName}</h1>
-                                    <p className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mt-2">
-                                        {isLoadingHotels ? 'Searching...' : `${filteredHotels.length} Properties in this area`}
+                                    <h1 className="font-bold text-base tracking-tight text-slate-900 dark:text-white uppercase leading-none">{locationName}</h1>
+                                    <p className="text-[10px] font-medium text-primary uppercase tracking-wider mt-1">
+                                        {isLoadingHotels ? 'Searching...' : `${filteredHotels.length} Properties in area`}
                                     </p>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5">
                                     <button
                                         onClick={() => setIsFilterModalOpen(true)}
-                                        className="px-5 py-3 flex items-center gap-2 rounded-2xl bg-[#137fec] text-white shadow-lg shadow-[#137fec]/20 hover:scale-105 active:scale-95 transition-all group"
+                                        className="px-3 py-1.5 flex items-center gap-1.5 rounded-xl bg-primary text-white shadow-xs hover:bg-primary/90 active:scale-95 transition-all group text-xs font-semibold"
                                     >
-                                        <span className="material-symbols-outlined text-[20px] font-black uppercase">tune</span>
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Filter</span>
+                                        <span className="material-symbols-outlined text-base">tune</span>
+                                        <span>Filter</span>
                                     </button>
                                     <button
                                         onClick={() => setIsSidebarOpen(false)}
-                                        className="size-12 lg:hidden flex items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                                        className="size-8 lg:hidden flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                                     >
-                                        <span className="material-symbols-outlined font-black">close</span>
+                                        <span className="material-symbols-outlined text-base">close</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-5">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-3.5 space-y-3">
                             {filteredHotels.map((hotel) => (
                                 <Link
                                     to={`/hotel/${hotel.hotelId}?${searchParams.toString()}`}
@@ -1073,53 +1073,53 @@ const MapView = () => {
                                         // Still allow hotel selection on map but don't prevent navigation
                                         handleHotelSelect(hotel);
                                     }}
-                                    className={`group flex gap-5 p-5 rounded-[32px] border-2 transition-all duration-300 cursor-pointer relative overflow-hidden backdrop-blur-md ${selectedHotel?.id === hotel.id
-                                        ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-2xl shadow-primary/10'
-                                        : 'border-transparent bg-slate-50/50 dark:bg-slate-900/40 hover:bg-white dark:hover:bg-slate-900 shadow-sm hover:shadow-xl hover:border-white dark:hover:border-slate-800'
+                                    className={`group flex gap-3.5 p-3 rounded-xl border transition-all duration-300 cursor-pointer relative overflow-hidden backdrop-blur-md ${selectedHotel?.id === hotel.id
+                                        ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-md'
+                                        : 'border-slate-200/70 dark:border-slate-800/70 bg-slate-50/50 dark:bg-slate-900/40 hover:bg-white dark:hover:bg-slate-900 shadow-2xs hover:shadow-md'
                                         }`}
                                 >
-                                    <div className="w-40 h-32 rounded-[24px] overflow-hidden shrink-0 relative">
-                                        <img className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src={hotel.image} alt={hotel.name} />
+                                    <div className="w-28 h-24 rounded-lg overflow-hidden shrink-0 relative">
+                                        <img className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src={hotel.image} alt={hotel.name} />
 
                                         {/* Modern List-Style Badges */}
-                                        <div className="absolute top-3 left-3 flex flex-col gap-2">
+                                        <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
                                             {hotel.badges?.map((badge, idx) => (
-                                                <div key={idx} className={`${badge.color} text-white text-[8px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-xl shadow-lg flex items-center gap-1.5 backdrop-blur-sm border border-white/10`}>
-                                                    {badge.type === 'featured' && <span className="material-symbols-outlined text-[12px] fill-1">workspace_premium</span>}
-                                                    {badge.type === 'opportunity' && <span className="material-symbols-outlined text-[12px] fill-1">local_fire_department</span>}
-                                                    {badge.type === 'discount' && <span className="material-symbols-outlined text-[12px] fill-1">sell</span>}
-                                                    {badge.type === 'popular' && <span className="material-symbols-outlined text-[12px] fill-1">trending_up</span>}
-                                                    {badge.type === 'exclusive' && <span className="material-symbols-outlined text-[12px] fill-1">verified</span>}
+                                                <div key={idx} className={`${badge.color} text-white text-[7px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md shadow-xs flex items-center gap-1 backdrop-blur-xs border border-white/10`}>
+                                                    {badge.type === 'featured' && <span className="material-symbols-outlined text-[9px] fill-1">workspace_premium</span>}
+                                                    {badge.type === 'opportunity' && <span className="material-symbols-outlined text-[9px] fill-1">local_fire_department</span>}
+                                                    {badge.type === 'discount' && <span className="material-symbols-outlined text-[9px] fill-1">sell</span>}
+                                                    {badge.type === 'popular' && <span className="material-symbols-outlined text-[9px] fill-1">trending_up</span>}
+                                                    {badge.type === 'exclusive' && <span className="material-symbols-outlined text-[9px] fill-1">verified</span>}
                                                     {badge.label}
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col justify-between py-1 flex-1 min-w-0">
+                                    <div className="flex flex-col justify-between py-0.5 flex-1 min-w-0">
                                         <div>
-                                            <div className="flex items-center gap-1 mb-1.5 opacity-60">
+                                            <div className="flex items-center gap-0.5 mb-1 opacity-70">
                                                 {[...Array(hotel.stars || 0)].map((_, i) => (
-                                                    <span key={i} className="material-symbols-outlined text-[10px] text-amber-400 fill-1">star</span>
+                                                    <span key={i} className="material-symbols-outlined text-[9px] text-amber-400 fill-1">star</span>
                                                 ))}
                                             </div>
-                                            <h3 className="font-black text-slate-900 dark:text-white leading-tight uppercase tracking-tight truncate group-hover:text-primary transition-colors text-sm">{hotel.name}</h3>
-                                            <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1 mt-1.5 uppercase tracking-widest">
-                                                <span className="material-symbols-outlined text-[14px]">location_on</span>
+                                            <h3 className="font-semibold text-slate-900 dark:text-white leading-tight uppercase tracking-tight truncate group-hover:text-primary transition-colors text-xs">{hotel.name}</h3>
+                                            <p className="text-[9px] text-slate-400 font-medium flex items-center gap-0.5 mt-1 uppercase tracking-wider truncate">
+                                                <span className="material-symbols-outlined text-[12px]">location_on</span>
                                                 {hotel.location}
                                             </p>
                                         </div>
 
-                                        <div className="flex items-center justify-between mt-4">
-                                            <div className="flex items-center gap-2">
-                                                <div className="px-2.5 py-1.5 rounded-xl bg-[#137fec]/10 dark:bg-[#137fec]/20 flex items-center justify-center text-[#137fec] font-black text-[10px]">
+                                        <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-100/60 dark:border-slate-800/60">
+                                            <div className="flex items-center gap-1">
+                                                <div className="px-1.5 py-0.5 rounded-md bg-primary/10 flex items-center justify-center text-primary font-bold text-[9px]">
                                                     {hotel.rating}
                                                 </div>
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Rating</span>
+                                                <span className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider leading-none">Rating</span>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-xl font-black text-[#137fec] leading-none tracking-tighter">${hotel.price}</p>
-                                                <p className="text-[8px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1.5">Starting At</p>
+                                                <p className="text-sm font-bold text-primary leading-none tracking-tight">${hotel.price}</p>
+                                                <p className="text-[7px] text-slate-400 font-medium uppercase tracking-wider mt-0.5">Starting At</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1255,56 +1255,56 @@ const MapView = () => {
                     )}
 
                     {/* Map Controls (Glass) */}
-                    <div className="absolute right-8 top-8 z-[1000] flex flex-col gap-4">
-                        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[24px] shadow-2xl border border-white/20 dark:border-slate-800 overflow-hidden flex flex-col">
-                            <button onClick={handleZoomIn} className="p-5 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-300 transition-all border-b border-slate-100/10 active:scale-95">
-                                <span className="material-symbols-outlined font-black">add</span>
+                    <div className="absolute right-5 top-5 z-[1000] flex flex-col gap-2.5">
+                        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-xl shadow-md border border-white/20 dark:border-slate-800 overflow-hidden flex flex-col">
+                            <button onClick={handleZoomIn} className="p-2.5 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-300 transition-all border-b border-slate-100/10 active:scale-95 flex items-center justify-center">
+                                <span className="material-symbols-outlined text-lg font-bold">add</span>
                             </button>
-                            <button onClick={handleZoomOut} className="p-5 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-300 transition-all active:scale-95">
-                                <span className="material-symbols-outlined font-black">remove</span>
+                            <button onClick={handleZoomOut} className="p-2.5 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-300 transition-all active:scale-95 flex items-center justify-center">
+                                <span className="material-symbols-outlined text-lg font-bold">remove</span>
                             </button>
                         </div>
-                        <button onClick={handleLocate} className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-5 rounded-[24px] shadow-2xl border border-white/20 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-primary active:scale-95 transition-all">
-                            <span className="material-symbols-outlined font-black">near_me</span>
+                        <button onClick={handleLocate} className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-2.5 rounded-xl shadow-md border border-white/20 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-primary active:scale-95 transition-all flex items-center justify-center">
+                            <span className="material-symbols-outlined text-lg font-bold">near_me</span>
                         </button>
 
                         {/* Navigation Controls */}
-                        <div className="flex flex-col gap-3 mt-4">
+                        <div className="flex flex-col gap-2 mt-2">
                             <button
                                 onClick={handleBackToList}
-                                className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl p-4 rounded-[20px] shadow-xl border border-white/20 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-800 active:scale-95 transition-all group flex items-center justify-center relative"
+                                className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl p-2.5 rounded-xl shadow-md border border-white/20 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-blue-50 dark:hover:bg-slate-800 active:scale-95 transition-all group flex items-center justify-center relative"
                             >
-                                <span className="material-symbols-outlined font-black group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                                <span className="material-symbols-outlined text-lg font-bold group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
 
                                 {/* Modern Tooltip */}
-                                <div className="absolute right-full mr-4 px-3 py-2 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none shadow-xl z-50">
+                                <div className="absolute right-full mr-3 px-2.5 py-1.5 bg-slate-900 text-white text-[10px] font-semibold uppercase tracking-wider rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 translate-x-1 group-hover:translate-x-0 transition-all pointer-events-none shadow-md z-50">
                                     Back to List
-                                    <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
+                                    <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-1.5 h-1.5 bg-slate-900 rotate-45"></div>
                                 </div>
                             </button>
 
                             <a
                                 href="/"
-                                className="bg-primary/90 backdrop-blur-xl p-4 rounded-[20px] shadow-xl shadow-primary/30 border border-white/20 text-white hover:bg-primary active:scale-95 transition-all group flex items-center justify-center relative"
+                                className="bg-primary/90 backdrop-blur-xl p-2.5 rounded-xl shadow-md shadow-primary/20 border border-white/20 text-white hover:bg-primary active:scale-95 transition-all group flex items-center justify-center relative"
                             >
-                                <span className="material-symbols-outlined font-black group-hover:rotate-12 transition-transform">grid_view</span>
+                                <span className="material-symbols-outlined text-lg font-bold group-hover:rotate-12 transition-transform">grid_view</span>
 
                                 {/* Modern Tooltip */}
-                                <div className="absolute right-full mr-4 px-3 py-2 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none shadow-xl z-50">
+                                <div className="absolute right-full mr-3 px-2.5 py-1.5 bg-slate-900 text-white text-[10px] font-semibold uppercase tracking-wider rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 translate-x-1 group-hover:translate-x-0 transition-all pointer-events-none shadow-md z-50">
                                     Dashboard
-                                    <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
+                                    <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-1.5 h-1.5 bg-slate-900 rotate-45"></div>
                                 </div>
                             </a>
                         </div>
                     </div>
 
                     {/* Sidebar Toggle Action Bar */}
-                    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-4 group">
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-3 group">
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                            className="bg-slate-900 dark:bg-slate-900/90 backdrop-blur-xl text-white px-10 py-5 rounded-[30px] font-black uppercase text-xs tracking-[0.2em] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] flex items-center gap-4 hover:scale-105 active:scale-95 transition-all border border-white/10"
+                            className="bg-slate-900/90 dark:bg-slate-900/95 backdrop-blur-xl text-white px-5 py-2.5 rounded-full font-semibold uppercase text-xs tracking-wider shadow-lg flex items-center gap-2.5 hover:scale-105 active:scale-95 transition-all border border-white/10"
                         >
-                            <span className="material-symbols-outlined text-xl transition-transform group-hover:rotate-12">
+                            <span className="material-symbols-outlined text-base transition-transform group-hover:rotate-12">
                                 {isSidebarOpen ? 'close_fullscreen' : 'list'}
                             </span>
                             {isSidebarOpen ? 'Hide List View' : 'Show List View'}

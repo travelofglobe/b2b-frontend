@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext';
 import EditSubAgencyUserModal from './EditSubAgencyUserModal';
 import ConfirmModal from './ConfirmModal';
 import AssignRoleModal from './AssignRoleModal';
+import AppleSwitch from './AppleSwitch';
 
 const SubAgencyDetailView = ({ onBack, agency }) => {
     const toast = useToast();
@@ -277,21 +278,12 @@ const SubAgencyDetailView = ({ onBack, agency }) => {
                                                         </td>
                                                         <td className="px-6 py-4">
                                                             <div className="flex flex-col items-center gap-1 group/status">
-                                                                <div 
-                                                                    onClick={() => handleStatusToggle(user)}
-                                                                    className={`relative inline-flex h-4.5 w-9 items-center rounded-full transition-all cursor-pointer shadow-sm hover:scale-110 active:scale-95 duration-300 ${
-                                                                        user.status === 'ACTIVE' 
-                                                                        ? 'bg-emerald-500 shadow-md shadow-emerald-500/20' 
-                                                                        : 'bg-slate-200 dark:bg-slate-800'
-                                                                    }`}
-                                                                >
-                                                                    <span 
-                                                                        className={`inline-block size-3 transform rounded-full bg-white shadow-sm transition-all duration-300 ${
-                                                                            user.status === 'ACTIVE' ? 'translate-x-[22px]' : 'translate-x-0.5'
-                                                                        }`} 
-                                                                    />
-                                                                </div>
-                                                                <span className={`text-[9px] font-black uppercase tracking-widest transition-colors duration-300 ${
+                                                                <AppleSwitch
+                                                                    checked={user.status === 'ACTIVE'}
+                                                                    onChange={() => handleStatusToggle(user)}
+                                                                    size="sm"
+                                                                />
+                                                                <span className={`text-[10px] font-semibold uppercase tracking-wider transition-colors duration-300 ${
                                                                     user.status === 'ACTIVE' ? 'text-emerald-500' : 'text-slate-400'
                                                                 }`}>
                                                                     {user.status === 'ACTIVE' ? 'Active' : 'Passive'}

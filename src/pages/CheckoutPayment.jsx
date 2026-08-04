@@ -1038,7 +1038,7 @@ const CheckoutPayment = () => {
     return (
         <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
             <Header />
-            <main className="max-w-7xl mx-auto px-6 pt-6 pb-20">
+            <main className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-16 py-8 lg:py-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div className="flex-1">
                         <CheckoutStepper 
@@ -1076,69 +1076,54 @@ const CheckoutPayment = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                     <div className="lg:col-span-8 space-y-8">
-                        {/* Refined Payment Method Selection - More prominent */}
-                        <div className="max-w-[420px] mx-auto">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Refined Payment Method Selection - Compact */}
+                        <div className="max-w-md mx-auto mb-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <button
                                     onClick={() => setPaymentMethod('deposit')}
-                                    className={`relative p-5 rounded-[24px] transition-all duration-500 text-left group overflow-hidden border backdrop-blur-3xl ${paymentMethod === 'deposit' ? 'bg-primary/[0.04] border-primary/20 shadow-[0_20px_80px_-20px_rgba(255,59,92,0.25)] scale-[1.01]' : 'bg-white/60 dark:bg-slate-900/60 border-white/40 dark:border-white/5 shadow-lg shadow-slate-200/50 dark:shadow-black/50 hover:bg-white/80 dark:hover:bg-slate-900/80'}`}
+                                    className={`relative p-3 rounded-xl transition-all duration-300 text-left group overflow-hidden border backdrop-blur-3xl ${paymentMethod === 'deposit' ? 'bg-primary/5 border-primary/30 shadow-xs' : 'bg-white/60 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:bg-white/80 dark:hover:bg-slate-900/80'}`}
                                 >
-                                    {/* Subtle Shading Overlays */}
-                                    <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
-
-                                    {/* Floating Background Icon - More subtle */}
-                                    <div className={`absolute -top-6 -right-6 transition-all duration-1000 ${paymentMethod === 'deposit' ? 'text-primary opacity-[0.06] scale-150 rotate-12 blur-[2px]' : 'text-slate-300 dark:text-slate-700 opacity-[0.02]'}`}>
-                                        <span className="material-symbols-outlined text-[120px] select-none">account_balance_wallet</span>
-                                    </div>
-
-                                    <div className={`size-10 rounded-xl mb-6 flex items-center justify-center transition-all duration-500 ${paymentMethod === 'deposit' ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                                        <span className="material-symbols-outlined text-xl">account_balance_wallet</span>
-                                    </div>
-
-                                    <div className="relative z-10">
-                                        <h3 className={`text-base font-black uppercase tracking-tight mb-0.5 ${paymentMethod === 'deposit' ? 'text-primary' : 'text-slate-900 dark:text-white'}`}>
-                                            B2B Deposit
-                                        </h3>
-                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">
-                                            Instant Settlement
-                                        </p>
+                                    <div className="flex items-center gap-2.5">
+                                        <div className={`size-8 rounded-lg flex items-center justify-center transition-all ${paymentMethod === 'deposit' ? 'bg-primary text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                                            <span className="material-symbols-outlined text-base">account_balance_wallet</span>
+                                        </div>
+                                        <div>
+                                            <h3 className={`text-xs font-bold uppercase tracking-tight ${paymentMethod === 'deposit' ? 'text-primary' : 'text-slate-900 dark:text-white'}`}>
+                                                B2B Deposit
+                                            </h3>
+                                            <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">
+                                                Instant Settlement
+                                            </p>
+                                        </div>
                                     </div>
 
                                     {paymentMethod === 'deposit' && (
-                                        <div className="absolute top-6 right-6 size-5 bg-primary text-white rounded-full flex items-center justify-center animate-in zoom-in duration-500 shadow-md ring-2 ring-white dark:ring-slate-900">
-                                            <span className="material-symbols-outlined text-[10px] font-black">check</span>
+                                        <div className="absolute top-2.5 right-2.5 size-4 bg-primary text-white rounded-full flex items-center justify-center shadow-xs">
+                                            <span className="material-symbols-outlined text-[10px] font-bold">check</span>
                                         </div>
                                     )}
                                 </button>
 
-                                <div className="relative p-5 rounded-[24px] text-left overflow-hidden border backdrop-blur-3xl bg-white/40 dark:bg-slate-900/40 border-slate-200/60 dark:border-white/5 shadow-lg opacity-60 cursor-not-allowed select-none">
-                                    {/* Subtle Shading Overlays */}
-                                    <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
-
-                                    {/* Diagonal "Coming Soon" ribbon */}
-                                    <div className="absolute top-4 right-4 z-20">
-                                        <span className="flex items-center gap-1 bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-slate-300 dark:border-slate-600">
-                                            <span className="material-symbols-outlined text-[10px]">schedule</span>
+                                <div className="relative p-3 rounded-xl text-left overflow-hidden border backdrop-blur-3xl bg-white/40 dark:bg-slate-900/40 border-slate-200/60 dark:border-slate-800 opacity-60 cursor-not-allowed select-none">
+                                    <div className="absolute top-2.5 right-2.5 z-20">
+                                        <span className="flex items-center gap-1 bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider border border-slate-300 dark:border-slate-600">
+                                            <span className="material-symbols-outlined text-[9px]">schedule</span>
                                             Soon
                                         </span>
                                     </div>
 
-                                    {/* Floating Background Icon */}
-                                    <div className="absolute -top-6 -right-6 text-slate-300 dark:text-slate-700 opacity-[0.04]">
-                                        <span className="material-symbols-outlined text-[120px] select-none">credit_card</span>
-                                    </div>
-
-                                    <div className="size-10 rounded-xl mb-6 flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400">
-                                        <span className="material-symbols-outlined text-xl">credit_card</span>
-                                    </div>
-
-                                    <div className="relative z-10">
-                                        <h3 className="text-base font-black uppercase tracking-tight mb-0.5 text-slate-400 dark:text-slate-500">
-                                            Credit Card
-                                        </h3>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-60">
-                                            Coming Soon
-                                        </p>
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="size-8 rounded-lg flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400">
+                                            <span className="material-symbols-outlined text-base">credit_card</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xs font-bold uppercase tracking-tight text-slate-400 dark:text-slate-500">
+                                                Credit Card
+                                            </h3>
+                                            <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">
+                                                Coming Soon
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1289,21 +1274,21 @@ const CheckoutPayment = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="p-10 rounded-[40px] border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-700" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                <div className="flex items-center gap-6 mb-8">
-                                    <div className="size-20 rounded-[28px] bg-primary/10 flex items-center justify-center text-primary"><span className="material-symbols-outlined text-4xl">account_balance_wallet</span></div>
-                                    <div><h3 className="text-xl font-black uppercase tracking-tight mb-1">{tSummary('corporateDepositAccount', currentLang)}</h3><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{tSummary('verifiedB2bBalance', currentLang)}</p></div>
+                            <div className="p-5 rounded-2xl border border-white/40 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-500" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                <div className="flex items-center gap-3 mb-5">
+                                    <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><span className="material-symbols-outlined text-lg">account_balance_wallet</span></div>
+                                    <div><h3 className="text-base font-bold uppercase tracking-tight text-slate-900 dark:text-white mb-0.5">{tSummary('corporateDepositAccount', currentLang)}</h3><p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{tSummary('verifiedB2bBalance', currentLang)}</p></div>
                                 </div>
-                                <div className="space-y-4">
+                                <div className="space-y-3">
                                     {/* Current Balance */}
-                                    <div className="p-6 rounded-3xl bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                                    <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
                                         <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{tSummary('availableFunds', currentLang)}</p>
-                                            <p className="text-2xl font-black tracking-tighter opacity-60">{getCurrencySymbol(displayCurrency, currencySymbolMap)}12,450.00</p>
+                                            <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">{tSummary('availableFunds', currentLang)}</p>
+                                            <p className="text-xl font-bold tracking-tight text-slate-700 dark:text-slate-200">{getCurrencySymbol(displayCurrency, currencySymbolMap)}12,450.00</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isInsufficientBalance ? 'text-red-500' : 'text-emerald-500'}`}>{tSummary('status', currentLang)}</p>
-                                            <span className={`px-3 py-1.5 text-[10px] font-black rounded-xl uppercase tracking-widest border ${
+                                            <p className={`text-[9px] font-semibold uppercase tracking-wider mb-0.5 ${isInsufficientBalance ? 'text-red-500' : 'text-emerald-500'}`}>{tSummary('status', currentLang)}</p>
+                                            <span className={`px-2.5 py-1 text-[9px] font-semibold rounded-lg uppercase tracking-wider border ${
                                                 isInsufficientBalance 
                                                     ? 'bg-red-500/10 text-red-500 border-red-500/10' 
                                                     : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/10'
@@ -1314,53 +1299,50 @@ const CheckoutPayment = () => {
                                     </div>
 
                                     {/* Red Deduction Card */}
-                                    <div className="p-6 rounded-3xl bg-red-500/5 border border-red-500/20 flex items-center justify-between relative overflow-hidden group">
-                                        <div className="absolute -right-4 -top-4 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
-                                            <span className="material-symbols-outlined text-8xl text-red-500">trending_down</span>
-                                        </div>
+                                    <div className="p-3.5 rounded-xl bg-red-500/5 border border-red-500/20 flex items-center justify-between relative overflow-hidden group">
                                         <div className="relative z-10">
-                                            <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">{tSummary('deductionAmount', currentLang)}</p>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-4xl font-black text-red-600 leading-none">-</span>
-                                                <p className="text-4xl font-black text-red-600 tracking-tighter leading-none">
+                                            <p className="text-[9px] font-semibold text-red-500 uppercase tracking-wider mb-0.5">{tSummary('deductionAmount', currentLang)}</p>
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-xl font-bold text-red-600 leading-none">-</span>
+                                                <p className="text-xl font-bold text-red-600 tracking-tight leading-none">
                                                     {getCurrencySymbol(displayCurrency, currencySymbolMap)} {grandTotal.toFixed(2)}
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="text-right relative z-10">
-                                            <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">{tSummary('paymentImpact', currentLang)}</p>
-                                            <span className="px-3 py-1.5 bg-red-500/10 text-red-600 text-[10px] font-black rounded-xl uppercase tracking-widest border border-red-500/10">{tSummary('balanceDecrease', currentLang)}</span>
+                                            <p className="text-[9px] font-semibold text-red-400 uppercase tracking-wider mb-0.5">{tSummary('paymentImpact', currentLang)}</p>
+                                            <span className="px-2.5 py-1 bg-red-500/10 text-red-600 text-[9px] font-semibold rounded-lg uppercase tracking-wider border border-red-500/10">{tSummary('balanceDecrease', currentLang)}</span>
                                         </div>
                                     </div>
 
-                                    {/* Estimated Balance or Warning */}
+                                    {/* Clean Estimated Balance or Warning Card */}
                                     {isInsufficientBalance ? (
-                                        <div className="p-6 rounded-[32px] bg-red-600 dark:bg-red-900/40 text-white flex flex-col gap-3 shadow-2xl border border-red-500/20 animate-pulse">
+                                        <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-200 flex flex-col gap-2 border border-red-200 dark:border-red-800/50">
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">{tSummary('deficitAmount', currentLang)}</p>
-                                                    <p className="text-3xl font-black tracking-tighter">
+                                                    <p className="text-[9px] font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider mb-0.5">{tSummary('deficitAmount', currentLang)}</p>
+                                                    <p className="text-xl font-bold tracking-tight text-red-600 dark:text-red-400">
                                                         - {getCurrencySymbol(displayCurrency, currencySymbolMap)} {(grandTotal - availableFunds).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </p>
                                                 </div>
-                                                <div className="size-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                                                    <span className="material-symbols-outlined text-white">warning</span>
+                                                <div className="size-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center">
+                                                    <span className="material-symbols-outlined text-lg">warning</span>
                                                 </div>
                                             </div>
-                                            <p className="text-[10px] font-bold text-red-100 uppercase tracking-wider bg-black/20 p-2 rounded-xl text-center">
+                                            <p className="text-[9px] font-medium text-red-700 dark:text-red-300 uppercase tracking-wider bg-red-100/60 dark:bg-red-900/40 p-1.5 rounded-lg text-center">
                                                 {tSummary('topUpPrompt', currentLang)}
                                             </p>
                                         </div>
                                     ) : (
-                                        <div className="p-6 rounded-[32px] bg-slate-900 dark:bg-black text-white flex items-center justify-between shadow-2xl border border-white/5">
+                                        <div className="p-3.5 rounded-xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between">
                                             <div>
-                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">{tSummary('estimatedNewBalance', currentLang)}</p>
-                                                <p className="text-3xl font-black tracking-tighter">
+                                                <p className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-0.5">{tSummary('estimatedNewBalance', currentLang)}</p>
+                                                <p className="text-xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
                                                     {getCurrencySymbol(displayCurrency, currencySymbolMap)} {(availableFunds - grandTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </p>
                                             </div>
-                                            <div className="size-12 rounded-2xl bg-white/10 flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-white/40">account_balance</span>
+                                            <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-lg">account_balance</span>
                                             </div>
                                         </div>
                                     )}
@@ -1370,80 +1352,80 @@ const CheckoutPayment = () => {
                     </div>
 
                     {/* Sticky Reservation Summary Sidebar */}
-                    <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-6">
+                    <div className="lg:col-span-4 lg:sticky lg:top-24 space-y-4">
                         <div className="relative group/sidebar">
                             {/* Glass Background */}
-                            <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-[40px] border border-white/40 dark:border-white/10 shadow-[0_32px_80px_-16px_rgba(0,0,0,0.1)] transition-all duration-500 group-hover/sidebar:shadow-[0_48px_96px_-16px_rgba(0,0,0,0.15)]"></div>
+                            <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-2xl border border-white/40 dark:border-white/10 shadow-lg transition-all duration-500"></div>
 
-                            <div className="relative p-8 z-10">
+                            <div className="relative p-5 z-10">
 
                                 {/* Header */}
-                                <div className="flex items-center gap-2 text-primary font-black text-[10px] mb-6 uppercase tracking-[0.2em] bg-primary/5 dark:bg-primary/20 p-3 rounded-2xl border border-primary/10" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                <div className="flex items-center gap-2 text-primary font-semibold text-[9px] mb-4 uppercase tracking-wider bg-primary/5 dark:bg-primary/20 p-2.5 rounded-xl border border-primary/10" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                     <span className="material-symbols-outlined text-sm fill-1">bolt</span>
                                     {tSummary('instantConfirmation', currentLang)}
                                 </div>
 
-                                <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                <h3 className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-1.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                     <span className="material-symbols-outlined text-sm">auto_awesome</span>
                                     {tSummary('reservationSummary', currentLang)}
                                 </h3>
 
                                 {/* Hotel Info Card */}
-                                <div className="mb-6 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm">
-                                    <div className="relative h-32 overflow-hidden">
+                                <div className="mb-4 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-xs">
+                                    <div className="relative h-28 overflow-hidden">
                                         <img src={hotelImage} alt={hotelName} className="w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-                                        <div className="absolute bottom-3 left-4 right-4">
-                                            <div className="flex items-center gap-0.5 mb-1">
+                                        <div className="absolute bottom-2.5 left-3.5 right-3.5">
+                                            <div className="flex items-center gap-0.5 mb-0.5">
                                                 {[...Array(hotelStars)].map((_, i) => (
-                                                    <span key={i} className="material-symbols-outlined text-[11px] text-amber-400 fill-1">star</span>
+                                                    <span key={i} className="material-symbols-outlined text-[10px] text-amber-400 fill-1">star</span>
                                                 ))}
                                             </div>
-                                            <h3 className="font-black text-white text-sm uppercase tracking-tight leading-tight line-clamp-1">{hotelName}</h3>
+                                            <h3 className="font-bold text-white text-xs uppercase tracking-tight leading-tight line-clamp-1">{hotelName}</h3>
                                         </div>
                                     </div>
-                                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 space-y-2">
+                                    <div className="p-2.5 bg-slate-50 dark:bg-slate-800/50 space-y-1.5">
                                         {hotelAddress && (
-                                            <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[13px] text-primary shrink-0">location_on</span>
-                                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">{hotelAddress}</p>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="material-symbols-outlined text-xs text-primary shrink-0">location_on</span>
+                                                <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 truncate">{hotelAddress}</p>
                                             </div>
                                         )}
                                         <div className="flex gap-3" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                            <div className="flex items-center gap-1.5">
+                                            <div className="flex items-center gap-1">
                                                 <span className="material-symbols-outlined text-[11px] text-primary">login</span>
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">{tSummary('in', currentLang)}: {hotel.checkIn || '15:00'}</span>
+                                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{tSummary('in', currentLang)}: {hotel.checkIn || '15:00'}</span>
                                             </div>
-                                            <div className="flex items-center gap-1.5">
+                                            <div className="flex items-center gap-1">
                                                 <span className="material-symbols-outlined text-[11px] text-primary">logout</span>
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">{tSummary('out', currentLang)}: {hotel.checkOut || '11:00'}</span>
+                                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{tSummary('out', currentLang)}: {hotel.checkOut || '11:00'}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Booking Dates */}
-                                <div className="grid grid-cols-2 gap-3 mb-6">
-                                    <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('checkIn', currentLang)}</p>
-                                        <p className="text-sm font-black uppercase text-primary leading-tight">{formattedDates.start}</p>
+                                <div className="grid grid-cols-2 gap-2 mb-4">
+                                    <div className="p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10">
+                                        <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('checkIn', currentLang)}</p>
+                                        <p className="text-xs font-bold uppercase text-primary leading-tight">{formattedDates.start}</p>
                                     </div>
-                                    <div className="p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10">
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('checkOut', currentLang)}</p>
-                                        <p className="text-sm font-black uppercase text-primary leading-tight">{formattedDates.end}</p>
+                                    <div className="p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10">
+                                        <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('checkOut', currentLang)}</p>
+                                        <p className="text-xs font-bold uppercase text-primary leading-tight">{formattedDates.end}</p>
                                     </div>
-                                    <div className="col-span-2 p-3.5 rounded-2xl bg-slate-500/5 border border-slate-500/10 flex justify-between items-center">
-                                        <div className="flex items-center gap-2">
-                                            <span className="material-symbols-outlined text-[13px] text-primary">nights_stay</span>
-                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                    <div className="col-span-2 p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10 flex justify-between items-center">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-xs text-primary">nights_stay</span>
+                                            <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                                 {currentLang === 'tr' 
                                                     ? `${nights} Gece Konaklama` 
                                                     : `${nights} ${nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)} ${tSummary('stay', currentLang)}`}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="material-symbols-outlined text-[13px] text-primary">group</span>
-                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-xs text-primary">group</span>
+                                            <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                                 {(() => {
                                                     const adultsCount = (checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy || checkRatesData?.occupancy)?.adults || roomState?.reduce((s, r) => s + r.adults, 0) || 0;
                                                     const childrenCount = (checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy || checkRatesData?.occupancy)?.child || roomState?.reduce((s, r) => s + r.children, 0) || 0;
@@ -1457,19 +1439,19 @@ const CheckoutPayment = () => {
                                 </div>
 
                                 {/* Room Breakdown */}
-                                <div className="space-y-4 mb-6">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('selectedRooms', currentLang)}</p>
+                                <div className="space-y-3 mb-4">
+                                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('selectedRooms', currentLang)}</p>
                                     {selectedRooms?.map((room, idx) => {
                                         const policies = room.cancellationPolicies || [];
                                         return (
-                                            <div key={idx} className="relative p-4 rounded-[20px] bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-sm">
+                                            <div key={idx} className="relative p-3 rounded-xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-xs">
                                                 <div className="flex justify-between items-start mb-2">
-                                                    <div className="flex items-start gap-2.5">
-                                                        <div className="size-6 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary shrink-0 mt-0.5">{idx + 1}</div>
+                                                    <div className="flex items-start gap-2">
+                                                        <div className="size-5 rounded bg-primary/10 flex items-center justify-center text-[9px] font-bold text-primary shrink-0 mt-0.5">{idx + 1}</div>
                                                         <div>
-                                                            <p className="font-black text-[13px] uppercase tracking-tight text-slate-900 dark:text-white line-clamp-2"><span lang="en">{room.name}</span></p>
-                                                            <div className="flex flex-wrap gap-2 mt-1" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                                <p className="text-[11px] font-bold text-slate-500 uppercase">
+                                                            <p className="font-bold text-xs uppercase tracking-tight text-slate-900 dark:text-white line-clamp-2"><span lang="en">{room.name}</span></p>
+                                                            <div className="flex flex-wrap gap-1.5 mt-1" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                                                <p className="text-[10px] font-medium text-slate-500 uppercase">
                                                                     {checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName === 'RO' || !checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName === 'Room Only' ? tSummary('roomOnly', currentLang) : checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName}
                                                                 </p>
                                                                 {(() => {
@@ -1478,7 +1460,7 @@ const CheckoutPayment = () => {
                                                                     return (
                                                                         <RefundPolicyTooltip
                                                                             isRefundable={refundable}
-                                                                            className={`text-[10px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}
+                                                                            className={`text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wider ${refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}
                                                                         />
                                                                     );
                                                                 })()}
@@ -1487,33 +1469,33 @@ const CheckoutPayment = () => {
                                                     </div>
                                                     <div className="text-right shrink-0 ml-2">
                                                         <div className="flex items-baseline justify-end gap-1">
-                                                            <span className="text-base font-black text-primary leading-none">{getCurrencySymbol(displayCurrency, currencySymbolMap)}</span>
-                                                            <span className="font-black text-sm text-primary leading-none">
+                                                            <span className="text-xs font-bold text-primary leading-none">{getCurrencySymbol(displayCurrency, currencySymbolMap)}</span>
+                                                            <span className="font-bold text-xs text-primary leading-none">
                                                                 {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.calculatedAmount || checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || room.rate).toFixed(2)}
                                                             </span>
                                                         </div>
-                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{displayCurrency} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}</p>
+                                                        <p className="text-[9px] text-slate-400 font-medium uppercase tracking-wider mt-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{displayCurrency} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}</p>
                                                     </div>
                                                 </div>
                                                 {/* Cancellation policy */}
-                                                <div className="pt-2 border-t border-slate-100 dark:border-slate-700/50" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                                <div className="pt-1.5 border-t border-slate-100 dark:border-slate-700/50" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                                     {(() => {
                                                         const currentPolicies = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || policies;
                                                         if (!currentPolicies || currentPolicies.length === 0) {
                                                             return (
-                                                                <span className="text-[11px] font-bold text-slate-400 uppercase flex items-center gap-1">
-                                                                    <span className="material-symbols-outlined text-[12px]">info</span>
+                                                                <span className="text-[10px] font-medium text-slate-400 uppercase flex items-center gap-1">
+                                                                    <span className="material-symbols-outlined text-[11px]">info</span>
                                                                     {tSummary('standardCancellation', currentLang)}
                                                                 </span>
                                                             );
                                                         }
                                                         return (
                                                             <div className="space-y-1">
-                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{tSummary('cancellationPolicy', currentLang)}</p>
+                                                                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">{tSummary('cancellationPolicy', currentLang)}</p>
                                                                 {currentPolicies.map((policy, pIdx) => {
                                                                     return (
                                                                         <div key={pIdx} className="flex justify-between items-center">
-                                                                            <span className="text-[11px] font-bold text-slate-500">
+                                                                            <span className="text-[10px] font-medium text-slate-500">
                                                                                 {policy.fromDate 
                                                                                     ? (policy.fromDate.includes('[') 
                                                                                         ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
@@ -1521,7 +1503,7 @@ const CheckoutPayment = () => {
                                                                                     : (policy.amount === 0 ? tSummary('flexible', currentLang) : tSummary('cancellationPenalty', currentLang))
                                                                                 }
                                                                             </span>
-                                                                            <span className={`text-[11px] font-black px-2 py-0.5 rounded-md ${
+                                                                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
                                                                                 policy.amount === 0
                                                                                     ? 'bg-emerald-500/10 text-emerald-500'
                                                                                     : 'bg-orange-500/10 text-orange-500'
@@ -1535,89 +1517,37 @@ const CheckoutPayment = () => {
                                                         );
                                                     })()}
                                                 </div>
-
-                                                {/* Daily Prices - Updated to handle both formats */}
-                                                {(() => {
-                                                    const currentDailyPrices = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.dailyPrices;
-                                                    if (!currentDailyPrices || currentDailyPrices.length === 0) return null;
-                                                    return (
-                                                        <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/50" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{tSummary('dailyRates', currentLang)}</p>
-                                                            <div className="space-y-1">
-                                                                {currentDailyPrices.map((dp, dpIdx) => (
-                                                                    <div key={dpIdx} className="flex justify-between items-center text-[11px]">
-                                                                        <span className="font-medium text-slate-500">
-                                                                            {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short' })}
-                                                                        </span>
-                                                                        <span className="font-black text-slate-700 dark:text-slate-300">
-                                                                            {getCurrencySymbol(displayCurrency, currencySymbolMap)} {(dp.calculatedAmount || dp.amount).toFixed(2)}
-                                                                        </span>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })()}
                                             </div>
                                         );
                                     })}
                                 </div>
 
-                                {/* Taxes - Updated to handle both formats */}
-                                {(() => {
-                                    const allTaxes = [];
-                                    if (checkRatesData?.rooms) {
-                                        checkRatesData.rooms.forEach(room => {
-                                            room.rates?.[0]?.price?.taxes?.forEach(tax => allTaxes.push(tax));
-                                        });
-                                    } else if (checkRatesData?.price?.taxes) {
-                                        checkRatesData.price.taxes.forEach(tax => allTaxes.push(tax));
-                                    }
-                                    
-                                    if (allTaxes.length === 0) return null;
-                                    return (
-                                        <div className="mb-6 space-y-2" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{tSummary('taxesAndFees', currentLang)}</p>
-                                            {allTaxes.map((tax, tIdx) => (
-                                                <div key={tIdx} className="flex justify-between items-center text-[11px]">
-                                                    <span className="font-medium text-slate-500 capitalize">
-                                                        {(tax.name || tax.type || 'Tax').replace(/_/g, ' ')}
-                                                    </span>
-                                                    <span className="font-black text-slate-700 dark:text-slate-300">
-                                                        {getCurrencySymbol(tax.currency || displayCurrency, currencySymbolMap)} {tax.amount.toFixed(2)}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    );
-                                })()}
-
                                 {/* Grand Total */}
-                                <div className="pt-6 border-t border-slate-200 dark:border-slate-800 mb-6" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                <div className="pt-4 border-t border-slate-200 dark:border-slate-800 mb-4" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                     <div className="flex items-end justify-between">
                                         <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-2">{tSummary('totalStayPrice', currentLang)}</p>
-                                            <div className="flex items-baseline gap-2">
-                                                <span className="text-2xl font-black text-primary leading-none">{getCurrencySymbol(displayCurrency, currencySymbolMap)}</span>
-                                                <p className="text-4xl font-black text-primary leading-none tracking-tighter">{grandTotal.toFixed(2)}</p>
+                                            <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider leading-none mb-1.5">{tSummary('totalStayPrice', currentLang)}</p>
+                                            <div className="flex items-baseline gap-1.5">
+                                                <span className="text-xl font-bold text-primary leading-none">{getCurrencySymbol(displayCurrency, currencySymbolMap)}</span>
+                                                <p className="text-2xl font-bold text-primary leading-none tracking-tight">{grandTotal.toFixed(2)}</p>
                                             </div>
-                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{displayCurrency} · {tSummary('taxesIncl', currentLang)} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}</p>
+                                            <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider mt-1">{displayCurrency} · {tSummary('taxesIncl', currentLang)} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}</p>
                                         </div>
-                                        <div className="size-10 rounded-2xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">
-                                            <span className="material-symbols-outlined">payments</span>
+                                        <div className="size-8 rounded-xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">
+                                            <span className="material-symbols-outlined text-base">payments</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Rate Notes - Added as per request */}
+                                {/* Rate Notes */}
                                 {checkRatesData?.notes && checkRatesData.notes.length > 0 && (
-                                    <div className="mb-6 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                        <p className="text-[8px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest mb-2 flex items-center gap-1">
+                                    <div className="mb-4 p-3 rounded-xl bg-amber-500/5 border border-amber-500/10" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                        <p className="text-[8px] font-semibold text-amber-600 dark:text-amber-500 uppercase tracking-wider mb-1 flex items-center gap-1">
                                             <span className="material-symbols-outlined text-[10px]">info</span>
                                             {tSummary('rateNotes', currentLang)}
                                         </p>
                                         <div 
-                                            className="text-[11px] font-medium text-slate-600 dark:text-slate-400 space-y-1 max-h-40 overflow-y-auto pr-2 custom-scrollbar html-content"
+                                            className="text-[10px] font-normal text-slate-600 dark:text-slate-400 space-y-1 max-h-36 overflow-y-auto pr-2 custom-scrollbar html-content"
                                             dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(checkRatesData.notes.join('<br/>')) }}
                                         />
                                     </div>
@@ -1627,26 +1557,26 @@ const CheckoutPayment = () => {
                                 <button
                                     onClick={handlePayment}
                                     disabled={isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv))}
-                                    className={`w-full py-5 bg-primary text-white rounded-[24px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 overflow-hidden relative ${isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv)) ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                                    className={`w-full py-3 bg-primary text-white rounded-xl font-semibold text-xs uppercase tracking-wider shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 overflow-hidden relative ${isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv)) ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
                                     lang={currentLang === 'tr' ? 'tr' : 'en'}
                                 >
-                                    {isProcessing ? <><div className="size-5 rounded-full border-4 border-white/20 border-t-white animate-spin"></div>{tSummary('processing', currentLang)}</> : <>{tSummary('authorizePayment', currentLang)}<span className="material-symbols-outlined text-[18px]">lock</span></>}
+                                    {isProcessing ? <><div className="size-4 rounded-full border-2 border-white/20 border-t-white animate-spin"></div>{tSummary('processing', currentLang)}</> : <>{tSummary('authorizePayment', currentLang)}<span className="material-symbols-outlined text-base">lock</span></>}
                                 </button>
 
-                                <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 font-black uppercase tracking-[0.2em] mt-4" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                <p className="text-[9px] text-center text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider mt-3" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                     {tSummary('b2bRates', currentLang)}
                                 </p>
                             </div>
                         </div>
 
                         {/* Security Badge */}
-                        <div className="bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex items-center gap-4" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                            <div className="size-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm">
-                                <span className="material-symbols-outlined">verified_user</span>
+                        <div className="bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex items-center gap-3" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                            <div className="size-9 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-xs shrink-0">
+                                <span className="material-symbols-outlined text-lg">verified_user</span>
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{tSummary('securePayment', currentLang)}</p>
-                                <p className="text-sm font-black">{tSummary('protectedBooking', currentLang)}</p>
+                                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider leading-none mb-0.5">{tSummary('securePayment', currentLang)}</p>
+                                <p className="text-xs font-bold text-slate-800 dark:text-white">{tSummary('protectedBooking', currentLang)}</p>
                             </div>
                         </div>
                     </div>

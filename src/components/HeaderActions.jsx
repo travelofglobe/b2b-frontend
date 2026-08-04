@@ -75,11 +75,11 @@ const HeaderActions = () => {
                     title={`${userDisplayName}${agencyInfo ? ` (${agencyInfo.agencyType || ''}: ${agencyInfo.name || ''})` : ''}`}
                 >
                     <div className="flex flex-col text-left justify-center leading-none max-w-[110px] lg:max-w-[140px]">
-                        <span className="font-extrabold text-[13.5px] lg:text-sm text-slate-900 dark:text-white truncate leading-tight">
+                        <span className="font-semibold text-xs lg:text-sm text-slate-900 dark:text-white truncate leading-tight">
                             {userDisplayName}
                         </span>
                         {agencyInfo?.name && (
-                            <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 truncate leading-none mt-0.5" title={agencyInfo.name}>
+                            <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate leading-none mt-0.5" title={agencyInfo.name}>
                                 {agencyInfo.name}
                             </span>
                         )}
@@ -90,21 +90,21 @@ const HeaderActions = () => {
                 {isMenuOpen && (
                     <div className="absolute right-0 top-full mt-2 w-[340px] bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden z-[9999] animate-in fade-in slide-in-from-top-2">
                         <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">My Account</p>
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">My Account</p>
                             <p className="text-sm font-bold text-slate-900 dark:text-white truncate" title={userDisplayName}>{userDisplayName}</p>
                             <p className="text-xs text-slate-500 break-words font-medium mt-0.5">{user?.email}</p>
 
                             {agencyInfo && (
                                 <div className="mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-700/60 space-y-2.5">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Agency</span>
+                                        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Agency</span>
                                         <div className="flex items-center gap-1.5">
                                             {agencyInfo.agencyType && (
-                                                <span className="px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-primary/15 text-primary dark:bg-primary/25 dark:text-blue-300 border border-primary/20 leading-none">
+                                                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider bg-primary/15 text-primary dark:bg-primary/25 dark:text-blue-300 border border-primary/20 leading-none">
                                                     {agencyInfo.agencyType}
                                                 </span>
                                             )}
-                                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[160px]">
+                                            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[160px]">
                                                 {agencyInfo.name}
                                             </span>
                                         </div>
@@ -112,8 +112,8 @@ const HeaderActions = () => {
 
                                     {agencyInfo.currency && (
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Currency</span>
-                                            <span className="px-2 py-0.5 rounded-md text-xs font-black uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 leading-none">
+                                            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Currency</span>
+                                            <span className="px-2 py-0.5 rounded-md text-xs font-semibold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 leading-none">
                                                 {agencyInfo.currency}
                                             </span>
                                         </div>

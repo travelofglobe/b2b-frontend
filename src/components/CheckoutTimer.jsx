@@ -59,19 +59,19 @@ const CheckoutTimer = ({ expireAt }) => {
     const isLowTime = timeLeft < 5 * 60 * 1000; // Less than 5 minutes
 
     return (
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border transition-all duration-500 shadow-sm ${
+        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-500 shadow-xs shrink-0 ${
             isLowTime 
                 ? 'bg-red-50 border-red-100 text-red-600 animate-pulse' 
-                : 'bg-amber-50 border-amber-100 text-amber-700'
+                : 'bg-amber-50/80 border-amber-200/50 text-amber-800 dark:bg-amber-900/20 dark:border-amber-700/40 dark:text-amber-300'
         }`}>
-            <span className="material-symbols-outlined text-[18px]">
+            <span className="material-symbols-outlined text-base">
                 {isLowTime ? 'timer_off' : 'timer'}
             </span>
             <div className="flex flex-col">
-                <span className="text-[10px] font-black uppercase tracking-wider leading-none mb-0.5">
+                <span className="text-[9px] font-semibold uppercase tracking-wider leading-none mb-0.5">
                     {localizedText}
                 </span>
-                <span className="text-sm font-black tabular-nums leading-none">
+                <span className="text-xs font-bold tabular-nums leading-none">
                     {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
                 </span>
             </div>

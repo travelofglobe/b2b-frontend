@@ -339,37 +339,37 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
                 onClick={onClose}
             />
 
-            <div className="relative w-full max-w-5xl max-h-[85vh] bg-white dark:bg-slate-900 rounded-[20px] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-top-4 duration-300">
+            <div className="relative w-full max-w-4xl max-h-[85vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-top-4 duration-300">
 
                 {/* Header & Search */}
-                <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 z-20">
-                    <div className="flex items-center justify-between mb-4">
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 z-20">
+                    <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-primary">groups</span>
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight">
+                            <span className="material-symbols-outlined text-primary text-xl">groups</span>
+                            <h3 className="text-base font-bold text-slate-800 dark:text-white uppercase tracking-tight">
                                 {tCrm(currentLang, 'title')}
                             </h3>
                         </div>
-                        <button onClick={onClose} className="size-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                            <span className="material-symbols-outlined text-xl">close</span>
+                        <button onClick={onClose} className="size-7 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <span className="material-symbols-outlined text-lg">close</span>
                         </button>
                     </div>
 
                     <div className="relative">
-                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                        <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
                         <input
                             autoFocus
                             type="text"
                             placeholder={tCrm(currentLang, 'searchPlaceholder')}
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-3 pl-12 pr-4 rounded-xl outline-none focus:border-primary transition-all font-medium text-sm text-slate-900 dark:text-white"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-2 pl-10 pr-4 rounded-xl outline-none focus:border-primary transition-all font-medium text-xs text-slate-900 dark:text-white"
                         />
                     </div>
                 </div>
 
                 {/* Table Header */}
-                <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-2.5 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
                     <div className="col-span-3">{tCrm(currentLang, 'colPassenger')}</div>
                     <div className="col-span-2">{tCrm(currentLang, 'colBirthDate')}</div>
                     <div className="col-span-3">{tCrm(currentLang, 'colContact')}</div>
@@ -378,19 +378,19 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
                 </div>
 
                 {/* Table Body */}
-                <div className="flex-1 overflow-y-auto min-h-[300px]">
+                <div className="flex-1 overflow-y-auto min-h-[260px]">
                     {isLoading ? (
-                        <div className="p-6 space-y-4">
+                        <div className="p-4 space-y-3">
                             {[...Array(5)].map((_, i) => (
-                                <div key={i} className="h-12 bg-slate-50 dark:bg-slate-800/50 rounded-lg animate-pulse" />
+                                <div key={i} className="h-10 bg-slate-50 dark:bg-slate-800/50 rounded-lg animate-pulse" />
                             ))}
                         </div>
                     ) : error ? (
-                        <div className="p-20 text-center">
-                            <p className="text-red-500 font-bold">{error}</p>
+                        <div className="p-12 text-center">
+                            <p className="text-red-500 font-bold text-xs">{error}</p>
                         </div>
                     ) : guests.length === 0 ? (
-                        <div className="p-20 text-center text-slate-400 font-medium">
+                        <div className="p-12 text-center text-slate-400 text-xs font-medium">
                             {tCrm(currentLang, 'noRecord')}
                         </div>
                     ) : (
@@ -400,48 +400,48 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
                                     key={guest.id}
                                     onClick={() => onSelect(guest)}
                                     onMouseEnter={() => setSelectedIndex(index)}
-                                    className={`group grid grid-cols-1 md:grid-cols-12 gap-4 items-center px-6 py-3 cursor-pointer transition-all ${
+                                    className={`group grid grid-cols-1 md:grid-cols-12 gap-3 items-center px-5 py-2 cursor-pointer transition-all ${
                                         selectedIndex === index
                                             ? 'bg-primary/5 dark:bg-primary/10 border-l-4 border-primary'
                                             : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 border-l-4 border-transparent'
                                     }`}
                                 >
                                     {/* Name */}
-                                    <div className="col-span-1 md:col-span-3 flex items-center gap-3">
-                                        <div className={`size-8 rounded-lg flex items-center justify-center shrink-0 ${guest.gender === 'FEMALE' ? 'bg-pink-100 text-pink-500' : 'bg-blue-100 text-blue-500'}`}>
-                                            <span className="material-symbols-outlined text-base">{guest.gender === 'FEMALE' ? 'female' : 'male'}</span>
+                                    <div className="col-span-1 md:col-span-3 flex items-center gap-2.5">
+                                        <div className={`size-7 rounded-lg flex items-center justify-center shrink-0 ${guest.gender === 'FEMALE' ? 'bg-pink-100 text-pink-500' : 'bg-blue-100 text-blue-500'}`}>
+                                            <span className="material-symbols-outlined text-sm">{guest.gender === 'FEMALE' ? 'female' : 'male'}</span>
                                         </div>
-                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate uppercase">
+                                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate uppercase">
                                             {guest.firstName} {guest.lastName}
                                         </span>
                                     </div>
 
                                     {/* Birth Date */}
-                                    <div className="col-span-1 md:col-span-2 text-xs font-bold text-slate-500 flex items-center gap-2">
+                                    <div className="col-span-1 md:col-span-2 text-xs font-normal text-slate-500 flex items-center gap-2">
                                         <span className="md:hidden text-[10px] uppercase text-slate-400 w-24">{tCrm(currentLang, 'birthLabel')}</span>
                                         {guest.birthDate}
                                     </div>
 
                                     {/* Contact */}
                                     <div className="col-span-1 md:col-span-3 space-y-0.5">
-                                        <div className="text-xs font-bold text-slate-600 dark:text-slate-300 truncate flex items-center gap-1.5">
-                                            <span className="material-symbols-outlined text-sm text-slate-400">mail</span>
+                                        <div className="text-xs font-medium text-slate-600 dark:text-slate-300 truncate flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-xs text-slate-400">mail</span>
                                             {guest.email}
                                         </div>
-                                        <div className="text-[11px] font-bold text-slate-400 flex items-center gap-1.5">
-                                            <span className="material-symbols-outlined text-sm text-slate-400">phone</span>
+                                        <div className="text-[10px] font-normal text-slate-400 flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-xs text-slate-400">phone</span>
                                             +{guest.phoneCountryCode} {guest.phoneNumber}
                                         </div>
                                     </div>
 
                                     {/* Passport */}
-                                    <div className="col-span-1 md:col-span-3 flex flex-wrap items-center gap-x-4 gap-y-1">
-                                        <div className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
-                                            <span className="material-symbols-outlined text-sm text-slate-400">badge</span>
+                                    <div className="col-span-1 md:col-span-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+                                        <div className="text-[10px] font-normal text-slate-500 flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-xs text-slate-400">badge</span>
                                             {guest.passportNo || '—'}
                                         </div>
                                         {guest.passportExpiry && (
-                                            <div className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                            <div className="text-[9px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
                                                 Exp: {guest.passportExpiry}
                                             </div>
                                         )}
@@ -449,7 +449,7 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
 
                                     {/* Action */}
                                     <div className="col-span-1 md:col-span-1 text-right">
-                                        <button className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${selectedIndex === index ? 'bg-primary text-white shadow-lg' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                                        <button className={`px-2.5 py-1 rounded-lg text-[9px] font-semibold uppercase tracking-wider transition-all ${selectedIndex === index ? 'bg-primary text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
                                             {tCrm(currentLang, 'selectBtn')}
                                         </button>
                                     </div>

@@ -537,6 +537,54 @@ const MyOffice = () => {
         );
     };
 
+    const handleToggleUserStatus = async (u) => {
+        const newStatus = u.status === 'ACTIVE' ? 'PASSIVE' : 'ACTIVE';
+        try {
+            const payload = {
+                name: u.name,
+                surname: u.surname,
+                email: u.email,
+                phoneCountryCode: u.phoneCountryCode || '90',
+                phoneNumber: u.phoneNumber || '',
+                status: newStatus,
+                roleIds: u.roles?.map(r => r.id) || []
+            };
+            await userService.updateUser(u.id, payload);
+            showNotification(L('userUpdated'));
+            fetchUsersData();
+            const sumData = await userService.getSummary();
+            setSummary(prev => ({ ...prev, totalCount: sumData.totalCount, activeCount: sumData.activeCount, passiveCount: sumData.passiveCount }));
+        } catch (err) {
+            showNotification(err.message || L('updateFailed'), 'error');
+        }
+    };
+
+    const handleToggleGuestStatus = async (g) => {
+        const newStatus = g.status === 'ACTIVE' ? 'PASSIVE' : 'ACTIVE';
+        try {
+            const payload = {
+                gender: g.gender || 'MALE',
+                firstName: g.firstName,
+                lastName: g.lastName,
+                birthDate: g.birthDate,
+                country: g.country,
+                passportNo: g.passportNo,
+                passportExpiry: g.passportExpiry,
+                email: g.email,
+                phoneCountryCode: g.phoneCountryCode || '90',
+                phoneNumber: g.phoneNumber || '',
+                status: newStatus
+            };
+            await guestService.updateGuest(g.id, payload);
+            showNotification(L('guestUpdated'));
+            fetchGuestsData();
+            const sumData = await guestService.getSummary();
+            setSummary(prev => ({ ...prev, totalGuestCount: sumData.totalCount, activeGuestCount: sumData.activeCount, passiveGuestCount: sumData.passiveCount }));
+        } catch (err) {
+            showNotification(err.message || L('updateFailed'), 'error');
+        }
+    };
+
     const handleExportUsers = () => {
         if (users.length === 0) { showNotification(L('noUserExport'), 'error'); return; }
         const exportData = users.map(u => ({ ID: u.id, Name: u.name, Surname: u.surname, Email: u.email, Phone: `+${u.phoneCountryCode}${u.phoneNumber}`, Roles: u.roles?.map(r => r.roleName || r.name).join(' | '), Status: u.status }));
@@ -594,52 +642,52 @@ const MyOffice = () => {
     return (
         <>
             <style>{`
-                .input-modern { background: transparent; border-bottom: 2px solid #e2e8f0; transition: all 0.3s ease; border-radius: 0; }
-                .dark .input-modern { border-color: #1e293b; }
-                .input-modern:focus { border-color: #3B82F6; background: rgba(59, 130, 246, 0.02); }
-                .map-card { border-radius: 32px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.05); }
-                .dark .map-card { box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+                .input-modern { background: rgba(248, 250, 252, 0.6); border: 1px solid #e2e8f0; transition: all 0.2s ease; border-radius: 10px; padding: 0 12px; }
+                .dark .input-modern { background: rgba(30, 41, 59, 0.4); border-color: #334155; }
+                .input-modern:focus { border-color: #3B82F6; background: rgba(59, 130, 246, 0.04); }
+                .map-card { border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+                .dark .map-card { box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-                .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; }
-                .badge-card { background: white; border: 1px solid #f1f5f9; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+                .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+                .badge-card { background: white; border: 1px solid #f1f5f9; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
                 .dark .badge-card { background: #1e293b; border-color: #334155; }
-                .data-table th { font-size: 10px; text-transform: uppercase; color: #94a3b8; font-weight: 700; padding: 16px; border-bottom: 1px solid #f1f5f9; text-align: left; letter-spacing: 0.05em; }
-                .dark .data-table th { border-color: #334155; }
-                .data-table td { padding: 16px; border-bottom: 1px solid #f8fafc; font-size: 13px; font-weight: 500; }
+                .data-table th { font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 600; padding: 10px 14px; border-bottom: 1px solid #e2e8f0; text-align: left; letter-spacing: 0.05em; }
+                .dark .data-table th { border-color: #334155; color: #94a3b8; }
+                .data-table td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 12px; font-weight: 500; }
                 .dark .data-table td { border-color: #1e293b; }
-                .data-row:hover { background-color: #fcfdfe; }
+                .data-row:hover { background-color: #f8fafc; }
                 .dark .data-row:hover { background-color: #1e293b/50; }
-                .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); }
+                .modal-overlay { background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); }
             `}</style>
 
-            {toast.show && <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[10000] animate-in fade-in slide-in-from-top-4 duration-500"><div className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-2xl rounded-2xl flex items-center gap-3"><div className={`size-2 rounded-full ${toast.type === 'success' ? 'bg-emerald-400' : 'bg-red-400'} animate-pulse`}></div><p className="text-[10px] font-bold uppercase tracking-widest">{toast.message}</p></div></div>}
+            {toast.show && <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[10000] animate-in fade-in slide-in-from-top-4 duration-300"><div className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl rounded-xl flex items-center gap-2.5"><div className={`size-2 rounded-full ${toast.type === 'success' ? 'bg-emerald-400' : 'bg-red-400'} animate-pulse`}></div><p className="text-[10px] font-semibold uppercase tracking-wider">{toast.message}</p></div></div>}
 
-            <main className="flex-1 p-3 md:p-5 flex flex-col h-screen overflow-hidden">
+            <main className="flex-1 p-3 md:p-4 flex flex-col h-screen overflow-hidden">
                 <div className="max-w-6xl mx-auto w-full flex flex-col h-full overflow-hidden">
-                    <header className="flex flex-wrap items-center justify-between mb-8 gap-4">
+                    <header className="flex flex-wrap items-center justify-between mb-4 gap-3">
                         <div className="flex items-center gap-2">
                             <span className="material-icons-round text-primary text-xl">corporate_fare</span>
-                            <h1 className="text-lg font-medium">{L('title')}</h1>
+                            <h1 className="text-base font-semibold text-slate-900 dark:text-white">{L('title')}</h1>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <HeaderActions />
                         </div>
                     </header>
 
 
-                    <div className="mb-6 flex gap-10 border-b border-slate-200 dark:border-slate-800">
+                    <div className="mb-4 flex gap-6 border-b border-slate-200 dark:border-slate-800">
                         {[
                             { id: 'general', label: L('tabGeneral'), icon: 'info' },
                             { id: 'users', label: L('tabUsers'), count: statsLoading ? 'loading' : summary.totalCount, icon: 'groups' },
                             { id: 'guests', label: L('tabGuests'), count: statsLoading ? 'loading' : summary.totalGuestCount, icon: 'recent_actors' }
                         ].map((tab) => (
-                            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`pb-4 text-[10px] font-bold uppercase tracking-widest relative flex items-center gap-2.5 transition-all ${activeTab === tab.id ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}>
-                                <span className="material-icons-round text-lg">{tab.icon}</span> {tab.label} 
+                            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`pb-3 text-xs font-semibold uppercase tracking-wider relative flex items-center gap-2 transition-all ${activeTab === tab.id ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}>
+                                <span className="material-icons-round text-base">{tab.icon}</span> {tab.label} 
                                 {tab.count !== undefined && (
-                                    <span className="text-[9px] flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-slate-100 dark:bg-slate-800 ml-1">
+                                    <span className="text-[9px] font-bold flex items-center justify-center min-w-[18px] h-4 px-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 ml-1">
                                         {tab.count === 'loading' ? (
-                                            <div className="size-3 border-[1.5px] border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                                            <div className="size-2.5 border-[1.5px] border-primary/30 border-t-primary rounded-full animate-spin"></div>
                                         ) : (
                                             tab.count
                                         )}
@@ -652,406 +700,346 @@ const MyOffice = () => {
 
                     <div className="flex-1 overflow-hidden">
                         {activeTab === 'general' ? (
-                            <div className="h-full flex gap-10 overflow-hidden pb-4">
-                                <div className="w-[35%] flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-2 flex-shrink-0">
+                            <div className="h-full flex gap-5 overflow-hidden pb-3">
+                                {/* Left Sidebar Info */}
+                                <div className="w-[300px] flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1 flex-shrink-0">
                                     {/* Agency Identity Card */}
-                                    <div className="bg-slate-900 dark:bg-slate-800 rounded-[40px] p-8 text-white relative overflow-hidden shadow-2xl flex-shrink-0">
-                                        <div className="absolute top-0 right-0 p-6">
-                                            <div className="size-10 bg-white/10 rounded-xl flex items-center justify-center">
-                                                <span className="material-icons-round text-xl">security</span>
+                                    <div className="bg-gradient-to-br from-white via-slate-50/60 to-blue-50/40 dark:from-slate-900 dark:to-slate-800/90 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs relative overflow-hidden flex-shrink-0">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
+                                        <div className="flex items-center justify-between mb-3 relative z-10">
+                                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs ${formData.agencyType === 'GSA' ? 'bg-primary text-white' : 'bg-emerald-500 text-white'}`}>
+                                                {formData.agencyType}
+                                            </span>
+                                            <div className="size-7 bg-primary/10 text-primary dark:bg-primary/20 rounded-xl flex items-center justify-center shadow-xs">
+                                                <span className="material-icons-round text-base">corporate_fare</span>
                                             </div>
                                         </div>
-                                        <div className="mt-8 mb-12">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Agency Identity</p>
-                                            <h2 className="text-2xl font-bold truncate">{formData.name || 'Your Agency'}</h2>
-                                            <div className="flex items-center gap-2 mt-2">
-                                                <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-tight ${formData.agencyType === 'GSA' ? 'bg-primary text-white' : 'bg-emerald-500 text-white'}`}>
-                                                    {formData.agencyType}
-                                                </span>
-                                                <span className="text-xs text-slate-400 font-bold opacity-80">{formData.officialTitle}</span>
-                                            </div>
+                                        <div className="mb-3 relative z-10">
+                                            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">{L('agencyName')}</p>
+                                            <h2 className="text-base font-bold truncate text-slate-900 dark:text-white">{formData.name || 'Your Agency'}</h2>
+                                            {formData.officialTitle && (
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">{formData.officialTitle}</p>
+                                            )}
                                         </div>
-                                        <div className="space-y-6 pt-6 border-t border-white/10">
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">{L('baseLocation')}</p>
-                                                    <p className="text-sm font-semibold truncate">{formData.cityName}, {formData.countryName}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">{L('currency')}</p>
-                                                    <p className="text-sm font-semibold text-primary">{formData.currency}</p>
-                                                </div>
+                                        <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs relative z-10">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-slate-400 text-[11px] font-semibold">{L('baseLocation')}:</span>
+                                                <span className="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[140px] text-right">{formData.cityName}, {formData.countryName}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-slate-400 text-[11px] font-semibold">{L('currency')}:</span>
+                                                <span className="font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md text-[11px]">{formData.currency}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Audit & Timeline Card */}
-                                    <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-[40px] p-8 shadow-sm flex-shrink-0">
-                                        <div className="flex items-center gap-3 mb-8">
-                                            <div className="size-8 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-400">
-                                                <span className="material-icons-round text-lg">history</span>
+                                    <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex-shrink-0">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <div className="size-6 bg-slate-100 dark:bg-slate-800 rounded-md flex items-center justify-center text-slate-500">
+                                                <span className="material-icons-round text-sm">history</span>
                                             </div>
-                                            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white">{L('auditTimeline')}</h3>
+                                            <h3 className="text-xs font-semibold text-slate-800 dark:text-white uppercase tracking-wider">{L('auditTimeline')}</h3>
                                         </div>
-                                        <div className="space-y-6">
-                                            <div className="flex gap-4">
-                                                <div className="flex flex-col items-center">
-                                                    <div className="size-2 bg-primary rounded-full mt-1.5"></div>
-                                                    <div className="w-[1px] h-full bg-slate-100 dark:bg-slate-800 my-1"></div>
-                                                </div>
-                                                <div className="pb-4">
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{L('created')}</p>
-                                                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-0.5">{new Date(formData.createDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
-                                                    <p className="text-[9px] text-slate-400 font-medium italic">by {formData.createdBy}</p>
+                                        <div className="space-y-3 text-xs">
+                                            <div className="flex items-start gap-2.5">
+                                                <div className="size-2 bg-primary rounded-full mt-1 shrink-0"></div>
+                                                <div>
+                                                    <p className="text-[10px] font-semibold text-slate-400 uppercase">{L('created')}</p>
+                                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{new Date(formData.createDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
+                                                    <p className="text-[10px] text-slate-400 italic">by {formData.createdBy}</p>
                                                 </div>
                                             </div>
-                                            <div className="flex gap-4">
-                                                <div className="flex flex-col items-center">
-                                                    <div className="size-2 bg-emerald-500 rounded-full mt-1.5"></div>
-                                                </div>
+                                            <div className="flex items-start gap-2.5">
+                                                <div className="size-2 bg-emerald-500 rounded-full mt-1 shrink-0"></div>
                                                 <div>
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{L('lastUpdate')}</p>
-                                                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-0.5">{new Date(formData.updateDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
-                                                    <p className="text-[9px] text-slate-400 font-medium italic">by {formData.updatedBy}</p>
+                                                    <p className="text-[10px] font-semibold text-slate-400 uppercase">{L('lastUpdate')}</p>
+                                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{new Date(formData.updateDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
+                                                    <p className="text-[10px] text-slate-400 italic">by {formData.updatedBy}</p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     
                                     {/* Map Preview */}
-                                    <div className="map-card h-[400px] relative group border-4 border-white dark:border-slate-800 flex-shrink-0">
+                                    <div className="map-card h-[180px] relative group border border-slate-200 dark:border-slate-800 flex-shrink-0">
                                         <MapContainer center={mapCenter} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
                                             <ChangeView center={mapCenter} zoom={zoom} />
                                             <TileLayer attribution='&copy; CARTO' url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
                                             <LocationMarker position={[formData.latitude, formData.longitude]} setPosition={setMapLocation} />
                                         </MapContainer>
-                                        <div className="absolute bottom-6 right-6 z-[1000] opacity-0 group-hover:opacity-100 transition-all">
-                                            <button onClick={openInMaps} className="size-10 bg-white dark:bg-slate-900 rounded-xl shadow-xl flex items-center justify-center text-primary hover:scale-110 active:scale-95 transition-all">
-                                                <span className="material-icons-round">open_in_new</span>
+                                        <div className="absolute bottom-3 right-3 z-[1000] opacity-0 group-hover:opacity-100 transition-all">
+                                            <button onClick={openInMaps} className="size-7 bg-white dark:bg-slate-900 rounded-lg shadow-md flex items-center justify-center text-primary hover:scale-105 active:scale-95 transition-all">
+                                                <span className="material-icons-round text-sm">open_in_new</span>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex-1 bg-white/50 dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-white/40 dark:border-white/5 p-12 overflow-y-auto custom-scrollbar">
-                                    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto space-y-16 pb-20">
-                                        {/* Section 01: Identity */}
-                                        <div className="space-y-10">
-                                            <div className="flex items-center gap-4">
-                                                <div className="size-2 bg-primary rounded-full"></div>
-                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">{L('sec01')}</h3>
+                                {/* Right Structured Information Grid */}
+                                <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-8">
+                                        {/* Section 01: Agency Identity */}
+                                        <div className="bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
+                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+                                                <span className="material-icons-round text-primary text-base">badge</span>
+                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">{L('sec01')}</h3>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-12">
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('agencyName')}</label>
-                                                    <input type="text" value={formData.name} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder={L('commercialName')} />
+                                            <div className="space-y-2.5">
+                                                <div>
+                                                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('agencyName')}</label>
+                                                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.name || '-'}</p>
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('officialTitle')}</label>
-                                                    <input type="text" value={formData.officialTitle} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder={L('legalTitle')} />
+                                                <div>
+                                                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('officialTitle')}</label>
+                                                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.officialTitle || '-'}</p>
                                                 </div>
-                                            </div>
-                                            <div className="grid grid-cols-3 gap-12">
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('type')}</label>
-                                                    <input type="text" value={formData.agencyType} disabled className="w-full h-12 input-modern outline-none font-bold text-sm opacity-50 cursor-not-allowed" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('language')}</label>
-                                                    <select value={formData.defaultLanguage} disabled className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent appearance-none opacity-80">
-                                                        <option value="EN">English</option>
-                                                        <option value="TR">Turkish</option>
-                                                    </select>
-                                                </div>
-                                                {formData.agencyType !== 'GSA' && (
-                                                    <div className="space-y-1">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('parentId')}</label>
-                                                        <input type="text" value={formData.parentId} disabled className="w-full h-12 input-modern outline-none font-bold text-sm opacity-50 cursor-not-allowed" />
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('type')}</label>
+                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.agencyType || '-'}</p>
                                                     </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Section 02: Contact */}
-                                        <div className="space-y-10">
-                                            <div className="flex items-center gap-4">
-                                                <div className="size-2 bg-indigo-500 rounded-full"></div>
-                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">{L('sec02')}</h3>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-12">
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('directEmail')}</label>
-                                                    <input type="email" value={formData.email} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder="contact@agency.com" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('phone')}</label>
-                                                    <div className="flex gap-4">
-                                                        <input type="text" value={formData.phoneCountryCode} readOnly className="w-16 h-12 input-modern outline-none font-bold text-sm text-center bg-transparent opacity-80" placeholder="90" />
-                                                        <input type="text" value={formData.phoneNumber} readOnly className="flex-1 h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder="5XX..." />
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('language')}</label>
+                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.defaultLanguage === 'TR' ? 'Turkish' : 'English'}</p>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {/* Section 03: Geography */}
-                                        <div className="space-y-10">
-                                            <div className="flex items-center gap-4">
-                                                <div className="size-2 bg-emerald-500 rounded-full"></div>
-                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">{L('sec03')}</h3>
+                                        {/* Section 02: Contact Details */}
+                                        <div className="bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
+                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+                                                <span className="material-icons-round text-indigo-500 text-base">contact_phone</span>
+                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">{L('sec02')}</h3>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-12">
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('country')}</label>
-                                                    <select value={formData.countryId} disabled className="w-full h-12 input-modern outline-none font-bold text-sm cursor-not-allowed appearance-none bg-transparent opacity-80">
-                                                        <option value="">{L('selectTerritory')}</option>
-                                                        {countries.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
-                                                    </select>
+                                            <div className="space-y-2.5">
+                                                <div>
+                                                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('directEmail')}</label>
+                                                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.email || '-'}</p>
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('city')}</label>
-                                                    <select value={formData.cityId} disabled className="w-full h-12 input-modern outline-none font-bold text-sm cursor-not-allowed appearance-none bg-transparent opacity-80">
-                                                        <option value="">{L('selectHub')}</option>
-                                                        {cities.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
-                                                    </select>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('phone')}</label>
+                                                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">+{formData.phoneCountryCode} {formData.phoneNumber || '-'}</p>
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-4 gap-12">
-                                                <div className="col-span-3 space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('streetAddress')}</label>
-                                                    <input type="text" value={formData.address} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder="Full street detail" />
+                                        </div>
+
+                                        {/* Section 03: Geography & Location */}
+                                        <div className="bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
+                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+                                                <span className="material-icons-round text-emerald-500 text-base">place</span>
+                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">{L('sec03')}</h3>
+                                            </div>
+                                            <div className="space-y-2.5">
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('country')}</label>
+                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80 truncate">{formData.countryName || '-'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('city')}</label>
+                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80 truncate">{formData.cityName || '-'}</p>
+                                                    </div>
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('zipCode')}</label>
-                                                    <input type="text" value={formData.zipCode} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm text-center bg-transparent opacity-80" placeholder="00000" />
+                                                <div className="grid grid-cols-4 gap-2">
+                                                    <div className="col-span-3">
+                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('streetAddress')}</label>
+                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80 truncate">{formData.address || '-'}</p>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('zipCode')}</label>
+                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80 text-center">{formData.zipCode || '-'}</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Section 04: Finance */}
-                                        <div className="space-y-10">
-                                            <div className="flex items-center gap-4">
-                                                <div className="size-2 bg-amber-500 rounded-full"></div>
-                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">{L('sec04')}</h3>
+                                        <div className="bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
+                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+                                                <span className="material-icons-round text-amber-500 text-base">payments</span>
+                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">{L('sec04')}</h3>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-12">
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('taxOffice')}</label>
-                                                    <input type="text" value={formData.taxOffice} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('taxNumber')}</label>
-                                                    <input type="text" value={formData.taxNumber} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" />
-                                                </div>
-                                            </div>
-                                            <div className="space-y-10 pt-4 border-t border-slate-50 dark:border-white/5">
-                                                <div className="grid grid-cols-2 gap-12">
-                                                    <div className="space-y-1">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accEmail')}</label>
-                                                        <input type="email" value={formData.agencyFinancialInfo?.email} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder="accounting@mail.com" />
+                                            <div className="space-y-2.5">
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('taxOffice')}</label>
+                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.taxOffice || '-'}</p>
                                                     </div>
-                                                    <div className="space-y-1">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accPhone')}</label>
-                                                        <div className="flex gap-4">
-                                                            <input type="text" value={formData.agencyFinancialInfo?.phoneCountryCode} readOnly className="w-16 h-12 input-modern outline-none font-bold text-sm text-center bg-transparent opacity-80" placeholder="90" />
-                                                            <input type="text" value={formData.agencyFinancialInfo?.phoneNumber} readOnly className="flex-1 h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder="5XX..." />
-                                                        </div>
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('taxNumber')}</label>
+                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.taxNumber || '-'}</p>
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-12">
-                                                    <div className="space-y-1">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accCountry')}</label>
-                                                        <select value={formData.agencyFinancialInfo?.countryId} disabled className="w-full h-12 input-modern outline-none font-bold text-sm cursor-not-allowed appearance-none bg-transparent opacity-80">
-                                                            <option value="">{L('selectTerritory')}</option>
-                                                            {countries.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
-                                                        </select>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('accEmail')}</label>
+                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80 truncate">{formData.agencyFinancialInfo?.email || '-'}</p>
                                                     </div>
-                                                    <div className="space-y-1">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accCity')}</label>
-                                                        <select value={formData.agencyFinancialInfo?.cityId} disabled className="w-full h-12 input-modern outline-none font-bold text-sm cursor-not-allowed appearance-none bg-transparent opacity-80">
-                                                            <option value="">{L('selectHub')}</option>
-                                                            {finCities.map(c => <option key={c.locationId} value={c.locationId}>{c.name?.translations?.en || c.name?.defaultName}</option>)}
-                                                        </select>
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('accPhone')}</label>
+                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.agencyFinancialInfo?.phoneCountryCode ? `+${formData.agencyFinancialInfo.phoneCountryCode} ${formData.agencyFinancialInfo.phoneNumber || ''}` : '-'}</p>
                                                     </div>
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('accAddress')}</label>
-                                                    <input type="text" value={formData.agencyFinancialInfo?.address} readOnly className="w-full h-12 input-modern outline-none font-bold text-sm bg-transparent opacity-80" placeholder="Billing address" />
+                                                <div>
+                                                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('accAddress')}</label>
+                                                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80 truncate">{formData.agencyFinancialInfo?.address || '-'}</p>
                                                 </div>
                                             </div>
                                         </div>
-
-                                        {/* Section 05: Settings */}
-                                        <div className="space-y-10">
-                                            <div className="flex items-center gap-4">
-                                                <div className="size-2 bg-purple-500 rounded-full"></div>
-                                                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">{L('sec05')}</h3>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-12">
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('mainCurrency')}</label>
-                                                    <select value={formData.currency} disabled className="w-full h-12 input-modern outline-none font-bold text-sm cursor-not-allowed appearance-none bg-transparent opacity-80">
-                                                        {currencies.map(curr => <option key={curr.code} value={curr.code}>{curr.code}</option>)}
-                                                    </select>
-                                                </div>
-                                                {/* Integration Type removed */}
-                                                <div></div>
-                                            </div>
-                                            {/* Allowed for Sale removed */}
-                                        </div>
-
-                                        {/* Save action removed */}
-                                    </form>
+                                    </div>
                                 </div>
                             </div>
                         ) : activeTab === 'users' ? (
-                            <div className="h-full flex flex-col gap-6 overflow-hidden">
+                            <div className="h-full flex flex-col gap-4 overflow-hidden">
                                 {/* User Summary Cards */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="bg-[#eff6ff] dark:bg-blue-900/10 p-4 rounded-[24px] border border-blue-100/50 dark:border-blue-800/20 shadow-sm">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <span className="text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em]">{L('totalUsers')}</span>
-                                            <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
-                                                <span className="material-icons-round text-lg">groups</span>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                                    <div className="bg-[#eff6ff] dark:bg-blue-900/10 p-3 rounded-xl border border-blue-100/50 dark:border-blue-800/20 shadow-xs">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="text-[9px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{L('totalUsers')}</span>
+                                            <div className="size-6 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center text-blue-600 shadow-xs">
+                                                <span className="material-icons-round text-sm">groups</span>
                                             </div>
                                         </div>
                                         <div className="flex items-end gap-1.5">
-                                            <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalCount}</div>
-                                            <div className="text-[9px] font-bold text-blue-400 mb-0.5">MEMBERS</div>
+                                            <div className="text-xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalCount}</div>
+                                            <div className="text-[9px] font-semibold text-blue-400 mb-0.5">MEMBERS</div>
                                         </div>
                                     </div>
                                     
-                                    <div className="bg-[#f0fdf4] dark:bg-emerald-900/10 p-4 rounded-[24px] border border-emerald-100/50 dark:border-emerald-800/20 shadow-sm">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">{L('activeUsers')}</span>
-                                            <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
-                                                <span className="material-icons-round text-lg">person_check</span>
+                                    <div className="bg-[#f0fdf4] dark:bg-emerald-900/10 p-3 rounded-xl border border-emerald-100/50 dark:border-emerald-800/20 shadow-xs">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">{L('activeUsers')}</span>
+                                            <div className="size-6 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center text-emerald-600 shadow-xs">
+                                                <span className="material-icons-round text-sm">person_check</span>
                                             </div>
                                         </div>
                                         <div className="flex items-end gap-1.5">
-                                            <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.activeCount}</div>
-                                            <div className="text-[9px] font-bold text-emerald-400 mb-0.5">ONLINE</div>
+                                            <div className="text-xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.activeCount}</div>
+                                            <div className="text-[9px] font-semibold text-emerald-400 mb-0.5">ONLINE</div>
                                         </div>
                                     </div>
                                     
-                                    <div className="bg-[#fef2f2] dark:bg-red-900/10 p-4 rounded-[24px] border border-red-100/50 dark:border-red-800/20 shadow-sm">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <span className="text-[9px] font-bold text-red-600 dark:text-red-400 uppercase tracking-[0.2em]">{L('passiveUsers')}</span>
-                                            <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-red-600 shadow-sm">
-                                                <span className="material-icons-round text-lg">person_off</span>
+                                    <div className="bg-[#fef2f2] dark:bg-red-900/10 p-3 rounded-xl border border-red-100/50 dark:border-red-800/20 shadow-xs">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="text-[9px] font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider">{L('passiveUsers')}</span>
+                                            <div className="size-6 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center text-red-600 shadow-xs">
+                                                <span className="material-icons-round text-sm">person_off</span>
                                             </div>
                                         </div>
                                         <div className="flex items-end gap-1.5">
-                                            <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.passiveCount}</div>
-                                            <div className="text-[9px] font-bold text-red-400 mb-0.5">DISABLED</div>
+                                            <div className="text-xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.passiveCount}</div>
+                                            <div className="text-[9px] font-semibold text-red-400 mb-0.5">DISABLED</div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex-1 flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm">
-                                <div className="p-6 border-b border-slate-50 dark:border-white/5 flex flex-wrap items-center justify-between gap-4">
-                                    <div className="flex items-center gap-4 flex-1 max-w-2xl">
-                                        <div className="relative flex-1">
-                                            <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                                            <input type="text" placeholder={L('searchUsers')} value={userFilters.query} onChange={(e) => handleUserFilterChange({ ...userFilters, query: e.target.value })} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl pl-12 pr-4 text-xs font-semibold outline-none focus:border-primary transition-colors" />
+                                <div className="flex-1 flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
+                                    <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 flex-1 max-w-xl">
+                                            <div className="relative flex-1">
+                                                <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
+                                                <input type="text" placeholder={L('searchUsers')} value={userFilters.query} onChange={(e) => handleUserFilterChange({ ...userFilters, query: e.target.value })} className="w-full h-9 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 text-xs font-semibold outline-none focus:border-primary transition-colors" />
+                                            </div>
+                                            <select value={userFilters.roleIds[0] || ''} onChange={(e) => handleUserFilterChange({ ...userFilters, roleIds: e.target.value ? [parseInt(e.target.value)] : [] })} className="h-9 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none cursor-pointer">
+                                                <option value="">{L('allRoles')}</option>
+                                                {roles.map(r => <option key={r.id} value={r.id}>{r.roleName || r.name}</option>)}
+                                            </select>
+                                            <select value={userFilters.status} onChange={(e) => handleUserFilterChange({ ...userFilters, status: e.target.value })} className="h-9 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none cursor-pointer">
+                                                <option value="ACTIVE">Active</option>
+                                                <option value="PASSIVE">Passive</option>
+                                            </select>
                                         </div>
-                                        <select value={userFilters.roleIds[0] || ''} onChange={(e) => handleUserFilterChange({ ...userFilters, roleIds: e.target.value ? [parseInt(e.target.value)] : [] })} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer">
-                                            <option value="">{L('allRoles')}</option>
-                                            {roles.map(r => <option key={r.id} value={r.id}>{r.roleName || r.name}</option>)}
-                                        </select>
-                                        <select value={userFilters.status} onChange={(e) => handleUserFilterChange({ ...userFilters, status: e.target.value })} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer">
-                                            <option value="ACTIVE">Active</option>
-                                            <option value="PASSIVE">Passive</option>
-                                        </select>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <button onClick={() => fetchUsersData(true)} className={`size-11 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 transition-all text-slate-500 ${usersLoading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}><span className="material-icons-round text-lg">refresh</span></button>
-                                        <button onClick={handleExportUsers} className="h-11 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-slate-50 transition-all"><span className="material-icons-round text-sm">download</span> Export</button>
-                                        <button onClick={openAddUser} className="h-11 px-6 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2 active:scale-95 transition-all"><span className="material-icons-round text-lg">add</span> Add User</button>
-                                    </div>
-                                </div>
-                                <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                    <table className="w-full data-table">
-                                        <thead><tr><th>User</th><th>Contact</th><th>Role</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
-                                        <tbody>
-                                            {usersLoading ? <TableSkeleton columns={5} /> : users.length > 0 ? users.map((u) => (<tr key={u.id} className="data-row transition-colors"><td><div className="flex items-center gap-3"><div className={`size-10 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br ${u.id % 2 === 0 ? 'from-primary to-blue-600' : 'from-emerald-500 to-teal-600'}`}>{u.name?.[0]}{u.surname?.[0]}</div><div><p className="font-bold text-slate-900 dark:text-white leading-none mb-1">{u.name} {u.surname}</p><p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {u.id}</p></div></div></td><td><div className="space-y-1"><div className="flex items-center gap-2 text-slate-500"><span className="material-icons-round text-sm">mail_outline</span> {u.email}</div>{u.phoneNumber && <div className="flex items-center gap-2 text-slate-400 text-xs"><span className="material-icons-round text-sm">phone_iphone</span> +{u.phoneCountryCode} {u.phoneNumber}</div>}</div></td><td><div className="flex flex-wrap gap-1">{u.roles?.length > 0 ? u.roles.map((r, idx) => (<span key={r.id || idx} className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-primary text-[10px] font-bold rounded-full">{r.roleName || r.name}</span>)) : <span className="text-slate-300 text-[10px] font-bold italic">No Role</span>}</div></td><td><div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${u.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}><div className={`size-1.5 rounded-full ${u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>{u.status === 'ACTIVE' ? 'Active' : 'Passive'}</div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditUser(u)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-lg">edit</span></button><button onClick={() => handleDeleteUser(u.id)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-lg">delete_outline</span></button></div></td></tr>)) : (<tr><td colSpan="5" className="py-20 text-center"><p className="text-slate-400 text-sm font-medium italic">No users found</p></td></tr>)}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="h-full flex flex-col gap-6 overflow-hidden">
-                            {/* Guest Summary Cards */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="bg-[#f5f3ff] dark:bg-purple-900/10 p-4 rounded-[24px] border border-purple-100/50 dark:border-purple-800/20 shadow-sm">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <span className="text-[9px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-[0.2em]">Total Guests</span>
-                                        <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-purple-600 shadow-sm">
-                                            <span className="material-icons-round text-lg">recent_actors</span>
+                                        <div className="flex items-center gap-2">
+                                            <button onClick={() => fetchUsersData(true)} className={`size-9 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 transition-all text-slate-500 ${usersLoading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}><span className="material-icons-round text-base">refresh</span></button>
+                                            <button onClick={handleExportUsers} className="h-9 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 hover:bg-slate-50 transition-all"><span className="material-icons-round text-sm">download</span> Export</button>
+                                            <button onClick={openAddUser} className="h-9 px-4 bg-primary text-white rounded-xl text-xs font-semibold shadow-md shadow-primary/20 flex items-center gap-1.5 active:scale-95 transition-all"><span className="material-icons-round text-base">add</span> Add User</button>
                                         </div>
                                     </div>
-                                    <div className="flex items-end gap-1.5">
-                                        <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalGuestCount}</div>
-                                        <div className="text-[9px] font-bold text-purple-400 mb-0.5">PROFILES</div>
-                                    </div>
-                                </div>
-                                
-                                <div className="bg-[#f0fdf4] dark:bg-emerald-900/10 p-4 rounded-[24px] border border-emerald-100/50 dark:border-emerald-800/20 shadow-sm">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">Active Guests</span>
-                                        <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
-                                            <span className="material-icons-round text-lg">how_to_reg</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-end gap-1.5">
-                                        <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.activeGuestCount}</div>
-                                        <div className="text-[9px] font-bold text-emerald-400 mb-0.5">VERIFIED</div>
-                                    </div>
-                                </div>
-                                
-                                <div className="bg-[#fef2f2] dark:bg-red-900/10 p-4 rounded-[24px] border border-red-100/50 dark:border-red-800/20 shadow-sm">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <span className="text-[9px] font-bold text-red-600 dark:text-red-400 uppercase tracking-[0.2em]">Passive Guests</span>
-                                        <div className="size-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-red-600 shadow-sm">
-                                            <span className="material-icons-round text-lg">person_remove</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-end gap-1.5">
-                                        <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.passiveGuestCount}</div>
-                                        <div className="text-[9px] font-bold text-red-400 mb-0.5">ARCHIVED</div>
+                                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                        <table className="w-full data-table">
+                                            <thead><tr><th>User</th><th>Contact</th><th>Role</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                                            <tbody>
+                                                {usersLoading ? <TableSkeleton columns={5} /> : users.length > 0 ? users.map((u) => (<tr key={u.id} className="data-row transition-colors"><td><div className="flex items-center gap-2.5"><div className="size-8 rounded-full flex items-center justify-center text-white font-semibold text-[11px] shadow-xs bg-gradient-to-br from-primary to-blue-600 shrink-0">{u.name?.[0]}{u.surname?.[0]}</div><div><p className="font-semibold text-slate-900 dark:text-white leading-none mb-0.5">{u.name} {u.surname}</p><p className="text-[9px] text-slate-400 font-semibold uppercase">ID: {u.id}</p></div></div></td><td><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {u.email}</div>{u.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{u.phoneCountryCode} {u.phoneNumber}</div>}</div></td><td><div className="flex flex-wrap gap-1">{u.roles?.length > 0 ? u.roles.map((r, idx) => (<span key={r.id || idx} className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-primary text-[10px] font-semibold rounded-md">{r.roleName || r.name}</span>)) : <span className="text-slate-400 text-[10px] italic">No Role</span>}</div></td><td><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleUserStatus(u)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={u.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${u.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-xs font-semibold ${u.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{u.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditUser(u)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteUser(u.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>)) : (<tr><td colSpan="5" className="py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No users found</p></td></tr>)}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
+                        ) : (
+                            <div className="h-full flex flex-col gap-4 overflow-hidden">
+                                {/* Guest Summary Cards */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                                    <div className="bg-[#f5f3ff] dark:bg-purple-900/10 p-3 rounded-xl border border-purple-100/50 dark:border-purple-800/20 shadow-xs">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="text-[9px] font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Total Guests</span>
+                                            <div className="size-6 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center text-purple-600 shadow-xs">
+                                                <span className="material-icons-round text-sm">recent_actors</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-end gap-1.5">
+                                            <div className="text-xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalGuestCount}</div>
+                                            <div className="text-[9px] font-semibold text-purple-400 mb-0.5">PROFILES</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-[#f0fdf4] dark:bg-emerald-900/10 p-3 rounded-xl border border-emerald-100/50 dark:border-emerald-800/20 shadow-xs">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Active Guests</span>
+                                            <div className="size-6 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center text-emerald-600 shadow-xs">
+                                                <span className="material-icons-round text-sm">how_to_reg</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-end gap-1.5">
+                                            <div className="text-xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.activeGuestCount}</div>
+                                            <div className="text-[9px] font-semibold text-emerald-400 mb-0.5">VERIFIED</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-[#fef2f2] dark:bg-red-900/10 p-3 rounded-xl border border-red-100/50 dark:border-red-800/20 shadow-xs">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="text-[9px] font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider">Passive Guests</span>
+                                            <div className="size-6 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center text-red-600 shadow-xs">
+                                                <span className="material-icons-round text-sm">person_remove</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-end gap-1.5">
+                                            <div className="text-xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.passiveGuestCount}</div>
+                                            <div className="text-[9px] font-semibold text-red-400 mb-0.5">ARCHIVED</div>
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <div className="flex-1 flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-[40px] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm">
-                                <div className="p-6 border-b border-slate-50 dark:border-white/5 flex flex-wrap items-center justify-between gap-4">
-                                    <div className="flex items-center gap-4 flex-1 max-w-2xl">
-                                        <div className="relative flex-1">
-                                            <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                                            <input type="text" placeholder="Search by name, email or passport..." value={guestFilters.query} onChange={(e) => handleGuestFilterChange({ ...guestFilters, query: e.target.value })} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl pl-12 pr-4 text-xs font-semibold outline-none focus:border-primary transition-colors" />
+                                <div className="flex-1 flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
+                                    <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 flex-1 max-w-xl">
+                                            <div className="relative flex-1">
+                                                <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
+                                                <input type="text" placeholder="Search by name, email or passport..." value={guestFilters.query} onChange={(e) => handleGuestFilterChange({ ...guestFilters, query: e.target.value })} className="w-full h-9 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 text-xs font-semibold outline-none focus:border-primary transition-colors" />
+                                            </div>
+                                            <select value={guestFilters.countryCodes[0] || ''} onChange={(e) => handleGuestFilterChange({ ...guestFilters, countryCodes: e.target.value ? [e.target.value] : [] })} className="h-9 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none cursor-pointer">
+                                                <option value="">All Countries</option>
+                                                {countries.map(c => <option key={c.locationId} value={c.alphaTwoCode}>{getCountryName(countries, c.alphaTwoCode, currentLang)}</option>)}
+                                            </select>
+                                            <select value={guestFilters.status} onChange={(e) => handleGuestFilterChange({ ...guestFilters, status: e.target.value })} className="h-9 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none cursor-pointer">
+                                                <option value="ACTIVE">Active</option>
+                                                <option value="PASSIVE">Passive</option>
+                                            </select>
                                         </div>
-                                        <select value={guestFilters.countryCodes[0] || ''} onChange={(e) => handleGuestFilterChange({ ...guestFilters, countryCodes: e.target.value ? [e.target.value] : [] })} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer">
-                                            <option value="">All Countries</option>
-                                            {countries.map(c => <option key={c.locationId} value={c.alphaTwoCode}>{getCountryName(countries, c.alphaTwoCode, currentLang)}</option>)}
-                                        </select>
-                                        <select value={guestFilters.status} onChange={(e) => handleGuestFilterChange({ ...guestFilters, status: e.target.value })} className="h-11 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none cursor-pointer">
-                                            <option value="ACTIVE">Active</option>
-                                            <option value="PASSIVE">Passive</option>
-                                        </select>
+                                        <div className="flex items-center gap-2">
+                                            <button onClick={() => fetchGuestsData(true)} className={`size-9 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 transition-all text-slate-500 ${guestsLoading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}><span className="material-icons-round text-base">refresh</span></button>
+                                            <button onClick={handleExportGuests} className="h-9 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 hover:bg-slate-50 transition-all"><span className="material-icons-round text-sm">download</span> Export</button>
+                                            <button onClick={openAddGuest} className="h-9 px-4 bg-primary text-white rounded-xl text-xs font-semibold shadow-md shadow-primary/20 flex items-center gap-1.5 active:scale-95 transition-all"><span className="material-icons-round text-base">add</span> Add Guest</button>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <button onClick={() => fetchGuestsData(true)} className={`size-11 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 transition-all text-slate-500 ${guestsLoading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}><span className="material-icons-round text-lg">refresh</span></button>
-                                        <button onClick={handleExportGuests} className="h-11 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-slate-50 transition-all"><span className="material-icons-round text-sm">download</span> Export</button>
-                                        <button onClick={openAddGuest} className="h-11 px-6 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2 active:scale-95 transition-all"><span className="material-icons-round text-lg">add</span> Add Guest</button>
-                                    </div>
-                                </div>
-                                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                    <div className="flex-1 overflow-y-auto custom-scrollbar">
                                     <table className="w-full data-table">
                                         <thead><tr><th>Guest</th><th>Birth & Country</th><th>Passport</th><th>Contact</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                                         <tbody>
                                             {guestsLoading ? <TableSkeleton columns={6} /> : guests.length > 0 ? guests.map((g) => (
-                                                <tr key={g.id} className="data-row transition-colors"><td><div className="flex items-center gap-3"><div className={`size-10 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm bg-gradient-to-br from-purple-500 to-indigo-600`}>{g.firstName?.[0]}{g.lastName?.[0]}</div><div><p className="font-bold text-slate-900 dark:text-white leading-none mb-1">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p><p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {g.id}</p></div></div></td><td><div className="flex items-center gap-3"><div className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-bold text-slate-500">{g.country || 'N/A'}</div><div><p className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-0.5">{getCountryName(countries, g.country, currentLang)}</p><p className="text-[10px] text-slate-400 font-bold">Born: {g.birthDate || 'Unknown'}</p></div></div></td><td><div className="flex items-center gap-2"><div className="size-6 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-sm">badge</span></div><div><p className="text-xs font-bold text-slate-900 dark:text-white">{g.passportNo || 'N/A'}</p><p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p></div></div></td><td><div className="space-y-1"><div className="flex items-center gap-2 text-slate-500"><span className="material-icons-round text-sm">mail_outline</span> {g.email}</div>{g.phoneNumber && <div className="flex items-center gap-2 text-slate-400 text-xs"><span className="material-icons-round text-sm">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}</div></td><td><div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${g.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}><div className={`size-1.5 rounded-full ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditGuest(g)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-lg">edit</span></button><button onClick={() => handleDeleteGuest(g.id)} className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-lg">delete_outline</span></button></div></td></tr>
-                                            )) : (<tr><td colSpan="6" className="py-20 text-center"><p className="text-slate-400 text-sm font-medium italic">No guests found</p></td></tr>)}
+                                                <tr key={g.id} className="data-row transition-colors"><td><div className="flex items-center gap-2.5"><div className="size-8 rounded-full flex items-center justify-center text-white font-semibold text-[11px] shadow-xs bg-gradient-to-br from-primary to-blue-600 shrink-0">{g.firstName?.[0]}{g.lastName?.[0]}</div><div><p className="font-semibold text-slate-900 dark:text-white leading-none mb-0.5">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p><p className="text-[9px] text-slate-400 font-semibold uppercase">ID: {g.id}</p></div></div></td><td><div className="flex items-center gap-2"><div className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-semibold text-slate-500">{g.country || 'N/A'}</div><div><p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{getCountryName(countries, g.country, currentLang)}</p><p className="text-[10px] text-slate-400">Born: {g.birthDate || 'Unknown'}</p></div></div></td><td><div className="flex items-center gap-1.5"><div className="size-5 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-xs">badge</span></div><div><p className="text-xs font-semibold text-slate-900 dark:text-white">{g.passportNo || 'N/A'}</p><p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p></div></div></td><td><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {g.email}</div>{g.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}</div></td><td><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleGuestStatus(g)} className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={g.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${g.status === 'ACTIVE' ? 'translate-x-3' : 'translate-x-0'}`} /></button><span className={`text-[10px] font-semibold ${g.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditGuest(g)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteGuest(g.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>
+                                            )) : (<tr><td colSpan="6" className="py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No guests found</p></td></tr>)}
                                         </tbody>
                                     </table>
                                 </div>

@@ -29,7 +29,7 @@ const NationalitySelect = ({ value, onChange, compact = false }) => {
                 className={`w-full flex items-center gap-2 bg-transparent border-none p-0 focus:ring-0 ${compact ? 'justify-center' : ''}`}
             >
                 <span className={`${compact ? 'text-lg' : 'text-xl'} flex-shrink-0`}>{selectedCountry?.flag}</span>
-                <span className={`${compact ? 'text-[11px]' : 'text-xs'} font-black text-slate-900 dark:text-white truncate flex-1 text-left uppercase`}>
+                <span className={`${compact ? 'text-[11px]' : 'text-xs'} font-medium text-slate-900 dark:text-white truncate flex-1 text-left uppercase`}>
                     {compact ? selectedCountry?.code : selectedCountry?.name}
                 </span>
                 <span className={`material-symbols-outlined text-slate-400 ${compact ? 'text-xs' : 'text-sm'} flex-shrink-0`}>expand_more</span>
@@ -42,7 +42,7 @@ const NationalitySelect = ({ value, onChange, compact = false }) => {
                             <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
                             <input
                                 type="text"
-                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg py-1.5 pl-8 pr-3 text-xs font-semibold focus:ring-1 focus:ring-primary"
+                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg py-1.5 pl-8 pr-3 text-xs font-medium focus:ring-1 focus:ring-primary"
                                 placeholder="Search country..."
                                 autoFocus
                                 value={searchTerm}
@@ -61,7 +61,7 @@ const NationalitySelect = ({ value, onChange, compact = false }) => {
                                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left ${value === country.code ? 'bg-blue-50 dark:bg-blue-900/20 text-primary' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
                             >
                                 <span className="text-lg">{country.flag}</span>
-                                <span className="text-sm font-semibold truncate">{country.name}</span>
+                                <span className="text-sm font-medium truncate">{country.name}</span>
                                 {value === country.code && (
                                     <span className="material-symbols-outlined text-primary text-sm ml-auto">check</span>
                                 )}

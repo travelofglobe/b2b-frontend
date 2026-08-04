@@ -278,37 +278,37 @@ const MyBookings = () => {
             {/* Main Content */}
             <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
                 {/* Header - Fixed Glassy */}
-                <header className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border-b border-white/40 dark:border-white/5 px-8 py-5 flex-shrink-0 z-30 transition-all">
+                <header className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border-b border-white/40 dark:border-white/5 px-6 py-3.5 flex-shrink-0 z-30 transition-all">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                                <span className="material-icons-round text-2xl">book_online</span>
+                        <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                <span className="material-icons-round text-xl">book_online</span>
                             </div>
                             <div>
-                                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{L('title')}</h1>
-                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                <h1 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{L('title')}</h1>
+                                <p className="text-xs font-normal text-slate-500 dark:text-slate-400">
                                     {L('subtitle')}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                             <button
                                 onClick={handleSearch}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 transition-all active:scale-95"
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 transition-all active:scale-95"
                             >
-                                <span className="material-icons-round text-lg">refresh</span>
+                                <span className="material-icons-round text-base">refresh</span>
                                 {L('refresh')}
                             </button>
                             <button
                                 onClick={handleClearFilters}
-                                className="flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl text-sm font-bold text-red-600 dark:text-red-400 transition-all active:scale-95"
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 transition-all active:scale-95"
                             >
-                                <span className="material-icons-round text-lg">filter_alt_off</span>
+                                <span className="material-icons-round text-base">filter_alt_off</span>
                                 {L('clear')}
                             </button>
 
-                            <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
+                            <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
 
                             <HeaderActions />
                         </div>
@@ -326,22 +326,22 @@ const MyBookings = () => {
                             <table className="w-full border-collapse">
                                 <thead>
                                     <tr className="bg-white/30 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-700">
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">{L('colId')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[150px]">{L('colVoucher')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[300px]">{L('colHotel')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[160px]">{L('colCreated')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[160px]">{L('colCheckIn')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[160px]">{L('colCheckOut')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">{L('colAmount')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">{L('colPayment')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">{L('colStatus')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[140px]">{L('colCancelFee')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[200px]">{L('colUuid')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[200px]">{L('colAgencyName')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">{L('colAgencyId')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[150px]">{L('colHotelId')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[180px]">{L('colClRef')}</th>
-                                        <th className="px-6 py-5 text-left text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap min-w-[100px]">{L('colCancelled')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">{L('colId')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[150px]">{L('colVoucher')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[300px]">{L('colHotel')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px]">{L('colCreated')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px]">{L('colCheckIn')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px]">{L('colCheckOut')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px]">{L('colAmount')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px]">{L('colPayment')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px]">{L('colStatus')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px]">{L('colCancelFee')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px]">{L('colUuid')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px]">{L('colAgencyName')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">{L('colAgencyId')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[150px]">{L('colHotelId')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[180px]">{L('colClRef')}</th>
+                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">{L('colCancelled')}</th>
                                     </tr>
                                     <tr className="bg-slate-50/80 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 relative z-20">
                                         <td className="px-2 py-2">
@@ -351,7 +351,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('id', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder={L('colId')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -361,7 +361,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('voucher', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder={L('phVoucher')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -371,7 +371,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('hotelName', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder={L('phHotelName')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -381,14 +381,14 @@ const MyBookings = () => {
                                                     value={filters.createDateStart}
                                                     onChange={(e) => handleFilterChange('createDateStart', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="date"
                                                     value={filters.createDateEnd}
                                                     onChange={(e) => handleFilterChange('createDateEnd', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -399,14 +399,14 @@ const MyBookings = () => {
                                                     value={filters.checkInStart}
                                                     onChange={(e) => handleFilterChange('checkInStart', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="date"
                                                     value={filters.checkInEnd}
                                                     onChange={(e) => handleFilterChange('checkInEnd', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -417,14 +417,14 @@ const MyBookings = () => {
                                                     value={filters.checkOutStart}
                                                     onChange={(e) => handleFilterChange('checkOutStart', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="date"
                                                     value={filters.checkOutEnd}
                                                     onChange={(e) => handleFilterChange('checkOutEnd', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -436,7 +436,7 @@ const MyBookings = () => {
                                                     onChange={(e) => handleFilterChange('minAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                     placeholder={L('phMin')}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="number"
@@ -444,7 +444,7 @@ const MyBookings = () => {
                                                     onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                     placeholder="Max"
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -452,15 +452,15 @@ const MyBookings = () => {
                                             <select
                                                 value={filters.paymentStatus}
                                                 onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
                                             >
-                                                <option value="">{L('all')}</option>
-                                                <option value="PENDING_PAYMENT">{L('pyPending')}</option>
-                                                <option value="PAID_CREDIT_CARD">{L('pyPaidCard')}</option>
-                                                <option value="PAID_ACCOUNT">{L('pyPaidAcc')}</option>
-                                                <option value="REFUNDED_CREDIT_CARD">{L('pyRefCard')}</option>
-                                                <option value="REFUNDED_ACCOUNT">{L('pyRefAcc')}</option>
-                                                <option value="FAILED">{L('pyFailed')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="">{L('all')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="PENDING_PAYMENT">{L('pyPending')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="PAID_CREDIT_CARD">{L('pyPaidCard')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="PAID_ACCOUNT">{L('pyPaidAcc')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="REFUNDED_CREDIT_CARD">{L('pyRefCard')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="REFUNDED_ACCOUNT">{L('pyRefAcc')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="FAILED">{L('pyFailed')}</option>
                                             </select>
                                         </td>
                                         <td className="px-2 py-2">
@@ -477,7 +477,7 @@ const MyBookings = () => {
                                                     onChange={(e) => handleFilterChange('minCancellationAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                     placeholder={L('phMin')}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                                 <input
                                                     type="number"
@@ -485,7 +485,7 @@ const MyBookings = () => {
                                                     onChange={(e) => handleFilterChange('maxCancellationAmount', e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                     placeholder={L('phMax')}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                                 />
                                             </div>
                                         </td>
@@ -496,7 +496,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('bookingUuid', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder={L('phUuid')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -515,7 +515,7 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('internalHotelId', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder="Hotel ID"
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
@@ -525,18 +525,18 @@ const MyBookings = () => {
                                                 onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                                 placeholder={L('phClRef')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-3 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
                                             />
                                         </td>
                                         <td className="px-2 py-2">
                                             <select
                                                 value={filters.isCancelled}
                                                 onChange={(e) => handleFilterChange('isCancelled', e.target.value)}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-2 px-1 text-[10px] font-black uppercase tracking-tight focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
+                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
                                             >
-                                                <option value="">{L('all')}</option>
-                                                <option value="true">{L('yes')}</option>
-                                                <option value="false">{L('no')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="">{L('all')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="true">{L('yes')}</option>
+                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="false">{L('no')}</option>
                                             </select>
                                         </td>
                                     </tr>
@@ -581,34 +581,34 @@ const MyBookings = () => {
                                             <tr
                                                 key={booking.bookingId}
                                                 onClick={() => navigate(`/bookings/${booking.bookingId}`)}
-                                                className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 cursor-pointer text-xs font-bold"
+                                                className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 cursor-pointer text-xs font-medium"
                                             >
-                                                <td className="px-4 py-3 text-slate-900 dark:text-white group-hover:text-primary transition-colors">#{booking.bookingId}</td>
-                                                <td className="px-4 py-3 text-slate-700 dark:text-slate-200 truncate max-w-[100px]" title={booking.voucher}>{booking.voucher || '-'}</td>
-                                                <td className="px-4 py-3 text-slate-700 dark:text-slate-200 truncate max-w-[200px]" title={booking.hotelName}>{booking.hotelName}</td>
-                                                <td className="px-4 py-3 text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(booking.createDateTime)}</td>
-                                                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{formatDate(booking.checkInDate)}</td>
-                                                <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{formatDate(booking.checkOutDate)}</td>
-                                                <td className="px-4 py-3 text-primary font-bold">
+                                                <td className="px-3.5 py-2.5 text-slate-900 dark:text-white font-semibold group-hover:text-primary transition-colors">#{booking.bookingId}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-700 dark:text-slate-200 truncate max-w-[100px]" title={booking.voucher}>{booking.voucher || '-'}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-700 dark:text-slate-200 truncate max-w-[200px] font-medium" title={booking.hotelName}>{booking.hotelName}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(booking.createDateTime)}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300">{formatDate(booking.checkInDate)}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300">{formatDate(booking.checkOutDate)}</td>
+                                                <td className="px-3.5 py-2.5 text-primary font-semibold">
                                                     {booking.currency} {booking.totalAmount?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </td>
-                                                <td className="px-4 py-3">
-                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${getPaymentStatusColor(booking.paymentStatus)}`}>
+                                                <td className="px-3.5 py-2.5">
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${getPaymentStatusColor(booking.paymentStatus)}`}>
                                                         {booking.paymentStatus?.replace('_', ' ')}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-3">
+                                                <td className="px-3.5 py-2.5">
                                                     <BookingStatusBadge status={booking.bookingStatus} className="shadow-none border-none bg-transparent p-0" showIcon={false} />
                                                 </td>
-                                                <td className="px-4 py-3 text-red-500">
+                                                <td className="px-3.5 py-2.5 text-red-500 font-medium">
                                                     {booking.totalCancellationAmount > 0 ? `${booking.currency} ${booking.totalCancellationAmount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '-'}
                                                 </td>
-                                                <td className="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-[10px] truncate max-w-[120px]" title={booking.bookingUuid}>{booking.bookingUuid}</td>
-                                                <td className="px-4 py-3 text-slate-700 dark:text-slate-200 truncate max-w-[150px]" title={booking.principalAgencyName}>{booking.principalAgencyName}</td>
-                                                <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-[10px]">{booking.principalAgencyId}</td>
-                                                <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-[10px]">{booking.internalHotelId}</td>
-                                                <td className="px-4 py-3 text-slate-700 dark:text-slate-200 truncate max-w-[100px]" title={booking.clientReferenceId}>{booking.clientReferenceId || '-'}</td>
-                                                <td className="px-4 py-3 text-center">
+                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 font-mono text-[10px] truncate max-w-[120px]" title={booking.bookingUuid}>{booking.bookingUuid}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-700 dark:text-slate-200 truncate max-w-[150px]" title={booking.principalAgencyName}>{booking.principalAgencyName}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[10px]">{booking.principalAgencyId}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[10px]">{booking.internalHotelId}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-700 dark:text-slate-200 truncate max-w-[100px]" title={booking.clientReferenceId}>{booking.clientReferenceId || '-'}</td>
+                                                <td className="px-3.5 py-2.5 text-center">
                                                     {booking.isCancelled ? (
                                                         <span className="material-icons-round text-red-500 text-sm">check_circle</span>
                                                     ) : (
@@ -624,16 +624,16 @@ const MyBookings = () => {
 
                         {/* Pagination - Glassy */}
                         {totalPages > 0 && (
-                            <div className="border-t border-white/20 dark:border-white/5 px-8 py-4 flex items-center justify-between bg-white/10 dark:bg-slate-800/20 backdrop-blur-xl">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">{L('rowsPerPage')}:</span>
+                            <div className="border-t border-slate-200/60 dark:border-slate-800 px-6 py-3 flex items-center justify-between bg-white/20 dark:bg-slate-900/20 backdrop-blur-xl">
+                                <div className="flex items-center gap-2 text-xs">
+                                    <span className="text-slate-500 dark:text-slate-400">{L('rowsPerPage')}:</span>
                                     <select
                                         value={pageSize}
                                         onChange={(e) => {
                                             setPageSize(Number(e.target.value));
                                             setPage(0);
                                         }}
-                                        className="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-sm"
+                                        className="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none"
                                     >
                                         <option value="10">10</option>
                                         <option value="25">25</option>
@@ -641,84 +641,79 @@ const MyBookings = () => {
                                         <option value="100">100</option>
                                     </select>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm text-slate-600 dark:text-slate-400">
+                                <div className="flex items-center gap-2 text-xs">
+                                    <span className="text-slate-500 dark:text-slate-400">
                                         {page + 1} {L('pageOf')} {totalPages} ({totalElements} {L('total')})
                                     </span>
                                     <button
                                         onClick={() => setPage(p => Math.max(0, p - 1))}
                                         disabled={page === 0}
-                                        className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <span className="material-icons-round text-xl">chevron_left</span>
+                                        <span className="material-icons-round text-lg">chevron_left</span>
                                     </button>
                                     <button
                                         onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                                         disabled={page >= totalPages - 1}
-                                        className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <span className="material-icons-round text-xl">chevron_right</span>
+                                        <span className="material-icons-round text-lg">chevron_right</span>
                                     </button>
                                 </div>
                             </div>
                         )}
                         {summaries.length > 0 && (
-                            <div className="mt-12 pl-6 pb-6 space-y-6">
+                            <div className="mt-8 pl-4 pb-4 space-y-4">
                                 {/* Summary Header */}
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h3 className="text-lg font-black text-slate-900 dark:text-white">{L('summaryTitle')}</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">{L('summarySubtitle')}</p>
+                                        <h3 className="text-base font-bold text-slate-900 dark:text-white">{L('summaryTitle')}</h3>
+                                        <p className="text-xs font-normal text-slate-500 dark:text-slate-400">{L('summarySubtitle')}</p>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                                     {summaries.map((summary, index) => (
                                         <div
                                             key={index}
-                                            className="group relative bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-[32px] border border-white/60 dark:border-white/10 p-8 hover:shadow-[0_32px_80px_-16px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-500"
+                                            className="group relative bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-xl border border-slate-200/80 dark:border-slate-800 p-4 hover:shadow-md transition-all duration-300"
                                         >
-                                            {/* Intensity Glow */}
-                                            <div className="absolute -inset-2 bg-primary/10 rounded-[40px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                                             {/* Top Section - Icon and Badge */}
-                                            <div className="flex items-start justify-between mb-4">
-                                                <div className="w-12 h-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <div className="flex items-start justify-between mb-2.5">
+                                                <div className="w-8 h-8 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
                                                     {summary.currency === 'EUR' ? (
-                                                        <span className="material-icons-round text-primary text-2xl">euro</span>
+                                                        <span className="material-icons-round text-primary text-lg">euro</span>
                                                     ) : summary.currency === 'USD' ? (
-                                                        <span className="material-icons-round text-primary text-2xl">attach_money</span>
+                                                        <span className="material-icons-round text-primary text-lg">attach_money</span>
                                                     ) : summary.currency === 'TRY' ? (
-                                                        <span className="material-icons-round text-primary text-2xl">currency_lira</span>
+                                                        <span className="material-icons-round text-primary text-lg">currency_lira</span>
                                                     ) : (
-                                                        <span className="material-icons-round text-primary text-2xl">receipt_long</span>
+                                                        <span className="material-icons-round text-primary text-lg">receipt_long</span>
                                                     )}
                                                 </div>
-                                                <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
+                                                <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[9px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                                                     {summary.currency || 'Total'}
                                                 </span>
                                             </div>
 
                                             {/* Booking Count */}
-                                            <div className="mb-4">
-                                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">{L('bookings')}</p>
-                                                <p className="text-3xl font-black text-slate-900 dark:text-white">{summary.bookingCount}</p>
+                                            <div className="mb-2">
+                                                <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-0.5">{L('bookings')}</p>
+                                                <p className="text-xl font-bold text-slate-900 dark:text-white">{summary.bookingCount}</p>
                                             </div>
 
                                             {/* Divider */}
-                                            <div className="h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent mb-4"></div>
+                                            <div className="h-px bg-slate-100 dark:bg-slate-800 mb-2"></div>
 
                                             {/* Amount Section */}
                                             <div>
-                                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">{L('totalAmount')}</p>
-                                                <div className="flex items-baseline gap-1.5">
-                                                    <span className="text-xs font-bold text-slate-400">{summary.currency}</span>
-                                                    <span className="text-xl font-black text-primary">
+                                                <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider mb-1">{L('totalAmount')}</p>
+                                                <div className="flex items-baseline gap-1">
+                                                    <span className="text-[10px] font-semibold text-slate-400">{summary.currency}</span>
+                                                    <span className="text-base font-bold text-primary">
                                                         {summary.totalAmountSum?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                     </span>
                                                 </div>
                                             </div>
-
-                                            {/* Accent Line */}
-                                            <div className="absolute bottom-0 left-8 right-8 h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                         </div>
                                     ))}
                                 </div>

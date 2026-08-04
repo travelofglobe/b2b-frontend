@@ -17,21 +17,18 @@ const HeaderActions = () => {
     const menuRef = useRef(null);
 
     useEffect(() => {
-        if (user) {
-            const controller = new AbortController();
-            agencyService.getMe(controller.signal)
-                .then(res => {
-                    if (res) setAgencyInfo(res);
-                })
-                .catch(err => {
-                    if (err?.name !== 'AbortError') {
-                        console.error('Failed to fetch agency info:', err);
-                    }
-                });
-            return () => controller.abort();
-        } else {
-            setAgencyInfo(null);
-        }
+        if (!user) return;
+        const controller = new AbortController();
+        agencyService.getMe(controller.signal)
+            .then(res => {
+                if (res) setAgencyInfo(res);
+            })
+            .catch(err => {
+                if (err?.name !== 'AbortError') {
+                    console.error('Failed to fetch agency info:', err);
+                }
+            });
+        return () => controller.abort();
     }, [user]);
 
     // Compute display name
@@ -66,7 +63,6 @@ const HeaderActions = () => {
                 <span className="material-icons-round">notifications</span>
                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
-            <LanguageSwitcher />
             <ThemeToggle />
             <div className="relative" ref={menuRef}>
                 <button
@@ -121,6 +117,10 @@ const HeaderActions = () => {
                                 </div>
                             )}
                         </div>
+
+                        {/* Language Selection inside Menu */}
+                        <LanguageSwitcher mode="menu" />
+
                         <div className="p-2 space-y-1">
                             <button
                                 onClick={() => {

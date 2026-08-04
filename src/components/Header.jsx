@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../context/AuthContext';
 import HeaderSearch from './HeaderSearch';
@@ -11,7 +11,6 @@ import ConfirmModal from './ConfirmModal';
 const Header = () => {
     const { t } = useTranslation();
     const { user, logout } = useAuth();
-    const location = useLocation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isConfirmSignOutOpen, setIsConfirmSignOutOpen] = useState(false);
     const [agencyInfo, setAgencyInfo] = useState(null);
@@ -50,8 +49,6 @@ const Header = () => {
         }
     }, [user]);
 
-    const isMap = location.pathname === '/map';
-
     const userDisplayName = user?.name && user?.surname
         ? `${user.name} ${user.surname}`
         : user?.email || 'User';
@@ -79,7 +76,6 @@ const Header = () => {
                 </div>
                 <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
                     <div className="flex items-center gap-2 ltr:border-l rtl:border-r border-slate-200 dark:border-slate-700 ltr:pl-3 rtl:pr-3">
-                        <LanguageSwitcher />
                         <ThemeToggle />
                         {!user ? (
                             <Link to="/login" className="text-slate-900 dark:text-white text-sm font-semibold px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">{t('common.signIn')}</Link>
@@ -137,7 +133,11 @@ const Header = () => {
                                                 </div>
                                             )}
                                         </div>
-                                         <div className="p-2 space-y-1">
+
+                                        {/* Language Selection inside Menu */}
+                                        <LanguageSwitcher mode="menu" />
+
+                                        <div className="p-2 space-y-1">
                                             <button
                                                 onClick={() => {
                                                     setIsMenuOpen(false);

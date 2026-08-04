@@ -73,47 +73,20 @@ const PhoneInput = ({ value, onChange, label, error }) => {
         c.code.includes(searchTerm)
     );
 
-    useEffect(() => {
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
         setActiveIndex(0);
-    }, [searchTerm, isOpen]);
-
-    const handleKeyDown = (e) => {
-        if (!isOpen) {
-            if (e.key === 'Enter' || e.key === 'ArrowDown') {
-                setIsOpen(true);
-                e.preventDefault();
-            }
-            return;
-        }
-
-        if (e.key === 'ArrowDown') {
-            setActiveIndex(prev => (prev + 1) % filteredCountries.length);
-            e.preventDefault();
-        } else if (e.key === 'ArrowUp') {
-            setActiveIndex(prev => (prev - 1 + filteredCountries.length) % filteredCountries.length);
-            e.preventDefault();
-        } else if (e.key === 'Enter') {
-            if (filteredCountries[activeIndex]) {
-                handleCountrySelect(filteredCountries[activeIndex]);
-            }
-            e.preventDefault();
-        } else if (e.key === 'Escape') {
-            setIsOpen(false);
-            e.preventDefault();
-        }
     };
 
-    useEffect(() => {
-        if (isOpen && buttonRef.current) {
+    const toggleOpen = () => {
+        if (!isOpen && buttonRef.current) {
             const rect = buttonRef.current.getBoundingClientRect();
             const spaceBelow = window.innerHeight - rect.bottom;
-            if (spaceBelow < 300) { // If less than 300px space below
-                setOpenUpwards(true);
-            } else {
-                setOpenUpwards(false);
-            }
+            setOpenUpwards(spaceBelow < 300);
+            setActiveIndex(0);
         }
-    }, [isOpen]);
+        setIsOpen(!isOpen);
+    };
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -137,80 +110,81 @@ const PhoneInput = ({ value, onChange, label, error }) => {
     };
 
     return (
-        <div className="relative z-[9999]" ref={dropdownRef} onKeyDown={handleKeyDown}>
+        <div className="space-y-1">
             {label && (
-                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-0.5 mb-1 block">
+                <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
                     {label}
                 </label>
             )}
-            
-            <div className={`flex items-stretch h-9 bg-slate-50/80 dark:bg-slate-800/80 border rounded-xl transition-all duration-300 ${
-                error ? 'border-red-500/50 ring-2 ring-red-500/10' : 'border-slate-200 dark:border-slate-700 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10'
-            }`}>
-                <button
-                    type="button"
-                    ref={buttonRef}
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-1.5 px-3 border-r border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors rounded-l-xl shrink-0"
-                >
-                    <span className="text-base leading-none">{selectedCountry.flag}</span>
-                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{selectedCountry.code}</span>
-                    <span className={`material-symbols-outlined text-xs text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
-                        expand_more
-                    </span>
-                </button>
-
-                {/* Number Input */}
-                <input
-                    type="text"
-                    value={phoneNumber}
-                    onChange={handlePhoneChange}
-                    className="flex-1 bg-transparent py-2 px-3 outline-none font-semibold text-xs text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-normal"
-                    placeholder="5__ ___ __ __"
-                />
-            </div>
-
-            {/* Dropdown */}
-            {isOpen && (
-                <div className={`absolute left-0 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl z-[100] overflow-hidden animate-in fade-in duration-300 ${
-                    openUpwards ? 'bottom-full mb-2 slide-in-from-bottom-2' : 'top-full mt-2 slide-in-from-top-2'
+            <div className="relative z-[9999]" ref={dropdownRef}>
+                <div className={`flex items-stretch h-9 bg-white dark:bg-slate-800 border rounded-lg transition-all ${
+                    error ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700 focus-within:border-primary'
                 }`}>
-                    <div className="p-3 border-b border-slate-100 dark:border-slate-800">
-                        <div className="relative">
-                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
-                            <input
-                                type="text"
-                                placeholder="Ara..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-primary/50"
-                                autoFocus
-                            />
+                    <button
+                        type="button"
+                        ref={buttonRef}
+                        onClick={toggleOpen}
+                        className="flex items-center gap-1 px-2.5 border-r border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors rounded-l-lg shrink-0"
+                    >
+                        <span className="text-base leading-none">{selectedCountry.flag}</span>
+                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{selectedCountry.code}</span>
+                        <span className={`material-symbols-outlined text-xs text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+                            expand_more
+                        </span>
+                    </button>
+
+                    {/* Number Input */}
+                    <input
+                        type="text"
+                        value={phoneNumber}
+                        onChange={handlePhoneChange}
+                        className="flex-1 bg-transparent py-2 px-3 outline-none font-semibold text-xs text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-normal"
+                        placeholder="5__ ___ __ __"
+                    />
+                </div>
+
+                {/* Dropdown */}
+                {isOpen && (
+                    <div className={`absolute left-0 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-[100] overflow-hidden animate-in fade-in duration-200 ${
+                        openUpwards ? 'bottom-full mb-2 slide-in-from-bottom-2' : 'top-full mt-2 slide-in-from-top-2'
+                    }`}>
+                        <div className="p-2 border-b border-slate-100 dark:border-slate-800">
+                            <div className="relative">
+                                <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                                <input
+                                    type="text"
+                                    placeholder="Search country..."
+                                    value={searchTerm}
+                                    onChange={handleSearchChange}
+                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 pl-8 pr-3 py-1.5 rounded-lg text-xs focus:outline-none focus:border-primary"
+                                    autoFocus
+                                />
+                            </div>
+                        </div>
+                        <div className="max-h-56 overflow-y-auto custom-scrollbar py-1">
+                            {filteredCountries.map((country, index) => (
+                                <button
+                                    key={country.id}
+                                    type="button"
+                                    onClick={() => handleCountrySelect(country)}
+                                    className={`w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs ${
+                                        selectedCountry.id === country.id ? 'bg-primary/5 dark:bg-primary/10' : ''
+                                    } ${activeIndex === index ? 'bg-slate-100 dark:bg-slate-800' : ''}`}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm leading-none">{country.flag}</span>
+                                        <span className="font-semibold text-slate-700 dark:text-slate-300">{country.code}</span>
+                                        <span className="font-medium text-slate-500 dark:text-slate-400">{country.name}</span>
+                                    </div>
+                                    {selectedCountry.id === country.id && (
+                                        <span className="material-symbols-outlined text-primary text-sm">check</span>
+                                    )}
+                                </button>
+                            ))}
                         </div>
                     </div>
-                    <div className="max-h-64 overflow-y-auto no-scrollbar py-2">
-                        {filteredCountries.map((country, index) => (
-                            <button
-                                key={country.id}
-                                type="button"
-                                onClick={() => handleCountrySelect(country)}
-                                className={`w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${
-                                    selectedCountry.id === country.id ? 'bg-primary/5 dark:bg-primary/10' : ''
-                                } ${activeIndex === index ? 'bg-slate-100 dark:bg-slate-800 ring-1 ring-inset ring-primary/20' : ''}`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <span className="text-xl leading-none">{country.flag}</span>
-                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{country.code}</span>
-                                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{country.name}</span>
-                                </div>
-                                {selectedCountry.id === country.id && (
-                                    <span className="material-symbols-outlined text-primary text-lg">check</span>
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 };

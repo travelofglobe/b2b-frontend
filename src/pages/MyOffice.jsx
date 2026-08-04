@@ -1038,7 +1038,7 @@ const MyOffice = () => {
                                         <thead><tr><th>Guest</th><th>Birth & Country</th><th>Passport</th><th>Contact</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
                                         <tbody>
                                             {guestsLoading ? <TableSkeleton columns={6} /> : guests.length > 0 ? guests.map((g) => (
-                                                <tr key={g.id} className="data-row transition-colors"><td><div className="flex items-center gap-2.5"><div className="size-8 rounded-full flex items-center justify-center text-white font-semibold text-[11px] shadow-xs bg-gradient-to-br from-primary to-blue-600 shrink-0">{g.firstName?.[0]}{g.lastName?.[0]}</div><div><p className="font-semibold text-slate-900 dark:text-white leading-none mb-0.5">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p><p className="text-[9px] text-slate-400 font-semibold uppercase">ID: {g.id}</p></div></div></td><td><div className="flex items-center gap-2"><div className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-semibold text-slate-500">{g.country || 'N/A'}</div><div><p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{getCountryName(countries, g.country, currentLang)}</p><p className="text-[10px] text-slate-400">Born: {g.birthDate || 'Unknown'}</p></div></div></td><td><div className="flex items-center gap-1.5"><div className="size-5 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-xs">badge</span></div><div><p className="text-xs font-semibold text-slate-900 dark:text-white">{g.passportNo || 'N/A'}</p><p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p></div></div></td><td><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {g.email}</div>{g.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}</div></td><td><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleGuestStatus(g)} className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={g.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${g.status === 'ACTIVE' ? 'translate-x-3' : 'translate-x-0'}`} /></button><span className={`text-[10px] font-semibold ${g.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditGuest(g)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteGuest(g.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>
+                                                <tr key={g.id} className="data-row transition-colors"><td><div className="flex items-center gap-2.5"><div className="size-8 rounded-full flex items-center justify-center text-white font-semibold text-[11px] shadow-xs bg-gradient-to-br from-primary to-blue-600 shrink-0">{g.firstName?.[0]}{g.lastName?.[0]}</div><div><p className="font-semibold text-slate-900 dark:text-white leading-none mb-0.5">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p><p className="text-[9px] text-slate-400 font-semibold uppercase">ID: {g.id}</p></div></div></td><td><div className="flex items-center gap-2"><div className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-semibold text-slate-500">{g.country || 'N/A'}</div><div><p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{getCountryName(countries, g.country, currentLang)}</p><p className="text-[10px] text-slate-400">Born: {g.birthDate || 'Unknown'}</p></div></div></td><td><div className="flex items-center gap-1.5"><div className="size-5 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-xs">badge</span></div><div><p className="text-xs font-semibold text-slate-900 dark:text-white">{g.passportNo || 'N/A'}</p><p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p></div></div></td><td><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {g.email}</div>{g.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}</div></td><td><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleGuestStatus(g)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={g.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${g.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-xs font-semibold ${g.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditGuest(g)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteGuest(g.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>
                                             )) : (<tr><td colSpan="6" className="py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No guests found</p></td></tr>)}
                                         </tbody>
                                     </table>
@@ -1124,20 +1124,18 @@ const MyOffice = () => {
                                     </div>
                                 </div>
                             )}
-                            <div className="space-y-1">
-                                <PhoneInput 
-                                    label="Phone Number"
-                                    value={(userFormData.phoneCountryCode?.startsWith('+') ? userFormData.phoneCountryCode : `+${userFormData.phoneCountryCode}`) + ' ' + userFormData.phoneNumber}
-                                    onChange={(val) => {
-                                        const parts = val.split(' ');
-                                        setUserFormData(prev => ({ 
-                                            ...prev, 
-                                            phoneCountryCode: parts[0]?.replace('+', '') || '90', 
-                                            phoneNumber: parts[1] || '' 
-                                        }));
-                                    }}
-                                />
-                            </div>
+                            <PhoneInput 
+                                label="Phone Number"
+                                value={(userFormData.phoneCountryCode?.startsWith('+') ? userFormData.phoneCountryCode : `+${userFormData.phoneCountryCode}`) + ' ' + userFormData.phoneNumber}
+                                onChange={(val) => {
+                                    const parts = val.split(' ');
+                                    setUserFormData(prev => ({ 
+                                        ...prev, 
+                                        phoneCountryCode: parts[0]?.replace('+', '') || '90', 
+                                        phoneNumber: parts[1] || '' 
+                                    }));
+                                }}
+                            />
                             <div className="grid grid-cols-2 gap-4"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Role</label><select multiple value={userFormData.roleIds} onChange={(e) => setUserFormData(prev => ({ ...prev, roleIds: Array.from(e.target.selectedOptions, option => parseInt(option.value)) }))} className="w-full min-h-[80px] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl p-2 text-xs font-bold outline-none focus:border-primary">{roles.map(r => <option key={r.id} value={r.id}>{r.roleName || r.name}</option>)}</select></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Status</label><select value={userFormData.status} onChange={(e) => setUserFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary"><option value="ACTIVE">Active</option><option value="PASSIVE">Passive</option></select></div></div>
                             <div className="pt-4 flex items-center justify-end gap-3"><button type="button" onClick={() => setIsUserModalOpen(false)} className="h-11 px-6 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">{L('cancel')}</button><button type="submit" disabled={saving} className="h-11 px-8 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">{saving ? L('processing') : L('saveUser')}</button></div>
                         </form>
@@ -1266,20 +1264,18 @@ const MyOffice = () => {
                                 <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label><input type="email" required value={guestFormData.email} onChange={(e) => setGuestFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" placeholder="example@mail.com" /></div>
                                 <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Status</label><select value={guestFormData.status} onChange={(e) => setGuestFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary"><option value="ACTIVE">Active</option><option value="PASSIVE">Passive</option></select></div>
                             </div>
-                            <div className="space-y-1">
-                                <PhoneInput 
-                                    label="Phone Number"
-                                    value={(guestFormData.phoneCountryCode?.startsWith('+') ? guestFormData.phoneCountryCode : `+${guestFormData.phoneCountryCode}`) + ' ' + guestFormData.phoneNumber}
-                                    onChange={(val) => {
-                                        const parts = val.split(' ');
-                                        setGuestFormData(prev => ({ 
-                                            ...prev, 
-                                            phoneCountryCode: parts[0]?.replace('+', '') || '90', 
-                                            phoneNumber: parts[1] || '' 
-                                        }));
-                                    }}
-                                />
-                            </div>
+                            <PhoneInput 
+                                label="Phone Number"
+                                value={(guestFormData.phoneCountryCode?.startsWith('+') ? guestFormData.phoneCountryCode : `+${guestFormData.phoneCountryCode}`) + ' ' + guestFormData.phoneNumber}
+                                onChange={(val) => {
+                                    const parts = val.split(' ');
+                                    setGuestFormData(prev => ({ 
+                                        ...prev, 
+                                        phoneCountryCode: parts[0]?.replace('+', '') || '90', 
+                                        phoneNumber: parts[1] || '' 
+                                    }));
+                                }}
+                            />
                             <div className="pt-4 flex items-center justify-end gap-3"><button type="button" onClick={() => setIsGuestModalOpen(false)} className="h-11 px-6 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">{L('cancel')}</button><button type="submit" disabled={saving} className="h-11 px-8 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">{saving ? L('processing') : L('saveGuest')}</button></div>
                         </form>
                     </div>

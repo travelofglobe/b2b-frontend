@@ -1260,7 +1260,6 @@ const MyOffice = () => {
                                                 <th>Otel Bilgisi</th>
                                                 <th>Kullanıcı (User Email)</th>
                                                 <th>Konum & Yıldız</th>
-                                                <th>Tedarikçi</th>
                                                 <th>Eklenme / Güncelleme</th>
                                                 <th>Status</th>
                                                 <th className="text-right">Aksiyonlar</th>
@@ -1268,7 +1267,7 @@ const MyOffice = () => {
                                         </thead>
                                         <tbody>
                                             {favoriteLoading ? (
-                                                <TableSkeleton columns={7} />
+                                                <TableSkeleton columns={6} />
                                             ) : favoriteBackendItems.length > 0 ? (
                                                 favoriteBackendItems.map((fav) => (
                                                     <tr key={fav.id} className="data-row transition-colors">
@@ -1314,14 +1313,6 @@ const MyOffice = () => {
                                                                     ))}
                                                                 </div>
                                                             </div>
-                                                        </td>
-
-                                                        {/* Supplier */}
-                                                        <td>
-                                                            <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold rounded-lg uppercase tracking-wider inline-flex items-center gap-1">
-                                                                <span className="material-symbols-outlined text-xs">hub</span>
-                                                                {fav.supplier || 'B2B System'}
-                                                            </span>
                                                         </td>
 
                                                         {/* Date */}

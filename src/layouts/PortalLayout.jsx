@@ -6,6 +6,7 @@ const PortalLayout = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
+    const [isMyOfficeOpen, setIsMyOfficeOpen] = useState(location.pathname.startsWith('/my-office'));
     const [isDefinitionsOpen, setIsDefinitionsOpen] = useState(location.pathname.startsWith('/definitions'));
     const [isGSAManagementOpen, setIsGSAManagementOpen] = useState(location.pathname.startsWith('/gsa'));
 
@@ -35,13 +36,52 @@ const PortalLayout = () => {
                         <span className="material-icons-round text-[20px]">grid_view</span>
                         {t('sidebar.dashboard')}
                     </button>
-                    <button
-                        onClick={() => navigate('/my-office')}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/my-office' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                    >
-                        <span className="material-icons-round text-[20px]">corporate_fare</span>
-                        {t('sidebar.myOffice')}
-                    </button>
+                    
+                    <div className="space-y-0.5">
+                        <button
+                            onClick={() => setIsMyOfficeOpen(!isMyOfficeOpen)}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname.startsWith('/my-office') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="material-icons-round text-[20px]">corporate_fare</span>
+                                {t('sidebar.myOffice')}
+                            </div>
+                            <span className={`material-icons-round text-sm transition-transform duration-200 ${isMyOfficeOpen ? 'rotate-90' : 'ltr:rotate-0 rtl:rotate-180'}`}>chevron_right</span>
+                        </button>
+                        
+                        {isMyOfficeOpen && (
+                            <div className="ltr:ml-4 ltr:pl-5 ltr:border-l rtl:mr-4 rtl:pr-5 rtl:border-r border-slate-100 dark:border-slate-800 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
+                                <button
+                                    onClick={() => navigate('/my-office?tab=general')}
+                                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/my-office' && (!location.search || location.search.includes('tab=general')) ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                >
+                                    <span className="material-icons-round text-[16px]">info</span>
+                                    {t('sidebar.generalInfo') || 'General Information'}
+                                </button>
+                                <button
+                                    onClick={() => navigate('/my-office?tab=users')}
+                                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/my-office' && location.search.includes('tab=users') ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                >
+                                    <span className="material-icons-round text-[16px]">groups</span>
+                                    {t('sidebar.users') || 'Users'}
+                                </button>
+                                <button
+                                    onClick={() => navigate('/my-office?tab=guests')}
+                                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/my-office' && location.search.includes('tab=guests') ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                >
+                                    <span className="material-icons-round text-[16px]">recent_actors</span>
+                                    {t('sidebar.guests') || 'Guests'}
+                                </button>
+                                <button
+                                    onClick={() => navigate('/my-office?tab=favorites')}
+                                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/my-office' && location.search.includes('tab=favorites') ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                >
+                                    <span className="material-symbols-outlined text-[16px]">favorite</span>
+                                    {t('sidebar.favoriteHotels') || 'Favorite Hotels'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
                     <button
                         onClick={() => navigate('/bookings')}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname.startsWith('/bookings') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}

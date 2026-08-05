@@ -21,6 +21,10 @@ export const resources = {
       sidebar: {
         dashboard: "Dashboard",
         myOffice: "My Office",
+        generalInfo: "General Information",
+        users: "Users",
+        guests: "Guests",
+        favoriteHotels: "Favorite Hotels",
         myBookings: "My Bookings",
         definitions: "Definitions",
         markupManagement: "Markup Management",
@@ -120,6 +124,10 @@ export const resources = {
       sidebar: {
         dashboard: "Kontrol Paneli",
         myOffice: "Ofisim",
+        generalInfo: "Genel Bilgiler",
+        users: "Kullanıcılar",
+        guests: "Misafirler",
+        favoriteHotels: "Favori Oteller",
         myBookings: "Rezervasyonlarım",
         definitions: "Tanımlamalar",
         markupManagement: "Komisyon Yönetimi",

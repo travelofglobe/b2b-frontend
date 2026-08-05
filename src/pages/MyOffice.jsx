@@ -136,7 +136,7 @@ const MyOffice = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { user, logout } = useAuth();
-    const { favorites, removeFavorite, refreshFavorites } = useFavorites();
+    const { favorites, isFavorite, addFavorite, removeFavorite, refreshFavorites } = useFavorites();
     const { i18n } = useTranslation();
     const [currentLang, setCurrentLang] = useState(() => (i18n.language || localStorage.getItem('i18nextLng') || 'en').split('-')[0].toLowerCase());
     useEffect(() => {
@@ -166,6 +166,7 @@ const MyOffice = () => {
     const [hotelAutocompleteResults, setHotelAutocompleteResults] = useState([]);
     const [hotelAutocompleteLoading, setHotelAutocompleteLoading] = useState(false);
     const [showHotelAutocompleteDropdown, setShowHotelAutocompleteDropdown] = useState(false);
+    const hotelAutocompleteRef = useRef(null);
 
     const fetchFavoriteHotels = useCallback(async (page = 0) => {
         setFavoriteLoading(true);
@@ -211,6 +212,16 @@ const MyOffice = () => {
         return () => clearTimeout(timer);
     }, [hotelAutocompleteQuery]);
 
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (hotelAutocompleteRef.current && !hotelAutocompleteRef.current.contains(event.target)) {
+                setShowHotelAutocompleteDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const filteredFavorites = React.useMemo(() => {
         if (!favoriteSearchQuery.trim()) return favorites;
         const q = favoriteSearchQuery.toLowerCase();
@@ -253,21 +264,15 @@ const MyOffice = () => {
         });
     };
 
-    const handleAddHotelFromAutocomplete = async (hotel) => {
+    const handleAddHotelFromAutocomplete = async (hotel, e) => {
+        if (e) e.stopPropagation();
         try {
             await favoriteService.addFavorite({
-                hotelId: hotel.hotelId,
-                hotelName: hotel.hotelName,
-                cityName: hotel.cityName,
-                countryName: hotel.countryName,
-                stars: hotel.stars || 4
+                hotelId: hotel.hotelId
             });
-            setToast({ show: true, message: 'Otel favorilere eklendi', type: 'success' });
-            setHotelAutocompleteQuery('');
-            setHotelAutocompleteResults([]);
-            setShowHotelAutocompleteDropdown(false);
+            addFavorite(hotel);
+            setToast({ show: true, message: `"${hotel.hotelName || 'Otel'}" favorilere eklendi`, type: 'success' });
             fetchFavoriteHotels(0);
-            refreshFavorites();
         } catch (e) {
             setToast({ show: true, message: 'Favori ekleme hatası', type: 'danger' });
         }
@@ -1149,57 +1154,54 @@ const MyOffice = () => {
                                         </div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                    <table className="w-full data-table">
-                                        <thead><tr><th>Guest</th><th>Birth & Country</th><th>Passport</th><th>Contact</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
-                                        <tbody>
-                                            {guestsLoading ? <TableSkeleton columns={6} /> : guests.length > 0 ? guests.map((g) => (
-                                                <tr key={g.id} className="data-row transition-colors"><td><div className="flex items-center gap-2.5"><div className="size-8 rounded-full flex items-center justify-center text-white font-semibold text-[11px] shadow-xs bg-gradient-to-br from-primary to-blue-600 shrink-0">{g.firstName?.[0]}{g.lastName?.[0]}</div><div><p className="font-semibold text-slate-900 dark:text-white leading-none mb-0.5">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p><p className="text-[9px] text-slate-400 font-semibold uppercase">ID: {g.id}</p></div></div></td><td><div className="flex items-center gap-2"><div className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-semibold text-slate-500">{g.country || 'N/A'}</div><div><p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{getCountryName(countries, g.country, currentLang)}</p><p className="text-[10px] text-slate-400">Born: {g.birthDate || 'Unknown'}</p></div></div></td><td><div className="flex items-center gap-1.5"><div className="size-5 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-xs">badge</span></div><div><p className="text-xs font-semibold text-slate-900 dark:text-white">{g.passportNo || 'N/A'}</p><p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p></div></div></td><td><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {g.email}</div>{g.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}</div></td><td><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleGuestStatus(g)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={g.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${g.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-xs font-semibold ${g.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditGuest(g)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteGuest(g.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>
-                                            )) : (<tr><td colSpan="6" className="py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No guests found</p></td></tr>)}
-                                        </tbody>
-                                    </table>
+                                        <table className="w-full data-table">
+                                            <thead><tr><th>Guest</th><th>Birth & Country</th><th>Passport</th><th>Contact</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+                                            <tbody>
+                                                {guestsLoading ? <TableSkeleton columns={6} /> : guests.length > 0 ? guests.map((g) => (
+                                                    <tr key={g.id} className="data-row transition-colors"><td><div className="flex items-center gap-2.5"><div className="size-8 rounded-full flex items-center justify-center text-white font-semibold text-[11px] shadow-xs bg-gradient-to-br from-primary to-blue-600 shrink-0">{g.firstName?.[0]}{g.lastName?.[0]}</div><div><p className="font-semibold text-slate-900 dark:text-white leading-none mb-0.5">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p><p className="text-[9px] text-slate-400 font-semibold uppercase">ID: {g.id}</p></div></div></td><td><div className="flex items-center gap-2"><div className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-semibold text-slate-500">{g.country || 'N/A'}</div><div><p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{getCountryName(countries, g.country, currentLang)}</p><p className="text-[10px] text-slate-400">Born: {g.birthDate || 'Unknown'}</p></div></div></td><td><div className="flex items-center gap-1.5"><div className="size-5 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-xs">badge</span></div><div><p className="text-xs font-semibold text-slate-900 dark:text-white">{g.passportNo || 'N/A'}</p><p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p></div></div></td><td><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {g.email}</div>{g.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}</div></td><td><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleGuestStatus(g)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={g.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${g.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-xs font-semibold ${g.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditGuest(g)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteGuest(g.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>
+                                                )) : (<tr><td colSpan="6" className="py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No guests found</p></td></tr>)}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
                     ) : activeTab === 'favorites' ? (
-                        <div className="h-full flex flex-col gap-4 overflow-hidden">
-                            {/* Top Header Controls / Autocomplete Bar */}
-                            <div className="bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
-                                <div className="flex flex-wrap items-center justify-between gap-3">
-                                    {/* Autocomplete Search Dropdown to Add Hotel */}
-                                    <div className="relative flex-1 max-w-md">
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 ml-1">
-                                            Sistemden Otel Seç & Favorilere Ekle
-                                        </label>
-                                        <div className="relative">
-                                            <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
-                                            <input 
-                                                type="text" 
-                                                placeholder="Otel adı veya ID yazarak sistemde ara..." 
-                                                value={hotelAutocompleteQuery}
-                                                onChange={(e) => setHotelAutocompleteQuery(e.target.value)}
-                                                onFocus={() => hotelAutocompleteResults.length > 0 && setShowHotelAutocompleteDropdown(true)}
-                                                className="w-full h-10 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-8 text-xs font-bold outline-none focus:border-primary transition-colors text-slate-800 dark:text-white"
-                                            />
-                                            {hotelAutocompleteLoading && (
-                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 size-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                                            )}
-                                        </div>
+                        <div className="flex-1 flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs relative z-20 overflow-visible">
+                            {/* Unified Header: Compact Autocomplete & Controls */}
+                            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 relative z-50">
+                                {/* Autocomplete Search Dropdown */}
+                                <div ref={hotelAutocompleteRef} className="relative flex-1 max-w-md">
+                                    <div className="relative">
+                                        <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
+                                        <input 
+                                            type="text" 
+                                            placeholder="Sistemden Otel Seç & Favorilere Ekle (Ad veya ID)..." 
+                                            value={hotelAutocompleteQuery}
+                                            onChange={(e) => setHotelAutocompleteQuery(e.target.value)}
+                                            onFocus={() => hotelAutocompleteResults.length > 0 && setShowHotelAutocompleteDropdown(true)}
+                                            className="w-full h-9 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-8 text-xs font-bold outline-none focus:border-primary transition-colors text-slate-800 dark:text-white"
+                                        />
+                                        {hotelAutocompleteLoading && (
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 size-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                                        )}
+                                    </div>
 
-                                        {/* Autocomplete Dropdown */}
-                                        {showHotelAutocompleteDropdown && hotelAutocompleteResults.length > 0 && (
-                                            <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-h-60 overflow-y-auto z-[500] p-1.5 space-y-1 animate-in fade-in-50 zoom-in-95">
-                                                {hotelAutocompleteResults.map((h) => (
+                                    {/* Autocomplete Dropdown Overlay */}
+                                    {showHotelAutocompleteDropdown && hotelAutocompleteResults.length > 0 && (
+                                        <div className="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-h-64 overflow-y-auto z-[9999] p-1.5 space-y-1 ring-1 ring-black/5 animate-in fade-in-50 zoom-in-95">
+                                            {hotelAutocompleteResults.map((h) => {
+                                                const isFav = isFavorite(h.hotelId);
+                                                return (
                                                     <div 
                                                         key={h.hotelId}
-                                                        onClick={() => handleAddHotelFromAutocomplete(h)}
-                                                        className="p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl cursor-pointer transition-colors flex items-center justify-between group"
+                                                        className="p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors flex items-center justify-between group"
                                                     >
-                                                        <div className="flex items-center gap-2.5">
-                                                            <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                                                                <span className="material-icons-round text-base">hotel</span>
+                                                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                                            <div className={`size-8 rounded-lg ${isFav ? 'bg-emerald-500/10 text-emerald-500' : 'bg-primary/10 text-primary'} flex items-center justify-center font-bold text-xs shrink-0`}>
+                                                                <span className="material-icons-round text-base">{isFav ? 'favorite' : 'hotel'}</span>
                                                             </div>
-                                                            <div>
-                                                                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                                                            <div className="min-w-0">
+                                                                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors truncate">
                                                                     {h.hotelName}
                                                                 </p>
                                                                 <p className="text-[10px] text-slate-400 font-medium">
@@ -1207,195 +1209,202 @@ const MyOffice = () => {
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <button className="h-7 px-2.5 bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white rounded-lg text-[11px] font-bold transition-all flex items-center gap-1">
-                                                            <span className="material-icons-round text-xs">add</span>
-                                                            <span>Ekle</span>
+                                                        <button 
+                                                            type="button"
+                                                            onClick={(e) => handleAddHotelFromAutocomplete(h, e)}
+                                                            disabled={isFav}
+                                                            className={`h-7 px-2.5 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 shrink-0 ${
+                                                                isFav 
+                                                                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 cursor-default' 
+                                                                    : 'bg-primary/10 text-primary hover:bg-primary hover:text-white active:scale-95'
+                                                            }`}
+                                                        >
+                                                            <span className="material-icons-round text-xs">{isFav ? 'check' : 'add'}</span>
+                                                            <span>{isFav ? 'Eklendi' : 'Ekle'}</span>
                                                         </button>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        )}
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Table Search & Filter Controls */}
+                                <div className="flex items-center gap-2">
+                                    <div className="relative">
+                                        <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">filter_alt</span>
+                                        <input 
+                                            type="text"
+                                            placeholder="Tabloda ara..."
+                                            value={favoriteSearchQuery}
+                                            onChange={(e) => setFavoriteSearchQuery(e.target.value)}
+                                            className="h-9 w-40 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 text-xs font-semibold outline-none focus:border-primary transition-colors"
+                                        />
                                     </div>
 
-                                    {/* Filter Controls & Actions */}
-                                    <div className="flex items-center gap-2 pt-5">
-                                        <div className="relative">
-                                            <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">filter_alt</span>
-                                            <input 
-                                                type="text"
-                                                placeholder="Tabloda ara..."
-                                                value={favoriteSearchQuery}
-                                                onChange={(e) => setFavoriteSearchQuery(e.target.value)}
-                                                className="h-9 w-44 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 text-xs font-semibold outline-none focus:border-primary transition-colors"
-                                            />
-                                        </div>
+                                    <select 
+                                        value={favoriteStatusFilter} 
+                                        onChange={(e) => setFavoriteStatusFilter(e.target.value)}
+                                        className="h-9 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none cursor-pointer"
+                                    >
+                                        <option value="">Tüm Durumlar</option>
+                                        <option value="ACTIVE">Aktif</option>
+                                        <option value="PASSIVE">Pasif</option>
+                                    </select>
 
-                                        <select 
-                                            value={favoriteStatusFilter} 
-                                            onChange={(e) => setFavoriteStatusFilter(e.target.value)}
-                                            className="h-9 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none cursor-pointer"
-                                        >
-                                            <option value="">Tüm Durumlar</option>
-                                            <option value="ACTIVE">Aktif</option>
-                                            <option value="PASSIVE">Pasif</option>
-                                        </select>
+                                    <button 
+                                        onClick={() => fetchFavoriteHotels(favoritePage)} 
+                                        className={`size-9 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 transition-all text-slate-500 ${favoriteLoading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}
+                                        title="Yenile"
+                                    >
+                                        <span className="material-icons-round text-base">refresh</span>
+                                    </button>
+                                </div>
+                            </div>
 
+                            {/* Favorite Hotels Table Body */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10">
+                                <table className="w-full data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Otel Bilgisi</th>
+                                            <th>Kullanıcı (User Email)</th>
+                                            <th>Konum & Yıldız</th>
+                                            <th>Eklenme / Güncelleme</th>
+                                            <th>Status</th>
+                                            <th className="text-right">Aksiyonlar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {favoriteLoading ? (
+                                            <TableSkeleton columns={6} />
+                                        ) : favoriteBackendItems.length > 0 ? (
+                                            favoriteBackendItems.map((fav) => (
+                                                <tr key={fav.id} className="data-row transition-colors">
+                                                    {/* Hotel Info */}
+                                                    <td>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="size-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary font-bold overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
+                                                                {fav.imageUrl ? (
+                                                                    <img src={fav.imageUrl} alt={fav.hotelName} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <span className="material-symbols-outlined text-xl">hotel</span>
+                                                                )}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-slate-900 dark:text-white leading-none mb-1 hover:text-primary cursor-pointer transition-colors" onClick={() => navigate(`/hotel/${fav.hotelId}`)}>
+                                                                    {fav.hotelName}
+                                                                </p>
+                                                                <p className="text-[10px] text-slate-400 font-semibold uppercase">
+                                                                    ID: {fav.hotelId}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+
+                                                    {/* User Email */}
+                                                    <td>
+                                                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                                            <span className="material-icons-round text-sm text-slate-400">person</span>
+                                                            <span>{fav.userEmail}</span>
+                                                        </div>
+                                                    </td>
+
+                                                    {/* Location & Stars */}
+                                                    <td>
+                                                        <div>
+                                                            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                                                <span className="material-icons-round text-xs text-primary">location_on</span>
+                                                                {fav.cityName || 'N/A'}
+                                                            </p>
+                                                            <div className="flex items-center gap-0.5 text-amber-400 mt-0.5">
+                                                                {[...Array(fav.stars || 4)].map((_, i) => (
+                                                                    <span key={i} className="material-symbols-outlined text-[10px] fill-1">star</span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+
+                                                    {/* Date */}
+                                                    <td>
+                                                        <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                                            {fav.updateDateTime ? new Date(fav.updateDateTime).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                                                        </div>
+                                                    </td>
+
+                                                    {/* Status Toggle Switch */}
+                                                    <td>
+                                                        <div className="flex items-center gap-2">
+                                                            <button 
+                                                                type="button" 
+                                                                onClick={() => handleToggleFavoriteStatus(fav)} 
+                                                                className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${fav.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} 
+                                                                title={fav.status === 'ACTIVE' ? 'Pasife Al' : 'Aktif Et'}
+                                                            >
+                                                                <span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${fav.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} />
+                                                            </button>
+                                                            <span className={`text-xs font-semibold ${fav.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                                {fav.status === 'ACTIVE' ? 'Active' : 'Passive'}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+
+                                                    {/* Actions */}
+                                                    <td className="text-right">
+                                                        <div className="flex items-center justify-end gap-1.5">
+                                                            <button 
+                                                                onClick={() => navigate(`/hotel/${fav.hotelId}`)}
+                                                                className="size-8 rounded-lg bg-slate-100 hover:bg-primary hover:text-white dark:bg-slate-800 dark:hover:bg-primary transition-all flex items-center justify-center text-slate-500"
+                                                                title="Detayı Görüntüle"
+                                                            >
+                                                                <span className="material-icons-round text-base">visibility</span>
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleDeleteFavoriteItem(fav)}
+                                                                className="size-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white dark:bg-red-950/30 dark:hover:bg-red-600 transition-all flex items-center justify-center"
+                                                                title="Favoriden Sil"
+                                                            >
+                                                                <span className="material-icons-round text-base">delete_outline</span>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="6" className="py-12 text-center">
+                                                    <p className="text-slate-400 text-xs font-semibold italic">Henüz favori otel kaydı bulunmamaktadır.</p>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Pagination Controls */}
+                            {favoriteTotalPages > 1 && (
+                                <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 relative z-20">
+                                    <div>
+                                        Toplam <strong>{favoriteTotalElements}</strong> kayıttan Sayfa <strong>{favoritePage + 1}</strong> / <strong>{favoriteTotalPages}</strong>
+                                    </div>
+                                    <div className="flex items-center gap-1">
                                         <button 
-                                            onClick={() => fetchFavoriteHotels(favoritePage)} 
-                                            className={`size-9 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 transition-all text-slate-500 ${favoriteLoading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}
-                                            title="Yenile"
+                                            disabled={favoritePage === 0}
+                                            onClick={() => fetchFavoriteHotels(favoritePage - 1)}
+                                            className="px-3 h-8 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-semibold"
                                         >
-                                            <span className="material-icons-round text-base">refresh</span>
+                                            Önceki
+                                        </button>
+                                        <button 
+                                            disabled={favoritePage >= favoriteTotalPages - 1}
+                                            onClick={() => fetchFavoriteHotels(favoritePage + 1)}
+                                            className="px-3 h-8 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-semibold"
+                                        >
+                                            Sonraki
                                         </button>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Favorite Hotels Table */}
-                            <div className="flex-1 flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
-                                <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                    <table className="w-full data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Otel Bilgisi</th>
-                                                <th>Kullanıcı (User Email)</th>
-                                                <th>Konum & Yıldız</th>
-                                                <th>Eklenme / Güncelleme</th>
-                                                <th>Status</th>
-                                                <th className="text-right">Aksiyonlar</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {favoriteLoading ? (
-                                                <TableSkeleton columns={6} />
-                                            ) : favoriteBackendItems.length > 0 ? (
-                                                favoriteBackendItems.map((fav) => (
-                                                    <tr key={fav.id} className="data-row transition-colors">
-                                                        {/* Hotel Info */}
-                                                        <td>
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="size-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary font-bold overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
-                                                                    {fav.imageUrl ? (
-                                                                        <img src={fav.imageUrl} alt={fav.hotelName} className="w-full h-full object-cover" />
-                                                                    ) : (
-                                                                        <span className="material-symbols-outlined text-xl">hotel</span>
-                                                                    )}
-                                                                </div>
-                                                                <div>
-                                                                    <p className="font-bold text-slate-900 dark:text-white leading-none mb-1 hover:text-primary cursor-pointer transition-colors" onClick={() => navigate(`/hotel/${fav.hotelId}`)}>
-                                                                        {fav.hotelName}
-                                                                    </p>
-                                                                    <p className="text-[10px] text-slate-400 font-semibold uppercase">
-                                                                        ID: {fav.hotelId}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-
-                                                        {/* User Email */}
-                                                        <td>
-                                                            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                                                <span className="material-icons-round text-sm text-slate-400">person</span>
-                                                                <span>{fav.userEmail}</span>
-                                                            </div>
-                                                        </td>
-
-                                                        {/* Location & Stars */}
-                                                        <td>
-                                                            <div>
-                                                                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                                                                    <span className="material-icons-round text-xs text-primary">location_on</span>
-                                                                    {fav.cityName || 'N/A'}
-                                                                </p>
-                                                                <div className="flex items-center gap-0.5 text-amber-400 mt-0.5">
-                                                                    {[...Array(fav.stars || 4)].map((_, i) => (
-                                                                        <span key={i} className="material-symbols-outlined text-[10px] fill-1">star</span>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        </td>
-
-                                                        {/* Date */}
-                                                        <td>
-                                                            <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                                                {fav.updateDateTime ? new Date(fav.updateDateTime).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
-                                                            </div>
-                                                        </td>
-
-                                                        {/* Status Toggle Switch */}
-                                                        <td>
-                                                            <div className="flex items-center gap-2">
-                                                                <button 
-                                                                    type="button" 
-                                                                    onClick={() => handleToggleFavoriteStatus(fav)} 
-                                                                    className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${fav.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} 
-                                                                    title={fav.status === 'ACTIVE' ? 'Pasife Al' : 'Aktif Et'}
-                                                                >
-                                                                    <span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${fav.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} />
-                                                                </button>
-                                                                <span className={`text-xs font-semibold ${fav.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                                                                    {fav.status === 'ACTIVE' ? 'Active' : 'Passive'}
-                                                                </span>
-                                                            </div>
-                                                        </td>
-
-                                                        {/* Actions */}
-                                                        <td className="text-right">
-                                                            <div className="flex items-center justify-end gap-1.5">
-                                                                <button 
-                                                                    onClick={() => navigate(`/hotel/${fav.hotelId}`)}
-                                                                    className="size-8 rounded-lg bg-slate-100 hover:bg-primary hover:text-white dark:bg-slate-800 dark:hover:bg-primary transition-all flex items-center justify-center text-slate-500"
-                                                                    title="Detayı Görüntüle"
-                                                                >
-                                                                    <span className="material-icons-round text-base">visibility</span>
-                                                                </button>
-                                                                <button 
-                                                                    onClick={() => handleDeleteFavoriteItem(fav)}
-                                                                    className="size-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white dark:bg-red-950/30 dark:hover:bg-red-600 transition-all flex items-center justify-center"
-                                                                    title="Favoriden Sil"
-                                                                >
-                                                                    <span className="material-icons-round text-base">delete_outline</span>
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan="7" className="py-12 text-center">
-                                                        <p className="text-slate-400 text-xs font-semibold italic">Henüz favori otel kaydı bulunmamaktadır.</p>
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                {/* Pagination Controls */}
-                                {favoriteTotalPages > 1 && (
-                                    <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
-                                        <div>
-                                            Toplam <strong>{favoriteTotalElements}</strong> kayıttan Sayfa <strong>{favoritePage + 1}</strong> / <strong>{favoriteTotalPages}</strong>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <button 
-                                                disabled={favoritePage === 0}
-                                                onClick={() => fetchFavoriteHotels(favoritePage - 1)}
-                                                className="px-3 h-8 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-semibold"
-                                            >
-                                                Önceki
-                                            </button>
-                                            <button 
-                                                disabled={favoritePage >= favoriteTotalPages - 1}
-                                                onClick={() => fetchFavoriteHotels(favoritePage + 1)}
-                                                className="px-3 h-8 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-semibold"
-                                            >
-                                                Sonraki
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            )}
                         </div>
                     ) : null}
                     </div>

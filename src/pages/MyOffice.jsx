@@ -3,17 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { COMMON, getLang } from '../utils/sharedLocales';
 
 const MO = {
-  en: { title: 'My Office Management', tabGeneral: 'General Information', tabUsers: 'Users', tabGuests: 'Guests', tabFavorites: 'Favorite Hotels', saveBtn: 'Save Office Profile', saving: 'Synchronizing...', agencyId: 'Agency Identity', baseLocation: 'Base Location', currency: 'Currency', integration: 'Integration', auditTimeline: 'Audit Timeline', created: 'Created', lastUpdate: 'Last Update', sec01: 'Section 01 / Identity', sec02: 'Section 02 / Contact', sec03: 'Section 03 / Geography', sec04: 'Section 04 / Finance', sec05: 'Section 05 / Settings', agencyName: 'Agency Name', officialTitle: 'Official Title', type: 'Type', language: 'Language', parentId: 'Parent ID', directEmail: 'Direct Email', phone: 'Phone Number', country: 'Country', city: 'City', streetAddress: 'Street Address', zipCode: 'Zip Code', taxOffice: 'Tax Office', taxNumber: 'Tax Number', accEmail: 'Accounting Email', accPhone: 'Accounting Phone', accCountry: 'Accounting Country', accCity: 'Accounting City', accAddress: 'Accounting Address', mainCurrency: 'Main Currency', integrationType: 'Integration Type', allowedSale: 'Allowed for Sale', bookingStatus: 'Booking status', selectTerritory: 'Select Territory', selectHub: 'Select Hub', commercialName: 'Commercial Name', legalTitle: 'Legal Title', totalUsers: 'Total Users', activeUsers: 'Active Users', passiveUsers: 'Passive Users', totalGuests: 'Total Guests', activeGuests: 'Active Guests', passiveGuests: 'Passive Guests', searchUsers: 'Search by name or email...', searchGuests: 'Search by name, email or passport...', searchFavorites: 'Search favorite hotels...', noFavoritesFound: 'No favorite hotels found.', removeFromFavorites: 'Remove', viewHotelDetail: 'View Detail', addedOn: 'Date Added', supplierLabel: 'Supplier', hotelName: 'Hotel Name', locationLabel: 'City / Country', starsLabel: 'Stars', allRoles: 'All Roles', allCountries: 'All Countries', active: 'Active', passive: 'Passive', export: 'Export', addUser: 'Add User', addGuest: 'Add Guest', editUser: 'Edit User', editGuest: 'Edit Guest', userInfo: 'Enter user information', guestInfo: 'Enter guest information', name: 'Name', surname: 'Surname', emailAddr: 'Email Address', password: 'Password', role: 'Role', status: 'Status', gender: 'Gender', firstName: 'First Name', lastName: 'Last Name', birthDate: 'Birth Date', passportNo: 'Passport No', passportExpiry: 'Passport Expiry', cancel: 'Cancel', saveUser: 'Save User', saveGuest: 'Save Guest', processing: 'Processing...', confirm: 'Confirm', colUser: 'User', colContact: 'Contact', colRole: 'Role', colStatus: 'Status', colActions: 'Actions', colGuest: 'Guest', colBirth: 'Birth & Country', colPassport: 'Passport', noUsers: 'No users found', noGuests: 'No guests found', deleteUser: 'Delete User', deleteUserMsg: 'This action cannot be undone. All access for this user will be revoked immediately.', deleteGuest: 'Delete Guest', deleteGuestMsg: 'Are you sure you want to remove this guest from your CRM?', profileUpdated: 'Agency profile updated successfully.', updateFailed: 'Update failed.', invalidEmail: 'Please enter a valid email address.', userUpdated: 'User updated successfully', userCreated: 'User created successfully', errorSavingUser: 'Error saving user', userDeleted: 'User deleted successfully', errorDeletingUser: 'Error deleting user', noUserExport: 'No user data to export.', usersExported: 'User list exported as CSV.', usersRefreshed: 'User list refreshed', guestUpdated: 'Guest updated successfully', guestCreated: 'Guest created successfully', errorSavingGuest: 'Error saving guest', guestDeleted: 'Guest deleted successfully', errorDeletingGuest: 'Error deleting guest', noGuestExport: 'No guest data to export.', guestsExported: 'Guest list exported as CSV.', guestsRefreshed: 'Guest list refreshed' },
-  tr: { title: 'Ofis Yönetimi', tabGeneral: 'Genel Bilgiler', tabUsers: 'Kullanıcılar', tabGuests: 'Misafirler', tabFavorites: 'Favori Oteller', saveBtn: 'Ofis Profilini Kaydet', saving: 'Senkronize ediliyor...', agencyId: 'Acente Kimlik', baseLocation: 'Konum', currency: 'Para Birimi', integration: 'Entegrasyon', auditTimeline: 'Denetim Geçmişi', created: 'Oluşturuldu', lastUpdate: 'Son Güncelleme', sec01: 'Bölüm 01 / Kimlik', sec02: 'Bölüm 02 / İletişim', sec03: 'Bölüm 03 / Coğrafya', sec04: 'Bölüm 04 / Finans', sec05: 'Bölüm 05 / Ayarlar', agencyName: 'Acente Adı', officialTitle: 'Resmi Unvan', type: 'Tür', language: 'Dil', parentId: 'Üst ID', directEmail: 'E-posta', phone: 'Telefon', country: 'Ülke', city: 'Şehir', streetAddress: 'Adres', zipCode: 'Posta Kodu', taxOffice: 'Vergi Dairesi', taxNumber: 'Vergi No', accEmail: 'Muhasebe E-posta', accPhone: 'Muhasebe Telefon', accCountry: 'Muhasebe Ülke', accCity: 'Muhasebe Şehir', accAddress: 'Muhasebe Adres', mainCurrency: 'Ana Para Birimi', integrationType: 'Entegrasyon Türü', allowedSale: 'Satışa Açık', bookingStatus: 'Rezervasyon durumu', selectTerritory: 'Bölge Seçin', selectHub: 'Şehir Seçin', commercialName: 'Ticari Ad', legalTitle: 'Hukuki Unvan', totalUsers: 'Toplam Kullanıcı', activeUsers: 'Aktif Kullanıcı', passiveUsers: 'Pasif Kullanıcı', totalGuests: 'Toplam Misafir', activeGuests: 'Aktif Misafir', passiveGuests: 'Pasif Misafir', searchUsers: 'Ad veya e-posta ara...', searchGuests: 'Ad, e-posta veya pasaport ara...', searchFavorites: 'Favori otellerde ara...', noFavoritesFound: 'Henüz favorilere eklenmiş otel bulunmamaktadır.', removeFromFavorites: 'Favoriden Kaldır', viewHotelDetail: 'Detayları Görüntüle', addedOn: 'Favoriye Eklenme Tarihi', supplierLabel: 'Tedarikçi', hotelName: 'Otel Adı', locationLabel: 'Şehir / Ülke', starsLabel: 'Yıldız Bilgisi', allRoles: 'Tüm Roller', allCountries: 'Tüm Ülkeler', active: 'Aktif', passive: 'Pasif', export: 'Dışa Aktar', addUser: 'Kullanıcı Ekle', addGuest: 'Misafir Ekle', editUser: 'Kullanıcı Düzenle', editGuest: 'Misafir Düzenle', userInfo: 'Kullanıcı bilgilerini girin', guestInfo: 'Misafir bilgilerini girin', name: 'Ad', surname: 'Soyad', emailAddr: 'E-posta Adresi', password: 'Şifre', role: 'Rol', status: 'Durum', gender: 'Cinsiyet', firstName: 'Ad', lastName: 'Soyad', birthDate: 'Doğum Tarihi', passportNo: 'Pasaport No', passportExpiry: 'Pasaport Bitiş', cancel: 'İptal', saveUser: 'Kullanıcı Kaydet', saveGuest: 'Misafir Kaydet', processing: 'İşleniyor...', confirm: 'Onayla', colUser: 'Kullanıcı', colContact: 'İletişim', colRole: 'Rol', colStatus: 'Durum', colActions: 'İşlemler', colGuest: 'Misafir', colBirth: 'Doğum & Ülke', colPassport: 'Pasaport', noUsers: 'Kullanıcı bulunamadı', noGuests: 'Misafir bulunamadı', deleteUser: 'Kullanıcı Sil', deleteUserMsg: 'Bu işlem geri alınamaz.', deleteGuest: 'Misafir Sil', deleteGuestMsg: 'Bu misafiri CRM sisteminden silmek istediğinize emin misiniz?', profileUpdated: 'Acente profili başarıyla güncellendi.', updateFailed: 'Güncelleme başarısız.', invalidEmail: 'Geçerli bir e-posta adresi girin.', userUpdated: 'Kullanıcı başarıyla güncellendi', userCreated: 'Kullanıcı başarıyla oluşturuldu', errorSavingUser: 'Kullanıcı kaydedilemedi', userDeleted: 'Kullanıcı başarıyla silindi', errorDeletingUser: 'Kullanıcı silinemedi', noUserExport: 'Dışa aktarılacak kullanıcı yok.', usersExported: 'Kullanıcı listesi CSV olarak aktarıldı.', usersRefreshed: 'Kullanıcı listesi yenilendi', guestUpdated: 'Misafir başarıyla güncellendi', guestCreated: 'Misafir başarıyla oluşturuldu', errorSavingGuest: 'Misafir kaydedilemedi', guestDeleted: 'Misafir başarıyla silindi', errorDeletingGuest: 'Misafir silinemedi', noGuestExport: 'Dışa aktarılacak misafir yok.', guestsExported: 'Misafir listesi CSV olarak aktarıldı.', guestsRefreshed: 'Misafir listesi yenilendi' },
-  ar: { title: 'إدارة المكتب', tabGeneral: 'معلومات عامة', tabUsers: 'المستخدمون', tabGuests: 'الضيوف', tabFavorites: 'الفنادق المفضلة', saveBtn: 'حفظ ملف المكتب', saving: 'جاري المزامنة...', agencyId: 'هوية الوكالة', baseLocation: 'الموقع', currency: 'العملة', integration: 'التكامل', auditTimeline: 'سجل التدقيق', created: 'تاريخ الإنشاء', lastUpdate: 'آخر تحديث', sec01: 'قسم 01 / الهوية', sec02: 'قسم 02 / التواصل', sec03: 'قسم 03 / الجغرافيا', sec04: 'قسم 04 / المالية', sec05: 'قسم 05 / الإعدادات', agencyName: 'اسم الوكالة', officialTitle: 'اللقب الرسمي', type: 'النوع', language: 'اللغة', parentId: 'معرف الأصل', directEmail: 'البريد الإلكتروني', phone: 'رقم الهاتف', country: 'الدولة', city: 'المدينة', streetAddress: 'العنوان', zipCode: 'الرمز البريدي', taxOffice: 'مكتب الضرائب', taxNumber: 'رقم ضريبي', accEmail: 'بريد المحاسبة', accPhone: 'هاتف المحاسبة', accCountry: 'دولة المحاسبة', accCity: 'مدينة المحاسبة', accAddress: 'عنوان الفواتير', mainCurrency: 'العملة الرئيسية', integrationType: 'نوع التكامل', allowedSale: 'متاح للبيع', bookingStatus: 'حالة الحجز', selectTerritory: 'اختر المنطقة', selectHub: 'اختر المدينة', commercialName: 'الاسم التجاري', legalTitle: 'العنوان القانوني', totalUsers: 'إجمالي المستخدمين', activeUsers: 'مستخدمون نشطون', passiveUsers: 'مستخدمون غير نشطين', totalGuests: 'إجمالي الضيوف', activeGuests: 'ضيوف نشطون', passiveGuests: 'ضيوف غير نشطين', searchUsers: 'بحث بالاسم أو البريد...', searchGuests: 'بحث بالاسم أو جواز السفر...', searchFavorites: 'بحث في الفنادق المفضلة...', noFavoritesFound: 'لا توجد فنادق مفضلة حتى الآن.', removeFromFavorites: 'إزالة', viewHotelDetail: 'عرض التفاصيل', addedOn: 'تاريخ الإضافة', supplierLabel: 'المزود', hotelName: 'اسم الفندق', locationLabel: 'المدينة / الدولة', starsLabel: 'النجوم', allRoles: 'جميع الأدوار', allCountries: 'جميع الدول', active: 'نشط', passive: 'غير نشط', export: 'تصدير', addUser: 'إضافة مستخدم', addGuest: 'إضافة ضيف', editUser: 'تعديل مستخدم', editGuest: 'تعديل ضيف', userInfo: 'أدخل بيانات المستخدم', guestInfo: 'أدخل بيانات الضيف', name: 'الاسم', surname: 'اللقب', emailAddr: 'البريد الإلكتروني', password: 'كلمة المرور', role: 'الدور', status: 'الحالة', gender: 'الجنس', firstName: 'الاسم الأول', lastName: 'اسم العائلة', birthDate: 'تاريخ الميلاد', passportNo: 'رقم جواز السفر', passportExpiry: 'انتهاء جواز السفر', cancel: 'إلغاء', saveUser: 'حفظ المستخدم', saveGuest: 'حفظ الضيف', processing: 'جاري المعالجة...', confirm: 'تأكيد', colUser: 'المستخدم', colContact: 'التواصل', colRole: 'الدور', colStatus: 'الحالة', colActions: 'الإجراءات', colGuest: 'الضيف', colBirth: 'الميلاد والدولة', colPassport: 'جواز السفر', noUsers: 'لا يوجد مستخدمون', noGuests: 'لا يوجد ضيوف', deleteUser: 'حذف مستخدم', deleteUserMsg: 'لا يمكن التراجع عن هذا الإجراء.', deleteGuest: 'حذف ضيف', deleteGuestMsg: 'هل أنت متأكد من حذف هذا الضيف?' },
-  es: { title: 'Mi Oficina', tabGeneral: 'Informacion General', tabUsers: 'Usuarios', tabGuests: 'Huespedes', tabFavorites: 'Hoteles Favoritos', saveBtn: 'Guardar Perfil', saving: 'Sincronizando...', agencyId: 'Identidad de Agencia', baseLocation: 'Ubicacion', currency: 'Moneda', integration: 'Integracion', auditTimeline: 'Historial de Auditoria', created: 'Creado', lastUpdate: 'Ultima Actualizacion', sec01: 'Seccion 01 / Identidad', sec02: 'Seccion 02 / Contacto', sec03: 'Seccion 03 / Geografa', sec04: 'Seccion 04 / Finanzas', sec05: 'Seccion 05 / Configuracion', agencyName: 'Nombre de Agencia', officialTitle: 'Titulo Oficial', type: 'Tipo', language: 'Idioma', parentId: 'ID Padre', directEmail: 'Email Directo', phone: 'Telefono', country: 'Pais', city: 'Ciudad', streetAddress: 'Direccion', zipCode: 'Codigo Postal', taxOffice: 'Oficina Fiscal', taxNumber: 'Numero Fiscal', accEmail: 'Email Contabilidad', accPhone: 'Telefono Contabilidad', accCountry: 'Pais Contabilidad', accCity: 'Ciudad Contabilidad', accAddress: 'Direccion Contabilidad', mainCurrency: 'Moneda Principal', integrationType: 'Tipo de Integracion', allowedSale: 'Permitido para Venta', bookingStatus: 'Estado de reserva', selectTerritory: 'Seleccionar Territorio', selectHub: 'Seleccionar Ciudad', commercialName: 'Nombre Comercial', legalTitle: 'Titulo Legal', totalUsers: 'Total Usuarios', activeUsers: 'Usuarios Activos', passiveUsers: 'Usuarios Inactivos', totalGuests: 'Total Huespedes', activeGuests: 'Huespedes Activos', passiveGuests: 'Huespedes Inactivos', searchUsers: 'Buscar por nombre o email...', searchGuests: 'Buscar por nombre, email o pasaporte...', searchFavorites: 'Buscar en favoritos...', noFavoritesFound: 'No hay hoteles favoritos guardados.', removeFromFavorites: 'Eliminar', viewHotelDetail: 'Ver Detalles', addedOn: 'Fecha de Adición', supplierLabel: 'Proveedor', hotelName: 'Nombre del Hotel', locationLabel: 'Ciudad / País', starsLabel: 'Estrellas', allRoles: 'Todos los Roles', allCountries: 'Todos los Paises', active: 'Activo', passive: 'Inactivo', export: 'Exportar', addUser: 'Agregar Usuario', addGuest: 'Agregar Huesped', editUser: 'Editar Usuario', editGuest: 'Editar Huesped', userInfo: 'Ingrese informacion del usuario', guestInfo: 'Ingrese informacion del huesped', name: 'Nombre', surname: 'Apellido', emailAddr: 'Correo Electronico', password: 'Contrasena', role: 'Rol', status: 'Estado', gender: 'Genero', firstName: 'Nombre', lastName: 'Apellido', birthDate: 'Fecha de Nacimiento', passportNo: 'No. Pasaporte', passportExpiry: 'Vencimiento Pasaporte', cancel: 'Cancelar', saveUser: 'Guardar Usuario', saveGuest: 'Guardar Huesped', processing: 'Procesando...', confirm: 'Confirmar', colUser: 'Usuario', colContact: 'Contacto', colRole: 'Rol', colStatus: 'Estado', colActions: 'Acciones', colGuest: 'Huesped', colBirth: 'Nacimiento y Pais', colPassport: 'Pasaporte', noUsers: 'No se encontraron usuarios', noGuests: 'No se encontraron huespedes', deleteUser: 'Eliminar Usuario', deleteUserMsg: 'Esta accion no se puede deshacer.', deleteGuest: 'Eliminar Huesped', deleteGuestMsg: '?Esta seguro de eliminar este huesped del CRM?', profileUpdated: 'Perfil actualizado', updateFailed: 'Fallo de actualización', invalidEmail: 'Correo no válido', userUpdated: 'Usuario actualizado', userCreated: 'Usuario creado', errorSavingUser: 'Error al guardar', userDeleted: 'Usuario eliminado', errorDeletingUser: 'Error al eliminar', noUserExport: 'No hay datos', usersExported: 'Exportación completada', usersRefreshed: 'Lista actualizada', guestUpdated: 'Huésped actualizado', guestCreated: 'Huésped creado', errorSavingGuest: 'Error al guardar', guestDeleted: 'Huésped eliminado', errorDeletingGuest: 'Error al eliminar', noGuestExport: 'No hay datos', guestsExported: 'Exportación completada', guestsRefreshed: 'Lista actualizada' },
-  ru: { title: 'Управление офисом', tabGeneral: 'Общая информация', tabUsers: 'Пользователи', tabGuests: 'Гости', tabFavorites: 'Избранные отели', saveBtn: 'Сохранить профиль', saving: 'Синхронизация...', agencyId: 'Идентификатор', baseLocation: 'Местоположение', currency: 'Валюта', integration: 'Интеграция', auditTimeline: 'История', created: 'Создано', lastUpdate: 'Обновлено', sec01: 'Раздел 01', sec02: 'Раздел 02', sec03: 'Раздел 03', sec04: 'Раздел 04', sec05: 'Раздел 05', agencyName: 'Название агентства', officialTitle: 'Официальное название', type: 'Тип', language: 'Язык', parentId: 'ID родителя', directEmail: 'Прямой Email', phone: 'Телефон', country: 'Страна', city: 'Город', streetAddress: 'Адрес', zipCode: 'Индекс', taxOffice: 'Налоговая', taxNumber: 'ИНН', accEmail: 'Бух. Email', accPhone: 'Бух. телефон', accCountry: 'Бух. страна', accCity: 'Бух. город', accAddress: 'Бух. адрес', mainCurrency: 'Основная валюта', integrationType: 'Интеграция', allowedSale: 'Разрешено', bookingStatus: 'Статус брони', selectTerritory: 'Выберите территорию', selectHub: 'Выберите хаб', commercialName: 'Коммерческое название', legalTitle: 'Юридическое название', totalUsers: 'Всего', activeUsers: 'Активные', passiveUsers: 'Пассивные', totalGuests: 'Всего', activeGuests: 'Активные', passiveGuests: 'Пассивные', searchUsers: 'Поиск...', searchGuests: 'Поиск...', searchFavorites: 'Поиск избранных...', noFavoritesFound: 'Избранных отелей пока нет.', removeFromFavorites: 'Удалить', viewHotelDetail: 'Подробнее', addedOn: 'Дата добавления', supplierLabel: 'Поставщик', hotelName: 'Название отеля', locationLabel: 'Город / Страна', starsLabel: 'Звезды', allRoles: 'Все', allCountries: 'Все', active: 'Активный', passive: 'Пассивный', export: 'Экспорт', addUser: 'Добавить', addGuest: 'Добавить', editUser: 'Редактировать', editGuest: 'Редактировать', userInfo: 'Введите информацию', guestInfo: 'Введите информацию', name: 'Имя', surname: 'Фамилия', emailAddr: 'Email', password: 'Пароль', role: 'Роль', status: 'Статус', gender: 'Пол', firstName: 'Имя', lastName: 'Фамилия', birthDate: 'Дата рождения', passportNo: 'Паспорт', passportExpiry: 'Срок', cancel: 'Отмена', saveUser: 'Сохранить', saveGuest: 'Сохранить', processing: 'Обработка...', confirm: 'Подтвердить', colUser: 'Пользователь', colContact: 'Контакт', colRole: 'Роль', colStatus: 'Статус', colActions: 'Действия', colGuest: 'Гость', colBirth: 'Рождение', colPassport: 'Паспорт', noUsers: 'Не найдено', noGuests: 'Не найдено', deleteUser: 'Удалить', deleteUserMsg: 'Нельзя отменить.', deleteGuest: 'Удалить', deleteGuestMsg: 'Уверены?', profileUpdated: 'Обновлено', updateFailed: 'Ошибка', invalidEmail: 'Неверный email', userUpdated: 'Обновлен', userCreated: 'Создан', errorSavingUser: 'Ошибка', userDeleted: 'Удален', errorDeletingUser: 'Ошибка', noUserExport: 'Нет данных', usersExported: 'Готово', usersRefreshed: 'Обновлено', guestUpdated: 'Обновлен', guestCreated: 'Создан', errorSavingGuest: 'Ошибка', guestDeleted: 'Удален', errorDeletingGuest: 'Ошибка', noGuestExport: 'Нет данных', guestsExported: 'Готово', guestsRefreshed: 'Обновлено' },
-  zh: { title: '办公室管理', tabGeneral: '常规信息', tabUsers: '用户', tabGuests: '客人', tabFavorites: '收藏酒店', saveBtn: '保存', saving: '同步中...', agencyId: '机构身份', baseLocation: '基本位置', currency: '货币', integration: '集成', auditTimeline: '审计', created: '已创建', lastUpdate: '上次更新', sec01: '第01节', sec02: '第02节', sec03: '第03节', sec04: '第04节', sec05: '第05节', agencyName: '机构名称', officialTitle: '官方头衔', type: '类型', language: '语言', parentId: '父ID', directEmail: '直接邮箱', phone: '电话', country: '国家', city: '城市', streetAddress: '地址', zipCode: '邮编', taxOffice: '税务局', taxNumber: '税号', accEmail: '财务邮箱', accPhone: '财务电话', accCountry: '财务国家', accCity: '财务城市', accAddress: '财务地址', mainCurrency: '主要货币', integrationType: '集成类型', allowedSale: '允许销售', bookingStatus: '预订状态', selectTerritory: '选择领土', selectHub: '选择枢纽', commercialName: '商业名称', legalTitle: '法定名称', totalUsers: '用户总数', activeUsers: '活跃用户', passiveUsers: '非活跃用户', totalGuests: '客人总数', activeGuests: '活跃客人', passiveGuests: '非活跃客人', searchUsers: '搜索...', searchGuests: '搜索...', searchFavorites: '搜索收藏...', noFavoritesFound: '暂无收藏酒店。', removeFromFavorites: '移除', viewHotelDetail: '查看详情', addedOn: '添加时间', supplierLabel: '供应商', hotelName: '酒店名称', locationLabel: '城市/国家', starsLabel: '星级', allRoles: '所有角色', allCountries: '所有国家', active: '活跃', passive: '非活跃', export: '导出', addUser: '添加用户', addGuest: '添加客人', editUser: '编辑', editGuest: '编辑', userInfo: '输入用户信息', guestInfo: '输入客人信息', name: '名字', surname: '姓氏', emailAddr: '邮箱', password: '密码', role: '角色', status: '状态', gender: '性别', firstName: '名字', lastName: '姓氏', birthDate: '出生日期', passportNo: '护照号码', passportExpiry: '护照到期', cancel: '取消', saveUser: '保存', saveGuest: '保存', processing: '处理中...', confirm: '确认', colUser: '用户', colContact: '联系方式', colRole: '角色', colStatus: '状态', colActions: '操作', colGuest: '客人', colBirth: '出生', colPassport: '护照', noUsers: '未找到', noGuests: '未找到', deleteUser: '删除', deleteUserMsg: '无法撤销。', deleteGuest: '删除', deleteGuestMsg: '确定删除？', profileUpdated: '已更新', updateFailed: '失败', invalidEmail: '无效邮箱', userUpdated: '已更新', userCreated: '已创建', errorSavingUser: '错误', userDeleted: '已删除', errorDeletingUser: '错误', noUserExport: '无数据', usersExported: '完成', usersRefreshed: '已刷新', guestUpdated: '已更新', guestCreated: '已创建', errorSavingGuest: '错误', guestDeleted: '已删除', errorDeletingGuest: '错误', noGuestExport: '无数据', guestsExported: '完成', guestsRefreshed: '已刷新' },
-  ja: { title: 'オフィス管理', tabGeneral: '一般情報', tabUsers: 'ユーザー', tabGuests: 'ゲスト', tabFavorites: 'お気に入りホテル', saveBtn: '保存', saving: '同期中...', agencyId: 'エージェンシーID', baseLocation: '拠点', currency: '通貨', integration: '統合', auditTimeline: '監査', created: '作成', lastUpdate: '最終更新', sec01: 'セクション01', sec02: 'セクション02', sec03: 'セクション03', sec04: 'セクション04', sec05: 'セクション05', agencyName: '代理店名', officialTitle: '公式名', type: '種類', language: '言語', parentId: '親ID', directEmail: 'Eメール', phone: '電話', country: '国', city: '都市', streetAddress: '住所', zipCode: '郵便番号', taxOffice: '税務署', taxNumber: '税番号', accEmail: '経理Eメール', accPhone: '経理電話', accCountry: '経理の国', accCity: '経理の都市', accAddress: '経理の住所', mainCurrency: '主通貨', integrationType: '統合タイプ', allowedSale: '販売許可', bookingStatus: '予約ステータス', selectTerritory: '領域を選択', selectHub: 'ハブを選択', commercialName: '商業名', legalTitle: '法的名称', totalUsers: '総ユーザー', activeUsers: 'アクティブ', passiveUsers: 'パッシブ', totalGuests: '総ゲスト', activeGuests: 'アクティブ', passiveGuests: 'パッシブ', searchUsers: '検索...', searchGuests: '検索...', searchFavorites: 'お気に入りを検索...', noFavoritesFound: 'お気に入りホテルはありません。', removeFromFavorites: '削除', viewHotelDetail: '詳細を見る', addedOn: '追加日', supplierLabel: 'サプライヤー', hotelName: 'ホテル名', locationLabel: '都市 / 国', starsLabel: '星数', allRoles: 'すべての役割', allCountries: 'すべての国', active: 'アクティブ', passive: '非アクティブ', export: 'エクスポート', addUser: '追加', addGuest: '追加', editUser: '編集', editGuest: '編集', userInfo: 'ユーザー情報', guestInfo: 'ゲスト情報', name: '名前', surname: '苗字', emailAddr: 'Eメール', password: 'パスワード', role: '役割', status: 'ステータス', gender: '性別', firstName: '名', lastName: '姓', birthDate: '生年月日', passportNo: 'パスポート', passportExpiry: '期限', cancel: 'キャンセル', saveUser: '保存', saveGuest: '保存', processing: '処理中...', confirm: '確認', colUser: 'ユーザー', colContact: '連絡先', colRole: '役割', colStatus: '状態', colActions: 'アクション', colGuest: 'ゲスト', colBirth: '誕生', colPassport: 'パスポート', noUsers: 'なし', noGuests: 'なし', deleteUser: '削除', deleteUserMsg: '元に戻せません', deleteGuest: '削除', deleteGuestMsg: '削除しますか?', profileUpdated: '更新済', updateFailed: '失敗', invalidEmail: '無効なEメール', userUpdated: '更新済', userCreated: '作成済', errorSavingUser: 'エラー', userDeleted: '削除済', errorDeletingUser: 'エラー', noUserExport: 'データなし', usersExported: '完了', usersRefreshed: '更新', guestUpdated: '更新済', guestCreated: '作成済', errorSavingGuest: 'エラー', guestDeleted: '削除済', errorDeletingGuest: 'エラー', noGuestExport: 'データなし', guestsExported: '完了', guestsRefreshed: '更新' },
-  fa: { title: 'مدیریت دفتر', tabGeneral: 'اطلاعات عمومی', tabUsers: 'کاربران', tabGuests: 'مهمانان', tabFavorites: 'هتل‌های علاقه‌مندی', saveBtn: 'ذخیره', saving: 'در حال همگام سازی...', agencyId: 'شناسه آژانس', baseLocation: 'مکان', currency: 'ارز', integration: 'ادغام', auditTimeline: 'حسابرسی', created: 'ایجاد شده', lastUpdate: 'آخرین بروزرسانی', sec01: 'بخش 01', sec02: 'بخش 02', sec03: 'بخش 03', sec04: 'بخش 04', sec05: 'بخش 05', agencyName: 'نام آژانس', officialTitle: 'عنوان رسمی', type: 'نوع', language: 'زبان', parentId: 'شناسه والد', directEmail: 'ایمیل مستقیم', phone: 'تلفن', country: 'کشور', city: 'شهر', streetAddress: 'آدرس', zipCode: 'کد پستی', taxOffice: 'اداره مالیات', taxNumber: 'شماره مالیاتی', accEmail: 'ایمیل حسابداری', accPhone: 'تلفن حسابداری', accCountry: 'کشور حسابداری', accCity: 'شهر حسابداری', accAddress: 'آدرس حسابداری', mainCurrency: 'ارز اصلی', integrationType: 'نوع ادغام', allowedSale: 'مجاز برای فروش', bookingStatus: 'وضعیت رزرو', selectTerritory: 'انتخاب قلمرو', selectHub: 'انتخاب هاب', commercialName: 'نام تجاری', legalTitle: 'عنوان قانونی', totalUsers: 'کل کاربران', activeUsers: 'کاربران فعال', passiveUsers: 'غیرفعال', totalGuests: 'کل مهمانان', activeGuests: 'فعال', passiveGuests: 'غیرفعال', searchUsers: 'جستجو...', searchGuests: 'جستجو...', searchFavorites: 'جستجو در علاقه‌مندی‌ها...', noFavoritesFound: 'هیچ هتل علاقه‌مندی وجود ندارد.', removeFromFavorites: 'حذف', viewHotelDetail: 'مشاهده جزئیات', addedOn: 'تاریخ افزودن', supplierLabel: 'تامین کننده', hotelName: 'نام هتل', locationLabel: 'شهر / کشور', starsLabel: 'ستاره', allRoles: 'همه نقش ها', allCountries: 'همه کشورها', active: 'فعال', passive: 'غیرفعال', export: 'خروجی', addUser: 'افزودن کاربر', addGuest: 'افزودن مهمان', editUser: 'ویرایش', editGuest: 'ویرایش', userInfo: 'اطلاعات کاربر', guestInfo: 'اطلاعات مهمان', name: 'نام', surname: 'نام خانوادگی', emailAddr: 'ایمیل', password: 'رمز عبور', role: 'نقش', status: 'وضعیت', gender: 'جنسیت', firstName: 'نام', lastName: 'نام خانوادگی', birthDate: 'تاریخ تولد', passportNo: 'شماره پاسپورت', passportExpiry: 'انقضا پاسپورت', cancel: 'لغو', saveUser: 'ذخیره', saveGuest: 'ذخیره', processing: 'در حال پردازش...', confirm: 'تایید', colUser: 'کاربر', colContact: 'تماس', colRole: 'نقش', colStatus: 'وضعیت', colActions: 'اقدامات', colGuest: 'مهمان', colBirth: 'تولد', colPassport: 'پاسپورت', noUsers: 'یافت نشد', noGuests: 'یافت نشد', deleteUser: 'حذف', deleteUserMsg: 'غیر قابل بازگشت است.', deleteGuest: 'حذف', deleteGuestMsg: 'مطمئن هستید؟', profileUpdated: 'بروز شد', updateFailed: 'خطا', invalidEmail: 'ایمیل نامعتبر', userUpdated: 'بروز شد', userCreated: 'ایجاد شد', errorSavingUser: 'خطا', userDeleted: 'حذف شد', errorDeletingUser: 'خطا', noUserExport: 'داده ای نیست', usersExported: 'انجام شد', usersRefreshed: 'بروز شد', guestUpdated: 'بروز شد', guestCreated: 'ایجاد شد', errorSavingGuest: 'خطا', guestDeleted: 'حذف شد', errorDeletingGuest: 'خطا', noGuestExport: 'داده ای نیست', guestsExported: 'انجام شد', guestsRefreshed: 'بروز شد' },
-  fr: { title: 'Mon Bureau', tabGeneral: 'Informations', tabUsers: 'Utilisateurs', tabGuests: 'Invités', tabFavorites: 'Hôtels Favoris', saveBtn: 'Enregistrer', saving: 'Synchronisation...', agencyId: 'Identité', baseLocation: 'Emplacement', currency: 'Devise', integration: 'Intégration', auditTimeline: 'Audit', created: 'Créé', lastUpdate: 'Mise à jour', sec01: 'Section 01', sec02: 'Section 02', sec03: 'Section 03', sec04: 'Section 04', sec05: 'Section 05', agencyName: 'Nom Agence', officialTitle: 'Titre Officiel', type: 'Type', language: 'Langue', parentId: 'ID Parent', directEmail: 'Email', phone: 'Téléphone', country: 'Pays', city: 'Ville', streetAddress: 'Adresse', zipCode: 'Code Postal', taxOffice: 'Bureau Fiscal', taxNumber: 'Numéro Fiscal', accEmail: 'Email Compta', accPhone: 'Tél Compta', accCountry: 'Pays Compta', accCity: 'Ville Compta', accAddress: 'Adresse Compta', mainCurrency: 'Devise principale', integrationType: 'Intégration', allowedSale: 'Autorisé', bookingStatus: 'Statut Rési', selectTerritory: 'Territoire', selectHub: 'Hub', commercialName: 'Nom Commercial', legalTitle: 'Titre Légal', totalUsers: 'Total', activeUsers: 'Actifs', passiveUsers: 'Passifs', totalGuests: 'Total', activeGuests: 'Actifs', passiveGuests: 'Passifs', searchUsers: 'Recherche...', searchGuests: 'Recherche...', searchFavorites: 'Recherche favoris...', noFavoritesFound: 'Aucun hôtel favori trouvé.', removeFromFavorites: 'Supprimer', viewHotelDetail: 'Voir Détails', addedOn: 'Date d\'Ajout', supplierLabel: 'Fournisseur', hotelName: 'Nom de l\'Hôtel', locationLabel: 'Ville / Pays', starsLabel: 'Étoiles', allRoles: 'Tous rôles', allCountries: 'Tous pays', active: 'Actif', passive: 'Inactif', export: 'Exporter', addUser: 'Ajouter', addGuest: 'Ajouter', editUser: 'Modifier', editGuest: 'Modifier', userInfo: 'Infos utilisateur', guestInfo: 'Infos invité', name: 'Nom', surname: 'Prénom', emailAddr: 'Email', password: 'Mot de passe', role: 'Rôle', status: 'Statut', gender: 'Genre', firstName: 'Prénom', lastName: 'Nom', birthDate: 'Naissance', passportNo: 'Passeport', passportExpiry: 'Expiration', cancel: 'Annuler', saveUser: 'Enregistrer', saveGuest: 'Enregistrer', processing: 'Traitement...', confirm: 'Confirmer', colUser: 'Utilisateur', colContact: 'Contact', colRole: 'Rôle', colStatus: 'Statut', colActions: 'Actions', colGuest: 'Invité', colBirth: 'Naissance', colPassport: 'Passeport', noUsers: 'Aucun trouvé', noGuests: 'Aucun trouvé', deleteUser: 'Supprimer', deleteUserMsg: 'Irréversible.', deleteGuest: 'Supprimer', deleteGuestMsg: 'Êtes-vous sûr?', profileUpdated: 'Mis à jour', updateFailed: 'Échec', invalidEmail: 'Email invalide', userUpdated: 'Mis à jour', userCreated: 'Créé', errorSavingUser: 'Erreur', userDeleted: 'Supprimé', errorDeletingUser: 'Erreur', noUserExport: 'Aucune donnée', usersExported: 'Fait', usersRefreshed: 'Actualisé', guestUpdated: 'Mis à jour', guestCreated: 'Créé', errorSavingGuest: 'Erreur', guestDeleted: 'Supprimé', errorDeletingGuest: 'Erreur', noGuestExport: 'Aucune donnée', guestsExported: 'Fait', guestsRefreshed: 'Actualisé' },
-  it: { title: 'Il mio Ufficio', tabGeneral: 'Informazioni', tabUsers: 'Utenti', tabGuests: 'Ospiti', tabFavorites: 'Hotel Preferiti', saveBtn: 'Salva', saving: 'Sincronizzazione...', agencyId: 'Identità', baseLocation: 'Posizione', currency: 'Valuta', integration: 'Integrazione', auditTimeline: 'Audit', created: 'Creato', lastUpdate: 'Ultimo Aggiornamento', sec01: 'Sezione 01', sec02: 'Sezione 02', sec03: 'Sezione 03', sec04: 'Sezione 04', sec05: 'Sezione 05', agencyName: 'Nome Agenzia', officialTitle: 'Titolo Ufficiale', type: 'Tipo', language: 'Lingua', parentId: 'ID Genitore', directEmail: 'Email', phone: 'Telefono', country: 'Paese', city: 'Città', streetAddress: 'Indirizzo', zipCode: 'CAP', taxOffice: 'Ufficio Tasse', taxNumber: 'Partita IVA', accEmail: 'Email Contab', accPhone: 'Tel Contab', accCountry: 'Paese Contab', accCity: 'Città Contab', accAddress: 'Indirizzo Contab', mainCurrency: 'Valuta Prin', integrationType: 'Integrazione', allowedSale: 'Consentito', bookingStatus: 'Stato preno', selectTerritory: 'Territorio', selectHub: 'Hub', commercialName: 'Nome Comm', legalTitle: 'Titolo Legale', totalUsers: 'Totale', activeUsers: 'Attivi', passiveUsers: 'Inattivi', totalGuests: 'Totale', activeGuests: 'Attivi', passiveGuests: 'Inattivi', searchUsers: 'Cerca...', searchGuests: 'Cerca...', searchFavorites: 'Cerca preferiti...', noFavoritesFound: 'Nessun hotel preferito trovato.', removeFromFavorites: 'Rimuovi', viewHotelDetail: 'Vedi Dettagli', addedOn: 'Data Aggiunta', supplierLabel: 'Fornitore', hotelName: 'Nome Hotel', locationLabel: 'Città / Paese', starsLabel: 'Stelle', allRoles: 'Tutti i ruoli', allCountries: 'Tutti i paesi', active: 'Attivo', passive: 'Inattivo', export: 'Esporta', addUser: 'Aggiungi', addGuest: 'Aggiungi', editUser: 'Modifica', editGuest: 'Modifica', userInfo: 'Info utente', guestInfo: 'Info ospite', name: 'Nome', surname: 'Cognome', emailAddr: 'Email', password: 'Password', role: 'Ruolo', status: 'Stato', gender: 'Sesso', firstName: 'Nome', lastName: 'Cognome', birthDate: 'Data di nascita', passportNo: 'Passaporto', passportExpiry: 'Scadenza', cancel: 'Annulla', saveUser: 'Salva', saveGuest: 'Salva', processing: 'Elaborazione...', confirm: 'Conferma', colUser: 'Utente', colContact: 'Contatto', colRole: 'Ruolo', colStatus: 'Stato', colActions: 'Azioni', colGuest: 'Ospite', colBirth: 'Nascita', colPassport: 'Passaporto', noUsers: 'Nessuno', noGuests: 'Nessuno', deleteUser: 'Elimina', deleteUserMsg: 'Irreversibile.', deleteGuest: 'Elimina', deleteGuestMsg: 'Sei sicuro?', profileUpdated: 'Aggiornato', updateFailed: 'Fallito', invalidEmail: 'Email non valida', userUpdated: 'Aggiornato', userCreated: 'Creato', errorSavingUser: 'Errore', userDeleted: 'Eliminato', errorDeletingUser: 'Errore', noUserExport: 'Nessun dato', usersExported: 'Fatto', usersRefreshed: 'Aggiornato', guestUpdated: 'Aggiornato', guestCreated: 'Creato', errorSavingGuest: 'Errore', guestDeleted: 'Eliminato', errorDeletingGuest: 'Errore', noGuestExport: 'Nessun dato', guestsExported: 'Fatto', guestsRefreshed: 'Aggiornato' },
-  el: { title: 'Το Γραφείο Μου', tabGeneral: 'Πληροφορίες', tabUsers: 'Χρήστες', tabGuests: 'Επισκέπτες', tabFavorites: 'Αγαπημένα Ξενοδοχεία', saveBtn: 'Αποθήκευση', saving: 'Συγχρονισμός...', agencyId: 'Ταυτότητα', baseLocation: 'Τοποθεσία', currency: 'Νόμισμα', integration: 'Ενσωμάτωση', auditTimeline: 'Ιστορικό', created: 'Δημιουργήθηκε', lastUpdate: 'Ενημέρωση', sec01: 'Ενότητα 01', sec02: 'Ενότητα 02', sec03: 'Ενότητα 03', sec04: 'Ενότητα 04', sec05: 'Ενότητα 05', agencyName: 'Όνομα Πρακτορείου', officialTitle: 'Τίτλος', type: 'Τύπος', language: 'Γλώσσα', parentId: 'ID Γονέα', directEmail: 'Email', phone: 'Τηλέφωνο', country: 'Χώρα', city: 'Πόλη', streetAddress: 'Διεύθυνση', zipCode: 'Τ.Κ.', taxOffice: 'Εφορία', taxNumber: 'ΑΦΜ', accEmail: 'Email Λογ/ρίου', accPhone: 'Τηλ Λογ/ρίου', accCountry: 'Χώρα Λογ/ρίου', accCity: 'Πόλη Λογ/ρίου', accAddress: 'Διευθ Λογ/ρίου', mainCurrency: 'Νόμισμα', integrationType: 'Τύπος', allowedSale: 'Επιτρέπεται', bookingStatus: 'Κατάσταση', selectTerritory: 'Περιοχή', selectHub: 'Hub', commercialName: 'Όνομα', legalTitle: 'Νομική μορφή', totalUsers: 'Σύνολο', activeUsers: 'Ενεργοί', passiveUsers: 'Ανενεργοί', totalGuests: 'Σύνολο', activeGuests: 'Ενεργοί', passiveGuests: 'Ανενεργοί', searchUsers: 'Αναζήτηση...', searchGuests: 'Αναζήτηση...', searchFavorites: 'Αναζήτηση αγαπημένων...', noFavoritesFound: 'Δεν βρέθηκαν αγαπημένα ξενοδοχεία.', removeFromFavorites: 'Αφαίρεση', viewHotelDetail: 'Προβολή', addedOn: 'Ημερομηνία', supplierLabel: 'Προμηθευτής', hotelName: 'Όνομα', locationLabel: 'Πόλη / Χώρα', starsLabel: 'Αστέρια', allRoles: 'Όλοι', allCountries: 'Όλες', active: 'Ενεργό', passive: 'Ανενεργό', export: 'Εξαγωγή', addUser: 'Προσθήκη', addGuest: 'Προσθήκη', editUser: 'Επεξεργασία', editGuest: 'Επεξεργασία', userInfo: 'Πληροφορίες', guestInfo: 'Πληροφορίες', name: 'Όνομα', surname: 'Επώνυμο', emailAddr: 'Email', password: 'Κωδικός', role: 'Ρόλος', status: 'Κατάσταση', gender: 'Φύλο', firstName: 'Όνομα', lastName: 'Επώνυμο', birthDate: 'Γέννηση', passportNo: 'Διαβατήριο', passportExpiry: 'Λήξη', cancel: 'Ακύρωση', saveUser: 'Αποθήκευση', saveGuest: 'Αποθήκευση', processing: 'Επεξεργασία...', confirm: 'Επιβεβαίωση', colUser: 'Χρήστης', colContact: 'Επικοινωνία', colRole: 'Ρόλος', colStatus: 'Κατάσταση', colActions: 'Ενέργειες', colGuest: 'Επισκέπτης', colBirth: 'Γέννηση', colPassport: 'Διαβατήριο', noUsers: 'Κανένας', noGuests: 'Κανένας', deleteUser: 'Διαγραφή', deleteUserMsg: 'Μη αναστρέψιμο.', deleteGuest: 'Διαγραφή', deleteGuestMsg: 'Σίγουρα;', profileUpdated: 'Ενημερώθηκε', updateFailed: 'Αποτυχία', invalidEmail: 'Άκυρο email', userUpdated: 'Ενημερώθηκε', userCreated: 'Δημιουργήθηκε', errorSavingUser: 'Σφάλμα', userDeleted: 'Διαγράφηκε', errorDeletingUser: 'Σφάλμα', noUserExport: 'Κενό', usersExported: 'Ολοκληρώθηκε', usersRefreshed: 'Ανανεώθηκε', guestUpdated: 'Ενημερώθηκε', guestCreated: 'Δημιουργήθηκε', errorSavingGuest: 'Σφάλμα', guestDeleted: 'Διαγράφηκε', errorDeletingGuest: 'Σφάλμα', noGuestExport: 'Κενό', guestsExported: 'Ολοκληρώθηκε', guestsRefreshed: 'Ανανεώθηκε' },
+  en: { title: 'My Office Management', tabGeneral: 'General Information', tabUsers: 'Users', tabGuests: 'Guests', tabFavorites: 'Favorite Hotels', saveBtn: 'Save Office Profile', saving: 'Synchronizing...', agencyId: 'Agency Identity', baseLocation: 'Base Location', currency: 'Currency', integration: 'Integration', auditTimeline: 'Audit Timeline', created: 'Created', lastUpdate: 'Last Update', sec01: 'Section 01 / Identity', sec02: 'Section 02 / Contact', sec03: 'Section 03 / Geography', sec04: 'Section 04 / Finance', sec05: 'Section 05 / Settings', agencyName: 'Agency Name', officialTitle: 'Official Title', type: 'Type', language: 'Language', parentId: 'Parent ID', directEmail: 'Direct Email', phone: 'Phone Number', country: 'Country', city: 'City', streetAddress: 'Street Address', zipCode: 'Zip Code', taxOffice: 'Tax Office', taxNumber: 'Tax Number', accEmail: 'Accounting Email', accPhone: 'Accounting Phone', accCountry: 'Accounting Country', accCity: 'Accounting City', accAddress: 'Accounting Address', mainCurrency: 'Main Currency', integrationType: 'Integration Type', allowedSale: 'Allowed for Sale', bookingStatus: 'Booking status', selectTerritory: 'Select Territory', selectHub: 'Select Hub', commercialName: 'Commercial Name', legalTitle: 'Legal Title', totalUsers: 'Total Users', activeUsers: 'Active Users', passiveUsers: 'Passive Users', totalGuests: 'Total Guests', activeGuests: 'Active Guests', passiveGuests: 'Passive Guests', searchUsers: 'Search by name or email...', searchGuests: 'Search by name, email or passport...', searchFavorites: 'Search favorite hotels...', noFavoritesFound: 'No favorite hotels found.', removeFromFavorites: 'Remove', viewHotelDetail: 'View Detail', addedOn: 'Date Added', supplierLabel: 'Supplier', hotelName: 'Hotel Name', locationLabel: 'City / Country', starsLabel: 'Stars', allRoles: 'All Roles', allCountries: 'All Countries', active: 'Active', passive: 'Passive', export: 'Export', addUser: 'Add User', addGuest: 'Add Guest', editUser: 'Edit User', editGuest: 'Edit Guest', userInfo: 'Enter user information', guestInfo: 'Enter guest information', name: 'Name', surname: 'Surname', emailAddr: 'Email Address', password: 'Password', role: 'Role', status: 'Status', gender: 'Gender', firstName: 'First Name', lastName: 'Last Name', birthDate: 'Birth Date', passportNo: 'Passport No', passportExpiry: 'Passport Expiry', cancel: 'Cancel', saveUser: 'Save User', saveGuest: 'Save Guest', processing: 'Processing...', confirm: 'Confirm', colUser: 'User', colContact: 'Contact', colRole: 'Role', colStatus: 'Status', colActions: 'Actions', colGuest: 'Guest', colBirth: 'Birth & Country', colPassport: 'Passport', noUsers: 'No users found', noGuests: 'No guests found', deleteUser: 'Delete User', deleteUserMsg: 'This action cannot be undone. All access for this user will be revoked immediately.', deleteGuest: 'Delete Guest', deleteGuestMsg: 'Are you sure you want to remove this guest from your CRM?', profileUpdated: 'Agency profile updated successfully.', updateFailed: 'Update failed.', invalidEmail: 'Please enter a valid email address.', userUpdated: 'User updated successfully', userCreated: 'User created successfully', errorSavingUser: 'Error saving user', userDeleted: 'User deleted successfully', errorDeletingUser: 'Error deleting user', noUserExport: 'No user data to export.', usersExported: 'User list exported as CSV.', usersRefreshed: 'User list refreshed', guestUpdated: 'Guest updated successfully', guestCreated: 'Guest created successfully', errorSavingGuest: 'Error saving guest', guestDeleted: 'Guest deleted successfully', errorDeletingGuest: 'Error deleting guest', noGuestExport: 'No guest data to export.', guestsExported: 'Guest list exported as CSV.', guestsRefreshed: 'Guest list refreshed', searchAutocompletePlaceholder: 'Select & Add Hotel (Name or ID)...', searchTablePlaceholder: 'Search in table...', allStatuses: 'All Statuses', statusActive: 'Active', statusPassive: 'Passive', colHotelInfo: 'Hotel Information', colUserEmail: 'User Email', colLocationStars: 'Location & Rating', colDateAdded: 'Date Added / Updated', addFavSuccess: 'Hotel added to favorites', addFavError: 'Error adding favorite', deleteFavTitle: 'Remove Favorite Hotel', deleteFavMsg: 'Are you sure you want to remove {{name}} from your favorites?', deleteFavSuccess: 'Favorite hotel removed', deleteFavError: 'Failed to remove favorite', addedBtn: 'Added', addBtn: 'Add', refreshTooltip: 'Refresh', totalRecords: 'Total', pageLabel: 'Page', prevBtn: 'Previous', nextBtn: 'Next' },
+  tr: { title: 'Ofis Yönetimi', tabGeneral: 'Genel Bilgiler', tabUsers: 'Kullanıcılar', tabGuests: 'Misafirler', tabFavorites: 'Favori Oteller', saveBtn: 'Ofis Profilini Kaydet', saving: 'Senkronize ediliyor...', agencyId: 'Acente Kimlik', baseLocation: 'Konum', currency: 'Para Birimi', integration: 'Entegrasyon', auditTimeline: 'Denetim Geçmişi', created: 'Oluşturuldu', lastUpdate: 'Son Güncelleme', sec01: 'Bölüm 01 / Kimlik', sec02: 'Bölüm 02 / İletişim', sec03: 'Bölüm 03 / Coğrafya', sec04: 'Bölüm 04 / Finans', sec05: 'Bölüm 05 / Ayarlar', agencyName: 'Acente Adı', officialTitle: 'Resmi Unvan', type: 'Tür', language: 'Dil', parentId: 'Üst ID', directEmail: 'E-posta', phone: 'Telefon', country: 'Ülke', city: 'Şehir', streetAddress: 'Adres', zipCode: 'Posta Kodu', taxOffice: 'Vergi Dairesi', taxNumber: 'Vergi No', accEmail: 'Muhasebe E-posta', accPhone: 'Muhasebe Telefon', accCountry: 'Muhasebe Ülke', accCity: 'Muhasebe Şehir', accAddress: 'Muhasebe Adres', mainCurrency: 'Ana Para Birimi', integrationType: 'Entegrasyon Türü', allowedSale: 'Satışa Açık', bookingStatus: 'Rezervasyon durumu', selectTerritory: 'Bölge Seçin', selectHub: 'Şehir Seçin', commercialName: 'Ticari Ad', legalTitle: 'Hukuki Unvan', totalUsers: 'Toplam Kullanıcı', activeUsers: 'Aktif Kullanıcı', passiveUsers: 'Pasif Kullanıcı', totalGuests: 'Toplam Misafir', activeGuests: 'Aktif Misafir', passiveGuests: 'Pasif Misafir', searchUsers: 'Ad veya e-posta ara...', searchGuests: 'Ad, e-posta veya pasaport ara...', searchFavorites: 'Favori otellerde ara...', noFavoritesFound: 'Henüz favorilere eklenmiş otel bulunmamaktadır.', removeFromFavorites: 'Favoriden Kaldır', viewHotelDetail: 'Detayları Görüntüle', addedOn: 'Favoriye Eklenme Tarihi', supplierLabel: 'Tedarikçi', hotelName: 'Otel Adı', locationLabel: 'Şehir / Ülke', starsLabel: 'Yıldız Bilgisi', allRoles: 'Tüm Roller', allCountries: 'Tüm Ülkeler', active: 'Aktif', passive: 'Pasif', export: 'Dışa Aktar', addUser: 'Kullanıcı Ekle', addGuest: 'Misafir Ekle', editUser: 'Kullanıcı Düzenle', editGuest: 'Misafir Düzenle', userInfo: 'Kullanıcı bilgilerini girin', guestInfo: 'Misafir bilgilerini girin', name: 'Ad', surname: 'Soyad', emailAddr: 'E-posta Adresi', password: 'Şifre', role: 'Rol', status: 'Durum', gender: 'Cinsiyet', firstName: 'Ad', lastName: 'Soyad', birthDate: 'Doğum Tarihi', passportNo: 'Pasaport No', passportExpiry: 'Pasaport Bitiş', cancel: 'İptal', saveUser: 'Kullanıcı Kaydet', saveGuest: 'Misafir Kaydet', processing: 'İşleniyor...', confirm: 'Onayla', colUser: 'Kullanıcı', colContact: 'İletişim', colRole: 'Rol', colStatus: 'Durum', colActions: 'İşlemler', colGuest: 'Misafir', colBirth: 'Doğum & Ülke', colPassport: 'Pasaport', noUsers: 'Kullanıcı bulunamadı', noGuests: 'Misafir bulunamadı', deleteUser: 'Kullanıcı Sil', deleteUserMsg: 'Bu işlem geri alınamaz.', deleteGuest: 'Misafir Sil', deleteGuestMsg: 'Bu misafiri CRM sisteminden silmek istediğinize emin misiniz?', profileUpdated: 'Acente profili başarıyla güncellendi.', updateFailed: 'Güncelleme başarısız.', invalidEmail: 'Geçerli bir e-posta adresi girin.', userUpdated: 'Kullanıcı başarıyla güncellendi', userCreated: 'Kullanıcı başarıyla oluşturuldu', errorSavingUser: 'Kullanıcı kaydedilemedi', userDeleted: 'Kullanıcı başarıyla silindi', errorDeletingUser: 'Kullanıcı silinemedi', noUserExport: 'Dışa aktarılacak kullanıcı yok.', usersExported: 'Kullanıcı listesi CSV olarak aktarıldı.', usersRefreshed: 'Kullanıcı listesi yenilendi', guestUpdated: 'Misafir başarıyla güncellendi', guestCreated: 'Misafir başarıyla oluşturuldu', errorSavingGuest: 'Misafir kaydedilemedi', guestDeleted: 'Misafir başarıyla silindi', errorDeletingGuest: 'Misafir silinemedi', noGuestExport: 'Dışa aktarılacak misafir yok.', guestsExported: 'Misafir listesi CSV olarak aktarıldı.', guestsRefreshed: 'Misafir listesi yenilendi', searchAutocompletePlaceholder: 'Sistemden Otel Seç & Favorilere Ekle (Ad veya ID)...', searchTablePlaceholder: 'Tabloda ara...', allStatuses: 'Tüm Durumlar', statusActive: 'Aktif', statusPassive: 'Pasif', colHotelInfo: 'Otel Bilgisi', colUserEmail: 'Kullanıcı (User Email)', colLocationStars: 'Konum & Yıldız', colDateAdded: 'Eklenme / Güncelleme', addFavSuccess: 'Otel favorilere eklendi', addFavError: 'Favori ekleme hatası', deleteFavTitle: 'Favori Oteli Sil', deleteFavMsg: '{{name}} otelini favorilerinizden silmek istediğinize emin misiniz?', deleteFavSuccess: 'Favori otel silindi', deleteFavError: 'Silme işlemi başarısız', addedBtn: 'Eklendi', addBtn: 'Ekle', refreshTooltip: 'Yenile', totalRecords: 'Toplam', pageLabel: 'Sayfa', prevBtn: 'Önceki', nextBtn: 'Sonraki' },
+  ar: { title: 'إدارة المكتب' },
+  es: { title: 'Mi Oficina' },
+  ru: { title: 'Управление офисом' },
+  zh: { title: '办公室管理' },
+  ja: { title: 'オフィス管理' },
+  fa: { title: 'مدیریت دفتر' },
+  fr: { title: 'Mon Bureau' },
+  it: { title: 'Il mio Ufficio' },
+  el: { title: 'Το Γραφείο Μου' },
   pt: { title: 'Meu Escritório', tabGeneral: 'Informações Gerais', tabUsers: 'Usuários', tabGuests: 'Hóspedes', tabFavorites: 'Hotéis Favoritos', saveBtn: 'Salvar', saving: 'Sincronizando...', agencyId: 'Identidade', baseLocation: 'Localização', currency: 'Moeda', integration: 'Integração', auditTimeline: 'Auditoria', created: 'Criado', lastUpdate: 'Última Atualização', sec01: 'Seção 01', sec02: 'Seção 02', sec03: 'Seção 03', sec04: 'Seção 04', sec05: 'Seção 05', agencyName: 'Nome da Agência', officialTitle: 'Título Oficial', type: 'Tipo', language: 'Idioma', parentId: 'ID Principal', directEmail: 'Email', phone: 'Telefone', country: 'País', city: 'Cidade', streetAddress: 'Endereço', zipCode: 'CEP', taxOffice: 'Finanças', taxNumber: 'NIF', accEmail: 'Email Contab', accPhone: 'Tel Contab', accCountry: 'País Contab', accCity: 'Cidade Contab', accAddress: 'Endereço Contab', mainCurrency: 'Moeda Principal', integrationType: 'Integração', allowedSale: 'Permitido', bookingStatus: 'Status Reserva', selectTerritory: 'Território', selectHub: 'Hub', commercialName: 'Nome Comercial', legalTitle: 'Título Legal', totalUsers: 'Total', activeUsers: 'Ativos', passiveUsers: 'Inativos', totalGuests: 'Total', activeGuests: 'Ativos', passiveGuests: 'Inativos', searchUsers: 'Buscar...', searchGuests: 'Buscar...', searchFavorites: 'Buscar favoritos...', noFavoritesFound: 'Nenhum hotel favorito encontrado.', removeFromFavorites: 'Remover', viewHotelDetail: 'Ver Detalhes', addedOn: 'Data de Adição', supplierLabel: 'Fornecedor', hotelName: 'Nome do Hotel', locationLabel: 'Cidade / País', starsLabel: 'Estrelas', allRoles: 'Todos os papéis', allCountries: 'Todos os países', active: 'Ativo', passive: 'Inativo', export: 'Exportar', addUser: 'Adicionar', addGuest: 'Adicionar', editUser: 'Editar', editGuest: 'Editar', userInfo: 'Info usuário', guestInfo: 'Info hóspede', name: 'Nome', surname: 'Sobrenome', emailAddr: 'Email', password: 'Senha', role: 'Papel', status: 'Status', gender: 'Gênero', firstName: 'Nome', lastName: 'Sobrenome', birthDate: 'Nascimento', passportNo: 'Passaporte', passportExpiry: 'Validade', cancel: 'Cancelar', saveUser: 'Salvar', saveGuest: 'Salvar', processing: 'Processando...', confirm: 'Confirmar', colUser: 'Usuário', colContact: 'Contato', colRole: 'Papel', colStatus: 'Status', colActions: 'Ações', colGuest: 'Hóspede', colBirth: 'Nascimento', colPassport: 'Passaporte', noUsers: 'Nenhum', noGuests: 'Nenhum', deleteUser: 'Excluir', deleteUserMsg: 'Irreversível.', deleteGuest: 'Excluir', deleteGuestMsg: 'Tem certeza?', profileUpdated: 'Atualizado', updateFailed: 'Falha', invalidEmail: 'Email inválido', userUpdated: 'Atualizado', userCreated: 'Criado', errorSavingUser: 'Erro', userDeleted: 'Excluído', errorDeletingUser: 'Erro', noUserExport: 'Sem dados', usersExported: 'Feito', usersRefreshed: 'Atualizado', guestUpdated: 'Atualizado', guestCreated: 'Criado', errorSavingGuest: 'Erro', guestDeleted: 'Excluído', errorDeletingGuest: 'Erro', noGuestExport: 'Sem dados', guestsExported: 'Feito', guestsRefreshed: 'Atualizado' }
 };
 const tMO = (lang, key) => { const l = getLang(lang); return MO[l]?.[key] ?? MO.en[key] ?? COMMON[l]?.[key] ?? COMMON.en[key] ?? key; };
@@ -33,6 +33,7 @@ import HeaderActions from '../components/HeaderActions';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import PhoneInput from '../components/PhoneInput';
+import Pagination from '../components/Pagination';
 import '../datepicker-custom.css';
 
 // Fix Leaflet marker icon issue in React
@@ -93,13 +94,59 @@ const downloadCSV = (data, filename) => {
     document.body.removeChild(link);
 };
 
-// Skeleton Loading Component
-const TableSkeleton = ({ columns }) => (
+const formatDateTime = (dateVal) => {
+    if (!dateVal) return 'N/A';
+    try {
+        let dateObj;
+        if (Array.isArray(dateVal)) {
+            const [y, m, d, hh = 0, mm = 0, ss = 0] = dateVal;
+            dateObj = new Date(y, m - 1, d, hh, mm, ss);
+        } else {
+            dateObj = new Date(dateVal);
+        }
+        if (isNaN(dateObj.getTime())) return 'N/A';
+        return dateObj.toLocaleString('tr-TR', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+    } catch {
+        return 'N/A';
+    }
+};
+
+// Skeleton Loading Component matching Sales-Channel Table Row Heights
+const TableSkeleton = ({ columns = 7, rows = 10 }) => (
     <>
-        {[1, 2, 3, 4, 5].map((i) => (
-            <tr key={i} className="animate-pulse">
+        {[...Array(rows)].map((_, i) => (
+            <tr key={`skel-row-${i}`} className="animate-pulse border-b border-solid border-slate-100 dark:border-slate-800/60 even:bg-slate-50/20 dark:even:bg-slate-900/20">
                 {[...Array(columns)].map((_, j) => (
-                    <td key={j} className="p-4"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded-lg w-full"></div></td>
+                    <td key={`skel-col-${j}`} className="px-4 py-3">
+                        {j === 0 ? (
+                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-8"></div>
+                        ) : j === 1 ? (
+                            <div className="flex items-center gap-2.5">
+                                <div className="size-7 rounded-lg bg-slate-200 dark:bg-slate-800 shrink-0"></div>
+                                <div className="space-y-1.5 flex-1 min-w-0">
+                                    <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-3/4"></div>
+                                </div>
+                            </div>
+                        ) : j === columns - 2 ? (
+                            <div className="flex items-center gap-2">
+                                <div className="h-5 w-9 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0"></div>
+                                <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded-md w-10"></div>
+                            </div>
+                        ) : j === columns - 1 ? (
+                            <div className="flex items-center justify-end gap-1">
+                                <div className="size-7 rounded-lg bg-slate-200/80 dark:bg-slate-800/80"></div>
+                                <div className="size-7 rounded-lg bg-slate-200/80 dark:bg-slate-800/80"></div>
+                            </div>
+                        ) : (
+                            <div className="h-3.5 bg-slate-200/80 dark:bg-slate-800/80 rounded-md w-28"></div>
+                        )}
+                    </td>
                 ))}
             </tr>
         ))}
@@ -157,6 +204,7 @@ const MyOffice = () => {
     const [favoriteBackendItems, setFavoriteBackendItems] = useState([]);
     const [favoriteLoading, setFavoriteLoading] = useState(false);
     const [favoritePage, setFavoritePage] = useState(0);
+    const [favoritePageSize, setFavoritePageSize] = useState(10);
     const [favoriteTotalPages, setFavoriteTotalPages] = useState(1);
     const [favoriteTotalElements, setFavoriteTotalElements] = useState(0);
     const [favoriteStatusFilter, setFavoriteStatusFilter] = useState('');
@@ -168,10 +216,10 @@ const MyOffice = () => {
     const [showHotelAutocompleteDropdown, setShowHotelAutocompleteDropdown] = useState(false);
     const hotelAutocompleteRef = useRef(null);
 
-    const fetchFavoriteHotels = useCallback(async (page = 0) => {
+    const fetchFavoriteHotels = useCallback(async (page = 0, size = favoritePageSize) => {
         setFavoriteLoading(true);
         try {
-            const res = await favoriteService.getFavorites(page, 10, favoriteSearchQuery, favoriteStatusFilter);
+            const res = await favoriteService.getFavorites(page, size, favoriteSearchQuery, favoriteStatusFilter);
             if (res && res.content) {
                 setFavoriteBackendItems(res.content);
                 setFavoritePage(res.pageNumber || 0);
@@ -183,7 +231,7 @@ const MyOffice = () => {
         } finally {
             setFavoriteLoading(false);
         }
-    }, [favoriteSearchQuery, favoriteStatusFilter]);
+    }, [favoriteSearchQuery, favoriteStatusFilter, favoritePageSize]);
 
     useEffect(() => {
         if (activeTab === 'favorites') {
@@ -818,7 +866,7 @@ const MyOffice = () => {
                         </div>
                     </header>
 
-                    <div className="flex-1 overflow-hidden">
+                    <div className="flex-1 min-h-0 h-full overflow-hidden">
                         {activeTab === 'general' ? (
                             <div className="h-full flex gap-5 overflow-hidden pb-3">
                                 {/* Left Sidebar Info */}
@@ -1166,20 +1214,20 @@ const MyOffice = () => {
                                 </div>
                             </div>
                     ) : activeTab === 'favorites' ? (
-                        <div className="flex-1 flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs relative z-20 overflow-visible">
-                            {/* Unified Header: Compact Autocomplete & Controls */}
-                            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 relative z-50">
+                        <div className="h-full flex flex-col min-h-0 bg-white dark:bg-[#0B1120] border border-solid border-slate-200/50 dark:border-slate-800/50 rounded-xl shadow-xs relative z-20 overflow-visible">
+                            {/* Filter and Autocomplete Controls Bar */}
+                            <div className="p-4 flex flex-wrap items-center justify-between gap-3 relative z-50 select-none">
                                 {/* Autocomplete Search Dropdown */}
                                 <div ref={hotelAutocompleteRef} className="relative flex-1 max-w-md">
                                     <div className="relative">
                                         <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
                                         <input 
                                             type="text" 
-                                            placeholder="Sistemden Otel Seç & Favorilere Ekle (Ad veya ID)..." 
+                                            placeholder={L('searchAutocompletePlaceholder')} 
                                             value={hotelAutocompleteQuery}
                                             onChange={(e) => setHotelAutocompleteQuery(e.target.value)}
                                             onFocus={() => hotelAutocompleteResults.length > 0 && setShowHotelAutocompleteDropdown(true)}
-                                            className="w-full h-9 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-8 text-xs font-bold outline-none focus:border-primary transition-colors text-slate-800 dark:text-white"
+                                            className="w-full pl-9 pr-8 py-2 border border-solid border-slate-200 dark:border-slate-800 rounded-lg text-xs font-semibold bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                                         />
                                         {hotelAutocompleteLoading && (
                                             <div className="absolute right-3 top-1/2 -translate-y-1/2 size-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
@@ -1188,13 +1236,13 @@ const MyOffice = () => {
 
                                     {/* Autocomplete Dropdown Overlay */}
                                     {showHotelAutocompleteDropdown && hotelAutocompleteResults.length > 0 && (
-                                        <div className="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-h-64 overflow-y-auto z-[9999] p-1.5 space-y-1 ring-1 ring-black/5 animate-in fade-in-50 zoom-in-95">
-                                            {hotelAutocompleteResults.map((h) => {
+                                        <div className="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl max-h-64 overflow-y-auto z-[9999] p-1.5 space-y-1 ring-1 ring-black/5 animate-in fade-in-50 zoom-in-95">
+                                            {hotelAutocompleteResults.map((h, idx) => {
                                                 const isFav = isFavorite(h.hotelId);
                                                 return (
                                                     <div 
-                                                        key={h.hotelId}
-                                                        className="p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors flex items-center justify-between group"
+                                                        key={h.hotelId ? `ac-${h.hotelId}-${idx}` : `ac-${idx}`}
+                                                        className="p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors flex items-center justify-between group cursor-pointer"
                                                     >
                                                         <div className="flex items-center gap-2.5 min-w-0 pr-2">
                                                             <div className={`size-8 rounded-lg ${isFav ? 'bg-emerald-500/10 text-emerald-500' : 'bg-primary/10 text-primary'} flex items-center justify-center font-bold text-xs shrink-0`}>
@@ -1220,7 +1268,7 @@ const MyOffice = () => {
                                                             }`}
                                                         >
                                                             <span className="material-icons-round text-xs">{isFav ? 'check' : 'add'}</span>
-                                                            <span>{isFav ? 'Eklendi' : 'Ekle'}</span>
+                                                            <span>{isFav ? L('addedBtn') : L('addBtn')}</span>
                                                         </button>
                                                     </div>
                                                 );
@@ -1232,82 +1280,95 @@ const MyOffice = () => {
                                 {/* Table Search & Filter Controls */}
                                 <div className="flex items-center gap-2">
                                     <div className="relative">
-                                        <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">filter_alt</span>
+                                        <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
                                         <input 
                                             type="text"
-                                            placeholder="Tabloda ara..."
+                                            placeholder={L('searchTablePlaceholder')}
                                             value={favoriteSearchQuery}
                                             onChange={(e) => setFavoriteSearchQuery(e.target.value)}
-                                            className="h-9 w-40 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 text-xs font-semibold outline-none focus:border-primary transition-colors"
+                                            className="w-40 sm:w-48 pl-9 pr-3 py-2 border border-solid border-slate-200 dark:border-slate-800 rounded-lg text-xs font-semibold bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-primary transition-colors"
                                         />
                                     </div>
 
                                     <select 
                                         value={favoriteStatusFilter} 
                                         onChange={(e) => setFavoriteStatusFilter(e.target.value)}
-                                        className="h-9 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none cursor-pointer"
+                                        className="px-3 py-2 border border-solid border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-primary transition-colors cursor-pointer"
                                     >
-                                        <option value="">Tüm Durumlar</option>
-                                        <option value="ACTIVE">Aktif</option>
-                                        <option value="PASSIVE">Pasif</option>
+                                        <option value="">{L('allStatuses')}</option>
+                                        <option value="ACTIVE">{L('statusActive')}</option>
+                                        <option value="PASSIVE">{L('statusPassive')}</option>
                                     </select>
 
                                     <button 
                                         onClick={() => fetchFavoriteHotels(favoritePage)} 
-                                        className={`size-9 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 transition-all text-slate-500 ${favoriteLoading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}
-                                        title="Yenile"
+                                        className={`flex items-center gap-1.5 px-3 py-2 border border-solid border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 rounded-lg text-xs font-bold bg-white dark:bg-slate-950 active:scale-95 transition-all focus:outline-none ${favoriteLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                                        title={L('refreshTooltip')}
                                     >
-                                        <span className="material-icons-round text-base">refresh</span>
+                                        <span className={`material-symbols-outlined text-[18px] leading-none ${favoriteLoading ? 'animate-spin' : ''}`}>refresh</span>
                                     </button>
                                 </div>
                             </div>
 
+                            {/* Status Sub-Header Bar */}
+                            <div className="px-4 py-2 bg-slate-50/50 dark:bg-slate-850/20 border-t border-b border-solid border-slate-200/50 dark:border-slate-800/50 flex justify-between items-center select-none shrink-0">
+                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                    <span className="material-icons-round text-base select-none">analytics</span>
+                                    <span className="text-[11px] font-bold">
+                                        {favoriteTotalElements} {L('totalRecords')}
+                                    </span>
+                                </div>
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium italic">
+                                    Favorite Hotels Console
+                                </span>
+                            </div>
+
                             {/* Favorite Hotels Table Body */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10">
-                                <table className="w-full data-table">
+                            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-10">
+                                <table className="data-table">
                                     <thead>
                                         <tr>
-                                            <th>Otel Bilgisi</th>
-                                            <th>Kullanıcı (User Email)</th>
-                                            <th>Konum & Yıldız</th>
-                                            <th>Eklenme / Güncelleme</th>
-                                            <th>Status</th>
-                                            <th className="text-right">Aksiyonlar</th>
+                                            <th>ID</th>
+                                            <th>{L('colHotelInfo')}</th>
+                                            <th>{L('colUserEmail')}</th>
+                                            <th>{L('colLocationStars')}</th>
+                                            <th>{L('colDateAdded')}</th>
+                                            <th>{L('status')}</th>
+                                            <th className="text-right">{L('colActions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {favoriteLoading ? (
-                                            <TableSkeleton columns={6} />
+                                            <TableSkeleton columns={7} rows={favoritePageSize || 10} />
                                         ) : favoriteBackendItems.length > 0 ? (
-                                            favoriteBackendItems.map((fav) => (
-                                                <tr key={fav.id} className="data-row transition-colors">
+                                            favoriteBackendItems.map((fav, idx) => (
+                                                <tr 
+                                                    key={fav.id ? `fav-${fav.id}-${idx}` : `fav-${idx}`}
+                                                >
+                                                    {/* ID */}
+                                                    <td className="text-slate-400 font-semibold">#{fav.hotelId}</td>
+
                                                     {/* Hotel Info */}
                                                     <td>
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="size-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary font-bold overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="size-7 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-primary flex items-center justify-center font-bold text-xs flex-shrink-0 overflow-hidden">
                                                                 {fav.imageUrl ? (
                                                                     <img src={fav.imageUrl} alt={fav.hotelName} className="w-full h-full object-cover" />
                                                                 ) : (
-                                                                    <span className="material-symbols-outlined text-xl">hotel</span>
+                                                                    <span className="material-symbols-outlined text-base">hotel</span>
                                                                 )}
                                                             </div>
                                                             <div>
-                                                                <p className="font-bold text-slate-900 dark:text-white leading-none mb-1 hover:text-primary cursor-pointer transition-colors" onClick={() => navigate(`/hotel/${fav.hotelId}`)}>
+                                                                <span className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors cursor-pointer" onClick={() => navigate(`/hotel/${fav.hotelId}`)}>
                                                                     {fav.hotelName}
-                                                                </p>
-                                                                <p className="text-[10px] text-slate-400 font-semibold uppercase">
-                                                                    ID: {fav.hotelId}
-                                                                </p>
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </td>
 
                                                     {/* User Email */}
                                                     <td>
-                                                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                                            <span className="material-icons-round text-sm text-slate-400">person</span>
-                                                            <span>{fav.userEmail}</span>
-                                                        </div>
+                                                        <span className="font-semibold text-slate-700 dark:text-slate-300">{fav.userEmail}</span>
                                                     </td>
 
                                                     {/* Location & Stars */}
@@ -1319,21 +1380,19 @@ const MyOffice = () => {
                                                             </p>
                                                             <div className="flex items-center gap-0.5 text-amber-400 mt-0.5">
                                                                 {[...Array(fav.stars || 4)].map((_, i) => (
-                                                                    <span key={i} className="material-symbols-outlined text-[10px] fill-1">star</span>
+                                                                    <span key={`star-${fav.id || idx}-${i}`} className="material-symbols-outlined text-[10px] fill-1">star</span>
                                                                 ))}
                                                             </div>
                                                         </div>
                                                     </td>
 
                                                     {/* Date */}
-                                                    <td>
-                                                        <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                                            {fav.updateDateTime ? new Date(fav.updateDateTime).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}
-                                                        </div>
+                                                    <td className="font-semibold text-slate-600 dark:text-slate-300">
+                                                        {formatDateTime(fav.updateDateTime || fav.createDateTime)}
                                                     </td>
 
-                                                    {/* Status Toggle Switch */}
-                                                    <td>
+                                                    {/* Status Switch */}
+                                                    <td onClick={(e) => e.stopPropagation()}>
                                                         <div className="flex items-center gap-2">
                                                             <button 
                                                                 type="button" 
@@ -1344,25 +1403,25 @@ const MyOffice = () => {
                                                                 <span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${fav.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} />
                                                             </button>
                                                             <span className={`text-xs font-semibold ${fav.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                                                                {fav.status === 'ACTIVE' ? 'Active' : 'Passive'}
+                                                                {fav.status === 'ACTIVE' ? L('statusActive') : L('statusPassive')}
                                                             </span>
                                                         </div>
                                                     </td>
 
                                                     {/* Actions */}
-                                                    <td className="text-right">
-                                                        <div className="flex items-center justify-end gap-1.5">
+                                                    <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                                                        <div className="flex items-center justify-end gap-0.5">
                                                             <button 
                                                                 onClick={() => navigate(`/hotel/${fav.hotelId}`)}
-                                                                className="size-8 rounded-lg bg-slate-100 hover:bg-primary hover:text-white dark:bg-slate-800 dark:hover:bg-primary transition-all flex items-center justify-center text-slate-500"
-                                                                title="Detayı Görüntüle"
+                                                                className="size-7 rounded-lg text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
+                                                                title={L('viewHotelDetail')}
                                                             >
                                                                 <span className="material-icons-round text-base">visibility</span>
                                                             </button>
                                                             <button 
                                                                 onClick={() => handleDeleteFavoriteItem(fav)}
-                                                                className="size-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white dark:bg-red-950/30 dark:hover:bg-red-600 transition-all flex items-center justify-center"
-                                                                title="Favoriden Sil"
+                                                                className="size-7 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors flex items-center justify-center"
+                                                                title={L('removeFromFavorites')}
                                                             >
                                                                 <span className="material-icons-round text-base">delete_outline</span>
                                                             </button>
@@ -1372,8 +1431,8 @@ const MyOffice = () => {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan="6" className="py-12 text-center">
-                                                    <p className="text-slate-400 text-xs font-semibold italic">Henüz favori otel kaydı bulunmamaktadır.</p>
+                                                <td colSpan="7" className="py-12 text-center text-slate-400 text-xs font-semibold italic">
+                                                    {L('noFavoritesFound')}
                                                 </td>
                                             </tr>
                                         )}
@@ -1381,43 +1440,72 @@ const MyOffice = () => {
                                 </table>
                             </div>
 
-                            {/* Pagination Controls */}
-                            {favoriteTotalPages > 1 && (
-                                <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 relative z-20">
-                                    <div>
-                                        Toplam <strong>{favoriteTotalElements}</strong> kayıttan Sayfa <strong>{favoritePage + 1}</strong> / <strong>{favoriteTotalPages}</strong>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <button 
-                                            disabled={favoritePage === 0}
-                                            onClick={() => fetchFavoriteHotels(favoritePage - 1)}
-                                            className="px-3 h-8 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-semibold"
-                                        >
-                                            Önceki
-                                        </button>
-                                        <button 
-                                            disabled={favoritePage >= favoriteTotalPages - 1}
-                                            onClick={() => fetchFavoriteHotels(favoritePage + 1)}
-                                            className="px-3 h-8 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-semibold"
-                                        >
-                                            Sonraki
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
+                            {/* Standard Pagination Bar */}
+                            <Pagination 
+                                currentPage={favoritePage}
+                                totalPages={favoriteTotalPages}
+                                pageSize={favoritePageSize}
+                                totalElements={favoriteTotalElements}
+                                onPageChange={(p) => fetchFavoriteHotels(p, favoritePageSize)}
+                                onPageSizeChange={(s) => {
+                                    setFavoritePageSize(s);
+                                    fetchFavoriteHotels(0, s);
+                                }}
+                            />
                         </div>
                     ) : null}
                     </div>
                 </div>
             </main>
 
-            {/* Confirmation Modal */}
+            {/* Redesigned Clean Confirmation Modal */}
             {confirmModal.show && (
                 <div className="fixed inset-0 z-[30000] flex items-center justify-center p-4">
-                    <div className="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setConfirmModal({ ...confirmModal, show: false })}></div>
-                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-sm rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-8 text-center"><div className={`size-16 rounded-3xl flex items-center justify-center mx-auto mb-6 ${confirmModal.type === 'danger' ? 'bg-red-50 text-red-500 dark:bg-red-900/20' : 'bg-primary/10 text-primary'}`}><span className="material-icons-round text-3xl">{confirmModal.type === 'danger' ? 'delete_forever' : 'help_outline'}</span></div><h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{confirmModal.title}</h3><p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{confirmModal.message}</p></div>
-                        <div className="p-6 bg-slate-50 dark:bg-slate-800/50 flex gap-3"><button onClick={() => setConfirmModal({ ...confirmModal, show: false })} className="flex-1 h-12 rounded-2xl text-sm font-bold text-slate-500 hover:bg-white dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700">Cancel</button><button onClick={() => { confirmModal.onConfirm(); setConfirmModal({ ...confirmModal, show: false }); }} className={`flex-1 h-12 rounded-2xl text-sm font-bold text-white shadow-lg transition-all active:scale-95 ${confirmModal.type === 'danger' ? 'bg-red-500 shadow-red-500/20 hover:bg-red-600' : 'bg-primary shadow-primary/20'}`}>Confirm</button></div>
+                    <div 
+                        className="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity animate-in fade-in-50" 
+                        onClick={() => setConfirmModal({ ...confirmModal, show: false })}
+                    ></div>
+                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-sm rounded-[28px] shadow-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 animate-in zoom-in-95 duration-200 p-6 text-center">
+                        {/* Icon Badge */}
+                        <div className={`size-14 rounded-2xl flex items-center justify-center mx-auto mb-4 ${
+                            confirmModal.type === 'danger' 
+                                ? 'bg-red-500/10 text-red-500 ring-8 ring-red-500/5' 
+                                : 'bg-primary/10 text-primary ring-8 ring-primary/5'
+                        }`}>
+                            <span className="material-icons-round text-2xl">
+                                {confirmModal.type === 'danger' ? 'delete_outline' : 'help_outline'}
+                            </span>
+                        </div>
+
+                        {/* Title & Message */}
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">
+                            {confirmModal.title}
+                        </h3>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+                            {confirmModal.message}
+                        </p>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2.5">
+                            <button 
+                                type="button"
+                                onClick={() => setConfirmModal({ ...confirmModal, show: false })} 
+                                className="flex-1 h-10 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-all"
+                            >
+                                {L('cancel')}
+                            </button>
+                            <button 
+                                type="button"
+                                onClick={() => { confirmModal.onConfirm(); setConfirmModal({ ...confirmModal, show: false }); }} 
+                                className={`flex-1 h-10 rounded-xl text-xs font-bold text-white shadow-md transition-all active:scale-95 ${
+                                    confirmModal.type === 'danger' 
+                                        ? 'bg-red-500 shadow-red-500/20 hover:bg-red-600' 
+                                        : 'bg-primary shadow-primary/20 hover:bg-primary/90'
+                                }`}
+                            >
+                                {L('confirm')}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

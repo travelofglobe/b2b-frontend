@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
 import Tooltip from '../components/Tooltip';
+import { useFavorites } from '../context/FavoritesContext';
 
 const starSuffixes = {
     en: { star: 'Star', stars: 'Stars' },
@@ -23,6 +24,9 @@ const starSuffixes = {
 const HotelCard = ({ hotel, viewMode = 'list' }) => {
     const { i18n } = useTranslation();
     const currentLang = i18n.language || 'tr';
+    const { isFavorite, toggleFavorite } = useFavorites();
+    const hotelId = hotel.hotelId || hotel.id;
+    const isFav = isFavorite(hotelId);
 
     const getStarLabel = () => {
         if (!hotel.stars) return hotel.type || 'Hotel';
@@ -73,7 +77,7 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
     const handleFavorite = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        // favorite logic here
+        toggleFavorite(hotel);
     };
 
     const getCurrencySymbol = (code) => {
@@ -163,9 +167,12 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                 </div>
                 <button
                     onClick={handleFavorite}
-                    className="absolute top-2.5 right-2.5 z-10 size-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-slate-900 shadow-xs hover:text-red-500 transition-all"
+                    title={isFav ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                    className={`absolute top-2.5 right-2.5 z-10 size-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-xs transition-all ${
+                        isFav ? 'text-red-500 hover:scale-110' : 'text-slate-700 dark:text-slate-200 hover:text-red-500 hover:scale-110'
+                    }`}
                 >
-                    <span className="material-symbols-outlined text-base">favorite</span>
+                    <span className={`material-symbols-outlined text-base ${isFav ? 'fill-1' : ''}`}>favorite</span>
                 </button>
             </div>
             <div className="p-4 sm:p-4.5 flex-1 flex flex-col justify-between">

@@ -14,6 +14,7 @@ import { useToast } from '../context/ToastContext';
 import { parseGuestsParam, serializeGuestsParam, validateAndSanitizeDates } from '../utils/searchParamsUtils';
 import { getBoardTypeLabel, getBoardTypeDescription, BOARD_TYPES } from '../utils/boardTypeUtils';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
+import { useFavorites } from '../context/FavoritesContext';
 import { FACILITY_ICON_MAP } from './MapView';
 import Tooltip from '../components/Tooltip';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
@@ -1268,15 +1269,36 @@ const HotelDetail = () => {
     const [selectedRooms, setSelectedRooms] = useState([]);
     const [isCheckingRates, setIsCheckingRates] = useState(false);
 
-    // -- Local Filters --
+    // -- Favorites Integration --
+    const { isFavorite, toggleFavorite } = useFavorites();
     const [boardTypeFilter, setBoardTypeFilter] = useState('ALL');
     const [cancelFilter, setCancelFilter] = useState('ALL');
     const [expandedRates, setExpandedRates] = useState({}); // { roomKey: boolean }
     const [isMapModalOpen, setIsMapModalOpen] = useState(false);
-    const [isLiked, setIsLiked] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     const hotel = dynamicHotel || {};
+    const currentHotelId = hotel.hotelId || hotel.id || slug;
+    const isLiked = isFavorite(currentHotelId);
+
+    const handleFavoriteToggle = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        toggleFavorite({
+            hotelId: currentHotelId,
+            id: currentHotelId,
+            name: hotel.name || hotel.hotelName || 'Hotel',
+            stars: hotel.stars || hotel.hotelStar?.star || 5,
+            city: hotel.city || hotel.locationPathNames?.split(',')?.[0]?.trim() || '',
+            country: hotel.country || hotel.locationPathNames?.split(',')?.slice(-1)?.[0]?.trim() || '',
+            location: hotel.location || hotel.locationPathNames || '',
+            supplier: hotel.supplier || hotel.provider || 'Hotel Hub',
+            image: hotel.image || images?.[0] || '',
+            images: images || []
+        });
+    };
 
     // Grouping rooms by name/type
     const groupedRooms = React.useMemo(() => {
@@ -1725,8 +1747,9 @@ const HotelDetail = () => {
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 mr-4">
                             <button
-                                onClick={() => setIsLiked(!isLiked)}
-                                className={`size-10 rounded-xl flex items-center justify-center transition-all ${isLiked ? 'bg-red-50 text-red-500 border-red-100 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:text-red-500'} border shadow-sm active:scale-90`}
+                                onClick={handleFavoriteToggle}
+                                title={isLiked ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                                className={`size-10 rounded-xl flex items-center justify-center transition-all ${isLiked ? 'bg-red-50 dark:bg-red-950/30 text-red-500 border-red-200 dark:border-red-800 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:text-red-500'} border shadow-sm active:scale-90`}
                             >
                                 <span className={`material-symbols-outlined text-xl ${isLiked ? 'fill-1' : ''}`}>favorite</span>
                             </button>
@@ -1767,7 +1790,13 @@ const HotelDetail = () => {
                     <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 cursor-pointer" onClick={() => openLightbox(1, images)}>
                         <img className="w-full h-full object-cover transition-all duration-700 hover:scale-105" src={images[1] || images[0]} alt="" />
                         <div className="absolute top-4 right-4 flex gap-2 translate-y-2 opacity-0 group-hover/gallery:translate-y-0 group-hover/gallery:opacity-100 transition-all duration-500">
-                            <button className="size-9 rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md flex items-center justify-center text-slate-800 dark:text-white shadow-xl hover:text-red-500 transition-colors" onClick={(e) => e.stopPropagation()}><span className="material-symbols-outlined text-xl">favorite</span></button>
+                            <button
+                                className={`size-9 rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md flex items-center justify-center shadow-xl transition-colors ${isLiked ? 'text-red-500' : 'text-slate-800 dark:text-white hover:text-red-500'}`}
+                                onClick={handleFavoriteToggle}
+                                title={isLiked ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                            >
+                                <span className={`material-symbols-outlined text-xl ${isLiked ? 'fill-1' : ''}`}>favorite</span>
+                            </button>
                             <button className="size-9 rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md flex items-center justify-center text-slate-800 dark:text-white shadow-xl hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}><span className="material-symbols-outlined text-xl">share</span></button>
                         </div>
                     </div>

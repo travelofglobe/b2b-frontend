@@ -32,6 +32,7 @@ const CheckoutResult = () => {
     const [currentLang, setCurrentLang] = useState(() => (i18n.language || localStorage.getItem('i18nextLng') || 'en').split('-')[0].toLowerCase());
     
     useEffect(() => {
+        window.scrollTo(0, 0);
         const handler = (lng) => setCurrentLang((lng || 'en').split('-')[0].toLowerCase());
         i18n.on('languageChanged', handler);
         return () => i18n.off('languageChanged', handler);

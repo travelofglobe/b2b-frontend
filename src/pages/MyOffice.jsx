@@ -1127,10 +1127,18 @@ const MyOffice = () => {
                                         </div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                        <table className="w-full data-table">
-                                            <thead><tr><th>User</th><th>Contact</th><th>Role</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
-                                            <tbody>
-                                                {usersLoading ? <TableSkeleton columns={5} /> : users.length > 0 ? users.map((u) => (<tr key={u.id} className="data-row transition-colors"><td><div className="flex items-center gap-2.5"><div className="size-8 rounded-full flex items-center justify-center text-white font-semibold text-[11px] shadow-xs bg-gradient-to-br from-primary to-blue-600 shrink-0">{u.name?.[0]}{u.surname?.[0]}</div><div><p className="font-semibold text-slate-900 dark:text-white leading-none mb-0.5">{u.name} {u.surname}</p><p className="text-[9px] text-slate-400 font-semibold uppercase">ID: {u.id}</p></div></div></td><td><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {u.email}</div>{u.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{u.phoneCountryCode} {u.phoneNumber}</div>}</div></td><td><div className="flex flex-wrap gap-1">{u.roles?.length > 0 ? u.roles.map((r, idx) => (<span key={r.id || idx} className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-primary text-[10px] font-semibold rounded-md">{r.roleName || r.name}</span>)) : <span className="text-slate-400 text-[10px] italic">No Role</span>}</div></td><td><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleUserStatus(u)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={u.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${u.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-xs font-semibold ${u.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{u.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditUser(u)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteUser(u.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>)) : (<tr><td colSpan="5" className="py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No users found</p></td></tr>)}
+                                        <table className="w-full text-left border-collapse">
+                                            <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700/80 sticky top-0 z-10 backdrop-blur-md">
+                                                <tr>
+                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colUser')}</th>
+                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colContact')}</th>
+                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colRole')}</th>
+                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colStatus')}</th>
+                                                    <th className="px-3.5 py-3 text-right text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colActions')}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                                                {usersLoading ? <TableSkeleton columns={5} /> : users.length > 0 ? users.map((u) => (<tr key={u.id} className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 text-xs font-medium"><td className="px-3.5 py-2.5"><div className="flex items-center gap-2.5"><div className="size-8 rounded-full flex items-center justify-center text-white font-medium text-[11px] shadow-xs bg-gradient-to-br from-primary to-blue-600 shrink-0">{u.name?.[0]}{u.surname?.[0]}</div><div><p className="font-medium text-slate-800 dark:text-slate-200 leading-none mb-0.5">{u.name} {u.surname}</p><p className="text-[9px] text-slate-400 font-mono">ID: {u.id}</p></div></div></td><td className="px-3.5 py-2.5"><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {u.email}</div>{u.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{u.phoneCountryCode} {u.phoneNumber}</div>}</div></td><td className="px-3.5 py-2.5"><div className="flex flex-wrap gap-1">{u.roles?.length > 0 ? u.roles.map((r, idx) => (<span key={r.id || idx} className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-primary text-[10px] font-medium rounded-md">{r.roleName || r.name}</span>)) : <span className="text-slate-400 text-[10px] italic">No Role</span>}</div></td><td className="px-3.5 py-2.5"><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleUserStatus(u)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={u.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${u.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-xs font-medium ${u.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{u.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="px-3.5 py-2.5 text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditUser(u)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteUser(u.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>)) : (<tr><td colSpan="5" className="px-4 py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No users found</p></td></tr>)}
                                             </tbody>
                                         </table>
                                     </div>
@@ -1203,12 +1211,21 @@ const MyOffice = () => {
                                         </div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                        <table className="w-full data-table">
-                                            <thead><tr><th>Guest</th><th>Birth & Country</th><th>Passport</th><th>Contact</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
-                                            <tbody>
+                                        <table className="w-full text-left border-collapse">
+                                            <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700/80 sticky top-0 z-10 backdrop-blur-md">
+                                                <tr>
+                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colGuest')}</th>
+                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colBirth')}</th>
+                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colPassport')}</th>
+                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colContact')}</th>
+                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colStatus')}</th>
+                                                    <th className="px-3.5 py-3 text-right text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colActions')}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                                                 {guestsLoading ? <TableSkeleton columns={6} /> : guests.length > 0 ? guests.map((g) => (
-                                                    <tr key={g.id} className="data-row transition-colors"><td><div className="flex items-center gap-2.5"><div className="size-8 rounded-full flex items-center justify-center text-white font-semibold text-[11px] shadow-xs bg-gradient-to-br from-primary to-blue-600 shrink-0">{g.firstName?.[0]}{g.lastName?.[0]}</div><div><p className="font-semibold text-slate-900 dark:text-white leading-none mb-0.5">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p><p className="text-[9px] text-slate-400 font-semibold uppercase">ID: {g.id}</p></div></div></td><td><div className="flex items-center gap-2"><div className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-semibold text-slate-500">{g.country || 'N/A'}</div><div><p className="text-xs font-semibold text-slate-600 dark:text-slate-300">{getCountryName(countries, g.country, currentLang)}</p><p className="text-[10px] text-slate-400">Born: {g.birthDate || 'Unknown'}</p></div></div></td><td><div className="flex items-center gap-1.5"><div className="size-5 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-xs">badge</span></div><div><p className="text-xs font-semibold text-slate-900 dark:text-white">{g.passportNo || 'N/A'}</p><p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p></div></div></td><td><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {g.email}</div>{g.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}</div></td><td><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleGuestStatus(g)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={g.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${g.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-xs font-semibold ${g.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditGuest(g)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteGuest(g.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>
-                                                )) : (<tr><td colSpan="6" className="py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No guests found</p></td></tr>)}
+                                                    <tr key={g.id} className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 text-xs font-medium"><td className="px-3.5 py-2.5"><div className="flex items-center gap-2.5"><div className="size-8 rounded-full flex items-center justify-center text-white font-medium text-[11px] shadow-xs bg-gradient-to-br from-primary to-blue-600 shrink-0">{g.firstName?.[0]}{g.lastName?.[0]}</div><div><p className="font-medium text-slate-800 dark:text-slate-200 leading-none mb-0.5">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p><p className="text-[9px] text-slate-400 font-mono">ID: {g.id}</p></div></div></td><td className="px-3.5 py-2.5"><div className="flex items-center gap-2"><div className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-medium text-slate-500">{g.country || 'N/A'}</div><div><p className="text-xs font-medium text-slate-600 dark:text-slate-300">{getCountryName(countries, g.country, currentLang)}</p><p className="text-[10px] text-slate-400">Born: {g.birthDate || 'Unknown'}</p></div></div></td><td className="px-3.5 py-2.5"><div className="flex items-center gap-1.5"><div className="size-5 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-xs">badge</span></div><div><p className="text-xs font-medium text-slate-800 dark:text-slate-200">{g.passportNo || 'N/A'}</p><p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p></div></div></td><td className="px-3.5 py-2.5"><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {g.email}</div>{g.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}</div></td><td className="px-3.5 py-2.5"><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleGuestStatus(g)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={g.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${g.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-xs font-medium ${g.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="px-3.5 py-2.5 text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditGuest(g)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteGuest(g.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>
+                                                )) : (<tr><td colSpan="6" className="px-4 py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No guests found</p></td></tr>)}
                                             </tbody>
                                         </table>
                                     </div>
@@ -1326,56 +1343,53 @@ const MyOffice = () => {
 
                             {/* Favorite Hotels Table Body */}
                             <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-10">
-                                <table className="data-table">
-                                    <thead>
+                                <table className="w-full text-left border-collapse">
+                                    <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700/80 sticky top-0 z-10 backdrop-blur-md">
                                         <tr>
-                                            <th>ID</th>
-                                            <th>{L('colHotelInfo')}</th>
-                                            <th>{L('colUserEmail')}</th>
-                                            <th>{L('colLocationStars')}</th>
-                                            <th>{L('colDateAdded')}</th>
-                                            <th>{L('status')}</th>
-                                            <th className="text-right">{L('colActions')}</th>
+                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[80px]">ID</th>
+                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[240px]">{L('colHotelInfo')}</th>
+                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px]">{L('colLocationStars')}</th>
+                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">{L('colDateAdded')}</th>
+                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[120px]">{L('status')}</th>
+                                            <th className="px-3.5 py-3 text-right text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">{L('colActions')}</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                                         {favoriteLoading ? (
-                                            <TableSkeleton columns={7} rows={favoritePageSize || 10} />
+                                            <TableSkeleton columns={6} rows={favoritePageSize || 10} />
                                         ) : favoriteBackendItems.length > 0 ? (
                                             favoriteBackendItems.map((fav, idx) => (
                                                 <tr 
                                                     key={fav.id ? `fav-${fav.id}-${idx}` : `fav-${idx}`}
+                                                    className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 text-xs font-medium"
                                                 >
                                                     {/* ID */}
-                                                    <td className="text-slate-400 font-semibold">#{fav.hotelId}</td>
+                                                    <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[10px] font-mono">#{fav.hotelId}</td>
 
                                                     {/* Hotel Info */}
-                                                    <td>
+                                                    <td className="px-3.5 py-2.5">
                                                         <div className="flex items-center gap-2.5">
-                                                            <div className="size-7 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-primary flex items-center justify-center font-bold text-xs flex-shrink-0 overflow-hidden">
+                                                            <div className="size-7 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-primary flex items-center justify-center font-medium text-xs flex-shrink-0 overflow-hidden">
                                                                 {fav.imageUrl ? (
                                                                     <img src={fav.imageUrl} alt={fav.hotelName} className="w-full h-full object-cover" />
                                                                 ) : (
                                                                     <span className="material-symbols-outlined text-base">hotel</span>
                                                                 )}
                                                             </div>
-                                                            <div>
-                                                                <span className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors cursor-pointer" onClick={() => navigate(`/hotel/${fav.hotelId}`)}>
-                                                                    {fav.hotelName}
-                                                                </span>
-                                                            </div>
+                                                            <span 
+                                                                className="font-medium text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors cursor-pointer text-xs truncate max-w-[280px]" 
+                                                                onClick={() => navigate(`/hotel/${fav.hotelId}`)}
+                                                                title={fav.hotelName}
+                                                            >
+                                                                {fav.hotelName}
+                                                            </span>
                                                         </div>
                                                     </td>
 
-                                                    {/* User Email */}
-                                                    <td>
-                                                        <span className="font-semibold text-slate-700 dark:text-slate-300">{fav.userEmail}</span>
-                                                    </td>
-
                                                     {/* Location & Stars */}
-                                                    <td>
+                                                    <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300">
                                                         <div>
-                                                            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                                            <p className="text-xs font-normal text-slate-600 dark:text-slate-300 flex items-center gap-1">
                                                                 <span className="material-icons-round text-xs text-primary">location_on</span>
                                                                 {fav.cityName || 'N/A'}
                                                             </p>
@@ -1388,7 +1402,7 @@ const MyOffice = () => {
                                                     </td>
 
                                                     {/* Audit Details Icon */}
-                                                    <td onClick={(e) => e.stopPropagation()}>
+                                                    <td className="px-3.5 py-2.5" onClick={(e) => e.stopPropagation()}>
                                                         <div 
                                                             className="inline-flex items-center cursor-pointer p-1"
                                                             onMouseEnter={(e) => {
@@ -1408,7 +1422,7 @@ const MyOffice = () => {
                                                     </td>
 
                                                     {/* Status Switch */}
-                                                    <td onClick={(e) => e.stopPropagation()}>
+                                                    <td className="px-3.5 py-2.5" onClick={(e) => e.stopPropagation()}>
                                                         <div className="flex items-center gap-2">
                                                             <button 
                                                                 type="button" 
@@ -1418,14 +1432,14 @@ const MyOffice = () => {
                                                             >
                                                                 <span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${fav.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} />
                                                             </button>
-                                                            <span className={`text-xs font-semibold ${fav.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                            <span className={`text-xs font-medium ${fav.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
                                                                 {fav.status === 'ACTIVE' ? L('statusActive') : L('statusPassive')}
                                                             </span>
                                                         </div>
                                                     </td>
 
                                                     {/* Actions */}
-                                                    <td className="text-right" onClick={(e) => e.stopPropagation()}>
+                                                    <td className="px-3.5 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
                                                         <div className="flex items-center justify-end gap-0.5">
                                                             <button 
                                                                 onClick={() => navigate(`/hotel/${fav.hotelId}`)}
@@ -1447,7 +1461,7 @@ const MyOffice = () => {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan="7" className="py-12 text-center text-slate-400 text-xs font-semibold italic">
+                                                <td colSpan="6" className="px-4 py-12 text-center text-slate-400 text-xs font-medium italic">
                                                     {L('noFavoritesFound')}
                                                 </td>
                                             </tr>

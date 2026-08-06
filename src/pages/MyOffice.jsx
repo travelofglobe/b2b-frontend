@@ -339,6 +339,8 @@ const MyOffice = () => {
     const [isExportingUserPdf, setIsExportingUserPdf] = useState(false);
     const [isExportingGuestExcel, setIsExportingGuestExcel] = useState(false);
     const [isExportingGuestPdf, setIsExportingGuestPdf] = useState(false);
+    const [isExportingFavExcel, setIsExportingFavExcel] = useState(false);
+    const [isExportingFavPdf, setIsExportingFavPdf] = useState(false);
 
     const [mapCenter, setMapCenter] = useState([36.6826845, 30.9089719]);
     const [zoom, setZoom] = useState(13);
@@ -1001,6 +1003,116 @@ const MyOffice = () => {
         }
     };
 
+    const fetchAllFilteredFavorites = async () => {
+        try {
+            const response = await favoriteService.getFavorites(0, 10000, favoriteSearchQuery, favoriteStatusFilter);
+            return response.content || response.favoriteHotels || response.items || [];
+        } catch (e) {
+            console.error("Failed to fetch all favorites for export", e);
+            return favoriteBackendItems;
+        }
+    };
+
+    const handleExportFavoritesExcel = async () => {
+        if (isExportingFavExcel || isExportingFavPdf) return;
+        setIsExportingFavExcel(true);
+        try {
+            const allFavs = await fetchAllFilteredFavorites();
+            if (!allFavs || allFavs.length === 0) {
+                showNotification(L('noFavoritesFound') || 'No favorite hotels to export.', 'error');
+                return;
+            }
+
+            const exportData = allFavs.map(f => ({
+                'Hotel ID': f.hotelId ?? '',
+                [L('hotelName') || 'Hotel Name']: f.hotelName || '-',
+                [L('locationLabel') || 'City']: f.cityName || '-',
+                [L('starsLabel') || 'Stars']: f.stars ?? '-',
+                [L('colStatus') || 'Status']: f.status === 'ACTIVE' ? L('active') : L('passive'),
+                [L('created') || 'Created By']: f.createdBy || '-',
+                [L('addedOn') || 'Created Date']: f.createdDate ? new Date(f.createdDate).toLocaleString() : '-'
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            worksheet['!cols'] = [
+                { wch: 12 },
+                { wch: 32 },
+                { wch: 20 },
+                { wch: 10 },
+                { wch: 12 },
+                { wch: 24 },
+                { wch: 20 }
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Favorites');
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `Favorite_Hotels_Report_${dateStr}.xlsx`);
+            showNotification(L('favoritesExported') || 'Favorite hotels exported successfully.');
+        } catch (err) {
+            console.error('Favorites Excel Export Error:', err);
+            showNotification('Failed to export Excel: ' + (err.message || err), 'error');
+        } finally {
+            setIsExportingFavExcel(false);
+        }
+    };
+
+    const handleExportFavoritesPdf = async () => {
+        if (isExportingFavExcel || isExportingFavPdf) return;
+        setIsExportingFavPdf(true);
+        try {
+            const allFavs = await fetchAllFilteredFavorites();
+            if (!allFavs || allFavs.length === 0) {
+                showNotification(L('noFavoritesFound') || 'No favorite hotels to export.', 'error');
+                return;
+            }
+
+            const { jsPDF } = await import('jspdf');
+            const autoTable = (await import('jspdf-autotable')).default;
+
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Travel of Globe - Favorite Hotels Report', 10, 12);
+
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100);
+            doc.text(`Generated: ${new Date().toLocaleString()}  |  Total Favorite Hotels: ${allFavs.length}`, 10, 17);
+
+            const headers = ['Hotel ID', L('hotelName') || 'Hotel Name', L('locationLabel') || 'City', L('starsLabel') || 'Stars', L('colStatus') || 'Status', L('created') || 'Created By', L('addedOn') || 'Created Date'];
+            const rows = allFavs.map(f => [
+                f.hotelId ?? '',
+                f.hotelName || '-',
+                f.cityName || '-',
+                f.stars ? `${f.stars} ★` : '-',
+                f.status === 'ACTIVE' ? L('active') : L('passive'),
+                f.createdBy || '-',
+                f.createdDate ? new Date(f.createdDate).toLocaleString() : '-'
+            ]);
+
+            autoTable(doc, {
+                startY: 21,
+                head: [headers],
+                body: rows,
+                theme: 'striped',
+                styles: { fontSize: 8, cellPadding: 2 },
+                headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' }
+            });
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            doc.save(`Favorite_Hotels_Report_${dateStr}.pdf`);
+            showNotification(L('favoritesExported') || 'Favorite hotels exported successfully.');
+        } catch (err) {
+            console.error('Favorites PDF Export Error:', err);
+            showNotification('Failed to export PDF: ' + (err.message || err), 'error');
+        } finally {
+            setIsExportingFavPdf(false);
+        }
+    };
+
     const openInMaps = () => { const addressStr = `${formData.address} ${formData.zipCode}`; const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressStr)}`; window.open(url, '_blank'); };
 
     if (loading) { return <div className="flex h-screen items-center justify-center bg-[#f8fafc] dark:bg-[#0f172a]"><div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>; }
@@ -1346,16 +1458,16 @@ const MyOffice = () => {
                                     <div className="flex-1 overflow-y-auto custom-scrollbar">
                                         <table className="w-full text-left border-collapse">
                                             <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700/80 sticky top-0 z-10 backdrop-blur-md">
-                                                <tr>
-                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colUser')}</th>
-                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colContact')}</th>
-                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colRole')}</th>
-                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colStatus')}</th>
-                                                    <th className="px-3.5 py-3 text-right text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colActions')}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                                                {usersLoading ? <TableSkeleton columns={5} /> : users.length > 0 ? users.map((u) => (<tr key={u.id} className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 text-xs font-medium"><td className="px-3.5 py-2.5"><div className="flex items-center gap-2.5"><div className="size-8 rounded-full flex items-center justify-center text-white font-medium text-[11px] shadow-xs bg-gradient-to-br from-primary to-blue-600 shrink-0">{u.name?.[0]}{u.surname?.[0]}</div><div><p className="font-medium text-slate-800 dark:text-slate-200 leading-none mb-0.5">{u.name} {u.surname}</p><p className="text-[9px] text-slate-400 font-mono">ID: {u.id}</p></div></div></td><td className="px-3.5 py-2.5"><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {u.email}</div>{u.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{u.phoneCountryCode} {u.phoneNumber}</div>}</div></td><td className="px-3.5 py-2.5"><div className="flex flex-wrap gap-1">{u.roles?.length > 0 ? u.roles.map((r, idx) => (<span key={r.id || idx} className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-primary text-[10px] font-medium rounded-md">{r.roleName || r.name}</span>)) : <span className="text-slate-400 text-[10px] italic">No Role</span>}</div></td><td className="px-3.5 py-2.5"><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleUserStatus(u)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={u.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${u.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-xs font-medium ${u.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{u.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="px-3.5 py-2.5 text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditUser(u)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteUser(u.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>)) : (<tr><td colSpan="5" className="px-4 py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No users found</p></td></tr>)}
+                                                 <tr>
+                                                     <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colUser')}</th>
+                                                     <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colContact')}</th>
+                                                     <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colRole')}</th>
+                                                     <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colStatus')}</th>
+                                                     <th className="px-3.5 py-3 text-right text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colActions')}</th>
+                                                 </tr>
+                                             </thead>
+                                             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                                                 {usersLoading ? <TableSkeleton columns={5} /> : users.length > 0 ? users.map((u) => (<tr key={u.id} className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 text-xs font-medium"><td className="px-3.5 py-2.5"><div className="flex items-center gap-2.5"><div className="size-9 rounded-xl flex items-center justify-center font-bold text-xs bg-violet-50 dark:bg-violet-950/50 text-violet-600 dark:text-violet-300 border border-violet-200/80 dark:border-violet-800/40 shadow-xs shrink-0 relative"><span className="uppercase">{u.name?.[0]}{u.surname?.[0]}</span><span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-violet-500 text-white flex items-center justify-center shadow-xs"><span className="material-icons-round text-[9px] leading-none">person</span></span></div><div><p className="font-medium text-slate-800 dark:text-slate-200 leading-none mb-0.5">{u.name} {u.surname}</p><p className="text-[9px] text-slate-400 font-mono">ID: {u.id}</p></div></div></td><td className="px-3.5 py-2.5"><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {u.email}</div>{u.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{u.phoneCountryCode} {u.phoneNumber}</div>}</div></td><td className="px-3.5 py-2.5"><div className="flex flex-wrap gap-1">{u.roles?.length > 0 ? u.roles.map((r, idx) => (<span key={r.id || idx} className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-primary text-[10px] font-medium rounded-md">{r.roleName || r.name}</span>)) : <span className="text-slate-400 text-[10px] italic">No Role</span>}</div></td><td className="px-3.5 py-2.5"><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleUserStatus(u)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={u.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${u.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-xs font-medium ${u.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{u.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="px-3.5 py-2.5 text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditUser(u)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteUser(u.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>)) : (<tr><td colSpan="5" className="px-4 py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No users found</p></td></tr>)}
                                             </tbody>
                                         </table>
                                     </div>
@@ -1476,8 +1588,71 @@ const MyOffice = () => {
                                             </thead>
                                             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                                                 {guestsLoading ? <TableSkeleton columns={6} /> : guests.length > 0 ? guests.map((g) => (
-                                                    <tr key={g.id} className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 text-xs font-medium"><td className="px-3.5 py-2.5"><div className="flex items-center gap-2.5"><div className="size-8 rounded-full flex items-center justify-center text-white font-medium text-[11px] shadow-xs bg-gradient-to-br from-primary to-blue-600 shrink-0">{g.firstName?.[0]}{g.lastName?.[0]}</div><div><p className="font-medium text-slate-800 dark:text-slate-200 leading-none mb-0.5">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p><p className="text-[9px] text-slate-400 font-mono">ID: {g.id}</p></div></div></td><td className="px-3.5 py-2.5"><div className="flex items-center gap-2"><div className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-medium text-slate-500">{g.country || 'N/A'}</div><div><p className="text-xs font-medium text-slate-600 dark:text-slate-300">{getCountryName(countries, g.country, currentLang)}</p><p className="text-[10px] text-slate-400">Born: {g.birthDate || 'Unknown'}</p></div></div></td><td className="px-3.5 py-2.5"><div className="flex items-center gap-1.5"><div className="size-5 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary"><span className="material-icons-round text-xs">badge</span></div><div><p className="text-xs font-medium text-slate-800 dark:text-slate-200">{g.passportNo || 'N/A'}</p><p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p></div></div></td><td className="px-3.5 py-2.5"><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {g.email}</div>{g.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}</div></td><td className="px-3.5 py-2.5"><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleGuestStatus(g)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={g.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${g.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-xs font-medium ${g.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="px-3.5 py-2.5 text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditGuest(g)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteGuest(g.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>
-                                                )) : (<tr><td colSpan="6" className="px-4 py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No guests found</p></td></tr>)}
+                                                    <tr key={g.id} className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 text-xs font-medium">
+                                                        <td className="px-3.5 py-2.5">
+                                                            <div className="flex items-center gap-2.5">
+                                                                <div className={`size-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs shrink-0 relative border transition-all ${g.gender === 'FEMALE' ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border-rose-200/80 dark:border-rose-800/40' : g.gender === 'MALE' ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-300 border-sky-200/80 dark:border-sky-800/40' : 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800/40'}`}>
+                                                                    <span className="uppercase">{g.firstName?.[0]}{g.lastName?.[0]}</span>
+                                                                    <span className={`absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full text-white flex items-center justify-center shadow-xs ${g.gender === 'FEMALE' ? 'bg-rose-500' : g.gender === 'MALE' ? 'bg-sky-500' : 'bg-indigo-500'}`}>
+                                                                        <span className="material-icons-round text-[9px] leading-none">{g.gender === 'FEMALE' ? 'female' : g.gender === 'MALE' ? 'male' : 'person'}</span>
+                                                                    </span>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-medium text-slate-800 dark:text-slate-200 leading-none mb-0.5">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p>
+                                                                    <p className="text-[9px] text-slate-400 font-mono">ID: {g.id}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-3.5 py-2.5">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-medium text-slate-500">{g.country || 'N/A'}</div>
+                                                                <div>
+                                                                    <p className="text-xs font-medium text-slate-600 dark:text-slate-300">{getCountryName(countries, g.country, currentLang)}</p>
+                                                                    <p className="text-[10px] text-slate-400">Born: {g.birthDate || 'Unknown'}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-3.5 py-2.5">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <div className="size-5 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary">
+                                                                    <span className="material-icons-round text-xs">badge</span>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-xs font-medium text-slate-800 dark:text-slate-200">{g.passportNo || 'N/A'}</p>
+                                                                    <p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-3.5 py-2.5">
+                                                            <div className="space-y-0.5">
+                                                                <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs">
+                                                                    <span className="material-icons-round text-xs text-slate-400">mail_outline</span> {g.email}
+                                                                </div>
+                                                                {g.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-3.5 py-2.5">
+                                                            <div className="flex items-center gap-2">
+                                                                <button type="button" onClick={() => handleToggleGuestStatus(g)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={g.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}>
+                                                                    <span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${g.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} />
+                                                                </button>
+                                                                <span className={`text-xs font-medium ${g.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-3.5 py-2.5 text-right">
+                                                            <div className="flex items-center justify-end gap-1">
+                                                                <button onClick={() => openEditGuest(g)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button>
+                                                                <button onClick={() => handleDeleteGuest(g.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )) : (
+                                                    <tr>
+                                                        <td colSpan="6" className="px-4 py-12 text-center">
+                                                            <p className="text-slate-400 text-xs font-medium italic">No guests found</p>
+                                                        </td>
+                                                    </tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
@@ -1570,12 +1745,41 @@ const MyOffice = () => {
                                         <option value="PASSIVE">{L('statusPassive')}</option>
                                     </select>
 
-                                    <button 
-                                        onClick={() => fetchFavoriteHotels(favoritePage)} 
-                                        className={`flex items-center gap-1.5 px-3 py-2 border border-solid border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 rounded-lg text-xs font-bold bg-white dark:bg-slate-950 active:scale-95 transition-all focus:outline-none ${favoriteLoading ? 'opacity-50 pointer-events-none' : ''}`}
-                                        title={L('refreshTooltip')}
+                                    <button
+                                        onClick={handleExportFavoritesExcel}
+                                        disabled={isExportingFavExcel || isExportingFavPdf || favoriteLoading}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                        title="Export all matching records to Excel"
                                     >
-                                        <span className={`material-symbols-outlined text-[18px] leading-none ${favoriteLoading ? 'animate-spin' : ''}`}>refresh</span>
+                                        {isExportingFavExcel ? (
+                                            <div className="size-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                        ) : (
+                                            <span className="material-icons-round text-base">grid_on</span>
+                                        )}
+                                        {isExportingFavExcel ? L('exporting') : L('exportExcel')}
+                                    </button>
+
+                                    <button
+                                        onClick={handleExportFavoritesPdf}
+                                        disabled={isExportingFavExcel || isExportingFavPdf || favoriteLoading}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 rounded-xl text-xs font-semibold text-rose-700 dark:text-rose-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                        title="Export all matching records to PDF"
+                                    >
+                                        {isExportingFavPdf ? (
+                                            <div className="size-3.5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
+                                        ) : (
+                                            <span className="material-icons-round text-base">picture_as_pdf</span>
+                                        )}
+                                        {isExportingFavPdf ? L('exporting') : L('exportPdf')}
+                                    </button>
+
+                                    <button
+                                        onClick={() => fetchFavoriteHotels(favoritePage)}
+                                        disabled={favoriteLoading}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                                    >
+                                        <span className={`material-icons-round text-base ${favoriteLoading ? 'animate-spin' : ''}`}>refresh</span>
+                                        {L('refresh')}
                                     </button>
                                 </div>
                             </div>

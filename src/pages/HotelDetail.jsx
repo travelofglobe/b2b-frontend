@@ -1435,29 +1435,36 @@ const HotelDetail = () => {
     }, [checkInDate, checkOutDate]);
 
     const toggleRoomSelection = (roomType, rate, roomName, fullRateData) => {
-        const isSelected = selectedRooms.some(r =>
-            (r.hubRateModel?.rateCode === fullRateData?.hubRateModel?.rateCode) ||
-            (r.type === roomType && r.name === roomName && r.rate === rate)
-        );
-
+        const rateCode = fullRateData?.hubRateModel?.rateCode || fullRateData?.rateCode;
         const maxAllowedRooms = Math.min(roomState.length || 1, 4);
 
-        if (!isSelected) {
-            // If single room search, selecting a new room rate replaces the current selection
-            if (maxAllowedRooms === 1) {
-                setSelectedRooms([{
-                    type: roomType,
-                    rate,
-                    name: roomName,
-                    currency: fullRateData?.currency || agencyCurrency || 'USD',
-                    hubRateModel: fullRateData?.hubRateModel,
-                    dailyPrices: fullRateData?.hubRateModel?.price?.dailyPrices || []
-                }]);
-                return;
-            }
+        // Single room search: selecting a room rate replaces current selection
+        if (maxAllowedRooms === 1) {
+            setSelectedRooms([{
+                type: roomType,
+                rate,
+                name: roomName,
+                currency: fullRateData?.currency || agencyCurrency || 'USD',
+                hubRateModel: fullRateData?.hubRateModel,
+                dailyPrices: fullRateData?.hubRateModel?.price?.dailyPrices || []
+            }]);
+            return;
+        }
 
-            // If multi-room search, enforce max selection limit equal to requested rooms count
-            if (selectedRooms.length >= maxAllowedRooms) {
+        // Multi-room search: check if this specific rate offer is already selected
+        const existingIndex = selectedRooms.findIndex(r =>
+            (rateCode && (r.hubRateModel?.rateCode === rateCode || r.rateCode === rateCode)) ||
+            (!rateCode && r.type === roomType && r.name === roomName && r.rate === rate)
+        );
+
+        // If selection is at maximum capacity
+        if (selectedRooms.length >= maxAllowedRooms) {
+            if (existingIndex > -1) {
+                // Remove one instance if user clicks an already selected option when list is full
+                setSelectedRooms(prev => prev.filter((_, i) => i !== existingIndex));
+                return;
+            } else {
+                // If list is full and user clicks an unselected option, show max rooms error
                 const errorTemplate = tLocal('maxRoomsSelectedError') || 'Aramanızda {{count}} oda belirttiniz. En fazla {{count}} oda seçebilirsiniz.';
                 const errorMsg = errorTemplate.replace(/\{\{count\}\}/g, maxAllowedRooms);
                 toastError(errorMsg);
@@ -1465,27 +1472,15 @@ const HotelDetail = () => {
             }
         }
 
-        setSelectedRooms(prev => {
-            const index = prev.findIndex(r =>
-                (r.hubRateModel?.rateCode === fullRateData?.hubRateModel?.rateCode) ||
-                (r.type === roomType && r.name === roomName && r.rate === rate)
-            );
-
-            if (index > -1) {
-                // Remove if already selected
-                return prev.filter((_, i) => i !== index);
-            } else {
-                // Add to selection
-                return [...prev, {
-                    type: roomType,
-                    rate,
-                    name: roomName,
-                    currency: fullRateData?.currency || agencyCurrency || 'USD',
-                    hubRateModel: fullRateData?.hubRateModel,
-                    dailyPrices: fullRateData?.hubRateModel?.price?.dailyPrices || []
-                }];
-            }
-        });
+        // If selection is below maximum capacity, add new room selection instance
+        setSelectedRooms(prev => [...prev, {
+            type: roomType,
+            rate,
+            name: roomName,
+            currency: fullRateData?.currency || agencyCurrency || 'USD',
+            hubRateModel: fullRateData?.hubRateModel,
+            dailyPrices: fullRateData?.hubRateModel?.price?.dailyPrices || []
+        }]);
     };
 
     // -- Handlers --

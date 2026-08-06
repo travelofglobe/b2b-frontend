@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { COMMON, getLang } from '../utils/sharedLocales';
+import * as XLSX from 'xlsx';
 
 const MO = {
-  en: { title: 'My Office Management', tabGeneral: 'General Information', tabUsers: 'Users', tabGuests: 'Guests', tabFavorites: 'Favorite Hotels', saveBtn: 'Save Office Profile', saving: 'Synchronizing...', agencyId: 'Agency Identity', baseLocation: 'Base Location', currency: 'Currency', integration: 'Integration', auditTimeline: 'Audit Timeline', created: 'Created', lastUpdate: 'Last Update', sec01: 'Section 01 / Identity', sec02: 'Section 02 / Contact', sec03: 'Section 03 / Geography', sec04: 'Section 04 / Finance', sec05: 'Section 05 / Settings', agencyName: 'Agency Name', officialTitle: 'Official Title', type: 'Type', language: 'Language', parentId: 'Parent ID', directEmail: 'Direct Email', phone: 'Phone Number', country: 'Country', city: 'City', streetAddress: 'Street Address', zipCode: 'Zip Code', taxOffice: 'Tax Office', taxNumber: 'Tax Number', accEmail: 'Accounting Email', accPhone: 'Accounting Phone', accCountry: 'Accounting Country', accCity: 'Accounting City', accAddress: 'Accounting Address', mainCurrency: 'Main Currency', integrationType: 'Integration Type', allowedSale: 'Allowed for Sale', bookingStatus: 'Booking status', selectTerritory: 'Select Territory', selectHub: 'Select Hub', commercialName: 'Commercial Name', legalTitle: 'Legal Title', totalUsers: 'Total Users', activeUsers: 'Active Users', passiveUsers: 'Passive Users', totalGuests: 'Total Guests', activeGuests: 'Active Guests', passiveGuests: 'Passive Guests', searchUsers: 'Search by name or email...', searchGuests: 'Search by name, email or passport...', searchFavorites: 'Search favorite hotels...', noFavoritesFound: 'No favorite hotels found.', removeFromFavorites: 'Remove', viewHotelDetail: 'View Detail', addedOn: 'Date Added', supplierLabel: 'Supplier', hotelName: 'Hotel Name', locationLabel: 'City / Country', starsLabel: 'Stars', allRoles: 'All Roles', allCountries: 'All Countries', active: 'Active', passive: 'Passive', export: 'Export', addUser: 'Add User', addGuest: 'Add Guest', editUser: 'Edit User', editGuest: 'Edit Guest', userInfo: 'Enter user information', guestInfo: 'Enter guest information', name: 'Name', surname: 'Surname', emailAddr: 'Email Address', password: 'Password', role: 'Role', status: 'Status', gender: 'Gender', firstName: 'First Name', lastName: 'Last Name', birthDate: 'Birth Date', passportNo: 'Passport No', passportExpiry: 'Passport Expiry', cancel: 'Cancel', saveUser: 'Save User', saveGuest: 'Save Guest', processing: 'Processing...', confirm: 'Confirm', colUser: 'User', colContact: 'Contact', colRole: 'Role', colStatus: 'Status', colActions: 'Actions', colGuest: 'Guest', colBirth: 'Birth & Country', colPassport: 'Passport', noUsers: 'No users found', noGuests: 'No guests found', deleteUser: 'Delete User', deleteUserMsg: 'This action cannot be undone. All access for this user will be revoked immediately.', deleteGuest: 'Delete Guest', deleteGuestMsg: 'Are you sure you want to remove this guest from your CRM?', profileUpdated: 'Agency profile updated successfully.', updateFailed: 'Update failed.', invalidEmail: 'Please enter a valid email address.', userUpdated: 'User updated successfully', userCreated: 'User created successfully', errorSavingUser: 'Error saving user', userDeleted: 'User deleted successfully', errorDeletingUser: 'Error deleting user', noUserExport: 'No user data to export.', usersExported: 'User list exported as CSV.', usersRefreshed: 'User list refreshed', guestUpdated: 'Guest updated successfully', guestCreated: 'Guest created successfully', errorSavingGuest: 'Error saving guest', guestDeleted: 'Guest deleted successfully', errorDeletingGuest: 'Error deleting guest', noGuestExport: 'No guest data to export.', guestsExported: 'Guest list exported as CSV.', guestsRefreshed: 'Guest list refreshed', searchAutocompletePlaceholder: 'Select & Add Hotel (Name or ID)...', searchTablePlaceholder: 'Search in table...', allStatuses: 'All Statuses', statusActive: 'Active', statusPassive: 'Passive', colHotelInfo: 'Hotel Information', colUserEmail: 'User Email', colLocationStars: 'Location & Rating', colDateAdded: 'Audit Info', addFavSuccess: 'Hotel added to favorites', addFavError: 'Error adding favorite', deleteFavTitle: 'Remove Favorite Hotel', deleteFavMsg: 'Are you sure you want to remove {{name}} from your favorites?', deleteFavSuccess: 'Favorite hotel removed', deleteFavError: 'Failed to remove favorite', addedBtn: 'Added', addBtn: 'Add', refreshTooltip: 'Refresh', totalRecords: 'Total', pageLabel: 'Page', prevBtn: 'Previous', nextBtn: 'Next' },
-  tr: { title: 'Ofis Yönetimi', tabGeneral: 'Genel Bilgiler', tabUsers: 'Kullanıcılar', tabGuests: 'Misafirler', tabFavorites: 'Favori Oteller', saveBtn: 'Ofis Profilini Kaydet', saving: 'Senkronize ediliyor...', agencyId: 'Acente Kimlik', baseLocation: 'Konum', currency: 'Para Birimi', integration: 'Entegrasyon', auditTimeline: 'Denetim Geçmişi', created: 'Oluşturuldu', lastUpdate: 'Son Güncelleme', sec01: 'Bölüm 01 / Kimlik', sec02: 'Bölüm 02 / İletişim', sec03: 'Bölüm 03 / Coğrafya', sec04: 'Bölüm 04 / Finans', sec05: 'Bölüm 05 / Ayarlar', agencyName: 'Acente Adı', officialTitle: 'Resmi Unvan', type: 'Tür', language: 'Dil', parentId: 'Üst ID', directEmail: 'E-posta', phone: 'Telefon', country: 'Ülke', city: 'Şehir', streetAddress: 'Adres', zipCode: 'Posta Kodu', taxOffice: 'Vergi Dairesi', taxNumber: 'Vergi No', accEmail: 'Muhasebe E-posta', accPhone: 'Muhasebe Telefon', accCountry: 'Muhasebe Ülke', accCity: 'Muhasebe Şehir', accAddress: 'Muhasebe Adres', mainCurrency: 'Ana Para Birimi', integrationType: 'Entegrasyon Türü', allowedSale: 'Satışa Açık', bookingStatus: 'Rezervasyon durumu', selectTerritory: 'Bölge Seçin', selectHub: 'Şehir Seçin', commercialName: 'Ticari Ad', legalTitle: 'Hukuki Unvan', totalUsers: 'Toplam Kullanıcı', activeUsers: 'Aktif Kullanıcı', passiveUsers: 'Pasif Kullanıcı', totalGuests: 'Toplam Misafir', activeGuests: 'Aktif Misafir', passiveGuests: 'Pasif Misafir', searchUsers: 'Ad veya e-posta ara...', searchGuests: 'Ad, e-posta veya pasaport ara...', searchFavorites: 'Favori otellerde ara...', noFavoritesFound: 'Henüz favorilere eklenmiş otel bulunmamaktadır.', removeFromFavorites: 'Favoriden Kaldır', viewHotelDetail: 'Detayları Görüntüle', addedOn: 'Favoriye Eklenme Tarihi', supplierLabel: 'Tedarikçi', hotelName: 'Otel Adı', locationLabel: 'Şehir / Ülke', starsLabel: 'Yıldız Bilgisi', allRoles: 'Tüm Roller', allCountries: 'Tüm Ülkeler', active: 'Aktif', passive: 'Pasif', export: 'Dışa Aktar', addUser: 'Kullanıcı Ekle', addGuest: 'Misafir Ekle', editUser: 'Kullanıcı Düzenle', editGuest: 'Misafir Düzenle', userInfo: 'Kullanıcı bilgilerini girin', guestInfo: 'Misafir bilgilerini girin', name: 'Ad', surname: 'Soyad', emailAddr: 'E-posta Adresi', password: 'Şifre', role: 'Rol', status: 'Durum', gender: 'Cinsiyet', firstName: 'Ad', lastName: 'Soyad', birthDate: 'Doğum Tarihi', passportNo: 'Pasaport No', passportExpiry: 'Pasaport Bitiş', cancel: 'İptal', saveUser: 'Kullanıcı Kaydet', saveGuest: 'Misafir Kaydet', processing: 'İşleniyor...', confirm: 'Onayla', colUser: 'Kullanıcı', colContact: 'İletişim', colRole: 'Rol', colStatus: 'Durum', colActions: 'İşlemler', colGuest: 'Misafir', colBirth: 'Doğum & Ülke', colPassport: 'Pasaport', noUsers: 'Kullanıcı bulunamadı', noGuests: 'Misafir bulunamadı', deleteUser: 'Kullanıcı Sil', deleteUserMsg: 'Bu işlem geri alınamaz.', deleteGuest: 'Misafir Sil', deleteGuestMsg: 'Bu misafiri CRM sisteminden silmek istediğinize emin misiniz?', profileUpdated: 'Acente profili başarıyla güncellendi.', updateFailed: 'Güncelleme başarısız.', invalidEmail: 'Geçerli bir e-posta adresi girin.', userUpdated: 'Kullanıcı başarıyla güncellendi', userCreated: 'Kullanıcı başarıyla oluşturuldu', errorSavingUser: 'Kullanıcı kaydedilemedi', userDeleted: 'Kullanıcı başarıyla silindi', errorDeletingUser: 'Kullanıcı silinemedi', noUserExport: 'Dışa aktarılacak kullanıcı yok.', usersExported: 'Kullanıcı listesi CSV olarak aktarıldı.', usersRefreshed: 'Kullanıcı listesi yenilendi', guestUpdated: 'Misafir başarıyla güncellendi', guestCreated: 'Misafir başarıyla oluşturuldu', errorSavingGuest: 'Misafir kaydedilemedi', guestDeleted: 'Misafir başarıyla silindi', errorDeletingGuest: 'Misafir silinemedi', noGuestExport: 'Dışa aktarılacak misafir yok.', guestsExported: 'Misafir listesi CSV olarak aktarıldı.', guestsRefreshed: 'Misafir listesi yenilendi', searchAutocompletePlaceholder: 'Sistemden Otel Seç & Favorilere Ekle (Ad veya ID)...', searchTablePlaceholder: 'Tabloda ara...', allStatuses: 'Tüm Durumlar', statusActive: 'Aktif', statusPassive: 'Pasif', colHotelInfo: 'Otel Bilgisi', colUserEmail: 'Kullanıcı (User Email)', colLocationStars: 'Konum & Yıldız', colDateAdded: 'Audit Bilgisi', addFavSuccess: 'Otel favorilere eklendi', addFavError: 'Favori ekleme hatası', deleteFavTitle: 'Favori Oteli Sil', deleteFavMsg: '{{name}} otelini favorilerinizden silmek istediğinize emin misiniz?', deleteFavSuccess: 'Favori otel silindi', deleteFavError: 'Silme işlemi başarısız', addedBtn: 'Eklendi', addBtn: 'Ekle', refreshTooltip: 'Yenile', totalRecords: 'Toplam', pageLabel: 'Sayfa', prevBtn: 'Önceki', nextBtn: 'Sonraki' },
+  en: { title: 'My Office Management', tabGeneral: 'General Information', tabUsers: 'Users', tabGuests: 'Guests', tabFavorites: 'Favorite Hotels', saveBtn: 'Save Office Profile', saving: 'Synchronizing...', agencyId: 'Agency Identity', baseLocation: 'Base Location', currency: 'Currency', integration: 'Integration', auditTimeline: 'Audit Timeline', created: 'Created', lastUpdate: 'Last Update', sec01: 'Section 01 / Identity', sec02: 'Section 02 / Contact', sec03: 'Section 03 / Geography', sec04: 'Section 04 / Finance', sec05: 'Section 05 / Settings', agencyName: 'Agency Name', officialTitle: 'Official Title', type: 'Type', language: 'Language', parentId: 'Parent ID', directEmail: 'Direct Email', phone: 'Phone Number', country: 'Country', city: 'City', streetAddress: 'Street Address', zipCode: 'Zip Code', taxOffice: 'Tax Office', taxNumber: 'Tax Number', accEmail: 'Accounting Email', accPhone: 'Accounting Phone', accCountry: 'Accounting Country', accCity: 'Accounting City', accAddress: 'Accounting Address', mainCurrency: 'Main Currency', integrationType: 'Integration Type', allowedSale: 'Allowed for Sale', bookingStatus: 'Booking status', selectTerritory: 'Select Territory', selectHub: 'Select Hub', commercialName: 'Commercial Name', legalTitle: 'Legal Title', totalUsers: 'Total Users', activeUsers: 'Active Users', passiveUsers: 'Passive Users', totalGuests: 'Total Guests', activeGuests: 'Active Guests', passiveGuests: 'Passive Guests', searchUsers: 'Search by name or email...', searchGuests: 'Search by name, email or passport...', searchFavorites: 'Search favorite hotels...', noFavoritesFound: 'No favorite hotels found.', removeFromFavorites: 'Remove', viewHotelDetail: 'View Detail', addedOn: 'Date Added', supplierLabel: 'Supplier', hotelName: 'Hotel Name', locationLabel: 'City / Country', starsLabel: 'Stars', allRoles: 'All Roles', allCountries: 'All Countries', active: 'Active', passive: 'Passive', export: 'Export', exportExcel: 'Export Excel', exportPdf: 'Export PDF', exporting: 'Exporting...', refresh: 'Refresh', addUser: 'Add User', addGuest: 'Add Guest', editUser: 'Edit User', editGuest: 'Edit Guest', userInfo: 'Enter user information', guestInfo: 'Enter guest information', name: 'Name', surname: 'Surname', emailAddr: 'Email Address', password: 'Password', role: 'Role', status: 'Status', gender: 'Gender', firstName: 'First Name', lastName: 'Last Name', birthDate: 'Birth Date', passportNo: 'Passport No', passportExpiry: 'Passport Expiry', cancel: 'Cancel', saveUser: 'Save User', saveGuest: 'Save Guest', processing: 'Processing...', confirm: 'Confirm', colUser: 'User', colContact: 'Contact', colRole: 'Role', colStatus: 'Status', colActions: 'Actions', colGuest: 'Guest', colBirth: 'Birth & Country', colPassport: 'Passport', noUsers: 'No users found', noGuests: 'No guests found', deleteUser: 'Delete User', deleteUserMsg: 'This action cannot be undone. All access for this user will be revoked immediately.', deleteGuest: 'Delete Guest', deleteGuestMsg: 'Are you sure you want to remove this guest from your CRM?', profileUpdated: 'Agency profile updated successfully.', updateFailed: 'Update failed.', invalidEmail: 'Please enter a valid email address.', userUpdated: 'User updated successfully', userCreated: 'User created successfully', errorSavingUser: 'Error saving user', userDeleted: 'User deleted successfully', errorDeletingUser: 'Error deleting user', noUserExport: 'No user data to export.', usersExported: 'User list exported successfully.', usersRefreshed: 'User list refreshed', guestUpdated: 'Guest updated successfully', guestCreated: 'Guest created successfully', errorSavingGuest: 'Error saving guest', guestDeleted: 'Guest deleted successfully', errorDeletingGuest: 'Error deleting guest', noGuestExport: 'No guest data to export.', guestsExported: 'Guest list exported successfully.', guestsRefreshed: 'Guest list refreshed', searchAutocompletePlaceholder: 'Select & Add Hotel (Name or ID)...', searchTablePlaceholder: 'Search in table...', allStatuses: 'All Statuses', statusActive: 'Active', statusPassive: 'Passive', colHotelInfo: 'Hotel Information', colUserEmail: 'User Email', colLocationStars: 'Location & Rating', colDateAdded: 'Audit Info', addFavSuccess: 'Hotel added to favorites', addFavError: 'Error adding favorite', deleteFavTitle: 'Remove Favorite Hotel', deleteFavMsg: 'Are you sure you want to remove {{name}} from your favorites?', deleteFavSuccess: 'Favorite hotel removed', deleteFavError: 'Failed to remove favorite', addedBtn: 'Added', addBtn: 'Add', refreshTooltip: 'Refresh', totalRecords: 'Total', pageLabel: 'Page', prevBtn: 'Previous', nextBtn: 'Next' },
+  tr: { title: 'Ofis Yönetimi', tabGeneral: 'Genel Bilgiler', tabUsers: 'Kullanıcılar', tabGuests: 'Misafirler', tabFavorites: 'Favori Oteller', saveBtn: 'Ofis Profilini Kaydet', saving: 'Senkronize ediliyor...', agencyId: 'Acente Kimlik', baseLocation: 'Konum', currency: 'Para Birimi', integration: 'Entegrasyon', auditTimeline: 'Denetim Geçmişi', created: 'Oluşturuldu', lastUpdate: 'Son Güncelleme', sec01: 'Bölüm 01 / Kimlik', sec02: 'Bölüm 02 / İletişim', sec03: 'Bölüm 03 / Coğrafya', sec04: 'Bölüm 04 / Finans', sec05: 'Bölüm 05 / Ayarlar', agencyName: 'Acente Adı', officialTitle: 'Resmi Unvan', type: 'Tür', language: 'Dil', parentId: 'Üst ID', directEmail: 'E-posta', phone: 'Telefon', country: 'Ülke', city: 'Şehir', streetAddress: 'Adres', zipCode: 'Posta Kodu', taxOffice: 'Vergi Dairesi', taxNumber: 'Vergi No', accEmail: 'Muhasebe E-posta', accPhone: 'Muhasebe Telefon', accCountry: 'Muhasebe Ülke', accCity: 'Muhasebe Şehir', accAddress: 'Muhasebe Adres', mainCurrency: 'Ana Para Birimi', integrationType: 'Entegrasyon Türü', allowedSale: 'Satışa Açık', bookingStatus: 'Rezervasyon durumu', selectTerritory: 'Bölge Seçin', selectHub: 'Şehir Seçin', commercialName: 'Ticari Ad', legalTitle: 'Hukuki Unvan', totalUsers: 'Toplam Kullanıcı', activeUsers: 'Aktif Kullanıcı', passiveUsers: 'Pasif Kullanıcı', totalGuests: 'Toplam Misafir', activeGuests: 'Aktif Misafir', passiveGuests: 'Pasif Misafir', searchUsers: 'Ad veya e-posta ara...', searchGuests: 'Ad, e-posta veya pasaport ara...', searchFavorites: 'Favori otellerde ara...', noFavoritesFound: 'Henüz favorilere eklenmiş otel bulunmamaktadır.', removeFromFavorites: 'Favoriden Kaldır', viewHotelDetail: 'Detayları Görüntüle', addedOn: 'Favoriye Eklenme Tarihi', supplierLabel: 'Tedarikçi', hotelName: 'Otel Adı', locationLabel: 'Şehir / Ülke', starsLabel: 'Yıldız Bilgisi', allRoles: 'Tüm Roller', allCountries: 'Tüm Ülkeler', active: 'Aktif', passive: 'Pasif', export: 'Dışa Aktar', exportExcel: 'Excel İndir', exportPdf: 'PDF İndir', exporting: 'İndiriliyor...', refresh: 'Yenile', addUser: 'Kullanıcı Ekle', addGuest: 'Misafir Ekle', editUser: 'Kullanıcı Düzenle', editGuest: 'Misafir Düzenle', userInfo: 'Kullanıcı bilgilerini girin', guestInfo: 'Misafir bilgilerini girin', name: 'Ad', surname: 'Soyad', emailAddr: 'E-posta Adresi', password: 'Şifre', role: 'Rol', status: 'Durum', gender: 'Cinsiyet', firstName: 'Ad', lastName: 'Soyad', birthDate: 'Doğum Tarihi', passportNo: 'Pasaport No', passportExpiry: 'Pasaport Bitiş', cancel: 'İptal', saveUser: 'Kullanıcı Kaydet', saveGuest: 'Misafir Kaydet', processing: 'İşleniyor...', confirm: 'Onayla', colUser: 'Kullanıcı', colContact: 'İletişim', colRole: 'Rol', colStatus: 'Durum', colActions: 'İşlemler', colGuest: 'Misafir', colBirth: 'Doğum & Ülke', colPassport: 'Pasaport', noUsers: 'Kullanıcı bulunamadı', noGuests: 'Misafir bulunamadı', deleteUser: 'Kullanıcı Sil', deleteUserMsg: 'Bu işlem geri alınamaz.', deleteGuest: 'Misafir Sil', deleteGuestMsg: 'Bu misafiri CRM sisteminden silmek istediğinize emin misiniz?', profileUpdated: 'Acente profili başarıyla güncellendi.', updateFailed: 'Güncelleme başarısız.', invalidEmail: 'Geçerli bir e-posta adresi girin.', userUpdated: 'Kullanıcı başarıyla güncellendi', userCreated: 'Kullanıcı başarıyla oluşturuldu', errorSavingUser: 'Kullanıcı kaydedilemedi', userDeleted: 'Kullanıcı başarıyla silindi', errorDeletingUser: 'Kullanıcı silinemedi', noUserExport: 'Dışa aktarılacak kullanıcı yok.', usersExported: 'Kullanıcı listesi başarıyla indirildi.', usersRefreshed: 'Kullanıcı listesi yenilendi', guestUpdated: 'Misafir başarıyla güncellendi', guestCreated: 'Misafir başarıyla oluşturuldu', errorSavingGuest: 'Misafir kaydedilemedi', guestDeleted: 'Misafir başarıyla silindi', errorDeletingGuest: 'Misafir silinemedi', noGuestExport: 'Dışa aktarılacak misafir yok.', guestsExported: 'Misafir listesi başarıyla indirildi.', guestsRefreshed: 'Misafir listesi yenilendi', searchAutocompletePlaceholder: 'Sistemden Otel Seç & Favorilere Ekle (Ad veya ID)...', searchTablePlaceholder: 'Tabloda ara...', allStatuses: 'Tüm Durumlar', statusActive: 'Aktif', statusPassive: 'Pasif', colHotelInfo: 'Otel Bilgisi', colUserEmail: 'Kullanıcı (User Email)', colLocationStars: 'Konum & Yıldız', colDateAdded: 'Audit Bilgisi', addFavSuccess: 'Otel favorilere eklendi', addFavError: 'Favori ekleme hatası', deleteFavTitle: 'Favori Oteli Sil', deleteFavMsg: '{{name}} otelini favorilerinizden silmek istediğinize emin misiniz?', deleteFavSuccess: 'Favori otel silindi', deleteFavError: 'Silme işlemi başarısız', addedBtn: 'Eklendi', addBtn: 'Ekle', refreshTooltip: 'Yenile', totalRecords: 'Toplam', pageLabel: 'Sayfa', prevBtn: 'Önceki', nextBtn: 'Sonraki' },
   ar: { title: 'إدارة المكتب' },
   es: { title: 'Mi Oficina' },
   ru: { title: 'Управление офисом' },
@@ -333,6 +334,11 @@ const MyOffice = () => {
     const [statsLoading, setStatsLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
+
+    const [isExportingUserExcel, setIsExportingUserExcel] = useState(false);
+    const [isExportingUserPdf, setIsExportingUserPdf] = useState(false);
+    const [isExportingGuestExcel, setIsExportingGuestExcel] = useState(false);
+    const [isExportingGuestPdf, setIsExportingGuestPdf] = useState(false);
 
     const [mapCenter, setMapCenter] = useState([36.6826845, 30.9089719]);
     const [zoom, setZoom] = useState(13);
@@ -769,54 +775,230 @@ const MyOffice = () => {
         }
     };
 
-    const handleExportUsers = () => {
-        if (users.length === 0) { showNotification(L('noUserExport'), 'error'); return; }
-        const exportData = users.map(u => ({ ID: u.id, Name: u.name, Surname: u.surname, Email: u.email, Phone: `+${u.phoneCountryCode}${u.phoneNumber}`, Roles: u.roles?.map(r => r.roleName || r.name).join(' | '), Status: u.status }));
-        downloadCSV(exportData, `Users_Export_${new Date().toLocaleDateString()}.csv`);
-        showNotification(L('usersExported'));
-    };
-
     const openAddGuest = () => { setGuestApiError(null); setEditingGuest(null); setGuestFormData({ gender: 'MALE', firstName: '', lastName: '', birthDate: '', country: '', passportNo: '', passportExpiry: '', email: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE' }); setIsGuestModalOpen(true); };
     const openEditGuest = (g) => { setGuestApiError(null); setEditingGuest(g); setGuestFormData({ gender: g.gender || 'MALE', firstName: g.firstName, lastName: g.lastName, birthDate: g.birthDate, country: g.country, passportNo: g.passportNo, passportExpiry: g.passportExpiry, email: g.email, phoneCountryCode: g.phoneCountryCode || '90', phoneNumber: g.phoneNumber || '', status: g.status || 'ACTIVE' }); setIsGuestModalOpen(true); };
-    const handleGuestSubmit = async (e) => {
-        e.preventDefault();
+
+    const fetchAllFilteredUsers = async () => {
         try {
-            setSaving(true);
-            setGuestApiError(null);
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (guestFormData.email && !emailRegex.test(guestFormData.email)) { showNotification(L('invalidEmail'), 'error'); setSaving(false); return; }
-            if (editingGuest) { await guestService.updateGuest(editingGuest.id, guestFormData); showNotification(L('guestUpdated')); }
-            else { await guestService.saveGuest(guestFormData); showNotification(L('guestCreated')); }
-            setIsGuestModalOpen(false); fetchGuestsData();
-            const sumData = await guestService.getSummary(); setSummary(prev => ({ ...prev, totalGuestCount: sumData.totalCount, activeGuestCount: sumData.activeCount, passiveGuestCount: sumData.passiveCount }));
-        } catch (err) { 
-            const msg = err.response?.data?.message || err.message || L('errorSavingGuest');
-            setGuestApiError(msg);
-            showNotification(msg, 'error'); 
-        } finally { setSaving(false); }
+            const response = await userService.filterUsers(userFilters, 0, 10000);
+            return response.agencyUsers || response.content || [];
+        } catch (e) {
+            console.error("Failed to fetch all users for export", e);
+            return users;
+        }
     };
 
-    const handleDeleteGuest = (id) => {
-        requestConfirmation(
-            'Delete Guest',
-            'Are you sure you want to remove this guest from your CRM? This will delete all associated profile data.',
-            async () => {
-                try {
-                    await guestService.deleteGuest(id);
-                    showNotification(L('guestDeleted'));
-                    fetchGuestsData();
-                    const sumData = await guestService.getSummary();
-                    setSummary(prev => ({ ...prev, totalGuestCount: sumData.totalCount, activeGuestCount: sumData.activeCount, passiveGuestCount: sumData.passiveCount }));
-                } catch (err) { showNotification(err.message || L('errorDeletingGuest'), 'error'); }
+    const handleExportUsersExcel = async () => {
+        if (isExportingUserExcel || isExportingUserPdf) return;
+        setIsExportingUserExcel(true);
+        try {
+            const allUsers = await fetchAllFilteredUsers();
+            if (!allUsers || allUsers.length === 0) {
+                showNotification(L('noUserExport'), 'error');
+                return;
             }
-        );
+
+            const exportData = allUsers.map(u => ({
+                'ID': u.id ?? '',
+                [L('colUser') || 'User']: `${u.name || ''} ${u.surname || ''}`.trim(),
+                'Email': u.email || '-',
+                'Phone': u.phoneNumber ? `+${u.phoneCountryCode || ''}${u.phoneNumber}` : '-',
+                [L('colRole') || 'Role']: (u.roles || []).map(r => r.roleName || r.name).join(' | ') || 'No Role',
+                [L('colStatus') || 'Status']: u.status === 'ACTIVE' ? L('active') : L('passive')
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            worksheet['!cols'] = [
+                { wch: 8 },
+                { wch: 24 },
+                { wch: 30 },
+                { wch: 18 },
+                { wch: 25 },
+                { wch: 12 }
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `Users_Report_${dateStr}.xlsx`);
+            showNotification(L('usersExported'));
+        } catch (err) {
+            console.error('Users Excel Export Error:', err);
+            showNotification('Failed to export Excel: ' + (err.message || err), 'error');
+        } finally {
+            setIsExportingUserExcel(false);
+        }
     };
 
-    const handleExportGuests = () => {
-        if (guests.length === 0) { showNotification(L('noGuestExport'), 'error'); return; }
-        const exportData = guests.map(g => ({ ID: g.id, Gender: g.gender, FirstName: g.firstName, LastName: g.lastName, BirthDate: g.birthDate, Country: g.country, PassportNo: g.passportNo, PassportExpiry: g.passportExpiry, Email: g.email, Phone: `+${g.phoneCountryCode}${g.phoneNumber}` }));
-        downloadCSV(exportData, `Guests_Export_${new Date().toLocaleDateString()}.csv`);
-        showNotification(L('guestsExported'));
+    const handleExportUsersPdf = async () => {
+        if (isExportingUserExcel || isExportingUserPdf) return;
+        setIsExportingUserPdf(true);
+        try {
+            const allUsers = await fetchAllFilteredUsers();
+            if (!allUsers || allUsers.length === 0) {
+                showNotification(L('noUserExport'), 'error');
+                return;
+            }
+
+            const { jsPDF } = await import('jspdf');
+            const autoTable = (await import('jspdf-autotable')).default;
+
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Travel of Globe - Users Report', 10, 12);
+
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100);
+            doc.text(`Generated: ${new Date().toLocaleString()}  |  Total Matching Users: ${allUsers.length}`, 10, 17);
+
+            const headers = ['ID', L('colUser') || 'User', 'Email', 'Phone', L('colRole') || 'Role', L('colStatus') || 'Status'];
+            const rows = allUsers.map(u => [
+                u.id ?? '',
+                `${u.name || ''} ${u.surname || ''}`.trim(),
+                u.email || '-',
+                u.phoneNumber ? `+${u.phoneCountryCode || ''}${u.phoneNumber}` : '-',
+                (u.roles || []).map(r => r.roleName || r.name).join(' | ') || 'No Role',
+                u.status === 'ACTIVE' ? L('active') : L('passive')
+            ]);
+
+            autoTable(doc, {
+                startY: 21,
+                head: [headers],
+                body: rows,
+                theme: 'striped',
+                styles: { fontSize: 8, cellPadding: 2 },
+                headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' }
+            });
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            doc.save(`Users_Report_${dateStr}.pdf`);
+            showNotification(L('usersExported'));
+        } catch (err) {
+            console.error('Users PDF Export Error:', err);
+            showNotification('Failed to export PDF: ' + (err.message || err), 'error');
+        } finally {
+            setIsExportingUserPdf(false);
+        }
+    };
+
+    const fetchAllFilteredGuests = async () => {
+        try {
+            const response = await guestService.filterGuests(guestFilters, 0, 10000);
+            return response.agencyGuests || response.content || [];
+        } catch (e) {
+            console.error("Failed to fetch all guests for export", e);
+            return guests;
+        }
+    };
+
+    const handleExportGuestsExcel = async () => {
+        if (isExportingGuestExcel || isExportingGuestPdf) return;
+        setIsExportingGuestExcel(true);
+        try {
+            const allGuests = await fetchAllFilteredGuests();
+            if (!allGuests || allGuests.length === 0) {
+                showNotification(L('noGuestExport'), 'error');
+                return;
+            }
+
+            const exportData = allGuests.map(g => ({
+                'ID': g.id ?? '',
+                [L('colGuest') || 'Guest']: `${g.gender === 'MALE' ? 'Mr' : 'Mrs'} ${g.firstName || ''} ${g.lastName || ''}`.trim(),
+                [L('birthDate') || 'Birth Date']: g.birthDate || '-',
+                [L('country') || 'Country']: getCountryName(countries, g.country, currentLang) || g.country || '-',
+                [L('passportNo') || 'Passport No']: g.passportNo || '-',
+                [L('passportExpiry') || 'Passport Expiry']: g.passportExpiry || '-',
+                'Email': g.email || '-',
+                'Phone': g.phoneNumber ? `+${g.phoneCountryCode || ''}${g.phoneNumber}` : '-',
+                [L('colStatus') || 'Status']: g.status === 'ACTIVE' ? L('active') : L('passive')
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            worksheet['!cols'] = [
+                { wch: 8 },
+                { wch: 24 },
+                { wch: 14 },
+                { wch: 18 },
+                { wch: 16 },
+                { wch: 16 },
+                { wch: 28 },
+                { wch: 18 },
+                { wch: 12 }
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Guests');
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `Guests_Report_${dateStr}.xlsx`);
+            showNotification(L('guestsExported'));
+        } catch (err) {
+            console.error('Guests Excel Export Error:', err);
+            showNotification('Failed to export Excel: ' + (err.message || err), 'error');
+        } finally {
+            setIsExportingGuestExcel(false);
+        }
+    };
+
+    const handleExportGuestsPdf = async () => {
+        if (isExportingGuestExcel || isExportingGuestPdf) return;
+        setIsExportingGuestPdf(true);
+        try {
+            const allGuests = await fetchAllFilteredGuests();
+            if (!allGuests || allGuests.length === 0) {
+                showNotification(L('noGuestExport'), 'error');
+                return;
+            }
+
+            const { jsPDF } = await import('jspdf');
+            const autoTable = (await import('jspdf-autotable')).default;
+
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Travel of Globe - Guests Report', 10, 12);
+
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100);
+            doc.text(`Generated: ${new Date().toLocaleString()}  |  Total Matching Guests: ${allGuests.length}`, 10, 17);
+
+            const headers = ['ID', L('colGuest') || 'Guest', 'Birth Date', 'Country', 'Passport No', 'Expires', 'Email', 'Phone', L('colStatus') || 'Status'];
+            const rows = allGuests.map(g => [
+                g.id ?? '',
+                `${g.gender === 'MALE' ? 'Mr' : 'Mrs'} ${g.firstName || ''} ${g.lastName || ''}`.trim(),
+                g.birthDate || '-',
+                getCountryName(countries, g.country, currentLang) || g.country || '-',
+                g.passportNo || '-',
+                g.passportExpiry || '-',
+                g.email || '-',
+                g.phoneNumber ? `+${g.phoneCountryCode || ''}${g.phoneNumber}` : '-',
+                g.status === 'ACTIVE' ? L('active') : L('passive')
+            ]);
+
+            autoTable(doc, {
+                startY: 21,
+                head: [headers],
+                body: rows,
+                theme: 'striped',
+                styles: { fontSize: 7.5, cellPadding: 2 },
+                headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' }
+            });
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            doc.save(`Guests_Report_${dateStr}.pdf`);
+            showNotification(L('guestsExported'));
+        } catch (err) {
+            console.error('Guests PDF Export Error:', err);
+            showNotification('Failed to export PDF: ' + (err.message || err), 'error');
+        } finally {
+            setIsExportingGuestPdf(false);
+        }
     };
 
     const openInMaps = () => { const addressStr = `${formData.address} ${formData.zipCode}`; const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressStr)}`; window.open(url, '_blank'); };
@@ -1121,9 +1303,44 @@ const MyOffice = () => {
                                             </select>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <button onClick={() => fetchUsersData(true)} className={`size-9 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 transition-all text-slate-500 ${usersLoading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}><span className="material-icons-round text-base">refresh</span></button>
-                                            <button onClick={handleExportUsers} className="h-9 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 hover:bg-slate-50 transition-all"><span className="material-icons-round text-sm">download</span> Export</button>
-                                            <button onClick={openAddUser} className="h-9 px-4 bg-primary text-white rounded-xl text-xs font-semibold shadow-md shadow-primary/20 flex items-center gap-1.5 active:scale-95 transition-all"><span className="material-icons-round text-base">add</span> Add User</button>
+                                            <button
+                                                onClick={handleExportUsersExcel}
+                                                disabled={isExportingUserExcel || isExportingUserPdf || usersLoading}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                                title="Export all matching records to Excel"
+                                            >
+                                                {isExportingUserExcel ? (
+                                                    <div className="size-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                                ) : (
+                                                    <span className="material-icons-round text-base">grid_on</span>
+                                                )}
+                                                {isExportingUserExcel ? L('exporting') : L('exportExcel')}
+                                            </button>
+
+                                            <button
+                                                onClick={handleExportUsersPdf}
+                                                disabled={isExportingUserExcel || isExportingUserPdf || usersLoading}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 rounded-xl text-xs font-semibold text-rose-700 dark:text-rose-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                                title="Export all matching records to PDF"
+                                            >
+                                                {isExportingUserPdf ? (
+                                                    <div className="size-3.5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
+                                                ) : (
+                                                    <span className="material-icons-round text-base">picture_as_pdf</span>
+                                                )}
+                                                {isExportingUserPdf ? L('exporting') : L('exportPdf')}
+                                            </button>
+
+                                            <button
+                                                onClick={() => fetchUsersData(true)}
+                                                disabled={usersLoading}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                                            >
+                                                <span className={`material-icons-round text-base ${usersLoading ? 'animate-spin' : ''}`}>refresh</span>
+                                                {L('refresh')}
+                                            </button>
+
+                                            <button onClick={openAddUser} className="h-9 px-4 bg-primary text-white rounded-xl text-xs font-semibold shadow-md shadow-primary/20 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"><span className="material-icons-round text-base">add</span> {L('addUser')}</button>
                                         </div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -1205,9 +1422,44 @@ const MyOffice = () => {
                                             </select>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <button onClick={() => fetchGuestsData(true)} className={`size-9 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 transition-all text-slate-500 ${guestsLoading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}><span className="material-icons-round text-base">refresh</span></button>
-                                            <button onClick={handleExportGuests} className="h-9 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 hover:bg-slate-50 transition-all"><span className="material-icons-round text-sm">download</span> Export</button>
-                                            <button onClick={openAddGuest} className="h-9 px-4 bg-primary text-white rounded-xl text-xs font-semibold shadow-md shadow-primary/20 flex items-center gap-1.5 active:scale-95 transition-all"><span className="material-icons-round text-base">add</span> Add Guest</button>
+                                            <button
+                                                onClick={handleExportGuestsExcel}
+                                                disabled={isExportingGuestExcel || isExportingGuestPdf || guestsLoading}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                                title="Export all matching records to Excel"
+                                            >
+                                                {isExportingGuestExcel ? (
+                                                    <div className="size-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                                ) : (
+                                                    <span className="material-icons-round text-base">grid_on</span>
+                                                )}
+                                                {isExportingGuestExcel ? L('exporting') : L('exportExcel')}
+                                            </button>
+
+                                            <button
+                                                onClick={handleExportGuestsPdf}
+                                                disabled={isExportingGuestExcel || isExportingGuestPdf || guestsLoading}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 rounded-xl text-xs font-semibold text-rose-700 dark:text-rose-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                                title="Export all matching records to PDF"
+                                            >
+                                                {isExportingGuestPdf ? (
+                                                    <div className="size-3.5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
+                                                ) : (
+                                                    <span className="material-icons-round text-base">picture_as_pdf</span>
+                                                )}
+                                                {isExportingGuestPdf ? L('exporting') : L('exportPdf')}
+                                            </button>
+
+                                            <button
+                                                onClick={() => fetchGuestsData(true)}
+                                                disabled={guestsLoading}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                                            >
+                                                <span className={`material-icons-round text-base ${guestsLoading ? 'animate-spin' : ''}`}>refresh</span>
+                                                {L('refresh')}
+                                            </button>
+
+                                            <button onClick={openAddGuest} className="h-9 px-4 bg-primary text-white rounded-xl text-xs font-semibold shadow-md shadow-primary/20 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"><span className="material-icons-round text-base">add</span> {L('addGuest')}</button>
                                         </div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto custom-scrollbar">

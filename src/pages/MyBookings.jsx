@@ -184,6 +184,22 @@ const MyBookings = () => {
                 return;
             }
 
+            const workbook = XLSX.utils.book_new();
+
+            if (summaries && summaries.length > 0) {
+                const summaryExportData = summaries.map(s => ({
+                    'Currency': s.currency || 'TOTAL',
+                    'Total Bookings': s.bookingCount || 0,
+                    'Total Sales Amount': s.totalAmountSum != null ? Number(s.totalAmountSum).toFixed(2) : '0.00',
+                    'Total Cancellation Fees': (s.totalCancellationAmountSum != null ? Number(s.totalCancellationAmountSum).toFixed(2) : (s.cancellationAmountSum != null ? Number(s.cancellationAmountSum).toFixed(2) : '0.00'))
+                }));
+                const summaryWorksheet = XLSX.utils.json_to_sheet(summaryExportData);
+                summaryWorksheet['!cols'] = [
+                    { wch: 15 }, { wch: 18 }, { wch: 24 }, { wch: 26 }
+                ];
+                XLSX.utils.book_append_sheet(workbook, summaryWorksheet, 'Summary');
+            }
+
             const exportData = allBookings.map(b => ({
                 [L('colId')]: b.bookingId ?? b.id ?? '',
                 [L('colVoucher')]: b.voucher ?? '-',
@@ -225,7 +241,6 @@ const MyBookings = () => {
                 { wch: 12 },  // Cancelled?
             ];
 
-            const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Bookings');
 
             const dateStr = new Date().toISOString().split('T')[0];
@@ -262,6 +277,41 @@ const MyBookings = () => {
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(100);
             doc.text(`Generated: ${new Date().toLocaleString()}  |  Total Matching Bookings: ${allBookings.length}`, 10, 17);
+
+            let startY = 21;
+
+            if (summaries && summaries.length > 0) {
+                const summaryHeaders = ['Currency', 'Bookings Count', 'Total Sales Amount', 'Total Cancellation Fees'];
+                const summaryRows = summaries.map(s => [
+                    s.currency || 'TOTAL',
+                    String(s.bookingCount || 0),
+                    `${s.currency || ''} ${s.totalAmountSum != null ? Number(s.totalAmountSum).toFixed(2) : '0.00'}`,
+                    `${s.currency || ''} ${s.totalCancellationAmountSum != null ? Number(s.totalCancellationAmountSum).toFixed(2) : (s.cancellationAmountSum != null ? Number(s.cancellationAmountSum).toFixed(2) : '0.00')}`
+                ]);
+
+                autoTable(doc, {
+                    startY: 21,
+                    head: [summaryHeaders],
+                    body: summaryRows,
+                    theme: 'grid',
+                    styles: {
+                        fontSize: 6.5,
+                        cellPadding: 1.5
+                    },
+                    headStyles: {
+                        fillColor: [30, 41, 59],
+                        textColor: [255, 255, 255],
+                        fontSize: 7,
+                        fontStyle: 'bold',
+                        halign: 'left'
+                    },
+                    bodyStyles: {
+                        textColor: [30, 41, 59]
+                    },
+                    margin: { left: 6, right: 6 }
+                });
+                startY = (doc.lastAutoTable?.finalY || 21) + 5;
+            }
 
             const headers = [
                 L('colId'),
@@ -302,7 +352,7 @@ const MyBookings = () => {
             ]);
 
             autoTable(doc, {
-                startY: 21,
+                startY: startY,
                 head: [headers],
                 body: rows,
                 theme: 'striped',

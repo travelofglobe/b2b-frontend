@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { COMMON, getLang } from '../utils/sharedLocales';
 import * as XLSX from 'xlsx';
+import { downloadPdfDoc, downloadXlsxWorkbook, downloadCsvContent } from '../utils/fileDownloadHelper';
 
 const MO = {
   en: { title: 'My Office Management', tabGeneral: 'General Information', tabUsers: 'Users', tabGuests: 'Guests', tabFavorites: 'Favorite Hotels', saveBtn: 'Save Office Profile', saving: 'Synchronizing...', agencyId: 'Agency Identity', baseLocation: 'Base Location', currency: 'Currency', integration: 'Integration', auditTimeline: 'Audit Timeline', created: 'Created', lastUpdate: 'Last Update', sec01: 'Section 01 / Identity', sec02: 'Section 02 / Contact', sec03: 'Section 03 / Geography', sec04: 'Section 04 / Finance', sec05: 'Section 05 / Settings', agencyName: 'Agency Name', officialTitle: 'Official Title', type: 'Type', language: 'Language', parentId: 'Parent ID', directEmail: 'Direct Email', phone: 'Phone Number', country: 'Country', city: 'City', streetAddress: 'Street Address', zipCode: 'Zip Code', taxOffice: 'Tax Office', taxNumber: 'Tax Number', accEmail: 'Accounting Email', accPhone: 'Accounting Phone', accCountry: 'Accounting Country', accCity: 'Accounting City', accAddress: 'Accounting Address', mainCurrency: 'Main Currency', integrationType: 'Integration Type', allowedSale: 'Allowed for Sale', bookingStatus: 'Booking status', selectTerritory: 'Select Territory', selectHub: 'Select Hub', commercialName: 'Commercial Name', legalTitle: 'Legal Title', totalUsers: 'Total Users', activeUsers: 'Active Users', passiveUsers: 'Passive Users', totalGuests: 'Total Guests', activeGuests: 'Active Guests', passiveGuests: 'Passive Guests', searchUsers: 'Search by name or email...', searchGuests: 'Search by name, email or passport...', searchFavorites: 'Search favorite hotels...', noFavoritesFound: 'No favorite hotels found.', removeFromFavorites: 'Remove', viewHotelDetail: 'View Detail', addedOn: 'Date Added', supplierLabel: 'Supplier', hotelName: 'Hotel Name', locationLabel: 'City / Country', starsLabel: 'Stars', allRoles: 'All Roles', allCountries: 'All Countries', active: 'Active', passive: 'Passive', export: 'Export', exportExcel: 'Export Excel', exportPdf: 'Export PDF', exporting: 'Exporting...', refresh: 'Refresh', addUser: 'Add User', addGuest: 'Add Guest', editUser: 'Edit User', editGuest: 'Edit Guest', userInfo: 'Enter user information', guestInfo: 'Enter guest information', name: 'Name', surname: 'Surname', emailAddr: 'Email Address', password: 'Password', role: 'Role', status: 'Status', gender: 'Gender', firstName: 'First Name', lastName: 'Last Name', birthDate: 'Birth Date', passportNo: 'Passport No', passportExpiry: 'Passport Expiry', cancel: 'Cancel', saveUser: 'Save User', saveGuest: 'Save Guest', processing: 'Processing...', confirm: 'Confirm', colUser: 'User', colContact: 'Contact', colRole: 'Role', colStatus: 'Status', colActions: 'Actions', colGuest: 'Guest', colBirth: 'Birth & Country', colPassport: 'Passport', noUsers: 'No users found', noGuests: 'No guests found', deleteUser: 'Delete User', deleteUserMsg: 'This action cannot be undone. All access for this user will be revoked immediately.', deleteGuest: 'Delete Guest', deleteGuestMsg: 'Are you sure you want to remove this guest from your CRM?', profileUpdated: 'Agency profile updated successfully.', updateFailed: 'Update failed.', invalidEmail: 'Please enter a valid email address.', userUpdated: 'User updated successfully', userCreated: 'User created successfully', errorSavingUser: 'Error saving user', userDeleted: 'User deleted successfully', errorDeletingUser: 'Error deleting user', noUserExport: 'No user data to export.', usersExported: 'User list exported successfully.', usersRefreshed: 'User list refreshed', guestUpdated: 'Guest updated successfully', guestCreated: 'Guest created successfully', errorSavingGuest: 'Error saving guest', guestDeleted: 'Guest deleted successfully', errorDeletingGuest: 'Error deleting guest', noGuestExport: 'No guest data to export.', guestsExported: 'Guest list exported successfully.', guestsRefreshed: 'Guest list refreshed', searchAutocompletePlaceholder: 'Select & Add Hotel (Name or ID)...', searchTablePlaceholder: 'Search in table...', allStatuses: 'All Statuses', statusActive: 'Active', statusPassive: 'Passive', colHotelInfo: 'Hotel Information', colUserEmail: 'User Email', colLocationStars: 'Location & Rating', colDateAdded: 'Audit Info', addFavSuccess: 'Hotel added to favorites', addFavError: 'Error adding favorite', deleteFavTitle: 'Remove Favorite Hotel', deleteFavMsg: 'Are you sure you want to remove {{name}} from your favorites?', deleteFavSuccess: 'Favorite hotel removed', deleteFavError: 'Failed to remove favorite', addedBtn: 'Added', addBtn: 'Add', refreshTooltip: 'Refresh', totalRecords: 'Total', pageLabel: 'Page', prevBtn: 'Previous', nextBtn: 'Next' },
@@ -84,15 +85,7 @@ const downloadCSV = (data, filename) => {
         }).join(','))
     ];
     const csvString = csvRows.join('\n');
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsvContent(csvString, filename);
 };
 
 const formatDateTime = (dateVal) => {
@@ -823,7 +816,7 @@ const MyOffice = () => {
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
 
             const dateStr = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(workbook, `Users_Report_${dateStr}.xlsx`);
+            downloadXlsxWorkbook(XLSX, workbook, `Users_Report_${dateStr}.xlsx`);
             showNotification(L('usersExported'));
         } catch (err) {
             console.error('Users Excel Export Error:', err);
@@ -877,7 +870,7 @@ const MyOffice = () => {
             });
 
             const dateStr = new Date().toISOString().split('T')[0];
-            doc.save(`Users_Report_${dateStr}.pdf`);
+            downloadPdfDoc(doc, `Users_Report_${dateStr}.pdf`);
             showNotification(L('usersExported'));
         } catch (err) {
             console.error('Users PDF Export Error:', err);
@@ -936,7 +929,7 @@ const MyOffice = () => {
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Guests');
 
             const dateStr = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(workbook, `Guests_Report_${dateStr}.xlsx`);
+            downloadXlsxWorkbook(XLSX, workbook, `Guests_Report_${dateStr}.xlsx`);
             showNotification(L('guestsExported'));
         } catch (err) {
             console.error('Guests Excel Export Error:', err);
@@ -993,7 +986,7 @@ const MyOffice = () => {
             });
 
             const dateStr = new Date().toISOString().split('T')[0];
-            doc.save(`Guests_Report_${dateStr}.pdf`);
+            downloadPdfDoc(doc, `Guests_Report_${dateStr}.pdf`);
             showNotification(L('guestsExported'));
         } catch (err) {
             console.error('Guests PDF Export Error:', err);
@@ -1048,7 +1041,7 @@ const MyOffice = () => {
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Favorites');
 
             const dateStr = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(workbook, `Favorite_Hotels_Report_${dateStr}.xlsx`);
+            downloadXlsxWorkbook(XLSX, workbook, `Favorite_Hotels_Report_${dateStr}.xlsx`);
             showNotification(L('favoritesExported') || 'Favorite hotels exported successfully.');
         } catch (err) {
             console.error('Favorites Excel Export Error:', err);
@@ -1103,7 +1096,7 @@ const MyOffice = () => {
             });
 
             const dateStr = new Date().toISOString().split('T')[0];
-            doc.save(`Favorite_Hotels_Report_${dateStr}.pdf`);
+            downloadPdfDoc(doc, `Favorite_Hotels_Report_${dateStr}.pdf`);
             showNotification(L('favoritesExported') || 'Favorite hotels exported successfully.');
         } catch (err) {
             console.error('Favorites PDF Export Error:', err);

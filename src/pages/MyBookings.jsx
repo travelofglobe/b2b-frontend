@@ -9,6 +9,7 @@ import AgencyMultiSelect from '../components/AgencyMultiSelect';
 import * as XLSX from 'xlsx';
 import { BOOKING_STATUS_CONFIG } from '../utils/bookingStatusUtils';
 import { tMB } from '../utils/myBookingsLocales';
+import { downloadPdfDoc, downloadXlsxWorkbook } from '../utils/fileDownloadHelper';
 
 const MyBookings = () => {
     const navigate = useNavigate();
@@ -228,7 +229,7 @@ const MyBookings = () => {
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Bookings');
 
             const dateStr = new Date().toISOString().split('T')[0];
-            XLSX.writeFile(workbook, `Bookings_Report_${dateStr}.xlsx`);
+            downloadXlsxWorkbook(XLSX, workbook, `Bookings_Report_${dateStr}.xlsx`);
         } catch (err) {
             console.error('Excel Export Error:', err);
             alert('Failed to export Excel: ' + (err.message || err));
@@ -327,7 +328,7 @@ const MyBookings = () => {
             });
 
             const dateStr = new Date().toISOString().split('T')[0];
-            doc.save(`Bookings_Report_${dateStr}.pdf`);
+            downloadPdfDoc(doc, `Bookings_Report_${dateStr}.pdf`);
         } catch (err) {
             console.error('PDF Export Error:', err);
             alert('Failed to export PDF: ' + (err.message || err));

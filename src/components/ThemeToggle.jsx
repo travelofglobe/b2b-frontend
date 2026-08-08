@@ -24,11 +24,12 @@ const ThemeToggle = () => {
 
     return (
         <button
+            type="button"
             onClick={() => setIsDark(!isDark)}
-            className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#233648] text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors flex items-center justify-center"
+            className="p-1.5 bg-transparent border-0 outline-none text-slate-400 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors flex items-center justify-center cursor-pointer active:scale-90"
             aria-label="Toggle dark mode"
         >
-            <span className="material-symbols-outlined text-[18px]">
+            <span className="material-symbols-outlined text-[20px]">
                 {isDark ? 'light_mode' : 'dark_mode'}
             </span>
         </button>

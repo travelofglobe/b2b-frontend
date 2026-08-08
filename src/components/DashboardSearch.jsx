@@ -766,27 +766,29 @@ const DashboardSearch = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 p-0.5 relative z-10">
                     {/* Destination Input */}
                     <div className="lg:col-span-3 relative group/field" ref={searchWrapperRef}>
-                        <div className={`flex flex-col gap-0.5 px-3.5 py-2 h-[58px] bg-white/60 dark:bg-slate-800/60 rounded-xl border transition-all duration-200 ${error ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10' : 'border-slate-200/60 dark:border-slate-700/60 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm'}`}>
-                            <label className={`text-[10px] font-medium uppercase tracking-wider flex items-center gap-1.5 ${error ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`}>
+                        <div className={`flex flex-col justify-center gap-0.5 px-3.5 py-2 h-[58px] bg-white/60 dark:bg-slate-800/60 rounded-xl border transition-all duration-200 ${error ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10' : 'border-slate-200/60 dark:border-slate-700/60 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm'}`}>
+                            <label className={`text-[9.5px] font-semibold uppercase tracking-wider flex items-center gap-1.5 ${error ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`}>
                                 <span className={`material-symbols-outlined text-[13px] ${error ? 'text-red-500' : 'text-primary'}`}>
                                     {error ? 'error' : 'location_on'}
                                 </span>
                                 {error ? ls.destinationRequired : ls.location}
                             </label>
-                            <input
-                                className="bg-transparent border-none outline-none focus:ring-0 w-full p-0 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400/60 tracking-tight"
-                                placeholder={ls.placeholder}
-                                type="text"
-                                value={query}
-                                onChange={(e) => {
-                                    isUserInteraction.current = true;
-                                    setQuery(e.target.value);
-                                    if (error) setError(false);
-                                }}
-                                onClick={(e) => e.target.select()}
-                                onFocus={() => { if (results.hotels.length || results.regions.length) setShowDropdown(true); }}
-                                onKeyDown={handleKeyDown}
-                            />
+                            <div className="flex-1 flex items-center min-w-0 mt-0.5">
+                                <input
+                                    className="bg-transparent border-none outline-none focus:ring-0 w-full p-0 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400/60 tracking-tight"
+                                    placeholder={ls.placeholder}
+                                    type="text"
+                                    value={query}
+                                    onChange={(e) => {
+                                        isUserInteraction.current = true;
+                                        setQuery(e.target.value);
+                                        if (error) setError(false);
+                                    }}
+                                    onClick={(e) => e.target.select()}
+                                    onFocus={() => { if (results.hotels.length || results.regions.length) setShowDropdown(true); }}
+                                    onKeyDown={handleKeyDown}
+                                />
+                            </div>
                             {loading && <div className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>}
                         </div>
 
@@ -849,10 +851,10 @@ const DashboardSearch = () => {
                     {/* Date Picker Group */}
                     <div className="lg:col-span-3 relative group/field">
                         <div 
-                            className="flex flex-col gap-0.5 px-3.5 py-2 h-[58px] bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 transition-all duration-200 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm cursor-pointer"
+                            className="flex flex-col justify-center gap-0.5 px-3.5 py-2 h-[58px] bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 transition-all duration-200 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm cursor-pointer"
                             onClick={() => datePickerRef.current?.setOpen(true)}
                         >
-                            <label className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between w-full">
+                            <label className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between w-full">
                                 <div className="flex items-center gap-1.5">
                                     <span className="material-symbols-outlined text-[13px] text-primary">calendar_today</span>
                                     {ls.checkInOut}
@@ -866,7 +868,7 @@ const DashboardSearch = () => {
                                     </div>
                                 )}
                             </label>
-                            <div className="flex-1 min-w-0">
+                            <div className="flex-1 flex items-center min-w-0 mt-0.5">
                                 <DatePicker
                                     ref={datePickerRef}
                                     selected={checkInDate}
@@ -909,12 +911,12 @@ const DashboardSearch = () => {
 
                     {/* Nationality Section */}
                     <div className="lg:col-span-2 relative group/field">
-                        <div className="flex flex-col gap-0.5 px-3.5 py-2 h-[58px] bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 transition-all duration-200 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm">
-                            <label className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                        <div className="flex flex-col justify-center gap-0.5 px-3.5 py-2 h-[58px] bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 transition-all duration-200 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm">
+                            <label className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
                                 <span className="material-symbols-outlined text-[13px] text-primary">public</span>
                                 {ls.nationality}
                             </label>
-                            <div className="flex-1 mt-0.5">
+                            <div className="flex-1 flex items-center min-w-0 mt-0.5">
                                 <NationalitySelect value={nationality} onChange={setNationality} compact={false} />
                             </div>
                         </div>
@@ -924,13 +926,13 @@ const DashboardSearch = () => {
                     <div className="lg:col-span-2 relative group/field" ref={guestWrapperRef}>
                         <button
                             onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                            className="w-full h-[58px] flex flex-col items-start gap-0.5 px-3.5 py-2 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm transition-all duration-200 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 text-left"
+                            className="w-full h-[58px] flex flex-col justify-center items-start gap-0.5 px-3.5 py-2 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm transition-all duration-200 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 text-left"
                         >
-                            <label className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                            <label className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
                                 <span className="material-symbols-outlined text-[13px] text-primary">group</span>
                                 {ls.occupants}
                             </label>
-                            <div className="flex items-center justify-between w-full">
+                            <div className="flex-1 flex items-center justify-between w-full mt-0.5">
                                 <span className="text-xs font-medium text-slate-900 dark:text-white tracking-tight truncate w-full">
                                     {totalAdults} {ls.adults.substring(0, 3)}, {totalChildren} {ls.children.substring(0, 3)}
                                 </span>

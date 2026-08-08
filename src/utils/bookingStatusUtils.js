@@ -6,48 +6,48 @@
 export const BOOKING_STATUS_CONFIG = {
     NEW: {
         label: 'New',
-        colorClass: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
+        colorClass: 'bg-sky-50 text-sky-600 border border-sky-200/60 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-800/50',
         icon: 'fiber_new'
     },
     CONFIRMED: {
         label: 'Confirmed',
-        colorClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
+        colorClass: 'bg-emerald-50 text-emerald-600 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50',
         icon: 'check_circle'
     },
     ERROR: {
         label: 'Error',
-        colorClass: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+        colorClass: 'bg-rose-50 text-rose-600 border border-rose-200/60 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/50',
         icon: 'error'
     },
     PARTIALLY_CANCELLED: {
         label: 'Partially Cancelled',
-        colorClass: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
+        colorClass: 'bg-amber-50 text-amber-600 border border-amber-200/60 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/50',
         icon: 'warning'
     },
     CANCELLED: {
         label: 'Cancelled',
-        colorClass: 'bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400',
+        colorClass: 'bg-slate-100/70 text-slate-500 border border-slate-200/60 dark:bg-slate-900/50 dark:text-slate-400 dark:border-slate-800/50',
         icon: 'cancel'
     },
     CANCELLED_WITH_PENALTY: {
         label: 'Cancelled (with Penalty)',
-        colorClass: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
+        colorClass: 'bg-orange-50 text-orange-600 border border-orange-200/60 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-800/50',
         icon: 'money_off'
     },
     // Fallback/Legacy statuses if any
     ACTIVE: {
         label: 'Active',
-        colorClass: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+        colorClass: 'bg-emerald-50 text-emerald-600 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50',
         icon: 'check'
     },
     SUCCESS: {
         label: 'Success',
-        colorClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
+        colorClass: 'bg-emerald-50 text-emerald-600 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50',
         icon: 'check_circle'
     },
     FAILED: {
         label: 'Failed',
-        colorClass: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+        colorClass: 'bg-rose-50 text-rose-600 border border-rose-200/60 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/50',
         icon: 'error'
     }
 };

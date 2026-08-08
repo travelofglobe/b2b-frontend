@@ -244,7 +244,7 @@ const MyBookings = () => {
             }));
 
             const worksheet = XLSX.utils.json_to_sheet(exportData);
-            
+
             // Auto column widths for all 16 columns
             worksheet['!cols'] = [
                 { wch: 8 },   // ID
@@ -620,23 +620,23 @@ const MyBookings = () => {
                         <div className="overflow-x-auto">
                             <table className="w-full border-collapse">
                                 <thead>
-                                    <tr className="bg-white/30 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-700">
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">{L('colId')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[150px]">{L('colVoucher')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[300px]">{L('colHotel')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px]">{L('colCreated')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px]">{L('colCheckIn')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px]">{L('colCheckOut')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px]">{L('colAmount')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px]">{L('colPayment')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px]">{L('colStatus')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px]">{L('colCancelFee')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px]">{L('colUuid')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px]">{L('colAgencyName')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">{L('colAgencyId')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[150px]">{L('colHotelId')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[180px]">{L('colClRef')}</th>
-                                        <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">{L('colCancelled')}</th>
+                                    <tr className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800">
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colId')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[150px] select-none">{L('colVoucher')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[280px] select-none">{L('colHotel')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px] select-none">{L('colCreated')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px] select-none">{L('colCheckIn')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px] select-none">{L('colCheckOut')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px] select-none">{L('colAmount')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px] select-none">{L('colPayment')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px] select-none">{L('colStatus')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px] select-none">{L('colCancelFee')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[290px] select-none">{L('colUuid')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px] select-none">{L('colAgencyName')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colAgencyId')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[150px] select-none">{L('colHotelId')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px] select-none">{L('colClRef')}</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colCancelled')}</th>
                                     </tr>
                                     <tr className="bg-slate-50/80 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 relative z-20">
                                         <td className="px-2 py-2">
@@ -876,15 +876,15 @@ const MyBookings = () => {
                                             <tr
                                                 key={booking.bookingId}
                                                 onClick={() => navigate(`/bookings/${booking.bookingId}`)}
-                                                className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 cursor-pointer text-xs font-medium"
+                                                className="even:bg-slate-50/60 dark:even:bg-slate-900/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/70 transition-colors duration-150 border-b border-slate-100 dark:border-slate-800/60 cursor-pointer text-[11px] group"
                                             >
-                                                <td className="px-3.5 py-2.5 text-slate-900 dark:text-white font-semibold group-hover:text-primary transition-colors">#{booking.bookingId}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-700 dark:text-slate-200 truncate max-w-[100px]" title={booking.voucher}>{booking.voucher || '-'}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-700 dark:text-slate-200 truncate max-w-[200px] font-medium" title={booking.hotelName}>{booking.hotelName}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDateTime(booking.createDateTime)}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300">{formatDate(booking.checkInDate)}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300">{formatDate(booking.checkOutDate)}</td>
-                                                <td className="px-3.5 py-2.5 text-primary font-semibold">
+                                                <td className="px-3.5 py-2.5 text-slate-700 dark:text-slate-300 font-semibold group-hover:text-primary transition-colors whitespace-nowrap">#{booking.bookingId}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300 text-[11px] font-medium truncate max-w-[120px]" title={booking.voucher}>{booking.voucher || '-'}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-700 dark:text-slate-200 text-[11px] font-medium truncate max-w-[220px]" title={booking.hotelName}>{booking.hotelName}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[11px] font-normal whitespace-nowrap">{formatDateTime(booking.createDateTime)}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[11px] font-normal whitespace-nowrap">{formatDate(booking.checkInDate)}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[11px] font-normal whitespace-nowrap">{formatDate(booking.checkOutDate)}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-900 dark:text-white font-bold text-[11px] whitespace-nowrap">
                                                     {booking.currency} {booking.totalAmount?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </td>
                                                 <td className="px-3.5 py-2.5">
@@ -895,19 +895,19 @@ const MyBookings = () => {
                                                 <td className="px-3.5 py-2.5">
                                                     <BookingStatusBadge status={booking.bookingStatus} className="shadow-none border-none bg-transparent p-0" showIcon={false} />
                                                 </td>
-                                                <td className="px-3.5 py-2.5 text-red-500 font-medium">
+                                                <td className="px-3.5 py-2.5 text-rose-600 dark:text-rose-400 font-bold text-[11px] whitespace-nowrap">
                                                     {booking.totalCancellationAmount > 0 ? `${booking.currency} ${booking.totalCancellationAmount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '-'}
                                                 </td>
-                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 font-mono text-[10px] truncate max-w-[120px]" title={booking.bookingUuid}>{booking.bookingUuid}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-700 dark:text-slate-200 truncate max-w-[150px]" title={booking.principalAgencyName}>{booking.principalAgencyName}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 font-mono text-[11px] whitespace-nowrap" title={booking.bookingUuid}>{booking.bookingUuid}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300 text-[11px] font-medium truncate max-w-[160px]" title={booking.principalAgencyName}>{booking.principalAgencyName}</td>
                                                 <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[10px]">{booking.principalAgencyId}</td>
                                                 <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[10px]">{booking.internalHotelId}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-700 dark:text-slate-200 truncate max-w-[100px]" title={booking.clientReferenceId}>{booking.clientReferenceId || '-'}</td>
+                                                <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300 text-[11px] font-medium whitespace-nowrap" title={booking.clientReferenceId}>{booking.clientReferenceId || '-'}</td>
                                                 <td className="px-3.5 py-2.5 text-center">
                                                     {booking.isCancelled ? (
                                                         <span className="material-icons-round text-red-500 text-sm">check_circle</span>
                                                     ) : (
-                                                        <span className="material-icons-round text-slate-200 dark:text-slate-700 text-sm">cancel</span>
+                                                        <span className="material-icons-round text-slate-300 dark:text-slate-700 text-sm">cancel</span>
                                                     )}
                                                 </td>
                                             </tr>

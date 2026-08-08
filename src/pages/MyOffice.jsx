@@ -1842,14 +1842,14 @@ const MyOffice = () => {
                             {/* Favorite Hotels Table Body */}
                             <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-10">
                                 <table className="w-full text-left border-collapse">
-                                    <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700/80 sticky top-0 z-10 backdrop-blur-md">
+                                    <thead className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 backdrop-blur-md">
                                         <tr>
-                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[80px]">ID</th>
-                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[240px]">{L('colHotelInfo')}</th>
-                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px]">{L('colLocationStars')}</th>
-                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">{L('colDateAdded')}</th>
-                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[120px]">{L('status')}</th>
-                                            <th className="px-3.5 py-3 text-right text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">{L('colActions')}</th>
+                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[80px] select-none">ID</th>
+                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[240px] select-none">{L('colHotelInfo')}</th>
+                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px] select-none">{L('colLocationStars')}</th>
+                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colDateAdded')}</th>
+                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('status')}</th>
+                                            <th className="px-3.5 py-2.5 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colActions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -1859,7 +1859,7 @@ const MyOffice = () => {
                                             favoriteBackendItems.map((fav, idx) => (
                                                 <tr 
                                                     key={fav.id ? `fav-${fav.id}-${idx}` : `fav-${idx}`}
-                                                    className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 text-xs font-medium"
+                                                    className="odd:bg-white dark:odd:bg-slate-900/80 even:bg-slate-50/80 dark:even:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-b border-slate-100 dark:border-slate-800/60 text-[11px] font-medium group"
                                                 >
                                                     {/* ID */}
                                                     <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[10px] font-mono">#{fav.hotelId}</td>
@@ -1875,7 +1875,7 @@ const MyOffice = () => {
                                                                 )}
                                                             </div>
                                                             <span 
-                                                                className="font-medium text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors cursor-pointer text-xs truncate max-w-[280px]" 
+                                                                className="font-semibold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors cursor-pointer text-xs truncate max-w-[280px]" 
                                                                 onClick={() => navigate(`/hotel/${fav.hotelId}`)}
                                                                 title={fav.hotelName}
                                                             >
@@ -1919,21 +1919,22 @@ const MyOffice = () => {
                                                         </div>
                                                     </td>
 
-                                                    {/* Status Switch */}
+                                                    {/* Status Toggle Button (Pure Boxless Material Thumbs Up Icon) */}
                                                     <td className="px-3.5 py-2.5" onClick={(e) => e.stopPropagation()}>
-                                                        <div className="flex items-center gap-2">
-                                                            <button 
-                                                                type="button" 
-                                                                onClick={() => handleToggleFavoriteStatus(fav)} 
-                                                                className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${fav.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} 
-                                                                title={fav.status === 'ACTIVE' ? 'Pasife Al' : 'Aktif Et'}
-                                                            >
-                                                                <span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${fav.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} />
-                                                            </button>
-                                                            <span className={`text-xs font-medium ${fav.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                                                                {fav.status === 'ACTIVE' ? L('statusActive') : L('statusPassive')}
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => handleToggleFavoriteStatus(fav)} 
+                                                            className="p-1 inline-flex items-center justify-center transition-transform duration-200 active:scale-90 cursor-pointer bg-transparent border-0 outline-none hover:scale-110"
+                                                            title={fav.status === 'ACTIVE' ? (L('statusActive') || 'Aktif') : (L('statusPassive') || 'Pasif')}
+                                                        >
+                                                            <span className={`material-icons-round text-lg transition-colors duration-200 ${
+                                                                fav.status === 'ACTIVE'
+                                                                    ? 'text-blue-500 hover:text-blue-600'
+                                                                    : 'text-slate-300 dark:text-slate-600 hover:text-slate-400 dark:hover:text-slate-500'
+                                                            }`}>
+                                                                {fav.status === 'ACTIVE' ? 'thumb_up' : 'thumb_up_off_alt'}
                                                             </span>
-                                                        </div>
+                                                        </button>
                                                     </td>
 
                                                     {/* Actions */}

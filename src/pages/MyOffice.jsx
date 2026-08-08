@@ -770,6 +770,55 @@ const MyOffice = () => {
         }
     };
 
+    const handleGuestSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            setSaving(true);
+            setGuestApiError(null);
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (guestFormData.email && !emailRegex.test(guestFormData.email)) {
+                showNotification(L('invalidEmail'), 'error');
+                setSaving(false);
+                return;
+            }
+
+            if (editingGuest) {
+                await guestService.updateGuest(editingGuest.id, guestFormData);
+                showNotification(L('guestUpdated'));
+            } else {
+                await guestService.saveGuest(guestFormData);
+                showNotification(L('guestCreated'));
+            }
+            setIsGuestModalOpen(false);
+            fetchGuestsData();
+            const sumData = await guestService.getSummary();
+            setSummary(prev => ({ ...prev, totalGuestCount: sumData.totalCount, activeGuestCount: sumData.activeCount, passiveGuestCount: sumData.passiveCount }));
+        } catch (err) {
+            const msg = err.response?.data?.message || err.message || L('errorSavingGuest');
+            setGuestApiError(msg);
+            showNotification(msg, 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeleteGuest = (id) => {
+        requestConfirmation(
+            L('deleteGuest') || 'Delete Guest',
+            L('deleteGuestMsg') || 'Are you sure you want to remove this guest from your CRM?',
+            async () => {
+                try {
+                    await guestService.deleteGuest(id);
+                    showNotification(L('guestDeleted'));
+                    fetchGuestsData();
+                    const sumData = await guestService.getSummary();
+                    setSummary(prev => ({ ...prev, totalGuestCount: sumData.totalCount, activeGuestCount: sumData.activeCount, passiveGuestCount: sumData.passiveCount }));
+                } catch (err) { showNotification(err.message || L('errorDeletingGuest'), 'error'); }
+            }
+        );
+    };
+
     const openAddGuest = () => { setGuestApiError(null); setEditingGuest(null); setGuestFormData({ gender: 'MALE', firstName: '', lastName: '', birthDate: '', country: '', passportNo: '', passportExpiry: '', email: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE' }); setIsGuestModalOpen(true); };
     const openEditGuest = (g) => { setGuestApiError(null); setEditingGuest(g); setGuestFormData({ gender: g.gender || 'MALE', firstName: g.firstName, lastName: g.lastName, birthDate: g.birthDate, country: g.country, passportNo: g.passportNo, passportExpiry: g.passportExpiry, email: g.email, phoneCountryCode: g.phoneCountryCode || '90', phoneNumber: g.phoneNumber || '', status: g.status || 'ACTIVE' }); setIsGuestModalOpen(true); };
 

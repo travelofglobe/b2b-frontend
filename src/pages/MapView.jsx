@@ -35,7 +35,7 @@ const CustomPriceMarker = ({ hotel, isSelected, isHovered, onSelect, onHover, se
                 <div class="px-2 py-0.5 rounded-full font-bold text-[11px] transition-all duration-300 border flex items-center justify-center gap-[1px] whitespace-nowrap z-10 ${isSelected || isHovered
                 ? 'bg-gradient-to-br from-[#137fec] to-[#0e60b5] text-white border-transparent scale-105 shadow-md -translate-y-1'
                 : 'bg-white/95 backdrop-blur-md text-slate-800 border-slate-200/80 shadow-xs group-hover:border-slate-300'
-                }">
+            }">
                     <span class="text-[9px] ${isSelected || isHovered ? 'text-blue-200' : 'text-slate-400'} font-bold leading-none">$</span>
                     <span class="tracking-tight">${hotel.price}</span>
                 </div>
@@ -99,13 +99,13 @@ const MapController = ({ selectedHotel, isProgrammaticMoveRef }) => {
                 if (map.getContainer()) {
                     map.stop();
                     map.invalidateSize();
-                    
+
                     // Add a small vertical offset to the flyTo coordinate
                     // This accounts for the icon's height and provides better visual balance
                     // since the marker anchor is at its bottom.
                     const targetLat = selectedHotel.lat;
                     const targetLng = selectedHotel.lng;
-                    
+
                     // Add a small vertical offset to center the marker better
                     // Markers are ~50px tall with anchor at bottom
                     const point = map.project([targetLat, targetLng], 15);
@@ -126,7 +126,7 @@ const MapController = ({ selectedHotel, isProgrammaticMoveRef }) => {
                     if (isMounted.current && map && map.getContainer()) {
                         map.stop();
                     }
-                } catch (e) {}
+                } catch (e) { }
             };
         }
     }, [selectedHotel, map, isProgrammaticMoveRef]);
@@ -185,7 +185,7 @@ const MapBoundsListener = ({ onBoundsChange, isUserPanRef, isProgrammaticMoveRef
             const map = e.target;
             // Force recalculation of container dimensions before calculating bounds
             map.invalidateSize();
-            
+
             const bounds = map.getBounds();
             const nw = bounds.getNorthWest();
             const se = bounds.getSouthEast();
@@ -323,7 +323,7 @@ const MapView = () => {
     const [selectedHotel, setSelectedHotel] = useState(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-    
+
     // Dynamic Filter Data
     const [dynamicFilters, setDynamicFilters] = useState(null);
     const [locationNames, setLocationNames] = useState({});
@@ -362,8 +362,8 @@ const MapView = () => {
         const fetchDetails = async () => {
             // Priority: Last selected filter location > primary locationId
             const locationsParam = searchParams.get('locations');
-            const targetLocId = locationsParam 
-                ? locationsParam.split(',').pop() 
+            const targetLocId = locationsParam
+                ? locationsParam.split(',').pop()
                 : searchParams.get('locationId');
 
             if (!targetLocId) {
@@ -404,7 +404,7 @@ const MapView = () => {
     const handleBackToList = () => {
         const q = searchParams.get('q');
         let slug = q ? q.toLowerCase() : '';
-        
+
         // Build hierarchical slug if possible
         if (q && q.includes(',')) {
             const queryParts = q.split(',').map(p => p.trim().toLowerCase());
@@ -413,7 +413,7 @@ const MapView = () => {
                 slug = reversed.slice(1).join('/');
             }
         }
-        
+
         const baseUrl = slug ? `/hotels/${slug}` : '/hotels';
         navigate(`${baseUrl}?${searchParams.toString()}`);
     };
@@ -471,22 +471,22 @@ const MapView = () => {
     // Auto-fit bounds when initial hotels load to perfectly center the map on properties
     useEffect(() => {
         if (!map || isUserPanRef.current || hotels.length === 0 || isLoadingHotels) return;
-        
+
         if (!hasFittedInitialBounds) {
             const lats = hotels.map(h => h.lat).filter(Boolean);
             const lngs = hotels.map(h => h.lng).filter(Boolean);
-            
+
             if (lats.length > 0 && lngs.length > 0) {
                 const minLat = Math.min(...lats);
                 const maxLat = Math.max(...lats);
                 const minLng = Math.min(...lngs);
                 const maxLng = Math.max(...lngs);
-                
+
                 const bounds = [
                     [minLat, minLng],
                     [maxLat, maxLng]
                 ];
-                
+
                 try {
                     isProgrammaticMoveRef.current = true;
                     map.flyToBounds(bounds, {
@@ -521,15 +521,15 @@ const MapView = () => {
         // Dynamic Amenities - check multiple possible field names and formats
         let amenities = [];
         const rawFacs = apiHotel.hotelFacilityIds || apiHotel.facilities || apiHotel.facilityIds || apiHotel.hotelFacilities;
-        
+
         if (rawFacs && Array.isArray(rawFacs)) {
             // Group by icon to avoid duplicates, but combine labels for the tooltip
             const iconGroups = {};
-            
+
             rawFacs.forEach(f => {
                 const id = typeof f === 'object' ? (f.facilityId || f.id || f.value) : f;
                 const match = FACILITY_ICON_MAP[Number(id)];
-                
+
                 if (match) {
                     if (!iconGroups[match.icon]) {
                         iconGroups[match.icon] = { ...match, labels: [match.label] };
@@ -662,7 +662,7 @@ const MapView = () => {
         setIsLoadingHotels(true);
         try {
             const zoom = boundsData.zoom;
-            
+
             if (zoom < 5) {
                 setHotels([]);
                 setIsLoadingHotels(false);
@@ -671,7 +671,7 @@ const MapView = () => {
 
             // Include all dynamic filters in map request
             const params = getSearchFilters();
-            
+
             // Construct a clean filters object for the API
             const filtersBody = {
                 locationIds: boundsData.isUserPan ? [] : params.locationIds,
@@ -721,7 +721,7 @@ const MapView = () => {
             if (successfulResponses.length > 0) {
                 const firstRes = successfulResponses[0];
                 const filtersData = firstRes.filters || firstRes.data?.filters;
-                
+
                 if (filtersData) {
                     setDynamicFilters(filtersData);
                 }
@@ -758,19 +758,19 @@ const MapView = () => {
                 }
 
                 const mappedHotels = allContent.map(mapApiHotelToModel);
-                
+
                 // Add jitter for identical coordinates
                 const coordinateMap = new Map();
                 const jitteredHotels = mappedHotels.filter(h => h.lat && h.lng).map(hotel => {
                     const coordKey = `${hotel.lat.toFixed(4)}_${hotel.lng.toFixed(4)}`;
                     const count = coordinateMap.get(coordKey) || 0;
                     coordinateMap.set(coordKey, count + 1);
-                    
+
                     if (count > 0) {
                         const offsetMultiplier = 0.00015;
                         const angle = count * Math.PI * 0.4;
                         let radius = offsetMultiplier * Math.ceil(count / 5);
-                        
+
                         return {
                             ...hotel,
                             lat: hotel.lat + radius * Math.cos(angle),
@@ -820,7 +820,7 @@ const MapView = () => {
                             newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
                         }
                     });
-                } catch (error) {}
+                } catch (error) { }
             }));
             if (isMounted && Object.keys(newNames).length > 0) {
                 setLocationNames(prev => ({ ...prev, ...newNames }));
@@ -846,12 +846,12 @@ const MapView = () => {
                     });
                     if (Object.keys(newNames).length > 0) setFacilityNames(prev => ({ ...prev, ...newNames }));
                 }
-            } catch (error) {}
+            } catch (error) { }
         };
         fetchMissingNames();
         return () => { isMounted = false; };
     }, [dynamicFilters, facilityNames]);
-    
+
 
     const filteredHotels = hotels.filter(hotel => {
         // Client-side geo bounding box filter (backend also filters, but this ensures map consistency)
@@ -859,9 +859,9 @@ const MapView = () => {
         if (currentBounds && currentBounds.bounds && hotel.lat && hotel.lng) {
             const { topLeft, bottomRight } = currentBounds.bounds;
             inBounds = (
-                hotel.lat <= topLeft.lat && 
-                hotel.lat >= bottomRight.lat && 
-                hotel.lng >= topLeft.lon && 
+                hotel.lat <= topLeft.lat &&
+                hotel.lat >= bottomRight.lat &&
+                hotel.lng >= topLeft.lon &&
                 hotel.lng <= bottomRight.lon
             );
         }
@@ -891,7 +891,7 @@ const MapView = () => {
                 if (closestHotel && closestHotel.locationBreadcrumbs && closestHotel.locationBreadcrumbs.length > 0) {
                     const breadcrumbs = closestHotel.locationBreadcrumbs;
                     const lastCrumb = breadcrumbs[breadcrumbs.length - 1];
-                    
+
                     if (lastCrumb && lastCrumb.locationId) {
                         // 1. Update Breadcrumb State (UI only, avoids re-fetching)
                         setBreadcrumbData({
@@ -906,13 +906,13 @@ const MapView = () => {
                         if (currentLocId !== String(lastCrumb.locationId)) {
                             const newParams = new URLSearchParams(searchParams);
                             newParams.set('locationId', lastCrumb.locationId);
-                            
+
                             // Optional: Update query 'q' to keep HeaderSearch in sync
                             const enName = lastCrumb.name?.translations?.en || lastCrumb.name?.defaultName;
                             if (enName) {
                                 newParams.set('q', enName);
                             }
-                            
+
                             setSearchParams(newParams, { replace: true });
                         }
                     }
@@ -957,11 +957,11 @@ const MapView = () => {
 
     // Get location name from breadcrumb data or query parameter
     let locationName = '';
-    
+
     if (breadcrumbData && breadcrumbData.name) {
         locationName = breadcrumbData.name.translations?.en || breadcrumbData.name.defaultName || '';
     }
-    
+
     if (!locationName) {
         const queryLocation = searchParams.get('q');
         locationName = queryLocation
@@ -1141,8 +1141,8 @@ const MapView = () => {
                                     url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                                 />
 
-                                <MapBoundsListener 
-                                    onBoundsChange={setCurrentBounds} 
+                                <MapBoundsListener
+                                    onBoundsChange={setCurrentBounds}
                                     isUserPanRef={isUserPanRef}
                                     isProgrammaticMoveRef={isProgrammaticMoveRef}
                                 />
@@ -1183,7 +1183,7 @@ const MapView = () => {
                                             <h4 className="text-white text-xs font-black uppercase tracking-widest">Too many properties</h4>
                                             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mt-1">Please zoom in to see hotels in this area</p>
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={handleZoomIn}
                                             className="mt-2 px-6 py-2.5 bg-[#137fec] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#137fec]/20 hover:scale-105 active:scale-95 transition-all"
                                         >

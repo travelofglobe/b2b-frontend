@@ -10,11 +10,11 @@ export const FavoritesProvider = ({ children }) => {
     const [activeHotelIds, setActiveHotelIds] = useState(new Set());
 
     // Determine user key for localStorage fallback
+    const userId = user?.id || user?.userId || user?.email || 'guest';
     const userStorageKey = useMemo(() => {
         if (!user) return 'b2b_favorites_guest';
-        const identifier = user.id || user.userId || user.email || 'guest';
-        return `b2b_favorites_${identifier}`;
-    }, [user]);
+        return `b2b_favorites_${userId}`;
+    }, [user, userId]);
 
     // Load active favorited hotel IDs from backend (lightweight call)
     const loadActiveHotelIds = useCallback(async () => {

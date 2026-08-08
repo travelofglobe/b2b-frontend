@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { bookingService } from '../services/bookingService';
 import HeaderActions from '../components/HeaderActions';
@@ -11,8 +11,58 @@ import { BOOKING_STATUS_CONFIG } from '../utils/bookingStatusUtils';
 import { tMB } from '../utils/myBookingsLocales';
 import { downloadPdfDoc, downloadXlsxWorkbook } from '../utils/fileDownloadHelper';
 
+const parseInitialFilters = (params) => {
+    const todayStr = () => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    let start = params.get('createDateStart') || '';
+    let end = params.get('createDateEnd') || '';
+    if (params.get('today') === 'true' || params.get('filter') === 'today') {
+        const t = todayStr();
+        start = t;
+        end = t;
+    }
+
+    const rawStatus = params.get('bookingStatuses') || params.get('bookingStatus') || params.get('status');
+    const bookingStatuses = rawStatus ? rawStatus.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+    return {
+        id: params.get('id') || '',
+        voucher: params.get('voucher') || '',
+        supplierId: params.get('supplierId') || '',
+        supplierName: params.get('supplierName') || '',
+        internalHotelId: params.get('internalHotelId') || '',
+        bookingUuid: params.get('bookingUuid') || '',
+        paymentStatus: params.get('paymentStatus') || '',
+        bookingStatuses: bookingStatuses,
+        clientReferenceId: params.get('clientReferenceId') || '',
+        requestId: params.get('requestId') || '',
+        hotelName: params.get('hotelName') || '',
+        createDateStart: start,
+        createDateEnd: end,
+        checkInStart: params.get('checkInStart') || '',
+        checkInEnd: params.get('checkInEnd') || '',
+        checkOutStart: params.get('checkOutStart') || '',
+        checkOutEnd: params.get('checkOutEnd') || '',
+        minAmount: params.get('minAmount') || '',
+        maxAmount: params.get('maxAmount') || '',
+        currencies: params.get('currencies') ? params.get('currencies').split(',') : [],
+        principalAgencyIds: params.get('principalAgencyIds') ? params.get('principalAgencyIds').split(',').map(Number) : [],
+        minCancellationAmount: params.get('minCancellationAmount') || '',
+        maxCancellationAmount: params.get('maxCancellationAmount') || '',
+        cancelReason: params.get('cancelReason') || '',
+        isCancelled: params.get('isCancelled') || '',
+    };
+};
+
 const MyBookings = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { i18n } = useTranslation();
     const [currentLang, setCurrentLang] = useState(() => {
         const raw = i18n.language || localStorage.getItem('i18nextLng') || 'en';
@@ -39,34 +89,8 @@ const MyBookings = () => {
     const hasLoadedData = React.useRef(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    // Filter state - matching all API fields
-    const [filters, setFilters] = useState({
-        id: '',
-        voucher: '',
-        supplierId: '',
-        supplierName: '',
-        internalHotelId: '',
-        bookingUuid: '',
-        paymentStatus: '',
-        bookingStatuses: [],
-        clientReferenceId: '',
-        requestId: '',
-        hotelName: '',
-        createDateStart: '',
-        createDateEnd: '',
-        checkInStart: '',
-        checkInEnd: '',
-        checkOutStart: '',
-        checkOutEnd: '',
-        minAmount: '',
-        maxAmount: '',
-        currencies: [],
-        principalAgencyIds: [],
-        minCancellationAmount: '',
-        maxCancellationAmount: '',
-        cancelReason: '',
-        isCancelled: '',
-    });
+    // Filter state - initialized with searchParams
+    const [filters, setFilters] = useState(() => parseInitialFilters(searchParams));
 
     // Integrated Search Effect (Handles mount, filters, pagination, and refresh)
     useEffect(() => {
@@ -398,6 +422,7 @@ const MyBookings = () => {
     };
 
     const handleClearFilters = () => {
+        navigate('/bookings', { replace: true });
         setFilters({
             id: '',
             voucher: '',
@@ -419,7 +444,7 @@ const MyBookings = () => {
             minAmount: '',
             maxAmount: '',
             currencies: [],
-            principalAgencyIds: '',
+            principalAgencyIds: [],
             minCancellationAmount: '',
             maxCancellationAmount: '',
             cancelReason: '',

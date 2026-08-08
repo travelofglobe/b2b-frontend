@@ -252,36 +252,75 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                             </Tooltip>
                         ))}
                     </div>
+
+                    {/* Returned Room & Deal Details */}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5 mb-2.5">
+                        {hotel.boardName && (
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/40 text-[10px] font-medium flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[12px]">restaurant</span>
+                                <span>{hotel.boardName}</span>
+                            </span>
+                        )}
+                        {hotel.hasFreeCancellation && (
+                            <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/40 text-[10px] font-medium flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[12px]">event_available</span>
+                                <span>{currentLang === 'tr' ? 'Ücretsiz İptal' : 'Free Cancellation'}</span>
+                            </span>
+                        )}
+                        {hotel.isNonRefundable && !hotel.hasFreeCancellation && (
+                            <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/40 text-[10px] font-medium flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[12px]">info</span>
+                                <span>{currentLang === 'tr' ? 'İade Edilemez' : 'Non-Refundable'}</span>
+                            </span>
+                        )}
+                        {hotel.roomName && (
+                            <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700/50 text-[10px] font-medium flex items-center gap-1 truncate max-w-[200px]" title={hotel.roomName}>
+                                <span className="material-symbols-outlined text-[12px]">king_bed</span>
+                                <span className="truncate">{hotel.roomName}</span>
+                            </span>
+                        )}
+                        {hotel.availableRoomsCount > 1 && (
+                            <span className="text-[10px] font-normal text-slate-400 self-center ml-0.5">
+                                ({hotel.availableRoomsCount} {currentLang === 'tr' ? 'oda seçeneği' : 'room options'})
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <div className={`flex items-center justify-between pt-3 ${isList ? 'border-t border-slate-100 dark:border-[#233648]' : ''}`}>
                     <div className="flex flex-col">
-                        <div className="flex items-baseline gap-1">
-                            {hotel.price > 0 ? (
-                                <>
-                                    <div className="flex items-baseline gap-1">
-                                        <span className={`font-bold text-slate-900 dark:text-white ${isList ? 'text-lg sm:text-xl' : 'text-base font-bold'}`}>
-                                            {currencySymbol}{Math.round(hotel.price)}
-                                        </span>
-                                        <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-tight">{hotel.currency}</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[8px] text-slate-400 font-medium uppercase leading-none">
-                                            {hotel.tax > 0 
-                                                ? `incl. ${currencySymbol}${hotel.tax.toFixed(2)} tax` 
-                                                : 'incl. taxes'}
-                                        </span>
-                                    </div>
-                                </>
-                            ) : (
-                                <span className="text-xs font-semibold text-slate-500 uppercase">Check Availability</span>
-                            )}
-                        </div>
+                        {hotel.price > 0 ? (
+                            <div className="flex flex-col">
+                                {hotel.strikethroughPrice && hotel.strikethroughPrice > hotel.price && (
+                                    <span className="text-[11px] font-medium text-slate-400 line-through leading-none mb-0.5">
+                                        {currencySymbol}{Math.round(hotel.strikethroughPrice).toLocaleString()}
+                                    </span>
+                                )}
+                                <div className="flex items-baseline gap-1.5">
+                                    <span className={`font-bold text-slate-900 dark:text-white tracking-tight ${isList ? 'text-xl sm:text-2xl' : 'text-lg font-bold'}`}>
+                                        {currencySymbol}{Math.round(hotel.price).toLocaleString()}
+                                    </span>
+                                    <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 leading-none">
+                                        {hotel.currency}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1 mt-0.5 text-[9.5px] font-normal text-slate-400">
+                                    <span className="material-symbols-outlined text-[11px] text-emerald-500">check_circle</span>
+                                    <span>
+                                        {hotel.tax > 0 
+                                            ? `incl. ${currencySymbol}${hotel.tax.toFixed(2)} tax` 
+                                            : currentLang === 'tr' ? 'vergiler dahil' : 'incl. taxes & fees'}
+                                    </span>
+                                </div>
+                            </div>
+                        ) : (
+                            <span className="text-xs font-semibold text-slate-500 uppercase">Check Availability</span>
+                        )}
                     </div>
                     <div
                         className={`bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-all shadow-xs hover:shadow-primary/20 active:scale-95 flex items-center justify-center shrink-0 whitespace-nowrap ${isList ? 'text-xs py-2.5 px-5' : 'text-xs py-2 px-4'}`}
                     >
-                        View Details
+                        {currentLang === 'tr' ? 'Detayları Gör' : 'View Details'}
                     </div>
                 </div>
             </div>

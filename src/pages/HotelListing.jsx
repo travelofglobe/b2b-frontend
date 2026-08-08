@@ -550,11 +550,19 @@ const HotelListing = () => {
         }
 
         const selectedRoom = lowestRoom || apiHotel.rooms?.[0];
-        const ratePrice = selectedRoom?.hubRateModel?.price;
+        const hubRate = selectedRoom?.hubRateModel;
+        const ratePrice = hubRate?.price;
         const priceValue = lowestPrice !== Infinity ? lowestPrice : (ratePrice?.calculatedAmount || ratePrice?.totalPaymentAmount || ratePrice?.markupCalculatedPrice?.holder?.saleAmount || 0);
         const currencyCode = ratePrice?.currency || 'USD';
         const totalTaxAmount = ratePrice?.totalTaxAmount || 0;
 
+        // Extra returned details from API
+        const boardName = selectedRoom?.boardName || hubRate?.boardName || selectedRoom?.boardCode || (selectedRoom?.boardType ? selectedRoom.boardType.replace(/_/g, ' ') : null);
+        const roomName = selectedRoom?.name || selectedRoom?.roomName || selectedRoom?.roomCategoryName;
+        const isNonRefundable = hubRate?.nonRefundable === true || selectedRoom?.nonRefundable === true;
+        const cancellationPolicies = hubRate?.cancellationPolicies || selectedRoom?.cancellationPolicies;
+        const hasFreeCancellation = (cancellationPolicies && cancellationPolicies.length > 0 && cancellationPolicies.some(cp => cp.amount === 0 || cp.penaltyAmount === 0)) || (!isNonRefundable && cancellationPolicies?.length > 0);
+        const strikethroughPrice = ratePrice?.strikethroughPrice || ratePrice?.originalPrice || (priceValue > 0 ? priceValue * 1.15 : 0);
 
         return {
             id: apiHotel.id,
@@ -575,7 +583,14 @@ const HotelListing = () => {
             lng: apiHotel.coordinates?.lon,
             amenities: amenities,
             transportations: apiHotel.transportations || [],
-            badges: hotelBadges
+            badges: hotelBadges,
+            // Additional returned API data
+            roomName: roomName,
+            boardName: boardName,
+            isNonRefundable: isNonRefundable,
+            hasFreeCancellation: hasFreeCancellation,
+            strikethroughPrice: strikethroughPrice > priceValue ? strikethroughPrice : null,
+            availableRoomsCount: apiHotel.rooms?.length || 0,
         };
     }, []);
 

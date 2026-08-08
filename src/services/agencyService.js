@@ -2,9 +2,30 @@ import apiClient from '../utils/apiClient';
 
 const API_BASE_URL = 'http://72.62.17.189:8000/b2b-backend/v1';
 
+let agencyMePromise = null;
+let agencyMeCacheTime = 0;
+const ME_CACHE_TTL_MS = 60000; // 1 minute in-memory cache
+
 export const agencyService = {
     getMe: async (signal) => {
-        return apiClient.get(`${API_BASE_URL}/agency/me`, { signal });
+        const now = Date.now();
+        if (agencyMePromise && (now - agencyMeCacheTime < ME_CACHE_TTL_MS)) {
+            return agencyMePromise;
+        }
+        agencyMeCacheTime = now;
+        agencyMePromise = apiClient.get(`${API_BASE_URL}/agency/me`, { signal });
+        try {
+            return await agencyMePromise;
+        } catch (e) {
+            agencyMePromise = null;
+            agencyMeCacheTime = 0;
+            throw e;
+        }
+    },
+
+    clearMeCache: () => {
+        agencyMePromise = null;
+        agencyMeCacheTime = 0;
     },
 
     updateAgency: async (id, data) => {
@@ -24,8 +45,11 @@ export const agencyService = {
         return apiClient.get(`${API_BASE_URL}/agency/get-summary`);
     },
 
-    getDashboardSummary: async () => {
-        return apiClient.get(`${API_BASE_URL}/dashboard/gsa-summary`);
+    getDashboardSummary: async (period = 'TODAY', refresh = false) => {
+        const params = new URLSearchParams();
+        if (period) params.append('period', period);
+        if (refresh) params.append('refresh', 'true');
+        return apiClient.get(`${API_BASE_URL}/dashboard/gsa-summary?${params.toString()}`);
     },
 
     createAgency: async (data) => {

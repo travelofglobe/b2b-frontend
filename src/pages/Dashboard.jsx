@@ -18,8 +18,12 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [statsLoading, setStatsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const hasFetchedRef = React.useRef(false);
 
     useEffect(() => {
+        if (hasFetchedRef.current) return;
+        hasFetchedRef.current = true;
+
         const fetchBookings = async () => {
             try {
                 const data = await bookingService.findLastFive();
@@ -33,14 +37,19 @@ const Dashboard = () => {
             }
         };
 
-        const fetchStats = async () => {
+        const fetchStats = async (refresh = false) => {
             try {
-                const summary = await agencyService.getDashboardSummary();
+                const res = await agencyService.getDashboardSummary('TODAY', refresh);
                 setSummary({
-                    totalUsers: summary?.totalUsers ?? 0,
-                    activeUsers: summary?.activeUsers ?? 0,
-                    totalGuests: summary?.totalGuests ?? 0,
-                    bookingsToday: summary?.bookingsToday ?? 0,
+                    totalUsers: res?.totalUsers ?? 0,
+                    activeUsers: res?.activeUsers ?? 0,
+                    totalGuests: res?.totalGuests ?? 0,
+                    bookingsToday: res?.bookingsToday ?? 0,
+                    bookingsYesterday: res?.bookingsYesterday ?? 0,
+                    bookingsTrend: res?.bookingsTrend ?? 0,
+                    errorCount: res?.errorCount ?? 0,
+                    errorRate: res?.errorRate ?? '0.00',
+                    errorTrend: res?.errorTrend ?? '+0.0%',
                 });
             } catch (err) {
                 console.error('Failed to fetch dashboard stats:', err);
@@ -77,6 +86,24 @@ const Dashboard = () => {
         });
     };
 
+    const handleBookingsTodayClick = () => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
+        navigate(`/bookings?createDateStart=${todayStr}&createDateEnd=${todayStr}&bookingStatuses=CONFIRMED`);
+    };
+
+    const handleErrorRateClick = () => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
+        navigate(`/bookings?createDateStart=${todayStr}&createDateEnd=${todayStr}&bookingStatuses=ERROR`);
+    };
+
     return (
         <>
             {/* Background Decorative Glows */}
@@ -92,10 +119,6 @@ const Dashboard = () => {
                             <h1 className="text-lg font-medium">Welcome, <span className="font-semibold">{userDisplayName}</span></h1>
                         </div>
                         <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2 text-emerald-500 font-medium text-sm bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                {t('dashboard.bookingsToday', { count: summary.bookingsToday })}
-                            </div>
                             <HeaderActions />
                         </div>
                     </header>
@@ -104,17 +127,93 @@ const Dashboard = () => {
                         <DashboardSearch />
                     </div>
 
-                    {/* Compact Dashboard Summary Stats */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                    {/* Compact Dashboard Summary Stats Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5 mb-6">
+                        {/* Bookings Today Card (Clickable) */}
+                        <div
+                            onClick={handleBookingsTodayClick}
+                            className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-3.5 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex flex-col justify-between group hover:border-emerald-500/50 hover:bg-emerald-500/[0.04] dark:hover:bg-emerald-500/[0.06] hover:shadow-md hover:shadow-emerald-500/10 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+                            title="Bugünkü onaylanan rezervasyonları görüntüle"
+                        >
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-1">
+                                        BOOKINGS TODAY
+                                    </p>
+                                    <p className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
+                                        {statsLoading ? '...' : summary.bookingsToday}
+                                    </p>
+                                </div>
+                                <div className="size-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-xs">
+                                    <span className="material-icons-round text-xl">confirmation_number</span>
+                                </div>
+                            </div>
+                            
+                            {/* Progress bar line */}
+                            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden my-3">
+                                <div
+                                    className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                                    style={{ width: `${Math.min(100, Math.max(10, summary.bookingsToday * 20))}%` }}
+                                ></div>
+                            </div>
+
+                            {/* Bottom trend & ratio label */}
+                            <div className="flex items-center justify-between">
+                                <span className={`flex items-center gap-0.5 text-xs font-bold ${summary.bookingsTrend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
+                                    <span className="material-icons-round text-sm">{summary.bookingsTrend >= 0 ? 'trending_up' : 'trending_down'}</span>
+                                    {summary.bookingsTrend >= 0 ? `+${summary.bookingsTrend}%` : `${summary.bookingsTrend}%`}
+                                </span>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">VS YESTERDAY</span>
+                            </div>
+                        </div>
+
+                        {/* Error Rate Card (Clickable - Matches User Screenshot) */}
+                        <div
+                            onClick={handleErrorRateClick}
+                            className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-3.5 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex flex-col justify-between group hover:border-amber-500/50 hover:bg-amber-500/[0.04] dark:hover:bg-amber-500/[0.06] hover:shadow-md hover:shadow-amber-500/10 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+                            title="Bugünkü hatalı rezervasyonları görüntüle"
+                        >
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-1">
+                                        ERROR RATE
+                                    </p>
+                                    <p className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
+                                        {statsLoading ? '...' : `%${summary.errorRate || '0.00'}`}
+                                    </p>
+                                </div>
+                                <div className="size-10 rounded-2xl bg-amber-100/80 dark:bg-amber-900/30 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all shadow-xs">
+                                    <span className="material-icons-round text-xl">bolt</span>
+                                </div>
+                            </div>
+
+                            {/* Progress bar line */}
+                            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden my-3">
+                                <div
+                                    className="bg-primary h-full rounded-full transition-all duration-500"
+                                    style={{ width: `${Math.min(100, Math.max(8, Number(summary.errorRate || 0)))}%` }}
+                                ></div>
+                            </div>
+
+                            {/* Bottom trend & ratio label */}
+                            <div className="flex items-center justify-between">
+                                <span className="flex items-center gap-0.5 text-xs font-bold text-rose-500">
+                                    <span className="material-icons-round text-sm">trending_up</span>
+                                    {summary.errorTrend || '+0.0%'}
+                                </span>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">RATIO</span>
+                            </div>
+                        </div>
+
                         {/* Total Users Card */}
-                        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-3 rounded-xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex items-center justify-between group hover:border-primary/30 transition-all duration-300">
+                        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-3.5 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex items-center justify-between group hover:border-primary/30 transition-all duration-300">
                             <div className="flex items-center gap-3">
-                                <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                     <span className="material-icons-round text-lg">supervised_user_circle</span>
                                 </div>
                                 <div>
                                     <p className="text-[9px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-1">{t('dashboard.totalUsers')}</p>
-                                    <p className="text-base font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalUsers}</p>
+                                    <p className="text-lg font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalUsers}</p>
                                 </div>
                             </div>
                             <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-semibold uppercase tracking-wider border border-emerald-500/20 flex items-center gap-1">
@@ -123,14 +222,14 @@ const Dashboard = () => {
                         </div>
 
                         {/* Active Users Card */}
-                        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-3 rounded-xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex items-center justify-between group hover:border-amber-500/30 transition-all duration-300">
+                        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-3.5 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex items-center justify-between group hover:border-amber-500/30 transition-all duration-300">
                             <div className="flex items-center gap-3">
-                                <div className="size-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                <div className="size-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                     <span className="material-icons-round text-lg">bolt</span>
                                 </div>
                                 <div>
                                     <p className="text-[9px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-1">{t('dashboard.activeUsers')}</p>
-                                    <p className="text-base font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.activeUsers}</p>
+                                    <p className="text-lg font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.activeUsers}</p>
                                 </div>
                             </div>
                             <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[9px] font-semibold uppercase tracking-wider border border-amber-500/20 flex items-center gap-1">
@@ -139,14 +238,14 @@ const Dashboard = () => {
                         </div>
 
                         {/* Total Guests Card */}
-                        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-3 rounded-xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex items-center justify-between group hover:border-purple-500/30 transition-all duration-300">
+                        <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-3.5 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex items-center justify-between group hover:border-purple-500/30 transition-all duration-300">
                             <div className="flex items-center gap-3">
-                                <div className="size-8 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                <div className="size-9 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                     <span className="material-icons-round text-lg">group</span>
                                 </div>
                                 <div>
                                     <p className="text-[9px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-1">{t('dashboard.totalGuests')}</p>
-                                    <p className="text-base font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalGuests}</p>
+                                    <p className="text-lg font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalGuests}</p>
                                 </div>
                             </div>
                             <span className="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[9px] font-semibold uppercase tracking-wider border border-purple-500/20 flex items-center gap-1">

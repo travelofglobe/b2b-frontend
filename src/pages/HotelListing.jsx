@@ -394,7 +394,7 @@ const HotelListing = () => {
 
     // Get location name from query parameter
     const queryLocation = searchParams.get('q');
-    
+
     // For hierarchical slugs, take the last segment for the display name
     const getSlugDisplayName = (s) => {
         if (!s) return null;
@@ -448,7 +448,7 @@ const HotelListing = () => {
         // Pick name and star based on language
         const hotelNames = apiHotel.names || apiHotel.name; // Support both for transition
         const name = hotelNames?.tr || hotelNames?.en || hotelNames?.defaultName || 'Unknown Hotel';
-        
+
         // Dynamic Stars - new object structure
         const starCount = apiHotel.hotelStar?.star || 0;
         const starLabel = apiHotel.hotelStar?.names?.tr || apiHotel.hotelStar?.names?.en || '';
@@ -466,19 +466,19 @@ const HotelListing = () => {
         // Dynamic Amenities - check multiple possible field names and formats
         let amenities = [];
         const rawFacs = apiHotel.hotelFacilityIds || apiHotel.facilities || apiHotel.facilityIds || apiHotel.hotelFacilities;
-        
+
         if (rawFacs && Array.isArray(rawFacs)) {
             // Group by icon to avoid duplicates, but combine labels for the tooltip
             const iconGroups = {};
-            
+
             rawFacs.forEach(f => {
                 const id = typeof f === 'object' ? (f.facilityId || f.id || f.value) : f;
                 const match = FACILITY_ICON_MAP[Number(id)];
-                
+
                 if (match) {
                     // Use localized name from facility object if available
-                    const localizedLabel = typeof f === 'object' && f.names 
-                        ? (f.names.tr || f.names.en || match.label) 
+                    const localizedLabel = typeof f === 'object' && f.names
+                        ? (f.names.tr || f.names.en || match.label)
                         : match.label;
 
                     if (!iconGroups[match.icon]) {
@@ -505,16 +505,16 @@ const HotelListing = () => {
 
         // Handle images with thumbnail priority and local silhouette fallbacks
         let imagesToMap = [];
-        
+
         if (apiHotel.images && apiHotel.images.length > 0) {
             // Sort by isThumbnail so thumbnail is always first
             const sorted = [...apiHotel.images].sort((a, b) => (b.isThumbnail ? 1 : 0) - (a.isThumbnail ? 1 : 0));
-            
+
             // Filter: must be the thumbnail OR have 'hotel' category
-            const filtered = sorted.filter(img => 
+            const filtered = sorted.filter(img =>
                 img.isThumbnail || (img.category && img.category.toLowerCase() === 'hotel')
             );
-            
+
             // Map to URLs and deduplicate while maintaining order (thumbnail first)
             imagesToMap = [...new Set(filtered.map(img => img.url))].filter(url => !!url);
         }
@@ -616,7 +616,7 @@ const HotelListing = () => {
             setPage(0);
             setHasMore(true);
         }
-        
+
         // Create new AbortController for this request
         const controller = new AbortController();
         abortControllerRef.current = controller;
@@ -655,17 +655,17 @@ const HotelListing = () => {
             // Fetch two pages of size 100 in parallel (total 200 hotels)
             const req1 = hotelService.searchHotels({ ...baseRequest, page: currentPage });
             const req2 = hotelService.searchHotels({ ...baseRequest, page: currentPage + 1 });
-            
+
             // Wait for both to complete
             const results = await Promise.allSettled([req1, req2]);
-            
+
             const res1 = results[0].status === 'fulfilled' ? results[0].value : null;
             const res2 = results[1].status === 'fulfilled' ? results[1].value : null;
 
             if (res1 && res1.data) {
                 const pageData1 = res1.data;
                 const pageData2 = (res2 && res2.data) ? res2.data : { content: [], last: true };
-                
+
                 const filtersData = res1.filters || res1.data.filters;
                 const content1 = pageData1.content || [];
                 const content2 = pageData2.content || [];
@@ -750,7 +750,7 @@ const HotelListing = () => {
         if (missingLocIds.length === 0) return;
 
         let isMounted = true;
-        
+
         const fetchMissingNames = async () => {
             const newNames = {};
             // Fetch in parallel using Promise.allSettled to not break on a single failure
@@ -758,18 +758,18 @@ const HotelListing = () => {
                 try {
                     const data = await locationService.fetchBreadcrumb(id);
                     if (data && data.data && Array.isArray(data.data)) {
-                         // Some endpoints return the array in data.data
-                         data.data.forEach(crumb => {
-                             if (crumb.locationId && crumb.name) {
-                                 newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
-                             }
-                         });
+                        // Some endpoints return the array in data.data
+                        data.data.forEach(crumb => {
+                            if (crumb.locationId && crumb.name) {
+                                newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
+                            }
+                        });
                     } else if (data && data.breadcrumbs) {
-                         data.breadcrumbs.forEach(crumb => {
-                             if (crumb.locationId && crumb.name) {
-                                 newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
-                             }
-                         });
+                        data.breadcrumbs.forEach(crumb => {
+                            if (crumb.locationId && crumb.name) {
+                                newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
+                            }
+                        });
                     }
                 } catch (error) {
                     console.error(`Failed to fetch breadcrumb for location ${id}`, error);
@@ -785,7 +785,7 @@ const HotelListing = () => {
 
         return () => { isMounted = false; };
     }, [dynamicFilters, locationNames]);
-    
+
     // Fetch names for any facilities in the filters that we haven't seen yet
     React.useEffect(() => {
         if (!dynamicFilters || !dynamicFilters.hotelFacilityIds) return;
@@ -825,10 +825,10 @@ const HotelListing = () => {
     React.useEffect(() => {
         // We don't reset to 0 immediately here to avoid the flicker, 
         // the reset will happen inside loadMoreHotels(true)
-        
+
         setPage(0);
         setHasMore(true);
-        
+
         // Scroll to top when filters change
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -862,7 +862,7 @@ const HotelListing = () => {
     const handleSortChange = (e) => {
         const val = e.target.value;
         let newSort = { field: null, order: 'DESC' };
-        
+
         switch (val) {
             case 'star_desc': newSort = { field: 'hotelStarCategoryId', order: 'DESC' }; break;
             case 'star_asc': newSort = { field: 'hotelStarCategoryId', order: 'ASC' }; break;
@@ -870,7 +870,7 @@ const HotelListing = () => {
             case 'rating_asc': newSort = { field: 'rating', order: 'ASC' }; break;
             default: newSort = { field: null, order: 'DESC' };
         }
-        
+
         setSortConfig(newSort);
     };
 
@@ -915,7 +915,7 @@ const HotelListing = () => {
                             </div>
                             <div className="flex items-center gap-3">
                                 <span className="text-xs font-semibold text-slate-400 whitespace-nowrap">{tListing('sortBy', currentLang)}</span>
-                                <select 
+                                <select
                                     className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-xl text-xs font-semibold py-2 pl-3 pr-8 focus:ring-primary focus:border-primary text-slate-800 dark:text-slate-200 outline-none"
                                     onChange={handleSortChange}
                                     value={sortConfig.field ? `${sortConfig.field === 'hotelStarCategoryId' ? 'star' : 'rating'}_${sortConfig.order.toLowerCase()}` : 'recommended'}
@@ -978,7 +978,7 @@ const HotelListing = () => {
                                     <HotelCardSkeleton key={i} viewMode={viewMode} />
                                 ))
                             ) : null}
-                            
+
                             {/* Subsequent loading skeletons (Infinite Scroll) */}
                             {isLoading && hotels.length > 0 && (
                                 [...Array(viewMode === 'list' ? 2 : 4)].map((_, i) => (

@@ -292,23 +292,23 @@ const Dashboard = () => {
                                     <img alt="Dubai skyline" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA44V5Rw3n0d1IRUftf6z8_vB3HBwcJuZJYvR8YmMatQ44JJKuoVOOMZcc324K7w5t1CEj7rrbmQfvu5_L2C40dYKtEcaBr5ly0T2kK_jkA4AEB8UFmJdh9tBTYpY2-EwDPlKBK-hSxTlvOGKO0anJ6RtGIuOBD2wgcngOYuLJCxcsptvI1yl_q818XSF4LsNWF3KF9TlwuW10-EZRTff2f_RLRbTnjZryGus-MPJEtchv29FeLBwrrvu5twYK6Gksekuw7rc8BfLAE" />
                                     <div className="absolute top-3 right-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
                                         <span className="material-icons-round text-primary text-xs">trending_up</span>
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
+                                        <span className="text-[9.5px] font-medium uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
                                 </div>
                                 <div className="p-4">
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
-                                            <h4 className="font-bold text-base text-slate-900 dark:text-white tracking-tight">{t('dashboard.destinations.dubai')}</h4>
+                                            <h4 className="font-semibold text-sm text-slate-900 dark:text-white tracking-tight">{t('dashboard.destinations.dubai')}</h4>
                                             <p className="text-[11px] font-medium text-slate-400 mt-0.5">{t('dashboard.destinations.uae')}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider leading-none">{t('dashboard.destinations.from')}</p>
-                                            <p className="text-primary font-bold text-base mt-0.5">$89</p>
+                                            <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider leading-none">{t('dashboard.destinations.from')}</p>
+                                            <p className="text-primary font-semibold text-sm mt-0.5">$89</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="bg-primary/10 text-primary text-[10px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.hotels', { count: 1240 })}</span>
-                                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.luxury')}</span>
+                                        <span className="bg-primary/10 text-primary text-[9.5px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.hotels', { count: 1240 })}</span>
+                                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[9.5px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.luxury')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -317,23 +317,23 @@ const Dashboard = () => {
                                     <img alt="Eiffel Tower Paris" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAKaysBHtmgeqbCgI0hzy0BjMTk-ihUbfPvkwXOo8168DpEmYK3ZwUxnws0XTpi6CmcD9AxZbd3_eEML6dtpH1U4UclGEab2N3lvPHR2NF83mJEoRDl4abqV9dzSRQSgW_hG8DnDAIF2poS3q0EGj7EQwR269k2fBX9DwMIy5gLNy3CNjSgGuy6g3et73S__a185-hjz_rlYOqQXd3J9xxPDU6VuTKmnr7sPPCcfG7YmvzEi-Tg2SmIcvAqYG0Sbd2-iebgBNPsKU_" />
                                     <div className="absolute top-3 right-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
                                         <span className="material-icons-round text-primary text-xs">trending_up</span>
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
+                                        <span className="text-[9.5px] font-medium uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
                                 </div>
                                 <div className="p-4">
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
-                                            <h4 className="font-bold text-base text-slate-900 dark:text-white tracking-tight">{t('dashboard.destinations.paris')}</h4>
+                                            <h4 className="font-semibold text-sm text-slate-900 dark:text-white tracking-tight">{t('dashboard.destinations.paris')}</h4>
                                             <p className="text-[11px] font-medium text-slate-400 mt-0.5">{t('dashboard.destinations.france')}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider leading-none">{t('dashboard.destinations.from')}</p>
-                                            <p className="text-primary font-bold text-base mt-0.5">$120</p>
+                                            <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider leading-none">{t('dashboard.destinations.from')}</p>
+                                            <p className="text-primary font-semibold text-sm mt-0.5">$120</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="bg-primary/10 text-primary text-[10px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.hotels', { count: 2100 })}</span>
-                                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.romance')}</span>
+                                        <span className="bg-primary/10 text-primary text-[9.5px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.hotels', { count: 2100 })}</span>
+                                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[9.5px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.romance')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -342,23 +342,23 @@ const Dashboard = () => {
                                     <img alt="Tokyo tower" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0NEc0GKKnW3d7mB9bVdbYwFNBEpY_nhmkIekHSBPSWraDNin1ulHT4_q9cfhMIcqrg51KW03dH7sambalU3BYZ7y1HYErTyF-Wv08E5_ZTcGFZrbVQoaAWGSJJ-DT_LoEtPdZ6dZ8UDyuHbzkGiRdIafWF85YxePToZg0rHlnEcE09fDEybxGYm1CEGPO7UT-q-ghVu23XP5EZBmMWGnaKFbxyGO7P11p_zKZAvKsILFOdCL3gMmFS3S-e5qWTr12LhS_aHMTOtlm" />
                                     <div className="absolute top-3 right-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
                                         <span className="material-icons-round text-primary text-xs">trending_up</span>
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
+                                        <span className="text-[9.5px] font-medium uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
                                 </div>
                                 <div className="p-4">
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
-                                            <h4 className="font-bold text-base text-slate-900 dark:text-white tracking-tight">{t('dashboard.destinations.tokyo')}</h4>
+                                            <h4 className="font-semibold text-sm text-slate-900 dark:text-white tracking-tight">{t('dashboard.destinations.tokyo')}</h4>
                                             <p className="text-[11px] font-medium text-slate-400 mt-0.5">{t('dashboard.destinations.japan')}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider leading-none">{t('dashboard.destinations.from')}</p>
-                                            <p className="text-primary font-bold text-base mt-0.5">$95</p>
+                                            <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider leading-none">{t('dashboard.destinations.from')}</p>
+                                            <p className="text-primary font-semibold text-sm mt-0.5">$95</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="bg-primary/10 text-primary text-[10px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.hotels', { count: 1850 })}</span>
-                                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.culture')}</span>
+                                        <span className="bg-primary/10 text-primary text-[9.5px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.hotels', { count: 1850 })}</span>
+                                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[9.5px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.culture')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -367,23 +367,23 @@ const Dashboard = () => {
                                     <img alt="New York City" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtxEUChP8HguBV_GFxz8TEk3Dssxi8xSCtI9Z9T9odllNiM91Ak0hyIkth1y8h7fVd-SgwSm4HxyJenSQHfxcK0mRSw03MGbXy9awP6fWL9o2E6w2zJuTizyr02IqQyZd6m73Z9CBZkHOiHgr0UxqaQ0otgONM7xlmX8jdsLkvqO6E3iPFxcpO5oCVYD2Oeq35OrYztM-6PMWjIP3b1DOmvxfBWs1CLP1K2ycUZSlNdQ7d-ig6xdBpLeQU4BjENmJ-TBFNTw8OLQXD" />
                                     <div className="absolute top-3 right-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
                                         <span className="material-icons-round text-primary text-xs">trending_up</span>
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
+                                        <span className="text-[9.5px] font-medium uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
                                 </div>
                                 <div className="p-4">
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
-                                            <h4 className="font-bold text-base text-slate-900 dark:text-white tracking-tight">{t('dashboard.destinations.newYork')}</h4>
+                                            <h4 className="font-semibold text-sm text-slate-900 dark:text-white tracking-tight">{t('dashboard.destinations.newYork')}</h4>
                                             <p className="text-[11px] font-medium text-slate-400 mt-0.5">{t('dashboard.destinations.usa')}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider leading-none">{t('dashboard.destinations.from')}</p>
-                                            <p className="text-primary font-bold text-base mt-0.5">$150</p>
+                                            <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider leading-none">{t('dashboard.destinations.from')}</p>
+                                            <p className="text-primary font-semibold text-sm mt-0.5">$150</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="bg-primary/10 text-primary text-[10px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.hotels', { count: 3200 })}</span>
-                                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.metropolis')}</span>
+                                        <span className="bg-primary/10 text-primary text-[9.5px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.hotels', { count: 3200 })}</span>
+                                        <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[9.5px] font-medium px-2 py-0.5 rounded-md">{t('dashboard.destinations.metropolis')}</span>
                                     </div>
                                 </div>
                             </div>

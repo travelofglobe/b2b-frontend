@@ -14,7 +14,17 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
     const [bookings, setBookings] = useState([]);
-    const [summary, setSummary] = useState({ totalUsers: 0, activeUsers: 0, totalGuests: 0, bookingsToday: 0 });
+    const [summary, setSummary] = useState({
+        totalUsers: 0,
+        activeUsers: 0,
+        totalGuests: 0,
+        bookingsToday: 0,
+        bookingsYesterday: 0,
+        bookingsTrend: 0,
+        errorCount: 0,
+        errorRate: '0.00',
+        errorTrend: '+0.0%'
+    });
     const [loading, setLoading] = useState(true);
     const [statsLoading, setStatsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -48,7 +58,7 @@ const Dashboard = () => {
                     bookingsYesterday: res?.bookingsYesterday ?? 0,
                     bookingsTrend: res?.bookingsTrend ?? 0,
                     errorCount: res?.errorCount ?? 0,
-                    errorRate: res?.errorRate ?? '0.00',
+                    errorRate: res?.errorRate != null ? String(res.errorRate) : '0.00',
                     errorTrend: res?.errorTrend ?? '+0.0%',
                 });
             } catch (err) {
@@ -118,11 +128,10 @@ const Dashboard = () => {
                             <span className="material-icons-round text-primary text-xl">auto_awesome</span>
                             <h1 className="text-lg font-medium">Welcome, <span className="font-semibold">{userDisplayName}</span></h1>
                         </div>
-                        <div className="flex items-center gap-4">
-                            <HeaderActions />
-                        </div>
+                        <HeaderActions />
                     </header>
 
+                    {/* Main Search Component */}
                     <div className="mb-12 relative z-20">
                         <DashboardSearch />
                     </div>
@@ -142,7 +151,7 @@ const Dashboard = () => {
                                         </p>
                                     </div>
                                     <p className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-0.5">
-                                        {statsLoading ? '...' : summary.bookingsToday}
+                                        {statsLoading ? '...' : (summary.bookingsToday ?? 0)}
                                     </p>
                                 </div>
                                 <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-emerald-500 group-hover:text-white transition-all">
@@ -154,7 +163,7 @@ const Dashboard = () => {
                             <div className="w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden my-2">
                                 <div
                                     className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                                    style={{ width: `${Math.min(100, Math.max(10, summary.bookingsToday * 20))}%` }}
+                                    style={{ width: `${Math.min(100, Math.max(10, (summary.bookingsToday || 0) * 20))}%` }}
                                 ></div>
                             </div>
 
@@ -162,7 +171,7 @@ const Dashboard = () => {
                             <div className="flex items-center justify-between">
                                 <span className={`flex items-center gap-0.5 text-[10px] font-bold ${summary.bookingsTrend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
                                     <span className="material-icons-round text-xs">{summary.bookingsTrend >= 0 ? 'trending_up' : 'trending_down'}</span>
-                                    {summary.bookingsTrend >= 0 ? `+${summary.bookingsTrend}%` : `${summary.bookingsTrend}%`}
+                                    {statsLoading ? '...' : (summary.bookingsTrend >= 0 ? `+${summary.bookingsTrend}%` : `${summary.bookingsTrend}%`)}
                                 </span>
                                 <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">VS YESTERDAY</span>
                             </div>
@@ -182,7 +191,7 @@ const Dashboard = () => {
                                         </p>
                                     </div>
                                     <p className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-0.5">
-                                        {statsLoading ? '...' : summary.errorCount}
+                                        {statsLoading ? '...' : (summary.errorCount ?? 0)}
                                     </p>
                                 </div>
                                 <div className="size-8 rounded-lg bg-amber-100/80 dark:bg-amber-900/30 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-amber-500 group-hover:text-white transition-all">
@@ -202,7 +211,7 @@ const Dashboard = () => {
                             <div className="flex items-center justify-between">
                                 <span className="flex items-center gap-0.5 text-[10px] font-bold text-rose-500">
                                     <span className="material-icons-round text-xs">trending_up</span>
-                                    %{summary.errorRate || '0.00'}
+                                    {statsLoading ? '...' : `%${summary.errorRate || '0.00'}`}
                                 </span>
                                 <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">ERROR RATE</span>
                             </div>

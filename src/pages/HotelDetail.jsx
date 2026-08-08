@@ -1447,7 +1447,19 @@ const HotelDetail = () => {
         const rateCode = fullRateData?.hubRateModel?.rateCode || fullRateData?.rateCode;
         const maxAllowedRooms = Math.min(roomState.length || 1, 4);
 
-        // Single room search: selecting a room rate replaces current selection
+        // Check if this specific rate offer is already selected
+        const existingIndex = selectedRooms.findIndex(r =>
+            (rateCode && (r.hubRateModel?.rateCode === rateCode || r.rateCode === rateCode)) ||
+            (!rateCode && r.type === roomType && r.name === roomName && r.rate === rate)
+        );
+
+        // If user clicks an already selected rate, remove/deselect it
+        if (existingIndex > -1) {
+            setSelectedRooms(prev => prev.filter((_, i) => i !== existingIndex));
+            return;
+        }
+
+        // Single room search: selecting an unselected room rate replaces current selection
         if (maxAllowedRooms === 1) {
             setSelectedRooms([{
                 type: roomType,
@@ -1460,25 +1472,12 @@ const HotelDetail = () => {
             return;
         }
 
-        // Multi-room search: check if this specific rate offer is already selected
-        const existingIndex = selectedRooms.findIndex(r =>
-            (rateCode && (r.hubRateModel?.rateCode === rateCode || r.rateCode === rateCode)) ||
-            (!rateCode && r.type === roomType && r.name === roomName && r.rate === rate)
-        );
-
-        // If selection is at maximum capacity
+        // Multi-room search: check if selection is at maximum capacity
         if (selectedRooms.length >= maxAllowedRooms) {
-            if (existingIndex > -1) {
-                // Remove one instance if user clicks an already selected option when list is full
-                setSelectedRooms(prev => prev.filter((_, i) => i !== existingIndex));
-                return;
-            } else {
-                // If list is full and user clicks an unselected option, show max rooms error
-                const errorTemplate = tLocal('maxRoomsSelectedError') || 'Aramanızda {{count}} oda belirttiniz. En fazla {{count}} oda seçebilirsiniz.';
-                const errorMsg = errorTemplate.replace(/\{\{count\}\}/g, maxAllowedRooms);
-                toastError(errorMsg);
-                return;
-            }
+            const errorTemplate = tLocal('maxRoomsSelectedError') || 'Aramanızda {{count}} oda belirttiniz. En fazla {{count}} oda seçebilirsiniz.';
+            const errorMsg = errorTemplate.replace(/\{\{count\}\}/g, maxAllowedRooms);
+            toastError(errorMsg);
+            return;
         }
 
         // If selection is below maximum capacity, add new room selection instance
@@ -2292,8 +2291,8 @@ const HotelDetail = () => {
                                                                                                 </div>
                                                                                                 <div className="space-y-4">
                                                                                                     {rateItem.hubRateModel?.price?.cancellationPolicies?.length > 0 ? (
-                                                                                                        rateItem.hubRateModel.price.cancellationPolicies.map((policy, idx) => (
-                                                                                                            <div key={idx} className="relative pl-4 border-l-2 border-slate-800">
+                                                                                                        rateItem.hubRateModel.price.cancellationPolicies.map((policy, pIdx) => (
+                                                                                                            <div key={pIdx} className="relative pl-4 border-l-2 border-slate-800">
                                                                                                                 <div className="flex justify-between items-start mb-1.5">
                                                                                                                     <span className="text-[8.5px] font-semibold text-slate-400 uppercase">{tLocal('penalty')}</span>
                                                                                                                     <span className={`text-[10px] font-semibold ${policy.amount === 0 ? 'text-emerald-400' : 'text-orange-400'}`} lang="en">
@@ -2322,7 +2321,7 @@ const HotelDetail = () => {
                                                                                     <p className="text-[7px] text-slate-400 font-medium uppercase tracking-widest mt-1">Total Stay</p>
                                                                                 </div>
                                                                                 <div className={`px-4 py-2 rounded-xl font-semibold text-[9.5px] uppercase tracking-wider transition-all duration-300 ${isSelected ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-primary text-white hover:scale-105'}`}>
-                                                                                    {isSelected ? 'Remove' : 'Select Rate'}
+                                                                                    {isSelected ? tLocal('remove') : tLocal('selectRate')}
                                                                                 </div>
                                                                             </div>
                                                                         </div>

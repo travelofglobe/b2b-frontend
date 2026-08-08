@@ -40,23 +40,23 @@ const LanguageSwitcher = ({ mode }) => {
                 <button
                     type="button"
                     onClick={() => setIsOpen(!isOpen)}
-                    className="w-full px-4 py-3 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between transition-colors cursor-pointer"
+                    className="w-full px-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-between transition-colors cursor-pointer"
                 >
                     <span className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                        <span className="material-symbols-outlined text-base">language</span>
-                        Language
+                        <span className="material-symbols-outlined text-[17px]">language</span>
+                        <span>Language</span>
                     </span>
                     <div className="flex items-center gap-1.5">
                         <span className="text-sm leading-none">{currentLanguage.flag}</span>
-                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{currentLanguage.name}</span>
-                        <span className={`material-symbols-outlined text-[16px] text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+                        <span className="text-xs font-medium text-slate-700 dark:text-slate-200">{currentLanguage.name}</span>
+                        <span className={`material-symbols-outlined text-[15px] text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-primary' : ''}`}>
                             expand_more
                         </span>
                     </div>
                 </button>
 
                 {isOpen && (
-                    <div className="px-2 pb-2.5 space-y-0.5 bg-slate-50/80 dark:bg-slate-900/60 max-h-52 overflow-y-auto custom-scrollbar border-t border-slate-100 dark:border-slate-800/60 pt-1.5">
+                    <div className="px-2 pb-2 space-y-0.5 bg-slate-50/80 dark:bg-slate-900/60 max-h-52 overflow-y-auto custom-scrollbar border-t border-slate-100 dark:border-slate-800/60 pt-1.5">
                         {SUPPORTED_LANGUAGES.map((lang) => {
                             const isSelected = lang.code === i18n.language;
                             return (
@@ -64,10 +64,10 @@ const LanguageSwitcher = ({ mode }) => {
                                     key={lang.code}
                                     type="button"
                                     onClick={() => handleLanguageChange(lang.code)}
-                                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
                                         isSelected
-                                            ? 'bg-primary/10 text-primary dark:bg-primary/25 dark:text-blue-300 font-semibold'
-                                            : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800'
+                                            ? 'bg-primary/10 text-primary dark:bg-primary/25 dark:text-blue-300 font-medium'
+                                            : 'text-slate-600 dark:text-slate-300 font-normal hover:bg-white dark:hover:bg-slate-800'
                                     }`}
                                 >
                                     <span className="flex items-center gap-2">
@@ -75,7 +75,7 @@ const LanguageSwitcher = ({ mode }) => {
                                         <span>{lang.name}</span>
                                     </span>
                                     {isSelected && (
-                                        <span className="material-symbols-outlined text-sm text-primary leading-none font-bold">
+                                        <span className="material-symbols-outlined text-xs text-primary leading-none">
                                             check
                                         </span>
                                     )}

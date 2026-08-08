@@ -910,7 +910,7 @@ const HotelListing = () => {
                     <div className="flex-1">
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                             <div>
-                                <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-1 tracking-tight" lang={currentLang === 'tr' ? 'tr' : 'en'}>{pageTitle}</h1>
+                                <h1 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-0.5 tracking-tight" lang={currentLang === 'tr' ? 'tr' : 'en'}>{pageTitle}</h1>
                                 <p className="text-slate-500 dark:text-slate-400 text-xs font-normal">{subtitle}</p>
                             </div>
                             <div className="flex items-center gap-3">

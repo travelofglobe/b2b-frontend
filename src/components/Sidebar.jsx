@@ -320,26 +320,26 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
         <aside className="w-full lg:w-72 flex-shrink-0 lg:sticky lg:top-24 h-fit">
             <div className="bg-white/80 dark:bg-[#111a22]/80 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-800/50 shadow-2xl shadow-black/5 dark:shadow-white/5 max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar relative">
                 {/* Sticky Header with Actions */}
-                <div className="sticky top-0 z-50 px-6 py-5 bg-white dark:bg-[#111a22] border-b border-slate-100/50 dark:border-slate-800/50 flex items-center justify-between shadow-lg shadow-black/[0.03] dark:shadow-white/[0.02]">
-                    <h2 className="text-base font-bold tracking-tight text-slate-800 dark:text-slate-100" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                <div className="sticky top-0 z-50 px-6 py-4 bg-white dark:bg-[#111a22] border-b border-slate-100/50 dark:border-slate-800/50 flex items-center justify-between shadow-lg shadow-black/[0.03] dark:shadow-white/[0.02]">
+                    <h2 className="text-sm font-semibold tracking-tight text-slate-800 dark:text-slate-100" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                         {tFilter('filters', currentLang)}
                     </h2>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={handleClearAll}
-                            className="text-[10px] font-semibold text-slate-400 hover:text-red-500 uppercase tracking-wider px-2 py-1 transition-colors"
+                            className="text-[10px] font-medium text-slate-400 hover:text-red-500 uppercase tracking-wider px-2 py-1 transition-colors"
                             lang={currentLang === 'tr' ? 'tr' : 'en'}
                         >
                             {tFilter('reset', currentLang)}
                         </button>
                         <button
                             onClick={handleApplyFilters}
-                            className="group flex items-center gap-2 bg-primary hover:bg-primary-hover text-white text-[10px] font-semibold uppercase tracking-wider px-4 py-2 rounded-xl transition-all shadow-md shadow-primary/20 active:scale-95 whitespace-nowrap relative"
+                            className="group flex items-center gap-2 bg-primary hover:bg-primary-hover text-white text-[10px] font-medium uppercase tracking-wider px-3.5 py-1.5 rounded-xl transition-all shadow-md shadow-primary/20 active:scale-95 whitespace-nowrap relative"
                             lang={currentLang === 'tr' ? 'tr' : 'en'}
                         >
                             {tFilter('apply', currentLang)}
                             {activeFilterCount > 0 && (
-                                <span className="flex items-center justify-center min-w-[14px] h-[14px] bg-white text-primary text-[9px] font-bold rounded-full px-1 animate-in zoom-in duration-300">
+                                <span className="flex items-center justify-center min-w-[14px] h-[14px] bg-white text-primary text-[9px] font-semibold rounded-full px-1 animate-in zoom-in duration-300">
                                     {activeFilterCount}
                                 </span>
                             )}
@@ -350,7 +350,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                 <div className="px-6 pb-6">
                 {/* Locations */}
                 <FilterSection title={tFilter('locations', currentLang)} icon="location_on">
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                         {filters?.locationId && filters.locationId.length > 0 ? (
                             <>
                                 {/* Location Search Input */}
@@ -386,21 +386,21 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                         const locName = locationNames[locFilter.value] || '';
                                         return (
                                             <label key={locFilter.value} className="flex items-center justify-between cursor-pointer group animate-in fade-in duration-200">
-                                                <div className="flex items-center gap-3 overflow-hidden">
+                                                <div className="flex items-center gap-2.5 overflow-hidden">
                                                     <input
                                                         checked={selectedLocations.includes(locFilter.value)}
                                                         onChange={() => handleLocationToggle(locFilter.value)}
                                                         className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0"
                                                         type="checkbox"
                                                     />
-                                                    <div className="flex items-center gap-2 overflow-hidden">
-                                                        <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors flex-shrink-0">location_on</span>
-                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate" title={locName}>
+                                                    <div className="flex items-center gap-1.5 overflow-hidden">
+                                                        <span className="material-symbols-outlined text-[15px] text-slate-400 group-hover:text-primary transition-colors flex-shrink-0">location_on</span>
+                                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate" title={locName}>
                                                             {locName}
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap ml-2">
+                                                <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal whitespace-nowrap ml-2">
                                                     ({locFilter.count})
                                                 </span>
                                             </label>
@@ -410,7 +410,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                 {!locationSearch && filters.locationId.length > 10 && (
                                     <button
                                         onClick={() => setIsLocationsExpanded(!isLocationsExpanded)}
-                                        className="text-xs font-semibold text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8"
+                                        className="text-xs font-medium text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8"
                                         lang={currentLang === 'tr' ? 'tr' : 'en'}
                                     >
                                         {isLocationsExpanded ? (
@@ -422,7 +422,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                 )}
                             </>
                         ) : (
-                            <div className="text-sm text-slate-500 dark:text-slate-400 italic" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 italic" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                 {tFilter('noLocations', currentLang)}
                             </div>
                         )}
@@ -431,13 +431,13 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
 
                 {/* Star Rating Checklist */}
                 <FilterSection title={tFilter('starRating', currentLang)} icon="star">
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                         {filters?.hotelStarCategoryId ? (
                             [...filters.hotelStarCategoryId]
                                 .sort((a, b) => b.value - a.value)
                                 .map(starFilter => (
                                     <label key={starFilter.value} className="flex items-center justify-between cursor-pointer group">
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2.5">
                                             <input
                                                 checked={selectedStars.includes(starFilter.value)}
                                                 onChange={() => handleStarToggle(starFilter.value)}
@@ -445,7 +445,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                                 type="checkbox"
                                             />
                                             <div className="flex items-center gap-1">
-                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                                <span className="text-xs font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                                     {starFilter.value === 0 ? tFilter('unrated', currentLang) : `${starFilter.value} ${tFilter('stars', currentLang)}`}
                                                 </span>
                                                 {starFilter.value > 0 && (
@@ -457,14 +457,14 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                                 )}
                                             </div>
                                         </div>
-                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">
                                             ({starFilter.count})
                                         </span>
                                     </label>
                                 ))
                         ) : (
                             [5, 4, 3, 2].map(star => (
-                                <label key={star} className="flex items-center gap-3 cursor-pointer group">
+                                <label key={star} className="flex items-center gap-2.5 cursor-pointer group">
                                     <input
                                         checked={selectedStars.includes(star)}
                                         onChange={() => handleStarToggle(star)}
@@ -472,7 +472,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                         type="checkbox"
                                     />
                                     <div className="flex items-center gap-1">
-                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                             {star} {tFilter('stars', currentLang)}
                                         </span>
                                         <div className="flex text-amber-400">
@@ -489,30 +489,30 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
 
                 {/* Free Cancellation */}
                 <FilterSection title={tFilter('freeCancellation', currentLang)} icon="event_available">
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                         {(filters?.hasFreeCancellation ?? [
                             { value: true, count: null },
                             { value: false, count: null }
                         ]).sort((a, b) => (b.value === true ? 1 : -1)).map(f => (
                             <label key={String(f.value)} className="flex items-center justify-between cursor-pointer group">
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2.5">
                                     <input
                                         type="checkbox"
                                         checked={freeCancellation === f.value}
                                         onChange={() => handleBoolToggle(setFreeCancellation, freeCancellation, f.value)}
                                         className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                     />
-                                    <div className="flex items-center gap-2">
-                                        <span className={`material-symbols-outlined text-[18px] transition-colors ${f.value ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className={`material-symbols-outlined text-[16px] transition-colors ${f.value ? 'text-emerald-500' : 'text-slate-400'}`}>
                                             {f.value ? 'verified' : 'info'}
                                         </span>
-                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                             {f.value ? tFilter('freeCancellation', currentLang) : tFilter('nonRefundable', currentLang)}
                                         </span>
                                     </div>
                                 </div>
                                 {f.count !== null && (
-                                    <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
+                                    <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">({f.count})</span>
                                 )}
                             </label>
                         ))}
@@ -521,30 +521,30 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
 
                 {/* Pre-Payment */}
                 <FilterSection title={tFilter('prePayment', currentLang)} icon="credit_card">
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                         {(filters?.hasPrePayment ?? [
                             { value: true, count: null },
                             { value: false, count: null }
                         ]).sort((a, b) => (b.value === true ? 1 : -1)).map(f => (
                             <label key={String(f.value)} className="flex items-center justify-between cursor-pointer group">
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2.5">
                                     <input
                                         type="checkbox"
                                         checked={prePayment === f.value}
                                         onChange={() => handleBoolToggle(setPrePayment, prePayment, f.value)}
                                         className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                     />
-                                    <div className="flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-primary transition-colors">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">
                                             {f.value ? 'credit_card' : 'payments'}
                                         </span>
-                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                             {f.value ? tFilter('prePayment', currentLang) : tFilter('payLater', currentLang)}
                                         </span>
                                     </div>
                                 </div>
                                 {f.count !== null && (
-                                    <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
+                                    <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">({f.count})</span>
                                 )}
                             </label>
                         ))}
@@ -553,29 +553,29 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
 
                 {/* Room Twin */}
                 <FilterSection title={tFilter('twinRoom', currentLang)} icon="bed">
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                         {(filters?.roomTwin ?? [
                             { value: true, count: null },
                             { value: false, count: null }
                         ]).sort((a, b) => (b.value === true ? 1 : -1)).map(f => (
                             <label key={String(f.value)} className="flex items-center justify-between cursor-pointer group">
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2.5">
                                     <input
                                         type="checkbox"
                                         checked={roomTwin === f.value}
                                         onChange={() => handleBoolToggle(setRoomTwin, roomTwin, f.value)}
                                         className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                     />
-                                    <div className="flex items-center gap-2 text-slate-500">
-                                        <span className="material-symbols-outlined text-[18px]">bed</span>
-                                        {f.value && <span className="material-symbols-outlined text-[12px] -ml-2 mb-2">bed</span>}
-                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 ml-1" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                    <div className="flex items-center gap-1.5 text-slate-500">
+                                        <span className="material-symbols-outlined text-[16px]">bed</span>
+                                        {f.value && <span className="material-symbols-outlined text-[11px] -ml-2 mb-2">bed</span>}
+                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 ml-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                             {f.value ? tFilter('twinAvailable', currentLang) : tFilter('noTwin', currentLang)}
                                         </span>
                                     </div>
                                 </div>
                                 {f.count !== null && (
-                                    <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
+                                    <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">({f.count})</span>
                                 )}
                             </label>
                         ))}
@@ -584,33 +584,33 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
 
                 {/* Max Adult */}
                 <FilterSection title={tFilter('maxAdult', currentLang)} icon="person" defaultOpen={false}>
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                         {filters?.roomMaxAdult?.length > 0 ? (
                             [...filters.roomMaxAdult]
                                 .sort((a, b) => a.value - b.value)
                                 .map(f => (
                                     <label key={f.value} className="flex items-center justify-between cursor-pointer group">
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2.5">
                                             <input
                                                 checked={selectedMaxAdult.includes(f.value)}
                                                 onChange={() => handleMaxAdultToggle(f.value)}
                                                 className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                                 type="checkbox"
                                             />
-                                            <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">person</span>
-                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="material-symbols-outlined text-[15px] text-slate-400 group-hover:text-primary transition-colors">person</span>
+                                                <span className="text-xs font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                                     {f.value} {tFilter('adults', currentLang)}
                                                 </span>
                                             </div>
                                         </div>
-                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">
                                             ({f.count})
                                         </span>
                                     </label>
                                 ))
                         ) : (
-                            <div className="text-sm text-slate-500 dark:text-slate-400 italic" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 italic" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                 {tFilter('noLocations', currentLang).includes('belirli') ? 'Seçenek bulunamadı' : 'No options found'}
                             </div>
                         )}
@@ -619,33 +619,33 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
 
                 {/* Max Children */}
                 <FilterSection title={tFilter('maxChildren', currentLang)} icon="child_care" defaultOpen={false}>
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                         {filters?.roomMaxChildren?.length > 0 ? (
                             [...filters.roomMaxChildren]
                                 .sort((a, b) => a.value - b.value)
                                 .map(f => (
                                     <label key={f.value} className="flex items-center justify-between cursor-pointer group">
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2.5">
                                             <input
                                                 checked={selectedMaxChildren.includes(f.value)}
                                                 onChange={() => handleMaxChildrenToggle(f.value)}
                                                 className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                                 type="checkbox"
                                             />
-                                            <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">child_care</span>
-                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="material-symbols-outlined text-[15px] text-slate-400 group-hover:text-primary transition-colors">child_care</span>
+                                                <span className="text-xs font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                                     {f.value === 0 ? tFilter('noChildren', currentLang) : `${f.value} ${tFilter('children', currentLang)}`}
                                                 </span>
                                             </div>
                                         </div>
-                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">
                                             ({f.count})
                                         </span>
                                     </label>
                                 ))
                         ) : (
-                            <div className="text-sm text-slate-500 dark:text-slate-400 italic" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 italic" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                 {tFilter('noLocations', currentLang).includes('belirli') ? 'Seçenek bulunamadı' : 'No options found'}
                             </div>
                         )}
@@ -654,33 +654,33 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
 
                 {/* Max Extra Bed */}
                 <FilterSection title={tFilter('maxExtraBed', currentLang)} icon="hotel_class" defaultOpen={false}>
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                         {filters?.roomMaxExtraBed?.length > 0 ? (
                             [...filters.roomMaxExtraBed]
                                 .sort((a, b) => a.value - b.value)
                                 .map(f => (
                                     <label key={f.value} className="flex items-center justify-between cursor-pointer group">
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2.5">
                                             <input
                                                 checked={selectedMaxExtraBed.includes(f.value)}
                                                 onChange={() => handleMaxExtraBedToggle(f.value)}
                                                 className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
                                                 type="checkbox"
                                             />
-                                            <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">hotel_class</span>
-                                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="material-symbols-outlined text-[15px] text-slate-400 group-hover:text-primary transition-colors">hotel_class</span>
+                                                <span className="text-xs font-medium text-slate-700 dark:text-slate-300" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                                     {f.value === 0 ? tFilter('noExtraBed', currentLang) : `${f.value} ${f.value === 1 ? tFilter('extraBed', currentLang) : tFilter('extraBeds', currentLang)}`}
                                                 </span>
                                             </div>
                                         </div>
-                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                                        <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">
                                             ({f.count})
                                         </span>
                                     </label>
                                 ))
                         ) : (
-                            <div className="text-sm text-slate-500 dark:text-slate-400 italic" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 italic" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                 {tFilter('noLocations', currentLang).includes('belirli') ? 'Seçenek bulunamadı' : 'No options found'}
                             </div>
                         )}
@@ -689,7 +689,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
 
                 {/* Hotel Facilities */}
                 <FilterSection title={tFilter('hotelFacilities', currentLang)} icon="pool">
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                         {filters?.hotelFacilityIds && filters.hotelFacilityIds.length > 0 ? (
                             <>
                                 {/* Facility Search Input */}
@@ -725,21 +725,21 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                         const facName = facilityNames[facFilter.value] || '';
                                         return (
                                             <label key={facFilter.value} className="flex items-center justify-between cursor-pointer group animate-in fade-in duration-200">
-                                                <div className="flex items-center gap-3 overflow-hidden">
+                                                <div className="flex items-center gap-2.5 overflow-hidden">
                                                     <input
                                                         checked={selectedFacilities.includes(facFilter.value)}
                                                         onChange={() => handleFacilityToggle(facFilter.value)}
                                                         className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0"
                                                         type="checkbox"
                                                     />
-                                                    <div className="flex items-center gap-2 overflow-hidden">
-                                                        <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors flex-shrink-0">business_center</span>
-                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate" title={facName}>
+                                                    <div className="flex items-center gap-1.5 overflow-hidden">
+                                                        <span className="material-symbols-outlined text-[15px] text-slate-400 group-hover:text-primary transition-colors flex-shrink-0">business_center</span>
+                                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate" title={facName}>
                                                             {facName}
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <span className="text-xs text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap ml-2">
+                                                <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal whitespace-nowrap ml-2">
                                                     ({facFilter.count})
                                                 </span>
                                             </label>
@@ -749,7 +749,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                 {!facilitySearch && filters.hotelFacilityIds.length > 10 && (
                                     <button
                                         onClick={() => setIsFacilitiesExpanded(!isFacilitiesExpanded)}
-                                        className="text-xs font-semibold text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8"
+                                        className="text-xs font-medium text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8"
                                         lang={currentLang === 'tr' ? 'tr' : 'en'}
                                     >
                                         {isFacilitiesExpanded ? (
@@ -761,7 +761,7 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
                                 )}
                             </>
                         ) : (
-                            <div className="text-sm text-slate-500 dark:text-slate-400 italic" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 italic" lang={currentLang === 'tr' ? 'tr' : 'en'}>
                                 {tFilter('noFacilities', currentLang)}
                             </div>
                         )}

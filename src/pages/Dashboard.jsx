@@ -127,7 +127,7 @@ const Dashboard = () => {
                         <DashboardSearch />
                     </div>
                     {/* Compact 5-Card Single Row Summary Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-10">
                         {/* Bookings Today Card (Clickable) */}
                         <div
                             onClick={handleBookingsTodayClick}

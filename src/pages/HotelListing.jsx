@@ -859,10 +859,36 @@ const HotelListing = () => {
         searchParams.get('facilities')
     ]);
 
-    const handleSortChange = (e) => {
-        const val = e.target.value;
-        let newSort = { field: null, order: 'DESC' };
+    // Custom sort dropdown state & ref
+    const [isSortOpen, setIsSortOpen] = React.useState(false);
+    const sortDropdownRef = React.useRef(null);
 
+    React.useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+                setIsSortOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const sortOptions = [
+        { value: 'recommended', label: tListing('recommended', currentLang), icon: 'thumb_up' },
+        { value: 'rating_desc', label: tListing('ratingDesc', currentLang), icon: 'star_rate' },
+        { value: 'rating_asc', label: tListing('ratingAsc', currentLang), icon: 'star_half' },
+        { value: 'star_desc', label: tListing('starDesc', currentLang), icon: 'star' },
+        { value: 'star_asc', label: tListing('starAsc', currentLang), icon: 'grade' },
+    ];
+
+    const currentSortValue = sortConfig.field
+        ? `${sortConfig.field === 'hotelStarCategoryId' ? 'star' : 'rating'}_${sortConfig.order.toLowerCase()}`
+        : 'recommended';
+
+    const currentSortOption = sortOptions.find(opt => opt.value === currentSortValue) || sortOptions[0];
+
+    const handleSortSelect = (val) => {
+        let newSort = { field: null, order: 'DESC' };
         switch (val) {
             case 'star_desc': newSort = { field: 'hotelStarCategoryId', order: 'DESC' }; break;
             case 'star_asc': newSort = { field: 'hotelStarCategoryId', order: 'ASC' }; break;
@@ -870,8 +896,8 @@ const HotelListing = () => {
             case 'rating_asc': newSort = { field: 'rating', order: 'ASC' }; break;
             default: newSort = { field: null, order: 'DESC' };
         }
-
         setSortConfig(newSort);
+        setIsSortOpen(false);
     };
 
     React.useEffect(() => {
@@ -913,19 +939,49 @@ const HotelListing = () => {
                                 <h1 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-0.5 tracking-tight" lang={currentLang === 'tr' ? 'tr' : 'en'}>{pageTitle}</h1>
                                 <p className="text-slate-500 dark:text-slate-400 text-xs font-normal">{subtitle}</p>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs font-semibold text-slate-400 whitespace-nowrap">{tListing('sortBy', currentLang)}</span>
-                                <select
-                                    className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-xl text-xs font-semibold py-2 pl-3 pr-8 focus:ring-primary focus:border-primary text-slate-800 dark:text-slate-200 outline-none"
-                                    onChange={handleSortChange}
-                                    value={sortConfig.field ? `${sortConfig.field === 'hotelStarCategoryId' ? 'star' : 'rating'}_${sortConfig.order.toLowerCase()}` : 'recommended'}
-                                >
-                                    <option value="recommended">{tListing('recommended', currentLang)}</option>
-                                    <option value="rating_desc">{tListing('ratingDesc', currentLang)}</option>
-                                    <option value="rating_asc">{tListing('ratingAsc', currentLang)}</option>
-                                    <option value="star_desc">{tListing('starDesc', currentLang)}</option>
-                                    <option value="star_asc">{tListing('starAsc', currentLang)}</option>
-                                </select>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-normal text-slate-400 dark:text-slate-500 uppercase tracking-wider whitespace-nowrap">
+                                    {tListing('sortBy', currentLang)}:
+                                </span>
+                                <div className="relative" ref={sortDropdownRef}>
+                                    <button
+                                        onClick={() => setIsSortOpen(!isSortOpen)}
+                                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-lg shadow-2xs hover:border-primary/40 hover:shadow-xs transition-all text-[11px] font-medium text-slate-700 dark:text-slate-200 cursor-pointer"
+                                    >
+                                        <span className="material-symbols-outlined text-primary text-[15px]">{currentSortOption.icon}</span>
+                                        <span>{currentSortOption.label}</span>
+                                        <span className={`material-symbols-outlined text-slate-400 text-xs transition-transform duration-200 ${isSortOpen ? 'rotate-180 text-primary' : ''}`}>
+                                            expand_more
+                                        </span>
+                                    </button>
+
+                                    {isSortOpen && (
+                                        <div className="absolute right-0 top-full mt-1.5 w-[200px] bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-xl z-[100] p-1 animate-in fade-in zoom-in-95 duration-150">
+                                            {sortOptions.map((opt) => {
+                                                const isSelected = opt.value === currentSortValue;
+                                                return (
+                                                    <button
+                                                        key={opt.value}
+                                                        onClick={() => handleSortSelect(opt.value)}
+                                                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] text-left transition-all ${
+                                                            isSelected
+                                                                ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-blue-300 font-medium'
+                                                                : 'text-slate-600 dark:text-slate-300 font-normal hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                                                        }`}
+                                                    >
+                                                        <span className={`material-symbols-outlined text-[15px] ${isSelected ? 'text-primary' : 'text-slate-400'}`}>
+                                                            {opt.icon}
+                                                        </span>
+                                                        <span className="flex-1">{opt.label}</span>
+                                                        {isSelected && (
+                                                            <span className="material-symbols-outlined text-xs text-primary">check</span>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 

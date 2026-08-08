@@ -54,24 +54,54 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
         return nameObj.translations?.en || nameObj.defaultName || '';
     };
 
+    // Dedicated icons per locationType or depth index
+    const getLocationIcon = (crumb, index) => {
+        const type = (crumb?.locationType || crumb?.type || '').toUpperCase();
+        switch (type) {
+            case 'COUNTRY':
+                return 'public';
+            case 'CITY':
+            case 'PROVINCE':
+            case 'STATE':
+                return 'location_city';
+            case 'DISTRICT':
+                return 'grid_view';
+            case 'TOWN':
+            case 'VILLAGE':
+                return 'holiday_village';
+            case 'HOTEL':
+                return 'hotel';
+            case 'REGION':
+            case 'AREA':
+                return 'explore';
+            default:
+                if (index === 0) return 'public';
+                if (index === 1) return 'location_city';
+                return 'location_on';
+        }
+    };
+
     if (loading) {
         return (
-            <div className="flex items-center gap-2">
-                <Link className="text-slate-400 dark:text-slate-500 hover:text-primary text-sm font-medium" to="/">Home</Link>
-                <span className="material-symbols-outlined text-slate-400 text-xs">chevron_right</span>
-                <span className="text-slate-400 text-sm">Loading...</span>
-            </div>
+            <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-medium text-slate-400 animate-pulse">
+                <span className="material-symbols-outlined text-[16px]">home</span>
+                <span>Home</span>
+                <span className="text-slate-300 dark:text-slate-700">/</span>
+                <span>Loading...</span>
+            </nav>
         );
     }
 
     if (!breadcrumbs || breadcrumbs.length === 0) {
         return (
-            <div className="flex items-center gap-2">
-                <Link className="text-slate-400 dark:text-slate-500 hover:text-primary text-sm font-medium" to="/">Home</Link>
-            </div>
+            <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-medium">
+                <Link to="/" className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors group">
+                    <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">home</span>
+                    <span>Home</span>
+                </Link>
+            </nav>
         );
     }
-
 
     // Handle breadcrumb click - navigate to that location
     const handleBreadcrumbClick = (crumb) => {
@@ -108,35 +138,48 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
     };
 
     return (
-        <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
-            <Link className="text-slate-400 dark:text-slate-500 hover:text-primary text-sm font-medium" to="/">Home</Link>
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-medium max-w-full overflow-x-auto scrollbar-hide py-1">
+            {/* Home Link */}
+            <Link
+                to="/"
+                className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors shrink-0 group"
+            >
+                <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">home</span>
+                <span>Home</span>
+            </Link>
 
             {breadcrumbs.map((crumb, index) => {
                 const isLast = index === breadcrumbs.length - 1;
                 const name = getName(crumb.name);
+                const iconName = getLocationIcon(crumb, index);
                 const isCountryAfterHome = index === 0 && (crumb.locationType === 'COUNTRY' || crumb.type === 'COUNTRY');
 
                 return (
                     <React.Fragment key={crumb.locationId}>
-                        <span className="material-symbols-outlined text-slate-400 text-xs">chevron_right</span>
+                        <span className="text-slate-300 dark:text-slate-700 font-light select-none shrink-0">/</span>
                         {isLast ? (
-                            <span className="text-slate-900 dark:text-white text-sm font-semibold">{name}</span>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-primary/10 text-primary dark:bg-primary/20 dark:text-blue-300 font-semibold text-xs shrink-0">
+                                <span className="material-symbols-outlined text-[15px]">{iconName}</span>
+                                <span>{name}</span>
+                            </span>
                         ) : isCountryAfterHome ? (
-                            <span className="text-slate-400 dark:text-slate-500 text-sm font-medium">
-                                {name}
+                            <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400 shrink-0">
+                                <span className="material-symbols-outlined text-[15px] text-slate-400">{iconName}</span>
+                                <span>{name}</span>
                             </span>
                         ) : (
                             <span
                                 onClick={() => handleBreadcrumbClick(crumb)}
-                                className="text-slate-400 dark:text-slate-500 hover:text-primary text-sm font-medium cursor-pointer"
+                                className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-primary cursor-pointer transition-colors shrink-0 group"
                             >
-                                {name}
+                                <span className="material-symbols-outlined text-[15px] text-slate-400 group-hover:text-primary transition-colors">{iconName}</span>
+                                <span>{name}</span>
                             </span>
                         )}
                     </React.Fragment>
                 );
             })}
-        </div>
+        </nav>
     );
 };
 

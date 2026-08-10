@@ -836,7 +836,7 @@ const MyBookings = () => {
                                         </td>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                                <tbody className="">
                                     {loading ? (
                                         Array.from({ length: 10 }).map((_, index) => (
                                             <tr key={`skeleton-${index}`} className="border-b border-white/20 dark:border-white/5 last:border-0 h-[61px]">

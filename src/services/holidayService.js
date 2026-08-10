@@ -14,12 +14,7 @@ export const holidayService = {
             return holidayCache.get(cacheKey);
         }
 
-        const promise = apiClient.get(`${API_BASE_URL}/holidays`, {
-            params: {
-                countryCode,
-                year
-            }
-        }).then(response => {
+        const promise = apiClient.get(`${API_BASE_URL}/holidays?countryCode=${countryCode}&year=${year}`).then(response => {
             // Assuming response data is an array of holidays or contains an array inside
             // Ensure we return an array
             const data = response?.data || response;

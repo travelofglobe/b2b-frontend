@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { autocompleteService } from '../services/autocompleteService';
-import DatePicker, { registerLocale } from 'react-datepicker';
-import { enGB, tr, es, ru, zhCN, ja, faIR, fr, it, el, pt, ar } from 'date-fns/locale';
-import "react-datepicker/dist/react-datepicker.css";
+import DatePicker from "react-datepicker";
+import { format } from "date-fns";
+import { tr, enUS, enGB, de, ru, ar, es, fr, it, pt, nl, pl, uk, bg, zhCN, ja, faIR, el } from 'date-fns/locale';
+import HolidaySidePanel from "./HolidaySidePanel";
+import 'react-datepicker/dist/react-datepicker.css';
 import "../datepicker-custom.css";
 import { useHolidays } from '../utils/useHolidays';
 import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates } from '../utils/searchParamsUtils';
@@ -15,13 +17,14 @@ import NationalitySelect from './NationalitySelect';
 // Rest of imports...
 
 // Register dynamic locales
-registerLocale('en', enGB);
+import { registerLocale } from 'react-datepicker';
+registerLocale('en', enUS);
 registerLocale('tr', tr);
 registerLocale('es', es);
 registerLocale('ru', ru);
-registerLocale('zh', zhCN);
+registerLocale('zhCN', zhCN);
 registerLocale('ja', ja);
-registerLocale('fa', faIR);
+registerLocale('faIR', faIR);
 registerLocale('fr', fr);
 registerLocale('it', it);
 registerLocale('el', el);
@@ -373,11 +376,17 @@ const DashboardSearch = () => {
         return searchParams.get('nationality') || localStorage.getItem('dashboard_last_nationality') || getUserCountryCode();
     });
 
-    const [destinationCountryCode, setDestinationCountryCode] = useState(() => {
-        return localStorage.getItem('dashboard_last_countryCode') || null;
-    });
+    const [destinationCountryCode, setDestinationCountryCode] = useState(() => localStorage.getItem('dashboard_last_countryCode') || null);
+    const [visibleMonth, setVisibleMonth] = useState(new Date());
 
     const { holidays } = useHolidays(destinationCountryCode);
+
+    const renderDayContents = (day, date) => {
+        const dateStr = format(date, "yyyy-MM-dd");
+        const holiday = holidays.find((h) => h.date === dateStr);
+        const dayClass = holiday ? "holiday-day" : "";
+        return <div className={dayClass}>{day}</div>;
+    };
 
     const [results, setResults] = useState({ hotels: [], regions: [] });
     const [loading, setLoading] = useState(false);
@@ -887,7 +896,7 @@ const DashboardSearch = () => {
                                     </div>
                                 )}
                             </label>
-                            <div className="flex-1 flex items-center min-w-0 mt-0.5">
+                            <div className="flex-1 flex items-center min-w-0 mt-0.5 datepicker-dashboard">
                                 <DatePicker
                                     ref={datePickerRef}
                                     selected={checkInDate}
@@ -916,36 +925,47 @@ const DashboardSearch = () => {
                                     minDate={new Date()}
                                     maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                                     monthsShown={2}
+                                    onMonthChange={(date) => setVisibleMonth(date)}
                                     locale={currentLang}
                                     className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-xs font-medium text-slate-900 dark:text-white cursor-pointer tracking-tight whitespace-nowrap leading-tight"
                                     wrapperClassName="w-full flex items-center"
                                     dateFormat="dd MMM yyyy"
                                     placeholderText={ls.placeholder}
-                                    calendarClassName="shadow-2xl border-none font-sans mt-2"
+                                    calendarClassName="shadow-2xl border-none font-sans"
                                     popperPlacement="bottom-start"
                                     renderDayContents={(day, date) => {
                                         const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                                         const holiday = holidays?.find(h => h.date === formattedDate || h.holidayDate === formattedDate);
                                         
                                         if (holiday) {
+                                            const lowerName = (holiday.holidayName || holiday.name || '').toLowerCase();
+                                            const isReligious = lowerName.includes('eid') || lowerName.includes('ramazan') || lowerName.includes('kurban');
+                                            const typeClass = isReligious ? 'type-religious' : 'type-public';
+                                            
+                                            // Handle language matching for tooltip
+                                            const langPrefix = (i18n.language || 'en').substring(0, 2).toLowerCase();
+                                            const hCountry = (holiday.countryCode || destinationCountryCode || '').toLowerCase();
+                                            const isLocalLang = langPrefix === hCountry;
+                                            const displayTooltipName = (isLocalLang && holiday.localName) ? holiday.localName : (holiday.holidayName || holiday.name);
+
                                             return (
-                                                <div className="holiday-day-container">
+                                                <div className={`holiday-day-container ${typeClass}`}>
                                                     {day}
-                                                    <div className="holiday-badge"></div>
                                                     <div className="holiday-tooltip">
                                                         <div className="holiday-tooltip-country">
                                                             {holiday.countryCode || destinationCountryCode}
                                                         </div>
-                                                        <div className="holiday-tooltip-date">{holiday.holidayDate || holiday.date || formattedDate}</div>
-                                                        <div className="holiday-tooltip-name">{holiday.holidayName || holiday.name}</div>
-                                                        <div className="holiday-tooltip-type">{holiday.holidayType || holiday.type}</div>
+                                                        <div className="holiday-tooltip-name">{displayTooltipName}</div>
+                                                        <div className="holiday-tooltip-type">{isReligious ? 'Dini Tatil' : 'Resmi Tatil'}</div>
                                                     </div>
                                                 </div>
                                             );
                                         }
                                         return day;
                                     }}
-                                />
+                                >
+                                    <HolidaySidePanel holidays={holidays} visibleMonth={visibleMonth} />
+                                </DatePicker>
                             </div>
                         </div>
                     </div>

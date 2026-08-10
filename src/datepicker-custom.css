@@ -176,3 +176,79 @@
 .react-datepicker__input-container {
     width: 100% !important;
 }
+
+/* Holiday Badge and Tooltip Styles */
+.holiday-day-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.holiday-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: #ef4444; /* red-500 */
+}
+
+.holiday-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    background-color: #1e293b; /* slate-800 */
+    color: #f8fafc; /* slate-50 */
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 50;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    pointer-events: none;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.holiday-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 4px;
+    border-style: solid;
+    border-color: #1e293b transparent transparent transparent;
+}
+
+.holiday-day-container:hover .holiday-tooltip {
+    display: block;
+}
+
+.holiday-tooltip-country {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.holiday-tooltip-date {
+    color: #94a3b8; /* slate-400 */
+    font-size: 10px;
+    margin-bottom: 2px;
+}
+
+.holiday-tooltip-name {
+    font-weight: 500;
+}
+
+.holiday-tooltip-type {
+    color: #cbd5e1; /* slate-300 */
+    font-size: 10px;
+    font-style: italic;
+}

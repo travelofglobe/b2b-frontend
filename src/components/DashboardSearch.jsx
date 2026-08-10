@@ -5,6 +5,7 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import { enGB, tr, es, ru, zhCN, ja, faIR, fr, it, el, pt, ar } from 'date-fns/locale';
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
+import { useHolidays } from '../utils/useHolidays';
 import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates } from '../utils/searchParamsUtils';
 import { useTranslation } from 'react-i18next';
 
@@ -372,6 +373,12 @@ const DashboardSearch = () => {
         return searchParams.get('nationality') || localStorage.getItem('dashboard_last_nationality') || getUserCountryCode();
     });
 
+    const [destinationCountryCode, setDestinationCountryCode] = useState(() => {
+        return localStorage.getItem('dashboard_last_countryCode') || null;
+    });
+
+    const { holidays } = useHolidays(destinationCountryCode);
+
     const [results, setResults] = useState({ hotels: [], regions: [] });
     const [loading, setLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -607,6 +614,12 @@ const DashboardSearch = () => {
             localStorage.setItem('dashboard_last_locationId', location.locationId);
         }
 
+        const countryCode = location.countryCode || (location.locationBreadcrumbs?.find(b => b.locationType === 'COUNTRY')?.countryCode);
+        if (countryCode) {
+            setDestinationCountryCode(countryCode);
+            localStorage.setItem('dashboard_last_countryCode', countryCode);
+        }
+
         // Generate hierarchical slug
         const slug = buildLocationSlug(location);
 
@@ -641,6 +654,12 @@ const DashboardSearch = () => {
         localStorage.setItem('dashboard_last_search', fullName);
         localStorage.setItem('dashboard_last_type', 'HOTEL');
         localStorage.setItem('dashboard_last_hotelId', hId);
+
+        const countryCode = hotel.countryCode || (hotel.locationBreadcrumbs?.find(b => b.locationType === 'COUNTRY')?.countryCode);
+        if (countryCode) {
+            setDestinationCountryCode(countryCode);
+            localStorage.setItem('dashboard_last_countryCode', countryCode);
+        }
 
         // Reset user interaction flag and close dropdown to prevent reopening
         isUserInteraction.current = false;
@@ -904,6 +923,28 @@ const DashboardSearch = () => {
                                     placeholderText={ls.placeholder}
                                     calendarClassName="shadow-2xl border-none font-sans mt-2"
                                     popperPlacement="bottom-start"
+                                    renderDayContents={(day, date) => {
+                                        const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                                        const holiday = holidays?.find(h => h.date === formattedDate || h.holidayDate === formattedDate);
+                                        
+                                        if (holiday) {
+                                            return (
+                                                <div className="holiday-day-container">
+                                                    {day}
+                                                    <div className="holiday-badge"></div>
+                                                    <div className="holiday-tooltip">
+                                                        <div className="holiday-tooltip-country">
+                                                            {holiday.countryCode || destinationCountryCode}
+                                                        </div>
+                                                        <div className="holiday-tooltip-date">{holiday.holidayDate || holiday.date || formattedDate}</div>
+                                                        <div className="holiday-tooltip-name">{holiday.holidayName || holiday.name}</div>
+                                                        <div className="holiday-tooltip-type">{holiday.holidayType || holiday.type}</div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+                                        return day;
+                                    }}
                                 />
                             </div>
                         </div>

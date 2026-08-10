@@ -1498,18 +1498,18 @@ const MyOffice = () => {
                                         </div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                        <table className="w-full text-left border-collapse">
-                                            <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700/80 sticky top-0 z-10 backdrop-blur-md">
+                                        <table className="w-full border-collapse">
+                                            <thead className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 backdrop-blur-md">
                                                 <tr>
-                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colUser')}</th>
-                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colContact')}</th>
-                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colRole')}</th>
-                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colStatus')}</th>
-                                                    <th className="px-3.5 py-3 text-right text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colActions')}</th>
+                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colUser')}</th>
+                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colContact')}</th>
+                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colRole')}</th>
+                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colStatus')}</th>
+                                                    <th className="px-3.5 py-2.5 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colActions')}</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                                                {usersLoading ? <TableSkeleton columns={5} /> : users.length > 0 ? users.map((u) => (<tr key={u.id} className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 text-xs font-medium"><td className="px-3.5 py-2.5"><div className="flex items-center gap-2.5"><div className="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-xs bg-[#f0edff] dark:bg-violet-950/50 text-[#7c3aed] dark:text-violet-300 border border-violet-200/60 dark:border-violet-800/40 shadow-2xs shrink-0 relative"><span className="uppercase text-[13px] tracking-tight">{u.name?.[0] || 'U'}{u.surname?.[0] || ''}</span><span className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-[#8b5cf6] text-white flex items-center justify-center ring-2 ring-white dark:ring-slate-900 shadow-2xs"><span className="material-icons-round text-[10px] select-none leading-none">person</span></span></div><div><p className="font-semibold text-slate-800 dark:text-slate-200 text-xs leading-none mb-1">{u.name} {u.surname}</p><p className="text-[10px] text-slate-400 font-mono">ID: #{u.id}</p></div></div></td><td className="px-3.5 py-2.5"><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {u.email}</div>{u.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{u.phoneCountryCode} {u.phoneNumber}</div>}</div></td><td className="px-3.5 py-2.5"><div className="flex flex-wrap gap-1">{u.roles?.length > 0 ? u.roles.map((r, idx) => (<span key={r.id || idx} className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-primary text-[10px] font-medium rounded-md">{r.roleName || r.name}</span>)) : <span className="text-slate-400 text-[10px] italic">No Role</span>}</div></td><td className="px-3.5 py-2.5"><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleUserStatus(u)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={u.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${u.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-xs font-medium ${u.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{u.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="px-3.5 py-2.5 text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditUser(u)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteUser(u.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>)) : (<tr><td colSpan="5" className="px-4 py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No users found</p></td></tr>)}
+                                                {usersLoading ? <TableSkeleton columns={5} /> : users.length > 0 ? users.map((u) => (<tr key={u.id} className="odd:bg-white dark:odd:bg-slate-900/80 even:bg-slate-50/80 dark:even:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-b border-slate-100 dark:border-slate-800/60 text-[11px] group"><td className="px-3.5 py-2.5"><div className="flex items-center gap-2.5"><div className="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-xs bg-[#f0edff] dark:bg-violet-950/50 text-[#7c3aed] dark:text-violet-300 border border-violet-200/60 dark:border-violet-800/40 shadow-2xs shrink-0 relative"><span className="uppercase text-[13px] tracking-tight">{u.name?.[0] || 'U'}{u.surname?.[0] || ''}</span><span className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-[#8b5cf6] text-white flex items-center justify-center ring-2 ring-white dark:ring-slate-900 shadow-2xs"><span className="material-icons-round text-[10px] select-none leading-none">person</span></span></div><div><p className="font-semibold text-slate-800 dark:text-slate-200 text-xs leading-none mb-1">{u.name} {u.surname}</p><p className="text-[10px] text-slate-400 font-mono">ID: #{u.id}</p></div></div></td><td className="px-3.5 py-2.5"><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {u.email}</div>{u.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{u.phoneCountryCode} {u.phoneNumber}</div>}</div></td><td className="px-3.5 py-2.5"><div className="flex flex-wrap gap-1">{u.roles?.length > 0 ? u.roles.map((r, idx) => (<span key={r.id || idx} className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-primary text-[10px] font-medium rounded-md">{r.roleName || r.name}</span>)) : <span className="text-slate-400 text-[10px] italic">No Role</span>}</div></td><td className="px-3.5 py-2.5"><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleUserStatus(u)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={u.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${u.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-[11px] font-medium ${u.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{u.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="px-3.5 py-2.5 text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditUser(u)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteUser(u.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>)) : (<tr><td colSpan="5" className="px-4 py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No users found</p></td></tr>)}
                                             </tbody>
                                         </table>
                                     </div>
@@ -1617,20 +1617,20 @@ const MyOffice = () => {
                                         </div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                        <table className="w-full text-left border-collapse">
-                                            <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700/80 sticky top-0 z-10 backdrop-blur-md">
+                                        <table className="w-full border-collapse">
+                                            <thead className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 backdrop-blur-md">
                                                 <tr>
-                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colGuest')}</th>
-                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colBirth')}</th>
-                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colPassport')}</th>
-                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colContact')}</th>
-                                                    <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colStatus')}</th>
-                                                    <th className="px-3.5 py-3 text-right text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{L('colActions')}</th>
+                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colGuest')}</th>
+                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colBirth')}</th>
+                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colPassport')}</th>
+                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colContact')}</th>
+                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colStatus')}</th>
+                                                    <th className="px-3.5 py-2.5 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colActions')}</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                                                 {guestsLoading ? <TableSkeleton columns={6} /> : guests.length > 0 ? guests.map((g) => (
-                                                    <tr key={g.id} className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 text-xs font-medium">
+                                                    <tr key={g.id} className="odd:bg-white dark:odd:bg-slate-900/80 even:bg-slate-50/80 dark:even:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-b border-slate-100 dark:border-slate-800/60 text-[11px] group">
                                                         <td className="px-3.5 py-2.5">
                                                             <div className="flex items-center gap-2.5">
                                                                 <div className={`size-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs shrink-0 relative border transition-all ${g.gender === 'FEMALE' ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border-rose-200/80 dark:border-rose-800/40' : g.gender === 'MALE' ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-300 border-sky-200/80 dark:border-sky-800/40' : 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800/40'}`}>
@@ -1841,15 +1841,15 @@ const MyOffice = () => {
 
                             {/* Favorite Hotels Table Body */}
                             <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-10">
-                                <table className="w-full text-left border-collapse">
-                                    <thead className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700/80 sticky top-0 z-10 backdrop-blur-md">
+                                        <table className="w-full border-collapse">
+                                    <thead className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 backdrop-blur-md">
                                         <tr>
-                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[80px]">ID</th>
-                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[240px]">{L('colHotelInfo')}</th>
-                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px]">{L('colLocationStars')}</th>
-                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">{L('colDateAdded')}</th>
-                                            <th className="px-3.5 py-3 text-left text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[120px]">{L('status')}</th>
-                                            <th className="px-3.5 py-3 text-right text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px]">{L('colActions')}</th>
+                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[80px] select-none">ID</th>
+                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[240px] select-none">{L('colHotelInfo')}</th>
+                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px] select-none">{L('colLocationStars')}</th>
+                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colDateAdded')}</th>
+                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('status')}</th>
+                                            <th className="px-3.5 py-2.5 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colActions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -1859,7 +1859,7 @@ const MyOffice = () => {
                                             favoriteBackendItems.map((fav, idx) => (
                                                 <tr 
                                                     key={fav.id ? `fav-${fav.id}-${idx}` : `fav-${idx}`}
-                                                    className="hover:bg-white/40 dark:hover:bg-slate-800/40 transition-all duration-300 group border-b border-white/20 dark:border-white/5 last:border-0 text-xs font-medium"
+                                                    className="odd:bg-white dark:odd:bg-slate-900/80 even:bg-slate-50/80 dark:even:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-b border-slate-100 dark:border-slate-800/60 text-[11px] group"
                                                 >
                                                     {/* ID */}
                                                     <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[10px] font-mono">#{fav.hotelId}</td>
@@ -1875,7 +1875,7 @@ const MyOffice = () => {
                                                                 )}
                                                             </div>
                                                             <span 
-                                                                className="font-medium text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors cursor-pointer text-xs truncate max-w-[280px]" 
+                                                                className="font-semibold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors cursor-pointer text-xs truncate max-w-[280px]" 
                                                                 onClick={() => navigate(`/hotel/${fav.hotelId}`)}
                                                                 title={fav.hotelName}
                                                             >
@@ -1919,21 +1919,22 @@ const MyOffice = () => {
                                                         </div>
                                                     </td>
 
-                                                    {/* Status Switch */}
+                                                    {/* Status Toggle Button (Pure Boxless Material Thumbs Up Icon) */}
                                                     <td className="px-3.5 py-2.5" onClick={(e) => e.stopPropagation()}>
-                                                        <div className="flex items-center gap-2">
-                                                            <button 
-                                                                type="button" 
-                                                                onClick={() => handleToggleFavoriteStatus(fav)} 
-                                                                className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${fav.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} 
-                                                                title={fav.status === 'ACTIVE' ? 'Pasife Al' : 'Aktif Et'}
-                                                            >
-                                                                <span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${fav.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} />
-                                                            </button>
-                                                            <span className={`text-xs font-medium ${fav.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                                                                {fav.status === 'ACTIVE' ? L('statusActive') : L('statusPassive')}
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => handleToggleFavoriteStatus(fav)} 
+                                                            className="p-1 inline-flex items-center justify-center transition-transform duration-200 active:scale-90 cursor-pointer bg-transparent border-0 outline-none hover:scale-110"
+                                                            title={fav.status === 'ACTIVE' ? (L('statusActive') || 'Aktif') : (L('statusPassive') || 'Pasif')}
+                                                        >
+                                                            <span className={`material-icons-round text-lg transition-colors duration-200 ${
+                                                                fav.status === 'ACTIVE'
+                                                                    ? 'text-blue-500 hover:text-blue-600'
+                                                                    : 'text-slate-300 dark:text-slate-600 hover:text-slate-400 dark:hover:text-slate-500'
+                                                            }`}>
+                                                                {fav.status === 'ACTIVE' ? 'thumb_up' : 'thumb_up_off_alt'}
                                                             </span>
-                                                        </div>
+                                                        </button>
                                                     </td>
 
                                                     {/* Actions */}

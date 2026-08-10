@@ -214,37 +214,37 @@ const MarkupManagement = () => {
 
                 {/* Table */}
                 <div className="flex-1 overflow-x-auto overflow-y-auto">
-                    <table className="w-full text-left text-xs">
-                        <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/80 z-10 border-b border-slate-200 dark:border-white/5">
+                    <table className="w-full border-collapse">
+                        <thead className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 backdrop-blur-md">
                             <tr>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-14 text-center">ID</th>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{L('colRule')}</th>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{L('colHotels')}</th>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-center w-20">{L('colPriority')}</th>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-center w-20">{L('colValue')}</th>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-center w-28">{L('colStatus')}</th>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-right">{L('colActions')}</th>
+                                <th className="px-3.5 py-2.5 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-14">ID</th>
+                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colRule')}</th>
+                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colHotels')}</th>
+                                <th className="px-3.5 py-2.5 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-20">{L('colPriority')}</th>
+                                <th className="px-3.5 py-2.5 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-20">{L('colValue')}</th>
+                                <th className="px-3.5 py-2.5 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-28">{L('colStatus')}</th>
+                                <th className="px-3.5 py-2.5 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colActions')}</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                             {loading ? (
                                 Array(5).fill(0).map((_, i) => (
-                                    <tr key={i} className="animate-pulse border-b border-slate-100 dark:border-white/[0.04]">
+                                    <tr key={i} className="animate-pulse border-b border-slate-100 dark:border-slate-800">
                                         {Array(7).fill(0).map((_, j) => (
-                                            <td key={j} className="px-4 py-3"><div className="h-5 bg-slate-100 dark:bg-slate-800 rounded w-full"></div></td>
+                                            <td key={j} className="px-3.5 py-2.5"><div className="h-5 bg-slate-100 dark:bg-slate-800 rounded w-full"></div></td>
                                         ))}
                                     </tr>
                                 ))
                             ) : markups.length > 0 ? markups.map((m, rowIdx) => (
-                                <tr key={m.id} className={`border-b border-slate-100 dark:border-white/[0.04] hover:bg-primary/5 transition-colors ${rowIdx % 2 === 1 ? 'bg-slate-50/60 dark:bg-white/[0.02]' : ''}`}>
-                                    <td className="px-4 py-2.5 text-center">
+                                <tr key={m.id} className="odd:bg-white dark:odd:bg-slate-900/80 even:bg-slate-50/80 dark:even:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-b border-slate-100 dark:border-slate-800/60 text-[11px] group">
+                                    <td className="px-3.5 py-2.5 text-center">
                                         <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-medium text-slate-500">#{m.id}</span>
                                     </td>
-                                    <td className="px-4 py-2.5">
-                                        <p className="font-semibold text-slate-800 dark:text-white text-xs">{m.name}</p>
+                                    <td className="px-3.5 py-2.5">
+                                        <p className="font-semibold text-slate-800 dark:text-white text-[11px]">{m.name}</p>
                                         <p className="text-[10px] text-slate-400 mt-0.5">By: {m.updatedBy || m.createdBy}</p>
                                     </td>
-                                    <td className="px-4 py-2.5">
+                                    <td className="px-3.5 py-2.5">
                                         <div className="flex flex-wrap gap-1 items-center">
                                             {m.hotels && m.hotels.length > 0 ? (
                                                 <>
@@ -264,15 +264,15 @@ const MarkupManagement = () => {
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-4 py-2.5 text-center">
+                                    <td className="px-3.5 py-2.5 text-center">
                                         <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${m.priority === 1 ? 'bg-rose-50 text-rose-500 dark:bg-rose-900/20' : 'bg-blue-50 text-primary dark:bg-blue-900/20'}`}>
                                             {m.priority}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-2.5 text-center">
-                                        <span className="font-bold text-slate-900 dark:text-white text-xs">{m.value}%</span>
+                                    <td className="px-3.5 py-2.5 text-center">
+                                        <span className="font-bold text-slate-900 dark:text-white text-[11px]">{m.value}%</span>
                                     </td>
-                                    <td className="px-4 py-2.5">
+                                    <td className="px-3.5 py-2.5">
                                         <div className="flex flex-col items-center gap-0.5">
                                             <AppleSwitch
                                                 checked={m.status === 'ACTIVE'}
@@ -284,7 +284,7 @@ const MarkupManagement = () => {
                                             </span>
                                         </div>
                                     </td>
-                                    <td className="px-4 py-2.5 text-right">
+                                    <td className="px-3.5 py-2.5 text-right">
                                         <div className="flex items-center justify-end gap-0.5">
                                             <button onClick={() => handleEditMarkup(m)} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 transition-all">
                                                 <span className="material-icons-round text-sm">edit</span>

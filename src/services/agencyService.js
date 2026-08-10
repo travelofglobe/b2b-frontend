@@ -79,5 +79,75 @@ export const agencyService = {
 
     assignSubAgencyRole: async (data) => {
         return apiClient.post(`${API_BASE_URL}/sub-agency-user/assign-role`, data);
+    },
+
+    getLogo: async (signal) => {
+        const token = localStorage.getItem('accessToken');
+        const lang = localStorage.getItem('language') || 'tr';
+        const response = await fetch(`${API_BASE_URL}/agency/get-logo`, {
+            method: 'GET',
+            headers: {
+                'Accept-Language': lang === 'tr' ? 'tr-TR' : 'en-US',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            signal
+        });
+        if (response.status === 404 || response.status === 204) {
+            return null;
+        }
+        if (!response.ok) {
+            throw new Error(`Failed to fetch logo (${response.status})`);
+        }
+        const blob = await response.blob();
+        if (!blob || blob.size === 0) return null;
+        return blob;
+    },
+
+    uploadLogo: async (file) => {
+        const token = localStorage.getItem('accessToken');
+        const lang = localStorage.getItem('language') || 'tr';
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch(`${API_BASE_URL}/agency/upload-logo`, {
+            method: 'PUT',
+            headers: {
+                'Accept-Language': lang === 'tr' ? 'tr-TR' : 'en-US',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            let errorMsg = `Upload failed (${response.status})`;
+            try {
+                const errData = await response.json();
+                if (errData?.message) errorMsg = errData.message;
+            } catch (_) {}
+            throw new Error(errorMsg);
+        }
+        return true;
+    },
+
+    deleteLogo: async () => {
+        const token = localStorage.getItem('accessToken');
+        const lang = localStorage.getItem('language') || 'tr';
+        const response = await fetch(`${API_BASE_URL}/agency/delete-logo`, {
+            method: 'DELETE',
+            headers: {
+                'Accept-Language': lang === 'tr' ? 'tr-TR' : 'en-US',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            }
+        });
+
+        if (!response.ok && response.status !== 204) {
+            let errorMsg = `Delete failed (${response.status})`;
+            try {
+                const errData = await response.json();
+                if (errData?.message) errorMsg = errData.message;
+            } catch (_) {}
+            throw new Error(errorMsg);
+        }
+        return true;
     }
 };

@@ -4,7 +4,10 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useTranslation } from 'react-i18next';
 import Breadcrumbs from '../components/Breadcrumbs';
-import DatePicker from 'react-datepicker';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import { enGB, tr, es, ru, zhCN, ja, faIR, fr, it, el, pt, ar, enUS, de, nl, pl, uk, bg } from 'date-fns/locale';
+import { format } from "date-fns";
+import HolidaySidePanel from "../components/HolidaySidePanel";
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
 import { useHolidays } from '../utils/useHolidays';
@@ -997,7 +1000,7 @@ const LOCAL_TRANSLATIONS = {
         boardType: "Trattamento:",
         allBoards: "Tutti i Trattamenti",
         policyLabel: "Politica:",
-        allPolicies: "Tutte le Politiche",
+        allPolitiche: "Tutte le Politiche",
         freeCancellation: "Cancellazione Gratuita",
         nonRefundable: "Non Rimborsabile",
         roomTypesFound: "Tipi di Camere Trovate",
@@ -1202,6 +1205,7 @@ const HotelDetail = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isRoomsLoading, setIsRoomsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [visibleMonth, setVisibleMonth] = useState(new Date());
 
     const images = dynamicHotel?.images?.map(img => img.url) || (dynamicHotel?.image ? [dynamicHotel.image] : []);
 

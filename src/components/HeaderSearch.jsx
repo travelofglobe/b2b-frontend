@@ -4,6 +4,7 @@ import { autocompleteService } from '../services/autocompleteService';
 import { useToast } from '../context/ToastContext';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { enGB, tr, es, ru, zhCN, ja, faIR, fr, it, el, pt, ar } from 'date-fns/locale';
+import HolidaySidePanel from "./HolidaySidePanel";
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
 import { useHolidays } from '../utils/useHolidays';
@@ -417,6 +418,7 @@ const HeaderSearch = () => {
     const [destinationCountryCode, setDestinationCountryCode] = useState(() => {
         return localStorage.getItem('dashboard_last_countryCode') || null;
     });
+    const [visibleMonth, setVisibleMonth] = useState(new Date());
 
     const { holidays } = useHolidays(destinationCountryCode);
 
@@ -433,7 +435,6 @@ const HeaderSearch = () => {
 
     // -- Effects --
 
-    // Debounce search
     // Debounce search
     useEffect(() => {
         // Only search if the user has interacted (typed)
@@ -560,14 +561,6 @@ const HeaderSearch = () => {
             e.preventDefault();
             setActiveIndex((prev) => (prev > 0 ? prev - 1 : -1));
         }
-    };
-
-    const formatDateForUrl = (date) => {
-        const d = new Date(date);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
     };
 
     const getUrlParams = (queryOverride) => {
@@ -831,7 +824,7 @@ const HeaderSearch = () => {
             <div className="flex items-center justify-between px-4 border-r border-slate-300 dark:border-slate-600 cursor-pointer h-full group/date w-[340px] shrink-0" onClick={() => datePickerRef.current?.setOpen(true)}>
                 <div className="flex items-center flex-1">
                     <span className="material-symbols-outlined text-slate-400 text-xl mr-3 group-hover/date:text-primary transition-colors">calendar_month</span>
-                    <div className="w-[180px] min-w-[180px] [&>div]:w-full [&>div>input]:w-full">
+                    <div className="w-[180px] min-w-[180px] [&>div]:w-full [&>div>input]:w-full datepicker-header">
                         <DatePicker
                             ref={datePickerRef}
                             selected={checkInDate}
@@ -861,35 +854,46 @@ const HeaderSearch = () => {
                             minDate={new Date()}
                             maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                             monthsShown={2}
+                            onMonthChange={(date) => setVisibleMonth(date)}
                             locale={currentLang}
                             className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 font-medium"
                             wrapperClassName="w-full"
                             dateFormat="dd MMM yyyy"
-                            calendarClassName="shadow-2xl border-none font-sans mt-4"
+                            calendarClassName="shadow-2xl border-none font-sans"
                             popperPlacement="bottom-start"
                             renderDayContents={(day, date) => {
                                 const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                                 const holiday = holidays?.find(h => h.date === formattedDate || h.holidayDate === formattedDate);
                                 
                                 if (holiday) {
+                                    const lowerName = (holiday.holidayName || holiday.name || '').toLowerCase();
+                                    const isReligious = lowerName.includes('eid') || lowerName.includes('ramazan') || lowerName.includes('kurban');
+                                    const typeClass = isReligious ? 'type-religious' : 'type-public';
+                                    
+                                    // Handle language matching for tooltip
+                                    const langPrefix = (i18n.language || 'en').substring(0, 2).toLowerCase();
+                                    const hCountry = (holiday.countryCode || destinationCountryCode || '').toLowerCase();
+                                    const isLocalLang = langPrefix === hCountry;
+                                    const displayTooltipName = (isLocalLang && holiday.localName) ? holiday.localName : (holiday.holidayName || holiday.name);
+
                                     return (
-                                        <div className="holiday-day-container">
+                                        <div className={`holiday-day-container ${typeClass}`}>
                                             {day}
-                                            <div className="holiday-badge"></div>
                                             <div className="holiday-tooltip">
                                                 <div className="holiday-tooltip-country">
                                                     {holiday.countryCode || destinationCountryCode}
                                                 </div>
-                                                <div className="holiday-tooltip-date">{holiday.holidayDate || holiday.date || formattedDate}</div>
-                                                <div className="holiday-tooltip-name">{holiday.holidayName || holiday.name}</div>
-                                                <div className="holiday-tooltip-type">{holiday.holidayType || holiday.type}</div>
+                                                <div className="holiday-tooltip-name">{displayTooltipName}</div>
+                                                <div className="holiday-tooltip-type">{isReligious ? 'Dini Tatil' : 'Resmi Tatil'}</div>
                                             </div>
                                         </div>
                                     );
                                 }
                                 return day;
                             }}
-                        />
+                        >
+                            <HolidaySidePanel holidays={holidays} visibleMonth={visibleMonth} />
+                        </DatePicker>
                     </div>
                 </div>
                 {checkInDate && checkOutDate && (

@@ -23,17 +23,29 @@
 
 .react-datepicker-popper {
     z-index: 10000 !important;
+    margin-top: 8px !important;
+}
+
+/* Dashboard date picker alignment */
+.datepicker-dashboard .react-datepicker-popper {
+    margin-left: -14px !important;
+}
+
+/* Header search date picker alignment */
+.datepicker-header .react-datepicker-popper {
+    margin-left: -48px !important;
 }
 
 .react-datepicker {
     font-family: 'Inter', -apple-system, sans-serif !important;
     background-color: var(--minimal-bg) !important;
     border: 1px solid var(--minimal-border) !important;
-    border-radius: 20px !important;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.08) !important;
     display: flex !important;
-    padding: 24px !important;
-    animation: minimal-fade-in 0.2s ease-out;
+    flex-direction: row;
+    padding: 12px !important;
+    animation: minimal-fade-in 0.18s ease-out;
 }
 
 @keyframes minimal-fade-in {
@@ -43,22 +55,37 @@
 
 .react-datepicker__month-container {
     float: none !important;
-    padding: 0 16px !important;
 }
 
+/* Customizing React Datepicker Container */
 .react-datepicker__header {
-    background: transparent !important;
-    border: none !important;
-    padding: 0 !important;
-    text-align: left !important;
+    background-color: transparent !important;
+    border-bottom: none !important;
+    padding-top: 16px !important;
 }
 
 .react-datepicker__current-month {
+    font-weight: 600 !important;
     font-size: 15px !important;
-    font-weight: 700 !important;
-    color: var(--minimal-primary) !important;
-    margin-bottom: 20px !important;
-    text-align: center !important;
+    color: #0f172a !important; /* slate-900 */
+    margin-bottom: 8px !important;
+}
+
+.dark .react-datepicker__current-month {
+    color: #f8fafc !important; /* slate-50 */
+}
+
+.react-datepicker__day-names {
+    margin-bottom: 4px !important;
+}
+
+.react-datepicker__day-name {
+    color: #94a3b8 !important; /* slate-400 */
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    text-transform: uppercase;
+    width: 2rem !important;
+    margin: 0.166rem !important;
 }
 
 /* Day Names */
@@ -68,32 +95,31 @@
     margin-bottom: 8px !important;
 }
 
-.react-datepicker__day-name {
-    width: 40px !important;
-    font-size: 11px !important;
-    font-weight: 600 !important;
-    color: #94a3b8 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
-    margin: 0 !important;
-}
-
 /* Day Item */
 .react-datepicker__day {
-    width: 40px !important;
-    height: 40px !important;
-    line-height: 40px !important;
-    margin: 0 !important;
-    font-size: 13px !important;
+    color: #334155 !important; /* slate-700 */
     font-weight: 500 !important;
-    color: var(--minimal-primary) !important;
+    font-size: 13px !important;
+    width: 2rem !important;
+    height: 2rem !important;
+    line-height: 2rem !important;
+    margin: 0.166rem !important;
     border-radius: 8px !important;
-    transition: background 0.15s ease, color 0.15s ease !important;
+    transition: all 0.2s ease;
+}
+
+.dark .react-datepicker__day {
+    color: #cbd5e1 !important; /* slate-300 */
 }
 
 .react-datepicker__day:hover:not(.react-datepicker__day--disabled) {
-    background-color: var(--minimal-range) !important;
-    color: var(--minimal-accent) !important;
+    background-color: #f1f5f9 !important; /* slate-100 */
+    color: #0f172a !important;
+}
+
+.dark .react-datepicker__day:hover:not(.react-datepicker__day--disabled) {
+    background-color: #334155 !important; /* slate-700 */
+    color: #f8fafc !important;
 }
 
 /* Selected & Range */
@@ -137,19 +163,32 @@
 
 /* Navigation */
 .react-datepicker__navigation {
-    top: 24px !important;
-    width: 32px !important;
-    height: 32px !important;
+    top: 20px !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 6px !important;
+    background-color: transparent !important;
+    border: none !important;
+    transition: background-color 0.15s ease !important;
 }
 
-.react-datepicker__navigation--previous { left: 24px !important; }
-.react-datepicker__navigation--next { right: 24px !important; }
+.react-datepicker__navigation:hover {
+    background-color: var(--minimal-range) !important;
+}
+
+.react-datepicker__navigation--previous { left: 12px !important; }
+.react-datepicker__navigation--next { right: 12px !important; }
 
 .react-datepicker__navigation-icon::before {
-    border-color: #cbd5e1 !important;
-    border-width: 2px 2px 0 0 !important;
-    width: 6px !important;
-    height: 6px !important;
+    border-color: #475569 !important;
+    border-width: 2.5px 2.5px 0 0 !important;
+    width: 8px !important;
+    height: 8px !important;
+    transition: border-color 0.15s ease !important;
+}
+
+.react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+    border-color: var(--minimal-accent) !important;
 }
 
 /* Remove Triangle */
@@ -177,6 +216,18 @@
     width: 100% !important;
 }
 
+
+
+.dark .react-datepicker {
+    background-color: #1e293b;
+    border: 1px solid #334155 !important;
+}
+
+/* Adjust month container spacing */
+.react-datepicker__month-container {
+    padding: 0 4px;
+}
+
 /* Holiday Badge and Tooltip Styles */
 .holiday-day-container {
     position: relative;
@@ -185,16 +236,24 @@
     justify-content: center;
     width: 100%;
     height: 100%;
+    border-radius: 8px; /* match the .react-datepicker__day */
 }
 
-.holiday-badge {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background-color: #ef4444; /* red-500 */
+.holiday-day-container.type-public {
+    border-bottom: 2px solid #facc15; /* yellow-400 */
+    border-bottom-left-radius: 1px;
+    border-bottom-right-radius: 1px;
+}
+
+.holiday-day-container.type-religious {
+    border-bottom: 2px solid #22c55e; /* green-500 */
+    border-bottom-left-radius: 1px;
+    border-bottom-right-radius: 1px;
+    font-weight: 600;
+}
+
+.dark .holiday-day-container.type-religious {
+    border-bottom-color: #16a34a; /* green-600 */
 }
 
 .holiday-tooltip {

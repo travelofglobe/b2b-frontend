@@ -5,8 +5,8 @@ import * as XLSX from 'xlsx';
 import { downloadPdfDoc, downloadXlsxWorkbook, downloadCsvContent } from '../utils/fileDownloadHelper';
 
 const MO = {
-  en: { title: 'My Office Management', tabGeneral: 'General Information', tabUsers: 'Users', tabGuests: 'Guests', tabFavorites: 'Favorite Hotels', saveBtn: 'Save Office Profile', saving: 'Synchronizing...', agencyId: 'Agency Identity', baseLocation: 'Base Location', currency: 'Currency', integration: 'Integration', auditTimeline: 'Audit Timeline', created: 'Created', lastUpdate: 'Last Update', sec01: 'Section 01 / Identity', sec02: 'Section 02 / Contact', sec03: 'Section 03 / Geography', sec04: 'Section 04 / Finance', sec05: 'Section 05 / Settings', agencyName: 'Agency Name', officialTitle: 'Official Title', type: 'Type', language: 'Language', parentId: 'Parent ID', directEmail: 'Direct Email', phone: 'Phone Number', country: 'Country', city: 'City', streetAddress: 'Street Address', zipCode: 'Zip Code', taxOffice: 'Tax Office', taxNumber: 'Tax Number', accEmail: 'Accounting Email', accPhone: 'Accounting Phone', accCountry: 'Accounting Country', accCity: 'Accounting City', accAddress: 'Accounting Address', mainCurrency: 'Main Currency', integrationType: 'Integration Type', allowedSale: 'Allowed for Sale', bookingStatus: 'Booking status', selectTerritory: 'Select Territory', selectHub: 'Select Hub', commercialName: 'Commercial Name', legalTitle: 'Legal Title', totalUsers: 'Total Users', activeUsers: 'Active Users', passiveUsers: 'Passive Users', totalGuests: 'Total Guests', activeGuests: 'Active Guests', passiveGuests: 'Passive Guests', searchUsers: 'Search by name or email...', searchGuests: 'Search by name, email or passport...', searchFavorites: 'Search favorite hotels...', noFavoritesFound: 'No favorite hotels found.', removeFromFavorites: 'Remove', viewHotelDetail: 'View Detail', addedOn: 'Date Added', supplierLabel: 'Supplier', hotelName: 'Hotel Name', locationLabel: 'City / Country', starsLabel: 'Stars', allRoles: 'All Roles', allCountries: 'All Countries', active: 'Active', passive: 'Passive', export: 'Export', exportExcel: 'Export Excel', exportPdf: 'Export PDF', exporting: 'Exporting...', refresh: 'Refresh', addUser: 'Add User', addGuest: 'Add Guest', editUser: 'Edit User', editGuest: 'Edit Guest', userInfo: 'Enter user information', guestInfo: 'Enter guest information', name: 'Name', surname: 'Surname', emailAddr: 'Email Address', password: 'Password', role: 'Role', status: 'Status', gender: 'Gender', firstName: 'First Name', lastName: 'Last Name', birthDate: 'Birth Date', passportNo: 'Passport No', passportExpiry: 'Passport Expiry', cancel: 'Cancel', saveUser: 'Save User', saveGuest: 'Save Guest', processing: 'Processing...', confirm: 'Confirm', colUser: 'User', colContact: 'Contact', colRole: 'Role', colStatus: 'Status', colActions: 'Actions', colGuest: 'Guest', colBirth: 'Birth & Country', colPassport: 'Passport', noUsers: 'No users found', noGuests: 'No guests found', deleteUser: 'Delete User', deleteUserMsg: 'This action cannot be undone. All access for this user will be revoked immediately.', deleteGuest: 'Delete Guest', deleteGuestMsg: 'Are you sure you want to remove this guest from your CRM?', profileUpdated: 'Agency profile updated successfully.', updateFailed: 'Update failed.', invalidEmail: 'Please enter a valid email address.', userUpdated: 'User updated successfully', userCreated: 'User created successfully', errorSavingUser: 'Error saving user', userDeleted: 'User deleted successfully', errorDeletingUser: 'Error deleting user', noUserExport: 'No user data to export.', usersExported: 'User list exported successfully.', usersRefreshed: 'User list refreshed', guestUpdated: 'Guest updated successfully', guestCreated: 'Guest created successfully', errorSavingGuest: 'Error saving guest', guestDeleted: 'Guest deleted successfully', errorDeletingGuest: 'Error deleting guest', noGuestExport: 'No guest data to export.', guestsExported: 'Guest list exported successfully.', guestsRefreshed: 'Guest list refreshed', searchAutocompletePlaceholder: 'Select & Add Hotel (Name or ID)...', searchTablePlaceholder: 'Search in table...', allStatuses: 'All Statuses', statusActive: 'Active', statusPassive: 'Passive', colHotelInfo: 'Hotel Information', colUserEmail: 'User Email', colLocationStars: 'Location & Rating', colDateAdded: 'Audit Info', addFavSuccess: 'Hotel added to favorites', addFavError: 'Error adding favorite', deleteFavTitle: 'Remove Favorite Hotel', deleteFavMsg: 'Are you sure you want to remove {{name}} from your favorites?', deleteFavSuccess: 'Favorite hotel removed', deleteFavError: 'Failed to remove favorite', addedBtn: 'Added', addBtn: 'Add', refreshTooltip: 'Refresh', totalRecords: 'Total', pageLabel: 'Page', prevBtn: 'Previous', nextBtn: 'Next' },
-  tr: { title: 'Ofis Yönetimi', tabGeneral: 'Genel Bilgiler', tabUsers: 'Kullanıcılar', tabGuests: 'Misafirler', tabFavorites: 'Favori Oteller', saveBtn: 'Ofis Profilini Kaydet', saving: 'Senkronize ediliyor...', agencyId: 'Acente Kimlik', baseLocation: 'Konum', currency: 'Para Birimi', integration: 'Entegrasyon', auditTimeline: 'Denetim Geçmişi', created: 'Oluşturuldu', lastUpdate: 'Son Güncelleme', sec01: 'Bölüm 01 / Kimlik', sec02: 'Bölüm 02 / İletişim', sec03: 'Bölüm 03 / Coğrafya', sec04: 'Bölüm 04 / Finans', sec05: 'Bölüm 05 / Ayarlar', agencyName: 'Acente Adı', officialTitle: 'Resmi Unvan', type: 'Tür', language: 'Dil', parentId: 'Üst ID', directEmail: 'E-posta', phone: 'Telefon', country: 'Ülke', city: 'Şehir', streetAddress: 'Adres', zipCode: 'Posta Kodu', taxOffice: 'Vergi Dairesi', taxNumber: 'Vergi No', accEmail: 'Muhasebe E-posta', accPhone: 'Muhasebe Telefon', accCountry: 'Muhasebe Ülke', accCity: 'Muhasebe Şehir', accAddress: 'Muhasebe Adres', mainCurrency: 'Ana Para Birimi', integrationType: 'Entegrasyon Türü', allowedSale: 'Satışa Açık', bookingStatus: 'Rezervasyon durumu', selectTerritory: 'Bölge Seçin', selectHub: 'Şehir Seçin', commercialName: 'Ticari Ad', legalTitle: 'Hukuki Unvan', totalUsers: 'Toplam Kullanıcı', activeUsers: 'Aktif Kullanıcı', passiveUsers: 'Pasif Kullanıcı', totalGuests: 'Toplam Misafir', activeGuests: 'Aktif Misafir', passiveGuests: 'Pasif Misafir', searchUsers: 'Ad veya e-posta ara...', searchGuests: 'Ad, e-posta veya pasaport ara...', searchFavorites: 'Favori otellerde ara...', noFavoritesFound: 'Henüz favorilere eklenmiş otel bulunmamaktadır.', removeFromFavorites: 'Favoriden Kaldır', viewHotelDetail: 'Detayları Görüntüle', addedOn: 'Favoriye Eklenme Tarihi', supplierLabel: 'Tedarikçi', hotelName: 'Otel Adı', locationLabel: 'Şehir / Ülke', starsLabel: 'Yıldız Bilgisi', allRoles: 'Tüm Roller', allCountries: 'Tüm Ülkeler', active: 'Aktif', passive: 'Pasif', export: 'Dışa Aktar', exportExcel: 'Excel İndir', exportPdf: 'PDF İndir', exporting: 'İndiriliyor...', refresh: 'Yenile', addUser: 'Kullanıcı Ekle', addGuest: 'Misafir Ekle', editUser: 'Kullanıcı Düzenle', editGuest: 'Misafir Düzenle', userInfo: 'Kullanıcı bilgilerini girin', guestInfo: 'Misafir bilgilerini girin', name: 'Ad', surname: 'Soyad', emailAddr: 'E-posta Adresi', password: 'Şifre', role: 'Rol', status: 'Durum', gender: 'Cinsiyet', firstName: 'Ad', lastName: 'Soyad', birthDate: 'Doğum Tarihi', passportNo: 'Pasaport No', passportExpiry: 'Pasaport Bitiş', cancel: 'İptal', saveUser: 'Kullanıcı Kaydet', saveGuest: 'Misafir Kaydet', processing: 'İşleniyor...', confirm: 'Onayla', colUser: 'Kullanıcı', colContact: 'İletişim', colRole: 'Rol', colStatus: 'Durum', colActions: 'İşlemler', colGuest: 'Misafir', colBirth: 'Doğum & Ülke', colPassport: 'Pasaport', noUsers: 'Kullanıcı bulunamadı', noGuests: 'Misafir bulunamadı', deleteUser: 'Kullanıcı Sil', deleteUserMsg: 'Bu işlem geri alınamaz.', deleteGuest: 'Misafir Sil', deleteGuestMsg: 'Bu misafiri CRM sisteminden silmek istediğinize emin misiniz?', profileUpdated: 'Acente profili başarıyla güncellendi.', updateFailed: 'Güncelleme başarısız.', invalidEmail: 'Geçerli bir e-posta adresi girin.', userUpdated: 'Kullanıcı başarıyla güncellendi', userCreated: 'Kullanıcı başarıyla oluşturuldu', errorSavingUser: 'Kullanıcı kaydedilemedi', userDeleted: 'Kullanıcı başarıyla silindi', errorDeletingUser: 'Kullanıcı silinemedi', noUserExport: 'Dışa aktarılacak kullanıcı yok.', usersExported: 'Kullanıcı listesi başarıyla indirildi.', usersRefreshed: 'Kullanıcı listesi yenilendi', guestUpdated: 'Misafir başarıyla güncellendi', guestCreated: 'Misafir başarıyla oluşturuldu', errorSavingGuest: 'Misafir kaydedilemedi', guestDeleted: 'Misafir başarıyla silindi', errorDeletingGuest: 'Misafir silinemedi', noGuestExport: 'Dışa aktarılacak misafir yok.', guestsExported: 'Misafir listesi başarıyla indirildi.', guestsRefreshed: 'Misafir listesi yenilendi', searchAutocompletePlaceholder: 'Sistemden Otel Seç & Favorilere Ekle (Ad veya ID)...', searchTablePlaceholder: 'Tabloda ara...', allStatuses: 'Tüm Durumlar', statusActive: 'Aktif', statusPassive: 'Pasif', colHotelInfo: 'Otel Bilgisi', colUserEmail: 'Kullanıcı (User Email)', colLocationStars: 'Konum & Yıldız', colDateAdded: 'Audit Bilgisi', addFavSuccess: 'Otel favorilere eklendi', addFavError: 'Favori ekleme hatası', deleteFavTitle: 'Favori Oteli Sil', deleteFavMsg: '{{name}} otelini favorilerinizden silmek istediğinize emin misiniz?', deleteFavSuccess: 'Favori otel silindi', deleteFavError: 'Silme işlemi başarısız', addedBtn: 'Eklendi', addBtn: 'Ekle', refreshTooltip: 'Yenile', totalRecords: 'Toplam', pageLabel: 'Sayfa', prevBtn: 'Önceki', nextBtn: 'Sonraki' },
+  en: { title: 'My Office Management', tabGeneral: 'General Information', tabUsers: 'Users', tabGuests: 'Guests', tabFavorites: 'Favorite Hotels', saveBtn: 'Save Office Profile', saving: 'Synchronizing...', agencyId: 'Agency Identity', baseLocation: 'Base Location', currency: 'Currency', integration: 'Integration', auditTimeline: 'Audit Timeline', created: 'Created', lastUpdate: 'Last Update', sec01: 'Section 01 / Identity', sec02: 'Section 02 / Contact', sec03: 'Section 03 / Geography', sec04: 'Section 04 / Finance', sec05: 'Section 05 / Settings', agencyName: 'Agency Name', officialTitle: 'Official Title', type: 'Type', language: 'Language', parentId: 'Parent ID', directEmail: 'Direct Email', phone: 'Phone Number', country: 'Country', city: 'City', streetAddress: 'Street Address', zipCode: 'Zip Code', taxOffice: 'Tax Office', taxNumber: 'Tax Number', accEmail: 'Accounting Email', accPhone: 'Accounting Phone', accCountry: 'Accounting Country', accCity: 'Accounting City', accAddress: 'Accounting Address', mainCurrency: 'Main Currency', integrationType: 'Integration Type', allowedSale: 'Allowed for Sale', bookingStatus: 'Booking status', selectTerritory: 'Select Territory', selectHub: 'Select Hub', commercialName: 'Commercial Name', legalTitle: 'Legal Title', totalUsers: 'Total Users', activeUsers: 'Active Users', passiveUsers: 'Passive Users', totalGuests: 'Total Guests', activeGuests: 'Active Guests', passiveGuests: 'Passive Guests', searchUsers: 'Search by name or email...', searchGuests: 'Search by name, email or passport...', searchFavorites: 'Search favorite hotels...', noFavoritesFound: 'No favorite hotels found.', removeFromFavorites: 'Remove', viewHotelDetail: 'View Detail', addedOn: 'Date Added', supplierLabel: 'Supplier', hotelName: 'Hotel Name', locationLabel: 'City / Country', starsLabel: 'Stars', allRoles: 'All Roles', allCountries: 'All Countries', active: 'Active', passive: 'Passive', export: 'Export', exportExcel: 'Export Excel', exportPdf: 'Export PDF', exporting: 'Exporting...', refresh: 'Refresh', addUser: 'Add User', addGuest: 'Add Guest', editUser: 'Edit User', editGuest: 'Edit Guest', userInfo: 'Enter user information', guestInfo: 'Enter guest information', name: 'Name', surname: 'Surname', emailAddr: 'Email Address', password: 'Password', role: 'Role', status: 'Status', gender: 'Gender', firstName: 'First Name', lastName: 'Last Name', birthDate: 'Birth Date', passportNo: 'Passport No', passportExpiry: 'Passport Expiry', cancel: 'Cancel', saveUser: 'Save User', saveGuest: 'Save Guest', processing: 'Processing...', confirm: 'Confirm', colUser: 'User', colContact: 'Contact', colRole: 'Role', colStatus: 'Status', colActions: 'Actions', colGuest: 'Guest', colBirth: 'Birth & Country', colPassport: 'Passport', noUsers: 'No users found', noGuests: 'No guests found', deleteUser: 'Delete User', deleteUserMsg: 'This action cannot be undone. All access for this user will be revoked immediately.', deleteGuest: 'Delete Guest', deleteGuestMsg: 'Are you sure you want to remove this guest from your CRM?', profileUpdated: 'Agency profile updated successfully.', updateFailed: 'Update failed.', invalidEmail: 'Please enter a valid email address.', userUpdated: 'User updated successfully', userCreated: 'User created successfully', errorSavingUser: 'Error saving user', userDeleted: 'User deleted successfully', errorDeletingUser: 'Error deleting user', noUserExport: 'No user data to export.', usersExported: 'User list exported successfully.', usersRefreshed: 'User list refreshed', guestUpdated: 'Guest updated successfully', guestCreated: 'Guest created successfully', errorSavingGuest: 'Error saving guest', guestDeleted: 'Guest deleted successfully', errorDeletingGuest: 'Error deleting guest', noGuestExport: 'No guest data to export.', guestsExported: 'Guest list exported successfully.', guestsRefreshed: 'Guest list refreshed', searchAutocompletePlaceholder: 'Select & Add Hotel (Name or ID)...', searchTablePlaceholder: 'Search in table...', allStatuses: 'All Statuses', statusActive: 'Active', statusPassive: 'Passive', colHotelInfo: 'Hotel Information', colUserEmail: 'User Email', colLocationStars: 'Location & Rating', colDateAdded: 'Audit Info', addFavSuccess: 'Hotel added to favorites', addFavError: 'Error adding favorite', deleteFavTitle: 'Remove Favorite Hotel', deleteFavMsg: 'Are you sure you want to remove {{name}} from your favorites?', deleteFavSuccess: 'Favorite hotel removed', deleteFavError: 'Failed to remove favorite', addedBtn: 'Added', addBtn: 'Add', refreshTooltip: 'Refresh', totalRecords: 'Total', pageLabel: 'Page', prevBtn: 'Previous', nextBtn: 'Next', agencyLogo: 'Agency Logo', agencyLogoPlaceholder: 'Agency Logo Area', uploadLogo: 'Upload Logo', changeLogo: 'Change Logo', deleteLogo: 'Delete Logo', deleteLogoTitle: 'Delete Logo', confirmDeleteLogo: 'Are you sure you want to delete the agency logo?', logoRequirementsTitle: 'Logo Guidelines & Format', logoMaxRatioInfo: 'Recommended Resolution: 600 × 240 px', logoMaxSizeInfo: 'Maximum File Size: 2 MB', logoFormatsInfo: 'Supported Formats: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'File size exceeds 2MB limit.', logoInvalidFormat: 'Invalid file format. Please select a PNG, JPG, or SVG file.', logoUploadSuccess: 'Agency logo uploaded successfully.', logoDeleteSuccess: 'Agency logo deleted successfully.', logoUploadError: 'Failed to upload logo.', logoDeleteError: 'Failed to delete logo.', clickToUpload: 'Click to select and upload logo file' },
+  tr: { title: 'Ofis Yönetimi', tabGeneral: 'Genel Bilgiler', tabUsers: 'Kullanıcılar', tabGuests: 'Misafirler', tabFavorites: 'Favori Oteller', saveBtn: 'Ofis Profilini Kaydet', saving: 'Senkronize ediliyor...', agencyId: 'Acente Kimlik', baseLocation: 'Konum', currency: 'Para Birimi', integration: 'Entegrasyon', auditTimeline: 'Denetim Geçmişi', created: 'Oluşturuldu', lastUpdate: 'Son Güncelleme', sec01: 'Bölüm 01 / Kimlik', sec02: 'Bölüm 02 / İletişim', sec03: 'Bölüm 03 / Coğrafya', sec04: 'Bölüm 04 / Finans', sec05: 'Bölüm 05 / Ayarlar', agencyName: 'Acente Adı', officialTitle: 'Resmi Unvan', type: 'Tür', language: 'Dil', parentId: 'Üst ID', directEmail: 'E-posta', phone: 'Telefon', country: 'Ülke', city: 'Şehir', streetAddress: 'Adres', zipCode: 'Posta Kodu', taxOffice: 'Vergi Dairesi', taxNumber: 'Vergi No', accEmail: 'Muhasebe E-posta', accPhone: 'Muhasebe Telefon', accCountry: 'Muhasebe Ülke', accCity: 'Muhasebe Şehir', accAddress: 'Muhasebe Adres', mainCurrency: 'Ana Para Birimi', integrationType: 'Entegrasyon Türü', allowedSale: 'Satışa Açık', bookingStatus: 'Rezervasyon durumu', selectTerritory: 'Bölge Seçin', selectHub: 'Şehir Seçin', commercialName: 'Ticari Ad', legalTitle: 'Hukuki Unvan', totalUsers: 'Toplam Kullanıcı', activeUsers: 'Aktif Kullanıcı', passiveUsers: 'Pasif Kullanıcı', totalGuests: 'Toplam Misafir', activeGuests: 'Aktif Misafir', passiveGuests: 'Pasif Misafir', searchUsers: 'Ad veya e-posta ara...', searchGuests: 'Ad, e-posta veya pasaport ara...', searchFavorites: 'Favori otellerde ara...', noFavoritesFound: 'Henüz favorilere eklenmiş otel bulunmamaktadır.', removeFromFavorites: 'Favoriden Kaldır', viewHotelDetail: 'Detayları Görüntüle', addedOn: 'Favoriye Eklenme Tarihi', supplierLabel: 'Tedarikçi', hotelName: 'Otel Adı', locationLabel: 'Şehir / Ülke', starsLabel: 'Yıldız Bilgisi', allRoles: 'Tüm Roller', allCountries: 'Tüm Ülkeler', active: 'Aktif', passive: 'Pasif', export: 'Dışa Aktar', exportExcel: 'Excel İndir', exportPdf: 'PDF İndir', exporting: 'İndiriliyor...', refresh: 'Yenile', addUser: 'Kullanıcı Ekle', addGuest: 'Misafir Ekle', editUser: 'Kullanıcı Düzenle', editGuest: 'Misafir Düzenle', userInfo: 'Kullanıcı bilgilerini girin', guestInfo: 'Misafir bilgilerini girin', name: 'Ad', surname: 'Soyad', emailAddr: 'E-posta Adresi', password: 'Şifre', role: 'Rol', status: 'Durum', gender: 'Cinsiyet', firstName: 'Ad', lastName: 'Soyad', birthDate: 'Doğum Tarihi', passportNo: 'Pasaport No', passportExpiry: 'Pasaport Bitiş', cancel: 'İptal', saveUser: 'Kullanıcı Kaydet', saveGuest: 'Misafir Kaydet', processing: 'İşleniyor...', confirm: 'Onayla', colUser: 'Kullanıcı', colContact: 'İletişim', colRole: 'Rol', colStatus: 'Durum', colActions: 'İşlemler', colGuest: 'Misafir', colBirth: 'Doğum & Ülke', colPassport: 'Pasaport', noUsers: 'Kullanıcı bulunamadı', noGuests: 'Misafir bulunamadı', deleteUser: 'Kullanıcı Sil', deleteUserMsg: 'Bu işlem geri alınamaz.', deleteGuest: 'Misafir Sil', deleteGuestMsg: 'Bu misafiri CRM sisteminden silmek istediğinize emin misiniz?', profileUpdated: 'Acente profili başarıyla güncellendi.', updateFailed: 'Güncelleme başarısız.', invalidEmail: 'Geçerli bir e-posta adresi girin.', userUpdated: 'Kullanıcı başarıyla güncellendi', userCreated: 'Kullanıcı başarıyla oluşturuldu', errorSavingUser: 'Kullanıcı kaydedilemedi', userDeleted: 'Kullanıcı başarıyla silindi', errorDeletingUser: 'Kullanıcı silinemedi', noUserExport: 'Dışa aktarılacak kullanıcı yok.', usersExported: 'Kullanıcı listesi başarıyla indirildi.', usersRefreshed: 'Kullanıcı listesi yenilendi', guestUpdated: 'Misafir başarıyla güncellendi', guestCreated: 'Misafir başarıyla oluşturuldu', errorSavingGuest: 'Misafir kaydedilemedi', guestDeleted: 'Misafir başarıyla silindi', errorDeletingGuest: 'Misafir silinemedi', noGuestExport: 'Dışa aktarılacak misafir yok.', guestsExported: 'Misafir listesi başarıyla indirildi.', guestsRefreshed: 'Misafir listesi yenilendi', searchAutocompletePlaceholder: 'Sistemden Otel Seç & Favorilere Ekle (Ad veya ID)...', searchTablePlaceholder: 'Tabloda ara...', allStatuses: 'Tüm Durumlar', statusActive: 'Aktif', statusPassive: 'Pasif', colHotelInfo: 'Otel Bilgisi', colUserEmail: 'Kullanıcı (User Email)', colLocationStars: 'Konum & Yıldız', colDateAdded: 'Audit Bilgisi', addFavSuccess: 'Otel favorilere eklendi', addFavError: 'Favori ekleme hatası', deleteFavTitle: 'Favori Oteli Sil', deleteFavMsg: '{{name}} otelini favorilerinizden silmek istediğinize emin misiniz?', deleteFavSuccess: 'Favori otel silindi', deleteFavError: 'Silme işlemi başarısız', addedBtn: 'Eklendi', addBtn: 'Ekle', refreshTooltip: 'Yenile', totalRecords: 'Toplam', pageLabel: 'Sayfa', prevBtn: 'Önceki', nextBtn: 'Sonraki', agencyLogo: 'Acente Logosu', agencyLogoPlaceholder: 'Acente Logo Alanı', uploadLogo: 'Logo Yükle', changeLogo: 'Logoyu Değiştir', deleteLogo: 'Logoyu Sil', deleteLogoTitle: 'Logoyu Sil', confirmDeleteLogo: 'Acente logosunu silmek istediğinize emin misiniz?', logoRequirementsTitle: 'Logo Kuralları & Detaylar', logoMaxRatioInfo: 'Önerilen Çözünürlük: 600 × 240 px', logoMaxSizeInfo: 'Maksimum Dosya Boyutu: 2 MB', logoFormatsInfo: 'Desteklenen Formatlar: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'Dosya boyutu 2MB sınırını aşıyor.', logoInvalidFormat: 'Geçersiz dosya formatı. Lütfen PNG, JPG veya SVG formatında bir dosya seçin.', logoUploadSuccess: 'Acente logosu başarıyla yüklendi.', logoDeleteSuccess: 'Acente logosu başarıyla silindi.', logoUploadError: 'Logo yüklenirken bir hata oluştu.', logoDeleteError: 'Logo silinirken bir hata oluştu.', clickToUpload: 'Logo dosyası seçmek ve yüklemek için tıklayın' },
   ar: { title: 'إدارة المكتب' },
   es: { title: 'Mi Oficina' },
   ru: { title: 'Управление офисом' },
@@ -16,7 +16,7 @@ const MO = {
   fr: { title: 'Mon Bureau' },
   it: { title: 'Il mio Ufficio' },
   el: { title: 'Το Γραφείο Μου' },
-  pt: { title: 'Meu Escritório', tabGeneral: 'Informações Gerais', tabUsers: 'Usuários', tabGuests: 'Hóspedes', tabFavorites: 'Hotéis Favoritos', saveBtn: 'Salvar', saving: 'Sincronizando...', agencyId: 'Identidade', baseLocation: 'Localização', currency: 'Moeda', integration: 'Integração', auditTimeline: 'Auditoria', created: 'Criado', lastUpdate: 'Última Atualização', sec01: 'Seção 01', sec02: 'Seção 02', sec03: 'Seção 03', sec04: 'Seção 04', sec05: 'Seção 05', agencyName: 'Nome da Agência', officialTitle: 'Título Oficial', type: 'Tipo', language: 'Idioma', parentId: 'ID Principal', directEmail: 'Email', phone: 'Telefone', country: 'País', city: 'Cidade', streetAddress: 'Endereço', zipCode: 'CEP', taxOffice: 'Finanças', taxNumber: 'NIF', accEmail: 'Email Contab', accPhone: 'Tel Contab', accCountry: 'País Contab', accCity: 'Cidade Contab', accAddress: 'Endereço Contab', mainCurrency: 'Moeda Principal', integrationType: 'Integração', allowedSale: 'Permitido', bookingStatus: 'Status Reserva', selectTerritory: 'Território', selectHub: 'Hub', commercialName: 'Nome Comercial', legalTitle: 'Título Legal', totalUsers: 'Total', activeUsers: 'Ativos', passiveUsers: 'Inativos', totalGuests: 'Total', activeGuests: 'Ativos', passiveGuests: 'Inativos', searchUsers: 'Buscar...', searchGuests: 'Buscar...', searchFavorites: 'Buscar favoritos...', noFavoritesFound: 'Nenhum hotel favorito encontrado.', removeFromFavorites: 'Remover', viewHotelDetail: 'Ver Detalhes', addedOn: 'Data de Adição', supplierLabel: 'Fornecedor', hotelName: 'Nome do Hotel', locationLabel: 'Cidade / País', starsLabel: 'Estrelas', allRoles: 'Todos os papéis', allCountries: 'Todos os países', active: 'Ativo', passive: 'Inativo', export: 'Exportar', addUser: 'Adicionar', addGuest: 'Adicionar', editUser: 'Editar', editGuest: 'Editar', userInfo: 'Info usuário', guestInfo: 'Info hóspede', name: 'Nome', surname: 'Sobrenome', emailAddr: 'Email', password: 'Senha', role: 'Papel', status: 'Status', gender: 'Gênero', firstName: 'Nome', lastName: 'Sobrenome', birthDate: 'Nascimento', passportNo: 'Passaporte', passportExpiry: 'Validade', cancel: 'Cancelar', saveUser: 'Salvar', saveGuest: 'Salvar', processing: 'Processando...', confirm: 'Confirmar', colUser: 'Usuário', colContact: 'Contato', colRole: 'Papel', colStatus: 'Status', colActions: 'Ações', colGuest: 'Hóspede', colBirth: 'Nascimento', colPassport: 'Passaporte', noUsers: 'Nenhum', noGuests: 'Nenhum', deleteUser: 'Excluir', deleteUserMsg: 'Irreversível.', deleteGuest: 'Excluir', deleteGuestMsg: 'Tem certeza?', profileUpdated: 'Atualizado', updateFailed: 'Falha', invalidEmail: 'Email inválido', userUpdated: 'Atualizado', userCreated: 'Criado', errorSavingUser: 'Erro', userDeleted: 'Excluído', errorDeletingUser: 'Erro', noUserExport: 'Sem dados', usersExported: 'Feito', usersRefreshed: 'Atualizado', guestUpdated: 'Atualizado', guestCreated: 'Criado', errorSavingGuest: 'Erro', guestDeleted: 'Excluído', errorDeletingGuest: 'Erro', noGuestExport: 'Sem dados', guestsExported: 'Feito', guestsRefreshed: 'Atualizado' }
+  pt: { title: 'Meu Escritório', tabGeneral: 'Informações Gerais', tabUsers: 'Usuários', tabGuests: 'Hóspedes', tabFavorites: 'Hotéis Favoritos', saveBtn: 'Salvar', saving: 'Sincronizando...', agencyId: 'Identidade', baseLocation: 'Localização', currency: 'Moeda', integration: 'Integração', auditTimeline: 'Auditoria', created: 'Criado', lastUpdate: 'Última Atualização', sec01: 'Seção 01', sec02: 'Seção 02', sec03: 'Seção 03', sec04: 'Seção 04', sec05: 'Seção 05', agencyName: 'Nome da Agência', officialTitle: 'Título Oficial', type: 'Tipo', language: 'Idioma', parentId: 'ID Principal', directEmail: 'Email', phone: 'Telefone', country: 'País', city: 'Cidade', streetAddress: 'Endereço', zipCode: 'CEP', taxOffice: 'Finanças', taxNumber: 'NIF', accEmail: 'Email Contab', accPhone: 'Tel Contab', accCountry: 'País Contab', accCity: 'Cidade Contab', accAddress: 'Endereço Contab', mainCurrency: 'Moeda Principal', integrationType: 'Integração', allowedSale: 'Permitido', bookingStatus: 'Status Reserva', selectTerritory: 'Território', selectHub: 'Hub', commercialName: 'Nome Comercial', legalTitle: 'Título Legal', totalUsers: 'Total', activeUsers: 'Ativos', passiveUsers: 'Inativos', totalGuests: 'Total', activeGuests: 'Ativos', passiveGuests: 'Inativos', searchUsers: 'Buscar...', searchGuests: 'Buscar...', searchFavorites: 'Buscar favoritos...', noFavoritesFound: 'Nenhum hotel favorito encontrado.', removeFromFavorites: 'Remover', viewHotelDetail: 'Ver Detalhes', addedOn: 'Data de Adição', supplierLabel: 'Fornecedor', hotelName: 'Nome do Hotel', locationLabel: 'Cidade / País', starsLabel: 'Estrelas', allRoles: 'Todos os papéis', allCountries: 'Todos os países', active: 'Ativo', passive: 'Inativo', export: 'Exportar', addUser: 'Adicionar', addGuest: 'Adicionar', editUser: 'Editar', editGuest: 'Editar', userInfo: 'Info usuário', guestInfo: 'Info hóspede', name: 'Nome', surname: 'Sobrenome', emailAddr: 'Email', password: 'Senha', role: 'Papel', status: 'Status', gender: 'Gênero', firstName: 'Nome', lastName: 'Sobrenome', birthDate: 'Nascimento', passportNo: 'Passaporte', passportExpiry: 'Validade', cancel: 'Cancelar', saveUser: 'Salvar', saveGuest: 'Salvar', processing: 'Processando...', confirm: 'Confirmar', colUser: 'Usuário', colContact: 'Contato', colRole: 'Papel', colStatus: 'Status', colActions: 'Ações', colGuest: 'Hóspede', colBirth: 'Nascimento', colPassport: 'Passaporte', noUsers: 'Nenhum', noGuests: 'Nenhum', deleteUser: 'Excluir', deleteUserMsg: 'Irreversível.', deleteGuest: 'Excluir', deleteGuestMsg: 'Tem certeza?', profileUpdated: 'Atualizado', updateFailed: 'Falha', invalidEmail: 'Email inválido', userUpdated: 'Atualizado', userCreated: 'Criado', errorSavingUser: 'Erro', userDeleted: 'Excluído', errorDeletingUser: 'Erro', noUserExport: 'Sem dados', usersExported: 'Feito', usersRefreshed: 'Atualizado', guestUpdated: 'Atualizado', guestCreated: 'Criado', errorSavingGuest: 'Erro', guestDeleted: 'Excluído', errorDeletingGuest: 'Erro', noGuestExport: 'Sem dados', guestsExported: 'Feito', guestsRefreshed: 'Atualizado', agencyLogo: 'Logotipo da Agência', agencyLogoPlaceholder: 'Área do Logotipo da Agência', uploadLogo: 'Enviar Logotipo', changeLogo: 'Alterar Logotipo', deleteLogo: 'Excluir Logotipo', deleteLogoTitle: 'Excluir Logotipo', confirmDeleteLogo: 'Tem certeza de que deseja excluir o logotipo da agência?', logoRequirementsTitle: 'Diretrizes do Logotipo', logoMaxRatioInfo: 'Resolução Recomendada: 600 × 240 px', logoMaxSizeInfo: 'Tamanho Máximo: 2 MB', logoFormatsInfo: 'Formatos Suportados: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'O tamanho do arquivo excede o limite de 2MB.', logoInvalidFormat: 'Formato de arquivo inválido. Selecione um arquivo PNG, JPG ou SVG.', logoUploadSuccess: 'Logotipo enviado com sucesso.', logoDeleteSuccess: 'Logotipo excluído com sucesso.', logoUploadError: 'Erro ao enviar logotipo.', logoDeleteError: 'Erro ao excluir logotipo.', clickToUpload: 'Clique para selecionar e enviar o arquivo de logotipo' }
 };
 const tMO = (lang, key) => { const l = getLang(lang); return MO[l]?.[key] ?? MO.en[key] ?? COMMON[l]?.[key] ?? COMMON.en[key] ?? key; };
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -342,6 +342,12 @@ const MyOffice = () => {
     // Confirm Modal State
     const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: null, type: 'danger' });
 
+    // Logo state
+    const [logoUrl, setLogoUrl] = useState(null);
+    const [logoLoading, setLogoLoading] = useState(false);
+    const [logoUploading, setLogoUploading] = useState(false);
+    const logoInputRef = useRef(null);
+
     // Cache tracking
     const isUsersLoaded = useRef(false);
     const isGuestsLoaded = useRef(false);
@@ -510,6 +516,81 @@ const MyOffice = () => {
         } finally {
             setLoading(false);
         }
+        // Fetch logo in background after main data
+        fetchLogoData();
+    };
+
+    const fetchLogoData = async () => {
+        setLogoLoading(true);
+        try {
+            const blob = await agencyService.getLogo();
+            if (blob && blob.size > 0) {
+                const url = URL.createObjectURL(blob);
+                setLogoUrl(prev => {
+                    if (prev) URL.revokeObjectURL(prev);
+                    return url;
+                });
+            } else {
+                setLogoUrl(null);
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') setLogoUrl(null);
+        } finally {
+            setLogoLoading(false);
+        }
+    };
+
+    const handleLogoFileSelect = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate format
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
+        if (!allowedTypes.includes(file.type)) {
+            showNotification(L('logoInvalidFormat'), 'error');
+            e.target.value = '';
+            return;
+        }
+
+        // Validate size (2MB)
+        const MAX_SIZE = 2 * 1024 * 1024;
+        if (file.size > MAX_SIZE) {
+            showNotification(L('logoSizeExceeded'), 'error');
+            e.target.value = '';
+            return;
+        }
+
+        setLogoUploading(true);
+        try {
+            await agencyService.uploadLogo(file);
+            // Refetch to show the new logo
+            await fetchLogoData();
+            showNotification(L('logoUploadSuccess'));
+        } catch (err) {
+            showNotification(err.message || L('logoUploadError'), 'error');
+        } finally {
+            setLogoUploading(false);
+            e.target.value = '';
+        }
+    };
+
+    const handleDeleteLogo = () => {
+        setConfirmModal({
+            show: true,
+            title: L('deleteLogoTitle'),
+            message: L('confirmDeleteLogo'),
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await agencyService.deleteLogo();
+                    if (logoUrl) URL.revokeObjectURL(logoUrl);
+                    setLogoUrl(null);
+                    showNotification(L('logoDeleteSuccess'));
+                } catch (err) {
+                    showNotification(err.message || L('logoDeleteError'), 'error');
+                }
+            }
+        });
     };
 
     const fetchStats = async (signal) => {
@@ -1277,6 +1358,119 @@ const MyOffice = () => {
                                             <button onClick={openInMaps} className="size-7 bg-white dark:bg-slate-900 rounded-lg shadow-md flex items-center justify-center text-primary hover:scale-105 active:scale-95 transition-all">
                                                 <span className="material-icons-round text-sm">open_in_new</span>
                                             </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Agency Logo Card */}
+                                    <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs flex-shrink-0">
+                                        {/* Header */}
+                                        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                                            <div className="flex items-center gap-2">
+                                                <div className="size-6 bg-primary/10 rounded-md flex items-center justify-center">
+                                                    <span className="material-icons-round text-primary text-sm">image</span>
+                                                </div>
+                                                <h3 className="text-xs font-semibold text-slate-800 dark:text-white uppercase tracking-wider">{L('agencyLogo')}</h3>
+                                            </div>
+                                            {logoUrl && !logoLoading && (
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => logoInputRef.current?.click()}
+                                                        disabled={logoUploading}
+                                                        title={L('changeLogo')}
+                                                        className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors disabled:opacity-50"
+                                                    >
+                                                        <span className="material-icons-round text-base">edit</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleDeleteLogo}
+                                                        disabled={logoUploading}
+                                                        title={L('deleteLogo')}
+                                                        className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                                                    >
+                                                        <span className="material-icons-round text-base">delete_outline</span>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Logo display / upload area */}
+                                        <div className="p-4">
+                                            <input
+                                                ref={logoInputRef}
+                                                type="file"
+                                                accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+                                                className="hidden"
+                                                onChange={handleLogoFileSelect}
+                                            />
+
+                                            {logoLoading ? (
+                                                <div className="w-full h-[100px] rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                                        <span className="text-[10px] text-slate-400 font-medium">{L('processing')}</span>
+                                                    </div>
+                                                </div>
+                                            ) : logoUrl ? (
+                                                <div className="relative w-full h-[100px] rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 flex items-center justify-center group">
+                                                    <img
+                                                        src={logoUrl}
+                                                        alt={L('agencyLogo')}
+                                                        className="max-w-full max-h-full object-contain"
+                                                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                                    />
+                                                    {logoUploading && (
+                                                        <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 flex items-center justify-center rounded-xl">
+                                                            <div className="flex flex-col items-center gap-2">
+                                                                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                                                <span className="text-[10px] text-slate-500 font-medium">{L('processing')}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => logoInputRef.current?.click()}
+                                                    disabled={logoUploading}
+                                                    className="w-full h-[100px] rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary bg-slate-50/50 dark:bg-slate-800/30 hover:bg-primary/5 transition-all duration-200 flex flex-col items-center justify-center gap-2 group disabled:opacity-60 disabled:cursor-not-allowed"
+                                                >
+                                                    {logoUploading ? (
+                                                        <>
+                                                            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                                            <span className="text-[10px] font-semibold text-slate-400">{L('processing')}</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <div className="size-9 rounded-xl bg-slate-100 dark:bg-slate-700 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                                                                <span className="material-icons-round text-slate-400 group-hover:text-primary transition-colors text-lg">add_photo_alternate</span>
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 group-hover:text-primary transition-colors leading-tight">{L('agencyLogoPlaceholder')}</p>
+                                                                <p className="text-[9px] text-slate-400 mt-0.5">{L('clickToUpload')}</p>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            )}
+
+                                            {/* Requirements info */}
+                                            <div className="mt-3 space-y-1">
+                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{L('logoRequirementsTitle')}</p>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="material-icons-round text-[10px] text-slate-400">aspect_ratio</span>
+                                                    <span className="text-[9px] text-slate-400 font-medium">{L('logoMaxRatioInfo')}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="material-icons-round text-[10px] text-slate-400">storage</span>
+                                                    <span className="text-[9px] text-slate-400 font-medium">{L('logoMaxSizeInfo')}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="material-icons-round text-[10px] text-slate-400">image</span>
+                                                    <span className="text-[9px] text-slate-400 font-medium">{L('logoFormatsInfo')}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

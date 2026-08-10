@@ -7,6 +7,7 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
+import { useHolidays } from '../utils/useHolidays';
 import { mockHotels } from '../data/mockHotels';
 import NationalitySelect from '../components/NationalitySelect';
 import { hotelService } from '../services/hotelService';
@@ -1259,6 +1260,8 @@ const HotelDetail = () => {
     const datePickerRef = useRef(null);
     const lastFetchRef = useRef('');
 
+    const { holidays } = useHolidays(dynamicHotel?.address?.countryCode || dynamicHotel?.countryCode);
+
     // Computed totals
     const totalAdults = roomState.reduce((sum, r) => sum + r.adults, 0);
     const totalChildren = roomState.reduce((sum, r) => sum + r.children, 0);
@@ -1859,6 +1862,29 @@ const HotelDetail = () => {
                                             dateFormat="dd MMM yyyy"
                                             calendarClassName="shadow-2xl border-none font-sans mt-4"
                                             popperPlacement="bottom-start"
+                                            renderDayContents={(day, date) => {
+                                                const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                                                const holiday = holidays?.find(h => h.date === formattedDate || h.holidayDate === formattedDate);
+                                                const destCountryCode = dynamicHotel?.address?.countryCode || dynamicHotel?.countryCode;
+                                                
+                                                if (holiday) {
+                                                    return (
+                                                        <div className="holiday-day-container">
+                                                            {day}
+                                                            <div className="holiday-badge"></div>
+                                                            <div className="holiday-tooltip">
+                                                                <div className="holiday-tooltip-country">
+                                                                    {holiday.countryCode || destCountryCode}
+                                                                </div>
+                                                                <div className="holiday-tooltip-date">{holiday.holidayDate || holiday.date || formattedDate}</div>
+                                                                <div className="holiday-tooltip-name">{holiday.holidayName || holiday.name}</div>
+                                                                <div className="holiday-tooltip-type">{holiday.holidayType || holiday.type}</div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                                return day;
+                                            }}
                                         />
                                     </div>
                                 </div>

@@ -428,7 +428,7 @@ const Dashboard = () => {
                                             <th className="px-4 py-2.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center select-none">{t('dashboard.status')}</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                                    <tbody className="">
                                         {loading ? (
                                             <tr>
                                                 <td colSpan="7" className="px-5 py-8 text-center">

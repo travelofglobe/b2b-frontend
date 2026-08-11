@@ -8,8 +8,8 @@ import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 
 const CR = {
-    en: { confirmed: 'Booking Confirmed!', failed: 'Booking Failed', successMsg: 'Your reservation has been processed successfully.', failMsg: 'There was an issue processing your reservation. Please contact support.', bookingRef: 'Booking Reference', viewDetails: 'Click to view full booking details', goBookings: 'Go to Bookings', allBookings: 'All Bookings', verified: 'Verified • Click for details', actionRequired: 'Action Required', property: 'Property', totalAmount: 'Total Amount', status: 'Status', travelerBreakdown: 'Traveler Breakdown', room: 'Room', noSession: 'No active booking session found.', dashboard: 'Go to Dashboard', printVoucher: 'Print Voucher' },
-    tr: { confirmed: 'Rezervasyon Onaylandı!', failed: 'Rezervasyon Başarısız', successMsg: 'Rezervasyonunuz başarıyla işlendi.', failMsg: 'Rezervasyonunuz işlenirken bir sorun oluştu. Lütfen destek ile iletişime geçin.', bookingRef: 'Rezervasyon Referansı', viewDetails: 'Tam rezervasyon detaylarını görüntüle', goBookings: 'Rezervasyonlara Git', allBookings: 'Tüm Rezervasyonlar', verified: 'Doğrulandı • Detaylar için tıkla', actionRequired: 'İşlem Gerekli', property: 'Otel', totalAmount: 'Toplam Tutar', status: 'Durum', travelerBreakdown: 'Yolcu Listesi', room: 'Oda', noSession: 'Aktif rezervasyon oturumu bulunamadı.', dashboard: 'Panele Git', printVoucher: 'Voucher Yazdır' },
+    en: { confirmed: 'Booking Confirmed!', failed: 'Booking Failed', successMsg: 'Your reservation has been processed successfully.', failMsg: 'There was an issue processing your reservation. Please contact support.', bookingRef: 'Booking Reference', viewDetails: 'Click to view full booking details', goBookings: 'Go to Bookings', allBookings: 'All Bookings', verified: 'Verified • Click for details', actionRequired: 'Action Required', property: 'Property', totalAmount: 'Total Amount', status: 'Status', travelerBreakdown: 'Traveler Breakdown', room: 'Room', noSession: 'No active booking session found.', dashboard: 'Go to Dashboard', printVoucher: 'Print Voucher', detailBtn: 'Detail' },
+    tr: { confirmed: 'Rezervasyon Onaylandı!', failed: 'Rezervasyon Başarısız', successMsg: 'Rezervasyonunuz başarıyla işlendi.', failMsg: 'Rezervasyonunuz işlenirken bir sorun oluştu. Lütfen destek ile iletişime geçin.', bookingRef: 'Rezervasyon Referansı', viewDetails: 'Tam rezervasyon detaylarını görüntüle', goBookings: 'Rezervasyonlara Git', allBookings: 'Tüm Rezervasyonlar', verified: 'Doğrulandı • Detaylar için tıkla', actionRequired: 'İşlem Gerekli', property: 'Otel', totalAmount: 'Toplam Tutar', status: 'Durum', travelerBreakdown: 'Yolcu Listesi', room: 'Oda', noSession: 'Aktif rezervasyon oturumu bulunamadı.', dashboard: 'Panele Git', printVoucher: 'Voucher Yazdır', detailBtn: 'Detay' },
     ar: { confirmed: 'تم تأكيد الحجز!', failed: 'فشل الحجز', successMsg: 'تمت معالجة حجزك بنجاح.', failMsg: 'حدثت مشكلة أثناء معالجة حجزك. يرجى التواصل مع الدعم.', bookingRef: 'مرجع الحجز', viewDetails: 'انقر لعرض تفاصيل الحجز', goBookings: 'الذهاب إلى الحجوزات', allBookings: 'جميع الحجوزات', verified: 'تم التحقق • انقر للتفاصيل', actionRequired: 'إجراء مطلوب', property: 'الفندق', totalAmount: 'المبلغ الإجمالي', status: 'الحالة', travelerBreakdown: 'قائمة المسافرين', room: 'غرفة', noSession: 'لم يتم العثور على جلسة حجز نشطة.', dashboard: 'لوحة التحكم', printVoucher: 'طباعة الإيصال' },
     es: { confirmed: '¡Reserva Confirmada!', failed: 'Reserva Fallida', successMsg: 'Su reserva ha sido procesada con éxito.', failMsg: 'Hubo un problema al procesar su reserva. Contacte con soporte.', bookingRef: 'Referencia de Reserva', viewDetails: 'Ver detalles completos', goBookings: 'Ir a Reservas', allBookings: 'Todas las Reservas', verified: 'Verificado • Clic para detalles', actionRequired: 'Acción Requerida', property: 'Propiedad', totalAmount: 'Monto Total', status: 'Estado', travelerBreakdown: 'Resumen de Viajeros', room: 'Habitación', noSession: 'No se encontró sesión de reserva activa.', dashboard: 'Ir al Panel', printVoucher: 'Imprimir Voucher' },
     ru: { confirmed: 'Бронирование подтверждено!', failed: 'Ошибка бронирования', successMsg: 'Ваше бронирование успешно обработано.', failMsg: 'При обработке бронирования возникла проблема. Свяжитесь с поддержкой.', bookingRef: 'Номер бронирования', viewDetails: 'Нажмите для просмотра деталей', goBookings: 'К бронированиям', allBookings: 'Все бронирования', verified: 'Подтверждено • Нажмите для деталей', actionRequired: 'Требуется действие', property: 'Отель', totalAmount: 'Итого', status: 'Статус', travelerBreakdown: 'Список путешественников', room: 'Номер', noSession: 'Активная сессия бронирования не найдена.', dashboard: 'На панель', printVoucher: 'Распечатать ваучер' },
@@ -42,6 +42,8 @@ const CheckoutResult = () => {
 
     const isSuccess = ['NEW', 'CONFIRMED'].includes(bookingResponse?.status) && bookingResponse?.voucher;
     const bookingRef = bookingResponse?.voucher || bookingResponse?.clientReferenceId || "TOG-REF-SUCCESS";
+    const bookingIdForDetail = bookingResponse?.id || bookingResponse?.bookingId;
+    const detailUrl = (isSuccess && bookingIdForDetail) ? `/bookings/${bookingIdForDetail}` : '/bookings';
 
     if (!hotel) return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col justify-between">
@@ -82,7 +84,7 @@ const CheckoutResult = () => {
 
                             <div className="mb-5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                                 <Link
-                                    to={isSuccess ? `/bookings/${bookingRef}/voucher` : '/bookings'}
+                                    to={detailUrl}
                                     title={isSuccess ? L('viewDetails') : L('goBookings')}
                                     className="inline-flex items-center gap-1.5 text-lg font-bold text-primary hover:text-primary-dark dark:hover:text-primary-light transition-colors group truncate max-w-full"
                                 >
@@ -171,13 +173,22 @@ const CheckoutResult = () => {
                         {L('dashboard')}
                     </Link>
                     {isSuccess && (
-                        <button
-                            onClick={() => window.print()}
-                            className="px-4 py-2.5 rounded-xl font-semibold text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 shadow-sm"
-                        >
-                            <span className="material-symbols-outlined text-base">print</span>
-                            {L('printVoucher')}
-                        </button>
+                        <>
+                            <Link
+                                to={detailUrl}
+                                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl font-semibold text-xs shadow-md transition-all flex items-center gap-1.5"
+                            >
+                                <span className="material-symbols-outlined text-base">info</span>
+                                {L('detailBtn')}
+                            </Link>
+                            <button
+                                onClick={() => window.print()}
+                                className="px-4 py-2.5 rounded-xl font-semibold text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 shadow-sm"
+                            >
+                                <span className="material-symbols-outlined text-base">print</span>
+                                {L('printVoucher')}
+                            </button>
+                        </>
                     )}
                 </div>
             </main>

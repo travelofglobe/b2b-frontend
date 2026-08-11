@@ -854,6 +854,7 @@ const HeaderSearch = () => {
                             minDate={new Date()}
                             maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
                             monthsShown={2}
+                            onCalendarOpen={() => setVisibleMonth(checkInDate || new Date())}
                             onMonthChange={(date) => setVisibleMonth(date)}
                             locale={currentLang}
                             className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none shadow-none w-full p-0 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 font-medium"

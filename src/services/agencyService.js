@@ -98,7 +98,24 @@ export const agencyService = {
         if (!response.ok) {
             throw new Error(`Failed to fetch logo (${response.status})`);
         }
-        const blob = await response.blob();
+        // New response: { data: byte[], mimeType: string, fileName: string }
+        const json = await response.json();
+        if (!json || !json.data) return null;
+
+        // json.data is a base64-encoded string when serialized from byte[]
+        // Convert base64 → Blob
+        const base64 = typeof json.data === 'string'
+            ? json.data
+            : btoa(String.fromCharCode(...new Uint8Array(json.data)));
+
+        const byteChars = atob(base64);
+        const byteNumbers = new Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) {
+            byteNumbers[i] = byteChars.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const mimeType = json.mimeType || 'image/png';
+        const blob = new Blob([byteArray], { type: mimeType });
         if (!blob || blob.size === 0) return null;
         return blob;
     },

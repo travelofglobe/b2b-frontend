@@ -98,6 +98,11 @@ export const resources = {
           romance: "Romance",
           culture: "Culture",
           metropolis: "Metropolis"
+        },
+        holidays: {
+          title: "Holiday Info",
+          publicHolidays: "Public Holidays",
+          religiousHolidays: "Religious Holidays"
         }
       }
     }
@@ -201,6 +206,11 @@ export const resources = {
           romance: "Romantik",
           culture: "Kültür",
           metropolis: "Metropol"
+        },
+        holidays: {
+          title: "Tatil Bilgisi",
+          publicHolidays: "Resmi Tatiller",
+          religiousHolidays: "Dini Tatiller"
         }
       }
     }
@@ -300,6 +310,11 @@ export const resources = {
           romance: "رومانسي",
           culture: "ثقافي",
           metropolis: "حضرية"
+        },
+        holidays: {
+          title: "معلومات العطل",
+          publicHolidays: "العطل الرسمية",
+          religiousHolidays: "العطل الدينية"
         }
       }
     }
@@ -399,6 +414,11 @@ export const resources = {
           romance: "Romance",
           culture: "Cultura",
           metropolis: "Metrópolis"
+        },
+        holidays: {
+          title: "Info de Festivos",
+          publicHolidays: "Festivos Oficiales",
+          religiousHolidays: "Festivos Religiosos"
         }
       }
     }
@@ -498,6 +518,11 @@ export const resources = {
           romance: "Романтика",
           culture: "Культура",
           metropolis: "Мегаполис"
+        },
+        holidays: {
+          title: "Праздники",
+          publicHolidays: "Государственные",
+          religiousHolidays: "Религиозные"
         }
       }
     }
@@ -597,6 +622,11 @@ export const resources = {
           romance: "浪漫蜜月",
           culture: "历史文化",
           metropolis: "时尚都市"
+        },
+        holidays: {
+          title: "假日信息",
+          publicHolidays: "公共假日",
+          religiousHolidays: "宗教假日"
         }
       }
     }
@@ -696,6 +726,11 @@ export const resources = {
           romance: "ロマンス",
           culture: "カルチャー",
           metropolis: "メトロポリス"
+        },
+        holidays: {
+          title: "祝日情報",
+          publicHolidays: "国民の祝日",
+          religiousHolidays: "宗教的祝日"
         }
       }
     }
@@ -795,6 +830,11 @@ export const resources = {
           romance: "عاشقانه",
           culture: "فرهنگی و تاریخی",
           metropolis: "کلان‌شهر"
+        },
+        holidays: {
+          title: "اطلاعات تعطیلات",
+          publicHolidays: "تعطیلات رسمی",
+          religiousHolidays: "تعطیلات مذهبی"
         }
       }
     }
@@ -894,6 +934,11 @@ export const resources = {
           romance: "Romance",
           culture: "Culture",
           metropolis: "Métropole"
+        },
+        holidays: {
+          title: "Jours Fériés",
+          publicHolidays: "Fêtes Nationales",
+          religiousHolidays: "Fêtes Religieuses"
         }
       }
     }
@@ -993,6 +1038,11 @@ export const resources = {
           romance: "Romantico",
           culture: "Cultura",
           metropolis: "Metropoli"
+        },
+        holidays: {
+          title: "Info Festività",
+          publicHolidays: "Festività Nazionali",
+          religiousHolidays: "Festività Religiose"
         }
       }
     }
@@ -1092,6 +1142,11 @@ export const resources = {
           romance: "Ρομαντικό",
           culture: "Πολιτισμός",
           metropolis: "Μετρόπολη"
+        },
+        holidays: {
+          title: "Πληροφορίες Αργιών",
+          publicHolidays: "Επίσημες Αργίες",
+          religiousHolidays: "Θρησκευτικές Αργίες"
         }
       }
     }
@@ -1191,6 +1246,11 @@ export const resources = {
           romance: "Romance",
           culture: "Cultura",
           metropolis: "Metrópole"
+        },
+        holidays: {
+          title: "Info de Feriados",
+          publicHolidays: "Feriados Nacionais",
+          religiousHolidays: "Feriados Religiosos"
         }
       }
     }

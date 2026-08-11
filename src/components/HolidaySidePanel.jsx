@@ -54,12 +54,12 @@ const HolidaySidePanel = ({ holidays, visibleMonth }) => {
 
     return (
         <div className="holiday-side-panel p-4 min-w-[200px] w-[220px] border-l border-slate-100 dark:border-slate-700 flex flex-col gap-5 bg-white dark:bg-slate-800 rounded-r-xl overflow-y-auto max-h-[320px]">
-            <h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 tracking-tight">Tatil Bilgisi</h4>
+            <h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 tracking-tight">{t('dashboard.holidays.title')}</h4>
             
             <div className="flex flex-col gap-2 mt-1">
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-[3px] bg-yellow-400 rounded-full"></div>
-                    <span className="text-[13px] font-medium text-slate-700 dark:text-slate-300">Resmi Tatiller</span>
+                    <span className="text-[13px] font-medium text-slate-700 dark:text-slate-300">{t('dashboard.holidays.publicHolidays')}</span>
                 </div>
                 {publicHolidays.length > 0 && renderHolidayList(publicHolidays, 'bg-yellow-400')}
             </div>
@@ -67,7 +67,7 @@ const HolidaySidePanel = ({ holidays, visibleMonth }) => {
             <div className="flex flex-col gap-2 mt-2">
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-[3px] bg-green-500 rounded-full"></div>
-                    <span className="text-[13px] font-medium text-slate-700 dark:text-slate-300">Dini Tatiller</span>
+                    <span className="text-[13px] font-medium text-slate-700 dark:text-slate-300">{t('dashboard.holidays.religiousHolidays')}</span>
                 </div>
                 {religiousHolidays.length > 0 && renderHolidayList(religiousHolidays, 'bg-green-500')}
             </div>

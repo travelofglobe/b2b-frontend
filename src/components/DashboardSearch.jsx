@@ -392,6 +392,78 @@ const DashboardSearch = () => {
     const [loading, setLoading] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
+    const [searchHistory, setSearchHistory] = useState([]);
+
+    const fetchSearchHistory = async () => {
+        try {
+            const res = await autocompleteService.getSearchHistory();
+            const items = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
+            if (Array.isArray(items)) {
+                setSearchHistory(items);
+            }
+        } catch (err) {
+            console.error("Error fetching search history:", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchSearchHistory();
+    }, []);
+
+    const handleClearHistory = async (e) => {
+        if (e) e.stopPropagation();
+        try {
+            await autocompleteService.clearSearchHistory();
+            setSearchHistory([]);
+        } catch (err) {
+            console.error("Error clearing search history:", err);
+        }
+    };
+
+    const saveSearchHistoryItem = async (q, type, targetId, subtitle) => {
+        if (!q || !q.trim()) return;
+        try {
+            await autocompleteService.saveSearchHistory({
+                query: q.trim(),
+                searchType: type || 'SEARCH',
+                targetId: targetId ? String(targetId) : null,
+                subtitle: subtitle || null
+            });
+            fetchSearchHistory();
+        } catch (err) {
+            console.error("Error saving search history:", err);
+        }
+    };
+
+    const handleSelectHistoryItem = (item) => {
+        const itemType = item.type || item.searchType || 'SEARCH';
+        setQuery(item.query);
+        setResults({ hotels: [], regions: [] });
+        isUserInteraction.current = false;
+        setShowDropdown(false);
+        saveSearchHistoryItem(item.query, itemType, item.targetId, item.subtitle);
+
+        localStorage.setItem('dashboard_last_search', item.query);
+        localStorage.setItem('dashboard_last_type', itemType);
+        if (item.targetId) {
+            if (itemType === 'LOCATION') {
+                localStorage.setItem('dashboard_last_locationId', item.targetId);
+            } else if (itemType === 'HOTEL') {
+                localStorage.setItem('dashboard_last_hotelId', item.targetId);
+            }
+        }
+    };
+
+    const handleDeleteHistoryItem = async (e, id) => {
+        if (e) e.stopPropagation();
+        if (!id) return;
+        try {
+            await autocompleteService.deleteSearchHistoryItem(id);
+            setSearchHistory(prev => prev.filter(item => item.id !== id));
+        } catch (err) {
+            console.error("Error deleting search history item:", err);
+        }
+    };
 
     // Reset active index when results change
     useEffect(() => {
@@ -503,23 +575,13 @@ const DashboardSearch = () => {
         setLoading(true);
         try {
             const data = await autocompleteService.search({ query, types: ['HOTEL', 'LOCATION'] });
-            // Handle both wrapped { data: { ... } } and direct responses
             const resultsData = data?.data || data;
             
             if (resultsData) {
                 const items = resultsData.content || [];
-                
-                // Separate results by type
                 const hotels = items.filter(item => item.type === 'HOTEL');
                 const regions = items.filter(item => item.type === 'LOCATION');
-                
-                if (items.length > 0) {
-                    setResults({ hotels, regions });
-                    setShowDropdown(true);
-                } else {
-                    setResults({ hotels: [], regions: [] });
-                    setShowDropdown(false);
-                }
+                setResults({ hotels, regions });
             }
         } catch (error) {
             console.error(error);
@@ -573,13 +635,19 @@ const DashboardSearch = () => {
             const savedLastType = localStorage.getItem('dashboard_last_type');
             const savedLastHotelId = localStorage.getItem('dashboard_last_hotelId');
 
+            if (query !== savedLastSearch) {
+                saveSearchHistoryItem(query, 'SEARCH', null, null);
+                localStorage.setItem('dashboard_last_search', query);
+                localStorage.setItem('dashboard_last_type', 'SEARCH');
+                localStorage.removeItem('dashboard_last_hotelId');
+                localStorage.removeItem('dashboard_last_locationId');
+            }
+
             if (savedLastType === 'HOTEL' && query === savedLastSearch && savedLastHotelId) {
                 const searchParamsString = getUrlParams();
                 navigate(`/hotel/${savedLastHotelId}?${searchParamsString}`);
                 return;
             }
-
-            localStorage.setItem('dashboard_last_search', query);
             
             // If query contains commas, try to build a hierarchical slug
             // e.g. "Üsküdar, İstanbul, Türkiye" -> ["Üsküdar", "İstanbul", "Türkiye"]
@@ -616,6 +684,8 @@ const DashboardSearch = () => {
             fullName = parts.reverse().join(', ');
         }
 
+        saveSearchHistoryItem(fullName, 'LOCATION', location.locationId, getRegionName(location));
+
         localStorage.setItem('dashboard_last_search', fullName);
         localStorage.setItem('dashboard_last_type', 'LOCATION');
         // Save locationId for later use with Search button
@@ -632,8 +702,8 @@ const DashboardSearch = () => {
         // Generate hierarchical slug
         const slug = buildLocationSlug(location);
 
-        // Reset user interaction flag and close dropdown to prevent reopening
         isUserInteraction.current = false;
+        setResults({ hotels: [], regions: [] });
         setShowDropdown(false);
 
         setQuery(fullName);
@@ -650,15 +720,18 @@ const DashboardSearch = () => {
 
         // Construct full name with location context
         let fullName = name;
+        let locationContext = '';
         if (hotel.locationBreadcrumbs && hotel.locationBreadcrumbs.length > 0) {
             const parts = hotel.locationBreadcrumbs.map(b => b.name.translations.en || b.name.defaultName);
-            const context = parts.reverse().join(', ');
-            fullName = `${name}, ${context}`;
+            locationContext = parts.reverse().join(', ');
+            fullName = `${name}, ${locationContext}`;
         } else if (hotel.countryCode) {
+            locationContext = hotel.countryCode;
             fullName = `${name}, ${hotel.countryCode}`;
         }
 
         const hId = hotel.hotelId || hotel.id?.replace('hotel_', '');
+        saveSearchHistoryItem(fullName, 'HOTEL', hId, locationContext);
 
         localStorage.setItem('dashboard_last_search', fullName);
         localStorage.setItem('dashboard_last_type', 'HOTEL');
@@ -672,6 +745,7 @@ const DashboardSearch = () => {
 
         // Reset user interaction flag and close dropdown to prevent reopening
         isUserInteraction.current = false;
+        setResults({ hotels: [], regions: [] });
         setShowDropdown(false);
 
         setQuery(fullName);
@@ -769,6 +843,12 @@ const DashboardSearch = () => {
         }
     };
 
+    const matchingHistory = query.trim()
+        ? searchHistory.filter(item => item.query.toLowerCase().includes(query.toLowerCase().trim()))
+        : searchHistory;
+
+    const hasAnyResults = matchingHistory.length > 0 || results.regions.length > 0 || results.hotels.length > 0 || loading;
+
     return (
         <section className="relative group/search">
             {/* Soft ambient glow */}
@@ -812,31 +892,115 @@ const DashboardSearch = () => {
                                         setQuery(e.target.value);
                                         if (error) setError(false);
                                     }}
-                                    onClick={(e) => e.target.select()}
-                                    onFocus={() => { if (results.hotels.length || results.regions.length) setShowDropdown(true); }}
+                                    onClick={(e) => {
+                                        e.target.select();
+                                        fetchSearchHistory();
+                                        setShowDropdown(true);
+                                    }}
+                                    onFocus={() => {
+                                        fetchSearchHistory();
+                                        setShowDropdown(true);
+                                    }}
                                     onKeyDown={handleKeyDown}
                                 />
                             </div>
                             {loading && <div className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>}
                         </div>
 
-                        {/* Redesigned Autocomplete Dropdown */}
-                        {showDropdown && (results.hotels.length > 0 || results.regions.length > 0) && (
-                            <div className="absolute top-full left-0 w-full md:w-[420px] mt-2 bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-100 dark:border-slate-800 shadow-2xl max-h-[380px] overflow-y-auto z-[200] p-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                        {/* Redesigned Multi-Category Autocomplete & Past Searches Dropdown */}
+                        {showDropdown && hasAnyResults && (
+                            <div className="absolute top-full left-0 w-full md:w-[460px] mt-2 bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xl max-h-[420px] overflow-y-auto z-[300] p-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 divide-y divide-slate-100 dark:divide-slate-800/60">
+                                
+                                {/* 1. Past Searches Section */}
+                                {matchingHistory.length > 0 && (
+                                    <div className="pt-1">
+                                        <div className="flex items-center justify-between px-3 py-1 mb-1.5 bg-purple-50/50 dark:bg-purple-900/10 rounded-xl">
+                                            <span className="text-[11px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
+                                                <span className="material-symbols-outlined text-sm">history</span>
+                                                Son Aramalar
+                                                <span className="text-[9px] bg-purple-500/15 text-purple-700 dark:text-purple-300 px-1.5 py-0.2 rounded-full font-semibold">
+                                                    {matchingHistory.length}
+                                                </span>
+                                            </span>
+                                            {!query.trim() && (
+                                                <button
+                                                    onClick={handleClearHistory}
+                                                    className="text-[11px] font-medium text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors px-1.5 py-0.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                    title="Geçmişi Temizle"
+                                                >
+                                                    <span className="material-symbols-outlined text-sm">delete</span>
+                                                    Temizle
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="space-y-1">
+                                            {matchingHistory.map((item, index) => {
+                                                const itemType = item.type || item.searchType || 'SEARCH';
+                                                const isLocation = itemType === 'LOCATION';
+                                                const isHotel = itemType === 'HOTEL';
+
+                                                return (
+                                                    <div
+                                                        key={item.id || index}
+                                                        onClick={() => handleSelectHistoryItem(item)}
+                                                        className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl flex items-center justify-between transition-all group cursor-pointer"
+                                                    >
+                                                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                            <div className={`size-8 rounded-xl flex items-center justify-center transition-colors shrink-0 shadow-sm ring-1 ${
+                                                                isLocation
+                                                                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20'
+                                                                    : isHotel
+                                                                    ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20'
+                                                                    : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-purple-500/20'
+                                                            }`}>
+                                                                <span className="material-symbols-outlined text-base">
+                                                                    {isLocation ? 'location_city' : isHotel ? 'hotel' : 'history'}
+                                                                </span>
+                                                            </div>
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{item.query}</div>
+                                                                {item.subtitle && (
+                                                                    <div className="text-[10.5px] text-slate-400 truncate">{item.subtitle}</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={(e) => handleDeleteHistoryItem(e, item.id)}
+                                                            className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shrink-0 ml-2"
+                                                            title="Bu aramayı sil"
+                                                        >
+                                                            <span className="material-symbols-outlined text-sm leading-none block">close</span>
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 2. Locations & Regions Section */}
                                 {results.regions.length > 0 && (
-                                    <div>
-                                        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-1.5">{ls.popularDestinations}</div>
+                                    <div className="pt-2">
+                                        <div className="flex items-center justify-between px-3 py-1 mb-1.5 bg-amber-50/50 dark:bg-amber-900/10 rounded-xl">
+                                            <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                <span className="material-symbols-outlined text-sm">location_on</span>
+                                                {ls.popularDestinations}
+                                                <span className="text-[9px] bg-amber-500/15 text-amber-700 dark:text-amber-300 px-1.5 py-0.2 rounded-full font-semibold">
+                                                    {results.regions.length}
+                                                </span>
+                                            </span>
+                                        </div>
                                         <div className="space-y-1">
                                             {results.regions.map((region, index) => (
                                                 <button
                                                     key={region.locationId}
                                                     onClick={() => handleSelectLocation(region)}
-                                                    className={`w-full text-left px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl flex items-center gap-3 transition-all group ${activeIndex === index ? 'bg-slate-50 dark:bg-slate-800/80 ring-1 ring-primary/20' : ''}`}
+                                                    className={`w-full text-left px-3 py-2 hover:bg-amber-50/40 dark:hover:bg-amber-900/20 rounded-xl flex items-center gap-3 transition-all group ${activeIndex === index ? 'bg-amber-50 dark:bg-amber-900/30 ring-1 ring-amber-500/20' : ''}`}
                                                 >
-                                                    <div className="size-8 rounded-xl bg-primary/5 flex items-center justify-center text-primary transition-colors shadow-sm ring-1 ring-primary/10">
+                                                    <div className="size-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center transition-colors shadow-sm ring-1 ring-amber-500/20 shrink-0">
                                                         <span className="material-symbols-outlined text-lg">location_city</span>
                                                     </div>
-                                                    <div className="min-w-0">
+                                                    <div className="min-w-0 flex-1">
                                                         <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{region.name.translations.en || region.name.defaultName}</div>
                                                         <div className="text-[11px] font-normal text-slate-500 truncate">{getRegionName(region)}</div>
                                                     </div>
@@ -846,20 +1010,29 @@ const DashboardSearch = () => {
                                     </div>
                                 )}
 
+                                {/* 3. Hotels Section */}
                                 {results.hotels.length > 0 && (
-                                    <div>
-                                        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-1.5">{ls.featuredHotels}</div>
+                                    <div className="pt-2">
+                                        <div className="flex items-center justify-between px-3 py-1 mb-1.5 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl">
+                                            <span className="text-[11px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                                                <span className="material-symbols-outlined text-sm">hotel</span>
+                                                {ls.featuredHotels}
+                                                <span className="text-[9px] bg-blue-500/15 text-blue-700 dark:text-blue-300 px-1.5 py-0.2 rounded-full font-semibold">
+                                                    {results.hotels.length}
+                                                </span>
+                                            </span>
+                                        </div>
                                         <div className="space-y-1">
                                             {results.hotels.map((hotel, index) => (
                                                 <button
                                                     key={hotel.hotelId}
                                                     onClick={() => handleSelectHotel(hotel)}
-                                                    className={`w-full text-left px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl flex items-center gap-3 transition-all group ${activeIndex === (results.regions.length + index) ? 'bg-slate-50 dark:bg-slate-800/80 ring-1 ring-primary/20' : ''}`}
+                                                    className={`w-full text-left px-3 py-2 hover:bg-blue-50/40 dark:hover:bg-blue-900/20 rounded-xl flex items-center gap-3 transition-all group ${activeIndex === (results.regions.length + index) ? 'bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-500/20' : ''}`}
                                                 >
-                                                    <div className="size-8 rounded-xl bg-indigo-50 dark:bg-indigo-900/10 flex items-center justify-center text-indigo-500 transition-colors shadow-sm ring-1 ring-indigo-500/10">
+                                                    <div className="size-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center transition-colors shadow-sm ring-1 ring-blue-500/20 shrink-0">
                                                         <span className="material-symbols-outlined text-lg">hotel</span>
                                                     </div>
-                                                    <div className="min-w-0">
+                                                    <div className="min-w-0 flex-1">
                                                         <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{getHotelName(hotel)}</div>
                                                         <div className="text-[11px] font-normal text-slate-500 truncate">
                                                             {hotel.locationBreadcrumbs ?
@@ -870,6 +1043,14 @@ const DashboardSearch = () => {
                                                 </button>
                                             ))}
                                         </div>
+                                    </div>
+                                )}
+
+                                {/* Loading Indicator */}
+                                {loading && (
+                                    <div className="flex items-center justify-center py-4 text-slate-400 gap-2">
+                                        <div className="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                        <span className="text-xs font-medium">Aranıyor...</span>
                                     </div>
                                 )}
                             </div>

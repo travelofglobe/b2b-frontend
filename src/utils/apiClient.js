@@ -109,8 +109,12 @@ const apiClient = {
                 throw err;
             }
 
-            // Return parsed JSON
-            return await response.json();
+            // Return parsed JSON or null for empty body / 204 No Content
+            if (response.status === 204) {
+                return null;
+            }
+            const text = await response.text();
+            return text ? JSON.parse(text) : null;
 
         } catch (error) {
             if (error.name === 'AbortError') throw error;

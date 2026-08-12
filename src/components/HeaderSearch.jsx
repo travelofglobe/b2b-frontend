@@ -826,32 +826,46 @@ const HeaderSearch = () => {
                                     )}
                                 </div>
                                 <div className="space-y-1">
-                                    {matchingHistory.map((item, index) => (
-                                        <div
-                                            key={item.id || index}
-                                            onClick={() => handleSelectHistoryItem(item)}
-                                            className="w-full text-left px-3 py-2 hover:bg-purple-50/40 dark:hover:bg-purple-900/20 rounded-xl flex items-center justify-between transition-all group cursor-pointer"
-                                        >
-                                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                <div className="size-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center transition-colors shrink-0 shadow-sm ring-1 ring-purple-500/20">
-                                                    <span className="material-symbols-outlined text-base">history</span>
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{item.query}</div>
-                                                    {item.subtitle && (
-                                                        <div className="text-[10.5px] text-slate-400 truncate">{item.subtitle}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={(e) => handleDeleteHistoryItem(e, item.id)}
-                                                className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shrink-0 ml-2"
-                                                title="Bu aramayı sil"
+                                    {matchingHistory.map((item, index) => {
+                                        const itemType = item.type || item.searchType || 'SEARCH';
+                                        const isLocation = itemType === 'LOCATION';
+                                        const isHotel = itemType === 'HOTEL';
+
+                                        return (
+                                            <div
+                                                key={item.id || index}
+                                                onClick={() => handleSelectHistoryItem(item)}
+                                                className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl flex items-center justify-between transition-all group cursor-pointer"
                                             >
-                                                <span className="material-symbols-outlined text-sm leading-none block">close</span>
-                                            </button>
-                                        </div>
-                                    ))}
+                                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                    <div className={`size-8 rounded-xl flex items-center justify-center transition-colors shrink-0 shadow-sm ring-1 ${
+                                                        isLocation
+                                                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20'
+                                                            : isHotel
+                                                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20'
+                                                            : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-purple-500/20'
+                                                    }`}>
+                                                        <span className="material-symbols-outlined text-base">
+                                                            {isLocation ? 'location_city' : isHotel ? 'hotel' : 'history'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{item.query}</div>
+                                                        {item.subtitle && (
+                                                            <div className="text-[10.5px] text-slate-400 truncate">{item.subtitle}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => handleDeleteHistoryItem(e, item.id)}
+                                                    className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shrink-0 ml-2"
+                                                    title="Bu aramayı sil"
+                                                >
+                                                    <span className="material-symbols-outlined text-sm leading-none block">close</span>
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}

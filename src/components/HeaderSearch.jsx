@@ -471,11 +471,22 @@ const HeaderSearch = () => {
     };
 
     const handleSelectHistoryItem = (item) => {
+        const itemType = item.type || item.searchType || 'SEARCH';
         setQuery(item.query);
         setResults({ hotels: [], regions: [] });
         isUserInteraction.current = false;
         setShowDropdown(false);
-        saveSearchHistoryItem(item.query, item.searchType, item.targetId, item.subtitle);
+        saveSearchHistoryItem(item.query, itemType, item.targetId, item.subtitle);
+
+        localStorage.setItem('dashboard_last_search', item.query);
+        localStorage.setItem('dashboard_last_type', itemType);
+        if (item.targetId) {
+            if (itemType === 'LOCATION') {
+                localStorage.setItem('dashboard_last_locationId', item.targetId);
+            } else if (itemType === 'HOTEL') {
+                localStorage.setItem('dashboard_last_hotelId', item.targetId);
+            }
+        }
     };
 
     const handleDeleteHistoryItem = async (e, id) => {
@@ -641,10 +652,17 @@ const HeaderSearch = () => {
 
     const handleSearch = () => {
         if (query) {
-            saveSearchHistoryItem(query, 'SEARCH', null, null);
             const savedLastSearch = localStorage.getItem('dashboard_last_search');
             const savedLastType = localStorage.getItem('dashboard_last_type');
             const savedLastHotelId = localStorage.getItem('dashboard_last_hotelId');
+
+            if (query !== savedLastSearch) {
+                saveSearchHistoryItem(query, 'SEARCH', null, null);
+                localStorage.setItem('dashboard_last_search', query);
+                localStorage.setItem('dashboard_last_type', 'SEARCH');
+                localStorage.removeItem('dashboard_last_hotelId');
+                localStorage.removeItem('dashboard_last_locationId');
+            }
 
             if (savedLastType === 'HOTEL' && query === savedLastSearch && savedLastHotelId) {
                 const searchParamsString = getUrlParams();

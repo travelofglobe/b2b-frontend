@@ -1480,7 +1480,7 @@ const CheckoutGuestDetails = () => {
                                                     setTargetGuestIndex({ roomIdx: activeRoomIdx, guestIdx: gIdx });
                                                     setIsCrmModalOpen(true);
                                                 }}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl text-xs font-semibold uppercase tracking-wider transition-colors"
+                                                className="flex items-center gap-1.5 px-2.5 py-1.5 text-primary/70 hover:text-primary bg-primary/5 hover:bg-primary/10 rounded-lg text-xs font-medium transition-colors"
                                             >
                                                 <span className="material-symbols-outlined text-sm">contact_page</span>
                                                 <span className="hidden sm:inline">{crmText}</span>

@@ -243,7 +243,7 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
     const [initialData, setInitialData] = useState(null);
-    const PAGE_SIZE = 8;
+    const PAGE_SIZE = 10;
 
     const fetchGuests = useCallback(async (searchQuery, targetPage = 0) => {
         setIsLoading(true);
@@ -251,11 +251,13 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
         try {
             const response = await guestService.filterGuests({ query: searchQuery || null }, targetPage, PAGE_SIZE);
             if (response) {
-                const content = response.guests || response.agencyCrmGuests || response.content || (Array.isArray(response) ? response : []);
+                const content = response.content || response.guests || response.agencyCrmGuests || (Array.isArray(response) ? response : []);
+                const calcTotalPages = response.totalPages !== undefined ? response.totalPages : (response.numberOfPages || 0);
+                const calcTotalElements = response.totalElements !== undefined ? response.totalElements : (response.numberOfItems || content.length);
                 const data = {
                     content,
-                    totalPages: response.totalPages || 0,
-                    totalElements: response.totalElements || content.length,
+                    totalPages: calcTotalPages,
+                    totalElements: calcTotalElements,
                     page: targetPage
                 };
                 setGuests(content);

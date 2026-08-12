@@ -40,9 +40,9 @@ const CheckoutResult = () => {
     
     const L = (key) => tCR(currentLang, key);
 
-    const isSuccess = ['NEW', 'CONFIRMED'].includes(bookingResponse?.status) && bookingResponse?.voucher;
-    const bookingRef = bookingResponse?.voucher || bookingResponse?.clientReferenceId || "TOG-REF-SUCCESS";
-    const bookingIdForDetail = bookingResponse?.id || bookingResponse?.bookingId;
+    const isSuccess = ['NEW', 'CONFIRMED'].includes(bookingResponse?.status);
+    const bookingRef = bookingResponse?.voucher || bookingResponse?.clientReferenceId || bookingResponse?.bookingReference || bookingResponse?.bookingId || "TOG-REF-SUCCESS";
+    const bookingIdForDetail = bookingResponse?.id || bookingResponse?.bookingId || bookingResponse?.bookingReference;
     const detailUrl = (isSuccess && bookingIdForDetail) ? `/bookings/${bookingIdForDetail}` : '/bookings';
 
     if (!hotel) return (
@@ -176,7 +176,7 @@ const CheckoutResult = () => {
                         <>
                             <Link
                                 to={detailUrl}
-                                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl font-semibold text-xs shadow-md transition-all flex items-center gap-1.5"
+                                className="px-5 py-2.5 bg-primary/10 text-primary hover:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30 rounded-xl font-semibold text-xs transition-all flex items-center gap-1.5"
                             >
                                 <span className="material-symbols-outlined text-base">info</span>
                                 {L('detailBtn')}

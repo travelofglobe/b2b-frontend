@@ -6,50 +6,110 @@ const PortalLayout = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
+    
+    // Layout State
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+    // Menu States
     const [isMyOfficeOpen, setIsMyOfficeOpen] = useState(location.pathname.startsWith('/my-office'));
     const [isDefinitionsOpen, setIsDefinitionsOpen] = useState(location.pathname.startsWith('/definitions'));
     const [isGSAManagementOpen, setIsGSAManagementOpen] = useState(location.pathname.startsWith('/gsa'));
 
+    const isAnyMenuOpen = isMyOfficeOpen || isDefinitionsOpen || isGSAManagementOpen;
+
+    const toggleAllMenus = () => {
+        if (isAnyMenuOpen) {
+            setIsMyOfficeOpen(false);
+            setIsDefinitionsOpen(false);
+            setIsGSAManagementOpen(false);
+        } else {
+            setIsMyOfficeOpen(true);
+            setIsDefinitionsOpen(true);
+            setIsGSAManagementOpen(true);
+        }
+    };
+
+    const handleMenuToggle = (setter, currentState) => {
+        if (!isSidebarOpen) {
+            setIsSidebarOpen(true);
+            setter(true);
+        } else {
+            setter(!currentState);
+        }
+    };
+
     return (
         <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#020617] text-slate-900 dark:text-slate-100 transition-colors duration-200 font-sans overflow-hidden">
             {/* Sidebar */}
-            <aside className="w-60 flex-shrink-0 ltr:border-r rtl:border-l border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-[#0B1120] hidden lg:flex flex-col h-full z-40 relative">
-                <div className="p-4 flex items-center gap-3 border-b border-slate-100 dark:border-slate-800/50 group cursor-pointer" onClick={() => navigate('/dashboard')}>
-                    <div className="size-9 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20 transition-all duration-500 group-hover:rotate-[15deg] group-hover:scale-105">
-                        <span className="material-symbols-outlined text-xl fill-1">travel</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <h2 className="text-slate-900 dark:text-white text-[13px] font-bold leading-none tracking-tight uppercase whitespace-nowrap">
-                            Travel <span className="text-primary">of</span> Globe
-                        </h2>
-                        <div className="flex items-center gap-1.5 mt-1">
-                            <div className="h-[1px] w-2 bg-primary/40"></div>
-                            <p className="text-[8px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap leading-none">Global B2B Solutions</p>
+            <aside className={`${isSidebarOpen ? 'w-60' : 'w-[72px]'} flex-shrink-0 ltr:border-r rtl:border-l border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-[#0B1120] hidden lg:flex flex-col h-full z-40 relative transition-all duration-300 ease-in-out`}>
+                <div className="p-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/50 h-[64px] min-h-[64px] overflow-hidden">
+                    <div className="flex items-center gap-3 cursor-pointer select-none group" onClick={() => setIsSidebarOpen(!isSidebarOpen)} title={isSidebarOpen ? "Sidebar'ı Kapat" : "Sidebar'ı Aç"}>
+                        <div className="size-9 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20 flex-shrink-0 transition-all duration-500 group-hover:rotate-[15deg] group-hover:scale-105">
+                            <span className="material-symbols-outlined text-xl fill-1">travel</span>
                         </div>
+                        {isSidebarOpen && (
+                            <div className="flex flex-col select-none">
+                                <h2 className="text-slate-900 dark:text-white text-[13px] font-bold leading-none tracking-tight uppercase whitespace-nowrap group-hover:text-primary transition-colors">
+                                    Travel <span className="text-primary">of</span> Globe
+                                </h2>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                    <div className="h-[1px] w-2 bg-primary/40"></div>
+                                    <p className="text-[8px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap leading-none">Global B2B Solutions</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
+                    {isSidebarOpen && (
+                        <div className="flex items-center gap-0.5">
+                            <button 
+                                onClick={toggleAllMenus}
+                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors focus:outline-none" 
+                                title={isAnyMenuOpen ? (t('sidebar.collapseAll') || "Menüleri Daralt") : (t('sidebar.expandAll') || "Menüleri Genişlet")}
+                            >
+                                <span className="material-symbols-outlined text-[20px]">
+                                    {isAnyMenuOpen ? 'unfold_less' : 'unfold_more'}
+                                </span>
+                            </button>
+                            <button onClick={() => setIsSidebarOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors focus:outline-none" title="Sidebar'ı Kapat">
+                                <span className="material-symbols-outlined text-lg">chevron_left</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
-                <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+
+                {/* Collapsed Drawer Menu button */}
+                {!isSidebarOpen && (
+                    <div className="flex justify-center py-2.5 border-b border-solid border-slate-100 dark:border-slate-800/50">
+                        <button onClick={() => setIsSidebarOpen(true)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors focus:outline-none">
+                            <span className="material-symbols-outlined text-lg">menu</span>
+                        </button>
+                    </div>
+                )}
+
+                <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto scrollbar-hide">
                     <button
                         onClick={() => navigate('/dashboard')}
+                        title={!isSidebarOpen ? t('sidebar.dashboard') : undefined}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/dashboard' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                     >
-                        <span className="material-icons-round text-[20px]">grid_view</span>
-                        {t('sidebar.dashboard')}
+                        <span className="material-icons-round text-[20px] flex-shrink-0">grid_view</span>
+                        {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.dashboard')}</span>}
                     </button>
                     
                     <div className="space-y-0.5">
                         <button
-                            onClick={() => setIsMyOfficeOpen(!isMyOfficeOpen)}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname.startsWith('/my-office') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                            onClick={() => handleMenuToggle(setIsMyOfficeOpen, isMyOfficeOpen)}
+                            title={!isSidebarOpen ? t('sidebar.myOffice') : undefined}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs focus:outline-none ${location.pathname.startsWith('/my-office') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                         >
-                            <div className="flex items-center gap-3">
-                                <span className="material-icons-round text-[20px]">corporate_fare</span>
-                                {t('sidebar.myOffice')}
+                            <div className="flex items-center gap-3 min-w-0">
+                                <span className="material-icons-round text-[20px] flex-shrink-0">corporate_fare</span>
+                                {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.myOffice')}</span>}
                             </div>
-                            <span className={`material-icons-round text-sm transition-transform duration-200 ${isMyOfficeOpen ? 'rotate-90' : 'ltr:rotate-0 rtl:rotate-180'}`}>chevron_right</span>
+                            {isSidebarOpen && <span className={`material-icons-round text-sm transition-transform duration-200 ${isMyOfficeOpen ? 'rotate-90' : 'ltr:rotate-0 rtl:rotate-180'}`}>chevron_right</span>}
                         </button>
                         
-                        {isMyOfficeOpen && (
+                        {isSidebarOpen && isMyOfficeOpen && (
                             <div className="ltr:ml-4 ltr:pl-5 ltr:border-l rtl:mr-4 rtl:pr-5 rtl:border-r border-slate-100 dark:border-slate-800 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
                                 <button
                                     onClick={() => navigate('/my-office?tab=general')}
@@ -82,26 +142,30 @@ const PortalLayout = () => {
                             </div>
                         )}
                     </div>
+
                     <button
                         onClick={() => navigate('/bookings')}
+                        title={!isSidebarOpen ? t('sidebar.myBookings') : undefined}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname.startsWith('/bookings') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                     >
-                        <span className="material-icons-round text-[20px]">book_online</span>
-                        {t('sidebar.myBookings')}
+                        <span className="material-icons-round text-[20px] flex-shrink-0">book_online</span>
+                        {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.myBookings')}</span>}
                     </button>
+
                     <div className="space-y-0.5">
                         <button
-                            onClick={() => setIsDefinitionsOpen(!isDefinitionsOpen)}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname.startsWith('/definitions') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                            onClick={() => handleMenuToggle(setIsDefinitionsOpen, isDefinitionsOpen)}
+                            title={!isSidebarOpen ? t('sidebar.definitions') : undefined}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs focus:outline-none ${location.pathname.startsWith('/definitions') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                         >
-                            <div className="flex items-center gap-3">
-                                <span className="material-icons-round text-[20px]">tune</span>
-                                {t('sidebar.definitions')}
+                            <div className="flex items-center gap-3 min-w-0">
+                                <span className="material-icons-round text-[20px] flex-shrink-0">tune</span>
+                                {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.definitions')}</span>}
                             </div>
-                            <span className={`material-icons-round text-sm transition-transform duration-200 ${isDefinitionsOpen ? 'rotate-90' : 'ltr:rotate-0 rtl:rotate-180'}`}>chevron_right</span>
+                            {isSidebarOpen && <span className={`material-icons-round text-sm transition-transform duration-200 ${isDefinitionsOpen ? 'rotate-90' : 'ltr:rotate-0 rtl:rotate-180'}`}>chevron_right</span>}
                         </button>
                         
-                        {isDefinitionsOpen && (
+                        {isSidebarOpen && isDefinitionsOpen && (
                             <div className="ltr:ml-4 ltr:pl-5 ltr:border-l rtl:mr-4 rtl:pr-5 rtl:border-r border-slate-100 dark:border-slate-800 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
                                 <button
                                     onClick={() => navigate('/definitions/markup')}
@@ -117,38 +181,43 @@ const PortalLayout = () => {
  
                     <button 
                         onClick={() => navigate('/finance')}
+                        title={!isSidebarOpen ? t('sidebar.finance') : undefined}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/finance' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                     >
-                        <span className="material-icons-round text-[20px]">account_balance_wallet</span>
-                        {t('sidebar.finance')}
+                        <span className="material-icons-round text-[20px] flex-shrink-0">account_balance_wallet</span>
+                        {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.finance')}</span>}
                     </button>
                     <button 
                         onClick={() => navigate('/accounting')}
+                        title={!isSidebarOpen ? t('sidebar.accounting') : undefined}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/accounting' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                     >
-                        <span className="material-icons-round text-[20px]">analytics</span>
-                        {t('sidebar.accounting')}
+                        <span className="material-icons-round text-[20px] flex-shrink-0">analytics</span>
+                        {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.accounting')}</span>}
                     </button>
                     <button 
                         onClick={() => navigate('/operations')}
+                        title={!isSidebarOpen ? t('sidebar.operations') : undefined}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/operations' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                     >
-                        <span className="material-icons-round text-[20px]">settings</span>
-                        {t('sidebar.operations')}
+                        <span className="material-icons-round text-[20px] flex-shrink-0">settings</span>
+                        {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.operations')}</span>}
                     </button>
+
                     <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800 space-y-0.5">
                         <button 
-                            onClick={() => setIsGSAManagementOpen(!isGSAManagementOpen)}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname.startsWith('/gsa') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                            onClick={() => handleMenuToggle(setIsGSAManagementOpen, isGSAManagementOpen)}
+                            title={!isSidebarOpen ? t('sidebar.gsaManagement') : undefined}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs focus:outline-none ${location.pathname.startsWith('/gsa') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                         >
-                            <div className="flex items-center gap-3">
-                                <span className="material-icons-round text-[20px]">analytics</span>
-                                {t('sidebar.gsaManagement')}
+                            <div className="flex items-center gap-3 min-w-0">
+                                <span className="material-icons-round text-[20px] flex-shrink-0">analytics</span>
+                                {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.gsaManagement')}</span>}
                             </div>
-                            <span className={`material-icons-round text-sm transition-transform duration-200 ${isGSAManagementOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                            {isSidebarOpen && <span className={`material-icons-round text-sm transition-transform duration-200 ${isGSAManagementOpen ? 'rotate-180' : ''}`}>expand_more</span>}
                         </button>
                         
-                        {isGSAManagementOpen && (
+                        {isSidebarOpen && isGSAManagementOpen && (
                             <div className="ltr:ml-4 ltr:pl-5 ltr:border-l rtl:mr-4 rtl:pr-5 rtl:border-r border-slate-100 dark:border-slate-800 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
                                 <button
                                     onClick={() => navigate('/gsa/agency')}
@@ -191,3 +260,4 @@ const PortalLayout = () => {
 };
 
 export default PortalLayout;
+

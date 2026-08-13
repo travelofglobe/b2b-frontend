@@ -1738,6 +1738,12 @@ const HotelDetail = () => {
                                     <span key={i} className="material-symbols-outlined fill-1 text-base">star</span>
                                 ))}
                             </div>
+                            {hotel.isRecommended && (
+                                <div className="ml-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg shadow-lg shadow-amber-500/20 flex items-center gap-1.5 animate-in fade-in slide-in-from-left-4 duration-500 border border-amber-400/50">
+                                    <span className="material-symbols-outlined text-[14px] fill-1">thumb_up</span>
+                                    Recommended
+                                </div>
+                            )}
                         </div>
                         <div className="flex flex-wrap items-center gap-4 mt-2">
                             <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">

@@ -402,7 +402,15 @@ const BookingDetail = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
                                     <div className="space-y-0.5">
                                         <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{L('hotelName')}</p>
-                                        <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{booking.hotel.hotelName}</p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{booking.hotel.hotelName}</p>
+                                            {booking.hotel.isRecommended && (
+                                                <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-xs flex items-center gap-0.5 border border-amber-400/50">
+                                                    <span className="material-icons-round text-[10px] fill-1">thumb_up</span>
+                                                    REC
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="space-y-0.5">
                                         <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{L('hotelId')}</p>

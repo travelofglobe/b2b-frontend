@@ -1718,6 +1718,12 @@ const CheckoutGuestDetails = () => {
                                                 {[...Array(hotelStars)].map((_, i) => (
                                                     <span key={i} className="material-symbols-outlined text-[10px] text-amber-400 fill-1">star</span>
                                                 ))}
+                                                {hotel.isRecommended && (
+                                                    <span className="ml-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-xs flex items-center gap-0.5 border border-amber-400/50">
+                                                        <span className="material-symbols-outlined text-[10px] fill-1">thumb_up</span>
+                                                        REC
+                                                    </span>
+                                                )}
                                             </div>
                                             <h3 className="font-bold text-white text-xs uppercase tracking-tight leading-tight line-clamp-1">{hotelName}</h3>
                                         </div>

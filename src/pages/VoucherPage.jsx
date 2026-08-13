@@ -291,7 +291,15 @@ const VoucherPage = () => {
                                     </div>
                                     <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 flex-1">
                                         <div>
-                                            <h3 className="text-lg font-black text-slate-900 leading-tight mb-1">{booking.hotel?.hotelName || 'N/A'}</h3>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-lg font-black text-slate-900 leading-tight">{booking.hotel?.hotelName || 'N/A'}</h3>
+                                                {booking.hotel?.isRecommended && (
+                                                    <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-xs flex items-center gap-0.5 border border-amber-400/50">
+                                                        <span className="material-symbols-outlined text-[10px] fill-1">thumb_up</span>
+                                                        REC
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="text-xs font-bold text-slate-500 leading-relaxed">
                                                 {hotelDetails?.address?.street || booking.hotel?.address?.street || 'No address'},{' '}
                                                 {hotelDetails?.address?.cityName || booking.hotel?.address?.cityName}

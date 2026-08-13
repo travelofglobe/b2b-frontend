@@ -1739,7 +1739,7 @@ const HotelDetail = () => {
                                 ))}
                             </div>
                             {hotel.isRecommended && (
-                                <div className="ml-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg shadow-lg shadow-amber-500/20 flex items-center gap-1.5 animate-in fade-in slide-in-from-left-4 duration-500 border border-amber-400/50">
+                                <div className="ml-2 bg-gradient-to-r from-teal-400 to-blue-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg shadow-lg shadow-cyan-500/20 flex items-center gap-1.5 animate-in fade-in slide-in-from-left-4 duration-500 border border-cyan-400/50">
                                     <span className="material-symbols-outlined text-[14px] fill-1">thumb_up</span>
                                     Recommended
                                 </div>

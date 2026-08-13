@@ -527,7 +527,7 @@ const HotelListing = () => {
         if (apiHotel.isNewProperty) {
             hotelBadges.push({ type: 'popular', label: 'New Property', color: 'bg-teal-500/80' });
         }
-        if (apiHotel.preferred) {
+        if (apiHotel.preferred && false) { // Deprecated: Replaced by the diagonal isRecommended ribbon
             hotelBadges.push({ type: 'featured', label: 'Preferred', color: 'bg-amber-500/80' });
         }
         if (apiHotel.exclusive) {
@@ -591,6 +591,7 @@ const HotelListing = () => {
             hasFreeCancellation: hasFreeCancellation,
             strikethroughPrice: strikethroughPrice > priceValue ? strikethroughPrice : null,
             availableRoomsCount: apiHotel.rooms?.length || 0,
+            isRecommended: apiHotel.isRecommended === true || apiHotel.preferred === true,
         };
     }, []);
 

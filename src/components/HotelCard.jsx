@@ -165,9 +165,9 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                         </div>
                     ))}
                     {hotel.isRecommended && (
-                        <div className="bg-amber-500 text-white text-[8px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1 animate-in fade-in slide-in-from-left-4 duration-500 backdrop-blur-xs border border-white/10 mt-0.5">
+                        <div className="bg-gradient-to-r from-teal-400 to-blue-500 text-white text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-lg shadow-cyan-500/30 flex items-center gap-1 animate-in fade-in slide-in-from-left-4 duration-500 border border-cyan-400/50 mt-0.5">
                             <span className="material-symbols-outlined text-[10px] fill-1">thumb_up</span>
-                            Recommended
+                            {currentLang === 'tr' ? 'Önerilen' : 'Recommended'}
                         </div>
                     )}
                 </div>

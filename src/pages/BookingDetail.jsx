@@ -405,7 +405,7 @@ const BookingDetail = () => {
                                         <div className="flex items-center gap-2">
                                             <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{booking.hotel.hotelName}</p>
                                             {booking.hotel.isRecommended && (
-                                                <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-xs flex items-center gap-0.5 border border-amber-400/50">
+                                                <span className="bg-gradient-to-r from-teal-400 to-blue-500 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-xs flex items-center gap-0.5 border border-cyan-400/50">
                                                     <span className="material-icons-round text-[10px] fill-1">thumb_up</span>
                                                     REC
                                                 </span>

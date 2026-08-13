@@ -102,9 +102,20 @@ export const authService = {
     },
 
     logout: () => {
+        // Remove auth tokens and user data
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
+
+        // Remove user-specific recent search data
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('dashboard_last_') || key.startsWith('last_hotel_search_'))) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
     },
 
     isAuthenticated: () => {

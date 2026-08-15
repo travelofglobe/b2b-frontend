@@ -13,5 +13,13 @@ export const bookingService = {
 
     getBookingDetail: async (bookingId, signal) => {
         return apiClient.get(`${BOOKING_API_URL}/detail/${bookingId}`, { signal });
-    }
+    },
+
+    getColumnConfig: async () => {
+        return apiClient.get(`${BOOKING_API_URL}/column-config`);
+    },
+
+    saveColumnConfig: async (columns) => {
+        return apiClient.put(`${BOOKING_API_URL}/column-config`, columns);
+    },
 };

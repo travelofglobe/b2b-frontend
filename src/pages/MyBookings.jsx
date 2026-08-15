@@ -184,7 +184,7 @@ const MyBookings = () => {
         locationService.listCountries(controller.signal)
             .then(res => {
                 if (res?.locationList && Array.isArray(res.locationList)) {
-                    setCountryOptions(res.locationList.map(c => ({ id: c.id, name: c.name.defaultName || c.name })));
+                    setCountryOptions(res.locationList.map(c => ({ id: c.id, name: `${getFlagEmoji(c.alphaTwoCode)} ${c.name.translations?.[i18n.language] || c.name.defaultName || c.name}` })));
                 } else if (Array.isArray(res)) {
                     setCountryOptions(res.map(c => ({ id: c.id, name: c.name })));
                 }
@@ -206,7 +206,7 @@ const MyBookings = () => {
         locationService.listSubRegions(filters.countryIds[0], controller.signal)
             .then(res => {
                 if (res?.locationList && Array.isArray(res.locationList)) {
-                    setCityOptions(res.locationList.map(c => ({ id: c.id, name: c.name.defaultName || c.name })));
+                    setCityOptions(res.locationList.map(c => ({ id: c.id, name: `${getFlagEmoji(c.alphaTwoCode)} ${c.name.translations?.[i18n.language] || c.name.defaultName || c.name}` })));
                 } else if (Array.isArray(res)) {
                     setCityOptions(res.map(c => ({ id: c.id, name: c.name })));
                 }
@@ -808,7 +808,7 @@ const MyBookings = () => {
                                                     <GenericMultiSelect options={countryOptions} selectedValues={filters.countryIds || []} onChange={(values) => handleFilterChange('countryIds', values)} placeholder="Select Country" alignRight={true} />
                                                 )}
                                                 {col === "City" && (
-                                                    <GenericMultiSelect options={cityOptions} selectedValues={filters.cityIds || []} onChange={(values) => handleFilterChange('cityIds', values)} placeholder="Select City" alignRight={true} />
+                                                    <input type="text" value={filters.cityName || ''} onChange={(e) => handleFilterChange('cityName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="City Name" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
                                                 )}
                                                 {col === "Currency" && (
                                                     <GenericMultiSelect options={currencyOptions} selectedValues={filters.currencies || []} onChange={(values) => handleFilterChange('currencies', values)} placeholder="Select Currency" alignRight={true} />

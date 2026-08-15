@@ -810,14 +810,14 @@ const MyBookings = () => {
                                                 {col === "Supplier" && (
                                                     <GenericMultiSelect options={supplierOptions} selectedValues={filters.supplierIds || []} onChange={(values) => handleFilterChange('supplierIds', values)} placeholder="Select Supplier" alignRight={true} />
                                                 )}
-                                                {col === "Supplier Res. No." && (
+                                                {col === "Supplier Reservation Number" && (
                                                     <input type="text" value={filters.supplierVoucher || ''} onChange={(e) => handleFilterChange('supplierVoucher', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Res. No." className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
                                                 )}
                                                 {col === "Country" && (
                                                     <GenericMultiSelect options={countryOptions} selectedValues={filters.countryIds || []} onChange={(values) => handleFilterChange('countryIds', values)} placeholder="Select Country" alignRight={true} />
                                                 )}
                                                 {col === "City" && (
-                                                    <input type="text" value={filters.cityName || ''} onChange={(e) => handleFilterChange('cityName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="City Name" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    <GenericMultiSelect options={cityOptions} selectedValues={filters.cityIds || []} onChange={(values) => handleFilterChange('cityIds', values)} placeholder="Select City" alignRight={true} />
                                                 )}
                                                 {col === "Currency" && (
                                                     <GenericMultiSelect options={currencyOptions} selectedValues={filters.currencies || []} onChange={(values) => handleFilterChange('currencies', values)} placeholder="Select Currency" alignRight={true} />
@@ -866,7 +866,7 @@ const MyBookings = () => {
                                                     </select>
                                                 )}
                                                 {/* Fallback for other columns */}
-                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Supplier", "Currency", "Sales Channel", "Net Amount", "Markup", "Profit", "Room", "Board Type", "Guest", "Client Reference", "Cancelled?", "Country", "City", "Supplier Res. No."]    .includes(col) && (
+                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Supplier", "Currency", "Sales Channel", "Net Amount", "Markup", "Profit", "Room", "Board Type", "Guest", "Client Reference", "Cancelled?", "Country", "City", "Supplier Reservation Number"].includes(col) && (
                                                     <div className="text-[10px] text-slate-400">Filter N/A</div>
                                                 )}
                                             </td>
@@ -919,7 +919,7 @@ const MyBookings = () => {
                                                     else if (col === "Board Type") val = booking.boardName || "-";
                                                     else if (col === "Guest") val = booking.totalGuests != null ? booking.totalGuests : "-";
                                                     else if (col === "Supplier") val = booking.supplierName || "-";
-                                                    else if (col === "Supplier Res. No.") val = booking.supplierVoucher || "-";
+                                                    else if (col === "Supplier Reservation Number") val = booking.supplierVoucher || "-";
                                                     else if (col === "Payment") val = <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${getPaymentStatusColor(booking.paymentStatus)}`}>{booking.paymentStatus ? booking.paymentStatus.replace(/_/g, ' ') : 'UNKNOWN'}</span>;
                                                     else if (col === "Cancel Fee") val = (booking.totalCancellationAmount || booking.cancellationAmount) > 0 ? <span className="text-red-500 font-semibold">{booking.currency} {Number(booking.totalCancellationAmount || booking.cancellationAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> : '-';
                                                     else if (col === "UUID") val = <div className="text-[10px] text-slate-500 font-mono" title={booking.bookingUuid}>{booking.bookingUuid?.substring(0, 8)}...</div>;

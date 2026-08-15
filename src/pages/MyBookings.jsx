@@ -5,7 +5,9 @@ import { bookingService } from '../services/bookingService';
 import HeaderActions from '../components/HeaderActions';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import StatusMultiSelect from '../components/StatusMultiSelect';
-import AgencyMultiSelect from '../components/AgencyMultiSelect';
+import GenericMultiSelect from '../components/GenericMultiSelect';
+import ColumnManager from '../components/ColumnManager';
+import { agencyService } from '../services/agencyService';
 import * as XLSX from 'xlsx';
 import { BOOKING_STATUS_CONFIG } from '../utils/bookingStatusUtils';
 import { tMB } from '../utils/myBookingsLocales';
@@ -29,7 +31,7 @@ const parseInitialFilters = (params) => {
     }
 
     const rawStatus = params.get('bookingStatuses') || params.get('bookingStatus') || params.get('status');
-    const bookingStatuses = rawStatus ? rawStatus.split(',').map(s => s.trim()).filter(Boolean) : [];
+    const bookingStatuses = rawStatus ? rawStatus.split(',').map(s => s.trim()).filter(Boolean) : ['CONFIRMED'];
 
     return {
         id: params.get('id') || '',
@@ -52,6 +54,9 @@ const parseInitialFilters = (params) => {
         minAmount: params.get('minAmount') || '',
         maxAmount: params.get('maxAmount') || '',
         currencies: params.get('currencies') ? params.get('currencies').split(',') : [],
+        gsaIds: params.get('gsaIds') ? params.get('gsaIds').split(',').map(Number) : [],
+        rsaIds: params.get('rsaIds') ? params.get('rsaIds').split(',').map(Number) : [],
+        agencyIds: params.get('agencyIds') ? params.get('agencyIds').split(',').map(Number) : [],
         principalAgencyIds: params.get('principalAgencyIds') ? params.get('principalAgencyIds').split(',').map(Number) : [],
         minCancellationAmount: params.get('minCancellationAmount') || '',
         maxCancellationAmount: params.get('maxCancellationAmount') || '',
@@ -91,6 +96,49 @@ const MyBookings = () => {
 
     // Filter state - initialized with searchParams
     const [filters, setFilters] = useState(() => parseInitialFilters(searchParams));
+
+    const AVAILABLE_COLUMNS = [
+        "Reservation Number", "Reservation Date", "Check-in", "Check-out", "Hotel", 
+        "Country", "City", "GSA", "RSA", "Agency", "Sales Channel", "Room", 
+        "Board Type", "Guest", "Status", "Currency", "Net Amount", "Markup", 
+        "Sale Amount", "Profit", "Supplier", "Supplier Reservation Number"
+    ];
+
+    const [columns, setColumns] = useState(["Reservation Number", "Reservation Date", "Check-in", "Check-out", "Hotel", "Agency", "Status", "Currency", "Sale Amount"]);
+    const [allAgencies, setAllAgencies] = useState([]);
+
+    useEffect(() => {
+        let mounted = true;
+        const initData = async () => {
+            try {
+                const configRes = await bookingService.getColumnConfig();
+                if (mounted && configRes && configRes.length > 0) {
+                    setColumns(configRes);
+                }
+                const agenciesRes = await agencyService.getAgencies();
+                if (mounted && Array.isArray(agenciesRes)) {
+                    setAllAgencies(agenciesRes.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
+                }
+            } catch (err) {
+                console.error('Error fetching init data', err);
+            }
+        };
+        initData();
+        return () => { mounted = false; };
+    }, []);
+
+    const handleColumnsChange = async (newCols) => {
+        setColumns(newCols);
+        try {
+            await bookingService.saveColumnConfig(newCols);
+        } catch (e) {
+            console.error('Failed to save column config', e);
+        }
+    };
+
+    const gsaOptions = allAgencies.filter(a => a.agencyType === 'GSA');
+    const rsaOptions = allAgencies.filter(a => a.agencyType === 'RSA' && (filters.gsaIds.length === 0 || filters.gsaIds.includes(a.parentId)));
+    const agencyOptions = allAgencies.filter(a => a.agencyType !== 'GSA' && a.agencyType !== 'RSA' && (filters.rsaIds.length === 0 || filters.rsaIds.includes(a.parentId)));
 
     // Integrated Search Effect (Handles mount, filters, pagination, and refresh)
     useEffect(() => {
@@ -156,7 +204,7 @@ const MyBookings = () => {
                     filterObj[key] = value + 'T00:00:00';
                 } else if (key === 'createDateEnd') {
                     filterObj[key] = value + 'T23:59:59';
-                } else if (['currencies', 'principalAgencyIds'].includes(key) && Array.isArray(value) && value.length > 0) {
+                } else if (['currencies', 'gsaIds', 'rsaIds', 'agencyIds', 'principalAgencyIds'].includes(key) && Array.isArray(value) && value.length > 0) {
                     filterObj[key] = value;
                 } else {
                     filterObj[key] = value;
@@ -224,47 +272,33 @@ const MyBookings = () => {
                 XLSX.utils.book_append_sheet(workbook, summaryWorksheet, 'Summary');
             }
 
-            const exportData = allBookings.map(b => ({
-                [L('colId')]: b.bookingId ?? b.id ?? '',
-                [L('colVoucher')]: b.voucher ?? '-',
-                [L('colHotel')]: b.hotelName ?? '-',
-                [L('colCreated')]: formatDateTime(b.createDateTime || b.createDate),
-                [L('colCheckIn')]: formatDate(b.checkInDate || b.checkInStart),
-                [L('colCheckOut')]: formatDate(b.checkOutDate || b.checkOutEnd),
-                [L('colAmount')]: `${b.currency || ''} ${b.totalAmount != null ? Number(b.totalAmount).toFixed(2) : '0.00'}`,
-                [L('colPayment')]: b.paymentStatus ? String(b.paymentStatus).replace(/_/g, ' ') : '-',
-                [L('colStatus')]: b.bookingStatus ?? '-',
-                [L('colCancelFee')]: (b.totalCancellationAmount || b.cancellationAmount) > 0 ? `${b.currency || ''} ${Number(b.totalCancellationAmount || b.cancellationAmount).toFixed(2)}` : '-',
-                [L('colUuid')]: b.bookingUuid ?? '-',
-                [L('colAgencyName')]: b.principalAgencyName || b.agencyName || '-',
-                [L('colAgencyId')]: b.principalAgencyId ?? '-',
-                [L('colHotelId')]: b.internalHotelId ?? '-',
-                [L('colClRef')]: b.clientReferenceId ?? '-',
-                [L('colCancelled')]: b.isCancelled ? L('yes') : L('no')
-            }));
+            const exportData = allBookings.map(b => {
+                const row = {};
+                columns.forEach(col => {
+                    let val = "-";
+                    if (col === "Reservation Number") val = b.bookingId ?? b.id;
+                    else if (col === "Voucher") val = b.voucher;
+                    else if (col === "Reservation Date") val = formatDateTime(b.createDateTime || b.createDate);
+                    else if (col === "Check-in") val = formatDate(b.checkInDate || b.checkInStart);
+                    else if (col === "Check-out") val = formatDate(b.checkOutDate || b.checkOutEnd);
+                    else if (col === "Hotel") val = b.hotelName;
+                    else if (col === "Agency") val = b.principalAgencyName || b.agencyName;
+                    else if (col === "Status") val = b.bookingStatus;
+                    else if (col === "Currency") val = b.currency;
+                    else if (col === "Sale Amount") val = b.totalAmount != null ? Number(b.totalAmount).toFixed(2) : '0.00';
+                    else if (col === "Payment") val = b.paymentStatus ? b.paymentStatus.replace(/_/g, ' ') : '-';
+                    else if (col === "Cancel Fee") val = (b.totalCancellationAmount || b.cancellationAmount) > 0 ? Number(b.totalCancellationAmount || b.cancellationAmount).toFixed(2) : '-';
+                    else if (col === "UUID") val = b.bookingUuid;
+                    else if (col === "Agency ID") val = b.principalAgencyId;
+                    else if (col === "Hotel ID") val = b.internalHotelId;
+                    else if (col === "Client Reference") val = b.clientReferenceId;
+                    else if (col === "Cancelled?") val = b.isCancelled ? L('yes') : L('no');
+                    row[col] = val ?? "-";
+                });
+                return row;
+            });
 
             const worksheet = XLSX.utils.json_to_sheet(exportData);
-
-            // Auto column widths for all 16 columns
-            worksheet['!cols'] = [
-                { wch: 8 },   // ID
-                { wch: 18 },  // Voucher
-                { wch: 28 },  // Hotel
-                { wch: 18 },  // Created
-                { wch: 14 },  // Check-in
-                { wch: 14 },  // Check-out
-                { wch: 14 },  // Amount
-                { wch: 20 },  // Payment
-                { wch: 16 },  // Status
-                { wch: 14 },  // Cancel Fee
-                { wch: 32 },  // UUID
-                { wch: 24 },  // Agency Name
-                { wch: 12 },  // Agency ID
-                { wch: 12 },  // Hotel ID
-                { wch: 18 },  // Client Ref
-                { wch: 12 },  // Cancelled?
-            ];
-
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Bookings');
 
             const dateStr = new Date().toISOString().split('T')[0];
@@ -292,7 +326,6 @@ const MyBookings = () => {
 
             const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-            // Document Header
             doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
             doc.text('Travel of Globe - Bookings Report', 10, 12);
@@ -318,91 +351,50 @@ const MyBookings = () => {
                     head: [summaryHeaders],
                     body: summaryRows,
                     theme: 'grid',
-                    styles: {
-                        fontSize: 6.5,
-                        cellPadding: 1.5
-                    },
-                    headStyles: {
-                        fillColor: [30, 41, 59],
-                        textColor: [255, 255, 255],
-                        fontSize: 7,
-                        fontStyle: 'bold',
-                        halign: 'left'
-                    },
-                    bodyStyles: {
-                        textColor: [30, 41, 59]
-                    },
+                    styles: { fontSize: 6.5, cellPadding: 1.5 },
+                    headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontSize: 7, fontStyle: 'bold' },
                     margin: { left: 6, right: 6 }
                 });
                 startY = (doc.lastAutoTable?.finalY || 21) + 5;
             }
 
-            const headers = [
-                L('colId'),
-                L('colVoucher'),
-                L('colHotel'),
-                L('colCreated'),
-                L('colCheckIn'),
-                L('colCheckOut'),
-                L('colAmount'),
-                L('colPayment'),
-                L('colStatus'),
-                L('colCancelFee'),
-                L('colUuid'),
-                L('colAgencyName'),
-                L('colAgencyId'),
-                L('colHotelId'),
-                L('colClRef'),
-                L('colCancelled')
-            ];
-
-            const rows = allBookings.map(b => [
-                b.bookingId ?? b.id ?? '',
-                b.voucher ?? '-',
-                b.hotelName ?? '-',
-                formatDateTime(b.createDateTime || b.createDate),
-                formatDate(b.checkInDate || b.checkInStart),
-                formatDate(b.checkOutDate || b.checkOutEnd),
-                `${b.currency || ''} ${b.totalAmount != null ? Number(b.totalAmount).toFixed(2) : '0.00'}`,
-                b.paymentStatus ? String(b.paymentStatus).replace(/_/g, ' ') : '-',
-                b.bookingStatus ?? '-',
-                (b.totalCancellationAmount || b.cancellationAmount) > 0 ? `${b.currency || ''} ${Number(b.totalCancellationAmount || b.cancellationAmount).toFixed(2)}` : '-',
-                b.bookingUuid ?? '-',
-                b.principalAgencyName || b.agencyName || '-',
-                b.principalAgencyId ?? '-',
-                b.internalHotelId ?? '-',
-                b.clientReferenceId ?? '-',
-                b.isCancelled ? L('yes') : L('no')
-            ]);
+            const headers = columns;
+            const rows = allBookings.map(b => {
+                return columns.map(col => {
+                    let val = "-";
+                    if (col === "Reservation Number") val = b.bookingId ?? b.id;
+                    else if (col === "Voucher") val = b.voucher;
+                    else if (col === "Reservation Date") val = formatDateTime(b.createDateTime || b.createDate);
+                    else if (col === "Check-in") val = formatDate(b.checkInDate || b.checkInStart);
+                    else if (col === "Check-out") val = formatDate(b.checkOutDate || b.checkOutEnd);
+                    else if (col === "Hotel") val = b.hotelName;
+                    else if (col === "Agency") val = b.principalAgencyName || b.agencyName;
+                    else if (col === "Status") val = b.bookingStatus;
+                    else if (col === "Currency") val = b.currency;
+                    else if (col === "Sale Amount") val = b.totalAmount != null ? Number(b.totalAmount).toFixed(2) : '0.00';
+                    else if (col === "Payment") val = b.paymentStatus ? b.paymentStatus.replace(/_/g, ' ') : '-';
+                    else if (col === "Cancel Fee") val = (b.totalCancellationAmount || b.cancellationAmount) > 0 ? Number(b.totalCancellationAmount || b.cancellationAmount).toFixed(2) : '-';
+                    else if (col === "UUID") val = b.bookingUuid;
+                    else if (col === "Agency ID") val = b.principalAgencyId;
+                    else if (col === "Hotel ID") val = b.internalHotelId;
+                    else if (col === "Client Reference") val = b.clientReferenceId;
+                    else if (col === "Cancelled?") val = b.isCancelled ? L('yes') : L('no');
+                    return String(val ?? "-");
+                });
+            });
 
             autoTable(doc, {
                 startY: startY,
                 head: [headers],
                 body: rows,
                 theme: 'striped',
-                styles: {
-                    fontSize: 5.5,
-                    cellPadding: 1,
-                    overflow: 'linebreak'
-                },
-                headStyles: {
-                    fillColor: [15, 23, 42],
-                    textColor: [255, 255, 255],
-                    fontSize: 6,
-                    fontStyle: 'bold',
-                    halign: 'left'
-                },
-                bodyStyles: {
-                    textColor: [30, 41, 59]
-                },
-                alternateRowStyles: {
-                    fillColor: [248, 250, 252]
-                },
+                styles: { fontSize: 5.5, cellPadding: 1, overflow: 'linebreak' },
+                headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontSize: 6, fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [248, 250, 252] },
                 margin: { top: 21, left: 6, right: 6, bottom: 10 }
             });
 
-            const dateStr = new Date().toISOString().split('T')[0];
-            downloadPdfDoc(doc, `Bookings_Report_${dateStr}.pdf`);
+            downloadPdfDoc(doc, `Bookings_Report_${new Date().toISOString().split('T')[0]}.pdf`);
         } catch (err) {
             console.error('PDF Export Error:', err);
             alert('Failed to export PDF: ' + (err.message || err));
@@ -564,6 +556,13 @@ const MyBookings = () => {
 
                             <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
 
+                            <ColumnManager 
+                                columns={columns} 
+                                availableColumns={AVAILABLE_COLUMNS} 
+                                onColumnsChange={handleColumnsChange} 
+                                loading={loading} 
+                            />
+
                             <HeaderActions />
                         </div>
                     </div>
@@ -621,295 +620,184 @@ const MyBookings = () => {
                             <table className="w-full border-collapse">
                                 <thead>
                                     <tr className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800">
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colId')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[150px] select-none">{L('colVoucher')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[280px] select-none">{L('colHotel')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px] select-none">{L('colCreated')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px] select-none">{L('colCheckIn')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px] select-none">{L('colCheckOut')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px] select-none">{L('colAmount')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px] select-none">{L('colPayment')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px] select-none">{L('colStatus')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[140px] select-none">{L('colCancelFee')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[290px] select-none">{L('colUuid')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px] select-none">{L('colAgencyName')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colAgencyId')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[150px] select-none">{L('colHotelId')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[200px] select-none">{L('colClRef')}</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colCancelled')}</th>
+                                        {columns.map(col => {
+                                            const key = col;
+                                            const title = {
+                                                "Reservation Number": L('colId'),
+                                                "Voucher": L('colVoucher'),
+                                                "Reservation Date": L('colCreated'),
+                                                "Check-in": L('colCheckIn'),
+                                                "Check-out": L('colCheckOut'),
+                                                "Hotel": L('colHotel'),
+                                                "Country": "Country",
+                                                "City": "City",
+                                                "GSA": "GSA",
+                                                "RSA": "RSA",
+                                                "Agency": L('colAgencyName'),
+                                                "Sales Channel": "Sales Channel",
+                                                "Room": "Room",
+                                                "Board Type": "Board Type",
+                                                "Guest": "Guest",
+                                                "Status": L('colStatus'),
+                                                "Currency": "Currency",
+                                                "Net Amount": "Net Amount",
+                                                "Markup": "Markup",
+                                                "Sale Amount": L('colAmount'),
+                                                "Profit": "Profit",
+                                                "Supplier": "Supplier",
+                                                "Supplier Reservation Number": "Supplier Res. No.",
+                                                "Cancel Fee": L('colCancelFee'),
+                                                "UUID": L('colUuid'),
+                                                "Agency ID": L('colAgencyId'),
+                                                "Hotel ID": L('colHotelId'),
+                                                "Client Reference": L('colClRef'),
+                                                "Cancelled?": L('colCancelled')
+                                            }[key] || key;
+                                            return <th key={key} className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[120px] select-none">{title}</th>;
+                                        })}
                                     </tr>
                                     <tr className="bg-slate-50/80 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 relative z-20">
-                                        <td className="px-2 py-2">
-                                            <input
-                                                type="number"
-                                                value={filters.id}
-                                                onChange={(e) => handleFilterChange('id', e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                placeholder={L('colId')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                            />
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <input
-                                                type="text"
-                                                value={filters.voucher}
-                                                onChange={(e) => handleFilterChange('voucher', e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                placeholder={L('phVoucher')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                            />
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <input
-                                                type="text"
-                                                value={filters.hotelName}
-                                                onChange={(e) => handleFilterChange('hotelName', e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                placeholder={L('phHotelName')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                            />
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <div className="flex flex-col gap-1">
-                                                <input
-                                                    type="date"
-                                                    value={filters.createDateStart}
-                                                    onChange={(e) => handleFilterChange('createDateStart', e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                                />
-                                                <input
-                                                    type="date"
-                                                    value={filters.createDateEnd}
-                                                    onChange={(e) => handleFilterChange('createDateEnd', e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                                />
-                                            </div>
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <div className="flex flex-col gap-1">
-                                                <input
-                                                    type="date"
-                                                    value={filters.checkInStart}
-                                                    onChange={(e) => handleFilterChange('checkInStart', e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                                />
-                                                <input
-                                                    type="date"
-                                                    value={filters.checkInEnd}
-                                                    onChange={(e) => handleFilterChange('checkInEnd', e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                                />
-                                            </div>
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <div className="flex flex-col gap-1">
-                                                <input
-                                                    type="date"
-                                                    value={filters.checkOutStart}
-                                                    onChange={(e) => handleFilterChange('checkOutStart', e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                                />
-                                                <input
-                                                    type="date"
-                                                    value={filters.checkOutEnd}
-                                                    onChange={(e) => handleFilterChange('checkOutEnd', e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                                />
-                                            </div>
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <div className="flex flex-col gap-1">
-                                                <input
-                                                    type="number"
-                                                    value={filters.minAmount}
-                                                    onChange={(e) => handleFilterChange('minAmount', e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    placeholder={L('phMin')}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                                />
-                                                <input
-                                                    type="number"
-                                                    value={filters.maxAmount}
-                                                    onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    placeholder="Max"
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                                />
-                                            </div>
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <select
-                                                value={filters.paymentStatus}
-                                                onChange={(e) => handleFilterChange('paymentStatus', e.target.value)}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
-                                            >
-                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="">{L('all')}</option>
-                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="PENDING_PAYMENT">{L('pyPending')}</option>
-                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="PAID_CREDIT_CARD">{L('pyPaidCard')}</option>
-                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="PAID_ACCOUNT">{L('pyPaidAcc')}</option>
-                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="REFUNDED_CREDIT_CARD">{L('pyRefCard')}</option>
-                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="REFUNDED_ACCOUNT">{L('pyRefAcc')}</option>
-                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="FAILED">{L('pyFailed')}</option>
-                                            </select>
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <StatusMultiSelect
-                                                selectedValues={filters.bookingStatuses}
-                                                onChange={(values) => handleFilterChange('bookingStatuses', values)}
-                                            />
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <div className="flex flex-col gap-1">
-                                                <input
-                                                    type="number"
-                                                    value={filters.minCancellationAmount}
-                                                    onChange={(e) => handleFilterChange('minCancellationAmount', e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    placeholder={L('phMin')}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                                />
-                                                <input
-                                                    type="number"
-                                                    value={filters.maxCancellationAmount}
-                                                    onChange={(e) => handleFilterChange('maxCancellationAmount', e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                    placeholder={L('phMax')}
-                                                    className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                                />
-                                            </div>
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <input
-                                                type="text"
-                                                value={filters.bookingUuid}
-                                                onChange={(e) => handleFilterChange('bookingUuid', e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                placeholder={L('phUuid')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                            />
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <AgencyMultiSelect
-                                                selectedValues={filters.principalAgencyIds}
-                                                onChange={(values) => handleFilterChange('principalAgencyIds', values)}
-                                            />
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            {/* Extra column header for Agency ID */}
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <input
-                                                type="number"
-                                                value={filters.internalHotelId}
-                                                onChange={(e) => handleFilterChange('internalHotelId', e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                placeholder="Hotel ID"
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                            />
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <input
-                                                type="text"
-                                                value={filters.clientReferenceId}
-                                                onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)}
-                                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                                placeholder={L('phClRef')}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none"
-                                            />
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <select
-                                                value={filters.isCancelled}
-                                                onChange={(e) => handleFilterChange('isCancelled', e.target.value)}
-                                                className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none cursor-pointer"
-                                            >
-                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="">{L('all')}</option>
-                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="true">{L('yes')}</option>
-                                                <option className="font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900" value="false">{L('no')}</option>
-                                            </select>
-                                        </td>
+                                        {columns.map(col => (
+                                            <td key={col} className="px-2 py-2">
+                                                {col === "Reservation Number" && (
+                                                    <input type="number" value={filters.id} onChange={(e) => handleFilterChange('id', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('colId')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none" />
+                                                )}
+                                                {col === "Voucher" && (
+                                                    <input type="text" value={filters.voucher} onChange={(e) => handleFilterChange('voucher', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phVoucher')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none" />
+                                                )}
+                                                {col === "Hotel" && (
+                                                    <input type="text" value={filters.hotelName} onChange={(e) => handleFilterChange('hotelName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phHotelName')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none" />
+                                                )}
+                                                {col === "Reservation Date" && (
+                                                    <div className="flex flex-col gap-1">
+                                                        <input type="date" value={filters.createDateStart} onChange={(e) => handleFilterChange('createDateStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="date" value={filters.createDateEnd} onChange={(e) => handleFilterChange('createDateEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    </div>
+                                                )}
+                                                {col === "Check-in" && (
+                                                    <div className="flex flex-col gap-1">
+                                                        <input type="date" value={filters.checkInStart} onChange={(e) => handleFilterChange('checkInStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="date" value={filters.checkInEnd} onChange={(e) => handleFilterChange('checkInEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    </div>
+                                                )}
+                                                {col === "Check-out" && (
+                                                    <div className="flex flex-col gap-1">
+                                                        <input type="date" value={filters.checkOutStart} onChange={(e) => handleFilterChange('checkOutStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="date" value={filters.checkOutEnd} onChange={(e) => handleFilterChange('checkOutEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    </div>
+                                                )}
+                                                {col === "Sale Amount" && (
+                                                    <div className="flex flex-col gap-1">
+                                                        <input type="number" value={filters.minAmount} onChange={(e) => handleFilterChange('minAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMin')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.maxAmount} onChange={(e) => handleFilterChange('maxAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    </div>
+                                                )}
+                                                {col === "Payment" && (
+                                                    <select value={filters.paymentStatus} onChange={(e) => handleFilterChange('paymentStatus', e.target.value)} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer">
+                                                        <option value="">{L('all')}</option>
+                                                        <option value="PENDING_PAYMENT">{L('pyPending')}</option>
+                                                        <option value="PAID_CREDIT_CARD">{L('pyPaidCard')}</option>
+                                                        <option value="PAID_ACCOUNT">{L('pyPaidAcc')}</option>
+                                                        <option value="REFUNDED_CREDIT_CARD">{L('pyRefCard')}</option>
+                                                        <option value="REFUNDED_ACCOUNT">{L('pyRefAcc')}</option>
+                                                        <option value="FAILED">{L('pyFailed')}</option>
+                                                    </select>
+                                                )}
+                                                {col === "Status" && (
+                                                    <StatusMultiSelect selectedValues={filters.bookingStatuses} onChange={(values) => handleFilterChange('bookingStatuses', values)} />
+                                                )}
+                                                {col === "Cancel Fee" && (
+                                                    <div className="flex flex-col gap-1">
+                                                        <input type="number" value={filters.minCancellationAmount} onChange={(e) => handleFilterChange('minCancellationAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMin')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.maxCancellationAmount} onChange={(e) => handleFilterChange('maxCancellationAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMax')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    </div>
+                                                )}
+                                                {col === "UUID" && (
+                                                    <input type="text" value={filters.bookingUuid} onChange={(e) => handleFilterChange('bookingUuid', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phUuid')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                )}
+                                                {col === "GSA" && (
+                                                    <GenericMultiSelect options={gsaOptions} selectedValues={filters.gsaIds} onChange={(values) => handleFilterChange('gsaIds', values)} placeholder="Select GSA" />
+                                                )}
+                                                {col === "RSA" && (
+                                                    <GenericMultiSelect options={rsaOptions} selectedValues={filters.rsaIds} onChange={(values) => handleFilterChange('rsaIds', values)} placeholder="Select RSA" disabled={filters.gsaIds.length > 0 && rsaOptions.length === 0} />
+                                                )}
+                                                {col === "Agency" && (
+                                                    <GenericMultiSelect options={agencyOptions} selectedValues={filters.agencyIds} onChange={(values) => handleFilterChange('agencyIds', values)} placeholder="Select Agency" disabled={filters.rsaIds.length > 0 && agencyOptions.length === 0} />
+                                                )}
+                                                {col === "Hotel ID" && (
+                                                    <input type="number" value={filters.internalHotelId} onChange={(e) => handleFilterChange('internalHotelId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Hotel ID" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                )}
+                                                {col === "Client Reference" && (
+                                                    <input type="text" value={filters.clientReferenceId} onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phClRef')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                )}
+                                                {col === "Cancelled?" && (
+                                                    <select value={filters.isCancelled} onChange={(e) => handleFilterChange('isCancelled', e.target.value)} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer">
+                                                        <option value="">{L('all')}</option>
+                                                        <option value="true">{L('yes')}</option>
+                                                        <option value="false">{L('no')}</option>
+                                                    </select>
+                                                )}
+                                                {/* Fallback for other columns */}
+                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Client Reference", "Cancelled?"].includes(col) && (
+                                                    <div className="text-[10px] text-slate-400">Filter N/A</div>
+                                                )}
+                                            </td>
+                                        ))}
                                     </tr>
                                 </thead>
-                                <tbody className="">
+                                <tbody>
                                     {loading ? (
                                         Array.from({ length: 10 }).map((_, index) => (
                                             <tr key={`skeleton-${index}`} className="border-b border-white/20 dark:border-white/5 last:border-0 h-[61px]">
-                                                {/* Adjusted widths to match column content types and header min-widths */}
-                                                <td className="px-4 py-3"><div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-4 w-60 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-5 w-24 bg-slate-200 dark:bg-slate-700 rounded-md animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-5 w-20 bg-slate-200 dark:bg-slate-700 rounded-md animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-4 w-40 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-4 w-12 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
-                                                <td className="px-4 py-3"><div className="h-5 w-5 mx-auto bg-slate-200 dark:bg-slate-700 rounded-full animate-shimmer"></div></td>
+                                                {columns.map(col => (
+                                                    <td key={col} className="px-4 py-3"><div className="h-4 w-full bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                                ))}
                                             </tr>
                                         ))
-                                    ) : error ? (
-                                        <tr>
-                                            <td colSpan="15" className="px-4 py-12 text-center text-red-500">
-                                                {L('errorPrefix')}: {error}
-                                            </td>
-                                        </tr>
                                     ) : bookings.length === 0 ? (
                                         <tr>
-                                            <td colSpan="15" className="px-4 py-12 text-center text-slate-500">
-                                                {L('noBookings')}
+                                            <td colSpan={columns.length} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
+                                                <div className="flex flex-col items-center justify-center gap-2">
+                                                    <span className="material-icons-round text-4xl opacity-50">search_off</span>
+                                                    <p>{error ? error : L('noBookings')}</p>
+                                                </div>
                                             </td>
                                         </tr>
                                     ) : (
                                         bookings.map((booking) => (
-                                            <tr
-                                                key={booking.bookingId}
-                                                onClick={() => navigate(`/bookings/${booking.bookingId}`)}
-                                                className="odd:bg-white dark:odd:bg-slate-900/80 even:bg-slate-50/80 dark:even:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-b border-slate-100 dark:border-slate-800/60 cursor-pointer text-[11px] group"
+                                            <tr 
+                                                key={booking.id} 
+                                                onClick={() => window.open(`/bookings/${booking.id}`, '_blank')}
+                                                className="border-b border-white/20 dark:border-white/5 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
                                             >
-                                                <td className="px-3.5 py-2.5 text-slate-700 dark:text-slate-300 font-semibold group-hover:text-primary transition-colors whitespace-nowrap">#{booking.bookingId}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300 text-[11px] font-medium truncate max-w-[120px]" title={booking.voucher}>{booking.voucher || '-'}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-700 dark:text-slate-200 text-[11px] font-medium truncate max-w-[220px]" title={booking.hotelName}>{booking.hotelName}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[11px] font-normal whitespace-nowrap">{formatDateTime(booking.createDateTime)}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[11px] font-normal whitespace-nowrap">{formatDate(booking.checkInDate)}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[11px] font-normal whitespace-nowrap">{formatDate(booking.checkOutDate)}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-900 dark:text-white font-bold text-[11px] whitespace-nowrap">
-                                                    {booking.currency} {booking.totalAmount?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                </td>
-                                                <td className="px-3.5 py-2.5">
-                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${getPaymentStatusColor(booking.paymentStatus)}`}>
-                                                        {booking.paymentStatus?.replace('_', ' ')}
-                                                    </span>
-                                                </td>
-                                                <td className="px-3.5 py-2.5">
-                                                    <BookingStatusBadge status={booking.bookingStatus} className="shadow-none border-none bg-transparent p-0" showIcon={false} />
-                                                </td>
-                                                <td className="px-3.5 py-2.5 text-rose-600 dark:text-rose-400 font-bold text-[11px] whitespace-nowrap">
-                                                    {booking.totalCancellationAmount > 0 ? `${booking.currency} ${booking.totalCancellationAmount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '-'}
-                                                </td>
-                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 font-mono text-[11px] whitespace-nowrap" title={booking.bookingUuid}>{booking.bookingUuid}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300 text-[11px] font-medium truncate max-w-[160px]" title={booking.principalAgencyName}>{booking.principalAgencyName}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[10px]">{booking.principalAgencyId}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[10px]">{booking.internalHotelId}</td>
-                                                <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300 text-[11px] font-medium whitespace-nowrap" title={booking.clientReferenceId}>{booking.clientReferenceId || '-'}</td>
-                                                <td className="px-3.5 py-2.5 text-center">
-                                                    {booking.isCancelled ? (
-                                                        <span className="material-icons-round text-red-500 text-sm">check_circle</span>
-                                                    ) : (
-                                                        <span className="material-icons-round text-slate-300 dark:text-slate-700 text-sm">cancel</span>
-                                                    )}
-                                                </td>
+                                                {columns.map(col => {
+                                                    let val = "-";
+                                                    if (col === "Reservation Number") val = booking.bookingId ?? booking.id;
+                                                    else if (col === "Voucher") val = booking.voucher;
+                                                    else if (col === "Reservation Date") val = formatDateTime(booking.createDateTime || booking.createDate);
+                                                    else if (col === "Check-in") val = formatDate(booking.checkInDate || booking.checkInStart);
+                                                    else if (col === "Check-out") val = formatDate(booking.checkOutDate || booking.checkOutEnd);
+                                                    else if (col === "Hotel") val = booking.hotelName;
+                                                    else if (col === "GSA") val = "-";
+                                                    else if (col === "RSA") val = "-";
+                                                    else if (col === "Agency") val = booking.principalAgencyName || booking.agencyName;
+                                                    else if (col === "Status") val = <BookingStatusBadge status={booking.bookingStatus} />;
+                                                    else if (col === "Currency") val = booking.currency;
+                                                    else if (col === "Sale Amount") val = <div className="font-semibold text-slate-900 dark:text-white">{booking.currency} {booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</div>;
+                                                    else if (col === "Payment") val = <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${getPaymentStatusColor(booking.paymentStatus)}`}>{booking.paymentStatus ? booking.paymentStatus.replace(/_/g, ' ') : 'UNKNOWN'}</span>;
+                                                    else if (col === "Cancel Fee") val = (booking.totalCancellationAmount || booking.cancellationAmount) > 0 ? <span className="text-red-500 font-semibold">{booking.currency} {Number(booking.totalCancellationAmount || booking.cancellationAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> : '-';
+                                                    else if (col === "UUID") val = <div className="text-[10px] text-slate-500 font-mono" title={booking.bookingUuid}>{booking.bookingUuid?.substring(0, 8)}...</div>;
+                                                    else if (col === "Agency ID") val = booking.principalAgencyId;
+                                                    else if (col === "Hotel ID") val = booking.internalHotelId;
+                                                    else if (col === "Client Reference") val = booking.clientReferenceId;
+                                                    else if (col === "Cancelled?") val = booking.isCancelled ? L('yes') : L('no');
+                                                    
+                                                    return (
+                                                        <td key={col} className="px-3.5 py-3 text-xs text-slate-600 dark:text-slate-300">
+                                                            {val || "-"}
+                                                        </td>
+                                                    );
+                                                })}
                                             </tr>
                                         ))
                                     )}

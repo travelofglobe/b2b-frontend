@@ -97,6 +97,25 @@ const MyBookings = () => {
     // Filter state - initialized with searchParams
     const [filters, setFilters] = useState(() => parseInitialFilters(searchParams));
 
+
+    const handleDragStart = (e, col) => {
+        e.dataTransfer.setData('col', col);
+    };
+
+    const handleDrop = (e, targetCol) => {
+        const sourceCol = e.dataTransfer.getData('col');
+        if (!sourceCol || sourceCol === targetCol) return;
+        
+        const newCols = [...columns];
+        const sourceIndex = newCols.indexOf(sourceCol);
+        const targetIndex = newCols.indexOf(targetCol);
+        
+        newCols.splice(sourceIndex, 1);
+        newCols.splice(targetIndex, 0, sourceCol);
+        
+        handleColumnsChange(newCols);
+    };
+
     const AVAILABLE_COLUMNS = [
         "Reservation Number", "Reservation Date", "Check-in", "Check-out", "Hotel", 
         "Country", "City", "GSA", "RSA", "Agency", "Sales Channel", "Room", 
@@ -137,8 +156,14 @@ const MyBookings = () => {
     };
 
     const gsaOptions = allAgencies.filter(a => a.agencyType === 'GSA');
-    const rsaOptions = allAgencies.filter(a => a.agencyType === 'RSA' && (filters.gsaIds.length === 0 || filters.gsaIds.includes(a.parentId)));
-    const agencyOptions = allAgencies.filter(a => a.agencyType !== 'GSA' && a.agencyType !== 'RSA' && (filters.rsaIds.length === 0 || filters.rsaIds.includes(a.parentId)));
+    const rsaOptions = allAgencies.filter(a => a.agencyType === 'RSA');
+    const agencyOptions = allAgencies.filter(a => a.agencyType === 'AGENCY');
+    const currencyOptions = [
+        { value: 'TRY', label: 'TRY' },
+        { value: 'USD', label: 'USD' },
+        { value: 'EUR', label: 'EUR' },
+        { value: 'GBP', label: 'GBP' }
+    ];
 
     // Integrated Search Effect (Handles mount, filters, pagination, and refresh)
     useEffect(() => {
@@ -421,6 +446,7 @@ const MyBookings = () => {
             supplierId: '',
             supplierName: '',
             internalHotelId: '',
+            currencies: [],
             bookingUuid: '',
             paymentStatus: '',
             bookingStatuses: [],
@@ -653,7 +679,21 @@ const MyBookings = () => {
                                                 "Client Reference": L('colClRef'),
                                                 "Cancelled?": L('colCancelled')
                                             }[key] || key;
-                                            return <th key={key} className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[120px] select-none">{title}</th>;
+                                            return (
+                                                <th 
+                                                    key={key} 
+                                                    draggable
+                                                    onDragStart={(e) => handleDragStart(e, key)}
+                                                    onDragOver={(e) => e.preventDefault()}
+                                                    onDrop={(e) => handleDrop(e, key)}
+                                                    className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[120px] select-none cursor-move hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                                >
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="material-icons-round text-[13px] opacity-40">drag_indicator</span>
+                                                        {title}
+                                                    </div>
+                                                </th>
+                                            );
                                         })}
                                     </tr>
                                     <tr className="bg-slate-50/80 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 relative z-20">
@@ -727,6 +767,45 @@ const MyBookings = () => {
                                                 {col === "Hotel ID" && (
                                                     <input type="number" value={filters.internalHotelId} onChange={(e) => handleFilterChange('internalHotelId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Hotel ID" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
                                                 )}
+                                                {col === "Supplier" && (
+                                                    <input type="text" value={filters.supplierName} onChange={(e) => handleFilterChange('supplierName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Supplier" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                )}
+                                                {col === "Currency" && (
+                                                    <GenericMultiSelect options={currencyOptions} selectedValues={filters.currencies || []} onChange={(values) => handleFilterChange('currencies', values)} placeholder="Select Currency" />
+                                                )}
+                                                {col === "Sales Channel" && (
+                                                    <GenericMultiSelect options={agencyOptions} selectedValues={filters.salesChannels || []} onChange={(values) => handleFilterChange('salesChannels', values)} placeholder="Select Sales Channel" />
+                                                )}
+                                                {col === "Net Amount" && (
+                                                    <div className="flex gap-1">
+                                                        <input type="number" value={filters.minNetAmount} onChange={(e) => handleFilterChange('minNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.maxNetAmount} onChange={(e) => handleFilterChange('maxNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    </div>
+                                                )}
+                                                {col === "Markup" && (
+                                                    <div className="flex gap-1">
+                                                        <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    </div>
+                                                )}
+                                                {col === "Profit" && (
+                                                    <div className="flex gap-1">
+                                                        <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    </div>
+                                                )}
+                                                {col === "Room" && (
+                                                    <input type="text" value={filters.roomName} onChange={(e) => handleFilterChange('roomName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Room" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                )}
+                                                {col === "Board Type" && (
+                                                    <input type="text" value={filters.boardName} onChange={(e) => handleFilterChange('boardName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Board Type" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                )}
+                                                {col === "Guest" && (
+                                                    <div className="flex gap-1">
+                                                        <input type="number" value={filters.minGuest} onChange={(e) => handleFilterChange('minGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.maxGuest} onChange={(e) => handleFilterChange('maxGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    </div>
+                                                )}
                                                 {col === "Client Reference" && (
                                                     <input type="text" value={filters.clientReferenceId} onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phClRef')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
                                                 )}
@@ -738,7 +817,7 @@ const MyBookings = () => {
                                                     </select>
                                                 )}
                                                 {/* Fallback for other columns */}
-                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Client Reference", "Cancelled?"].includes(col) && (
+                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Supplier", "Currency", "Sales Channel", "Net Amount", "Markup", "Profit", "Room", "Board Type", "Guest", "Client Reference", "Cancelled?"].includes(col) && (
                                                     <div className="text-[10px] text-slate-400">Filter N/A</div>
                                                 )}
                                             </td>
@@ -766,9 +845,9 @@ const MyBookings = () => {
                                     ) : (
                                         bookings.map((booking) => (
                                             <tr 
-                                                key={booking.id} 
-                                                onClick={() => window.open(`/bookings/${booking.id}`, '_blank')}
-                                                className="border-b border-white/20 dark:border-white/5 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                                                key={booking.bookingId ?? booking.id} 
+                                                onClick={() => window.open(`/bookings/${booking.bookingId ?? booking.id}`, '_blank')}
+                                                className="border-b border-slate-100 dark:border-slate-800/50 last:border-0 hover:bg-slate-100 dark:hover:bg-slate-700/50 even:bg-slate-50 dark:even:bg-slate-800/50 transition-colors cursor-pointer group"
                                             >
                                                 {columns.map(col => {
                                                     let val = "-";
@@ -778,12 +857,20 @@ const MyBookings = () => {
                                                     else if (col === "Check-in") val = formatDate(booking.checkInDate || booking.checkInStart);
                                                     else if (col === "Check-out") val = formatDate(booking.checkOutDate || booking.checkOutEnd);
                                                     else if (col === "Hotel") val = booking.hotelName;
-                                                    else if (col === "GSA") val = "-";
-                                                    else if (col === "RSA") val = "-";
+                                                    else if (col === "GSA") val = booking.gsaName || "-";
+                                                    else if (col === "RSA") val = booking.rsaName || "-";
                                                     else if (col === "Agency") val = booking.principalAgencyName || booking.agencyName;
                                                     else if (col === "Status") val = <BookingStatusBadge status={booking.bookingStatus} />;
                                                     else if (col === "Currency") val = booking.currency;
                                                     else if (col === "Sale Amount") val = <div className="font-semibold text-slate-900 dark:text-white">{booking.currency} {booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</div>;
+                                                    else if (col === "Net Amount") val = booking.netAmount != null ? <div className="font-semibold text-slate-900 dark:text-white">{booking.currency} {Number(booking.netAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div> : "-";
+                                                    else if (col === "Markup") val = booking.markupAmount != null ? <div className="font-semibold text-slate-900 dark:text-white">{booking.currency} {Number(booking.markupAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div> : "-";
+                                                    else if (col === "Profit") val = booking.markupAmount != null ? <div className="font-semibold text-green-600 dark:text-green-400">{booking.currency} {Number(booking.markupAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div> : "-";
+                                                    else if (col === "Room") val = booking.roomName || "-";
+                                                    else if (col === "Board Type") val = booking.boardName || "-";
+                                                    else if (col === "Guest") val = booking.totalGuests != null ? booking.totalGuests : "-";
+                                                    else if (col === "Supplier") val = booking.supplierName || "-";
+                                                    else if (col === "Supplier Res. No.") val = booking.supplierVoucher || "-";
                                                     else if (col === "Payment") val = <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${getPaymentStatusColor(booking.paymentStatus)}`}>{booking.paymentStatus ? booking.paymentStatus.replace(/_/g, ' ') : 'UNKNOWN'}</span>;
                                                     else if (col === "Cancel Fee") val = (booking.totalCancellationAmount || booking.cancellationAmount) > 0 ? <span className="text-red-500 font-semibold">{booking.currency} {Number(booking.totalCancellationAmount || booking.cancellationAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> : '-';
                                                     else if (col === "UUID") val = <div className="text-[10px] text-slate-500 font-mono" title={booking.bookingUuid}>{booking.bookingUuid?.substring(0, 8)}...</div>;
@@ -793,7 +880,7 @@ const MyBookings = () => {
                                                     else if (col === "Cancelled?") val = booking.isCancelled ? L('yes') : L('no');
                                                     
                                                     return (
-                                                        <td key={col} className="px-3.5 py-3 text-xs text-slate-600 dark:text-slate-300">
+                                                        <td key={col} className="px-3.5 py-3 text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">
                                                             {val || "-"}
                                                         </td>
                                                     );

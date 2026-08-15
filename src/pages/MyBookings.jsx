@@ -216,6 +216,7 @@ const MyBookings = () => {
     // Integrated Search Effect (Handles mount, filters, pagination, and refresh)
     useEffect(() => {
         const abortController = new AbortController();
+        setLoading(true);
 
         // Debounce only if we already have data (i.e., user is changing filters)
         // Instant fetch on mount or when page/pageSize/refresh change

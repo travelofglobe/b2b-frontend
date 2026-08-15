@@ -16,10 +16,9 @@ const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, di
     }, []);
 
     const toggleOption = (value) => {
-        const numericValue = Number(value);
-        const newValues = selectedValues.includes(numericValue)
-            ? selectedValues.filter(v => v !== numericValue)
-            : [...selectedValues, numericValue];
+        const newValues = selectedValues.includes(value)
+            ? selectedValues.filter(v => v !== value)
+            : [...selectedValues, value];
         onChange(newValues);
     };
 

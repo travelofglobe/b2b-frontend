@@ -216,6 +216,7 @@ const MyBookings = () => {
     // Integrated Search Effect (Handles mount, filters, pagination, and refresh)
     useEffect(() => {
         const abortController = new AbortController();
+        setLoading(true);
 
         // Debounce only if we already have data (i.e., user is changing filters)
         // Instant fetch on mount or when page/pageSize/refresh change
@@ -277,7 +278,7 @@ const MyBookings = () => {
                     filterObj[key] = value + 'T00:00:00';
                 } else if (key === 'createDateEnd') {
                     filterObj[key] = value + 'T23:59:59';
-                } else if (['currencies', 'gsaIds', 'rsaIds', 'agencyIds', 'principalAgencyIds'].includes(key) && Array.isArray(value) && value.length > 0) {
+                } else if (['currencies', 'gsaIds', 'rsaIds', 'agencyIds', 'principalAgencyIds', 'countryIds', 'cityIds', 'supplierIds', 'boardTypes', 'salesChannels'].includes(key) && Array.isArray(value) && value.length > 0) {
                     filterObj[key] = value;
                 } else {
                     filterObj[key] = value;
@@ -818,8 +819,17 @@ const MyBookings = () => {
                                                 {col === "Supplier" && (
                                                     <GenericMultiSelect options={supplierOptions} selectedValues={filters.supplierIds || []} onChange={(values) => handleFilterChange('supplierIds', values)} placeholder="Select Supplier" />
                                                 )}
+                                                {col === "Supplier Res. No." && (
+                                                    <input type="text" value={filters.supplierVoucher || ''} onChange={(e) => handleFilterChange('supplierVoucher', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Res. No." className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                )}
+                                                {col === "Country" && (
+                                                    <GenericMultiSelect options={countryOptions} selectedValues={filters.countryIds || []} onChange={(values) => handleFilterChange('countryIds', values)} placeholder="Select Country" />
+                                                )}
+                                                {col === "City" && (
+                                                    <GenericMultiSelect options={cityOptions} selectedValues={filters.cityIds || []} onChange={(values) => handleFilterChange('cityIds', values)} placeholder="Select City" disabled={!filters.countryIds || filters.countryIds.length === 0} />
+                                                )}
                                                 {col === "Currency" && (
-                                                    <GenericMultiSelect options={currencyOptions} selectedValues={filters.currencies || []} onChange={(values) => handleFilterChange('currencies', values)} placeholder="Select Currency" />
+                                                    <GenericMultiSelect options={currencyOptions} selectedValues={filters.currencies || []} onChange={(values) => handleFilterChange('currencies', values)} placeholder="Select Currency" icon="paid" />
                                                 )}
                                                 {col === "Sales Channel" && (
                                                     <GenericMultiSelect options={agencyOptions} selectedValues={filters.salesChannels || []} onChange={(values) => handleFilterChange('salesChannels', values)} placeholder="Select Sales Channel" />
@@ -865,7 +875,7 @@ const MyBookings = () => {
                                                     </select>
                                                 )}
                                                 {/* Fallback for other columns */}
-                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Supplier", "Currency", "Sales Channel", "Net Amount", "Markup", "Profit", "Room", "Board Type", "Guest", "Client Reference", "Cancelled?", "Country", "City"].includes(col) && (
+                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Supplier", "Currency", "Sales Channel", "Net Amount", "Markup", "Profit", "Room", "Board Type", "Guest", "Client Reference", "Cancelled?", "Country", "City", "Supplier Res. No."]    .includes(col) && (
                                                     <div className="text-[10px] text-slate-400">Filter N/A</div>
                                                 )}
                                             </td>
@@ -909,7 +919,7 @@ const MyBookings = () => {
                                                     else if (col === "RSA") val = booking.rsaName || "-";
                                                     else if (col === "Agency") val = booking.principalAgencyName || booking.agencyName;
                                                     else if (col === "Status") val = <BookingStatusBadge status={booking.bookingStatus} />;
-                                                    else if (col === "Currency") val = booking.currency;
+                                                    else if (col === "Currency") val = booking.currency || "-";
                                                     else if (col === "Sale Amount") val = <div className="font-semibold text-slate-900 dark:text-white">{booking.currency} {booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</div>;
                                                     else if (col === "Net Amount") val = booking.netAmount != null ? <div className="font-semibold text-slate-900 dark:text-white">{booking.currency} {Number(booking.netAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div> : "-";
                                                     else if (col === "Markup") val = booking.markupAmount != null ? <div className="font-semibold text-slate-900 dark:text-white">{booking.currency} {Number(booking.markupAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div> : "-";

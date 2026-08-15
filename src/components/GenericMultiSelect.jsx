@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, disabled = false }) => {
+const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, disabled = false, icon = null }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -16,10 +16,9 @@ const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, di
     }, []);
 
     const toggleOption = (value) => {
-        const numericValue = Number(value);
-        const newValues = selectedValues.includes(numericValue)
-            ? selectedValues.filter(v => v !== numericValue)
-            : [...selectedValues, numericValue];
+        const newValues = selectedValues.includes(value)
+            ? selectedValues.filter(v => v !== value)
+            : [...selectedValues, value];
         onChange(newValues);
     };
 
@@ -43,7 +42,10 @@ const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, di
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-full bg-white/20 dark:bg-slate-800/40 border ${isOpen ? 'border-primary/50 ring-2 ring-primary/20 bg-white/40' : 'border-white/40 dark:border-white/5'} rounded-xl py-1.5 px-2 text-xs font-semibold flex items-center justify-between transition-all outline-none text-slate-700 dark:text-slate-200`}
             >
-                <span className="truncate">{getDisplayText()}</span>
+                <span className="flex items-center gap-1.5 truncate">
+                    {icon && <span className="material-icons-round text-[14px] text-emerald-600 dark:text-emerald-400">{icon}</span>}
+                    {getDisplayText()}
+                </span>
                 <span className={`material-icons-round text-xs transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>expand_more</span>
             </button>
 

@@ -165,10 +165,10 @@ const MyBookings = () => {
     const agencyOptions = allAgencies.filter(a => a.agencyType === 'AGENCY');
     const supplierOptions = allAgencies.filter(a => a.agencyType === 'SUPPLIER' || a.supplier === true || a.id); // fallback
     const currencyOptions = [
-        { id: 'TRY', name: 'TRY' },
-        { id: 'USD', name: 'USD' },
-        { id: 'EUR', name: 'EUR' },
-        { id: 'GBP', name: 'GBP' }
+        { id: 'TRY', name: 'TRY', iconText: '₺' },
+        { id: 'USD', name: 'USD', iconText: '$' },
+        { id: 'EUR', name: 'EUR', iconText: '€' },
+        { id: 'GBP', name: 'GBP', iconText: '£' }
     ];
     const boardTypeOptions = [
         { id: 'RO', name: 'Room Only (RO)' },
@@ -183,8 +183,10 @@ const MyBookings = () => {
         const controller = new AbortController();
         locationService.listCountries(controller.signal)
             .then(res => {
-                if (res?.data) {
-                    setCountryOptions(res.data.map(c => ({ id: c.id, name: c.name })));
+                if (res?.locationList && Array.isArray(res.locationList)) {
+                    setCountryOptions(res.locationList.map(c => ({ id: c.id, name: c.name.defaultName || c.name })));
+                } else if (Array.isArray(res)) {
+                    setCountryOptions(res.map(c => ({ id: c.id, name: c.name })));
                 }
             })
             .catch(e => {
@@ -203,8 +205,10 @@ const MyBookings = () => {
         const controller = new AbortController();
         locationService.listSubRegions(filters.countryIds[0], controller.signal)
             .then(res => {
-                if (res?.data) {
-                    setCityOptions(res.data.map(c => ({ id: c.id, name: c.name })));
+                if (res?.locationList && Array.isArray(res.locationList)) {
+                    setCityOptions(res.locationList.map(c => ({ id: c.id, name: c.name.defaultName || c.name })));
+                } else if (Array.isArray(res)) {
+                    setCityOptions(res.map(c => ({ id: c.id, name: c.name })));
                 }
             })
             .catch(e => {
@@ -236,29 +240,7 @@ const MyBookings = () => {
         pageSize,
         refreshTrigger,
         // Individual filter dependencies to avoid unnecessarily complex object checks
-        filters.id,
-        filters.voucher,
-        filters.supplierId,
-        filters.supplierName,
-        filters.internalHotelId,
-        filters.bookingUuid,
-        filters.clientReferenceId,
-        filters.requestId,
-        filters.hotelName,
-        filters.createDateStart,
-        filters.createDateEnd,
-        filters.checkInStart,
-        filters.checkInEnd,
-        filters.checkOutStart,
-        filters.checkOutEnd,
-        filters.minAmount,
-        filters.maxAmount,
-        filters.minCancellationAmount,
-        filters.maxCancellationAmount,
-        filters.principalAgencyIds,
-        filters.paymentStatus,
-        filters.bookingStatuses,
-        filters.isCancelled
+        JSON.stringify(filters)
     ]);
 
     const buildFilterPayload = () => {
@@ -817,22 +799,22 @@ const MyBookings = () => {
                                                     <input type="number" value={filters.internalHotelId} onChange={(e) => handleFilterChange('internalHotelId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Hotel ID" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
                                                 )}
                                                 {col === "Supplier" && (
-                                                    <GenericMultiSelect options={supplierOptions} selectedValues={filters.supplierIds || []} onChange={(values) => handleFilterChange('supplierIds', values)} placeholder="Select Supplier" />
+                                                    <GenericMultiSelect options={supplierOptions} selectedValues={filters.supplierIds || []} onChange={(values) => handleFilterChange('supplierIds', values)} placeholder="Select Supplier" alignRight={true} />
                                                 )}
                                                 {col === "Supplier Res. No." && (
                                                     <input type="text" value={filters.supplierVoucher || ''} onChange={(e) => handleFilterChange('supplierVoucher', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Res. No." className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
                                                 )}
                                                 {col === "Country" && (
-                                                    <GenericMultiSelect options={countryOptions} selectedValues={filters.countryIds || []} onChange={(values) => handleFilterChange('countryIds', values)} placeholder="Select Country" />
+                                                    <GenericMultiSelect options={countryOptions} selectedValues={filters.countryIds || []} onChange={(values) => handleFilterChange('countryIds', values)} placeholder="Select Country" alignRight={true} />
                                                 )}
                                                 {col === "City" && (
-                                                    <GenericMultiSelect options={cityOptions} selectedValues={filters.cityIds || []} onChange={(values) => handleFilterChange('cityIds', values)} placeholder="Select City" disabled={!filters.countryIds || filters.countryIds.length === 0} />
+                                                    <GenericMultiSelect options={cityOptions} selectedValues={filters.cityIds || []} onChange={(values) => handleFilterChange('cityIds', values)} placeholder="Select City" alignRight={true} />
                                                 )}
                                                 {col === "Currency" && (
-                                                    <GenericMultiSelect options={currencyOptions} selectedValues={filters.currencies || []} onChange={(values) => handleFilterChange('currencies', values)} placeholder="Select Currency" icon="paid" />
+                                                    <GenericMultiSelect options={currencyOptions} selectedValues={filters.currencies || []} onChange={(values) => handleFilterChange('currencies', values)} placeholder="Select Currency" alignRight={true} />
                                                 )}
                                                 {col === "Sales Channel" && (
-                                                    <GenericMultiSelect options={agencyOptions} selectedValues={filters.salesChannels || []} onChange={(values) => handleFilterChange('salesChannels', values)} placeholder="Select Sales Channel" />
+                                                    <GenericMultiSelect options={agencyOptions} selectedValues={filters.salesChannels || []} onChange={(values) => handleFilterChange('salesChannels', values)} placeholder="Select Sales Channel" alignRight={true} />
                                                 )}
                                                 {col === "Net Amount" && (
                                                     <div className="flex flex-col gap-1">
@@ -856,7 +838,7 @@ const MyBookings = () => {
                                                     <input type="text" value={filters.roomName} onChange={(e) => handleFilterChange('roomName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Room" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
                                                 )}
                                                 {col === "Board Type" && (
-                                                    <GenericMultiSelect options={boardTypeOptions} selectedValues={filters.boardTypes || []} onChange={(values) => handleFilterChange('boardTypes', values)} placeholder="Select Board" />
+                                                    <GenericMultiSelect options={boardTypeOptions} selectedValues={filters.boardTypes || []} onChange={(values) => handleFilterChange('boardTypes', values)} placeholder="Select Board" alignRight={true} />
                                                 )}
                                                 {col === "Guest" && (
                                                     <div className="flex flex-col gap-1">

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, disabled = false, icon = null }) => {
+const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, disabled = false, icon = null, alignRight = false }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -50,7 +50,7 @@ const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, di
             </button>
 
             {isOpen && (
-                <div className="absolute left-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-[100] overflow-hidden min-w-[280px] w-max max-w-[340px] animate-in fade-in slide-in-from-top-2">
+                <div className={`absolute ${alignRight ? 'right-0' : 'left-0'} mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-[100] overflow-hidden min-w-[280px] w-max max-w-[340px] animate-in fade-in slide-in-from-top-2`}>
                     <div className="p-1.5 border-b border-slate-100 dark:border-slate-800">
                         <input
                             type="text"
@@ -76,7 +76,10 @@ const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, di
                                             {isSelected && <span className="material-icons-round text-[9px]">check</span>}
                                         </div>
                                         <div className="flex items-center justify-between gap-2 flex-1 overflow-hidden">
-                                            <span className="text-xs tracking-normal leading-tight font-medium text-slate-700 dark:text-slate-200 whitespace-normal break-words">{opt.name}</span>
+                                            <span className="text-xs tracking-normal leading-tight font-medium text-slate-700 dark:text-slate-200 whitespace-normal break-words">
+                                                {opt.iconText && <span className="mr-1.5 font-bold text-emerald-600 dark:text-emerald-400">{opt.iconText}</span>}
+                                                {opt.name}
+                                            </span>
                                             {opt.agencyType && (
                                                 <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wider shrink-0 ${
                                                     opt.agencyType === 'GSA' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40' : 

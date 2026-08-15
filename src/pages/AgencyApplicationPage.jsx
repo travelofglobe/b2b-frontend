@@ -5,6 +5,7 @@ import { agencyApplicationService } from '../services/agencyApplicationService';
 import PlaneLoading from '../components/PlaneLoading';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
+import { countryCodes } from '../utils/countryCodes';
 
 // Local translation dictionary mapping for Agency Application page
 const localTranslations = {
@@ -135,8 +136,10 @@ const AgencyApplicationPage = () => {
     // Autocomplete Lookup States
     const [countries, setCountries] = useState([]);
     const [cities, setCities] = useState([]);
+    
     const [countrySearch, setCountrySearch] = useState('');
     const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+    const [highlightedCountryIndex, setHighlightedCountryIndex] = useState(-1);
     
     // Form FormState
     const [formData, setFormData] = useState({
@@ -158,7 +161,7 @@ const AgencyApplicationPage = () => {
         lastName: '',
         jobTitle: '',
         emailAddress: '',
-        mobilePhoneCountryCode: '+90',
+        mobilePhoneCountryCode: '',
         mobilePhoneNumber: '',
         whatsAppNumber: '',
         preferredLanguage: 'English',
@@ -251,6 +254,27 @@ const AgencyApplicationPage = () => {
         }
     };
 
+    
+    const handleCountryKeyDown = (e) => {
+        if (!showCountryDropdown || filteredCountries.length === 0) return;
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setHighlightedCountryIndex(prev => (prev < filteredCountries.length - 1 ? prev + 1 : prev));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setHighlightedCountryIndex(prev => (prev > 0 ? prev - 1 : 0));
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (highlightedCountryIndex >= 0 && highlightedCountryIndex < filteredCountries.length) {
+                const c = filteredCountries[highlightedCountryIndex];
+                selectCountry(c.id, c.name?.defaultName);
+            }
+        } else if (e.key === 'Escape') {
+            setShowCountryDropdown(false);
+        }
+    };
+
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
@@ -329,6 +353,7 @@ const AgencyApplicationPage = () => {
         if (!emailPattern.test(formData.emailAddress)) {
             return currentLang === 'tr' ? 'Geçerli bir e-posta adresi giriniz' : 'Email must be a valid email address';
         }
+        if (!formData.mobilePhoneCountryCode) return currentLang === 'tr' ? 'Telefon Kodu seçimi zorunludur' : 'Phone Code is required';
         if (!formData.mobilePhoneNumber) return currentLang === 'tr' ? 'Cep Telefonu zorunludur' : 'Mobile Phone Number is required';
         if (!/^\d+$/.test(formData.mobilePhoneNumber)) {
             return currentLang === 'tr' ? 'Cep Telefonu sadece rakamlardan oluşmalıdır' : 'Mobile Phone Number must contain digits only';
@@ -383,7 +408,7 @@ const AgencyApplicationPage = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden font-sans">
+        <div className="min-h-screen w-full flex items-center justify-center relative overflow-y-auto bg-slate-50 font-sans py-12">
             {isLoading && <PlaneLoading />}
 
             {/* Floating Language Switcher */}
@@ -391,33 +416,19 @@ const AgencyApplicationPage = () => {
                 <LanguageSwitcher />
             </div>
 
-            {/* Immersive Background */}
-            <div className="absolute inset-0 z-0">
-                <div className="absolute inset-0 bg-slate-900/40 z-10"></div>
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/20 to-slate-900/90 z-10"></div>
-                <img
-                    src={selectedBg}
-                    className="w-full h-full object-cover animate-pan"
-                    alt="Luxury Background"
-                    onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.parentElement.style.background = 'linear-gradient(to bottom, #0f172a, #1e293b)';
-                    }}
-                />
-            </div>
 
             {/* Main Application Box */}
-            <div className="relative z-20 w-full max-w-4xl mx-auto px-6 py-12">
+            <div className="relative z-20 w-full max-w-3xl mx-auto px-4">
                 {!successMode ? (
-                    <div className="bg-white/[0.03] backdrop-blur-[40px] rounded-[32px] border border-white/10 shadow-[0_32px_96px_-16px_rgba(0,0,0,0.5)] overflow-hidden">
+                    <div className="bg-white rounded-[24px] border border-slate-200 shadow-2xl shadow-slate-200/60 overflow-hidden">
                         {/* Header & Steps Indicator */}
-                        <div className="p-8 pb-4 text-center border-b border-white/5 bg-white/[0.01]">
-                            <h2 className="text-3xl font-black text-white mb-2">{loc.title}</h2>
-                            <p className="text-slate-400 text-sm mb-6">{loc.subtitle}</p>
+                        <div className="p-6 pb-4 text-center border-b border-slate-100 bg-white">
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">{loc.title}</h2>
+                            <p className="text-slate-600 text-[13px] mb-5">{loc.subtitle}</p>
 
                             {/* Stepper Progress Bar */}
                             <div className="flex items-center justify-center max-w-md mx-auto relative mb-4">
-                                <div className="absolute top-4 left-0 right-0 h-1 bg-white/10 z-0 rounded"></div>
+                                <div className="absolute top-4 left-0 right-0 h-1 bg-slate-200 z-0 rounded"></div>
                                 <div className="absolute top-4 left-0 h-1 bg-gradient-to-r from-primary to-blue-500 z-0 rounded transition-all duration-500" style={{ width: `${((step - 1) / 2) * 100}%` }}></div>
                                 
                                 <div className="flex justify-between w-full relative z-10">
@@ -429,15 +440,15 @@ const AgencyApplicationPage = () => {
                                                     type="button"
                                                     disabled={num > step}
                                                     onClick={() => setStep(num)}
-                                                    className={`size-9 rounded-full flex items-center justify-center font-black text-xs transition-all duration-300 ${
+                                                    className={`size-8 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-300 ${
                                                         step >= num
                                                             ? 'bg-gradient-to-r from-primary to-blue-500 text-white shadow-lg shadow-primary/20 scale-110'
-                                                            : 'bg-slate-800 text-slate-400 border border-white/5'
+                                                            : 'bg-white text-slate-400 border-2 border-slate-200 font-semibold'
                                                     }`}
                                                 >
                                                     {num}
                                                 </button>
-                                                <span className={`text-[10px] font-bold uppercase mt-2 tracking-wider ${step >= num ? 'text-white' : 'text-slate-500'}`}>
+                                                <span className={`text-[9px] font-semibold uppercase mt-2 tracking-wider ${step >= num ? 'text-slate-900' : 'text-slate-500'}`}>
                                                     {labels[idx]}
                                                 </span>
                                             </div>
@@ -448,16 +459,16 @@ const AgencyApplicationPage = () => {
                         </div>
 
                         {/* Wizard Forms */}
-                        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                        <form onSubmit={handleSubmit} className="p-6 space-y-5">
                             
                             {/* Step 1: Company Details */}
                             {step === 1 && (
                                 <div className="space-y-4 animate-in fade-in duration-300">
-                                    <h3 className="text-lg font-black text-white/90 border-l-4 border-primary pl-3 mb-6">{loc.step1Header}</h3>
+                                    <h3 className="text-base font-bold text-slate-900/90 border-l-4 border-primary pl-3 mb-4">{loc.step1Header}</h3>
                                     
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.companyLegalName}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.companyLegalName}</label>
                                             <input
                                                 type="text"
                                                 name="companyLegalName"
@@ -465,26 +476,26 @@ const AgencyApplicationPage = () => {
                                                 value={formData.companyLegalName}
                                                 onChange={handleInputChange}
                                                 placeholder={loc.companyLegalName.replace(' *', '')}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                             />
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.brandName}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.brandName}</label>
                                             <input
                                                 type="text"
                                                 name="brandName"
                                                 value={formData.brandName}
                                                 onChange={handleInputChange}
                                                 placeholder={loc.brandName}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.taxNumber}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.taxNumber}</label>
                                             <input
                                                 type="text"
                                                 name="taxNumber"
@@ -493,30 +504,32 @@ const AgencyApplicationPage = () => {
                                                 onChange={handleInputChange}
                                                 onBlur={handleTaxBlur}
                                                 placeholder={loc.taxNumber.replace(' *', '')}
-                                                className={`w-full bg-white/5 border rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 transition-all text-sm font-semibold ${
-                                                    taxError ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:border-primary/50'
+                                                className={`w-full bg-white border shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 transition-all text-[13px] font-medium ${
+                                                    taxError ? 'border-red-500/50 focus:border-red-500' : 'border-slate-200 focus:border-primary/50'
                                                 }`}
                                             />
-                                            {taxError && <p className="text-[11px] font-bold text-red-500 mt-1">{taxError}</p>}
+                                            {taxError && <p className="text-[11px] font-semibold text-red-500 mt-1">{taxError}</p>}
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.taxOffice}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.taxOffice}</label>
                                             <input
                                                 type="text"
                                                 name="taxOffice"
                                                 value={formData.taxOffice}
                                                 onChange={handleInputChange}
                                                 placeholder={loc.taxOffice}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         {/* Searchable Autocomplete Country Field */}
                                         <div className="space-y-1 relative">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.country}</label>
+                                            <div className="flex justify-between items-center h-5">
+                                                <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.country}</label>
+                                            </div>
                                             <input
                                                 type="text"
                                                 placeholder={loc.searchCountry}
@@ -524,17 +537,24 @@ const AgencyApplicationPage = () => {
                                                 onChange={(e) => {
                                                     setCountrySearch(e.target.value);
                                                     setShowCountryDropdown(true);
+                                                    setHighlightedCountryIndex(-1);
                                                 }}
+                                                onKeyDown={handleCountryKeyDown}
                                                 onFocus={() => setShowCountryDropdown(true)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                             />
                                             {showCountryDropdown && filteredCountries.length > 0 && (
-                                                <div className="absolute left-0 right-0 mt-2 bg-slate-900/95 border border-white/10 rounded-2xl max-h-60 overflow-y-auto z-50 shadow-2xl backdrop-blur-xl">
-                                                    {filteredCountries.map((c) => (
+                                                <div className="absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl shadow-slate-200/50 max-h-60 overflow-y-auto z-50 shadow-2xl backdrop-blur-xl">
+                                                    {filteredCountries.map((c, index) => (
                                                         <div
                                                             key={c.id}
+                                                            onMouseEnter={() => setHighlightedCountryIndex(index)}
                                                             onClick={() => selectCountry(c.id, c.name?.defaultName)}
-                                                            className="px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-white/10 cursor-pointer font-semibold transition-colors"
+                                                            className={`px-4 py-2.5 text-sm cursor-pointer font-medium transition-colors ${
+                                                                highlightedCountryIndex === index
+                                                                    ? 'text-slate-900 bg-slate-100'
+                                                                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                                                            }`}
                                                         >
                                                             {c.name?.defaultName}
                                                         </div>
@@ -545,8 +565,8 @@ const AgencyApplicationPage = () => {
 
                                         {/* Dynamic City Selector (List + Manual override) */}
                                         <div className="space-y-1">
-                                            <div className="flex justify-between items-center">
-                                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.city}</label>
+                                            <div className="flex justify-between items-center h-5">
+                                                <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.city}</label>
                                                 {formData.countryId && cities.length > 0 && (
                                                     <button
                                                         type="button"
@@ -558,7 +578,7 @@ const AgencyApplicationPage = () => {
                                                                 isCustomCity: !prev.isCustomCity
                                                             }));
                                                         }}
-                                                        className="text-[10px] font-bold text-primary hover:underline uppercase"
+                                                        className="text-[9px] font-semibold text-primary hover:underline uppercase"
                                                     >
                                                         {formData.isCustomCity ? loc.selectFromList : loc.enterManually}
                                                     </button>
@@ -572,7 +592,7 @@ const AgencyApplicationPage = () => {
                                                     value={formData.cityName || ''}
                                                     onChange={handleInputChange}
                                                     placeholder={loc.city.replace(' *', '')}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                    className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                                 />
                                             ) : (
                                                 <select
@@ -585,9 +605,9 @@ const AgencyApplicationPage = () => {
                                                         const name = cities.find(c => String(c.id) === String(id))?.name?.defaultName || '';
                                                         setFormData(prev => ({ ...prev, cityId: id, cityName: name }));
                                                     }}
-                                                    className="w-full bg-slate-900 border border-white/10 rounded-2xl py-3 px-4 text-white focus:outline-none focus:bg-slate-800 transition-all text-sm font-semibold disabled:opacity-50"
+                                                    className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 transition-all text-[13px] font-medium disabled:opacity-50"
                                                 >
-                                                    <option value="">Select City</option>
+                                                    <option className="text-slate-900" value="">Select City</option>
                                                     {cities.map((city) => (
                                                         <option key={city.id} value={city.id}>
                                                             {city.name?.defaultName}
@@ -599,7 +619,7 @@ const AgencyApplicationPage = () => {
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.businessAddress}</label>
+                                        <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.businessAddress}</label>
                                         <textarea
                                             name="businessAddress"
                                             required
@@ -607,44 +627,44 @@ const AgencyApplicationPage = () => {
                                             value={formData.businessAddress}
                                             onChange={handleInputChange}
                                             placeholder={loc.businessAddress.replace(' *', '')}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold resize-none"
+                                            className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium resize-none"
                                         ></textarea>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.postalCode}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.postalCode}</label>
                                             <input
                                                 type="text"
                                                 name="postalCode"
                                                 value={formData.postalCode}
                                                 onChange={handleInputChange}
                                                 placeholder={loc.postalCode}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                             />
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.website}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.website}</label>
                                             <input
                                                 type="text"
                                                 name="website"
                                                 value={formData.website}
                                                 onChange={handleInputChange}
                                                 placeholder="https://example.com"
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                             />
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.companyRegNumber}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.companyRegNumber}</label>
                                             <input
                                                 type="text"
                                                 name="companyRegistrationNumber"
                                                 value={formData.companyRegistrationNumber}
                                                 onChange={handleInputChange}
                                                 placeholder={loc.companyRegNumber}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                             />
                                         </div>
                                     </div>
@@ -654,11 +674,11 @@ const AgencyApplicationPage = () => {
                             {/* Step 2: Authorized Representative */}
                             {step === 2 && (
                                 <div className="space-y-4 animate-in fade-in duration-300">
-                                    <h3 className="text-lg font-black text-white/90 border-l-4 border-primary pl-3 mb-6">{loc.step2Header}</h3>
+                                    <h3 className="text-base font-bold text-slate-900/90 border-l-4 border-primary pl-3 mb-4">{loc.step2Header}</h3>
                                     
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.firstName}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.firstName}</label>
                                             <input
                                                 type="text"
                                                 name="firstName"
@@ -666,12 +686,12 @@ const AgencyApplicationPage = () => {
                                                 value={formData.firstName}
                                                 onChange={handleInputChange}
                                                 placeholder={loc.firstName.replace(' *', '')}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                             />
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.lastName}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.lastName}</label>
                                             <input
                                                 type="text"
                                                 name="lastName"
@@ -679,26 +699,26 @@ const AgencyApplicationPage = () => {
                                                 value={formData.lastName}
                                                 onChange={handleInputChange}
                                                 placeholder={loc.lastName.replace(' *', '')}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.jobTitle}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.jobTitle}</label>
                                             <input
                                                 type="text"
                                                 name="jobTitle"
                                                 value={formData.jobTitle}
                                                 onChange={handleInputChange}
                                                 placeholder={loc.jobTitle}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                             />
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.emailAddress}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.emailAddress}</label>
                                             <input
                                                 type="email"
                                                 name="emailAddress"
@@ -707,32 +727,31 @@ const AgencyApplicationPage = () => {
                                                 onChange={handleInputChange}
                                                 onBlur={handleEmailBlur}
                                                 placeholder="representative@email.com"
-                                                className={`w-full bg-white/5 border rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 transition-all text-sm font-semibold ${
-                                                    emailError ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:border-primary/50'
+                                                className={`w-full bg-white border shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 transition-all text-[13px] font-medium ${
+                                                    emailError ? 'border-red-500/50 focus:border-red-500' : 'border-slate-200 focus:border-primary/50'
                                                 }`}
                                             />
-                                            {emailError && <p className="text-[11px] font-bold text-red-500 mt-1">{emailError}</p>}
+                                            {emailError && <p className="text-[11px] font-semibold text-red-500 mt-1">{emailError}</p>}
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         {/* Mobile Phone country code select + digits input */}
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.mobilePhone}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.mobilePhone}</label>
                                             <div className="flex gap-2">
                                                 <select
                                                     name="mobilePhoneCountryCode"
                                                     value={formData.mobilePhoneCountryCode}
                                                     onChange={handleInputChange}
-                                                    className="w-24 bg-slate-900 border border-white/10 rounded-2xl py-3 px-3 text-white focus:outline-none text-sm font-semibold"
+                                                    className="w-28 bg-white border border-slate-300 shadow-sm rounded-xl py-2 px-3 text-slate-900 focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                                 >
-                                                    <option value="+90">+90 (TR)</option>
-                                                    <option value="+1">+1 (US)</option>
-                                                    <option value="+44">+44 (UK)</option>
-                                                    <option value="+49">+49 (DE)</option>
-                                                    <option value="+33">+33 (FR)</option>
-                                                    <option value="+7">+7 (RU)</option>
-                                                    <option value="+971">+971 (AE)</option>
+                                                    <option className="text-slate-900" value="" disabled>{loc.enterManually === 'Elle girin' ? 'Seçiniz' : 'Select'}</option>
+                                                    {countryCodes.map((country) => (
+                                                        <option key={country.code} value={country.dial_code} className="text-slate-900">
+                                                            {country.emoji} {country.name} ({country.dial_code})
+                                                        </option>
+                                                    ))}
                                                 </select>
                                                 <input
                                                     type="text"
@@ -744,78 +763,78 @@ const AgencyApplicationPage = () => {
                                                         setFormData(prev => ({ ...prev, mobilePhoneNumber: clean }));
                                                     }}
                                                     placeholder="5551234567"
-                                                    className="flex-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                    className="flex-1 bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                                 />
                                             </div>
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.whatsAppNumber}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.whatsAppNumber}</label>
                                             <input
                                                 type="text"
                                                 name="whatsAppNumber"
                                                 value={formData.whatsAppNumber}
                                                 onChange={handleInputChange}
                                                 placeholder={loc.whatsAppNumber}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.preferredLanguage}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.preferredLanguage}</label>
                                             <select
                                                 name="preferredLanguage"
                                                 required
                                                 value={formData.preferredLanguage}
                                                 onChange={handleInputChange}
-                                                className="w-full bg-slate-900 border border-white/10 rounded-2xl py-3 px-4 text-white focus:outline-none focus:bg-slate-800 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 transition-all text-[13px] font-medium"
                                             >
-                                                <option value="English">English</option>
-                                                <option value="Turkish">Turkish</option>
-                                                <option value="Russian">Russian</option>
-                                                <option value="German">German</option>
-                                                <option value="French">French</option>
+                                                <option className="text-slate-900" value="English">English</option>
+                                                <option className="text-slate-900" value="Turkish">Turkish</option>
+                                                <option className="text-slate-900" value="Russian">Russian</option>
+                                                <option className="text-slate-900" value="German">German</option>
+                                                <option className="text-slate-900" value="French">French</option>
                                             </select>
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.timeZone}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.timeZone}</label>
                                             <select
                                                 name="timeZone"
                                                 required
                                                 value={formData.timeZone}
                                                 onChange={handleInputChange}
-                                                className="w-full bg-slate-900 border border-white/10 rounded-2xl py-3 px-4 text-white focus:outline-none focus:bg-slate-800 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 transition-all text-[13px] font-medium"
                                             >
-                                                <option value="GMT+0">GMT+0 (London, Lisbon)</option>
-                                                <option value="GMT+1">GMT+1 (Paris, Berlin, Rome)</option>
-                                                <option value="GMT+2">GMT+2 (Athens, Cairo, Kyiv)</option>
-                                                <option value="GMT+3">GMT+3 (Istanbul, Moscow, Riyadh)</option>
-                                                <option value="GMT+4">GMT+4 (Dubai, Baku)</option>
-                                                <option value="GMT+5">GMT+5 (Karachi, Tashkent)</option>
-                                                <option value="GMT-5">GMT-5 (New York, Miami)</option>
-                                                <option value="GMT-8">GMT-8 (Los Angeles, Seattle)</option>
+                                                <option className="text-slate-900" value="GMT+0">GMT+0 (London, Lisbon)</option>
+                                                <option className="text-slate-900" value="GMT+1">GMT+1 (Paris, Berlin, Rome)</option>
+                                                <option className="text-slate-900" value="GMT+2">GMT+2 (Athens, Cairo, Kyiv)</option>
+                                                <option className="text-slate-900" value="GMT+3">GMT+3 (Istanbul, Moscow, Riyadh)</option>
+                                                <option className="text-slate-900" value="GMT+4">GMT+4 (Dubai, Baku)</option>
+                                                <option className="text-slate-900" value="GMT+5">GMT+5 (Karachi, Tashkent)</option>
+                                                <option className="text-slate-900" value="GMT-5">GMT-5 (New York, Miami)</option>
+                                                <option className="text-slate-900" value="GMT-8">GMT-8 (Los Angeles, Seattle)</option>
                                             </select>
                                         </div>
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.profilePhoto}</label>
-                                        <div className="flex items-center gap-4">
+                                        <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.profilePhoto}</label>
+                                        <div className="flex items-center gap-3">
                                             {formData.profilePhoto && (
                                                 <img
                                                     src={formData.profilePhoto}
                                                     alt="Preview"
-                                                    className="size-16 rounded-2xl object-cover border border-white/15 shadow-xl"
+                                                    className="size-16 rounded-xl object-cover border border-white/15 shadow-xl"
                                                 />
                                             )}
                                             <input
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={handleFileChange}
-                                                className="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-white/10 file:text-white file:cursor-pointer hover:file:bg-white/20 transition-all"
+                                                className="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-900 file:cursor-pointer hover:file:bg-white/20 transition-all"
                                             />
                                         </div>
                                     </div>
@@ -824,19 +843,19 @@ const AgencyApplicationPage = () => {
 
                             {/* Step 3: Business Profile */}
                             {step === 3 && (
-                                <div className="space-y-6 animate-in fade-in duration-300">
-                                    <h3 className="text-lg font-black text-white/90 border-l-4 border-primary pl-3 mb-4">{loc.step3Header}</h3>
+                                <div className="space-y-5 animate-in fade-in duration-300">
+                                    <h3 className="text-base font-bold text-slate-900/90 border-l-4 border-primary pl-3 mb-4">{loc.step3Header}</h3>
                                     
                                     <div className="space-y-2">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.agencyType}</label>
+                                        <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.agencyType}</label>
                                         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                                             {['Retail Agency', 'OTA', 'DMC', 'Wholesaler', 'Corporate'].map((type) => (
                                                 <label
                                                     key={type}
-                                                    className={`border rounded-2xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+                                                    className={`border rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
                                                         formData.agencyType === type
-                                                            ? 'border-primary bg-primary/10 text-white font-bold'
-                                                            : 'border-white/10 bg-white/5 text-slate-400 hover:bg-white/10'
+                                                            ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                                            : 'border-slate-200 bg-white/5 text-slate-500 hover:bg-slate-100'
                                                     }`}
                                                 >
                                                     <input
@@ -847,50 +866,50 @@ const AgencyApplicationPage = () => {
                                                         onChange={handleInputChange}
                                                         className="sr-only"
                                                     />
-                                                    <span className="text-xs font-semibold">{type}</span>
+                                                    <span className="text-xs font-medium">{type}</span>
                                                 </label>
                                             ))}
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.monthlyVolume}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.monthlyVolume}</label>
                                             <select
                                                 name="monthlyBookingVolume"
                                                 required
                                                 value={formData.monthlyBookingVolume}
                                                 onChange={handleInputChange}
-                                                className="w-full bg-slate-900 border border-white/10 rounded-2xl py-3 px-4 text-white focus:outline-none focus:bg-slate-800 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 transition-all text-[13px] font-medium"
                                             >
-                                                <option value="0 – 100">0 – 100 bookings</option>
-                                                <option value="100 – 500">100 – 500 bookings</option>
-                                                <option value="500 – 1.000">500 – 1.000 bookings</option>
-                                                <option value="1.000 – 5.000">1.000 – 5.000 bookings</option>
-                                                <option value="5.000+">5.000+ bookings</option>
+                                                <option className="text-slate-900" value="0 – 100">0 – 100 bookings</option>
+                                                <option className="text-slate-900" value="100 – 500">100 – 500 bookings</option>
+                                                <option className="text-slate-900" value="500 – 1.000">500 – 1.000 bookings</option>
+                                                <option className="text-slate-900" value="1.000 – 5.000">1.000 – 5.000 bookings</option>
+                                                <option className="text-slate-900" value="5.000+">5.000+ bookings</option>
                                             </select>
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.preferredCurrency}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.preferredCurrency}</label>
                                             <select
                                                 name="preferredCurrency"
                                                 required
                                                 value={formData.preferredCurrency}
                                                 onChange={handleInputChange}
-                                                className="w-full bg-slate-900 border border-white/10 rounded-2xl py-3 px-4 text-white focus:outline-none focus:bg-slate-800 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 transition-all text-[13px] font-medium"
                                             >
-                                                <option value="USD">USD</option>
-                                                <option value="EUR">EUR</option>
-                                                <option value="GBP">GBP</option>
-                                                <option value="TRY">TRY</option>
-                                                <option value="RUB">RUB</option>
+                                                <option className="text-slate-900" value="USD">USD</option>
+                                                <option className="text-slate-900" value="EUR">EUR</option>
+                                                <option className="text-slate-900" value="GBP">GBP</option>
+                                                <option className="text-slate-900" value="TRY">TRY</option>
+                                                <option className="text-slate-900" value="RUB">RUB</option>
                                             </select>
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.mainMarkets}</label>
+                                        <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.mainMarkets}</label>
                                         <div className="flex flex-wrap gap-2">
                                             {['Europe', 'Middle East', 'North America', 'South America', 'Asia Pacific', 'Africa', 'Central Asia', 'GCC Countries', 'Mediterranean'].map((market) => {
                                                 const selected = formData.mainMarketsServed.includes(market);
@@ -899,10 +918,10 @@ const AgencyApplicationPage = () => {
                                                         type="button"
                                                         key={market}
                                                         onClick={() => handleMarketToggle(market)}
-                                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                                                        className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all border ${
                                                             selected
                                                                 ? 'bg-gradient-to-r from-primary to-blue-500 text-white border-transparent'
-                                                                : 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'
+                                                                : 'bg-white/5 text-slate-500 border-slate-200 hover:bg-slate-100'
                                                         }`}
                                                     >
                                                         {market}
@@ -912,10 +931,10 @@ const AgencyApplicationPage = () => {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between border border-white/10 bg-white/[0.02] rounded-2xl p-4">
+                                    <div className="flex items-center justify-between border border-slate-200 bg-white/[0.02] rounded-xl p-4">
                                         <div>
-                                            <p className="text-sm font-bold text-white">{loc.apiIntegration}</p>
-                                            <p className="text-xs text-slate-400">{loc.apiIntegrationSub}</p>
+                                            <p className="text-sm font-semibold text-slate-900">{loc.apiIntegration}</p>
+                                            <p className="text-xs text-slate-500">{loc.apiIntegrationSub}</p>
                                         </div>
                                         <label className="relative inline-flex items-center cursor-pointer">
                                             <input
@@ -929,21 +948,21 @@ const AgencyApplicationPage = () => {
                                         </label>
                                     </div>
 
-                                    <div className="grid grid-cols-1 gap-4">
+                                    <div className="grid grid-cols-1 gap-3">
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.currentSuppliers}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.currentSuppliers}</label>
                                             <input
                                                 type="text"
                                                 name="currentSuppliers"
                                                 value={formData.currentSuppliers}
                                                 onChange={handleInputChange}
                                                 placeholder="e.g. Hotelbeds, Expedia, Ratehawk, Travco"
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium"
                                             />
                                         </div>
 
                                         <div className="space-y-1">
-                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{loc.additionalNotes}</label>
+                                            <label className="text-xs font-bold text-slate-500 font-semibold uppercase tracking-widest">{loc.additionalNotes}</label>
                                             <textarea
                                                 name="additionalNotes"
                                                 maxLength="1000"
@@ -951,7 +970,7 @@ const AgencyApplicationPage = () => {
                                                 value={formData.additionalNotes}
                                                 onChange={handleInputChange}
                                                 placeholder={loc.additionalNotes}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-white placeholder:text-slate-400 focus:outline-none focus:bg-white/10 focus:border-primary/50 transition-all text-sm font-semibold resize-none"
+                                                className="w-full bg-white border border-slate-300 shadow-sm rounded-xl py-2.5 px-3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:bg-slate-50 focus:ring-4 focus:ring-primary/10 focus:border-primary/50 transition-all text-[13px] font-medium resize-none"
                                             ></textarea>
                                         </div>
                                     </div>
@@ -959,7 +978,7 @@ const AgencyApplicationPage = () => {
                                     {/* KVKK Compliance */}
                                     <div className="space-y-4 border-t border-white/5 pt-4">
                                         <label className="flex items-start gap-3 cursor-pointer group">
-                                            <div className="flex items-center justify-center w-5 h-5 rounded border border-white/20 bg-white/5 hover:border-primary transition-colors flex-shrink-0 relative">
+                                            <div className="flex items-center justify-center w-5 h-5 rounded border border-slate-300 bg-white hover:bg-slate-50 hover:border-primary border border-slate-300 shadow-sm transition-colors flex-shrink-0 relative">
                                                 <input
                                                     type="checkbox"
                                                     name="kvkkAccepted"
@@ -969,18 +988,18 @@ const AgencyApplicationPage = () => {
                                                     className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10 peer"
                                                 />
                                                 <div className="hidden peer-checked:flex items-center justify-center absolute inset-0 bg-primary rounded-[3px] text-white">
-                                                    <span className="material-symbols-outlined text-[14px] font-black">check</span>
+                                                    <span className="material-symbols-outlined text-[14px] font-bold">check</span>
                                                 </div>
                                             </div>
-                                            <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors select-none leading-relaxed">
+                                            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-900 transition-colors select-none leading-relaxed">
                                                 {loc.gdprConsent}
                                             </span>
                                         </label>
 
                                         {/* Custom Premium Security reCAPTCHA Check */}
-                                        <div className="bg-slate-950/80 rounded-2xl p-4 border border-white/10 flex items-center justify-between max-w-sm">
+                                        <div className="bg-slate-950/80 rounded-xl p-4 border border-slate-200 flex items-center justify-between max-w-sm">
                                             <div className="flex items-center gap-3">
-                                                <div className="flex items-center justify-center w-6 h-6 rounded-lg border border-white/20 bg-white/5 hover:border-emerald-500 transition-colors flex-shrink-0 relative">
+                                                <div className="flex items-center justify-center w-6 h-6 rounded-lg border border-slate-300 bg-white/5 hover:border-emerald-500 transition-colors flex-shrink-0 relative">
                                                     <input
                                                         type="checkbox"
                                                         required
@@ -993,14 +1012,14 @@ const AgencyApplicationPage = () => {
                                                         className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10 peer"
                                                     />
                                                     <div className="hidden peer-checked:flex items-center justify-center absolute inset-0 bg-emerald-500 rounded-lg text-white">
-                                                        <span className="material-symbols-outlined text-[16px] font-black">check</span>
+                                                        <span className="material-symbols-outlined text-[16px] font-bold">check</span>
                                                     </div>
                                                 </div>
-                                                <span className="text-xs font-black text-white/90">{loc.recaptchaLabel}</span>
+                                                <span className="text-xs font-bold text-slate-900/90">{loc.recaptchaLabel}</span>
                                             </div>
                                             <div className="flex flex-col items-center opacity-60">
                                                 <span className="material-symbols-outlined text-[24px] text-primary">security</span>
-                                                <span className="text-[7px] font-black uppercase text-slate-500 tracking-wider">reCAPTCHA</span>
+                                                <span className="text-[7px] font-bold uppercase text-slate-500 tracking-wider">reCAPTCHA</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1009,9 +1028,9 @@ const AgencyApplicationPage = () => {
 
                             {/* Error Message */}
                             {formError && (
-                                <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-500 animate-in fade-in slide-in-from-top-2">
+                                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-500 animate-in fade-in slide-in-from-top-2">
                                     <span className="material-symbols-outlined text-sm">warning</span>
-                                    <span className="text-xs font-bold">{formError}</span>
+                                    <span className="text-xs font-semibold">{formError}</span>
                                 </div>
                             )}
 
@@ -1021,7 +1040,7 @@ const AgencyApplicationPage = () => {
                                     <button
                                         type="button"
                                         onClick={() => setStep(step - 1)}
-                                        className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black uppercase text-xs tracking-wider transition-all"
+                                        className="px-5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 shadow-sm rounded-xl font-bold uppercase text-xs tracking-wider transition-all"
                                     >
                                         {loc.back}
                                     </button>
@@ -1029,7 +1048,7 @@ const AgencyApplicationPage = () => {
                                     <button
                                         type="button"
                                         onClick={() => navigate('/login')}
-                                        className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black uppercase text-xs tracking-wider transition-all"
+                                        className="px-5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 shadow-sm rounded-xl font-bold uppercase text-xs tracking-wider transition-all"
                                     >
                                         {loc.backToLogin}
                                     </button>
@@ -1039,14 +1058,14 @@ const AgencyApplicationPage = () => {
                                     <button
                                         type="button"
                                         onClick={handleContinue}
-                                        className="px-6 py-3 bg-gradient-to-r from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/25 text-white rounded-2xl font-black uppercase text-xs tracking-wider transition-all"
+                                        className="px-5 py-2.5 bg-gradient-to-r from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/25 text-white rounded-xl font-bold uppercase text-xs tracking-wider transition-all"
                                     >
                                         {loc.continue}
                                     </button>
                                 ) : (
                                     <button
                                         type="submit"
-                                        className="px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:shadow-lg hover:shadow-emerald-500/25 text-white rounded-2xl font-black uppercase text-xs tracking-wider transition-all"
+                                        className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:shadow-lg hover:shadow-emerald-500/25 text-white rounded-xl font-bold uppercase text-xs tracking-wider transition-all"
                                     >
                                         {loc.submit}
                                     </button>
@@ -1056,23 +1075,23 @@ const AgencyApplicationPage = () => {
                     </div>
                 ) : (
                     /* Success Panel */
-                    <div className="bg-white/[0.03] backdrop-blur-[40px] rounded-[32px] border border-white/10 shadow-[0_32px_96px_-16px_rgba(0,0,0,0.5)] p-12 text-center space-y-6 max-w-xl mx-auto animate-in zoom-in duration-500">
+                    <div className="bg-white rounded-[24px] border border-slate-200 shadow-2xl shadow-slate-200/60 p-8 text-center space-y-5 max-w-xl mx-auto animate-in zoom-in duration-500">
                         <div className="size-24 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-400 mx-auto border border-emerald-500/20 shadow-lg shadow-emerald-500/10">
                             <span className="material-symbols-outlined text-5xl">task_alt</span>
                         </div>
                         <div className="space-y-3">
-                            <h2 className="text-2xl font-black text-white">{loc.successTitle}</h2>
-                            <p className="text-slate-400 text-sm leading-relaxed">
+                            <h2 className="text-2xl font-bold text-slate-900">{loc.successTitle}</h2>
+                            <p className="text-slate-500 text-sm leading-relaxed">
                                 {loc.successMessage}
                             </p>
-                            <p className="text-slate-400 text-xs font-semibold bg-white/5 border border-white/5 py-2 px-4 rounded-xl max-w-sm mx-auto">
+                            <p className="text-slate-500 text-xs font-medium bg-white/5 border border-white/5 py-2 px-4 rounded-xl max-w-sm mx-auto">
                                 {loc.successDispatched}<br/>
-                                <span className="text-white font-bold">{formData.emailAddress}</span>
+                                <span className="text-slate-900 font-semibold">{formData.emailAddress}</span>
                             </p>
                         </div>
                         <button
                             onClick={() => navigate('/login')}
-                            className="w-full bg-white/10 hover:bg-white/15 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] border border-white/5 transition-all shadow-md active:scale-[0.98]"
+                            className="w-full bg-white hover:bg-slate-50 text-slate-700 py-4 rounded-xl font-bold uppercase text-xs tracking-[0.2em] border border-slate-300 transition-all shadow-md active:scale-[0.98]"
                         >
                             {loc.returnToLogin}
                         </button>

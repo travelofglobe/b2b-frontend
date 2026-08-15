@@ -8,6 +8,7 @@ import StatusMultiSelect from '../components/StatusMultiSelect';
 import GenericMultiSelect from '../components/GenericMultiSelect';
 import ColumnManager from '../components/ColumnManager';
 import { agencyService } from '../services/agencyService';
+import { locationService } from '../services/locationService';
 import * as XLSX from 'xlsx';
 import { BOOKING_STATUS_CONFIG } from '../utils/bookingStatusUtils';
 import { tMB } from '../utils/myBookingsLocales';
@@ -158,12 +159,55 @@ const MyBookings = () => {
     const gsaOptions = allAgencies.filter(a => a.agencyType === 'GSA');
     const rsaOptions = allAgencies.filter(a => a.agencyType === 'RSA');
     const agencyOptions = allAgencies.filter(a => a.agencyType === 'AGENCY');
+    const supplierOptions = allAgencies.filter(a => a.agencyType === 'SUPPLIER' || a.supplier === true || a.id); // fallback
     const currencyOptions = [
-        { value: 'TRY', label: 'TRY' },
-        { value: 'USD', label: 'USD' },
-        { value: 'EUR', label: 'EUR' },
-        { value: 'GBP', label: 'GBP' }
+        { id: 'TRY', name: 'TRY' },
+        { id: 'USD', name: 'USD' },
+        { id: 'EUR', name: 'EUR' },
+        { id: 'GBP', name: 'GBP' }
     ];
+    const boardTypeOptions = [
+        { id: 'RO', name: 'Room Only (RO)' },
+        { id: 'BB', name: 'Bed & Breakfast (BB)' },
+        { id: 'HB', name: 'Half Board (HB)' },
+        { id: 'FB', name: 'Full Board (FB)' },
+        { id: 'AL', name: 'All Inclusive (AL)' }
+    ];
+
+    // Fetch countries on mount
+    useEffect(() => {
+        const controller = new AbortController();
+        locationService.listCountries(controller.signal)
+            .then(res => {
+                if (res?.data) {
+                    setCountryOptions(res.data.map(c => ({ id: c.id, name: c.name })));
+                }
+            })
+            .catch(e => {
+                if (e.name !== 'CanceledError') console.error('Failed to fetch countries', e);
+            });
+        return () => controller.abort();
+    }, []);
+
+    // Fetch cities when countryIds changes
+    useEffect(() => {
+        if (!filters.countryIds || filters.countryIds.length === 0) {
+            setCityOptions([]);
+            return;
+        }
+        // Fetch subregions for the first selected country for now
+        const controller = new AbortController();
+        locationService.listSubRegions(filters.countryIds[0], controller.signal)
+            .then(res => {
+                if (res?.data) {
+                    setCityOptions(res.data.map(c => ({ id: c.id, name: c.name })));
+                }
+            })
+            .catch(e => {
+                if (e.name !== 'CanceledError') console.error('Failed to fetch cities', e);
+            });
+        return () => controller.abort();
+    }, [filters.countryIds]);
 
     // Integrated Search Effect (Handles mount, filters, pagination, and refresh)
     useEffect(() => {
@@ -768,7 +812,7 @@ const MyBookings = () => {
                                                     <input type="number" value={filters.internalHotelId} onChange={(e) => handleFilterChange('internalHotelId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Hotel ID" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
                                                 )}
                                                 {col === "Supplier" && (
-                                                    <input type="text" value={filters.supplierName} onChange={(e) => handleFilterChange('supplierName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Supplier" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    <GenericMultiSelect options={supplierOptions} selectedValues={filters.supplierIds || []} onChange={(values) => handleFilterChange('supplierIds', values)} placeholder="Select Supplier" />
                                                 )}
                                                 {col === "Currency" && (
                                                     <GenericMultiSelect options={currencyOptions} selectedValues={filters.currencies || []} onChange={(values) => handleFilterChange('currencies', values)} placeholder="Select Currency" />
@@ -777,33 +821,33 @@ const MyBookings = () => {
                                                     <GenericMultiSelect options={agencyOptions} selectedValues={filters.salesChannels || []} onChange={(values) => handleFilterChange('salesChannels', values)} placeholder="Select Sales Channel" />
                                                 )}
                                                 {col === "Net Amount" && (
-                                                    <div className="flex gap-1">
-                                                        <input type="number" value={filters.minNetAmount} onChange={(e) => handleFilterChange('minNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
-                                                        <input type="number" value={filters.maxNetAmount} onChange={(e) => handleFilterChange('maxNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    <div className="flex flex-col gap-1">
+                                                        <input type="number" value={filters.minNetAmount} onChange={(e) => handleFilterChange('minNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.maxNetAmount} onChange={(e) => handleFilterChange('maxNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
                                                     </div>
                                                 )}
                                                 {col === "Markup" && (
-                                                    <div className="flex gap-1">
-                                                        <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
-                                                        <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    <div className="flex flex-col gap-1">
+                                                        <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
                                                     </div>
                                                 )}
                                                 {col === "Profit" && (
-                                                    <div className="flex gap-1">
-                                                        <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
-                                                        <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    <div className="flex flex-col gap-1">
+                                                        <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
                                                     </div>
                                                 )}
                                                 {col === "Room" && (
                                                     <input type="text" value={filters.roomName} onChange={(e) => handleFilterChange('roomName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Room" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
                                                 )}
                                                 {col === "Board Type" && (
-                                                    <input type="text" value={filters.boardName} onChange={(e) => handleFilterChange('boardName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Board Type" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    <GenericMultiSelect options={boardTypeOptions} selectedValues={filters.boardTypes || []} onChange={(values) => handleFilterChange('boardTypes', values)} placeholder="Select Board" />
                                                 )}
                                                 {col === "Guest" && (
-                                                    <div className="flex gap-1">
-                                                        <input type="number" value={filters.minGuest} onChange={(e) => handleFilterChange('minGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
-                                                        <input type="number" value={filters.maxGuest} onChange={(e) => handleFilterChange('maxGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-1/2 bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    <div className="flex flex-col gap-1">
+                                                        <input type="number" value={filters.minGuest} onChange={(e) => handleFilterChange('minGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.maxGuest} onChange={(e) => handleFilterChange('maxGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
                                                     </div>
                                                 )}
                                                 {col === "Client Reference" && (
@@ -817,7 +861,7 @@ const MyBookings = () => {
                                                     </select>
                                                 )}
                                                 {/* Fallback for other columns */}
-                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Supplier", "Currency", "Sales Channel", "Net Amount", "Markup", "Profit", "Room", "Board Type", "Guest", "Client Reference", "Cancelled?"].includes(col) && (
+                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Supplier", "Currency", "Sales Channel", "Net Amount", "Markup", "Profit", "Room", "Board Type", "Guest", "Client Reference", "Cancelled?", "Country", "City"].includes(col) && (
                                                     <div className="text-[10px] text-slate-400">Filter N/A</div>
                                                 )}
                                             </td>

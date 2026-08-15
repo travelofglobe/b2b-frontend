@@ -126,6 +126,10 @@ const MyBookings = () => {
 
     const [columns, setColumns] = useState(["Reservation Number", "Reservation Date", "Check-in", "Check-out", "Hotel", "Agency", "Status", "Currency", "Sale Amount"]);
     const [allAgencies, setAllAgencies] = useState([]);
+    
+    // Location states
+    const [countryOptions, setCountryOptions] = useState([]);
+    const [cityOptions, setCityOptions] = useState([]);
 
     useEffect(() => {
         let mounted = true;

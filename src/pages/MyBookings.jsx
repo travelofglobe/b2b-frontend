@@ -358,6 +358,8 @@ const MyBookings = () => {
                     else if (col === "Hotel ID") val = b.internalHotelId;
                     else if (col === "Client Reference") val = b.clientReferenceId;
                     else if (col === "Cancelled?") val = b.isCancelled ? L('yes') : L('no');
+                    else if (col === "Country") val = b.country || "-";
+                    else if (col === "City") val = b.city || "-";
                     row[col] = val ?? "-";
                 });
                 return row;
@@ -444,6 +446,8 @@ const MyBookings = () => {
                     else if (col === "Hotel ID") val = b.internalHotelId;
                     else if (col === "Client Reference") val = b.clientReferenceId;
                     else if (col === "Cancelled?") val = b.isCancelled ? L('yes') : L('no');
+                    else if (col === "Country") val = b.country || "-";
+                    else if (col === "City") val = b.city || "-";
                     return String(val ?? "-");
                 });
             });
@@ -927,6 +931,8 @@ const MyBookings = () => {
                                                     else if (col === "Hotel ID") val = booking.internalHotelId;
                                                     else if (col === "Client Reference") val = booking.clientReferenceId;
                                                     else if (col === "Cancelled?") val = booking.isCancelled ? L('yes') : L('no');
+                                                    else if (col === "Country") val = booking.country || "-";
+                                                    else if (col === "City") val = booking.city || "-";
                                                     
                                                     return (
                                                         <td key={col} className="px-3.5 py-3 text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">

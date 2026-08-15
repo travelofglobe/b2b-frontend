@@ -41,26 +41,26 @@ const PortalLayout = () => {
     return (
         <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#020617] text-slate-900 dark:text-slate-100 transition-colors duration-200 font-sans overflow-hidden">
             {/* Sidebar */}
-            <aside className={`${isSidebarOpen ? 'w-60' : 'w-[72px]'} flex-shrink-0 ltr:border-r rtl:border-l border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-[#0B1120] hidden lg:flex flex-col h-full z-40 relative transition-all duration-300 ease-in-out`}>
-                <div className="p-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/50 h-[64px] min-h-[64px] overflow-hidden">
-                    <div className="flex items-center gap-3 cursor-pointer select-none group" onClick={() => setIsSidebarOpen(!isSidebarOpen)} title={isSidebarOpen ? "Sidebar'ı Kapat" : "Sidebar'ı Aç"}>
+            <aside className={`${isSidebarOpen ? 'w-64' : 'w-[72px]'} flex-shrink-0 ltr:border-r rtl:border-l border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-[#0B1120] hidden lg:flex flex-col h-full z-40 relative transition-all duration-300 ease-in-out`}>
+                <div className="px-3 py-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/50 h-[64px] min-h-[64px] overflow-hidden">
+                    <div className="flex items-center gap-2 cursor-pointer select-none group min-w-0" onClick={() => setIsSidebarOpen(!isSidebarOpen)} title={isSidebarOpen ? "Sidebar'ı Kapat" : "Sidebar'ı Aç"}>
                         <div className="size-9 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20 flex-shrink-0 transition-all duration-500 group-hover:rotate-[15deg] group-hover:scale-105">
                             <span className="material-symbols-outlined text-xl fill-1">travel</span>
                         </div>
                         {isSidebarOpen && (
-                            <div className="flex flex-col select-none">
-                                <h2 className="text-slate-900 dark:text-white text-[13px] font-bold leading-none tracking-tight uppercase whitespace-nowrap group-hover:text-primary transition-colors">
+                            <div className="flex flex-col select-none min-w-0 shrink">
+                                <h2 className="text-slate-900 dark:text-white text-[12px] font-bold leading-none tracking-tight uppercase truncate group-hover:text-primary transition-colors">
                                     Travel <span className="text-primary">of</span> Globe
                                 </h2>
-                                <div className="flex items-center gap-1.5 mt-1">
-                                    <div className="h-[1px] w-2 bg-primary/40"></div>
-                                    <p className="text-[8px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap leading-none">Global B2B Solutions</p>
+                                <div className="flex items-center gap-1.5 mt-1 overflow-hidden">
+                                    <div className="h-[1px] w-2 bg-primary/40 shrink-0"></div>
+                                    <p className="text-[7px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate leading-none">Global B2B Solutions</p>
                                 </div>
                             </div>
                         )}
                     </div>
                     {isSidebarOpen && (
-                        <div className="flex items-center gap-0.5">
+                        <div className="flex items-center gap-0.5 shrink-0 ml-1">
                             <button 
                                 onClick={toggleAllMenus}
                                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors focus:outline-none" 

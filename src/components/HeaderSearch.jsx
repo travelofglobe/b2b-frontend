@@ -409,6 +409,43 @@ const HeaderSearch = () => {
         return [{ adults: 2, children: 0, childAges: [] }];
     });
 
+    // -- Room State Manipulators --
+    const addRoom = (e) => {
+        if (e) e.stopPropagation();
+        setRoomState(prev => [...prev, { adults: 2, children: 0, childAges: [] }]);
+    };
+
+    const removeRoom = (index) => {
+        setRoomState(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const updateRoom = (index, field, value) => {
+        setRoomState(prev => {
+            const newState = [...prev];
+            newState[index] = { ...newState[index], [field]: value };
+            
+            if (field === 'children') {
+                const currentAges = newState[index].childAges || [];
+                if (value > currentAges.length) {
+                    newState[index].childAges = [...currentAges, ...Array(value - currentAges.length).fill(0)];
+                } else if (value < currentAges.length) {
+                    newState[index].childAges = currentAges.slice(0, value);
+                }
+            }
+            return newState;
+        });
+    };
+
+    const updateChildAge = (roomIndex, childIndex, age) => {
+        setRoomState(prev => {
+            const newState = [...prev];
+            const newAges = [...(newState[roomIndex].childAges || [])];
+            newAges[childIndex] = parseInt(age, 10);
+            newState[roomIndex] = { ...newState[roomIndex], childAges: newAges };
+            return newState;
+        });
+    };
+
     // Computed totals for display
     const totalAdults = roomState.reduce((sum, r) => sum + r.adults, 0);
     const totalChildren = roomState.reduce((sum, r) => sum + r.children, 0);
@@ -435,6 +472,12 @@ const HeaderSearch = () => {
             const items = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
             if (Array.isArray(items)) {
                 setSearchHistory(items);
+                setQuery(prev => {
+                    if (!prev && items.length > 0) {
+                        return items[0].query || items[0].name || '';
+                    }
+                    return prev;
+                });
             }
         } catch (err) {
             console.error("Error fetching search history in HeaderSearch:", err);
@@ -1075,15 +1118,15 @@ const HeaderSearch = () => {
 
                 {/* Guest Dropdown Panel */}
                 {showGuestDropdown && (
-                    <div className="absolute top-full right-0 mt-4 w-[340px] bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-2xl p-4 z-[1200] overflow-y-auto max-h-[80vh]">
+                    <div className="absolute top-full right-0 mt-4 w-[280px] bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-2xl p-3 z-[1200] overflow-y-auto max-h-[80vh]">
                         {roomState.map((room, index) => (
-                            <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0 relative">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="text-xs font-semibold uppercase text-slate-400 tracking-wider">{ls.roomSingle} {index + 1}</div>
+                            <div key={index} className="mb-3 pb-3 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0 relative">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">{ls.roomSingle} {index + 1}</div>
                                     {roomState.length > 1 && (
                                         <button
                                             onClick={() => removeRoom(index)}
-                                            className="text-red-500 hover:text-red-700 text-[10px] font-bold uppercase"
+                                            className="text-red-500 hover:text-red-700 text-[9px] font-bold uppercase tracking-wider"
                                         >
                                             {currentLang === 'tr' ? 'Sil' : currentLang === 'ar' ? 'حذف' : 'Remove'}
                                         </button>
@@ -1091,56 +1134,56 @@ const HeaderSearch = () => {
                                 </div>
 
                                 {/* Adults */}
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{ls.adults}</div>
-                                    <div className="flex items-center gap-3">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="text-xs font-bold text-slate-700 dark:text-slate-200">{ls.adults}</div>
+                                    <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))}
-                                            className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                            className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
                                         >
-                                            <span className="material-icons-round text-sm">remove</span>
+                                            <span className="material-icons-round text-xs">remove</span>
                                         </button>
-                                        <span className="w-4 text-center text-sm font-bold">{room.adults}</span>
+                                        <span className="w-3 text-center text-xs font-bold">{room.adults}</span>
                                         <button
                                             onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))}
-                                            className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                            className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
                                         >
-                                            <span className="material-icons-round text-sm">add</span>
+                                            <span className="material-icons-round text-xs">add</span>
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Children */}
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="text-sm font-bold text-slate-700 dark:text-slate-200">{ls.children}</div>
-                                    <div className="flex items-center gap-3">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="text-xs font-bold text-slate-700 dark:text-slate-200">{ls.children}</div>
+                                    <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))}
-                                            className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                            className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
                                         >
-                                            <span className="material-icons-round text-sm">remove</span>
+                                            <span className="material-icons-round text-xs">remove</span>
                                         </button>
-                                        <span className="w-4 text-center text-sm font-bold">{room.children}</span>
+                                        <span className="w-3 text-center text-xs font-bold">{room.children}</span>
                                         <button
                                             onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))}
-                                            className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                            className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
                                         >
-                                            <span className="material-icons-round text-sm">add</span>
+                                            <span className="material-icons-round text-xs">add</span>
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Child Ages */}
                                 {room.children > 0 && (
-                                    <div className="mb-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{ls.children} {ls.years}</div>
-                                        <div className="grid grid-cols-3 gap-2">
+                                    <div className="mb-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">{ls.children} {ls.years}</div>
+                                        <div className="grid grid-cols-4 gap-1.5">
                                             {room.childAges.map((age, ageIndex) => (
                                                 <select
                                                     key={ageIndex}
                                                     value={age}
                                                     onChange={(e) => updateChildAge(index, ageIndex, e.target.value)}
-                                                    className="w-full h-8 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-xs px-1 focus:border-primary focus:ring-0"
+                                                    className="w-full h-7 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-[10px] px-1 focus:border-primary focus:ring-0"
                                                 >
                                                     {[...Array(18)].map((_, i) => (
                                                         <option key={i} value={i}>{i} {ls.years.substring(0, 2)}</option>
@@ -1157,9 +1200,9 @@ const HeaderSearch = () => {
                         {roomState.length < 5 && (
                             <button
                                 onClick={addRoom}
-                                className="w-full py-2 bg-blue-50 dark:bg-blue-900/20 text-primary rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors flex items-center justify-center gap-2"
+                                className="w-full py-1.5 bg-blue-50 dark:bg-blue-900/20 text-primary rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors flex items-center justify-center gap-1.5 mt-2"
                             >
-                                <span className="material-icons-round text-base">add_circle</span>
+                                <span className="material-icons-round text-sm">add_circle</span>
                                 {ls.addRoom}
                             </button>
                         )}

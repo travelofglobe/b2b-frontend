@@ -22,6 +22,7 @@ import { useFavorites } from '../context/FavoritesContext';
 import { FACILITY_ICON_MAP } from './MapView';
 import Tooltip from '../components/Tooltip';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
+import RoomGalleryModal from '../components/RoomGalleryModal';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -70,86 +71,84 @@ const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex,
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose}>
+        <div className="fixed inset-0 z-[3000] flex flex-col bg-black/95 backdrop-blur-xl animate-in fade-in duration-300 select-none" onClick={onClose}>
             {/* Top Bar */}
-            <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-10">
-                <div className="text-white/70 font-black tracking-widest text-xs uppercase">
+            <div className="absolute top-0 left-0 right-0 p-4 md:p-6 flex justify-between items-center z-40 pointer-events-none">
+                <div className="text-white/70 font-black tracking-widest text-xs uppercase bg-black/40 px-3 py-1.5 rounded-lg backdrop-blur-md pointer-events-auto">
                     {currentIndex + 1} / {images.length} Photos
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 pointer-events-auto">
                     {description && (
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setIsDescriptionVisible(!isDescriptionVisible);
                             }}
-                            className={`size-12 rounded-full border border-white/10 flex items-center justify-center transition-all group ${isDescriptionVisible ? 'bg-primary text-white shadow-[0_0_20px_rgba(255,59,92,0.3)]' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                            className={`size-10 md:size-12 rounded-full border border-white/10 flex items-center justify-center transition-all group ${isDescriptionVisible ? 'bg-primary text-white shadow-[0_0_20px_rgba(255,59,92,0.3)]' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
                             title={isDescriptionVisible ? "Hide Info" : "Show Info"}
                         >
-                            <span className="material-symbols-outlined text-2xl">{isDescriptionVisible ? 'visibility_off' : 'info'}</span>
+                            <span className="material-symbols-outlined text-xl md:text-2xl">{isDescriptionVisible ? 'visibility_off' : 'info'}</span>
                         </button>
                     )}
                     <button
                         onClick={onClose}
-                        className="size-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all group"
+                        className="size-10 md:size-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all group"
                     >
-                        <span className="material-symbols-outlined text-3xl group-hover:rotate-90 transition-transform">close</span>
+                        <span className="material-symbols-outlined text-2xl md:text-3xl group-hover:rotate-90 transition-transform">close</span>
                     </button>
                 </div>
             </div>
 
-            {/* Navigation Buttons */}
-            <button
-                onClick={handlePrevious}
-                className="absolute left-6 size-14 rounded-full bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all group z-20 border border-white/5"
-            >
-                <span className="material-symbols-outlined text-4xl group-hover:-translate-x-1 transition-transform">chevron_left</span>
-            </button>
+            {/* Main Image Container */}
+            <div className="relative flex-1 flex items-center justify-center px-12 md:px-24 pt-20 pb-4 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                {/* Navigation Buttons */}
+                <button
+                    onClick={handlePrevious}
+                    className="absolute left-2 md:left-6 size-10 md:size-14 rounded-full bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all group z-20 border border-white/5"
+                >
+                    <span className="material-symbols-outlined text-2xl md:text-4xl group-hover:-translate-x-1 transition-transform">chevron_left</span>
+                </button>
 
-            <button
-                onClick={handleNext}
-                className="absolute right-6 size-14 rounded-full bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all group z-20 border border-white/5"
-            >
-                <span className="material-symbols-outlined text-4xl group-hover:translate-x-1 transition-transform">chevron_right</span>
-            </button>
+                <button
+                    onClick={handleNext}
+                    className="absolute right-2 md:right-6 size-10 md:size-14 rounded-full bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all group z-20 border border-white/5"
+                >
+                    <span className="material-symbols-outlined text-2xl md:text-4xl group-hover:translate-x-1 transition-transform">chevron_right</span>
+                </button>
 
-            {/* Main Image Container - Full Space */}
-            <div className="absolute inset-0 flex items-center justify-center p-4 md:p-20 lg:p-32" onClick={(e) => e.stopPropagation()}>
                 <img
                     src={images[currentIndex]}
                     className="max-w-full max-h-full object-contain shadow-[0_0_80px_rgba(0,0,0,0.5)] rounded-2xl animate-in zoom-in-95 duration-500"
                     alt={`Photo ${currentIndex + 1}`}
                 />
-            </div>
 
-            {/* Room Description - Floating Glass Card */}
-            {description && isDescriptionVisible && (
-                <div className="absolute bottom-32 left-8 max-w-sm w-full z-40 hidden md:block" onClick={(e) => e.stopPropagation()}>
-                    <div className="bg-black/40 backdrop-blur-2xl p-6 rounded-[32px] border border-white/10 shadow-2xl animate-in slide-in-from-left-8 duration-700 relative group/desc">
-                        <button
-                            onClick={() => setIsDescriptionVisible(false)}
-                            className="absolute top-4 right-4 size-6 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all flex items-center justify-center opacity-0 group-hover/desc:opacity-100"
-                        >
-                            <span className="material-symbols-outlined text-sm">close</span>
-                        </button>
-                        <div className="flex items-center gap-3 mb-3 text-primary">
-                            <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center">
-                                <span className="material-symbols-outlined text-sm">info</span>
+                {/* Room Description - Floating Glass Card */}
+                {description && isDescriptionVisible && (
+                    <div className="absolute bottom-8 left-8 max-w-sm w-full z-40 hidden md:block">
+                        <div className="bg-black/40 backdrop-blur-2xl p-6 rounded-[32px] border border-white/10 shadow-2xl animate-in slide-in-from-left-8 duration-700 relative group/desc">
+                            <button
+                                onClick={() => setIsDescriptionVisible(false)}
+                                className="absolute top-4 right-4 size-6 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all flex items-center justify-center opacity-0 group-hover/desc:opacity-100"
+                            >
+                                <span className="material-symbols-outlined text-sm">close</span>
+                            </button>
+                            <div className="flex items-center gap-3 mb-3 text-primary">
+                                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-sm">info</span>
+                                </div>
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em]">Room Specs</span>
                             </div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em]">Room Specs</span>
-                        </div>
-                        <div className="max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
-                            <p className="text-white/80 text-xs font-medium leading-relaxed italic">{description}</p>
+                            <div className="max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                                <p className="text-white/80 text-xs font-medium leading-relaxed italic">{description}</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
 
-            {/* Mobile Description Toggle/Indicator could go here, but for now let's focus on the desktop experience requested */}
-
-            {/* Thumbnail Strip - Fixed at bottom */}
-            <div className="absolute bottom-6 left-0 right-0 flex justify-center px-6 z-30 pointer-events-none" onClick={(e) => e.stopPropagation()}>
-                <div className="bg-black/60 backdrop-blur-2xl p-3 rounded-3xl border border-white/10 flex gap-2 overflow-x-auto no-scrollbar max-w-full pointer-events-auto shadow-2xl">
+            {/* Thumbnail Strip */}
+            <div className="h-28 md:h-32 shrink-0 flex justify-center items-center px-4 pb-4 z-30" onClick={(e) => e.stopPropagation()}>
+                <div className="bg-black/60 backdrop-blur-2xl p-2 md:p-3 rounded-2xl md:rounded-3xl border border-white/10 flex gap-2 overflow-x-auto no-scrollbar max-w-full shadow-2xl">
                     {images.map((img, idx) => (
                         <button
                             key={idx}
@@ -1215,6 +1214,10 @@ const HotelDetail = () => {
     const [lightboxImages, setLightboxImages] = useState([]);
     const [activeLightboxDescription, setActiveLightboxDescription] = useState('');
 
+    // -- Room Gallery Modal State --
+    const [isRoomGalleryOpen, setIsRoomGalleryOpen] = useState(false);
+    const [selectedRoomGroup, setSelectedRoomGroup] = useState(null);
+
     const openLightbox = (index, contextImages = images, description = '') => {
         setLightboxImages(contextImages);
         setActiveLightboxDescription(description);
@@ -1916,48 +1919,56 @@ const HotelDetail = () => {
                                 </button>
 
                                 {showGuestDropdown && (
-                                    <div className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-2xl p-4 z-[100] max-h-[60vh] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
+                                    <div className="absolute top-full left-0 mt-4 w-[280px] bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-2xl p-3 z-[100] max-h-[60vh] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
                                         {roomState.map((room, index) => (
-                                            <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <div className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider">{tLocal('room')} {index + 1}</div>
+                                            <div key={index} className="mb-3 pb-3 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0 relative">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">{tLocal('room')} {index + 1}</div>
                                                     {roomState.length > 1 && (
-                                                        <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-[10px] font-semibold uppercase tracking-wider">{tLocal('remove')}</button>
+                                                        <button
+                                                            onClick={() => removeRoom(index)}
+                                                            className="text-red-500 hover:text-red-700 text-[9px] font-bold uppercase tracking-wider"
+                                                        >
+                                                            {tLocal('remove')}
+                                                        </button>
                                                     )}
                                                 </div>
 
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <div className="text-xs font-semibold uppercase tracking-tight">{tLocal('adults')}</div>
-                                                    <div className="flex items-center gap-3">
-                                                        <button onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">remove</span></button>
-                                                        <span className="w-4 text-center text-xs font-semibold">{room.adults}</span>
-                                                        <button onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">add</span></button>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="text-xs font-bold text-slate-700 dark:text-slate-200">{tLocal('adults')}</div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"><span className="material-icons-round text-xs">remove</span></button>
+                                                        <span className="w-3 text-center text-xs font-bold">{room.adults}</span>
+                                                        <button onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"><span className="material-icons-round text-xs">add</span></button>
                                                     </div>
                                                 </div>
 
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <div className="text-xs font-semibold uppercase tracking-tight">{tLocal('children')}</div>
-                                                    <div className="flex items-center gap-3">
-                                                        <button onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">remove</span></button>
-                                                        <span className="w-4 text-center text-xs font-semibold">{room.children}</span>
-                                                        <button onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"><span className="material-symbols-outlined text-base">add</span></button>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="text-xs font-bold text-slate-700 dark:text-slate-200">{tLocal('children')}</div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"><span className="material-icons-round text-xs">remove</span></button>
+                                                        <span className="w-3 text-center text-xs font-bold">{room.children}</span>
+                                                        <button onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"><span className="material-icons-round text-xs">add</span></button>
                                                     </div>
                                                 </div>
 
                                                 {room.children > 0 && (
-                                                    <div className="grid grid-cols-2 gap-2 pt-1">
-                                                        {room.childAges.map((age, ageIdx) => (
-                                                            <div key={ageIdx} className="space-y-1">
-                                                                <label className="text-[8px] font-semibold uppercase text-slate-400">{tLocal('child')} {ageIdx + 1} {tLocal('childAge')}</label>
+                                                    <div className="mb-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">{tLocal('children')} {tLocal('yr')}</div>
+                                                        <div className="grid grid-cols-4 gap-1.5">
+                                                            {room.childAges.map((age, ageIdx) => (
                                                                 <select
+                                                                    key={ageIdx}
                                                                     value={age}
                                                                     onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
-                                                                    className="w-full h-8 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-[10px] px-1 font-medium focus:border-primary focus:ring-0"
+                                                                    className="w-full h-7 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-[10px] px-1 focus:border-primary focus:ring-0"
                                                                 >
-                                                                    {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {tLocal('yr')}</option>)}
+                                                                    {[...Array(18)].map((_, i) => (
+                                                                        <option key={i} value={i}>{i} {tLocal('yr')}</option>
+                                                                    ))}
                                                                 </select>
-                                                            </div>
-                                                        ))}
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -1966,9 +1977,9 @@ const HotelDetail = () => {
                                         {roomState.length < 4 && (
                                             <button
                                                 onClick={addRoom}
-                                                className="w-full py-2.5 mt-2 bg-primary/5 text-primary rounded-xl text-[9px] font-semibold uppercase tracking-wider hover:bg-primary/10 transition-all border border-dashed border-primary/20 flex items-center justify-center gap-2"
+                                                className="w-full py-1.5 bg-blue-50 dark:bg-blue-900/20 text-primary rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors flex items-center justify-center gap-1.5 mt-2"
                                             >
-                                                <span className="material-symbols-outlined text-sm">add_circle</span>
+                                                <span className="material-icons-round text-sm">add_circle</span>
                                                 {tLocal('addAnotherRoom')}
                                             </button>
                                         )}
@@ -2154,11 +2165,8 @@ const HotelDetail = () => {
                                                                 <div
                                                                     className="md:w-72 h-64 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room isolation-isolate rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px]"
                                                                     onClick={() => {
-                                                                        const roomImages = roomGroup.images?.length > 0
-                                                                            ? roomGroup.images.map(img => img.url)
-                                                                            : images;
-                                                                        const roomDesc = roomGroup.rates?.[0]?.description || '';
-                                                                        openLightbox(0, roomImages, roomDesc);
+                                                                        setSelectedRoomGroup(roomGroup);
+                                                                        setIsRoomGalleryOpen(true);
                                                                     }}
                                                                 >
                                                                     <img className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 will-change-transform" src={roomGroup.images?.[0]?.url || images[roomIndex % images.length]} alt="" />
@@ -2851,6 +2859,18 @@ const HotelDetail = () => {
                 onClose={() => setIsLightboxOpen(false)}
                 setCurrentIndex={setCurrentImageIndex}
                 description={activeLightboxDescription}
+            />
+
+            <RoomGalleryModal
+                isOpen={isRoomGalleryOpen}
+                onClose={() => setIsRoomGalleryOpen(false)}
+                roomName={selectedRoomGroup?.name}
+                images={selectedRoomGroup?.images?.length > 0 ? selectedRoomGroup.images.map(img => img.url) : images}
+                description={selectedRoomGroup?.rates?.[0]?.description}
+                attributes={selectedRoomGroup?.attributes}
+                maxAdult={selectedRoomGroup?.maxAdult}
+                maxChildren={selectedRoomGroup?.maxChildren}
+                squareMeter={selectedRoomGroup?.squareMeter}
             />
 
             <MapModal

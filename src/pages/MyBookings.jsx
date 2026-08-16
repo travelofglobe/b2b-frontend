@@ -383,12 +383,15 @@ const MyBookings = () => {
                 const summaryExportData = summaries.map(s => ({
                     'Currency': s.currency || 'TOTAL',
                     'Total Bookings': s.bookingCount || 0,
-                    'Total Sales Amount': s.totalAmountSum != null ? Number(s.totalAmountSum).toFixed(2) : '0.00',
-                    'Total Cancellation Fees': (s.totalCancellationAmountSum != null ? Number(s.totalCancellationAmountSum).toFixed(2) : (s.cancellationAmountSum != null ? Number(s.cancellationAmountSum).toFixed(2) : '0.00'))
+                    'Net Amount': s.totalNetAmountSum != null ? Number(s.totalNetAmountSum).toFixed(2) : '0.00',
+                    'Markup': s.totalMarkupAmountSum != null ? Number(s.totalMarkupAmountSum).toFixed(2) : '0.00',
+                    'Profit': s.totalMarkupAmountSum != null ? Number(s.totalMarkupAmountSum).toFixed(2) : '0.00',
+                    'Sale Amount': s.totalAmountSum != null ? Number(s.totalAmountSum).toFixed(2) : '0.00',
+                    'Cancel Fee': (s.totalCancellationAmountSum != null ? Number(s.totalCancellationAmountSum).toFixed(2) : (s.cancellationAmountSum != null ? Number(s.cancellationAmountSum).toFixed(2) : '0.00'))
                 }));
                 const summaryWorksheet = XLSX.utils.json_to_sheet(summaryExportData);
                 summaryWorksheet['!cols'] = [
-                    { wch: 15 }, { wch: 18 }, { wch: 24 }, { wch: 26 }
+                    { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 20 }
                 ];
                 XLSX.utils.book_append_sheet(workbook, summaryWorksheet, 'Summary');
             }
@@ -453,10 +456,13 @@ const MyBookings = () => {
             let startY = 21;
 
             if (summaries && summaries.length > 0) {
-                const summaryHeaders = ['Currency', 'Bookings Count', 'Total Sales Amount', 'Total Cancellation Fees'];
+                const summaryHeaders = ['Currency', 'Bookings Count', 'Net Amount', 'Markup', 'Profit', 'Sale Amount', 'Cancel Fee'];
                 const summaryRows = summaries.map(s => [
                     s.currency || 'TOTAL',
                     String(s.bookingCount || 0),
+                    `${s.currency || ''} ${s.totalNetAmountSum != null ? Number(s.totalNetAmountSum).toFixed(2) : '0.00'}`,
+                    `${s.currency || ''} ${s.totalMarkupAmountSum != null ? Number(s.totalMarkupAmountSum).toFixed(2) : '0.00'}`,
+                    `${s.currency || ''} ${s.totalMarkupAmountSum != null ? Number(s.totalMarkupAmountSum).toFixed(2) : '0.00'}`,
                     `${s.currency || ''} ${s.totalAmountSum != null ? Number(s.totalAmountSum).toFixed(2) : '0.00'}`,
                     `${s.currency || ''} ${s.totalCancellationAmountSum != null ? Number(s.totalCancellationAmountSum).toFixed(2) : (s.cancellationAmountSum != null ? Number(s.cancellationAmountSum).toFixed(2) : '0.00')}`
                 ]);
@@ -695,7 +701,7 @@ const MyBookings = () => {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-8 flex-1">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-8 flex-1">
                                             <div className="flex flex-col">
                                                 <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Total Reservation</span>
                                                 <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{summary.bookingCount}</span>
@@ -715,6 +721,10 @@ const MyBookings = () => {
                                             <div className="flex flex-col">
                                                 <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Sale Amount</span>
                                                 <span className="text-sm font-black text-primary">{summary.totalAmountSum != null ? Number(summary.totalAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Cancel Fee</span>
+                                                <span className="text-sm font-bold text-red-500">{summary.totalCancellationAmountSum != null ? Number(summary.totalCancellationAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : (summary.cancellationAmountSum != null ? Number(summary.cancellationAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00')}</span>
                                             </div>
                                         </div>
                                     </div>

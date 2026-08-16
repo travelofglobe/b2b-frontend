@@ -672,37 +672,50 @@ const MyBookings = () => {
                     {/* Compact Summary Cards Section Above Table */}
                     {summaries.length > 0 && (
                         <div className="mb-4 relative z-10">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div className="flex flex-col gap-3">
                                 {summaries.map((summary, index) => (
                                     <div
                                         key={index}
-                                        className="flex items-center justify-between p-2.5 px-3.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-xl border border-slate-200/70 dark:border-slate-800 shadow-2xs hover:border-primary/30 transition-all"
+                                        className="flex flex-col md:flex-row md:items-center justify-between p-3.5 px-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-xl border border-slate-200/70 dark:border-slate-800 shadow-sm hover:border-primary/30 transition-all gap-4"
                                     >
-                                        <div className="flex items-center gap-2.5 min-w-0">
-                                            <div className="size-7 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary shrink-0">
+                                        <div className="flex items-center gap-3 w-full md:w-auto border-b md:border-b-0 border-slate-200 dark:border-slate-800 pb-3 md:pb-0 md:pr-6 md:border-r">
+                                            <div className="size-8 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary shrink-0">
                                                 {summary.currency === 'EUR' ? (
-                                                    <span className="material-icons-round text-base">euro</span>
+                                                    <span className="material-icons-round text-lg">euro</span>
                                                 ) : summary.currency === 'USD' ? (
-                                                    <span className="material-icons-round text-base">attach_money</span>
+                                                    <span className="material-icons-round text-lg">attach_money</span>
                                                 ) : summary.currency === 'TRY' ? (
-                                                    <span className="material-icons-round text-base">currency_lira</span>
+                                                    <span className="material-icons-round text-lg">currency_lira</span>
                                                 ) : (
-                                                    <span className="material-icons-round text-base">receipt_long</span>
+                                                    <span className="material-icons-round text-lg">receipt_long</span>
                                                 )}
                                             </div>
-                                            <div className="min-w-0">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">{summary.currency || 'Total'}</span>
-                                                    <span className="text-[10px] text-slate-400">•</span>
-                                                    <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-200">{summary.bookingCount} {L('bookings')}</span>
-                                                </div>
+                                            <div>
+                                                <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{summary.currency || 'Total'}</span>
                                             </div>
                                         </div>
 
-                                        <div className="text-right shrink-0">
-                                            <span className="text-xs font-bold text-primary">
-                                                {summary.totalAmountSum?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                            </span>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-8 flex-1">
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Total Reservation</span>
+                                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{summary.bookingCount}</span>
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Net Amount</span>
+                                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{summary.totalNetAmountSum != null ? Number(summary.totalNetAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Markup</span>
+                                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{summary.totalMarkupAmountSum != null ? Number(summary.totalMarkupAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Profit</span>
+                                                <span className="text-sm font-bold text-green-600 dark:text-green-400">{summary.totalMarkupAmountSum != null ? Number(summary.totalMarkupAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Sale Amount</span>
+                                                <span className="text-sm font-black text-primary">{summary.totalAmountSum != null ? Number(summary.totalAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}

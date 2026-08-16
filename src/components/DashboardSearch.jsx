@@ -400,6 +400,29 @@ const DashboardSearch = () => {
             const items = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
             if (Array.isArray(items)) {
                 setSearchHistory(items);
+                
+                if (items.length > 0) {
+                    setQuery(prev => {
+                        if (!prev) {
+                            const mostRecent = items[0];
+                            const queryToSet = mostRecent.query || mostRecent.name || '';
+                            
+                            const itemType = mostRecent.type || mostRecent.searchType || 'SEARCH';
+                            localStorage.setItem('dashboard_last_search', queryToSet);
+                            localStorage.setItem('dashboard_last_type', itemType);
+                            
+                            if (mostRecent.targetId) {
+                                if (itemType === 'LOCATION') {
+                                    localStorage.setItem('dashboard_last_locationId', mostRecent.targetId);
+                                } else if (itemType === 'HOTEL') {
+                                    localStorage.setItem('dashboard_last_hotelId', mostRecent.targetId);
+                                }
+                            }
+                            return queryToSet;
+                        }
+                        return prev;
+                    });
+                }
             }
         } catch (err) {
             console.error("Error fetching search history:", err);

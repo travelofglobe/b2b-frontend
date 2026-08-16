@@ -172,7 +172,7 @@ const MyBookings = () => {
     const gsaOptions = allAgencies.filter(a => a.agencyType === 'GSA');
     const rsaOptions = allAgencies.filter(a => a.agencyType === 'RSA');
     const agencyOptions = allAgencies.filter(a => a.agencyType === 'AGENCY');
-    const supplierOptions = allAgencies.filter(a => a.agencyType === 'SUPPLIER' || a.supplier === true || a.id); // fallback
+    // const supplierOptions derived from state
     const currencyOptions = [
         { id: 'TRY', name: 'TRY', iconText: '₺' },
         { id: 'USD', name: 'USD', iconText: '$' },
@@ -186,6 +186,21 @@ const MyBookings = () => {
         { id: 'FB', name: 'Full Board (FB)' },
         { id: 'AL', name: 'All Inclusive (AL)' }
     ];
+
+    // Fetch suppliers on mount
+    useEffect(() => {
+        const controller = new AbortController();
+        agencyService.getAllSuppliers(controller.signal)
+            .then(res => {
+                if (res?.suppliers) {
+                    setSupplierOptions(res.suppliers.map(s => ({ id: s.supplierId, name: s.name })));
+                }
+            })
+            .catch(e => {
+                if (e.name !== 'CanceledError') console.error('Failed to fetch suppliers', e);
+            });
+        return () => controller.abort();
+    }, []);
 
     // Fetch countries on mount
     useEffect(() => {

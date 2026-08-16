@@ -32,6 +32,10 @@ export const agencyService = {
         return apiClient.put(`${API_BASE_URL}/agency/update-by-id/${id}`, data);
     },
 
+    getAllSuppliers: async (signal) => {
+        return apiClient.get(`${API_BASE_URL}/supplier/find-all`, { signal });
+    },
+
     getAgencies: async (signal) => {
         return apiClient.get(`${API_BASE_URL}/agency/find-all-by-parent-id`, { signal });
     },

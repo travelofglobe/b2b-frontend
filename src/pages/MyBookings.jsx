@@ -311,6 +311,46 @@ const MyBookings = () => {
         return bookingsData.content || [];
     };
 
+    const getExportValue = (col, b, forPdf = false) => {
+        let val = "-";
+        if (col === "Reservation Number") val = b.bookingId ?? b.id;
+        else if (col === "Voucher") val = b.voucher;
+        else if (col === "Reservation Date") val = formatDateTime(b.createDateTime || b.createDate);
+        else if (col === "Check-in") val = formatDate(b.checkInDate || b.checkInStart);
+        else if (col === "Check-out") val = formatDate(b.checkOutDate || b.checkOutEnd);
+        else if (col === "Hotel") val = b.hotelName;
+        else if (col === "GSA") val = b.gsaName || "-";
+        else if (col === "RSA") val = b.rsaName || "-";
+        else if (col === "Agency") val = b.principalAgencyName || b.agencyName;
+        else if (col === "Status") val = b.bookingStatus;
+        else if (col === "Currency") val = b.currency || "-";
+        else if (col === "Sale Amount") val = b.totalAmount != null ? Number(b.totalAmount).toFixed(2) : '0.00';
+        else if (col === "Net Amount") val = b.netAmount != null ? Number(b.netAmount).toFixed(2) : "-";
+        else if (col === "Markup") val = b.markupAmount != null ? Number(b.markupAmount).toFixed(2) : "-";
+        else if (col === "Profit") val = b.markupAmount != null ? Number(b.markupAmount).toFixed(2) : "-";
+        else if (col === "Room") val = b.roomName || "-";
+        else if (col === "Board Type") val = b.boardName || "-";
+        else if (col === "Guest") val = b.totalGuests != null ? b.totalGuests : "-";
+        else if (col === "Supplier") val = b.supplierName || "-";
+        else if (col === "Supplier Reservation Number") val = b.supplierVoucher || "-";
+        else if (col === "Payment") val = b.paymentStatus ? b.paymentStatus.replace(/_/g, ' ') : 'UNKNOWN';
+        else if (col === "Cancel Fee") val = (b.totalCancellationAmount || b.cancellationAmount) > 0 ? Number(b.totalCancellationAmount || b.cancellationAmount).toFixed(2) : '-';
+        else if (col === "UUID") val = b.bookingUuid;
+        else if (col === "Agency ID") val = b.principalAgencyId;
+        else if (col === "Hotel ID") val = b.internalHotelId;
+        else if (col === "Client Reference") val = b.clientReferenceId;
+        else if (col === "Cancelled?") val = b.isCancelled ? L('yes') : L('no');
+        else if (col === "Country") val = b.country || "-";
+        else if (col === "City") val = b.city || "-";
+
+        const strVal = String(val ?? "-");
+        if (forPdf) {
+            const charMap = { 'ı': 'i', 'İ': 'I', 'ş': 's', 'Ş': 'S', 'ğ': 'g', 'Ğ': 'G', 'ü': 'u', 'Ü': 'U', 'ö': 'o', 'Ö': 'O', 'ç': 'c', 'Ç': 'C' };
+            return strVal.replace(/[ıİşŞğĞüÜöÖçÇ]/g, match => charMap[match]);
+        }
+        return strVal;
+    };
+
     const exportToExcel = async () => {
         if (isExportingExcel || isExportingPdf) return;
         setIsExportingExcel(true);
@@ -340,32 +380,24 @@ const MyBookings = () => {
             const exportData = allBookings.map(b => {
                 const row = {};
                 columns.forEach(col => {
-                    let val = "-";
-                    if (col === "Reservation Number") val = b.bookingId ?? b.id;
-                    else if (col === "Voucher") val = b.voucher;
-                    else if (col === "Reservation Date") val = formatDateTime(b.createDateTime || b.createDate);
-                    else if (col === "Check-in") val = formatDate(b.checkInDate || b.checkInStart);
-                    else if (col === "Check-out") val = formatDate(b.checkOutDate || b.checkOutEnd);
-                    else if (col === "Hotel") val = b.hotelName;
-                    else if (col === "Agency") val = b.principalAgencyName || b.agencyName;
-                    else if (col === "Status") val = b.bookingStatus;
-                    else if (col === "Currency") val = b.currency;
-                    else if (col === "Sale Amount") val = b.totalAmount != null ? Number(b.totalAmount).toFixed(2) : '0.00';
-                    else if (col === "Payment") val = b.paymentStatus ? b.paymentStatus.replace(/_/g, ' ') : '-';
-                    else if (col === "Cancel Fee") val = (b.totalCancellationAmount || b.cancellationAmount) > 0 ? Number(b.totalCancellationAmount || b.cancellationAmount).toFixed(2) : '-';
-                    else if (col === "UUID") val = b.bookingUuid;
-                    else if (col === "Agency ID") val = b.principalAgencyId;
-                    else if (col === "Hotel ID") val = b.internalHotelId;
-                    else if (col === "Client Reference") val = b.clientReferenceId;
-                    else if (col === "Cancelled?") val = b.isCancelled ? L('yes') : L('no');
-                    else if (col === "Country") val = b.country || "-";
-                    else if (col === "City") val = b.city || "-";
-                    row[col] = val ?? "-";
+                    row[col] = getExportValue(col, b, false);
                 });
                 return row;
             });
 
             const worksheet = XLSX.utils.json_to_sheet(exportData);
+            
+            // Auto-size columns based on header and data length
+            const colWidths = columns.map(col => {
+                const maxHeaderLen = col.length;
+                const maxDataLen = exportData.reduce((max, row) => {
+                    const val = row[col] ? String(row[col]) : "";
+                    return Math.max(max, val.length);
+                }, 0);
+                return { wch: Math.min(Math.max(maxHeaderLen, maxDataLen) + 2, 50) }; // cap width at 50 to prevent overly wide columns
+            });
+            worksheet['!cols'] = colWidths;
+
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Bookings');
 
             const dateStr = new Date().toISOString().split('T')[0];
@@ -427,29 +459,7 @@ const MyBookings = () => {
 
             const headers = columns;
             const rows = allBookings.map(b => {
-                return columns.map(col => {
-                    let val = "-";
-                    if (col === "Reservation Number") val = b.bookingId ?? b.id;
-                    else if (col === "Voucher") val = b.voucher;
-                    else if (col === "Reservation Date") val = formatDateTime(b.createDateTime || b.createDate);
-                    else if (col === "Check-in") val = formatDate(b.checkInDate || b.checkInStart);
-                    else if (col === "Check-out") val = formatDate(b.checkOutDate || b.checkOutEnd);
-                    else if (col === "Hotel") val = b.hotelName;
-                    else if (col === "Agency") val = b.principalAgencyName || b.agencyName;
-                    else if (col === "Status") val = b.bookingStatus;
-                    else if (col === "Currency") val = b.currency;
-                    else if (col === "Sale Amount") val = b.totalAmount != null ? Number(b.totalAmount).toFixed(2) : '0.00';
-                    else if (col === "Payment") val = b.paymentStatus ? b.paymentStatus.replace(/_/g, ' ') : '-';
-                    else if (col === "Cancel Fee") val = (b.totalCancellationAmount || b.cancellationAmount) > 0 ? Number(b.totalCancellationAmount || b.cancellationAmount).toFixed(2) : '-';
-                    else if (col === "UUID") val = b.bookingUuid;
-                    else if (col === "Agency ID") val = b.principalAgencyId;
-                    else if (col === "Hotel ID") val = b.internalHotelId;
-                    else if (col === "Client Reference") val = b.clientReferenceId;
-                    else if (col === "Cancelled?") val = b.isCancelled ? L('yes') : L('no');
-                    else if (col === "Country") val = b.country || "-";
-                    else if (col === "City") val = b.city || "-";
-                    return String(val ?? "-");
-                });
+                return columns.map(col => getExportValue(col, b, true));
             });
 
             autoTable(doc, {
@@ -879,10 +889,14 @@ const MyBookings = () => {
                                 </thead>
                                 <tbody>
                                     {loading ? (
-                                        Array.from({ length: 10 }).map((_, index) => (
-                                            <tr key={`skeleton-${index}`} className="border-b border-white/20 dark:border-white/5 last:border-0 h-[61px]">
-                                                {columns.map(col => (
-                                                    <td key={col} className="px-4 py-3"><div className="h-4 w-full bg-slate-200 dark:bg-slate-700 rounded animate-shimmer"></div></td>
+                                        Array.from({ length: pageSize || 10 }).map((_, index) => (
+                                            <tr key={`skeleton-${index}`} className="border-b border-slate-100 dark:border-slate-800/50 even:bg-slate-50/50 dark:even:bg-slate-800/20 h-[53px]">
+                                                {columns.map((col, cIndex) => (
+                                                    <td key={col} className="px-3.5 py-3">
+                                                        <div className={`h-3.5 bg-slate-200/80 dark:bg-slate-700/60 rounded animate-pulse ${
+                                                            cIndex % 3 === 0 ? 'w-2/3' : cIndex % 2 === 0 ? 'w-full' : 'w-4/5'
+                                                        }`}></div>
+                                                    </td>
                                                 ))}
                                             </tr>
                                         ))

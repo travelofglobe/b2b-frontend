@@ -373,7 +373,7 @@ const DashboardSearch = () => {
 
     // Nationality State
     const [nationality, setNationality] = useState(() => {
-        return searchParams.get('nationality') || localStorage.getItem('dashboard_last_nationality') || getUserCountryCode();
+        return searchParams.get('nationality') || localStorage.getItem('dashboard_last_nationality') || localStorage.getItem('agency_country_code') || getUserCountryCode();
     });
 
     const [destinationCountryCode, setDestinationCountryCode] = useState(() => localStorage.getItem('dashboard_last_countryCode') || null);

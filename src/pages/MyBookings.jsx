@@ -958,32 +958,126 @@ const MyBookings = () => {
                                             setPageSize(Number(e.target.value));
                                             setPage(0);
                                         }}
-                                        className="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none"
+                                        className="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-primary/40 transition-all"
                                     >
+                                        <option value="5">5</option>
                                         <option value="10">10</option>
                                         <option value="25">25</option>
                                         <option value="50">50</option>
                                         <option value="100">100</option>
                                     </select>
                                 </div>
-                                <div className="flex items-center gap-2 text-xs">
-                                    <span className="text-slate-500 dark:text-slate-400">
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                    <span className="text-slate-500 dark:text-slate-400 mr-1 sm:mr-3">
                                         {page + 1} {L('pageOf')} {totalPages} ({totalElements} {L('total')})
                                     </span>
-                                    <button
-                                        onClick={() => setPage(p => Math.max(0, p - 1))}
-                                        disabled={page === 0}
-                                        className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <span className="material-icons-round text-lg">chevron_left</span>
-                                    </button>
-                                    <button
-                                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                                        disabled={page >= totalPages - 1}
-                                        className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <span className="material-icons-round text-lg">chevron_right</span>
-                                    </button>
+                                    
+                                    {/* Advanced Pagination Controls */}
+                                    <div className="flex items-center gap-0.5 sm:gap-1 bg-white/60 dark:bg-slate-800/60 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
+                                        {/* First Page */}
+                                        <button
+                                            onClick={() => setPage(0)}
+                                            disabled={page === 0}
+                                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-slate-600 dark:text-slate-300"
+                                            title="First Page"
+                                        >
+                                            <span className="material-icons-round text-[16px]">keyboard_double_arrow_left</span>
+                                        </button>
+                                        
+                                        {/* Previous Page */}
+                                        <button
+                                            onClick={() => setPage(p => Math.max(0, p - 1))}
+                                            disabled={page === 0}
+                                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-slate-600 dark:text-slate-300"
+                                            title="Previous Page"
+                                        >
+                                            <span className="material-icons-round text-[16px]">chevron_left</span>
+                                        </button>
+                                        
+                                        {/* Page Numbers */}
+                                        <div className="hidden sm:flex items-center px-1 gap-1">
+                                            {(() => {
+                                                const maxVisiblePages = 5;
+                                                let startPage = Math.max(0, page - Math.floor(maxVisiblePages / 2));
+                                                let endPage = Math.min(totalPages - 1, startPage + maxVisiblePages - 1);
+                                                
+                                                if (endPage - startPage + 1 < maxVisiblePages) {
+                                                    startPage = Math.max(0, endPage - maxVisiblePages + 1);
+                                                }
+                                                
+                                                const pages = [];
+                                                if (startPage > 0) {
+                                                    pages.push(<span key="ellipsis-start" className="px-1 text-slate-400">...</span>);
+                                                }
+                                                
+                                                for (let i = startPage; i <= endPage; i++) {
+                                                    pages.push(
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => setPage(i)}
+                                                            className={`min-w-[28px] h-[28px] flex items-center justify-center rounded-lg text-[13px] font-medium transition-all ${
+                                                                page === i
+                                                                    ? 'bg-primary text-white shadow-md shadow-primary/20'
+                                                                    : 'hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 bg-transparent'
+                                                            }`}
+                                                        >
+                                                            {i + 1}
+                                                        </button>
+                                                    );
+                                                }
+                                                
+                                                if (endPage < totalPages - 1) {
+                                                    pages.push(<span key="ellipsis-end" className="px-1 text-slate-400">...</span>);
+                                                }
+                                                
+                                                return pages;
+                                            })()}
+                                        </div>
+
+                                        {/* Next Page */}
+                                        <button
+                                            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                            disabled={page >= totalPages - 1}
+                                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-slate-600 dark:text-slate-300"
+                                            title="Next Page"
+                                        >
+                                            <span className="material-icons-round text-[16px]">chevron_right</span>
+                                        </button>
+                                        
+                                        {/* Last Page */}
+                                        <button
+                                            onClick={() => setPage(totalPages - 1)}
+                                            disabled={page >= totalPages - 1}
+                                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-slate-600 dark:text-slate-300"
+                                            title="Last Page"
+                                        >
+                                            <span className="material-icons-round text-[16px]">keyboard_double_arrow_right</span>
+                                        </button>
+                                    </div>
+                                    
+                                    {/* Go to page input */}
+                                    <div className="flex items-center bg-white/60 dark:bg-slate-800/60 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
+                                        <div className="flex items-center px-2 border-r border-slate-200 dark:border-slate-700">
+                                            <span className="material-icons-round text-[14px] text-slate-400">redo</span>
+                                        </div>
+                                        <input 
+                                            type="number" 
+                                            min="1" 
+                                            max={totalPages}
+                                            placeholder="#"
+                                            className="w-12 h-7 bg-transparent border-none text-[13px] outline-none text-center text-slate-700 dark:text-slate-200 placeholder:text-slate-400"
+                                            title="Go to page (Enter)"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    const val = parseInt(e.target.value);
+                                                    if (!isNaN(val) && val >= 1 && val <= totalPages) {
+                                                        setPage(val - 1);
+                                                        e.target.value = '';
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         )}

@@ -193,9 +193,9 @@ const MyBookings = () => {
         locationService.listCountries(controller.signal)
             .then(res => {
                 if (res?.locationList && Array.isArray(res.locationList)) {
-                    setCountryOptions(res.locationList.map(c => ({ id: c.id, name: `${getFlagEmoji(c.alphaTwoCode)} ${c.name.translations?.[i18n.language] || c.name.defaultName || c.name}` })));
+                    setCountryOptions(res.locationList.map(c => ({ id: c.locationId, name: `${getFlagEmoji(c.alphaTwoCode)} ${c.name.translations?.[i18n.language] || c.name.defaultName || c.name}` })));
                 } else if (Array.isArray(res)) {
-                    setCountryOptions(res.map(c => ({ id: c.id, name: c.name })));
+                    setCountryOptions(res.map(c => ({ id: c.locationId || c.id, name: c.name })));
                 }
             })
             .catch(e => {
@@ -215,9 +215,9 @@ const MyBookings = () => {
         locationService.listSubRegions(filters.countryIds[0], controller.signal)
             .then(res => {
                 if (res?.locationList && Array.isArray(res.locationList)) {
-                    setCityOptions(res.locationList.map(c => ({ id: c.id, name: `${getFlagEmoji(c.alphaTwoCode)} ${c.name.translations?.[i18n.language] || c.name.defaultName || c.name}` })));
+                    setCityOptions(res.locationList.map(c => ({ id: c.locationId, name: `${getFlagEmoji(c.alphaTwoCode)} ${c.name.translations?.[i18n.language] || c.name.defaultName || c.name}` })));
                 } else if (Array.isArray(res)) {
-                    setCityOptions(res.map(c => ({ id: c.id, name: c.name })));
+                    setCityOptions(res.map(c => ({ id: c.locationId || c.id, name: c.name })));
                 }
             })
             .catch(e => {

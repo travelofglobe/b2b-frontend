@@ -128,7 +128,7 @@ const MyBookings = () => {
 
     const AVAILABLE_COLUMNS = [
         "Reservation Number", "Reservation Date", "Check-in", "Check-out", "Hotel", 
-        "Country", "City", "GSA", "RSA", "Agency", "Sales Channel", "Room", 
+        "Country", "City", "GSA", "RSA", "Agency", "Room", 
         "Board Type", "Guest", "Status", "Currency", "Net Amount", "Markup", 
         "Sale Amount", "Profit", "Supplier", "Supplier Reservation Number"
     ];
@@ -139,6 +139,7 @@ const MyBookings = () => {
     // Location states
     const [countryOptions, setCountryOptions] = useState([]);
     const [cityOptions, setCityOptions] = useState([]);
+    const [supplierOptions, setSupplierOptions] = useState([]);
 
     useEffect(() => {
         let mounted = true;
@@ -197,7 +198,7 @@ const MyBookings = () => {
                 }
             })
             .catch(e => {
-                if (e.name !== 'CanceledError') console.error('Failed to fetch suppliers', e);
+                if (e.name !== 'CanceledError' && e.name !== 'AbortError') console.error('Failed to fetch suppliers', e);
             });
         return () => controller.abort();
     }, []);
@@ -214,7 +215,7 @@ const MyBookings = () => {
                 }
             })
             .catch(e => {
-                if (e.name !== 'CanceledError') console.error('Failed to fetch countries', e);
+                if (e.name !== 'CanceledError' && e.name !== 'AbortError') console.error('Failed to fetch countries', e);
             });
         return () => controller.abort();
     }, []);
@@ -236,7 +237,7 @@ const MyBookings = () => {
                 }
             })
             .catch(e => {
-                if (e.name !== 'CanceledError') console.error('Failed to fetch cities', e);
+                if (e.name !== 'CanceledError' && e.name !== 'AbortError') console.error('Failed to fetch cities', e);
             });
         return () => controller.abort();
     }, [filters.countryIds]);
@@ -284,7 +285,7 @@ const MyBookings = () => {
                     filterObj[key] = value + 'T00:00:00';
                 } else if (key === 'createDateEnd') {
                     filterObj[key] = value + 'T23:59:59';
-                } else if (['currencies', 'gsaIds', 'rsaIds', 'agencyIds', 'principalAgencyIds', 'countryIds', 'cityIds', 'supplierIds', 'boardTypes', 'salesChannels'].includes(key) && Array.isArray(value) && value.length > 0) {
+                } else if (['currencies', 'gsaIds', 'rsaIds', 'agencyIds', 'principalAgencyIds', 'countryIds', 'cityIds', 'supplierIds', 'boardTypes'].includes(key) && Array.isArray(value) && value.length > 0) {
                     filterObj[key] = value;
                 } else {
                     filterObj[key] = value;
@@ -729,7 +730,6 @@ const MyBookings = () => {
                                                 "GSA": "GSA",
                                                 "RSA": "RSA",
                                                 "Agency": L('colAgencyName'),
-                                                "Sales Channel": "Sales Channel",
                                                 "Room": "Room",
                                                 "Board Type": "Board Type",
                                                 "Guest": "Guest",
@@ -851,9 +851,6 @@ const MyBookings = () => {
                                                 {col === "Currency" && (
                                                     <GenericMultiSelect options={currencyOptions} selectedValues={filters.currencies || []} onChange={(values) => handleFilterChange('currencies', values)} placeholder="Select Currency" alignRight={true} />
                                                 )}
-                                                {col === "Sales Channel" && (
-                                                    <GenericMultiSelect options={agencyOptions} selectedValues={filters.salesChannels || []} onChange={(values) => handleFilterChange('salesChannels', values)} placeholder="Select Sales Channel" alignRight={true} />
-                                                )}
                                                 {col === "Net Amount" && (
                                                     <div className="flex flex-col gap-1">
                                                         <input type="number" value={filters.minNetAmount} onChange={(e) => handleFilterChange('minNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
@@ -895,7 +892,7 @@ const MyBookings = () => {
                                                     </select>
                                                 )}
                                                 {/* Fallback for other columns */}
-                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Supplier", "Currency", "Sales Channel", "Net Amount", "Markup", "Profit", "Room", "Board Type", "Guest", "Client Reference", "Cancelled?", "Country", "City", "Supplier Reservation Number"].includes(col) && (
+                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Supplier", "Currency", "Net Amount", "Markup", "Profit", "Room", "Board Type", "Guest", "Client Reference", "Cancelled?", "Country", "City", "Supplier Reservation Number"].includes(col) && (
                                                     <div className="text-[10px] text-slate-400">Filter N/A</div>
                                                 )}
                                             </td>

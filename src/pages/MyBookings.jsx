@@ -147,7 +147,7 @@ const MyBookings = () => {
             try {
                 const configRes = await bookingService.getColumnConfig();
                 if (mounted && configRes && configRes.length > 0) {
-                    setColumns(configRes);
+                    setColumns(configRes.filter(c => c !== "Sales Channel"));
                 }
                 const agenciesRes = await agencyService.getAgencies();
                 if (mounted && Array.isArray(agenciesRes)) {

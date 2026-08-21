@@ -64,7 +64,7 @@ const searchLocales = {
         location: "Konum",
         destinationRequired: "Konum Gerekli",
         placeholder: "Şehir, otel veya bölge ara",
-        popularDestinations: "Popüler Destanlar",
+        popularDestinations: "Popüler Destinasyonlar",
         featuredHotels: "Öne Çıkan Oteller",
         checkInOut: "Giriş / Çıkış",
         nights: "gece",
@@ -700,14 +700,14 @@ const HeaderSearch = () => {
     const buildLocationSlug = (location) => {
         if (location.locationBreadcrumbs && location.locationBreadcrumbs.length > 0) {
             // parts: [Country, City, District] (hierarchical order from API)
-            const breadcrumbs = location.locationBreadcrumbs.map(b => (b.name?.translations?.en || b.name?.defaultName || '').toLowerCase());
+            const breadcrumbs = location.locationBreadcrumbs.map(b => (b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName || '').toLowerCase());
 
             if (breadcrumbs.length > 1) {
                 return breadcrumbs.slice(1).join('/');
             }
             return breadcrumbs[0];
         }
-        return (location.name?.translations?.en || Object.values(location.name?.translations || {})[0] || 'destination').toLowerCase();
+        return (location.name?.translations?.[currentLang] || location.name?.translations?.en || Object.values(location.name?.translations || {})[0] || 'destination').toLowerCase();
     };
 
     const handleSearch = () => {
@@ -756,11 +756,11 @@ const HeaderSearch = () => {
     };
 
     const handleSelectLocation = (location) => {
-        const name = location.name?.translations?.en || Object.values(location.name?.translations || {})[0] || 'destination';
+        const name = location.name?.translations?.[currentLang] || location.name?.translations?.en || Object.values(location.name?.translations || {})[0] || 'destination';
 
         let fullName = name;
         if (location.locationBreadcrumbs && location.locationBreadcrumbs.length > 0) {
-            const parts = location.locationBreadcrumbs.map(b => b.name?.translations?.en || b.name?.defaultName);
+            const parts = location.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName);
             fullName = parts.reverse().join(', ');
         }
 
@@ -795,13 +795,13 @@ const HeaderSearch = () => {
     };
 
     const handleSelectHotel = (hotel) => {
-        const name = hotel.name?.translations?.en || Object.values(hotel.name?.translations || {})[0] || 'Hotel';
+        const name = hotel.name?.translations?.[currentLang] || hotel.name?.translations?.en || Object.values(hotel.name?.translations || {})[0] || 'Hotel';
 
         // Construct full name with location context
         let fullName = name;
         let locationContext = '';
         if (hotel.locationBreadcrumbs && hotel.locationBreadcrumbs.length > 0) {
-            const parts = hotel.locationBreadcrumbs.map(b => b.name?.translations?.en || b.name?.defaultName);
+            const parts = hotel.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName);
             locationContext = parts.reverse().join(', ');
             fullName = `${name}, ${locationContext}`;
         } else if (hotel.countryCode) {
@@ -838,13 +838,13 @@ const HeaderSearch = () => {
     const getRegionName = (region) => {
         // Use breadcrumbs if available to show full path
         if (region.locationBreadcrumbs && region.locationBreadcrumbs.length > 0) {
-            const parts = region.locationBreadcrumbs.map(b => b.name?.translations?.en || b.name?.defaultName);
+            const parts = region.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName);
             return parts.reverse().join(', ');
         }
-        return region.name?.translations?.en || Object.values(region.name?.translations || {})[0] || 'Unknown Region';
+        return region.name?.translations?.[currentLang] || region.name?.translations?.en || Object.values(region.name?.translations || {})[0] || 'Unknown Region';
     };
 
-    const getHotelName = (hotel) => hotel.name?.translations?.en || Object.values(hotel.name?.translations || {})[0] || 'Hotel';
+    const getHotelName = (hotel) => hotel.name?.translations?.[currentLang] || hotel.name?.translations?.en || Object.values(hotel.name?.translations || {})[0] || 'Hotel';
 
     const matchingHistory = query.trim()
         ? searchHistory.filter(item => item.query.toLowerCase().includes(query.toLowerCase().trim()))
@@ -971,7 +971,7 @@ const HeaderSearch = () => {
                                                 <span className="material-symbols-outlined text-lg">location_city</span>
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{region.name?.translations?.en || region.name?.defaultName}</div>
+                                                <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{region.name?.translations?.[currentLang] || region.name?.translations?.en || region.name?.defaultName}</div>
                                                 <div className="text-[11px] font-normal text-slate-500 truncate">{getRegionName(region)}</div>
                                             </div>
                                         </button>
@@ -1006,7 +1006,7 @@ const HeaderSearch = () => {
                                                 <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{getHotelName(hotel)}</div>
                                                 <div className="text-[11px] font-normal text-slate-500 truncate">
                                                     {hotel.locationBreadcrumbs ?
-                                                        hotel.locationBreadcrumbs.map(b => b.name?.translations?.en || b.name?.defaultName).reverse().join(', ')
+                                                        hotel.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName).reverse().join(', ')
                                                         : hotel.countryCode}
                                                 </div>
                                             </div>

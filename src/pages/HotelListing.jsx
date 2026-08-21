@@ -447,11 +447,26 @@ const HotelListing = () => {
     const mapApiHotelToModel = React.useCallback((apiHotel) => {
         // Pick name and star based on language
         const hotelNames = apiHotel.names || apiHotel.name; // Support both for transition
-        const name = hotelNames?.tr || hotelNames?.en || hotelNames?.defaultName || 'Unknown Hotel';
+        const name = hotelNames?.[currentLang] || hotelNames?.en || hotelNames?.defaultName || 'Unknown Hotel';
 
         // Dynamic Stars - new object structure
         const starCount = apiHotel.hotelStar?.star || 0;
-        const starLabel = apiHotel.hotelStar?.names?.tr || apiHotel.hotelStar?.names?.en || '';
+        const starLabel = apiHotel.hotelStar?.names?.[currentLang] || apiHotel.hotelStar?.names?.en || '';
+
+        // Extract location from Breadcrumbs if locationPathNames is missing
+        let locationString = apiHotel.locationPathNames?.replace(/,/g, ', ');
+        if (!locationString && Array.isArray(apiHotel.locationBreadcrumbs)) {
+            const crumbs = apiHotel.locationBreadcrumbs
+                .filter(crumb => crumb.locationType !== 'COUNTRY')
+                .map(crumb => {
+                    const n = crumb.name;
+                    return n?.translations?.[currentLang] || n?.translations?.en || n?.defaultName;
+                })
+                .filter(Boolean);
+            if (crumbs.length > 0) {
+                locationString = crumbs.join(', ');
+            }
+        }
 
         // Convert score (e.g. 80000) to rating (e.g. 8.0)
         const rating = apiHotel.score ? (apiHotel.score / 10000).toFixed(1) : '0';
@@ -478,7 +493,7 @@ const HotelListing = () => {
                 if (match) {
                     // Use localized name from facility object if available
                     const localizedLabel = typeof f === 'object' && f.names
-                        ? (f.names.tr || f.names.en || match.label)
+                        ? (f.names[currentLang] || f.names.en || match.label)
                         : match.label;
 
                     if (!iconGroups[match.icon]) {
@@ -570,7 +585,7 @@ const HotelListing = () => {
             name: name,
             type: starLabel || 'Hotel',
             stars: starCount,
-            location: apiHotel.locationPathNames?.replace(/,/g, ', ') || 'Unknown Location',
+            location: locationString || 'Unknown Location',
             image: imagesToMap[0],
             images: imagesToMap,
             rating: rating,

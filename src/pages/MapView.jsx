@@ -11,6 +11,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import FilterPanel from '../components/FilterPanel';
 import { parseGuestsParam } from '../utils/searchParamsUtils';
 import 'leaflet/dist/leaflet.css';
+import { useTranslation } from 'react-i18next';
 
 // Fix for default marker icons in Leaflet
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -280,6 +281,8 @@ export const FACILITY_ICON_MAP = {
 
 // MapView Component
 const MapView = () => {
+    const { i18n } = useTranslation();
+    const currentLang = i18n.language || 'en';
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [hotels, setHotels] = useState([]);
@@ -507,9 +510,24 @@ const MapView = () => {
 
     const mapApiHotelToModel = React.useCallback((apiHotel) => {
         const hotelNames = apiHotel.names || apiHotel.name;
-        const name = hotelNames?.tr || hotelNames?.en || hotelNames?.defaultName || 'Unknown Hotel';
+        const name = hotelNames?.[currentLang] || hotelNames?.en || hotelNames?.defaultName || 'Unknown Hotel';
         const starCount = apiHotel.hotelStar?.star || 0;
-        const starLabel = apiHotel.hotelStar?.names?.tr || apiHotel.hotelStar?.names?.en || '';
+        const starLabel = apiHotel.hotelStar?.names?.[currentLang] || apiHotel.hotelStar?.names?.en || '';
+        
+        let locationString = apiHotel.locationPathNames;
+        if (!locationString && Array.isArray(apiHotel.locationBreadcrumbs)) {
+            const crumbs = apiHotel.locationBreadcrumbs
+                .filter(crumb => crumb.locationType !== 'COUNTRY')
+                .map(crumb => {
+                    const n = crumb.name;
+                    return n?.translations?.[currentLang] || n?.translations?.en || n?.defaultName;
+                })
+                .filter(Boolean);
+            if (crumbs.length > 0) {
+                locationString = crumbs.join(', ');
+            }
+        }
+
         const rating = apiHotel.score ? (apiHotel.score / 10000).toFixed(1) : '0';
 
         let ratingLabel = 'Good';
@@ -591,7 +609,7 @@ const MapView = () => {
             name: name,
             type: starLabel || 'Hotel',
             stars: starCount,
-            location: apiHotel.locationPathNames || 'Unknown Location',
+            location: locationString || 'Unknown Location',
             image: imagesToMap[0],
             images: imagesToMap,
             rating: rating,
@@ -759,28 +777,65 @@ const MapView = () => {
 
                 const mappedHotels = allContent.map(mapApiHotelToModel);
 
-                // Add jitter for identical coordinates
-                const coordinateMap = new Map();
-                const jitteredHotels = mappedHotels.filter(h => h.lat && h.lng).map(hotel => {
-                    const coordKey = `${hotel.lat.toFixed(4)}_${hotel.lng.toFixed(4)}`;
-                    const count = coordinateMap.get(coordKey) || 0;
-                    coordinateMap.set(coordKey, count + 1);
+                setHotels(prevHotels => {
+                    if (!boundsData.isUserPan) {
+                        // Replace hotels on a new search
+                        const coordinateMap = new Map();
+                        const jitteredHotels = mappedHotels.filter(h => h.lat && h.lng).map(hotel => {
+                            const coordKey = `${hotel.lat.toFixed(4)}_${hotel.lng.toFixed(4)}`;
+                            const count = coordinateMap.get(coordKey) || 0;
+                            coordinateMap.set(coordKey, count + 1);
 
-                    if (count > 0) {
-                        const offsetMultiplier = 0.00015;
-                        const angle = count * Math.PI * 0.4;
-                        let radius = offsetMultiplier * Math.ceil(count / 5);
+                            if (count > 0) {
+                                const offsetMultiplier = 0.00015;
+                                const angle = count * Math.PI * 0.4;
+                                let radius = offsetMultiplier * Math.ceil(count / 5);
 
-                        return {
-                            ...hotel,
-                            lat: hotel.lat + radius * Math.cos(angle),
-                            lng: hotel.lng + radius * Math.sin(angle)
-                        };
+                                return { ...hotel, lat: hotel.lat + radius * Math.cos(angle), lng: hotel.lng + radius * Math.sin(angle) };
+                            }
+                            return hotel;
+                        });
+                        return jitteredHotels;
                     }
-                    return hotel;
-                });
 
-                setHotels(jitteredHotels);
+                    // Append hotels on user pan (map drag)
+                    const newHotels = [];
+                    const seenIds = new Set(prevHotels.map(h => h.id || h.hotelId));
+
+                    mappedHotels.forEach(h => {
+                        const id = h.id || h.hotelId;
+                        if (!seenIds.has(id)) {
+                            newHotels.push(h);
+                        }
+                    });
+
+                    if (newHotels.length === 0) return prevHotels;
+
+                    const coordinateMap = new Map();
+                    prevHotels.forEach(h => {
+                        if (h.lat && h.lng) {
+                            const coordKey = `${h.lat.toFixed(4)}_${h.lng.toFixed(4)}`;
+                            coordinateMap.set(coordKey, (coordinateMap.get(coordKey) || 0) + 1);
+                        }
+                    });
+
+                    const jitteredNewHotels = newHotels.filter(h => h.lat && h.lng).map(hotel => {
+                        const coordKey = `${hotel.lat.toFixed(4)}_${hotel.lng.toFixed(4)}`;
+                        const count = coordinateMap.get(coordKey) || 0;
+                        coordinateMap.set(coordKey, count + 1);
+
+                        if (count > 0) {
+                            const offsetMultiplier = 0.00015;
+                            const angle = count * Math.PI * 0.4;
+                            let radius = offsetMultiplier * Math.ceil(count / 5);
+
+                            return { ...hotel, lat: hotel.lat + radius * Math.cos(angle), lng: hotel.lng + radius * Math.sin(angle) };
+                        }
+                        return hotel;
+                    });
+
+                    return [...prevHotels, ...jitteredNewHotels];
+                });
             }
         } catch (error) {
             if (error.name === 'AbortError') {

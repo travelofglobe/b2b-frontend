@@ -185,7 +185,7 @@ const MyBookings = () => {
         { id: 'BB', name: 'Bed & Breakfast (BB)' },
         { id: 'HB', name: 'Half Board (HB)' },
         { id: 'FB', name: 'Full Board (FB)' },
-        { id: 'AL', name: 'All Inclusive (AL)' }
+        { id: 'AI', name: 'All Inclusive (AI)' }
     ];
 
     // Fetch suppliers on mount

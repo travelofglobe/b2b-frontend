@@ -537,12 +537,16 @@ const MyBookings = () => {
             checkOutEnd: '',
             minAmount: '',
             maxAmount: '',
-            currencies: [],
             principalAgencyIds: [],
             minCancellationAmount: '',
             maxCancellationAmount: '',
             cancelReason: '',
             isCancelled: '',
+            gsaIds: [],
+            rsaIds: [],
+            agencyIds: [],
+            supplierIds: [],
+            countryIds: []
         });
         setPage(0);
         setRefreshTrigger(prev => prev + 1);

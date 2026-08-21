@@ -1667,7 +1667,9 @@ const HotelDetail = () => {
             <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
                 <div className="flex flex-col items-center gap-6">
                     <div className="size-20 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                    <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-xs">Finding the best rates...</p>
+                    <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-xs" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                        {tLocal('fetchingBestRates')}
+                    </p>
                 </div>
             </div>
         );

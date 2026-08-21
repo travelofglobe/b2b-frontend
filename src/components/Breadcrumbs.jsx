@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { locationService } from '../services/locationService';
 
 const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
     const [loading, setLoading] = useState(false);
     const location = useLocation();
+    const { i18n } = useTranslation();
+    const currentLang = i18n.language || 'en';
 
     useEffect(() => {
         // If initialData is provided, use it and don't fetch
@@ -48,10 +51,10 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [locationId]); // only re-fetch when locationId changes
 
-    // Helper to get name with English translation preference
+    // Helper to get name with current language translation preference
     const getName = (nameObj) => {
         if (!nameObj) return '';
-        return nameObj.translations?.en || nameObj.defaultName || '';
+        return nameObj.translations?.[currentLang] || nameObj.translations?.en || nameObj.defaultName || '';
     };
 
     // Dedicated icons per locationType or depth index

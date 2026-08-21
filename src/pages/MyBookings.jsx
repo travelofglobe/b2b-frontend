@@ -209,9 +209,15 @@ const MyBookings = () => {
         locationService.listCountries(controller.signal)
             .then(res => {
                 if (res?.locationList && Array.isArray(res.locationList)) {
-                    setCountryOptions(res.locationList.map(c => ({ id: c.locationId, name: `${getFlagEmoji(c.alphaTwoCode)} ${c.name.translations?.[i18n.language] || c.name.defaultName || c.name}` })));
+                    setCountryOptions(res.locationList.map(c => ({ 
+                        id: c.locationId || c.id, 
+                        name: `${getFlagEmoji(c.alphaTwoCode || c.countryIso2)} ${c.name?.translations?.[i18n.language] || c.name?.defaultName || c.name}` 
+                    })));
                 } else if (Array.isArray(res)) {
-                    setCountryOptions(res.map(c => ({ id: c.locationId || c.id, name: c.name })));
+                    setCountryOptions(res.map(c => ({ 
+                        id: c.locationId || c.id, 
+                        name: `${getFlagEmoji(c.alphaTwoCode || c.countryIso2)} ${c.name?.translations?.[i18n.language] || c.name?.defaultName || c.name}` 
+                    })));
                 }
             })
             .catch(e => {

@@ -185,7 +185,7 @@ const MyBookings = () => {
         { id: 'BB', name: 'Bed & Breakfast (BB)' },
         { id: 'HB', name: 'Half Board (HB)' },
         { id: 'FB', name: 'Full Board (FB)' },
-        { id: 'AL', name: 'All Inclusive (AL)' }
+        { id: 'AI', name: 'All Inclusive (AI)' }
     ];
 
     // Fetch suppliers on mount
@@ -237,9 +237,15 @@ const MyBookings = () => {
         locationService.listSubRegions(filters.countryIds[0], controller.signal)
             .then(res => {
                 if (res?.locationList && Array.isArray(res.locationList)) {
-                    setCityOptions(res.locationList.map(c => ({ id: c.locationId, name: `${getFlagEmoji(c.alphaTwoCode)} ${c.name.translations?.[i18n.language] || c.name.defaultName || c.name}` })));
+                    setCityOptions(res.locationList.map(c => ({ 
+                        id: c.locationId || c.id, 
+                        name: `${c.name?.translations?.[i18n.language] || c.name?.defaultName || c.name}` 
+                    })));
                 } else if (Array.isArray(res)) {
-                    setCityOptions(res.map(c => ({ id: c.locationId || c.id, name: c.name })));
+                    setCityOptions(res.map(c => ({ 
+                        id: c.locationId || c.id, 
+                        name: `${c.name?.translations?.[i18n.language] || c.name?.defaultName || c.name}` 
+                    })));
                 }
             })
             .catch(e => {

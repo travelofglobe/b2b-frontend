@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, disabled = false, icon = null, alignRight = false }) => {
+const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, disabled = false, icon = null, alignRight = false, closeOnSelect = true }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const buttonRef = useRef(null);
@@ -45,11 +45,20 @@ const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, di
         }
     }, [isOpen, alignRight]);
 
+    useEffect(() => {
+        if (!isOpen) {
+            setSearchTerm('');
+        }
+    }, [isOpen]);
+
     const toggleOption = (value) => {
         const newValues = selectedValues.includes(value)
             ? selectedValues.filter(v => v !== value)
             : [...selectedValues, value];
         onChange(newValues);
+        if (closeOnSelect) {
+            setIsOpen(false);
+        }
     };
 
     const getDisplayText = () => {
@@ -63,7 +72,13 @@ const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, di
 
     const filteredOptions = options.filter(opt => 
         (opt.name || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    ).sort((a, b) => {
+        const aSelected = selectedValues.includes(a.id);
+        const bSelected = selectedValues.includes(b.id);
+        if (aSelected && !bSelected) return -1;
+        if (!aSelected && bSelected) return 1;
+        return 0;
+    });
 
     const dropdownContent = isOpen ? (
         <div 

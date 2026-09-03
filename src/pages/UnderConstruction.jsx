@@ -12,7 +12,7 @@ const UnderConstruction = ({ title, icon }) => {
                 
                 {/* Icon Container */}
                 <div className="relative size-24 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl shadow-primary/20 flex items-center justify-center border border-slate-100 dark:border-slate-800 animate-bounce-slow">
-                    <span className="material-icons-round text-5xl text-primary">{icon || 'construction'}</span>
+                    <span className="material-symbols-outlined text-5xl text-primary">{icon || 'construction'}</span>
                 </div>
 
                 {/* Badge */}

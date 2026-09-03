@@ -116,27 +116,56 @@ const Dashboard = () => {
 
     return (
         <>
-            {/* Background Decorative Glows */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-400/10 blur-[120px] rounded-full pointer-events-none"></div>
-
             {/* Main Content */}
-            <main className="flex-1 p-3 md:p-5 overflow-y-auto h-full">
-                <div className="max-w-6xl mx-auto">
-                    <header className="flex flex-wrap items-center justify-between mb-6 gap-4">
-                        <div className="flex items-center gap-2">
-                            <span className="material-icons-round text-primary text-xl">auto_awesome</span>
-                            <h1 className="text-lg font-medium">Welcome, <span className="font-semibold">{userDisplayName}</span></h1>
+            <main className="flex-1 flex flex-col bg-white dark:bg-[#202124]">
+                
+                {/* Hero Section */}
+                <div className="w-full flex flex-col items-center">
+                    {/* Image + title overlay container */}
+                    <div className="w-full relative overflow-hidden pointer-events-none flex-shrink-0" style={{ maxHeight: '390px' }}>
+                        <img 
+                            src="/hero-flights.svg" 
+                            alt="Background illustration"
+                            style={{
+                                display: 'block',
+                                width: '100%',
+                                maxWidth: '1200px',
+                                height: 'auto',
+                                opacity: 0.9,
+                                margin: '0 auto'
+                            }}
+                            className="dark:opacity-40"
+                        />
+                        {/* Title overlaid on bottom of image with transparent background */}
+                        <div 
+                            className="absolute bottom-0 left-0 right-0 flex justify-center pointer-events-none"
+                            style={{ paddingBottom: '0px' }}
+                        >
+                            <h1 
+                                className="text-[44px] md:text-[56px] text-[#202124] dark:text-white font-normal tracking-tight text-center"
+                                style={{ 
+                                    fontFamily: '"Google Sans", "Product Sans", Roboto, Arial, sans-serif', 
+                                    lineHeight: '1.2',
+                                    background: 'transparent',
+                                    margin: 0
+                                }}
+                            >
+                                Oteller
+                            </h1>
                         </div>
-                        <HeaderActions />
-                    </header>
+                    </div>
 
-                    {/* Main Search Component */}
-                    <div className="mb-12 relative z-20">
+                    {/* Search Component - below the image/title area */}
+                    <div className="w-full max-w-[860px] px-4 md:px-6 mt-10 mb-16 pointer-events-auto">
                         <DashboardSearch />
                     </div>
+                </div>
+
+                <div className="max-w-[1024px] mx-auto px-4 md:px-6 relative z-20">
+
+
                     {/* Compact 5-Card Single Row Summary Stats Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-10">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-10 mt-12">
                         {/* Bookings Today Card (Clickable) */}
                         <div
                             onClick={handleBookingsTodayClick}

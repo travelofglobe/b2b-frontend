@@ -873,41 +873,150 @@ const DashboardSearch = () => {
     const hasAnyResults = matchingHistory.length > 0 || results.regions.length > 0 || results.hotels.length > 0 || loading;
 
     return (
-        <section className="relative group/search">
-            {/* Soft ambient glow */}
-            <div className="absolute -inset-4 bg-primary/5 rounded-3xl blur-[100px] opacity-0 group-hover/search:opacity-100 transition-opacity duration-700"></div>
+        <section className="relative group/search w-full flex flex-col items-center">
+            {/* Soft ambient glow removed to match flat Google design */}
 
-            <div className="relative bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.04)] p-3.5 border border-white/60 dark:border-white/10 transition-all duration-300 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)]">
+            <div className="relative w-full max-w-[1024px] bg-white dark:bg-[#202124] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] px-4 pt-2 pb-10 border-none transition-all duration-300">
                 
-                {/* Modern Service Tabs */}
-                <div className="flex flex-wrap items-center gap-1.5 mb-4 p-0.5 relative z-10">
-                    <button className="bg-primary/10 text-primary px-4 py-2 rounded-xl font-semibold text-xs flex items-center gap-2 transition-all transform active:scale-95 group/btn">
-                        <span className="material-symbols-outlined text-sm fill-1">hotel</span>
-                        <span className="tracking-tight">{ls.hotels}</span>
-                    </button>
-                    {['flight', 'airport_shuttle', 'explore', 'directions_car'].map((icon, i) => (
-                        <button key={i} className="px-3.5 py-2 rounded-xl font-medium text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 transition-all hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white group/soon" disabled>
-                            <span className="material-symbols-outlined text-base leading-none opacity-70 group-hover/soon:opacity-100">{icon}</span>
-                            <span className="tracking-tight">{icon === 'airport_shuttle' ? ls.transfer : icon === 'explore' ? ls.tours : icon === 'directions_car' ? ls.carRental : icon.charAt(0).toUpperCase() + icon.slice(1)}</span>
-                            <span className="bg-slate-200/50 dark:bg-slate-800/80 text-[9px] font-semibold px-1.5 py-0.5 rounded-md opacity-50 group-hover/soon:opacity-100 transition-opacity">{ls.soon}</span>
+                {/* Top Options (Guests, Nationality) - Plain style like Google */}
+                <div className="flex flex-wrap items-center gap-4 mb-3 relative z-[60]">
+                    {/* Elegant Guest Selector */}
+                    <div className="relative group/field" ref={guestWrapperRef}>
+                        <button
+                            onClick={() => setShowGuestDropdown(!showGuestDropdown)}
+                            className="flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/50 px-2 py-1.5 rounded transition-colors text-[#3c4043] dark:text-slate-300"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">person</span>
+                            <span className="text-sm font-medium">{totalAdults + totalChildren}</span>
+                            <span className="material-symbols-outlined text-[18px] text-slate-500">arrow_drop_down</span>
                         </button>
-                    ))}
+
+                        {/* Guest Dropdown - Google Flights Style */}
+                        {showGuestDropdown && (
+                            <div className="absolute top-full left-0 w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[200] animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-3 -mr-3">
+                                    {roomState.map((room, index) => (
+                                        <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 last:mb-0">
+                                            {roomState.length > 1 && (
+                                                <div className="flex justify-between items-center mb-3">
+                                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{ls.roomSingle} {index + 1}</span>
+                                                    <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded hover:bg-red-50">Sil</button>
+                                                </div>
+                                            )}
+                                            
+                                            <div className="flex flex-col gap-4">
+                                                {/* Adults Row */}
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{ls.adults}</span>
+                                                    <div className="flex items-center gap-1">
+                                                        <button 
+                                                            onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} 
+                                                            disabled={room.adults <= 1}
+                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[20px]">remove</span>
+                                                        </button>
+                                                        <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.adults}</span>
+                                                        <button 
+                                                            onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))}
+                                                            disabled={room.adults >= 6} 
+                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[20px]">add</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Children Row */}
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{ls.children}</span>
+                                                        <span className="text-[12px] text-slate-500">{ls.childrenAge}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <button 
+                                                            onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} 
+                                                            disabled={room.children <= 0}
+                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[20px]">remove</span>
+                                                        </button>
+                                                        <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.children}</span>
+                                                        <button 
+                                                            onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} 
+                                                            disabled={room.children >= 4}
+                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[20px]">add</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Child Ages */}
+                                                {room.children > 0 && (
+                                                    <div className="grid grid-cols-2 gap-3 mt-1">
+                                                        {room.childAges.map((age, ageIdx) => (
+                                                            <div key={ageIdx} className="flex flex-col gap-1">
+                                                                <span className="text-[12px] text-slate-500">{ls.children} {ageIdx + 1} {ls.years}</span>
+                                                                <select
+                                                                    value={age}
+                                                                    onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
+                                                                    className="w-full h-8 bg-white dark:bg-slate-800 rounded border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-0 outline-none text-[#3c4043] dark:text-white"
+                                                                >
+                                                                    {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {ls.years}</option>)}
+                                                                </select>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {roomState.length < 5 && (
+                                        <button onClick={addRoom} className="mt-4 text-[14px] text-[#1a73e8] font-medium hover:underline flex items-center">
+                                            <span className="material-symbols-outlined text-[18px] mr-1">add</span>
+                                            {ls.addRoom}
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Google Flights Style Footer */}
+                                <div className="flex items-center justify-end gap-6 mt-6 pt-2">
+                                    <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
+                                        İptal
+                                    </button>
+                                    <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
+                                        Bitti
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* Nationality Selector (Compact style) */}
+                    <div className="relative group/field flex items-center bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700/50 px-2 py-1.5 rounded transition-colors cursor-pointer text-[#3c4043] dark:text-slate-300">
+                        <NationalitySelect 
+                            value={nationality} 
+                            onChange={setNationality} 
+                            compact={true} 
+                        />
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 p-0.5 relative z-10">
+                <div className="w-full flex flex-col md:flex-row items-center relative z-50 border border-[#dadce0] dark:border-slate-600 rounded-[4px] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:shadow-[0_0_0_1px_#1a73e8] transition-all bg-white dark:bg-[#303134]">
+                    
                     {/* Destination Input */}
-                    <div className="lg:col-span-3 relative group/field" ref={searchWrapperRef}>
-                        <div className={`flex flex-col justify-center gap-0.5 px-3.5 py-2 h-[58px] bg-white/60 dark:bg-slate-800/60 rounded-xl border transition-all duration-200 ${error ? 'border-red-500 bg-red-50/50 dark:bg-red-900/10' : 'border-slate-200/60 dark:border-slate-700/60 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm'}`}>
-                            <label className={`text-[9.5px] font-semibold uppercase tracking-wider flex items-center gap-1.5 h-4 leading-none ${error ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`}>
-                                <span className={`material-symbols-outlined text-[13px] ${error ? 'text-red-500' : 'text-primary'}`}>
-                                    {error ? 'error' : 'location_on'}
-                                </span>
-                                {error ? ls.destinationRequired : ls.location}
-                            </label>
-                            <div className="flex-1 flex items-center min-w-0 mt-0.5">
+                    <div className="relative group/field w-full md:flex-1 h-14 flex items-center" ref={searchWrapperRef}>
+                        <div className="flex items-center gap-2.5 h-full w-full px-4">
+                            <span className="material-symbols-outlined text-[20px] text-slate-500">
+                                {error ? 'error' : 'location_on'}
+                            </span>
+                            <div className="flex flex-col flex-1 h-full justify-center">
+                                {query && <span className="text-[10px] font-medium text-slate-500 -mb-1">Nereye?</span>}
                                 <input
-                                    className="bg-transparent border-none outline-none focus:ring-0 w-full p-0 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400/60 tracking-tight"
-                                    placeholder={ls.placeholder}
+                                    className={`bg-transparent border-none outline-none focus:ring-0 w-full p-0 text-base font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] tracking-tight ${query ? 'mt-1' : ''}`}
+                                    placeholder={ls.placeholder || "Nereye?"}
                                     type="text"
                                     value={query}
                                     onChange={(e) => {
@@ -927,73 +1036,39 @@ const DashboardSearch = () => {
                                     onKeyDown={handleKeyDown}
                                 />
                             </div>
-                            {loading && <div className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>}
+                            {loading && <div className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>}
                         </div>
 
-                        {/* Redesigned Multi-Category Autocomplete & Past Searches Dropdown */}
+                        {/* Autocomplete Dropdown */}
                         {showDropdown && hasAnyResults && (
-                            <div className="absolute top-full left-0 w-full md:w-[460px] mt-2 bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xl max-h-[420px] overflow-y-auto z-[300] p-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200 divide-y divide-slate-100 dark:divide-slate-800/60">
-                                
+                            <div className="absolute top-[calc(100%+4px)] left-0 w-full lg:w-[460px] bg-white dark:bg-[#202124] rounded-xl border border-slate-200 dark:border-slate-700 shadow-[0_4px_6px_0_rgba(32,33,36,0.28)] max-h-[420px] overflow-y-auto z-[300] py-2 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
                                 {/* 1. Past Searches Section */}
                                 {matchingHistory.length > 0 && (
-                                    <div className="pt-1">
-                                        <div className="flex items-center justify-between px-3 py-1 mb-1.5 bg-purple-50/50 dark:bg-purple-900/10 rounded-xl">
-                                            <span className="text-[11px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
-                                                <span className="material-symbols-outlined text-sm">history</span>
-                                                Son Aramalar
-                                                <span className="text-[9px] bg-purple-500/15 text-purple-700 dark:text-purple-300 px-1.5 py-0.2 rounded-full font-semibold">
-                                                    {matchingHistory.length}
-                                                </span>
-                                            </span>
+                                    <div className="px-2">
+                                        <div className="flex items-center justify-between px-3 py-1.5 mb-1">
+                                            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Son Aramalar</span>
                                             {!query.trim() && (
-                                                <button
-                                                    onClick={handleClearHistory}
-                                                    className="text-[11px] font-medium text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors px-1.5 py-0.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
-                                                    title="Geçmişi Temizle"
-                                                >
-                                                    <span className="material-symbols-outlined text-sm">delete</span>
-                                                    Temizle
-                                                </button>
+                                                <button onClick={handleClearHistory} className="text-[11px] font-medium text-slate-400 hover:text-red-500 transition-colors">Temizle</button>
                                             )}
                                         </div>
-                                        <div className="space-y-1">
+                                        <div className="space-y-0.5">
                                             {matchingHistory.map((item, index) => {
                                                 const itemType = item.type || item.searchType || 'SEARCH';
                                                 const isLocation = itemType === 'LOCATION';
                                                 const isHotel = itemType === 'HOTEL';
 
                                                 return (
-                                                    <div
-                                                        key={item.id || index}
-                                                        onClick={() => handleSelectHistoryItem(item)}
-                                                        className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl flex items-center justify-between transition-all group cursor-pointer"
-                                                    >
-                                                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                            <div className={`size-8 rounded-xl flex items-center justify-center transition-colors shrink-0 shadow-sm ring-1 ${
-                                                                isLocation
-                                                                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20'
-                                                                    : isHotel
-                                                                    ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20'
-                                                                    : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-purple-500/20'
-                                                            }`}>
-                                                                <span className="material-symbols-outlined text-base">
-                                                                    {isLocation ? 'location_city' : isHotel ? 'hotel' : 'history'}
-                                                                </span>
-                                                            </div>
+                                                    <div key={item.id || index} onClick={() => handleSelectHistoryItem(item)} className="w-full text-left px-3 py-2.5 hover:bg-[#f1f3f4] dark:hover:bg-slate-800 rounded flex items-center justify-between transition-all group cursor-pointer">
+                                                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                                                            <span className="material-symbols-outlined text-xl text-slate-400">
+                                                                {isLocation ? 'location_city' : isHotel ? 'hotel' : 'history'}
+                                                            </span>
                                                             <div className="min-w-0 flex-1">
-                                                                <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{item.query}</div>
-                                                                {item.subtitle && (
-                                                                    <div className="text-[10.5px] text-slate-400 truncate">{item.subtitle}</div>
-                                                                )}
+                                                                <div className="text-[15px] text-[#3c4043] dark:text-white truncate">{item.query}</div>
+                                                                {item.subtitle && <div className="text-[13px] text-slate-500 truncate">{item.subtitle}</div>}
                                                             </div>
                                                         </div>
-                                                        <button
-                                                            onClick={(e) => handleDeleteHistoryItem(e, item.id)}
-                                                            className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shrink-0 ml-2"
-                                                            title="Bu aramayı sil"
-                                                        >
-                                                            <span className="material-symbols-outlined text-sm leading-none block">close</span>
-                                                        </button>
+                                                        <button onClick={(e) => handleDeleteHistoryItem(e, item.id)} className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-all shrink-0 ml-2" title="Sil"><span className="material-symbols-outlined text-sm">close</span></button>
                                                     </div>
                                                 );
                                             })}
@@ -1001,31 +1076,19 @@ const DashboardSearch = () => {
                                     </div>
                                 )}
 
-                                {/* 2. Locations & Regions Section */}
+                                {/* 2. Locations Section */}
                                 {results.regions.length > 0 && (
-                                    <div className="pt-2">
-                                        <div className="flex items-center justify-between px-3 py-1 mb-1.5 bg-amber-50/50 dark:bg-amber-900/10 rounded-xl">
-                                            <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                                                <span className="material-symbols-outlined text-sm">location_on</span>
-                                                {ls.popularDestinations}
-                                                <span className="text-[9px] bg-amber-500/15 text-amber-700 dark:text-amber-300 px-1.5 py-0.2 rounded-full font-semibold">
-                                                    {results.regions.length}
-                                                </span>
-                                            </span>
+                                    <div className="px-2">
+                                        <div className="px-3 py-1.5 mb-1 border-t border-slate-100 dark:border-slate-800 pt-2">
+                                            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">{ls.popularDestinations}</span>
                                         </div>
-                                        <div className="space-y-1">
+                                        <div className="space-y-0.5">
                                             {results.regions.map((region, index) => (
-                                                <button
-                                                    key={region.locationId}
-                                                    onClick={() => handleSelectLocation(region)}
-                                                    className={`w-full text-left px-3 py-2 hover:bg-amber-50/40 dark:hover:bg-amber-900/20 rounded-xl flex items-center gap-3 transition-all group ${activeIndex === index ? 'bg-amber-50 dark:bg-amber-900/30 ring-1 ring-amber-500/20' : ''}`}
-                                                >
-                                                    <div className="size-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center transition-colors shadow-sm ring-1 ring-amber-500/20 shrink-0">
-                                                        <span className="material-symbols-outlined text-lg">location_city</span>
-                                                    </div>
+                                                <button key={region.locationId} onClick={() => handleSelectLocation(region)} className={`w-full text-left px-3 py-2.5 hover:bg-[#f1f3f4] dark:hover:bg-slate-800 rounded flex items-center gap-4 transition-all group ${activeIndex === index ? 'bg-[#f1f3f4] dark:bg-slate-800' : ''}`}>
+                                                    <span className="material-symbols-outlined text-xl text-slate-400">location_city</span>
                                                     <div className="min-w-0 flex-1">
-                                                        <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{region.name?.translations?.[currentLang] || region.name?.translations?.en || region.name?.defaultName}</div>
-                                                        <div className="text-[11px] font-normal text-slate-500 truncate">{getRegionName(region)}</div>
+                                                        <div className="text-[15px] text-[#3c4043] dark:text-white truncate">{region.name?.translations?.[currentLang] || region.name?.translations?.en || region.name?.defaultName}</div>
+                                                        <div className="text-[13px] text-slate-500 truncate">{getRegionName(region)}</div>
                                                     </div>
                                                 </button>
                                             ))}
@@ -1035,32 +1098,18 @@ const DashboardSearch = () => {
 
                                 {/* 3. Hotels Section */}
                                 {results.hotels.length > 0 && (
-                                    <div className="pt-2">
-                                        <div className="flex items-center justify-between px-3 py-1 mb-1.5 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl">
-                                            <span className="text-[11px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-                                                <span className="material-symbols-outlined text-sm">hotel</span>
-                                                {ls.featuredHotels}
-                                                <span className="text-[9px] bg-blue-500/15 text-blue-700 dark:text-blue-300 px-1.5 py-0.2 rounded-full font-semibold">
-                                                    {results.hotels.length}
-                                                </span>
-                                            </span>
+                                    <div className="px-2">
+                                        <div className="px-3 py-1.5 mb-1 border-t border-slate-100 dark:border-slate-800 pt-2">
+                                            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">{ls.featuredHotels}</span>
                                         </div>
-                                        <div className="space-y-1">
+                                        <div className="space-y-0.5">
                                             {results.hotels.map((hotel, index) => (
-                                                <button
-                                                    key={hotel.hotelId}
-                                                    onClick={() => handleSelectHotel(hotel)}
-                                                    className={`w-full text-left px-3 py-2 hover:bg-blue-50/40 dark:hover:bg-blue-900/20 rounded-xl flex items-center gap-3 transition-all group ${activeIndex === (results.regions.length + index) ? 'bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-500/20' : ''}`}
-                                                >
-                                                    <div className="size-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center transition-colors shadow-sm ring-1 ring-blue-500/20 shrink-0">
-                                                        <span className="material-symbols-outlined text-lg">hotel</span>
-                                                    </div>
+                                                <button key={hotel.hotelId} onClick={() => handleSelectHotel(hotel)} className={`w-full text-left px-3 py-2.5 hover:bg-[#f1f3f4] dark:hover:bg-slate-800 rounded flex items-center gap-4 transition-all group ${activeIndex === (results.regions.length + index) ? 'bg-[#f1f3f4] dark:bg-slate-800' : ''}`}>
+                                                    <span className="material-symbols-outlined text-xl text-slate-400">hotel</span>
                                                     <div className="min-w-0 flex-1">
-                                                        <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{getHotelName(hotel)}</div>
-                                                        <div className="text-[11px] font-normal text-slate-500 truncate">
-                                                            {hotel.locationBreadcrumbs ?
-                                                                hotel.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName).reverse().join(', ')
-                                                                : hotel.countryCode}
+                                                        <div className="text-[15px] text-[#3c4043] dark:text-white truncate">{getHotelName(hotel)}</div>
+                                                        <div className="text-[13px] text-slate-500 truncate">
+                                                            {hotel.locationBreadcrumbs ? hotel.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName).reverse().join(', ') : hotel.countryCode}
                                                         </div>
                                                     </div>
                                                 </button>
@@ -1068,46 +1117,25 @@ const DashboardSearch = () => {
                                         </div>
                                     </div>
                                 )}
-
-                                {/* Loading Indicator */}
-                                {loading && (
-                                    <div className="flex items-center justify-center py-4 text-slate-400 gap-2">
-                                        <div className="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                        <span className="text-xs font-medium">Aranıyor...</span>
-                                    </div>
-                                )}
                             </div>
                         )}
                     </div>
 
+                    {/* Vertical Divider */}
+                    <div className="hidden md:block w-[1px] h-10 bg-[#dadce0] dark:bg-slate-600"></div>
+                    <div className="md:hidden w-full h-[1px] bg-[#dadce0] dark:bg-slate-600"></div>
+
                     {/* Date Picker Group */}
-                    <div className="lg:col-span-3 relative group/field">
-                        <div 
-                            className="flex flex-col justify-center gap-0.5 px-3.5 py-2 h-[58px] bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 transition-all duration-200 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm cursor-pointer"
-                            onClick={() => datePickerRef.current?.setOpen(true)}
-                        >
-                            <label className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between w-full h-4 leading-none">
-                                <div className="flex items-center gap-1.5 leading-none">
-                                    <span className="material-symbols-outlined text-[13px] text-primary">calendar_today</span>
-                                    {ls.checkInOut}
-                                </div>
-                                {checkInDate && checkOutDate && (
-                                    <div className="flex items-center gap-1 px-1.5 py-0.5 -my-1 rounded-md bg-primary/10 text-primary border border-primary/20 animate-in fade-in">
-                                        <span className="material-symbols-outlined text-[11px] leading-none">bedtime</span>
-                                        <span className="text-[9px] font-medium uppercase tracking-tight leading-none">
-                                            {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)) === 1 ? ls.nightSingle : ls.nights}
-                                        </span>
-                                    </div>
-                                )}
-                            </label>
-                            <div className="flex-1 flex items-center min-w-0 mt-0.5 datepicker-dashboard">
+                    <div className="relative group/field w-full md:flex-1 h-14 flex items-center cursor-pointer" onClick={() => datePickerRef.current?.setOpen(true)}>
+                        <div className="flex items-center gap-2.5 h-full w-full px-4">
+                            <span className="material-symbols-outlined text-[20px] text-slate-500">calendar_today</span>
+                            <div className="flex flex-col flex-1 h-full justify-center min-w-0 datepicker-dashboard">
+                                {(checkInDate || checkOutDate) && <span className="text-[10px] font-medium text-slate-500 -mb-1">Giriş — Çıkış</span>}
                                 <DatePicker
                                     ref={datePickerRef}
                                     selected={checkInDate}
                                     onChange={(dates) => {
                                         const [start, end] = dates;
-
-                                        // Validation: checkout must be at least 1 day after checkin
                                         if (start && end) {
                                             const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
                                             const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
@@ -1119,7 +1147,6 @@ const DashboardSearch = () => {
                                                 return;
                                             }
                                         }
-
                                         setCheckInDate(start);
                                         setCheckOutDate(end);
                                     }}
@@ -1132,12 +1159,12 @@ const DashboardSearch = () => {
                                     onCalendarOpen={() => setVisibleMonth(checkInDate || new Date())}
                                     onMonthChange={(date) => setVisibleMonth(date)}
                                     locale={currentLang}
-                                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-xs font-medium text-slate-900 dark:text-white cursor-pointer tracking-tight whitespace-nowrap leading-tight"
+                                    className={`bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-base font-normal text-[#3c4043] dark:text-white cursor-pointer tracking-tight whitespace-nowrap leading-tight placeholder-[#70757a] ${checkInDate || checkOutDate ? 'mt-1' : ''}`}
                                     wrapperClassName="w-full flex items-center"
                                     dateFormat="dd MMM yyyy"
-                                    placeholderText={ls.placeholder}
-                                    calendarClassName="shadow-2xl border-none font-sans"
-                                    popperPlacement="bottom-start"
+                                    placeholderText="Giriş | Çıkış"
+                                    calendarClassName="shadow-[0_4px_6px_0_rgba(32,33,36,0.28)] border-none font-sans rounded-xl"
+                                    popperPlacement="bottom-end"
                                     renderDayContents={(day, date) => {
                                         const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                                         const holiday = holidays?.find(h => h.date === formattedDate || h.holidayDate === formattedDate);
@@ -1146,23 +1173,9 @@ const DashboardSearch = () => {
                                             const lowerName = (holiday.holidayName || holiday.name || '').toLowerCase();
                                             const isReligious = lowerName.includes('eid') || lowerName.includes('ramazan') || lowerName.includes('kurban');
                                             const typeClass = isReligious ? 'type-religious' : 'type-public';
-                                            
-                                            // Handle language matching for tooltip
-                                            const langPrefix = (i18n.language || 'en').substring(0, 2).toLowerCase();
-                                            const hCountry = (holiday.countryCode || destinationCountryCode || '').toLowerCase();
-                                            const isLocalLang = langPrefix === hCountry;
-                                            const displayTooltipName = (isLocalLang && holiday.localName) ? holiday.localName : (holiday.holidayName || holiday.name);
-
                                             return (
                                                 <div className={`holiday-day-container ${typeClass}`}>
                                                     {day}
-                                                    <div className="holiday-tooltip">
-                                                        <div className="holiday-tooltip-country">
-                                                            {holiday.countryCode || destinationCountryCode}
-                                                        </div>
-                                                        <div className="holiday-tooltip-name">{displayTooltipName}</div>
-                                                        <div className="holiday-tooltip-type">{isReligious ? 'Dini Tatil' : 'Resmi Tatil'}</div>
-                                                    </div>
                                                 </div>
                                             );
                                         }
@@ -1174,116 +1187,17 @@ const DashboardSearch = () => {
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Nationality Section */}
-                    <div className="lg:col-span-2 relative group/field">
-                        <div className="flex flex-col justify-center gap-0.5 px-3.5 py-2 h-[58px] bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 transition-all duration-200 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 shadow-sm">
-                            <label className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 h-4 leading-none">
-                                <span className="material-symbols-outlined text-[13px] text-primary">public</span>
-                                {ls.nationality}
-                            </label>
-                            <div className="flex-1 flex items-center min-w-0 mt-0.5">
-                                <NationalitySelect value={nationality} onChange={setNationality} compact={false} />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Elegant Guest Selector */}
-                    <div className="lg:col-span-2 relative group/field" ref={guestWrapperRef}>
-                        <button
-                            onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                            className="w-full h-[58px] flex flex-col justify-center items-start gap-0.5 px-3.5 py-2 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm transition-all duration-200 group-hover/field:border-primary/40 group-hover/field:bg-white dark:group-hover/field:bg-slate-800 text-left"
-                        >
-                            <label className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 h-4 leading-none">
-                                <span className="material-symbols-outlined text-[13px] text-primary">group</span>
-                                {ls.occupants}
-                            </label>
-                            <div className="flex-1 flex items-center justify-between w-full mt-0.5">
-                                <span className="text-xs font-medium text-slate-900 dark:text-white tracking-tight truncate w-full">
-                                    {totalAdults} {ls.adults.substring(0, 3)}, {totalChildren} {ls.children.substring(0, 3)}
-                                </span>
-                                <span className="material-symbols-outlined text-slate-400 text-base transition-transform group-hover/field:translate-y-0.5">expand_more</span>
-                            </div>
-                        </button>
-
-                        {/* Guest Dropdown - Modernized */}
-                        {showGuestDropdown && (
-                            <div className="absolute top-full right-0 w-[360px] mt-2 bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-100 dark:border-slate-800 shadow-2xl p-5 z-[200] space-y-4 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[70vh] overflow-y-auto no-scrollbar">
-                                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                                    <h4 className="font-semibold text-sm text-slate-900 dark:text-white">{ls.roomsAndGuests}</h4>
-                                    <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-md uppercase tracking-wider">{totalRooms} {ls.roomsTotal}</span>
-                                </div>
-                                
-                                {roomState.map((room, index) => (
-                                    <div key={index} className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl relative">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{ls.roomSingle} {index + 1}</div>
-                                            {roomState.length > 1 && (
-                                                <button onClick={() => removeRoom(index)} className="size-7 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all">
-                                                    <span className="material-symbols-outlined text-xs">delete</span>
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-4">
-                                            {[{ label: ls.adults, field: 'adults', max: 6, min: 1, sub: ls.adultsAge }, { label: ls.children, field: 'children', max: 4, min: 0, sub: ls.childrenAge }].map((item) => (
-                                                <div key={item.field} className="flex flex-col gap-1.5">
-                                                    <div>
-                                                        <div className="text-xs font-semibold text-slate-900 dark:text-white">{item.label}</div>
-                                                        <div className="text-[9px] font-medium text-slate-400">{item.sub}</div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2.5">
-                                                        <button onClick={() => updateRoom(index, item.field, Math.max(item.min, room[item.field] - 1))} className="size-7 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700"><span className="material-symbols-outlined text-xs">remove</span></button>
-                                                        <span className="w-4 text-center text-xs font-semibold">{room[item.field]}</span>
-                                                        <button onClick={() => updateRoom(index, item.field, Math.min(item.max, room[item.field] + 1))} className="size-7 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700"><span className="material-symbols-outlined text-xs">add</span></button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {room.children > 0 && (
-                                            <div className="grid grid-cols-2 gap-2.5 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                                                {room.childAges.map((age, ageIdx) => (
-                                                    <div key={ageIdx} className="space-y-1">
-                                                        <label className="text-[10px] font-medium text-slate-500">{ls.children} {ageIdx + 1} {ls.years}</label>
-                                                        <select
-                                                            value={age}
-                                                            onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
-                                                            className="w-full h-9 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-xs px-2 font-medium focus:border-primary focus:ring-0"
-                                                        >
-                                                            {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {ls.years}</option>)}
-                                                        </select>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-
-                                {roomState.length < 5 && (
-                                    <button
-                                        onClick={addRoom}
-                                        className="w-full py-3 bg-primary/5 text-primary rounded-xl text-xs font-semibold uppercase tracking-wider hover:bg-primary hover:text-white transition-all border border-dashed border-primary/30 flex items-center justify-center gap-1.5"
-                                    >
-                                        <span className="material-symbols-outlined text-sm">add</span>
-                                        {ls.addRoom}
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Premium Search Button */}
-                    <div className="lg:col-span-2">
-                        <button
-                            onClick={handleSearch}
-                            className="w-full h-[58px] bg-primary text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all group/sbtn relative overflow-hidden"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/sbtn:translate-x-full transition-transform duration-1000"></div>
-                            <span className="material-symbols-outlined text-xl group-hover/sbtn:rotate-12 transition-transform">search</span>
-                            <span className="tracking-tight">{ls.searchBtn}</span>
-                        </button>
-                    </div>
+                {/* Overlapping Blue Search Button */}
+                <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 z-[70]">
+                    <button
+                        onClick={handleSearch}
+                        className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[15px] px-8 py-2.5 flex items-center justify-center gap-2 shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] hover:shadow-lg transition-all active:scale-95"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">search</span>
+                        <span>{ls.searchBtn}</span>
+                    </button>
                 </div>
             </div>
         </section>

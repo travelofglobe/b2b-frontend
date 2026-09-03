@@ -53,6 +53,13 @@ function App() {
               <Route path="/my-office" element={<MyOffice />} />
               <Route path="/definitions/markup" element={<MarkupManagement />} />
               
+              {/* Header tab & Google travel routes */}
+              <Route path="/explore" element={<UnderConstruction title="Keşfet" icon="travel_explore" />} />
+              <Route path="/flights" element={<UnderConstruction title="Uçuşlar" icon="flight" />} />
+              <Route path="/vacation-rentals" element={<UnderConstruction title="Kiralık Yerler" icon="home_work" />} />
+              <Route path="/flight-deals" element={<UnderConstruction title="Uçuş Fırsatları" icon="auto_awesome" />} />
+              <Route path="/tracked-flight-prices" element={<UnderConstruction title="Takip Edilen Uçuş Fiyatları" icon="show_chart" />} />
+
               <Route path="/finance" element={<UnderConstruction title="Finance" icon="account_balance_wallet" />} />
               <Route path="/accounting" element={<UnderConstruction title="Accounting" icon="analytics" />} />
               <Route path="/operations" element={<UnderConstruction title="Operations" icon="settings" />} />

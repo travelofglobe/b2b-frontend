@@ -67,20 +67,10 @@ const HeaderActions = () => {
             <div className="relative" ref={menuRef}>
                 <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 outline-none select-none active:outline-none group cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-800"
+                    className="flex items-center justify-center w-8 h-8 rounded-full bg-[#5f6368] text-white text-sm font-medium hover:ring-[3px] hover:ring-slate-100 dark:hover:ring-slate-800 transition-all focus:outline-none focus:ring-[3px] focus:ring-slate-100 dark:focus:ring-slate-800 select-none cursor-pointer ring-1 ring-offset-1 ring-transparent"
                     title={`${userDisplayName}${agencyInfo ? ` (${agencyInfo.agencyType || ''}: ${agencyInfo.name || ''})` : ''}`}
                 >
-                    <div className="flex flex-col text-left justify-center leading-none max-w-[130px] lg:max-w-[160px]">
-                        <span className="font-semibold text-xs text-slate-800 dark:text-slate-100 truncate leading-tight">
-                            {userDisplayName}
-                        </span>
-                        <span className="text-[10px] font-normal text-slate-400 dark:text-slate-400 truncate leading-none mt-0.5" title={agencyInfo?.name || 'England GSA'}>
-                            {agencyInfo?.name || user?.agencyName || 'England GSA'}
-                        </span>
-                    </div>
-                    <span className={`material-symbols-outlined text-slate-400 text-sm transition-transform duration-200 ${isMenuOpen ? 'rotate-180 text-primary' : ''}`}>
-                        expand_more
-                    </span>
+                    {user?.name?.[0]?.toUpperCase() || 'A'}
                 </button>
 
                 {isMenuOpen && (

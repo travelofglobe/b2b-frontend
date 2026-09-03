@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import HeaderActions from '../components/HeaderActions';
 
 const PortalLayout = () => {
     const { t } = useTranslation();
@@ -8,252 +9,314 @@ const PortalLayout = () => {
     const location = useLocation();
     
     // Layout State
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
 
     // Menu States
     const [isMyOfficeOpen, setIsMyOfficeOpen] = useState(location.pathname.startsWith('/my-office'));
     const [isDefinitionsOpen, setIsDefinitionsOpen] = useState(location.pathname.startsWith('/definitions'));
     const [isGSAManagementOpen, setIsGSAManagementOpen] = useState(location.pathname.startsWith('/gsa'));
 
-    const isAnyMenuOpen = isMyOfficeOpen || isDefinitionsOpen || isGSAManagementOpen;
-
-    const toggleAllMenus = () => {
-        if (isAnyMenuOpen) {
-            setIsMyOfficeOpen(false);
-            setIsDefinitionsOpen(false);
-            setIsGSAManagementOpen(false);
-        } else {
-            setIsMyOfficeOpen(true);
-            setIsDefinitionsOpen(true);
-            setIsGSAManagementOpen(true);
-        }
+    const handleMenuToggle = (setter, currentState) => {
+        setter(!currentState);
     };
 
-    const handleMenuToggle = (setter, currentState) => {
-        if (!isSidebarOpen) {
-            setIsSidebarOpen(true);
-            setter(true);
+    const handleScroll = (e) => {
+        if (e.target.scrollTop > 10) {
+            setIsScrolled(true);
         } else {
-            setter(!currentState);
+            setIsScrolled(false);
         }
     };
 
     return (
-        <div className="flex h-screen bg-[#F8FAFC] dark:bg-[#020617] text-slate-900 dark:text-slate-100 transition-colors duration-200 font-sans overflow-hidden">
-            {/* Sidebar */}
-            <aside className={`${isSidebarOpen ? 'w-64' : 'w-[72px]'} flex-shrink-0 ltr:border-r rtl:border-l border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-[#0B1120] hidden lg:flex flex-col h-full z-40 relative transition-all duration-300 ease-in-out`}>
-                <div className="px-3 py-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/50 h-[64px] min-h-[64px] overflow-hidden">
-                    <div className="flex items-center gap-2 cursor-pointer select-none group min-w-0" onClick={() => setIsSidebarOpen(!isSidebarOpen)} title={isSidebarOpen ? "Sidebar'ı Kapat" : "Sidebar'ı Aç"}>
-                        <div className="size-9 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20 flex-shrink-0 transition-all duration-500 group-hover:rotate-[15deg] group-hover:scale-105">
-                            <span className="material-symbols-outlined text-xl fill-1">travel</span>
+        <div className="flex flex-col h-screen bg-white dark:bg-[#202124] text-slate-900 dark:text-slate-100 font-sans overflow-hidden transition-colors duration-200">
+            {/* Header (Google Flights style) */}
+            <header className={`flex items-center justify-between px-4 h-16 shrink-0 bg-white dark:bg-[#202124] z-50 border-b border-slate-200 dark:border-slate-800 transition-all duration-200 ${isScrolled ? 'shadow-md' : ''}`}>
+                {/* Left: Hamburger & Logo */}
+                <div className="flex items-center gap-4">
+                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors focus:outline-none">
+                        <span className="material-symbols-outlined text-xl">menu</span>
+                    </button>
+                    <div className="flex flex-col cursor-pointer select-none" onClick={() => navigate('/dashboard')}>
+                        <span className="text-[14px] font-black text-[#0f172a] dark:text-white tracking-tight leading-none flex items-center">
+                            TRAVEL <span className="text-blue-500 mx-1">OF</span> GLOBE
+                        </span>
+                        <div className="flex items-center gap-1 mt-1">
+                            <div className="h-[1.5px] w-3 bg-blue-300 dark:bg-blue-500/50 rounded-full"></div>
+                            <span className="text-[7px] font-bold tracking-[0.12em] text-slate-400 dark:text-slate-500 leading-none mt-[1px]">
+                                GLOBAL B2B SOLUTIONS
+                            </span>
                         </div>
-                        {isSidebarOpen && (
-                            <div className="flex flex-col select-none min-w-0 shrink">
-                                <h2 className="text-slate-900 dark:text-white text-[12px] font-bold leading-none tracking-tight uppercase truncate group-hover:text-primary transition-colors">
-                                    Travel <span className="text-primary">of</span> Globe
-                                </h2>
-                                <div className="flex items-center gap-1.5 mt-1 overflow-hidden">
-                                    <div className="h-[1px] w-2 bg-primary/40 shrink-0"></div>
-                                    <p className="text-[7px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider truncate leading-none">Global B2B Solutions</p>
-                                </div>
-                            </div>
-                        )}
                     </div>
-                    {isSidebarOpen && (
-                        <div className="flex items-center gap-0.5 shrink-0 ml-1">
-                            <button 
-                                onClick={toggleAllMenus}
-                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors focus:outline-none" 
-                                title={isAnyMenuOpen ? (t('sidebar.collapseAll') || "Menüleri Daralt") : (t('sidebar.expandAll') || "Menüleri Genişlet")}
-                            >
-                                <span className="material-symbols-outlined text-[20px]">
-                                    {isAnyMenuOpen ? 'unfold_less' : 'unfold_more'}
-                                </span>
-                            </button>
-                            <button onClick={() => setIsSidebarOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors focus:outline-none" title="Sidebar'ı Kapat">
-                                <span className="material-symbols-outlined text-lg">chevron_left</span>
-                            </button>
-                        </div>
-                    )}
                 </div>
 
-                {/* Collapsed Drawer Menu button */}
-                {!isSidebarOpen && (
-                    <div className="flex justify-center py-2.5 border-b border-solid border-slate-100 dark:border-slate-800/50">
-                        <button onClick={() => setIsSidebarOpen(true)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors focus:outline-none">
-                            <span className="material-symbols-outlined text-lg">menu</span>
+                {/* Center: Tabs */}
+                <div className="hidden lg:flex items-center gap-2">
+                    {[
+                        { path: '/explore', icon: 'travel_explore', label: 'Keşfet', isCurrent: location.pathname === '/explore' },
+                        { path: '/flights', icon: 'flight', label: 'Uçuşlar', isCurrent: location.pathname === '/flights' },
+                        { path: '/dashboard', icon: 'bed', label: 'Oteller', isCurrent: location.pathname === '/dashboard' || location.pathname.startsWith('/hotels') || location.pathname.startsWith('/hotel/') },
+                        { path: '/vacation-rentals', icon: 'home_work', label: 'Kiralık yerler', isCurrent: location.pathname === '/vacation-rentals' },
+                    ].map(({ path, icon, label, isCurrent }) => (
+                        <button
+                            key={path}
+                            onClick={() => navigate(path)}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-[14px] font-medium transition-colors ${
+                                isCurrent
+                                    ? 'bg-[#e8f0fe] text-[#1a73e8] border border-transparent dark:bg-[#4285f4]/20 dark:text-[#8ab4f8]'
+                                    : 'text-[#3c4043] bg-white border border-[#dadce0] hover:bg-[#f1f3f4] dark:text-slate-300 dark:bg-[#303134] dark:border-[#5f6368] dark:hover:bg-slate-800'
+                            }`}
+                        >
+                            <span className={`material-symbols-outlined text-[20px] ${isCurrent ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                {icon}
+                            </span>
+                            {label}
                         </button>
-                    </div>
+                    ))}
+                </div>
+
+                {/* Right: Actions */}
+                <div className="flex items-center gap-2">
+                    <button className="p-2 hidden sm:flex rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors focus:outline-none">
+                        <span className="material-symbols-outlined text-xl">apps</span>
+                    </button>
+                    <HeaderActions />
+                </div>
+            </header>
+
+            <div className="flex flex-1 overflow-hidden relative">
+                {/* Sidebar Overlay */}
+                {isSidebarOpen && (
+                    <div 
+                        className="fixed inset-0 bg-black/20 dark:bg-black/40 z-40" 
+                        onClick={() => setIsSidebarOpen(false)}
+                    ></div>
                 )}
+                
+                {/* Sidebar Drawer */}
+                <aside className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-[280px] absolute inset-y-0 left-0 flex-shrink-0 bg-white dark:bg-[#202124] z-50 flex flex-col h-full transition-transform duration-300 ease-in-out shadow-2xl overflow-hidden`}>
+                    <nav className="flex-1 px-2 py-3 overflow-y-auto scrollbar-hide">
 
-                <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto scrollbar-hide">
-                    <button
-                        onClick={() => navigate('/dashboard')}
-                        title={!isSidebarOpen ? t('sidebar.dashboard') : undefined}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/dashboard' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                    >
-                        <span className="material-icons-round text-[20px] flex-shrink-0">grid_view</span>
-                        {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.dashboard')}</span>}
-                    </button>
-                    
-                    <div className="space-y-0.5">
-                        <button
-                            onClick={() => handleMenuToggle(setIsMyOfficeOpen, isMyOfficeOpen)}
-                            title={!isSidebarOpen ? t('sidebar.myOffice') : undefined}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs focus:outline-none ${location.pathname.startsWith('/my-office') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                        >
-                            <div className="flex items-center gap-3 min-w-0">
-                                <span className="material-icons-round text-[20px] flex-shrink-0">corporate_fare</span>
-                                {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.myOffice')}</span>}
-                            </div>
-                            {isSidebarOpen && <span className={`material-icons-round text-sm transition-transform duration-200 ${isMyOfficeOpen ? 'rotate-90' : 'ltr:rotate-0 rtl:rotate-180'}`}>chevron_right</span>}
-                        </button>
-                        
-                        {isSidebarOpen && isMyOfficeOpen && (
-                            <div className="ltr:ml-4 ltr:pl-5 ltr:border-l rtl:mr-4 rtl:pr-5 rtl:border-r border-slate-100 dark:border-slate-800 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
-                                <button
-                                    onClick={() => navigate('/my-office?tab=general')}
-                                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/my-office' && (!location.search || location.search.includes('tab=general')) ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                                >
-                                    <span className="material-icons-round text-[16px]">info</span>
-                                    {t('sidebar.generalInfo') || 'General Information'}
-                                </button>
-                                <button
-                                    onClick={() => navigate('/my-office?tab=users')}
-                                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/my-office' && location.search.includes('tab=users') ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                                >
-                                    <span className="material-icons-round text-[16px]">groups</span>
-                                    {t('sidebar.users') || 'Users'}
-                                </button>
-                                <button
-                                    onClick={() => navigate('/my-office?tab=guests')}
-                                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/my-office' && location.search.includes('tab=guests') ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                                >
-                                    <span className="material-icons-round text-[16px]">recent_actors</span>
-                                    {t('sidebar.guests') || 'Guests'}
-                                </button>
-                                <button
-                                    onClick={() => navigate('/my-office?tab=favorites')}
-                                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/my-office' && location.search.includes('tab=favorites') ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                                >
-                                    <span className="material-symbols-outlined text-[16px]">favorite</span>
-                                    {t('sidebar.favoriteHotels') || 'Favorite Hotels'}
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                        {/* --- Navigation Tabs (same as header) --- */}
+                        <div className="space-y-0.5 mb-1">
+                            {[
+                                { path: '/explore', icon: 'travel_explore', label: 'Keşfet' },
+                                { path: '/flights', icon: 'flight', label: 'Uçuşlar' },
+                                { path: '/dashboard', icon: 'bed', label: 'Oteller' },
+                                { path: '/vacation-rentals', icon: 'home_work', label: 'Kiralık yerler' },
+                            ].map(({ path, icon, label }) => {
+                                const isActive = path === '/dashboard'
+                                    ? (location.pathname === '/dashboard' || location.pathname.startsWith('/hotels') || location.pathname.startsWith('/hotel/'))
+                                    : location.pathname === path;
+                                return (
+                                    <button key={path} onClick={() => navigate(path)}
+                                        className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group ${isActive
+                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
+                                            : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
+                                    >
+                                        <span className={`material-symbols-outlined text-[22px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
+                                        <span className="text-[14px] font-medium text-left leading-snug">{label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
 
-                    <button
-                        onClick={() => navigate('/bookings')}
-                        title={!isSidebarOpen ? t('sidebar.myBookings') : undefined}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname.startsWith('/bookings') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                    >
-                        <span className="material-icons-round text-[20px] flex-shrink-0">book_online</span>
-                        {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.myBookings')}</span>}
-                    </button>
+                        {/* Divider */}
+                        <div className="my-2 border-t border-[#e8eaed] dark:border-slate-800"></div>
 
-                    <div className="space-y-0.5">
-                        <button
-                            onClick={() => handleMenuToggle(setIsDefinitionsOpen, isDefinitionsOpen)}
-                            title={!isSidebarOpen ? t('sidebar.definitions') : undefined}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs focus:outline-none ${location.pathname.startsWith('/definitions') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                        >
-                            <div className="flex items-center gap-3 min-w-0">
-                                <span className="material-icons-round text-[20px] flex-shrink-0">tune</span>
-                                {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.definitions')}</span>}
-                            </div>
-                            {isSidebarOpen && <span className={`material-icons-round text-sm transition-transform duration-200 ${isDefinitionsOpen ? 'rotate-90' : 'ltr:rotate-0 rtl:rotate-180'}`}>chevron_right</span>}
-                        </button>
-                        
-                        {isSidebarOpen && isDefinitionsOpen && (
-                            <div className="ltr:ml-4 ltr:pl-5 ltr:border-l rtl:mr-4 rtl:pr-5 rtl:border-r border-slate-100 dark:border-slate-800 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
-                                <button
-                                    onClick={() => navigate('/definitions/markup')}
-                                    className={`w-full text-left ltr:text-left rtl:text-right px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/definitions/markup' ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                                >
-                                    {t('sidebar.markupManagement')}
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                    
-                    <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800"></div>
- 
-                    <button 
-                        onClick={() => navigate('/finance')}
-                        title={!isSidebarOpen ? t('sidebar.finance') : undefined}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/finance' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                    >
-                        <span className="material-icons-round text-[20px] flex-shrink-0">account_balance_wallet</span>
-                        {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.finance')}</span>}
-                    </button>
-                    <button 
-                        onClick={() => navigate('/accounting')}
-                        title={!isSidebarOpen ? t('sidebar.accounting') : undefined}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/accounting' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                    >
-                        <span className="material-icons-round text-[20px] flex-shrink-0">analytics</span>
-                        {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.accounting')}</span>}
-                    </button>
-                    <button 
-                        onClick={() => navigate('/operations')}
-                        title={!isSidebarOpen ? t('sidebar.operations') : undefined}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-xs ${location.pathname === '/operations' ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                    >
-                        <span className="material-icons-round text-[20px] flex-shrink-0">settings</span>
-                        {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.operations')}</span>}
-                    </button>
+                        {/* --- Google Travel Extra Features --- */}
+                        <div className="space-y-0.5 mb-1">
+                            {[
+                                { path: '/flight-deals', icon: 'auto_awesome', label: 'Uçuş Fırsatları' },
+                                { path: '/tracked-flight-prices', icon: 'show_chart', label: 'Takip edilen uçuş fiyatları' },
+                            ].map(({ path, icon, label }) => {
+                                const isActive = location.pathname === path;
+                                return (
+                                    <button key={path} onClick={() => navigate(path)}
+                                        className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group ${isActive
+                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
+                                            : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
+                                    >
+                                        <span className={`material-symbols-outlined text-[22px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
+                                        <span className="text-[14px] font-medium text-left leading-snug">{label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
 
-                    <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800 space-y-0.5">
-                        <button 
-                            onClick={() => handleMenuToggle(setIsGSAManagementOpen, isGSAManagementOpen)}
-                            title={!isSidebarOpen ? t('sidebar.gsaManagement') : undefined}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs focus:outline-none ${location.pathname.startsWith('/gsa') ? 'bg-blue-50 dark:bg-blue-900/30 text-primary font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                        >
-                            <div className="flex items-center gap-3 min-w-0">
-                                <span className="material-icons-round text-[20px] flex-shrink-0">analytics</span>
-                                {isSidebarOpen && <span className="text-left leading-snug">{t('sidebar.gsaManagement')}</span>}
-                            </div>
-                            {isSidebarOpen && <span className={`material-icons-round text-sm transition-transform duration-200 ${isGSAManagementOpen ? 'rotate-180' : ''}`}>expand_more</span>}
-                        </button>
-                        
-                        {isSidebarOpen && isGSAManagementOpen && (
-                            <div className="ltr:ml-4 ltr:pl-5 ltr:border-l rtl:mr-4 rtl:pr-5 rtl:border-r border-slate-100 dark:border-slate-800 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
-                                <button
-                                    onClick={() => navigate('/gsa/agency')}
-                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/gsa/agency' ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                        {/* Divider */}
+                        <div className="my-2 border-t border-[#e8eaed] dark:border-slate-800"></div>
+
+                        {/* --- Preferences --- */}
+                        <div className="space-y-0.5 mb-1">
+                            {[
+                                { icon: 'language', label: 'Dili değiştir' },
+                                { icon: 'payments', label: 'Para birimini değiştir' },
+                                { icon: 'edit_location_alt', label: 'Konumu değiştir' },
+                            ].map(({ icon, label }) => (
+                                <button key={label} onClick={() => {}}
+                                    className="w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800"
                                 >
-                                    <span className="material-icons-round text-[18px]">business_center</span>
-                                    {t('sidebar.agencyManagement')}
+                                    <span className="material-symbols-outlined text-[22px] flex-shrink-0 text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white">{icon}</span>
+                                    <span className="text-[14px] font-medium text-left leading-snug">{label}</span>
                                 </button>
-                                <button
-                                    onClick={() => navigate('/gsa/markups')}
-                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/gsa/markups' ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                                >
-                                    <span className="material-icons-round text-[18px]">payments</span>
-                                    {t('sidebar.subAgencyMarkups')}
-                                </button>
-                                <button
-                                    onClick={() => navigate('/gsa/finance')}
-                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/gsa/finance' ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                                >
-                                    <span className="material-icons-round text-[18px]">attach_money</span>
-                                    {t('sidebar.finance')}
-                                </button>
-                                <button
-                                    onClick={() => navigate('/gsa/reports')}
-                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-[11px] ${location.pathname === '/gsa/reports' ? 'text-primary font-bold bg-blue-50/50 dark:bg-blue-900/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                                >
-                                    <span className="material-icons-round text-[18px]">assessment</span>
-                                    {t('sidebar.reports')}
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </nav>
-            </aside>
-            <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
-                <Outlet />
+                            ))}
+                        </div>
+
+                        {/* Divider */}
+                        <div className="my-2 border-t border-[#e8eaed] dark:border-slate-800"></div>
+
+                        {/* --- Section 1 --- */}
+                        <div className="space-y-0.5 mb-1">
+                            {/* Nav item helper - active style */}
+                            <button
+                                onClick={() => navigate('/bookings')}
+                                className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group ${location.pathname.startsWith('/bookings')
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
+                                    : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
+                            >
+                                <span className={`material-icons-round text-[22px] flex-shrink-0 ${location.pathname.startsWith('/bookings') ? 'text-[#1a73e8]' : 'text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>book_online</span>
+                                <span className="text-[14px] font-medium text-left leading-snug">{t('sidebar.myBookings')}</span>
+                            </button>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="my-2 border-t border-[#e8eaed] dark:border-slate-800"></div>
+
+                        {/* --- Section 2: My Office --- */}
+                        <div className="space-y-0.5 mb-1">
+                            <button
+                                onClick={() => handleMenuToggle(setIsMyOfficeOpen, isMyOfficeOpen)}
+                                className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group focus:outline-none ${location.pathname.startsWith('/my-office')
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
+                                    : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
+                            >
+                                <span className={`material-icons-round text-[18px] flex-shrink-0 ${location.pathname.startsWith('/my-office') ? 'text-[#1a73e8]' : 'text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>corporate_fare</span>
+                                <span className="text-[14px] font-medium text-left leading-snug flex-1">{t('sidebar.myOffice')}</span>
+                                <span className={`material-icons-round text-[20px] transition-transform duration-200 ${isMyOfficeOpen ? 'rotate-90' : ''} ${location.pathname.startsWith('/my-office') ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>chevron_right</span>
+                            </button>
+
+                            {isMyOfficeOpen && (
+                                <div className="space-y-0.5 animate-in slide-in-from-top-1 duration-200">
+                                    {[
+                                        { tab: 'general', icon: 'info', label: t('sidebar.generalInfo') || 'Genel Bilgiler' },
+                                        { tab: 'users', icon: 'groups', label: t('sidebar.users') || 'Kullanıcılar' },
+                                        { tab: 'guests', icon: 'recent_actors', label: t('sidebar.guests') || 'Misafirler' },
+                                        { tab: 'favorites', icon: 'favorite', label: t('sidebar.favoriteHotels') || 'Favori Oteller' },
+                                    ].map(({ tab, icon, label }) => {
+                                        const isActive = location.pathname === '/my-office' && (tab === 'general' ? (!location.search || location.search.includes('tab=general')) : location.search.includes(`tab=${tab}`));
+                                        return (
+                                            <button key={tab} onClick={() => navigate(`/my-office?tab=${tab}`)}
+                                                className={`w-full flex items-center gap-4 -ml-2 pl-14 pr-4 py-2 rounded-r-full transition-colors group ${isActive
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
+                                                    : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
+                                            >
+                                                <span className={`material-icons-round text-[18px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
+                                                <span className="text-[13px] font-medium text-left leading-snug">{label}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            <button
+                                onClick={() => handleMenuToggle(setIsDefinitionsOpen, isDefinitionsOpen)}
+                                className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group focus:outline-none ${location.pathname.startsWith('/definitions')
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
+                                    : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
+                            >
+                                <span className={`material-icons-round text-[18px] flex-shrink-0 ${location.pathname.startsWith('/definitions') ? 'text-[#1a73e8]' : 'text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>tune</span>
+                                <span className="text-[14px] font-medium text-left leading-snug flex-1">{t('sidebar.definitions')}</span>
+                                <span className={`material-icons-round text-[20px] transition-transform duration-200 ${isDefinitionsOpen ? 'rotate-90' : ''} ${location.pathname.startsWith('/definitions') ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>chevron_right</span>
+                            </button>
+
+                            {isDefinitionsOpen && (
+                                <div className="space-y-0.5 animate-in slide-in-from-top-1 duration-200">
+                                    <button onClick={() => navigate('/definitions/markup')}
+                                        className={`w-full flex items-center gap-4 -ml-2 pl-14 pr-4 py-2 rounded-r-full transition-colors group ${location.pathname === '/definitions/markup'
+                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
+                                            : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
+                                    >
+                                        <span className={`material-icons-round text-[18px] flex-shrink-0 ${location.pathname === '/definitions/markup' ? 'text-[#1a73e8]' : 'text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>percent</span>
+                                        <span className="text-[13px] font-medium text-left">{t('sidebar.markupManagement')}</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Divider */}
+                        <div className="my-2 border-t border-[#e8eaed] dark:border-slate-800"></div>
+
+                        {/* --- Section 3: Finance --- */}
+                        <div className="space-y-0.5 mb-1">
+                            {[
+                                { path: '/finance', icon: 'account_balance_wallet', label: t('sidebar.finance') },
+                                { path: '/accounting', icon: 'analytics', label: t('sidebar.accounting') },
+                                { path: '/operations', icon: 'settings', label: t('sidebar.operations') },
+                            ].map(({ path, icon, label }) => {
+                                const isActive = location.pathname === path;
+                                return (
+                                    <button key={path} onClick={() => navigate(path)}
+                                        className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group ${isActive
+                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
+                                            : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
+                                    >
+                                        <span className={`material-icons-round text-[18px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
+                                        <span className="text-[14px] font-medium text-left leading-snug">{label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Divider */}
+                        <div className="my-2 border-t border-[#e8eaed] dark:border-slate-800"></div>
+
+                        {/* --- Section 4: GSA Management --- */}
+                        <div className="space-y-0.5">
+                            <button
+                                onClick={() => handleMenuToggle(setIsGSAManagementOpen, isGSAManagementOpen)}
+                                className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group focus:outline-none ${location.pathname.startsWith('/gsa')
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
+                                    : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
+                            >
+                                <span className={`material-icons-round text-[18px] flex-shrink-0 ${location.pathname.startsWith('/gsa') ? 'text-[#1a73e8]' : 'text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>admin_panel_settings</span>
+                                <span className="text-[14px] font-medium text-left leading-snug flex-1">{t('sidebar.gsaManagement')}</span>
+                                <span className={`material-icons-round text-[20px] transition-transform duration-200 ${isGSAManagementOpen ? 'rotate-180' : ''} ${location.pathname.startsWith('/gsa') ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>expand_more</span>
+                            </button>
+
+                            {isGSAManagementOpen && (
+                                <div className="space-y-0.5 animate-in slide-in-from-top-1 duration-200">
+                                    {[
+                                        { path: '/gsa/agency', icon: 'business_center', label: t('sidebar.agencyManagement') },
+                                        { path: '/gsa/markups', icon: 'payments', label: t('sidebar.subAgencyMarkups') },
+                                        { path: '/gsa/finance', icon: 'attach_money', label: t('sidebar.finance') },
+                                        { path: '/gsa/reports', icon: 'assessment', label: t('sidebar.reports') },
+                                    ].map(({ path, icon, label }) => {
+                                        const isActive = location.pathname === path;
+                                        return (
+                                            <button key={path} onClick={() => navigate(path)}
+                                                className={`w-full flex items-center gap-4 -ml-2 pl-14 pr-4 py-2 rounded-r-full transition-colors group ${isActive
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
+                                                    : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
+                                            >
+                                                <span className={`material-icons-round text-[18px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
+                                                <span className="text-[13px] font-medium text-left">{label}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                    </nav>
+                </aside>
+
+
+
+                <main className="flex-1 flex flex-col h-full overflow-y-auto relative" onScroll={handleScroll}>
+                    <Outlet />
+                </main>
             </div>
         </div>
     );

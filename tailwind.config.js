@@ -13,7 +13,8 @@ export default {
         "background-dark": "#101922",
       },
       fontFamily: {
-        "display": ["Plus Jakarta Sans"]
+        "display": ["Outfit", '"Google Sans"', "sans-serif"],
+        "sans": ["Outfit", '"Google Sans"', "sans-serif"]
       },
       borderRadius: {
         "DEFAULT": "0.25rem",

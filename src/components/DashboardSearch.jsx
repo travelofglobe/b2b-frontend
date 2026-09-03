@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getUserCountryCode } from '../utils/geoUtils';
 import NationalitySelect from './NationalitySelect';
+import GoogleFlightDatePicker, { formatGoogleFlightDate } from './GoogleFlightDatePicker';
 
 // Rest of imports...
 
@@ -531,6 +532,29 @@ const DashboardSearch = () => {
     const totalRooms = roomState.length;
 
     const [showGuestDropdown, setShowGuestDropdown] = useState(false);
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+    const [activeDateField, setActiveDateField] = useState('checkIn'); // 'checkIn' | 'checkOut'
+
+    const stepCheckIn = (days) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const target = new Date(checkInDate || today);
+        target.setDate(target.getDate() + days);
+        if (target < today) return;
+        setCheckInDate(target);
+        if (checkOutDate && target >= checkOutDate) {
+            const nextOut = new Date(target);
+            nextOut.setDate(nextOut.getDate() + 1);
+            setCheckOutDate(nextOut);
+        }
+    };
+
+    const stepCheckOut = (days) => {
+        const target = new Date(checkOutDate || new Date());
+        target.setDate(target.getDate() + days);
+        if (checkInDate && target <= checkInDate) return;
+        setCheckOutDate(target);
+    };
 
     const searchWrapperRef = useRef(null);
     const guestWrapperRef = useRef(null);
@@ -874,17 +898,16 @@ const DashboardSearch = () => {
 
     return (
         <section className="relative group/search w-full flex flex-col items-center">
-            {/* Soft ambient glow removed to match flat Google design */}
-
             <div className="relative w-full max-w-[1024px] bg-white dark:bg-[#202124] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] px-4 pt-2 pb-10 border-none transition-all duration-300">
                 
-                {/* Top Options (Guests, Nationality) - Plain style like Google */}
-                <div className="flex flex-wrap items-center gap-4 mb-3 relative z-[60]">
+                {/* Top Options (Guests) - Google Flights style */}
+                <div className="flex flex-wrap items-center gap-2 mb-3 relative z-[60]">
                     {/* Elegant Guest Selector */}
                     <div className="relative group/field" ref={guestWrapperRef}>
                         <button
+                            type="button"
                             onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                            className="flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/50 px-2 py-1.5 rounded transition-colors text-[#3c4043] dark:text-slate-300"
+                            className="flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/50 px-2.5 py-1.5 rounded transition-colors text-[#3c4043] dark:text-slate-300 font-medium text-sm focus:outline-none"
                         >
                             <span className="material-symbols-outlined text-[18px]">person</span>
                             <span className="text-sm font-medium">{totalAdults + totalChildren}</span>
@@ -918,7 +941,7 @@ const DashboardSearch = () => {
                                                         </button>
                                                         <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.adults}</span>
                                                         <button 
-                                                            onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))}
+                                                            onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} 
                                                             disabled={room.adults >= 6} 
                                                             className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
                                                         >
@@ -944,7 +967,7 @@ const DashboardSearch = () => {
                                                         <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.children}</span>
                                                         <button 
                                                             onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} 
-                                                            disabled={room.children >= 4}
+                                                            disabled={room.children >= 4} 
                                                             className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
                                                         >
                                                             <span className="material-symbols-outlined text-[20px]">add</span>
@@ -993,26 +1016,18 @@ const DashboardSearch = () => {
                             </div>
                         )}
                     </div>
-                    
-                    {/* Nationality Selector (Compact style) */}
-                    <div className="relative group/field flex items-center bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700/50 px-2 py-1.5 rounded transition-colors cursor-pointer text-[#3c4043] dark:text-slate-300">
-                        <NationalitySelect 
-                            value={nationality} 
-                            onChange={setNationality} 
-                            compact={true} 
-                        />
-                    </div>
                 </div>
 
-                <div className="w-full flex flex-col md:flex-row items-center relative z-50 border border-[#dadce0] dark:border-slate-600 rounded-[4px] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:shadow-[0_0_0_1px_#1a73e8] transition-all bg-white dark:bg-[#303134]">
+                {/* Main Search Input Row (Single Line: Destination Input + Nationality Input + Google Flights Twin Datepicker) */}
+                <div className="w-full flex flex-col md:flex-row items-stretch gap-2.5 sm:gap-3 relative z-50">
                     
-                    {/* Destination Input */}
-                    <div className="relative group/field w-full md:flex-1 h-14 flex items-center" ref={searchWrapperRef}>
+                    {/* Destination Input (Flex-1 fills remaining space) */}
+                    <div className="flex-1 min-w-0 relative group/field h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all" ref={searchWrapperRef}>
                         <div className="flex items-center gap-2.5 h-full w-full px-4">
-                            <span className="material-symbols-outlined text-[20px] text-slate-500">
+                            <span className="material-symbols-outlined text-[20px] text-slate-500 flex-shrink-0">
                                 {error ? 'error' : 'location_on'}
                             </span>
-                            <div className="flex flex-col flex-1 h-full justify-center">
+                            <div className="flex flex-col flex-1 h-full justify-center min-w-0">
                                 {query && <span className="text-[10px] font-medium text-slate-500 -mb-1">Nereye?</span>}
                                 <input
                                     className={`bg-transparent border-none outline-none focus:ring-0 w-full p-0 text-base font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] tracking-tight ${query ? 'mt-1' : ''}`}
@@ -1036,7 +1051,7 @@ const DashboardSearch = () => {
                                     onKeyDown={handleKeyDown}
                                 />
                             </div>
-                            {loading && <div className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>}
+                            {loading && <div className="size-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>}
                         </div>
 
                         {/* Autocomplete Dropdown */}
@@ -1121,76 +1136,119 @@ const DashboardSearch = () => {
                         )}
                     </div>
 
-                    {/* Vertical Divider */}
-                    <div className="hidden md:block w-[1px] h-10 bg-[#dadce0] dark:bg-slate-600"></div>
-                    <div className="md:hidden w-full h-[1px] bg-[#dadce0] dark:bg-slate-600"></div>
+                    {/* Nationality Selector Input (Fixed clean width, matches autocomplete box style) */}
+                    <div className="w-full md:w-[190px] lg:w-[210px] flex-shrink-0 relative h-14">
+                        <NationalitySelect 
+                            value={nationality} 
+                            onChange={setNationality} 
+                            inputStyle={true} 
+                        />
+                    </div>
 
-                    {/* Date Picker Group */}
-                    <div className="relative group/field w-full md:flex-1 h-14 flex items-center cursor-pointer" onClick={() => datePickerRef.current?.setOpen(true)}>
-                        <div className="flex items-center gap-2.5 h-full w-full px-4">
-                            <span className="material-symbols-outlined text-[20px] text-slate-500">calendar_today</span>
-                            <div className="flex flex-col flex-1 h-full justify-center min-w-0 datepicker-dashboard">
-                                {(checkInDate || checkOutDate) && <span className="text-[10px] font-medium text-slate-500 -mb-1">Giriş — Çıkış</span>}
-                                <DatePicker
-                                    ref={datePickerRef}
-                                    selected={checkInDate}
-                                    onChange={(dates) => {
-                                        const [start, end] = dates;
-                                        if (start && end) {
-                                            const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-                                            const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-                                            if (endDay <= startDay) {
-                                                const nextDay = new Date(startDay);
-                                                nextDay.setDate(nextDay.getDate() + 1);
-                                                setCheckInDate(start);
-                                                setCheckOutDate(nextDay);
-                                                return;
-                                            }
-                                        }
-                                        setCheckInDate(start);
-                                        setCheckOutDate(end);
-                                    }}
-                                    startDate={checkInDate}
-                                    endDate={checkOutDate}
-                                    selectsRange
-                                    minDate={new Date()}
-                                    maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
-                                    monthsShown={2}
-                                    onCalendarOpen={() => setVisibleMonth(checkInDate || new Date())}
-                                    onMonthChange={(date) => setVisibleMonth(date)}
-                                    locale={currentLang}
-                                    className={`bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-base font-normal text-[#3c4043] dark:text-white cursor-pointer tracking-tight whitespace-nowrap leading-tight placeholder-[#70757a] ${checkInDate || checkOutDate ? 'mt-1' : ''}`}
-                                    wrapperClassName="w-full flex items-center"
-                                    dateFormat="dd MMM yyyy"
-                                    placeholderText="Giriş | Çıkış"
-                                    calendarClassName="shadow-[0_4px_6px_0_rgba(32,33,36,0.28)] border-none font-sans rounded-xl"
-                                    popperPlacement="bottom-end"
-                                    renderDayContents={(day, date) => {
-                                        const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                                        const holiday = holidays?.find(h => h.date === formattedDate || h.holidayDate === formattedDate);
-                                        
-                                        if (holiday) {
-                                            const lowerName = (holiday.holidayName || holiday.name || '').toLowerCase();
-                                            const isReligious = lowerName.includes('eid') || lowerName.includes('ramazan') || lowerName.includes('kurban');
-                                            const typeClass = isReligious ? 'type-religious' : 'type-public';
-                                            return (
-                                                <div className={`holiday-day-container ${typeClass}`}>
-                                                    {day}
-                                                </div>
-                                            );
-                                        }
-                                        return day;
-                                    }}
+                    {/* Twin Datepicker Container (Fixed clean width, guaranteed single line) */}
+                    <div className="w-full md:w-[330px] lg:w-[350px] flex-shrink-0 relative h-14 border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] transition-all flex items-center google-flight-date-trigger">
+                        
+                        {/* Check-In Half */}
+                        <div
+                            onClick={() => {
+                                setActiveDateField('checkIn');
+                                setIsDatePickerOpen(true);
+                            }}
+                            className={`flex-1 h-full flex items-center justify-between px-2.5 sm:px-3 cursor-pointer transition-colors min-w-0 ${
+                                isDatePickerOpen && activeDateField === 'checkIn'
+                                    ? 'border-2 border-[#1a73e8] rounded-l-[3px]'
+                                    : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                            }`}
+                        >
+                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
+                                    calendar_today
+                                </span>
+                                <span className="text-[13px] sm:text-[14px] font-normal text-[#3c4043] dark:text-white truncate">
+                                    {formatGoogleFlightDate(checkInDate) || 'Giriş'}
+                                </span>
+                            </div>
+
+                            {/* Quick 1-day step buttons */}
+                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-0.5">
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
+                                    className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                    title="1 gün geri"
                                 >
-                                    <HolidaySidePanel holidays={holidays} visibleMonth={visibleMonth} />
-                                </DatePicker>
+                                    <span className="material-symbols-outlined text-[15px]">chevron_left</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); stepCheckIn(1); }}
+                                    className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                    title="1 gün ileri"
+                                >
+                                    <span className="material-symbols-outlined text-[15px]">chevron_right</span>
+                                </button>
                             </div>
                         </div>
+
+                        {/* Middle Vertical Divider */}
+                        <div className="w-[1px] h-7 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
+
+                        {/* Check-Out Half */}
+                        <div
+                            onClick={() => {
+                                setActiveDateField('checkOut');
+                                setIsDatePickerOpen(true);
+                            }}
+                            className={`flex-1 h-full flex items-center justify-between px-2.5 sm:px-3 cursor-pointer transition-colors min-w-0 ${
+                                isDatePickerOpen && activeDateField === 'checkOut'
+                                    ? 'border-2 border-[#1a73e8] rounded-r-[3px]'
+                                    : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                            }`}
+                        >
+                            <div className="flex items-center min-w-0 flex-1">
+                                <span className="text-[13px] sm:text-[14px] font-normal text-[#3c4043] dark:text-white truncate">
+                                    {formatGoogleFlightDate(checkOutDate) || 'Çıkış'}
+                                </span>
+                            </div>
+
+                            {/* Quick 1-day step buttons */}
+                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-0.5">
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
+                                    className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                    title="1 gün geri"
+                                >
+                                    <span className="material-symbols-outlined text-[15px]">chevron_left</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); stepCheckOut(1); }}
+                                    className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                    title="1 gün ileri"
+                                >
+                                    <span className="material-symbols-outlined text-[15px]">chevron_right</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Google Flights 2-Month Datepicker Popover */}
+                        <GoogleFlightDatePicker
+                            isOpen={isDatePickerOpen}
+                            onClose={() => setIsDatePickerOpen(false)}
+                            checkInDate={checkInDate}
+                            checkOutDate={checkOutDate}
+                            onCheckInChange={setCheckInDate}
+                            onCheckOutChange={setCheckOutDate}
+                            activeField={activeDateField}
+                            setActiveField={setActiveDateField}
+                            holidays={holidays}
+                        />
                     </div>
                 </div>
 
-                {/* Overlapping Blue Search Button */}
-                <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 z-[70]">
+                {/* Overlapping Blue Search Button (z-[30] so dropdowns at z-[200+] sit above it) */}
+                <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 z-[30]">
                     <button
                         onClick={handleSearch}
                         className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[15px] px-8 py-2.5 flex items-center justify-center gap-2 shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] hover:shadow-lg transition-all active:scale-95"

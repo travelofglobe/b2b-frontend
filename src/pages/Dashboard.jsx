@@ -156,7 +156,7 @@ const Dashboard = () => {
                     </div>
 
                     {/* Search Component - below the image/title area */}
-                    <div className="w-full max-w-[860px] px-4 md:px-6 mt-10 mb-16 pointer-events-auto">
+                    <div className="w-full max-w-[1024px] px-4 md:px-6 mt-10 mb-16 pointer-events-auto">
                         <DashboardSearch />
                     </div>
                 </div>

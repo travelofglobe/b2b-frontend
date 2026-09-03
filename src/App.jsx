@@ -4,6 +4,7 @@ import HotelListing from './pages/HotelListing';
 import HotelDetail from './pages/HotelDetail';
 import MapView from './pages/MapView';
 import Dashboard from './pages/Dashboard';
+import Flights from './pages/Flights';
 import MyBookings from './pages/MyBookings';
 import BookingDetail from './pages/BookingDetail';
 import LoginPage from './pages/LoginPage';
@@ -55,7 +56,7 @@ function App() {
               
               {/* Header tab & Google travel routes */}
               <Route path="/explore" element={<UnderConstruction title="Keşfet" icon="travel_explore" />} />
-              <Route path="/flights" element={<UnderConstruction title="Uçuşlar" icon="flight" />} />
+              <Route path="/flights" element={<Flights />} />
               <Route path="/vacation-rentals" element={<UnderConstruction title="Kiralık Yerler" icon="home_work" />} />
               <Route path="/flight-deals" element={<UnderConstruction title="Uçuş Fırsatları" icon="auto_awesome" />} />
               <Route path="/tracked-flight-prices" element={<UnderConstruction title="Takip Edilen Uçuş Fiyatları" icon="show_chart" />} />

@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from './ThemeToggle';
-import LanguageSwitcher from './LanguageSwitcher';
 import { agencyService } from '../services/agencyService';
 import { useTranslation } from 'react-i18next';
 import ConfirmModal from './ConfirmModal';
@@ -59,10 +58,6 @@ const HeaderActions = () => {
 
     return (
         <div className="flex items-center gap-2">
-            <button className="p-2 relative text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-                <span className="material-icons-round">notifications</span>
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
             <ThemeToggle />
             <div className="relative" ref={menuRef}>
                 <button
@@ -109,9 +104,6 @@ const HeaderActions = () => {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Language Selection inside Menu */}
-                        <LanguageSwitcher mode="menu" />
 
                         {/* Sign Out Action */}
                         <div className="p-2">

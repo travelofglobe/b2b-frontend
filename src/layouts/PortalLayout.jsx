@@ -2,15 +2,20 @@ import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import HeaderActions from '../components/HeaderActions';
+import LanguageModal from '../components/LanguageModal';
+import { SUPPORTED_LANGUAGES } from '../i18n';
 
 const PortalLayout = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     
     // Layout State
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
+
+    const currentLanguage = SUPPORTED_LANGUAGES.find(l => l.code === i18n.language) || SUPPORTED_LANGUAGES[1];
 
     // Menu States
     const [isMyOfficeOpen, setIsMyOfficeOpen] = useState(location.pathname.startsWith('/my-office'));
@@ -96,7 +101,7 @@ const PortalLayout = () => {
                 
                 {/* Sidebar Drawer */}
                 <aside className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-[280px] absolute inset-y-0 left-0 flex-shrink-0 bg-white dark:bg-[#202124] z-50 flex flex-col h-full transition-transform duration-300 ease-in-out shadow-2xl overflow-hidden`}>
-                    <nav className="flex-1 px-2 py-3 overflow-y-auto scrollbar-hide">
+                    <nav className="flex-1 px-2 py-3 overflow-y-auto scrollbar-hide flex flex-col">
 
                         {/* --- Navigation Tabs (same as header) --- */}
                         <div className="space-y-0.5 mb-1">
@@ -120,48 +125,6 @@ const PortalLayout = () => {
                                     </button>
                                 );
                             })}
-                        </div>
-
-                        {/* Divider */}
-                        <div className="my-2 border-t border-[#e8eaed] dark:border-slate-800"></div>
-
-                        {/* --- Google Travel Extra Features --- */}
-                        <div className="space-y-0.5 mb-1">
-                            {[
-                                { path: '/flight-deals', icon: 'auto_awesome', label: 'Uçuş Fırsatları' },
-                                { path: '/tracked-flight-prices', icon: 'show_chart', label: 'Takip edilen uçuş fiyatları' },
-                            ].map(({ path, icon, label }) => {
-                                const isActive = location.pathname === path;
-                                return (
-                                    <button key={path} onClick={() => navigate(path)}
-                                        className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group ${isActive
-                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
-                                            : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
-                                    >
-                                        <span className={`material-symbols-outlined text-[22px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
-                                        <span className="text-[14px] font-medium text-left leading-snug">{label}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        {/* Divider */}
-                        <div className="my-2 border-t border-[#e8eaed] dark:border-slate-800"></div>
-
-                        {/* --- Preferences --- */}
-                        <div className="space-y-0.5 mb-1">
-                            {[
-                                { icon: 'language', label: 'Dili değiştir' },
-                                { icon: 'payments', label: 'Para birimini değiştir' },
-                                { icon: 'edit_location_alt', label: 'Konumu değiştir' },
-                            ].map(({ icon, label }) => (
-                                <button key={label} onClick={() => {}}
-                                    className="w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800"
-                                >
-                                    <span className="material-symbols-outlined text-[22px] flex-shrink-0 text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white">{icon}</span>
-                                    <span className="text-[14px] font-medium text-left leading-snug">{label}</span>
-                                </button>
-                            ))}
                         </div>
 
                         {/* Divider */}
@@ -309,6 +272,27 @@ const PortalLayout = () => {
                             )}
                         </div>
 
+                        {/* Divider */}
+                        <div className="my-2 border-t border-[#e8eaed] dark:border-slate-800"></div>
+
+                        {/* --- Language (Bottom Item) --- */}
+                        <div className="space-y-0.5 mt-auto pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsLanguageModalOpen(true)}
+                                className="w-full flex items-center justify-between -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800"
+                            >
+                                <div className="flex items-center gap-4 min-w-0">
+                                    <span className="material-symbols-outlined text-[22px] flex-shrink-0 text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white">language</span>
+                                    <span className="text-[14px] font-medium text-left leading-snug">Dili değiştir</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[12px] font-medium text-slate-600 dark:text-slate-300">
+                                    <span>{currentLanguage?.flag}</span>
+                                    <span className="truncate max-w-[70px]">{currentLanguage?.name}</span>
+                                </div>
+                            </button>
+                        </div>
+
                     </nav>
                 </aside>
 
@@ -318,6 +302,12 @@ const PortalLayout = () => {
                     <Outlet />
                 </main>
             </div>
+
+            {/* Google Flights Style Language Modal */}
+            <LanguageModal
+                isOpen={isLanguageModalOpen}
+                onClose={() => setIsLanguageModalOpen(false)}
+            />
         </div>
     );
 };

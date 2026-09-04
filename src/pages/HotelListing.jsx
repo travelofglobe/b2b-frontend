@@ -454,6 +454,42 @@ const GoogleCardSkeleton = () => (
 );
 
 // ═══════════════════════════════════════════════
+// Map Tile Layers Configuration
+// ═══════════════════════════════════════════════
+const MAP_LAYERS = {
+    voyager: {
+        id: 'voyager',
+        label: 'Sade Seyahat',
+        labelEn: 'Clean Travel',
+        desc: 'Sade, yumuşak renkli ve modern (Google Maps stili)',
+        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+    },
+    positron: {
+        id: 'positron',
+        label: 'Ultra Minimal',
+        labelEn: 'Ultra Minimal',
+        desc: 'Açık gri, sıfır gürültü, POI ve fiyatlar maksimum netlikte',
+        url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+    },
+    osm: {
+        id: 'osm',
+        label: 'Klasik Harita',
+        labelEn: 'Classic OSM',
+        desc: 'Standart OpenStreetMap katmanı',
+        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        subdomains: 'abc',
+        maxZoom: 19
+    }
+};
+
+// ═══════════════════════════════════════════════
 // Main HotelListing Component
 // ═══════════════════════════════════════════════
 const HotelListing = () => {
@@ -513,6 +549,9 @@ const HotelListing = () => {
     const [searchOnMapMove, setSearchOnMapMove] = React.useState(false);
     const [mapMoved, setMapMoved] = React.useState(false);
     const [mapInstance, setMapInstance] = React.useState(null);
+    const [mapLayer, setMapLayer] = React.useState('voyager');
+    const [isLayerMenuOpen, setIsLayerMenuOpen] = React.useState(false);
+    const layerMenuRef = React.useRef(null);
     const mapBoundsRef = React.useRef(null); // stores last known bounds for manual search
     const isUserPanRef = React.useRef(false);
     const isMapSearchRef = React.useRef(false);
@@ -1020,10 +1059,11 @@ const HotelListing = () => {
         searchParams.get('roomMaxChildren'), searchParams.get('roomMaxExtraBed'), searchParams.get('facilities')
     ]);
 
-    // Close sort on outside click
+    // Close sort and layer dropdowns on outside click
     React.useEffect(() => {
         const handleClickOutside = (event) => {
             if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) setIsSortOpen(false);
+            if (layerMenuRef.current && !layerMenuRef.current.contains(event.target)) setIsLayerMenuOpen(false);
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -1312,9 +1352,11 @@ const HotelListing = () => {
                         attributionControl={true}
                     >
                         <TileLayer
-                            url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            maxZoom={19}
+                            key={mapLayer}
+                            url={MAP_LAYERS[mapLayer]?.url || MAP_LAYERS.voyager.url}
+                            attribution={MAP_LAYERS[mapLayer]?.attribution || MAP_LAYERS.voyager.attribution}
+                            subdomains={MAP_LAYERS[mapLayer]?.subdomains || 'abcd'}
+                            maxZoom={MAP_LAYERS[mapLayer]?.maxZoom || 20}
                         />
                         {/* Capture map instance */}
                         <MapInstanceCapture setMap={setMapInstance} />
@@ -1393,6 +1435,65 @@ const HotelListing = () => {
                             {currentLang === 'tr' ? 'Listeyi güncelle' : 'Search this area'}
                         </button>
                     )}
+                </div>
+
+                {/* Bottom-left: Map layer switcher (Google Maps style) */}
+                <div className="absolute bottom-5 left-4 z-[1005] pointer-events-auto" ref={layerMenuRef}>
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsLayerMenuOpen(v => !v)}
+                            className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 border border-[#dadce0] dark:border-slate-600 rounded-full px-3 py-2 shadow-md transition-all cursor-pointer select-none text-[13px] font-medium"
+                            title={currentLang === 'tr' ? 'Harita Katmanı' : 'Map Layer'}
+                        >
+                            <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>
+                                layers
+                            </span>
+                            <span>{currentLang === 'tr' ? MAP_LAYERS[mapLayer]?.label : MAP_LAYERS[mapLayer]?.labelEn}</span>
+                            <span className="material-symbols-outlined text-[16px] text-gray-500">
+                                {isLayerMenuOpen ? 'expand_more' : 'expand_less'}
+                            </span>
+                        </button>
+
+                        {isLayerMenuOpen && (
+                            <div className="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl shadow-xl p-2 flex flex-col gap-1 text-left animate-in fade-in zoom-in-95 duration-150">
+                                <div className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                                    {currentLang === 'tr' ? 'Harita Stili' : 'Map Style'}
+                                </div>
+                                {Object.values(MAP_LAYERS).map(layer => {
+                                    const isSelected = mapLayer === layer.id;
+                                    return (
+                                        <button
+                                            key={layer.id}
+                                            onClick={() => {
+                                                setMapLayer(layer.id);
+                                                setIsLayerMenuOpen(false);
+                                            }}
+                                            className={`w-full flex items-start gap-2.5 p-2 rounded-lg text-left transition-colors cursor-pointer ${
+                                                isSelected 
+                                                    ? 'bg-blue-50 dark:bg-blue-900/30 text-[#1a73e8] dark:text-[#8ab4f8]' 
+                                                    : 'hover:bg-[#f8f9fa] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200'
+                                            }`}
+                                        >
+                                            <span className={`material-symbols-outlined text-[20px] mt-0.5 ${isSelected ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-gray-400'}`}>
+                                                {layer.id === 'voyager' ? 'palette' : layer.id === 'positron' ? 'contrast' : 'public'}
+                                            </span>
+                                            <div className="flex-1">
+                                                <div className="text-[13px] font-medium leading-tight flex items-center justify-between">
+                                                    {currentLang === 'tr' ? layer.label : layer.labelEn}
+                                                    {isSelected && (
+                                                        <span className="material-symbols-outlined text-[16px] text-[#1a73e8] dark:text-[#8ab4f8]">check</span>
+                                                    )}
+                                                </div>
+                                                <div className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+                                                    {layer.desc}
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 

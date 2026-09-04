@@ -169,7 +169,7 @@ const SubAgencyMarkups = () => {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="flex items-center gap-2 px-5 py-2 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium transition-all shadow-xs active:scale-95 cursor-pointer"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-lg text-xs font-medium transition-all shadow-xs active:scale-95 cursor-pointer"
                     >
                         <span className="material-symbols-outlined text-[18px]">add</span>
                         <span>{L('newRule')}</span>
@@ -178,7 +178,7 @@ const SubAgencyMarkups = () => {
             </div>
 
             {/* Table Container */}
-            <div className="flex-1 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-white/5 shadow-xs flex flex-col overflow-hidden min-h-0">
+            <div className="flex-1 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-[#3c4043] shadow-xs flex flex-col overflow-hidden min-h-0">
                 {/* Toolbar */}
                 <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-white/5 shrink-0">
                     <div className="relative flex-1 min-w-[160px]">
@@ -387,9 +387,9 @@ const SubAgencyMarkups = () => {
             </div>
 
             {toast.show && (
-                <div className={`fixed bottom-8 right-8 z-[50000] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl animate-in slide-in-from-right-10 duration-300 ${toast.type === 'error' ? 'bg-red-500 text-white' : 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'}`}>
+                <div className={`fixed bottom-8 right-8 z-[50000] flex items-center gap-3 px-5 py-3 rounded-lg shadow-xl animate-in slide-in-from-right-10 duration-300 ${toast.type === 'error' ? 'bg-red-500 text-white' : 'bg-[#202124] text-white border border-[#3c4043]'}`}>
                     <span className="material-icons-round text-xl">{toast.type === 'error' ? 'error_outline' : 'check_circle_outline'}</span>
-                    <p className="text-[11px] font-black uppercase tracking-widest">{toast.message}</p>
+                    <p className="text-xs font-semibold">{toast.message}</p>
                 </div>
             )}
 

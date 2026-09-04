@@ -48,21 +48,28 @@ const StatusMultiSelect = ({ selectedValues, onChange }) => {
             </button>
 
             {isOpen && (
-                <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl shadow-xl z-[100] overflow-hidden min-w-[170px] animate-in fade-in slide-in-from-top-1">
-                    <div className="p-1 max-h-60 overflow-y-auto">
+                <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-lg shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] z-[100] overflow-hidden min-w-[170px] animate-in fade-in duration-150">
+                    <div className="py-1 max-h-60 overflow-y-auto custom-scrollbar">
                         {options.map((option) => {
                             const isSelected = selectedValues.includes(option.value);
                             return (
-                                <div
+                                <button
                                     key={option.value}
+                                    type="button"
                                     onClick={() => toggleOption(option.value)}
-                                    className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-semibold' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-[#202124] dark:text-slate-200 font-medium'}`}
+                                    className={`w-full flex items-center px-3 py-2 text-left transition-colors cursor-pointer text-xs ${
+                                        isSelected 
+                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300 font-medium' 
+                                            : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200 font-normal'
+                                    }`}
                                 >
-                                    <div className={`size-3.5 rounded border flex items-center justify-center transition-all ${isSelected ? 'bg-primary border-primary text-white' : 'border-slate-300 dark:border-slate-600'}`}>
-                                        {isSelected && <span className="material-icons-round text-[9px]">check</span>}
-                                    </div>
-                                    <span className="text-xs tracking-normal leading-none">{option.label}</span>
-                                </div>
+                                    <span className="w-5 flex items-center justify-start shrink-0">
+                                        {isSelected && (
+                                            <span className="material-symbols-outlined text-[16px] text-[#1a73e8] dark:text-blue-300">check</span>
+                                        )}
+                                    </span>
+                                    <span className="truncate flex-1">{option.label}</span>
+                                </button>
                             );
                         })}
                     </div>

@@ -84,39 +84,49 @@ const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, di
         <div 
             ref={dropdownRef} 
             style={dropdownStyles}
-            className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl shadow-2xl overflow-hidden max-w-[340px] animate-in fade-in slide-in-from-top-1"
+            className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-lg shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] overflow-hidden max-w-[340px] animate-in fade-in duration-150"
         >
-            <div className="p-1.5 border-b border-[#dadce0] dark:border-[#5f6368]">
-                <input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2.5 text-xs font-normal text-[#202124] dark:text-slate-200 outline-none focus:border-[#1a73e8]"
-                />
+            <div className="p-2 border-b border-[#dadce0] dark:border-slate-700">
+                <div className="flex items-center gap-2 h-8 px-2.5 bg-[#f1f3f4] dark:bg-slate-800 rounded border border-transparent focus-within:border-[#1a73e8] focus-within:bg-white dark:focus-within:bg-slate-900 transition-colors">
+                    <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-400 shrink-0">search</span>
+                    <input
+                        type="text"
+                        placeholder="Ara..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 text-xs text-[#202124] dark:text-white placeholder-[#70757a]"
+                    />
+                </div>
             </div>
-            <div className="p-1 max-h-64 overflow-y-auto custom-scrollbar">
+            <div className="py-1 max-h-64 overflow-y-auto custom-scrollbar">
                 {filteredOptions.length === 0 ? (
-                    <div className="p-3 text-center text-xs text-[#5f6368] dark:text-slate-400">No options found</div>
+                    <div className="p-3 text-center text-xs text-[#5f6368] dark:text-slate-400">Sonuç bulunamadı</div>
                 ) : (
                     filteredOptions.map((opt) => {
                         const isSelected = selectedValues.includes(opt.id);
                         return (
-                            <div
+                            <button
                                 key={opt.id}
+                                type="button"
                                 onClick={() => toggleOption(opt.id)}
-                                className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-semibold' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-[#202124] dark:text-slate-200 font-medium'}`}
+                                className={`w-full flex items-center px-3 py-2 text-left transition-colors cursor-pointer text-xs ${
+                                    isSelected 
+                                        ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300 font-medium' 
+                                        : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200 font-normal'
+                                }`}
                             >
-                                <div className={`size-3.5 rounded border flex flex-shrink-0 items-center justify-center transition-all ${isSelected ? 'bg-[#1a73e8] border-[#1a73e8] text-white' : 'border-[#dadce0] dark:border-[#5f6368]'}`}>
-                                    {isSelected && <span className="material-icons-round text-[9px]">check</span>}
-                                </div>
+                                <span className="w-5 flex items-center justify-start shrink-0">
+                                    {isSelected && (
+                                        <span className="material-symbols-outlined text-[16px] text-[#1a73e8] dark:text-blue-300">check</span>
+                                    )}
+                                </span>
                                 <div className="flex items-center justify-between gap-2 flex-1 overflow-hidden">
-                                    <span className="text-xs tracking-normal leading-tight font-medium text-[#202124] dark:text-slate-200 whitespace-normal break-words">
+                                    <span className="text-xs tracking-normal leading-tight truncate">
                                         {opt.iconText && <span className="mr-1.5 font-bold text-emerald-600 dark:text-emerald-400">{opt.iconText}</span>}
                                         {opt.name}
                                     </span>
                                     {opt.agencyType && (
-                                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wider shrink-0 ${
+                                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium tracking-wider shrink-0 ${
                                             opt.agencyType === 'GSA' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40' : 
                                             opt.agencyType === 'RSA' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40' : 
                                             'bg-blue-100 text-blue-700 dark:bg-blue-900/40'
@@ -125,7 +135,7 @@ const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, di
                                         </span>
                                     )}
                                 </div>
-                            </div>
+                            </button>
                         );
                     })
                 )}

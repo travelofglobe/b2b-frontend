@@ -1315,7 +1315,7 @@ const MyOffice = () => {
                                 {/* Left Sidebar Info */}
                                 <div className="w-[300px] flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1 flex-shrink-0">
                                     {/* Agency Identity Card */}
-                                    <div className="bg-gradient-to-br from-white via-slate-50/60 to-blue-50/40 dark:from-slate-900 dark:to-slate-800/90 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs relative overflow-hidden flex-shrink-0">
+                                    <div className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-lg p-4 shadow-xs relative overflow-hidden flex-shrink-0">
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
                                         <div className="flex items-center justify-between mb-3 relative z-10">
                                             <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs ${formData.agencyType === 'GSA' ? 'bg-primary text-white' : 'bg-emerald-500 text-white'}`}>
@@ -1532,9 +1532,9 @@ const MyOffice = () => {
                                         </div>
 
                                         {/* Section 02: Contact Details */}
-                                        <div className="bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
-                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-                                                <span className="material-icons-round text-indigo-500 text-base">contact_phone</span>
+                                        <div className="bg-white dark:bg-[#303134] rounded-lg border border-[#dadce0] dark:border-[#3c4043] p-4 shadow-xs">
+                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[#dadce0] dark:border-[#3c4043]">
+                                                <span className="material-symbols-outlined text-indigo-500 text-[18px]">contact_phone</span>
                                                 <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">{L('sec02')}</h3>
                                             </div>
                                             <div className="space-y-2.5">
@@ -1550,9 +1550,9 @@ const MyOffice = () => {
                                         </div>
 
                                         {/* Section 03: Geography & Location */}
-                                        <div className="bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
-                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-                                                <span className="material-icons-round text-emerald-500 text-base">place</span>
+                                        <div className="bg-white dark:bg-[#303134] rounded-lg border border-[#dadce0] dark:border-[#3c4043] p-4 shadow-xs">
+                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[#dadce0] dark:border-[#3c4043]">
+                                                <span className="material-symbols-outlined text-emerald-500 text-[18px]">place</span>
                                                 <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">{L('sec03')}</h3>
                                             </div>
                                             <div className="space-y-2.5">
@@ -1580,9 +1580,9 @@ const MyOffice = () => {
                                         </div>
 
                                         {/* Section 04: Finance */}
-                                        <div className="bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
-                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-                                                <span className="material-icons-round text-amber-500 text-base">payments</span>
+                                        <div className="bg-white dark:bg-[#303134] rounded-lg border border-[#dadce0] dark:border-[#3c4043] p-4 shadow-xs">
+                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[#dadce0] dark:border-[#3c4043]">
+                                                <span className="material-symbols-outlined text-amber-500 text-[18px]">payments</span>
                                                 <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">{L('sec04')}</h3>
                                             </div>
                                             <div className="space-y-2.5">

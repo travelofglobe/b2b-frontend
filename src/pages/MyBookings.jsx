@@ -625,11 +625,11 @@ const MyBookings = () => {
                             <button
                                 onClick={exportToExcel}
                                 disabled={isExportingExcel || isExportingPdf || loading}
-                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-full text-xs font-medium text-[#1e8e3e] dark:text-emerald-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-xs font-medium text-[#1e8e3e] dark:text-emerald-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
                                 title="Export all matching records to Excel"
                             >
                                 {isExportingExcel ? (
-                                    <div className="size-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                     <div className="size-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
                                 ) : (
                                     <span className="material-symbols-outlined text-[18px]">grid_on</span>
                                 )}
@@ -639,11 +639,11 @@ const MyBookings = () => {
                             <button
                                 onClick={exportToPdf}
                                 disabled={isExportingExcel || isExportingPdf || loading}
-                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-full text-xs font-medium text-[#d93025] dark:text-rose-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-xs font-medium text-[#d93025] dark:text-rose-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
                                 title="Export all matching records to PDF"
                             >
                                 {isExportingPdf ? (
-                                    <div className="size-3.5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
+                                     <div className="size-3.5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
                                 ) : (
                                     <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                                 )}
@@ -652,14 +652,14 @@ const MyBookings = () => {
 
                             <button
                                 onClick={handleSearch}
-                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-full text-xs font-medium text-[#3c4043] dark:text-slate-200 transition-all active:scale-95"
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-xs font-medium text-[#3c4043] dark:text-slate-200 transition-all active:scale-95"
                             >
                                 <span className="material-symbols-outlined text-[18px]">refresh</span>
                                 {L('refresh')}
                             </button>
                             <button
                                 onClick={handleClearFilters}
-                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-[#303134] hover:bg-red-50 dark:hover:bg-red-950/30 border border-[#dadce0] dark:border-[#5f6368] rounded-full text-xs font-medium text-[#d93025] dark:text-red-400 transition-all active:scale-95"
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-[#303134] hover:bg-red-50 dark:hover:bg-red-950/30 border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-xs font-medium text-[#d93025] dark:text-red-400 transition-all active:scale-95"
                             >
                                 <span className="material-symbols-outlined text-[18px]">filter_alt_off</span>
                                 {L('clear')}
@@ -685,7 +685,7 @@ const MyBookings = () => {
                             {summaries.map((summary, index) => (
                                 <div
                                     key={index}
-                                    className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:border-[#1a73e8]/40 transition-all gap-4"
+                                    className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-white dark:bg-[#303134] rounded-lg border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:border-[#1a73e8]/40 transition-all gap-4"
                                 >
                                     <div className="flex items-center gap-3 w-full md:w-auto border-b md:border-b-0 border-[#dadce0] dark:border-[#3c4043] pb-3 md:pb-0 md:pr-6 md:border-r">
                                         <div className="size-9 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
@@ -736,7 +736,7 @@ const MyBookings = () => {
                     )}
 
                     {/* Table with Google Material Card Design */}
-                    <div className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs overflow-hidden">
+                    <div className="bg-white dark:bg-[#303134] rounded-lg border border-[#dadce0] dark:border-[#3c4043] shadow-xs overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full border-collapse">
                                 <thead>
@@ -951,7 +951,7 @@ const MyBookings = () => {
                                             <tr 
                                                 key={booking.bookingId ?? booking.id} 
                                                 onClick={() => window.open(`/bookings/${booking.bookingId ?? booking.id}`, '_blank')}
-                                                className="border-b border-slate-100 dark:border-slate-800/50 last:border-0 hover:bg-slate-100 dark:hover:bg-slate-700/50 even:bg-slate-50 dark:even:bg-slate-800/50 transition-colors cursor-pointer group"
+                                                className="border-b border-[#dadce0]/60 dark:border-[#3c4043]/60 last:border-0 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]/50 even:bg-[#f8f9fa]/50 dark:even:bg-[#202124]/30 transition-colors cursor-pointer group"
                                             >
                                                 {columns.map(col => {
                                                     let val = "-";
@@ -966,18 +966,18 @@ const MyBookings = () => {
                                                     else if (col === "Agency") val = booking.principalAgencyName || booking.agencyName;
                                                     else if (col === "Status") val = <BookingStatusBadge status={booking.bookingStatus} />;
                                                     else if (col === "Currency") val = booking.currency || "-";
-                                                    else if (col === "Sale Amount") val = <div className="font-semibold text-slate-900 dark:text-white">{booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</div>;
-                                                    else if (col === "Net Amount") val = booking.netAmount != null ? <div className="font-semibold text-slate-900 dark:text-white">{Number(booking.netAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div> : "-";
-                                                    else if (col === "Markup") val = booking.markupAmount != null ? <div className="font-semibold text-slate-900 dark:text-white">{Number(booking.markupAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div> : "-";
-                                                    else if (col === "Profit") val = booking.markupAmount != null ? <div className="font-semibold text-green-600 dark:text-green-400">{Number(booking.markupAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div> : "-";
+                                                    else if (col === "Sale Amount") val = <div className="font-semibold text-[#202124] dark:text-white">{booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</div>;
+                                                    else if (col === "Net Amount") val = booking.netAmount != null ? <div className="font-semibold text-[#202124] dark:text-white">{Number(booking.netAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div> : "-";
+                                                    else if (col === "Markup") val = booking.markupAmount != null ? <div className="font-semibold text-[#202124] dark:text-white">{Number(booking.markupAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div> : "-";
+                                                    else if (col === "Profit") val = booking.markupAmount != null ? <div className="font-semibold text-[#1e8e3e] dark:text-emerald-400">{Number(booking.markupAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div> : "-";
                                                     else if (col === "Room") val = booking.roomName || "-";
                                                     else if (col === "Board Type") val = booking.boardName || "-";
                                                     else if (col === "Guest") val = booking.totalGuests != null ? booking.totalGuests : "-";
                                                     else if (col === "Supplier") val = booking.supplierName || "-";
                                                     else if (col === "Supplier Reservation Number") val = booking.supplierVoucher || "-";
                                                     else if (col === "Payment") val = <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${getPaymentStatusColor(booking.paymentStatus)}`}>{booking.paymentStatus ? booking.paymentStatus.replace(/_/g, ' ') : 'UNKNOWN'}</span>;
-                                                    else if (col === "Cancel Fee") val = (booking.totalCancellationAmount || booking.cancellationAmount) > 0 ? <span className="text-red-500 font-semibold">{Number(booking.totalCancellationAmount || booking.cancellationAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> : '-';
-                                                    else if (col === "UUID") val = <div className="text-[10px] text-slate-500 font-mono" title={booking.bookingUuid}>{booking.bookingUuid?.substring(0, 8)}...</div>;
+                                                    else if (col === "Cancel Fee") val = (booking.totalCancellationAmount || booking.cancellationAmount) > 0 ? <span className="text-[#d93025] font-semibold">{Number(booking.totalCancellationAmount || booking.cancellationAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> : '-';
+                                                    else if (col === "UUID") val = <div className="text-[10px] text-[#5f6368] font-mono" title={booking.bookingUuid}>{booking.bookingUuid?.substring(0, 8)}...</div>;
                                                     else if (col === "Agency ID") val = booking.principalAgencyId;
                                                     else if (col === "Hotel ID") val = booking.internalHotelId;
                                                     else if (col === "Client Reference") val = booking.clientReferenceId;
@@ -986,7 +986,7 @@ const MyBookings = () => {
                                                     else if (col === "City") val = booking.city || "-";
                                                     
                                                     return (
-                                                        <td key={col} className="px-3.5 py-3 text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                                                        <td key={col} className="px-3.5 py-3 text-xs text-[#3c4043] dark:text-slate-300 whitespace-nowrap">
                                                             {val || "-"}
                                                         </td>
                                                     );

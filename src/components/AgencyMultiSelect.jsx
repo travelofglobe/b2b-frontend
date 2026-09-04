@@ -69,28 +69,32 @@ const AgencyMultiSelect = ({ selectedValues, onChange }) => {
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full bg-white/20 dark:bg-slate-800/40 border ${isOpen ? 'border-primary/50 ring-2 ring-primary/20 bg-white/40' : 'border-white/40 dark:border-white/5'} rounded-xl py-1.5 px-2 text-xs font-semibold flex items-center justify-between transition-all outline-none text-slate-700 dark:text-slate-200`}
+                className={`w-full h-8 bg-white dark:bg-[#303134] border ${isOpen ? 'border-[#1a73e8] ring-1 ring-[#1a73e8]' : 'border-[#dadce0] dark:border-[#3c4043]'} rounded-lg py-1 px-2.5 text-xs font-medium flex items-center justify-between transition-all outline-none text-[#202124] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] cursor-pointer`}
             >
                 <span className="truncate">{getDisplayText()}</span>
-                <span className={`material-icons-round text-xs transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                <span className={`material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>expand_more</span>
             </button>
 
             {isOpen && (
-                <div className="absolute left-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-[100] overflow-hidden min-w-[280px] w-max max-w-[340px] animate-in fade-in slide-in-from-top-2">
-                    <div className="p-1.5 border-b border-slate-100 dark:border-slate-800">
-                        <input
-                            type="text"
-                            placeholder="Search agency..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-1 px-2.5 text-xs font-normal text-slate-700 dark:text-slate-200 outline-none focus:border-primary/50"
-                        />
+                <div className="absolute left-0 mt-1 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-lg shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] z-[100] overflow-hidden min-w-[280px] w-max max-w-[340px] animate-in fade-in slide-in-from-top-1 duration-150">
+                    <div className="p-2 border-b border-[#dadce0] dark:border-[#3c4043]">
+                        <div className="relative flex items-center">
+                            <span className="material-symbols-outlined absolute left-2 text-[#5f6368] dark:text-slate-400 text-[18px]">search</span>
+                            <input
+                                type="text"
+                                placeholder="Search agency..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-md py-1.5 pl-8 pr-2.5 text-xs font-normal text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
+                                autoFocus
+                            />
+                        </div>
                     </div>
-                    <div className="p-1 max-h-64 overflow-y-auto custom-scrollbar">
+                    <div className="p-1 max-h-64 overflow-y-auto">
                         {loading ? (
-                            <div className="p-3 text-center text-xs text-slate-500">Loading...</div>
+                            <div className="p-3 text-center text-xs text-[#5f6368]">Loading...</div>
                         ) : filteredAgencies.length === 0 ? (
-                            <div className="p-3 text-center text-xs text-slate-500">No agency found</div>
+                            <div className="p-3 text-center text-xs text-[#5f6368]">No agency found</div>
                         ) : (
                             filteredAgencies.map((agency) => {
                                 const isSelected = selectedValues.includes(agency.id);
@@ -98,13 +102,13 @@ const AgencyMultiSelect = ({ selectedValues, onChange }) => {
                                     <div
                                         key={agency.id}
                                         onClick={() => toggleOption(agency.id)}
-                                        className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg transition-colors ${isSelected ? 'bg-primary/10 text-primary font-semibold' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-medium'}`}
+                                        className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer rounded-md transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-slate-300'}`}
                                     >
-                                        <div className={`size-3.5 rounded border flex flex-shrink-0 items-center justify-center transition-all ${isSelected ? 'bg-primary border-primary text-white' : 'border-slate-300 dark:border-slate-600'}`}>
-                                            {isSelected && <span className="material-icons-round text-[9px]">check</span>}
+                                        <div className="size-4 flex items-center justify-center flex-shrink-0">
+                                            {isSelected && <span className="material-symbols-outlined text-[18px] text-[#1a73e8] dark:text-[#8ab4f8]">check</span>}
                                         </div>
                                         <div className="flex items-center justify-between gap-2 flex-1 overflow-hidden">
-                                            <span className="text-xs tracking-normal leading-tight font-medium text-slate-700 dark:text-slate-200 whitespace-normal break-words">{agency.name}</span>
+                                            <span className="text-xs tracking-normal leading-tight whitespace-normal break-words">{agency.name}</span>
                                             {agency.agencyType && (
                                                 <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wider shrink-0 ${
                                                     agency.agencyType === 'GSA' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40' : 

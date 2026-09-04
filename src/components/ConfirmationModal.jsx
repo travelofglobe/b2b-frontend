@@ -36,16 +36,16 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, cancelT
             ></div>
             
             {/* Modal */}
-            <div className="relative z-10 w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 fade-in duration-200">
+            <div className="relative z-10 w-full max-w-sm bg-white dark:bg-[#202124] rounded-lg shadow-xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden animate-in zoom-in-95 fade-in duration-200">
                 <div className="p-5 sm:p-6">
                     {/* Icon */}
-                    <div className="size-11 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center mb-4 mx-auto">
+                    <div className="size-11 rounded-lg bg-orange-500/10 text-orange-500 flex items-center justify-center mb-4 mx-auto">
                         <span className="material-symbols-outlined text-xl">warning</span>
                     </div>
                     
                     {/* Content */}
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white text-center mb-1.5">{title}</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 text-center font-normal leading-relaxed mb-5">
+                    <h3 className="text-base font-bold text-[#202124] dark:text-white text-center mb-1.5">{title}</h3>
+                    <p className="text-xs text-[#5f6368] dark:text-slate-400 text-center font-normal leading-relaxed mb-5">
                         {message}
                     </p>
                     
@@ -53,7 +53,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, cancelT
                     <div className="flex gap-2.5">
                         <button
                             onClick={onClose}
-                            className="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                            className="flex-1 px-4 py-2 rounded-lg bg-[#f1f3f4] dark:bg-[#303134] text-[#3c4043] dark:text-slate-300 font-medium text-xs hover:bg-[#e8eaed] dark:hover:bg-[#3c4043] transition-colors cursor-pointer"
                         >
                             {finalCancel}
                         </button>
@@ -62,7 +62,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, cancelT
                                 onConfirm();
                                 onClose();
                             }}
-                            className="flex-1 px-4 py-2.5 rounded-xl bg-primary text-white font-semibold text-xs shadow-md shadow-primary/20 hover:scale-[1.01] active:scale-[0.98] transition-all cursor-pointer"
+                            className="flex-1 px-4 py-2 rounded-lg bg-[#1a73e8] text-white font-medium text-xs hover:bg-[#1765cc] shadow-xs active:scale-98 transition-all cursor-pointer"
                         >
                             {finalConfirm}
                         </button>

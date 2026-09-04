@@ -278,7 +278,7 @@ const BookingDetail = () => {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => navigate('/bookings')}
-                                className="w-9 h-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] flex items-center justify-center text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors cursor-pointer"
+                                className="w-9 h-9 rounded-lg bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] flex items-center justify-center text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors cursor-pointer"
                             >
                                 <span className="material-symbols-outlined text-[20px]">arrow_back</span>
                             </button>
@@ -294,7 +294,7 @@ const BookingDetail = () => {
                             <button
                                 onClick={() => booking.voucher && window.open(`/bookings/${booking.voucher}/voucher`, '_blank')}
                                 disabled={!booking.voucher || booking.status === 'FAILED' || booking.status === 'ERROR' || booking.hotel?.bookingStatus === 'FAILED' || booking.hotel?.bookingStatus === 'ERROR'}
-                                className={`h-9 px-4 rounded-full flex items-center gap-1.5 font-medium text-xs transition-all border cursor-pointer ${
+                                className={`h-9 px-4 rounded-lg flex items-center gap-1.5 font-medium text-xs transition-all border cursor-pointer ${
                                     !booking.voucher || booking.status === 'FAILED' || booking.status === 'ERROR' || booking.hotel?.bookingStatus === 'FAILED' || booking.hotel?.bookingStatus === 'ERROR'
                                         ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed grayscale opacity-60'
                                         : 'bg-[#e8f0fe] hover:bg-[#d2e3fc] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] border-[#dadce0] dark:border-[#1a73e8]/30 active:scale-95'
@@ -310,9 +310,9 @@ const BookingDetail = () => {
                 <div className="flex-1 overflow-auto p-5">
                     <div className="max-w-6xl mx-auto space-y-5">
                         {/* Booking Overview Card */}
-                        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+                        <div className="bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-xs">
                             <div className="flex items-center gap-3 mb-5">
-                                <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                <div className="size-9 rounded-lg bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8]">
                                     <span className="material-icons-round text-xl">receipt_long</span>
                                 </div>
                                 <div>
@@ -385,9 +385,9 @@ const BookingDetail = () => {
 
                         {/* Hotel Information Card */}
                         {booking.hotel && (
-                            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+                            <div className="bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-xs">
                                 <div className="flex items-center gap-3 mb-5">
-                                    <div className="size-9 rounded-xl bg-blue-100/70 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                    <div className="size-9 rounded-lg bg-blue-100/70 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
                                         <span className="material-icons-round text-xl">hotel</span>
                                     </div>
                                     <div>
@@ -453,9 +453,9 @@ const BookingDetail = () => {
 
                         {/* Rooms Section */}
                         {booking.hotel?.rooms && booking.hotel.rooms.length > 0 && booking.hotel.rooms.map((room, roomIndex) => (
-                            <div key={roomIndex} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+                            <div key={roomIndex} className="bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-xs">
                                 <div className="flex items-center gap-3 mb-5">
-                                    <div className="size-9 rounded-xl bg-purple-100/70 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                                    <div className="size-9 rounded-lg bg-purple-100/70 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
                                         <span className="material-icons-round text-xl">meeting_room</span>
                                     </div>
                                     <div className="flex-1">
@@ -680,9 +680,9 @@ const BookingDetail = () => {
 
                         {/* Audit Information Card */}
                         {booking.audit && (
-                            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+                            <div className="bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-xs">
                                 <div className="flex items-center gap-3 mb-5">
-                                    <div className="size-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">
+                                    <div className="size-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400">
                                         <span className="material-icons-round text-xl">history</span>
                                     </div>
                                     <div>

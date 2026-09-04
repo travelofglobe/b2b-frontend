@@ -47,16 +47,16 @@ const ColumnManager = ({ columns, availableColumns, onColumnsChange, loading }) 
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 disabled={loading}
-                className={`flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg text-xs font-semibold text-indigo-700 dark:text-indigo-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer ${isOpen ? 'ring-2 ring-indigo-300' : ''}`}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-xs font-medium text-[#3c4043] dark:text-slate-200 transition-all active:scale-95 disabled:opacity-50 cursor-pointer ${isOpen ? 'border-[#1a73e8] ring-2 ring-[#1a73e8]/20' : ''}`}
                 title="Manage Columns"
             >
-                <span className="material-icons-round text-base">view_column</span>
+                <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400">view_column</span>
                 Columns
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-[100] p-3 flex flex-col gap-2">
-                    <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800 pb-2 mb-1">
+                <div className="absolute right-0 mt-1 w-64 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-lg shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] z-[100] p-3 flex flex-col gap-2 animate-in fade-in duration-150">
+                    <div className="text-xs font-medium text-[#70757a] dark:text-slate-400 border-b border-[#dadce0] dark:border-slate-700 pb-2 mb-1">
                         Active Columns (Drag to reorder)
                     </div>
                     <div className="flex flex-col gap-1 max-h-48 overflow-y-auto custom-scrollbar">

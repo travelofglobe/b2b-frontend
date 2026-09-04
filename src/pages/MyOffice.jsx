@@ -5,18 +5,18 @@ import * as XLSX from 'xlsx';
 import { downloadPdfDoc, downloadXlsxWorkbook, downloadCsvContent } from '../utils/fileDownloadHelper';
 
 const MO = {
-  en: { title: 'My Office Management', tabGeneral: 'General Information', tabUsers: 'Users', tabGuests: 'Guests', tabFavorites: 'Favorite Hotels', saveBtn: 'Save Office Profile', saving: 'Synchronizing...', agencyId: 'Agency Identity', baseLocation: 'Base Location', currency: 'Currency', integration: 'Integration', auditTimeline: 'Audit Timeline', created: 'Created', lastUpdate: 'Last Update', sec01: 'Section 01 / Identity', sec02: 'Section 02 / Contact', sec03: 'Section 03 / Geography', sec04: 'Section 04 / Finance', sec05: 'Section 05 / Settings', agencyName: 'Agency Name', officialTitle: 'Official Title', type: 'Type', language: 'Language', parentId: 'Parent ID', directEmail: 'Direct Email', phone: 'Phone Number', country: 'Country', city: 'City', streetAddress: 'Street Address', zipCode: 'Zip Code', taxOffice: 'Tax Office', taxNumber: 'Tax Number', accEmail: 'Accounting Email', accPhone: 'Accounting Phone', accCountry: 'Accounting Country', accCity: 'Accounting City', accAddress: 'Accounting Address', mainCurrency: 'Main Currency', integrationType: 'Integration Type', allowedSale: 'Allowed for Sale', bookingStatus: 'Booking status', selectTerritory: 'Select Territory', selectHub: 'Select Hub', commercialName: 'Commercial Name', legalTitle: 'Legal Title', totalUsers: 'Total Users', activeUsers: 'Active Users', passiveUsers: 'Passive Users', totalGuests: 'Total Guests', activeGuests: 'Active Guests', passiveGuests: 'Passive Guests', searchUsers: 'Search by name or email...', searchGuests: 'Search by name, email or passport...', searchFavorites: 'Search favorite hotels...', noFavoritesFound: 'No favorite hotels found.', removeFromFavorites: 'Remove', viewHotelDetail: 'View Detail', addedOn: 'Date Added', supplierLabel: 'Supplier', hotelName: 'Hotel Name', locationLabel: 'City / Country', starsLabel: 'Stars', allRoles: 'All Roles', allCountries: 'All Countries', active: 'Active', passive: 'Passive', export: 'Export', exportExcel: 'Export Excel', exportPdf: 'Export PDF', exporting: 'Exporting...', refresh: 'Refresh', addUser: 'Add User', addGuest: 'Add Guest', editUser: 'Edit User', editGuest: 'Edit Guest', userInfo: 'Enter user information', guestInfo: 'Enter guest information', name: 'Name', surname: 'Surname', emailAddr: 'Email Address', password: 'Password', role: 'Role', status: 'Status', gender: 'Gender', firstName: 'First Name', lastName: 'Last Name', birthDate: 'Birth Date', passportNo: 'Passport No', passportExpiry: 'Passport Expiry', cancel: 'Cancel', saveUser: 'Save User', saveGuest: 'Save Guest', processing: 'Processing...', confirm: 'Confirm', colUser: 'User', colContact: 'Contact', colRole: 'Role', colStatus: 'Status', colActions: 'Actions', colGuest: 'Guest', colBirth: 'Birth & Country', colPassport: 'Passport', noUsers: 'No users found', noGuests: 'No guests found', deleteUser: 'Delete User', deleteUserMsg: 'This action cannot be undone. All access for this user will be revoked immediately.', deleteGuest: 'Delete Guest', deleteGuestMsg: 'Are you sure you want to remove this guest from your CRM?', profileUpdated: 'Agency profile updated successfully.', updateFailed: 'Update failed.', invalidEmail: 'Please enter a valid email address.', userUpdated: 'User updated successfully', userCreated: 'User created successfully', errorSavingUser: 'Error saving user', userDeleted: 'User deleted successfully', errorDeletingUser: 'Error deleting user', noUserExport: 'No user data to export.', usersExported: 'User list exported successfully.', usersRefreshed: 'User list refreshed', guestUpdated: 'Guest updated successfully', guestCreated: 'Guest created successfully', errorSavingGuest: 'Error saving guest', guestDeleted: 'Guest deleted successfully', errorDeletingGuest: 'Error deleting guest', noGuestExport: 'No guest data to export.', guestsExported: 'Guest list exported successfully.', guestsRefreshed: 'Guest list refreshed', searchAutocompletePlaceholder: 'Select & Add Hotel (Name or ID)...', searchTablePlaceholder: 'Search in table...', allStatuses: 'All Statuses', statusActive: 'Active', statusPassive: 'Passive', colHotelInfo: 'Hotel Information', colUserEmail: 'User Email', colLocationStars: 'Location & Rating', colDateAdded: 'Audit Info', addFavSuccess: 'Hotel added to favorites', addFavError: 'Error adding favorite', deleteFavTitle: 'Remove Favorite Hotel', deleteFavMsg: 'Are you sure you want to remove {{name}} from your favorites?', deleteFavSuccess: 'Favorite hotel removed', deleteFavError: 'Failed to remove favorite', addedBtn: 'Added', addBtn: 'Add', refreshTooltip: 'Refresh', totalRecords: 'Total', pageLabel: 'Page', prevBtn: 'Previous', nextBtn: 'Next', agencyLogo: 'Agency Logo', agencyLogoPlaceholder: 'Agency Logo Area', uploadLogo: 'Upload Logo', changeLogo: 'Change Logo', deleteLogo: 'Delete Logo', deleteLogoTitle: 'Delete Logo', confirmDeleteLogo: 'Are you sure you want to delete the agency logo?', logoRequirementsTitle: 'Logo Guidelines & Format', logoMaxRatioInfo: 'Recommended Resolution: 600 × 240 px', logoMaxSizeInfo: 'Maximum File Size: 2 MB', logoFormatsInfo: 'Supported Formats: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'File size exceeds 2MB limit.', logoInvalidFormat: 'Invalid file format. Please select a PNG, JPG, or SVG file.', logoUploadSuccess: 'Agency logo uploaded successfully.', logoDeleteSuccess: 'Agency logo deleted successfully.', logoUploadError: 'Failed to upload logo.', logoDeleteError: 'Failed to delete logo.', clickToUpload: 'Click to select and upload logo file' },
-  tr: { title: 'Ofis Yönetimi', tabGeneral: 'Genel Bilgiler', tabUsers: 'Kullanıcılar', tabGuests: 'Misafirler', tabFavorites: 'Favori Oteller', saveBtn: 'Ofis Profilini Kaydet', saving: 'Senkronize ediliyor...', agencyId: 'Acente Kimlik', baseLocation: 'Konum', currency: 'Para Birimi', integration: 'Entegrasyon', auditTimeline: 'Denetim Geçmişi', created: 'Oluşturuldu', lastUpdate: 'Son Güncelleme', sec01: 'Bölüm 01 / Kimlik', sec02: 'Bölüm 02 / İletişim', sec03: 'Bölüm 03 / Coğrafya', sec04: 'Bölüm 04 / Finans', sec05: 'Bölüm 05 / Ayarlar', agencyName: 'Acente Adı', officialTitle: 'Resmi Unvan', type: 'Tür', language: 'Dil', parentId: 'Üst ID', directEmail: 'E-posta', phone: 'Telefon', country: 'Ülke', city: 'Şehir', streetAddress: 'Adres', zipCode: 'Posta Kodu', taxOffice: 'Vergi Dairesi', taxNumber: 'Vergi No', accEmail: 'Muhasebe E-posta', accPhone: 'Muhasebe Telefon', accCountry: 'Muhasebe Ülke', accCity: 'Muhasebe Şehir', accAddress: 'Muhasebe Adres', mainCurrency: 'Ana Para Birimi', integrationType: 'Entegrasyon Türü', allowedSale: 'Satışa Açık', bookingStatus: 'Rezervasyon durumu', selectTerritory: 'Bölge Seçin', selectHub: 'Şehir Seçin', commercialName: 'Ticari Ad', legalTitle: 'Hukuki Unvan', totalUsers: 'Toplam Kullanıcı', activeUsers: 'Aktif Kullanıcı', passiveUsers: 'Pasif Kullanıcı', totalGuests: 'Toplam Misafir', activeGuests: 'Aktif Misafir', passiveGuests: 'Pasif Misafir', searchUsers: 'Ad veya e-posta ara...', searchGuests: 'Ad, e-posta veya pasaport ara...', searchFavorites: 'Favori otellerde ara...', noFavoritesFound: 'Henüz favorilere eklenmiş otel bulunmamaktadır.', removeFromFavorites: 'Favoriden Kaldır', viewHotelDetail: 'Detayları Görüntüle', addedOn: 'Favoriye Eklenme Tarihi', supplierLabel: 'Tedarikçi', hotelName: 'Otel Adı', locationLabel: 'Şehir / Ülke', starsLabel: 'Yıldız Bilgisi', allRoles: 'Tüm Roller', allCountries: 'Tüm Ülkeler', active: 'Aktif', passive: 'Pasif', export: 'Dışa Aktar', exportExcel: 'Excel İndir', exportPdf: 'PDF İndir', exporting: 'İndiriliyor...', refresh: 'Yenile', addUser: 'Kullanıcı Ekle', addGuest: 'Misafir Ekle', editUser: 'Kullanıcı Düzenle', editGuest: 'Misafir Düzenle', userInfo: 'Kullanıcı bilgilerini girin', guestInfo: 'Misafir bilgilerini girin', name: 'Ad', surname: 'Soyad', emailAddr: 'E-posta Adresi', password: 'Şifre', role: 'Rol', status: 'Durum', gender: 'Cinsiyet', firstName: 'Ad', lastName: 'Soyad', birthDate: 'Doğum Tarihi', passportNo: 'Pasaport No', passportExpiry: 'Pasaport Bitiş', cancel: 'İptal', saveUser: 'Kullanıcı Kaydet', saveGuest: 'Misafir Kaydet', processing: 'İşleniyor...', confirm: 'Onayla', colUser: 'Kullanıcı', colContact: 'İletişim', colRole: 'Rol', colStatus: 'Durum', colActions: 'İşlemler', colGuest: 'Misafir', colBirth: 'Doğum & Ülke', colPassport: 'Pasaport', noUsers: 'Kullanıcı bulunamadı', noGuests: 'Misafir bulunamadı', deleteUser: 'Kullanıcı Sil', deleteUserMsg: 'Bu işlem geri alınamaz.', deleteGuest: 'Misafir Sil', deleteGuestMsg: 'Bu misafiri CRM sisteminden silmek istediğinize emin misiniz?', profileUpdated: 'Acente profili başarıyla güncellendi.', updateFailed: 'Güncelleme başarısız.', invalidEmail: 'Geçerli bir e-posta adresi girin.', userUpdated: 'Kullanıcı başarıyla güncellendi', userCreated: 'Kullanıcı başarıyla oluşturuldu', errorSavingUser: 'Kullanıcı kaydedilemedi', userDeleted: 'Kullanıcı başarıyla silindi', errorDeletingUser: 'Kullanıcı silinemedi', noUserExport: 'Dışa aktarılacak kullanıcı yok.', usersExported: 'Kullanıcı listesi başarıyla indirildi.', usersRefreshed: 'Kullanıcı listesi yenilendi', guestUpdated: 'Misafir başarıyla güncellendi', guestCreated: 'Misafir başarıyla oluşturuldu', errorSavingGuest: 'Misafir kaydedilemedi', guestDeleted: 'Misafir başarıyla silindi', errorDeletingGuest: 'Misafir silinemedi', noGuestExport: 'Dışa aktarılacak misafir yok.', guestsExported: 'Misafir listesi başarıyla indirildi.', guestsRefreshed: 'Misafir listesi yenilendi', searchAutocompletePlaceholder: 'Sistemden Otel Seç & Favorilere Ekle (Ad veya ID)...', searchTablePlaceholder: 'Tabloda ara...', allStatuses: 'Tüm Durumlar', statusActive: 'Aktif', statusPassive: 'Pasif', colHotelInfo: 'Otel Bilgisi', colUserEmail: 'Kullanıcı (User Email)', colLocationStars: 'Konum & Yıldız', colDateAdded: 'Audit Bilgisi', addFavSuccess: 'Otel favorilere eklendi', addFavError: 'Favori ekleme hatası', deleteFavTitle: 'Favori Oteli Sil', deleteFavMsg: '{{name}} otelini favorilerinizden silmek istediğinize emin misiniz?', deleteFavSuccess: 'Favori otel silindi', deleteFavError: 'Silme işlemi başarısız', addedBtn: 'Eklendi', addBtn: 'Ekle', refreshTooltip: 'Yenile', totalRecords: 'Toplam', pageLabel: 'Sayfa', prevBtn: 'Önceki', nextBtn: 'Sonraki', agencyLogo: 'Acente Logosu', agencyLogoPlaceholder: 'Acente Logo Alanı', uploadLogo: 'Logo Yükle', changeLogo: 'Logoyu Değiştir', deleteLogo: 'Logoyu Sil', deleteLogoTitle: 'Logoyu Sil', confirmDeleteLogo: 'Acente logosunu silmek istediğinize emin misiniz?', logoRequirementsTitle: 'Logo Kuralları & Detaylar', logoMaxRatioInfo: 'Önerilen Çözünürlük: 600 × 240 px', logoMaxSizeInfo: 'Maksimum Dosya Boyutu: 2 MB', logoFormatsInfo: 'Desteklenen Formatlar: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'Dosya boyutu 2MB sınırını aşıyor.', logoInvalidFormat: 'Geçersiz dosya formatı. Lütfen PNG, JPG veya SVG formatında bir dosya seçin.', logoUploadSuccess: 'Acente logosu başarıyla yüklendi.', logoDeleteSuccess: 'Acente logosu başarıyla silindi.', logoUploadError: 'Logo yüklenirken bir hata oluştu.', logoDeleteError: 'Logo silinirken bir hata oluştu.', clickToUpload: 'Logo dosyası seçmek ve yüklemek için tıklayın' },
-  ar: { title: 'إدارة المكتب' },
-  es: { title: 'Mi Oficina' },
-  ru: { title: 'Управление офисом' },
-  zh: { title: '办公室管理' },
-  ja: { title: 'オフィス管理' },
-  fa: { title: 'مدیریت دفتر' },
-  fr: { title: 'Mon Bureau' },
-  it: { title: 'Il mio Ufficio' },
-  el: { title: 'Το Γραφείο Μου' },
-  pt: { title: 'Meu Escritório', tabGeneral: 'Informações Gerais', tabUsers: 'Usuários', tabGuests: 'Hóspedes', tabFavorites: 'Hotéis Favoritos', saveBtn: 'Salvar', saving: 'Sincronizando...', agencyId: 'Identidade', baseLocation: 'Localização', currency: 'Moeda', integration: 'Integração', auditTimeline: 'Auditoria', created: 'Criado', lastUpdate: 'Última Atualização', sec01: 'Seção 01', sec02: 'Seção 02', sec03: 'Seção 03', sec04: 'Seção 04', sec05: 'Seção 05', agencyName: 'Nome da Agência', officialTitle: 'Título Oficial', type: 'Tipo', language: 'Idioma', parentId: 'ID Principal', directEmail: 'Email', phone: 'Telefone', country: 'País', city: 'Cidade', streetAddress: 'Endereço', zipCode: 'CEP', taxOffice: 'Finanças', taxNumber: 'NIF', accEmail: 'Email Contab', accPhone: 'Tel Contab', accCountry: 'País Contab', accCity: 'Cidade Contab', accAddress: 'Endereço Contab', mainCurrency: 'Moeda Principal', integrationType: 'Integração', allowedSale: 'Permitido', bookingStatus: 'Status Reserva', selectTerritory: 'Território', selectHub: 'Hub', commercialName: 'Nome Comercial', legalTitle: 'Título Legal', totalUsers: 'Total', activeUsers: 'Ativos', passiveUsers: 'Inativos', totalGuests: 'Total', activeGuests: 'Ativos', passiveGuests: 'Inativos', searchUsers: 'Buscar...', searchGuests: 'Buscar...', searchFavorites: 'Buscar favoritos...', noFavoritesFound: 'Nenhum hotel favorito encontrado.', removeFromFavorites: 'Remover', viewHotelDetail: 'Ver Detalhes', addedOn: 'Data de Adição', supplierLabel: 'Fornecedor', hotelName: 'Nome do Hotel', locationLabel: 'Cidade / País', starsLabel: 'Estrelas', allRoles: 'Todos os papéis', allCountries: 'Todos os países', active: 'Ativo', passive: 'Inativo', export: 'Exportar', addUser: 'Adicionar', addGuest: 'Adicionar', editUser: 'Editar', editGuest: 'Editar', userInfo: 'Info usuário', guestInfo: 'Info hóspede', name: 'Nome', surname: 'Sobrenome', emailAddr: 'Email', password: 'Senha', role: 'Papel', status: 'Status', gender: 'Gênero', firstName: 'Nome', lastName: 'Sobrenome', birthDate: 'Nascimento', passportNo: 'Passaporte', passportExpiry: 'Validade', cancel: 'Cancelar', saveUser: 'Salvar', saveGuest: 'Salvar', processing: 'Processando...', confirm: 'Confirmar', colUser: 'Usuário', colContact: 'Contato', colRole: 'Papel', colStatus: 'Status', colActions: 'Ações', colGuest: 'Hóspede', colBirth: 'Nascimento', colPassport: 'Passaporte', noUsers: 'Nenhum', noGuests: 'Nenhum', deleteUser: 'Excluir', deleteUserMsg: 'Irreversível.', deleteGuest: 'Excluir', deleteGuestMsg: 'Tem certeza?', profileUpdated: 'Atualizado', updateFailed: 'Falha', invalidEmail: 'Email inválido', userUpdated: 'Atualizado', userCreated: 'Criado', errorSavingUser: 'Erro', userDeleted: 'Excluído', errorDeletingUser: 'Erro', noUserExport: 'Sem dados', usersExported: 'Feito', usersRefreshed: 'Atualizado', guestUpdated: 'Atualizado', guestCreated: 'Criado', errorSavingGuest: 'Erro', guestDeleted: 'Excluído', errorDeletingGuest: 'Erro', noGuestExport: 'Sem dados', guestsExported: 'Feito', guestsRefreshed: 'Atualizado', agencyLogo: 'Logotipo da Agência', agencyLogoPlaceholder: 'Área do Logotipo da Agência', uploadLogo: 'Enviar Logotipo', changeLogo: 'Alterar Logotipo', deleteLogo: 'Excluir Logotipo', deleteLogoTitle: 'Excluir Logotipo', confirmDeleteLogo: 'Tem certeza de que deseja excluir o logotipo da agência?', logoRequirementsTitle: 'Diretrizes do Logotipo', logoMaxRatioInfo: 'Resolução Recomendada: 600 × 240 px', logoMaxSizeInfo: 'Tamanho Máximo: 2 MB', logoFormatsInfo: 'Formatos Suportados: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'O tamanho do arquivo excede o limite de 2MB.', logoInvalidFormat: 'Formato de arquivo inválido. Selecione um arquivo PNG, JPG ou SVG.', logoUploadSuccess: 'Logotipo enviado com sucesso.', logoDeleteSuccess: 'Logotipo excluído com sucesso.', logoUploadError: 'Erro ao enviar logotipo.', logoDeleteError: 'Erro ao excluir logotipo.', clickToUpload: 'Clique para selecionar e enviar o arquivo de logotipo' }
+    en: { title: 'My Office Management', tabGeneral: 'General Information', tabUsers: 'Users', tabGuests: 'Guests', tabFavorites: 'Favorite Hotels', saveBtn: 'Save Office Profile', saving: 'Synchronizing...', agencyId: 'Agency Identity', baseLocation: 'Base Location', currency: 'Currency', integration: 'Integration', auditTimeline: 'Audit Timeline', created: 'Created', lastUpdate: 'Last Update', sec01: 'Section 01 / Identity', sec02: 'Section 02 / Contact', sec03: 'Section 03 / Geography', sec04: 'Section 04 / Finance', sec05: 'Section 05 / Settings', agencyName: 'Agency Name', officialTitle: 'Official Title', type: 'Type', language: 'Language', parentId: 'Parent ID', directEmail: 'Direct Email', phone: 'Phone Number', country: 'Country', city: 'City', streetAddress: 'Street Address', zipCode: 'Zip Code', taxOffice: 'Tax Office', taxNumber: 'Tax Number', accEmail: 'Accounting Email', accPhone: 'Accounting Phone', accCountry: 'Accounting Country', accCity: 'Accounting City', accAddress: 'Accounting Address', mainCurrency: 'Main Currency', integrationType: 'Integration Type', allowedSale: 'Allowed for Sale', bookingStatus: 'Booking status', selectTerritory: 'Select Territory', selectHub: 'Select Hub', commercialName: 'Commercial Name', legalTitle: 'Legal Title', totalUsers: 'Total Users', activeUsers: 'Active Users', passiveUsers: 'Passive Users', totalGuests: 'Total Guests', activeGuests: 'Active Guests', passiveGuests: 'Passive Guests', searchUsers: 'Search by name or email...', searchGuests: 'Search by name, email or passport...', searchFavorites: 'Search favorite hotels...', noFavoritesFound: 'No favorite hotels found.', removeFromFavorites: 'Remove', viewHotelDetail: 'View Detail', addedOn: 'Date Added', supplierLabel: 'Supplier', hotelName: 'Hotel Name', locationLabel: 'City / Country', starsLabel: 'Stars', allRoles: 'All Roles', allCountries: 'All Countries', active: 'Active', passive: 'Passive', export: 'Export', exportExcel: 'Export Excel', exportPdf: 'Export PDF', exporting: 'Exporting...', refresh: 'Refresh', addUser: 'Add User', addGuest: 'Add Guest', editUser: 'Edit User', editGuest: 'Edit Guest', userInfo: 'Enter user information', guestInfo: 'Enter guest information', name: 'Name', surname: 'Surname', emailAddr: 'Email Address', password: 'Password', role: 'Role', status: 'Status', gender: 'Gender', firstName: 'First Name', lastName: 'Last Name', birthDate: 'Birth Date', passportNo: 'Passport No', passportExpiry: 'Passport Expiry', cancel: 'Cancel', saveUser: 'Save User', saveGuest: 'Save Guest', processing: 'Processing...', confirm: 'Confirm', colUser: 'User', colContact: 'Contact', colRole: 'Role', colStatus: 'Status', colActions: 'Actions', colGuest: 'Guest', colBirth: 'Birth & Country', colPassport: 'Passport', noUsers: 'No users found', noGuests: 'No guests found', deleteUser: 'Delete User', deleteUserMsg: 'This action cannot be undone. All access for this user will be revoked immediately.', deleteGuest: 'Delete Guest', deleteGuestMsg: 'Are you sure you want to remove this guest from your CRM?', profileUpdated: 'Agency profile updated successfully.', updateFailed: 'Update failed.', invalidEmail: 'Please enter a valid email address.', userUpdated: 'User updated successfully', userCreated: 'User created successfully', errorSavingUser: 'Error saving user', userDeleted: 'User deleted successfully', errorDeletingUser: 'Error deleting user', noUserExport: 'No user data to export.', usersExported: 'User list exported successfully.', usersRefreshed: 'User list refreshed', guestUpdated: 'Guest updated successfully', guestCreated: 'Guest created successfully', errorSavingGuest: 'Error saving guest', guestDeleted: 'Guest deleted successfully', errorDeletingGuest: 'Error deleting guest', noGuestExport: 'No guest data to export.', guestsExported: 'Guest list exported successfully.', guestsRefreshed: 'Guest list refreshed', searchAutocompletePlaceholder: 'Select & Add Hotel (Name or ID)...', searchTablePlaceholder: 'Search in table...', allStatuses: 'All Statuses', statusActive: 'Active', statusPassive: 'Passive', colHotelInfo: 'Hotel Information', colUserEmail: 'User Email', colLocationStars: 'Location & Rating', colDateAdded: 'Audit Info', addFavSuccess: 'Hotel added to favorites', addFavError: 'Error adding favorite', deleteFavTitle: 'Remove Favorite Hotel', deleteFavMsg: 'Are you sure you want to remove {{name}} from your favorites?', deleteFavSuccess: 'Favorite hotel removed', deleteFavError: 'Failed to remove favorite', addedBtn: 'Added', addBtn: 'Add', refreshTooltip: 'Refresh', totalRecords: 'Total', pageLabel: 'Page', prevBtn: 'Previous', nextBtn: 'Next', agencyLogo: 'Agency Logo', agencyLogoPlaceholder: 'Agency Logo Area', uploadLogo: 'Upload Logo', changeLogo: 'Change Logo', deleteLogo: 'Delete Logo', deleteLogoTitle: 'Delete Logo', confirmDeleteLogo: 'Are you sure you want to delete the agency logo?', logoRequirementsTitle: 'Logo Guidelines & Format', logoMaxRatioInfo: 'Recommended Resolution: 600 × 240 px', logoMaxSizeInfo: 'Maximum File Size: 2 MB', logoFormatsInfo: 'Supported Formats: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'File size exceeds 2MB limit.', logoInvalidFormat: 'Invalid file format. Please select a PNG, JPG, or SVG file.', logoUploadSuccess: 'Agency logo uploaded successfully.', logoDeleteSuccess: 'Agency logo deleted successfully.', logoUploadError: 'Failed to upload logo.', logoDeleteError: 'Failed to delete logo.', clickToUpload: 'Click to select and upload logo file' },
+    tr: { title: 'Ofis Yönetimi', tabGeneral: 'Genel Bilgiler', tabUsers: 'Kullanıcılar', tabGuests: 'Misafirler', tabFavorites: 'Favori Oteller', saveBtn: 'Ofis Profilini Kaydet', saving: 'Senkronize ediliyor...', agencyId: 'Acente Kimlik', baseLocation: 'Konum', currency: 'Para Birimi', integration: 'Entegrasyon', auditTimeline: 'Denetim Geçmişi', created: 'Oluşturuldu', lastUpdate: 'Son Güncelleme', sec01: 'Bölüm 01 / Kimlik', sec02: 'Bölüm 02 / İletişim', sec03: 'Bölüm 03 / Coğrafya', sec04: 'Bölüm 04 / Finans', sec05: 'Bölüm 05 / Ayarlar', agencyName: 'Acente Adı', officialTitle: 'Resmi Unvan', type: 'Tür', language: 'Dil', parentId: 'Üst ID', directEmail: 'E-posta', phone: 'Telefon', country: 'Ülke', city: 'Şehir', streetAddress: 'Adres', zipCode: 'Posta Kodu', taxOffice: 'Vergi Dairesi', taxNumber: 'Vergi No', accEmail: 'Muhasebe E-posta', accPhone: 'Muhasebe Telefon', accCountry: 'Muhasebe Ülke', accCity: 'Muhasebe Şehir', accAddress: 'Muhasebe Adres', mainCurrency: 'Ana Para Birimi', integrationType: 'Entegrasyon Türü', allowedSale: 'Satışa Açık', bookingStatus: 'Rezervasyon durumu', selectTerritory: 'Bölge Seçin', selectHub: 'Şehir Seçin', commercialName: 'Ticari Ad', legalTitle: 'Hukuki Unvan', totalUsers: 'Toplam Kullanıcı', activeUsers: 'Aktif Kullanıcı', passiveUsers: 'Pasif Kullanıcı', totalGuests: 'Toplam Misafir', activeGuests: 'Aktif Misafir', passiveGuests: 'Pasif Misafir', searchUsers: 'Ad veya e-posta ara...', searchGuests: 'Ad, e-posta veya pasaport ara...', searchFavorites: 'Favori otellerde ara...', noFavoritesFound: 'Henüz favorilere eklenmiş otel bulunmamaktadır.', removeFromFavorites: 'Favoriden Kaldır', viewHotelDetail: 'Detayları Görüntüle', addedOn: 'Favoriye Eklenme Tarihi', supplierLabel: 'Tedarikçi', hotelName: 'Otel Adı', locationLabel: 'Şehir / Ülke', starsLabel: 'Yıldız Bilgisi', allRoles: 'Tüm Roller', allCountries: 'Tüm Ülkeler', active: 'Aktif', passive: 'Pasif', export: 'Dışa Aktar', exportExcel: 'Excel İndir', exportPdf: 'PDF İndir', exporting: 'İndiriliyor...', refresh: 'Yenile', addUser: 'Kullanıcı Ekle', addGuest: 'Misafir Ekle', editUser: 'Kullanıcı Düzenle', editGuest: 'Misafir Düzenle', userInfo: 'Kullanıcı bilgilerini girin', guestInfo: 'Misafir bilgilerini girin', name: 'Ad', surname: 'Soyad', emailAddr: 'E-posta Adresi', password: 'Şifre', role: 'Rol', status: 'Durum', gender: 'Cinsiyet', firstName: 'Ad', lastName: 'Soyad', birthDate: 'Doğum Tarihi', passportNo: 'Pasaport No', passportExpiry: 'Pasaport Bitiş', cancel: 'İptal', saveUser: 'Kullanıcı Kaydet', saveGuest: 'Misafir Kaydet', processing: 'İşleniyor...', confirm: 'Onayla', colUser: 'Kullanıcı', colContact: 'İletişim', colRole: 'Rol', colStatus: 'Durum', colActions: 'İşlemler', colGuest: 'Misafir', colBirth: 'Doğum & Ülke', colPassport: 'Pasaport', noUsers: 'Kullanıcı bulunamadı', noGuests: 'Misafir bulunamadı', deleteUser: 'Kullanıcı Sil', deleteUserMsg: 'Bu işlem geri alınamaz.', deleteGuest: 'Misafir Sil', deleteGuestMsg: 'Bu misafiri CRM sisteminden silmek istediğinize emin misiniz?', profileUpdated: 'Acente profili başarıyla güncellendi.', updateFailed: 'Güncelleme başarısız.', invalidEmail: 'Geçerli bir e-posta adresi girin.', userUpdated: 'Kullanıcı başarıyla güncellendi', userCreated: 'Kullanıcı başarıyla oluşturuldu', errorSavingUser: 'Kullanıcı kaydedilemedi', userDeleted: 'Kullanıcı başarıyla silindi', errorDeletingUser: 'Kullanıcı silinemedi', noUserExport: 'Dışa aktarılacak kullanıcı yok.', usersExported: 'Kullanıcı listesi başarıyla indirildi.', usersRefreshed: 'Kullanıcı listesi yenilendi', guestUpdated: 'Misafir başarıyla güncellendi', guestCreated: 'Misafir başarıyla oluşturuldu', errorSavingGuest: 'Misafir kaydedilemedi', guestDeleted: 'Misafir başarıyla silindi', errorDeletingGuest: 'Misafir silinemedi', noGuestExport: 'Dışa aktarılacak misafir yok.', guestsExported: 'Misafir listesi başarıyla indirildi.', guestsRefreshed: 'Misafir listesi yenilendi', searchAutocompletePlaceholder: 'Sistemden Otel Seç & Favorilere Ekle (Ad veya ID)...', searchTablePlaceholder: 'Tabloda ara...', allStatuses: 'Tüm Durumlar', statusActive: 'Aktif', statusPassive: 'Pasif', colHotelInfo: 'Otel Bilgisi', colUserEmail: 'Kullanıcı (User Email)', colLocationStars: 'Konum & Yıldız', colDateAdded: 'Audit Bilgisi', addFavSuccess: 'Otel favorilere eklendi', addFavError: 'Favori ekleme hatası', deleteFavTitle: 'Favori Oteli Sil', deleteFavMsg: '{{name}} otelini favorilerinizden silmek istediğinize emin misiniz?', deleteFavSuccess: 'Favori otel silindi', deleteFavError: 'Silme işlemi başarısız', addedBtn: 'Eklendi', addBtn: 'Ekle', refreshTooltip: 'Yenile', totalRecords: 'Toplam', pageLabel: 'Sayfa', prevBtn: 'Önceki', nextBtn: 'Sonraki', agencyLogo: 'Acente Logosu', agencyLogoPlaceholder: 'Acente Logo Alanı', uploadLogo: 'Logo Yükle', changeLogo: 'Logoyu Değiştir', deleteLogo: 'Logoyu Sil', deleteLogoTitle: 'Logoyu Sil', confirmDeleteLogo: 'Acente logosunu silmek istediğinize emin misiniz?', logoRequirementsTitle: 'Logo Kuralları & Detaylar', logoMaxRatioInfo: 'Önerilen Çözünürlük: 600 × 240 px', logoMaxSizeInfo: 'Maksimum Dosya Boyutu: 2 MB', logoFormatsInfo: 'Desteklenen Formatlar: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'Dosya boyutu 2MB sınırını aşıyor.', logoInvalidFormat: 'Geçersiz dosya formatı. Lütfen PNG, JPG veya SVG formatında bir dosya seçin.', logoUploadSuccess: 'Acente logosu başarıyla yüklendi.', logoDeleteSuccess: 'Acente logosu başarıyla silindi.', logoUploadError: 'Logo yüklenirken bir hata oluştu.', logoDeleteError: 'Logo silinirken bir hata oluştu.', clickToUpload: 'Logo dosyası seçmek ve yüklemek için tıklayın' },
+    ar: { title: 'إدارة المكتب' },
+    es: { title: 'Mi Oficina' },
+    ru: { title: 'Управление офисом' },
+    zh: { title: '办公室管理' },
+    ja: { title: 'オフィス管理' },
+    fa: { title: 'مدیریت دفتر' },
+    fr: { title: 'Mon Bureau' },
+    it: { title: 'Il mio Ufficio' },
+    el: { title: 'Το Γραφείο Μου' },
+    pt: { title: 'Meu Escritório', tabGeneral: 'Informações Gerais', tabUsers: 'Usuários', tabGuests: 'Hóspedes', tabFavorites: 'Hotéis Favoritos', saveBtn: 'Salvar', saving: 'Sincronizando...', agencyId: 'Identidade', baseLocation: 'Localização', currency: 'Moeda', integration: 'Integração', auditTimeline: 'Auditoria', created: 'Criado', lastUpdate: 'Última Atualização', sec01: 'Seção 01', sec02: 'Seção 02', sec03: 'Seção 03', sec04: 'Seção 04', sec05: 'Seção 05', agencyName: 'Nome da Agência', officialTitle: 'Título Oficial', type: 'Tipo', language: 'Idioma', parentId: 'ID Principal', directEmail: 'Email', phone: 'Telefone', country: 'País', city: 'Cidade', streetAddress: 'Endereço', zipCode: 'CEP', taxOffice: 'Finanças', taxNumber: 'NIF', accEmail: 'Email Contab', accPhone: 'Tel Contab', accCountry: 'País Contab', accCity: 'Cidade Contab', accAddress: 'Endereço Contab', mainCurrency: 'Moeda Principal', integrationType: 'Integração', allowedSale: 'Permitido', bookingStatus: 'Status Reserva', selectTerritory: 'Território', selectHub: 'Hub', commercialName: 'Nome Comercial', legalTitle: 'Título Legal', totalUsers: 'Total', activeUsers: 'Ativos', passiveUsers: 'Inativos', totalGuests: 'Total', activeGuests: 'Ativos', passiveGuests: 'Inativos', searchUsers: 'Buscar...', searchGuests: 'Buscar...', searchFavorites: 'Buscar favoritos...', noFavoritesFound: 'Nenhum hotel favorito encontrado.', removeFromFavorites: 'Remover', viewHotelDetail: 'Ver Detalhes', addedOn: 'Data de Adição', supplierLabel: 'Fornecedor', hotelName: 'Nome do Hotel', locationLabel: 'Cidade / País', starsLabel: 'Estrelas', allRoles: 'Todos os papéis', allCountries: 'Todos os países', active: 'Ativo', passive: 'Inativo', export: 'Exportar', addUser: 'Adicionar', addGuest: 'Adicionar', editUser: 'Editar', editGuest: 'Editar', userInfo: 'Info usuário', guestInfo: 'Info hóspede', name: 'Nome', surname: 'Sobrenome', emailAddr: 'Email', password: 'Senha', role: 'Papel', status: 'Status', gender: 'Gênero', firstName: 'Nome', lastName: 'Sobrenome', birthDate: 'Nascimento', passportNo: 'Passaporte', passportExpiry: 'Validade', cancel: 'Cancelar', saveUser: 'Salvar', saveGuest: 'Salvar', processing: 'Processando...', confirm: 'Confirmar', colUser: 'Usuário', colContact: 'Contato', colRole: 'Papel', colStatus: 'Status', colActions: 'Ações', colGuest: 'Hóspede', colBirth: 'Nascimento', colPassport: 'Passaporte', noUsers: 'Nenhum', noGuests: 'Nenhum', deleteUser: 'Excluir', deleteUserMsg: 'Irreversível.', deleteGuest: 'Excluir', deleteGuestMsg: 'Tem certeza?', profileUpdated: 'Atualizado', updateFailed: 'Falha', invalidEmail: 'Email inválido', userUpdated: 'Atualizado', userCreated: 'Criado', errorSavingUser: 'Erro', userDeleted: 'Excluído', errorDeletingUser: 'Erro', noUserExport: 'Sem dados', usersExported: 'Feito', usersRefreshed: 'Atualizado', guestUpdated: 'Atualizado', guestCreated: 'Criado', errorSavingGuest: 'Erro', guestDeleted: 'Excluído', errorDeletingGuest: 'Erro', noGuestExport: 'Sem dados', guestsExported: 'Feito', guestsRefreshed: 'Atualizado', agencyLogo: 'Logotipo da Agência', agencyLogoPlaceholder: 'Área do Logotipo da Agência', uploadLogo: 'Enviar Logotipo', changeLogo: 'Alterar Logotipo', deleteLogo: 'Excluir Logotipo', deleteLogoTitle: 'Excluir Logotipo', confirmDeleteLogo: 'Tem certeza de que deseja excluir o logotipo da agência?', logoRequirementsTitle: 'Diretrizes do Logotipo', logoMaxRatioInfo: 'Resolução Recomendada: 600 × 240 px', logoMaxSizeInfo: 'Tamanho Máximo: 2 MB', logoFormatsInfo: 'Formatos Suportados: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'O tamanho do arquivo excede o limite de 2MB.', logoInvalidFormat: 'Formato de arquivo inválido. Selecione um arquivo PNG, JPG ou SVG.', logoUploadSuccess: 'Logotipo enviado com sucesso.', logoDeleteSuccess: 'Logotipo excluído com sucesso.', logoUploadError: 'Erro ao enviar logotipo.', logoDeleteError: 'Erro ao excluir logotipo.', clickToUpload: 'Clique para selecionar e enviar o arquivo de logotipo' }
 };
 const tMO = (lang, key) => { const l = getLang(lang); return MO[l]?.[key] ?? MO.en[key] ?? COMMON[l]?.[key] ?? COMMON.en[key] ?? key; };
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -98,12 +98,12 @@ const formatDateTime = (dateVal) => {
             dateObj = new Date(dateVal);
         }
         if (isNaN(dateObj.getTime())) return 'N/A';
-        return dateObj.toLocaleString('tr-TR', { 
-            day: '2-digit', 
-            month: '2-digit', 
-            year: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit' 
+        return dateObj.toLocaleString('tr-TR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     } catch {
         return 'N/A';
@@ -267,7 +267,7 @@ const MyOffice = () => {
     const filteredFavorites = React.useMemo(() => {
         if (!favoriteSearchQuery.trim()) return favorites;
         const q = favoriteSearchQuery.toLowerCase();
-        return favorites.filter(item => 
+        return favorites.filter(item =>
             item.name?.toLowerCase().includes(q) ||
             item.city?.toLowerCase().includes(q) ||
             item.country?.toLowerCase().includes(q) ||
@@ -374,10 +374,10 @@ const MyOffice = () => {
         gender: 'MALE',
         firstName: '',
         lastName: '',
-        birthDate: '', 
+        birthDate: '',
         country: '',
         passportNo: '',
-        passportExpiry: '', 
+        passportExpiry: '',
         email: '',
         phoneCountryCode: '90',
         phoneNumber: '',
@@ -701,7 +701,7 @@ const MyOffice = () => {
         e.preventDefault();
         try {
             setSaving(true);
-            
+
             const payload = {
                 ...formData,
                 countryId: formData.countryId ? Number(formData.countryId) : null,
@@ -725,10 +725,10 @@ const MyOffice = () => {
             await agencyService.updateAgency(formData.id, payload);
             showNotification(L('profileUpdated'));
             await fetchInitialData();
-        } catch (err) { 
-            showNotification(err.message || L('updateFailed'), 'error'); 
-        } finally { 
-            setSaving(false); 
+        } catch (err) {
+            showNotification(err.message || L('updateFailed'), 'error');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -759,10 +759,10 @@ const MyOffice = () => {
             }
 
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (userFormData.email && !emailRegex.test(userFormData.email)) { 
-                showNotification(L('invalidEmail'), 'error'); 
-                setSaving(false); 
-                return; 
+            if (userFormData.email && !emailRegex.test(userFormData.email)) {
+                showNotification(L('invalidEmail'), 'error');
+                setSaving(false);
+                return;
             }
             if (editingUser) {
                 await userService.updateUser(editingUser.id, userFormData);
@@ -775,10 +775,10 @@ const MyOffice = () => {
             }
             setIsUserModalOpen(false); fetchUsersData();
             const sumData = await userService.getSummary(); setSummary(prev => ({ ...prev, totalCount: sumData.totalCount, activeCount: sumData.activeCount, passiveCount: sumData.passiveCount }));
-        } catch (err) { 
+        } catch (err) {
             const msg = err.response?.data?.message || err.message || L('errorSavingUser');
             setUserApiError(msg);
-            showNotification(msg, 'error'); 
+            showNotification(msg, 'error');
         } finally { setSaving(false); }
     };
 
@@ -1289,11 +1289,10 @@ const MyOffice = () => {
                                             setActiveTab(tab.id);
                                             setSearchParams({ tab: tab.id });
                                         }}
-                                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
-                                            isCurrent
+                                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${isCurrent
                                                 ? 'bg-[#e8f0fe] text-[#1a73e8] font-semibold dark:bg-[#1a73e8]/25 dark:text-[#8ab4f8]'
                                                 : 'text-[#5f6368] dark:text-[#bdc1c6] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]'
-                                        }`}
+                                            }`}
                                     >
                                         <span className={`material-symbols-outlined text-[18px] ${isCurrent ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>{tab.icon}</span>
                                         <span>{tab.label}</span>
@@ -1364,7 +1363,7 @@ const MyOffice = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     {/* Map Preview */}
                                     <div className="h-[185px] relative group rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs flex-shrink-0 bg-white dark:bg-[#303134]">
                                         <MapContainer center={mapCenter} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
@@ -1633,7 +1632,7 @@ const MyOffice = () => {
                                             <div className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] mb-0.5">MEMBERS</div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="text-[11px] font-medium text-[#137333] dark:text-[#81c995] uppercase tracking-wider">{L('activeUsers')}</span>
@@ -1646,7 +1645,7 @@ const MyOffice = () => {
                                             <div className="text-[10px] font-medium text-[#137333] dark:text-[#81c995] mb-0.5">ACTIVE</div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="text-[11px] font-medium text-[#c5221f] dark:text-[#f28b82] uppercase tracking-wider">{L('passiveUsers')}</span>
@@ -1773,18 +1772,14 @@ const MyOffice = () => {
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handleToggleUserStatus(u)}
-                                                                    className={`relative inline-flex items-center h-[20px] w-[36px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${
-                                                                        u.status === 'ACTIVE' 
-                                                                            ? 'bg-emerald-500 hover:bg-emerald-600' 
-                                                                            : 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600'
-                                                                    }`}
+                                                                    className={`relative inline-flex h-[20px] w-[36px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${u.status === 'ACTIVE' ? 'bg-[#1a73e8]' : 'bg-[#dadce0] dark:bg-[#5f6368]'
+                                                                        }`}
                                                                     title={u.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}
                                                                 >
-                                                                    <span className={`pointer-events-none inline-block size-[16px] transform rounded-full bg-white shadow-xs transition-transform duration-200 ease-in-out ${
-                                                                        u.status === 'ACTIVE' ? 'translate-x-[16px]' : 'translate-x-0'
-                                                                    }`} />
+                                                                    <span className={`pointer-events-none inline-block size-[16px] transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${u.status === 'ACTIVE' ? 'translate-x-[16px]' : 'translate-x-0'
+                                                                        }`} />
                                                                 </button>
-                                                                <span className={`text-xs font-medium ${u.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>
+                                                                <span className={`text-xs font-medium ${u.status === 'ACTIVE' ? 'text-[#137333] dark:text-[#81c995]' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>
                                                                     {u.status === 'ACTIVE' ? 'Active' : 'Passive'}
                                                                 </span>
                                                             </div>
@@ -1828,7 +1823,7 @@ const MyOffice = () => {
                                             <div className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] mb-0.5">PROFILES</div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="text-[11px] font-medium text-[#137333] dark:text-[#81c995] uppercase tracking-wider">{L('activeGuests')}</span>
@@ -1841,7 +1836,7 @@ const MyOffice = () => {
                                             <div className="text-[10px] font-medium text-[#137333] dark:text-[#81c995] mb-0.5">ACTIVE</div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="text-[11px] font-medium text-[#c5221f] dark:text-[#f28b82] uppercase tracking-wider">{L('passiveGuests')}</span>
@@ -1930,11 +1925,10 @@ const MyOffice = () => {
                                                     <tr key={g.id} className="hover:bg-[#f8f9fa] dark:hover:bg-[#202124]/50 transition-colors border-b border-[#f1f3f4] dark:border-[#3c4043] text-xs">
                                                         <td className="px-4 py-3">
                                                             <div className="flex items-center gap-3">
-                                                                <div className={`size-9 rounded-full flex items-center justify-center font-medium text-xs shrink-0 ${
-                                                                    g.gender === 'FEMALE' 
-                                                                        ? 'bg-[#fce8e6] dark:bg-[#c5221f]/20 text-[#c5221f] dark:text-[#f28b82]' 
+                                                                <div className={`size-9 rounded-full flex items-center justify-center font-medium text-xs shrink-0 ${g.gender === 'FEMALE'
+                                                                        ? 'bg-[#fce8e6] dark:bg-[#c5221f]/20 text-[#c5221f] dark:text-[#f28b82]'
                                                                         : 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8]'
-                                                                }`}>
+                                                                    }`}>
                                                                     <span className="uppercase">{g.firstName?.[0]}{g.lastName?.[0]}</span>
                                                                 </div>
                                                                 <div>
@@ -1980,18 +1974,14 @@ const MyOffice = () => {
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handleToggleGuestStatus(g)}
-                                                                    className={`relative inline-flex items-center h-[20px] w-[36px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${
-                                                                        g.status === 'ACTIVE' 
-                                                                            ? 'bg-emerald-500 hover:bg-emerald-600' 
-                                                                            : 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600'
-                                                                    }`}
+                                                                    className={`relative inline-flex h-[20px] w-[36px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${g.status === 'ACTIVE' ? 'bg-[#1a73e8]' : 'bg-[#dadce0] dark:bg-[#5f6368]'
+                                                                        }`}
                                                                     title={g.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}
                                                                 >
-                                                                    <span className={`pointer-events-none inline-block size-[16px] transform rounded-full bg-white shadow-xs transition-transform duration-200 ease-in-out ${
-                                                                        g.status === 'ACTIVE' ? 'translate-x-[16px]' : 'translate-x-0'
-                                                                    }`} />
+                                                                    <span className={`pointer-events-none inline-block size-[16px] transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${g.status === 'ACTIVE' ? 'translate-x-[16px]' : 'translate-x-0'
+                                                                        }`} />
                                                                 </button>
-                                                                <span className={`text-xs font-medium ${g.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>
+                                                                <span className={`text-xs font-medium ${g.status === 'ACTIVE' ? 'text-[#137333] dark:text-[#81c995]' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>
                                                                     {g.status === 'ACTIVE' ? 'Active' : 'Passive'}
                                                                 </span>
                                                             </div>
@@ -2019,294 +2009,287 @@ const MyOffice = () => {
                                     </div>
                                 </div>
                             </div>
-                    ) : activeTab === 'favorites' ? (
-                        <div className="h-full flex flex-col min-h-0 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-xs relative z-20 overflow-visible">
-                            {/* Filter and Autocomplete Controls Bar */}
-                            <div className="p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 relative z-50 select-none">
-                                {/* Autocomplete Search Dropdown */}
-                                <div ref={hotelAutocompleteRef} className="relative flex-1 max-w-md">
-                                    <div className="relative">
-                                        <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
-                                        <input 
-                                            type="text" 
-                                            placeholder={L('searchAutocompletePlaceholder')} 
-                                            value={hotelAutocompleteQuery}
-                                            onChange={(e) => setHotelAutocompleteQuery(e.target.value)}
-                                            onFocus={() => hotelAutocompleteResults.length > 0 && setShowHotelAutocompleteDropdown(true)}
-                                            className="w-full pl-10 pr-8 py-2.5 border border-[#dadce0] dark:border-[#5f6368] rounded-full text-xs font-normal bg-[#f1f3f4] dark:bg-[#202124] text-[#202124] dark:text-[#e8eaed] placeholder-[#5f6368] dark:placeholder-[#9aa0a6] focus:outline-none focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#303134] transition-all"
-                                        />
-                                        {hotelAutocompleteLoading && (
-                                            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4 border-2 border-[#1a73e8]/30 border-t-[#1a73e8] rounded-full animate-spin"></div>
-                                        )}
-                                    </div>
-
-                                    {/* Autocomplete Dropdown Overlay */}
-                                    {showHotelAutocompleteDropdown && hotelAutocompleteResults.length > 0 && (
-                                        <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-2xl shadow-2xl max-h-64 overflow-y-auto z-[9999] p-2 space-y-1 ring-1 ring-black/5 animate-in fade-in-50 zoom-in-95">
-                                            {hotelAutocompleteResults.map((h, idx) => {
-                                                const isFav = isFavorite(h.hotelId);
-                                                return (
-                                                    <div 
-                                                        key={h.hotelId ? `ac-${h.hotelId}-${idx}` : `ac-${idx}`}
-                                                        className="p-2.5 hover:bg-[#f1f3f4] dark:hover:bg-[#202124] rounded-xl transition-colors flex items-center justify-between group cursor-pointer"
-                                                    >
-                                                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                                                            <div className={`size-8 rounded-full ${isFav ? 'bg-[#e6f4ea] text-[#137333] dark:bg-[#137333]/20 dark:text-[#81c995]' : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]'} flex items-center justify-center font-medium text-xs shrink-0`}>
-                                                                <span className="material-symbols-outlined text-[18px]">{isFav ? 'favorite' : 'hotel'}</span>
-                                                            </div>
-                                                            <div className="min-w-0">
-                                                                <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] group-hover:text-[#1a73e8] transition-colors truncate">
-                                                                    {h.hotelName}
-                                                                </p>
-                                                                <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6]">
-                                                                    ID: #{h.hotelId} {h.cityName ? `• ${h.cityName}` : ''}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <button 
-                                                            type="button"
-                                                            onClick={(e) => handleAddHotelFromAutocomplete(h, e)}
-                                                            disabled={isFav}
-                                                            className={`h-7 px-3 rounded-full text-[11px] font-medium transition-all flex items-center gap-1 shrink-0 ${
-                                                                isFav 
-                                                                    ? 'bg-[#e6f4ea] dark:bg-[#137333]/20 text-[#137333] dark:text-[#81c995] cursor-default' 
-                                                                    : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] hover:bg-[#1a73e8] hover:text-white active:scale-95'
-                                                            }`}
-                                                        >
-                                                            <span className="material-symbols-outlined text-[14px]">{isFav ? 'check' : 'add'}</span>
-                                                            <span>{isFav ? L('addedBtn') : L('addBtn')}</span>
-                                                        </button>
-                                                    </div>
-                                                );
-                                            })}
+                        ) : activeTab === 'favorites' ? (
+                            <div className="h-full flex flex-col min-h-0 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-xs relative z-20 overflow-visible">
+                                {/* Filter and Autocomplete Controls Bar */}
+                                <div className="p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 relative z-50 select-none">
+                                    {/* Autocomplete Search Dropdown */}
+                                    <div ref={hotelAutocompleteRef} className="relative flex-1 max-w-md">
+                                        <div className="relative">
+                                            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
+                                            <input
+                                                type="text"
+                                                placeholder={L('searchAutocompletePlaceholder')}
+                                                value={hotelAutocompleteQuery}
+                                                onChange={(e) => setHotelAutocompleteQuery(e.target.value)}
+                                                onFocus={() => hotelAutocompleteResults.length > 0 && setShowHotelAutocompleteDropdown(true)}
+                                                className="w-full pl-10 pr-8 py-2.5 border border-[#dadce0] dark:border-[#5f6368] rounded-full text-xs font-normal bg-[#f1f3f4] dark:bg-[#202124] text-[#202124] dark:text-[#e8eaed] placeholder-[#5f6368] dark:placeholder-[#9aa0a6] focus:outline-none focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#303134] transition-all"
+                                            />
+                                            {hotelAutocompleteLoading && (
+                                                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4 border-2 border-[#1a73e8]/30 border-t-[#1a73e8] rounded-full animate-spin"></div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
 
-                                {/* Table Search & Filter Controls */}
-                                <div className="flex items-center gap-2">
-                                    <div className="relative">
-                                        <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
-                                        <input 
-                                            type="text"
-                                            placeholder={L('searchTablePlaceholder')}
-                                            value={favoriteSearchQuery}
-                                            onChange={(e) => setFavoriteSearchQuery(e.target.value)}
-                                            className="w-40 sm:w-48 pl-9 pr-3 py-2 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#202124] dark:text-[#e8eaed] placeholder-[#5f6368] dark:placeholder-[#9aa0a6] focus:outline-none focus:border-[#1a73e8] transition-colors"
-                                        />
+                                        {/* Autocomplete Dropdown Overlay */}
+                                        {showHotelAutocompleteDropdown && hotelAutocompleteResults.length > 0 && (
+                                            <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-2xl shadow-2xl max-h-64 overflow-y-auto z-[9999] p-2 space-y-1 ring-1 ring-black/5 animate-in fade-in-50 zoom-in-95">
+                                                {hotelAutocompleteResults.map((h, idx) => {
+                                                    const isFav = isFavorite(h.hotelId);
+                                                    return (
+                                                        <div
+                                                            key={h.hotelId ? `ac-${h.hotelId}-${idx}` : `ac-${idx}`}
+                                                            className="p-2.5 hover:bg-[#f1f3f4] dark:hover:bg-[#202124] rounded-xl transition-colors flex items-center justify-between group cursor-pointer"
+                                                        >
+                                                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                                                <div className={`size-8 rounded-full ${isFav ? 'bg-[#e6f4ea] text-[#137333] dark:bg-[#137333]/20 dark:text-[#81c995]' : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]'} flex items-center justify-center font-medium text-xs shrink-0`}>
+                                                                    <span className="material-symbols-outlined text-[18px]">{isFav ? 'favorite' : 'hotel'}</span>
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] group-hover:text-[#1a73e8] transition-colors truncate">
+                                                                        {h.hotelName}
+                                                                    </p>
+                                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6]">
+                                                                        ID: #{h.hotelId} {h.cityName ? `• ${h.cityName}` : ''}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleAddHotelFromAutocomplete(h, e)}
+                                                                disabled={isFav}
+                                                                className={`h-7 px-3 rounded-full text-[11px] font-medium transition-all flex items-center gap-1 shrink-0 ${isFav
+                                                                        ? 'bg-[#e6f4ea] dark:bg-[#137333]/20 text-[#137333] dark:text-[#81c995] cursor-default'
+                                                                        : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] hover:bg-[#1a73e8] hover:text-white active:scale-95'
+                                                                    }`}
+                                                            >
+                                                                <span className="material-symbols-outlined text-[14px]">{isFav ? 'check' : 'add'}</span>
+                                                                <span>{isFav ? L('addedBtn') : L('addBtn')}</span>
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
 
-                                    <select 
-                                        value={favoriteStatusFilter} 
-                                        onChange={(e) => setFavoriteStatusFilter(e.target.value)}
-                                        className="px-3.5 py-2 border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal bg-white dark:bg-[#202124] text-[#3c4043] dark:text-[#bdc1c6] focus:outline-none focus:border-[#1a73e8] transition-colors cursor-pointer"
-                                    >
-                                        <option value="">{L('allStatuses')}</option>
-                                        <option value="ACTIVE">{L('statusActive')}</option>
-                                        <option value="PASSIVE">{L('statusPassive')}</option>
-                                    </select>
+                                    {/* Table Search & Filter Controls */}
+                                    <div className="flex items-center gap-2">
+                                        <div className="relative">
+                                            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
+                                            <input
+                                                type="text"
+                                                placeholder={L('searchTablePlaceholder')}
+                                                value={favoriteSearchQuery}
+                                                onChange={(e) => setFavoriteSearchQuery(e.target.value)}
+                                                className="w-40 sm:w-48 pl-9 pr-3 py-2 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#202124] dark:text-[#e8eaed] placeholder-[#5f6368] dark:placeholder-[#9aa0a6] focus:outline-none focus:border-[#1a73e8] transition-colors"
+                                            />
+                                        </div>
 
-                                    <button
-                                        onClick={handleExportFavoritesExcel}
-                                        disabled={isExportingFavExcel || isExportingFavPdf || favoriteLoading}
-                                        className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#137333] dark:text-[#81c995] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                                        title="Export all matching records to Excel"
-                                    >
-                                        {isExportingFavExcel ? (
-                                            <div className="size-3.5 border-2 border-[#137333] border-t-transparent rounded-full animate-spin"></div>
-                                        ) : (
-                                            <span className="material-symbols-outlined text-[18px]">table_view</span>
-                                        )}
-                                        <span>{isExportingFavExcel ? L('exporting') : L('exportExcel')}</span>
-                                    </button>
+                                        <select
+                                            value={favoriteStatusFilter}
+                                            onChange={(e) => setFavoriteStatusFilter(e.target.value)}
+                                            className="px-3.5 py-2 border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal bg-white dark:bg-[#202124] text-[#3c4043] dark:text-[#bdc1c6] focus:outline-none focus:border-[#1a73e8] transition-colors cursor-pointer"
+                                        >
+                                            <option value="">{L('allStatuses')}</option>
+                                            <option value="ACTIVE">{L('statusActive')}</option>
+                                            <option value="PASSIVE">{L('statusPassive')}</option>
+                                        </select>
 
-                                    <button
-                                        onClick={handleExportFavoritesPdf}
-                                        disabled={isExportingFavExcel || isExportingFavPdf || favoriteLoading}
-                                        className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#c5221f] dark:text-[#f28b82] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                                        title="Export all matching records to PDF"
-                                    >
-                                        {isExportingFavPdf ? (
-                                            <div className="size-3.5 border-2 border-[#c5221f] border-t-transparent rounded-full animate-spin"></div>
-                                        ) : (
-                                            <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
-                                        )}
-                                        <span>{isExportingFavPdf ? L('exporting') : L('exportPdf')}</span>
-                                    </button>
+                                        <button
+                                            onClick={handleExportFavoritesExcel}
+                                            disabled={isExportingFavExcel || isExportingFavPdf || favoriteLoading}
+                                            className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#137333] dark:text-[#81c995] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                                            title="Export all matching records to Excel"
+                                        >
+                                            {isExportingFavExcel ? (
+                                                <div className="size-3.5 border-2 border-[#137333] border-t-transparent rounded-full animate-spin"></div>
+                                            ) : (
+                                                <span className="material-symbols-outlined text-[18px]">table_view</span>
+                                            )}
+                                            <span>{isExportingFavExcel ? L('exporting') : L('exportExcel')}</span>
+                                        </button>
 
-                                    <button
-                                        onClick={() => fetchFavoriteHotels(favoritePage)}
-                                        disabled={favoriteLoading}
-                                        className="size-10 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50"
-                                        title={L('refresh')}
-                                    >
-                                        <span className={`material-symbols-outlined text-[18px] ${favoriteLoading ? 'animate-spin' : ''}`}>refresh</span>
-                                    </button>
+                                        <button
+                                            onClick={handleExportFavoritesPdf}
+                                            disabled={isExportingFavExcel || isExportingFavPdf || favoriteLoading}
+                                            className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#c5221f] dark:text-[#f28b82] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                                            title="Export all matching records to PDF"
+                                        >
+                                            {isExportingFavPdf ? (
+                                                <div className="size-3.5 border-2 border-[#c5221f] border-t-transparent rounded-full animate-spin"></div>
+                                            ) : (
+                                                <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                                            )}
+                                            <span>{isExportingFavPdf ? L('exporting') : L('exportPdf')}</span>
+                                        </button>
+
+                                        <button
+                                            onClick={() => fetchFavoriteHotels(favoritePage)}
+                                            disabled={favoriteLoading}
+                                            className="size-10 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50"
+                                            title={L('refresh')}
+                                        >
+                                            <span className={`material-symbols-outlined text-[18px] ${favoriteLoading ? 'animate-spin' : ''}`}>refresh</span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Status Sub-Header Bar */}
-                            <div className="px-4 py-2 bg-[#f8f9fa] dark:bg-[#202124] border-t border-b border-[#dadce0] dark:border-[#3c4043] flex justify-between items-center select-none shrink-0">
-                                <div className="flex items-center gap-2 text-[#5f6368] dark:text-[#9aa0a6]">
-                                    <span className="material-symbols-outlined text-[18px]">analytics</span>
-                                    <span className="text-xs font-medium">
-                                        {favoriteTotalElements} {L('totalRecords')}
+                                {/* Status Sub-Header Bar */}
+                                <div className="px-4 py-2 bg-[#f8f9fa] dark:bg-[#202124] border-t border-b border-[#dadce0] dark:border-[#3c4043] flex justify-between items-center select-none shrink-0">
+                                    <div className="flex items-center gap-2 text-[#5f6368] dark:text-[#9aa0a6]">
+                                        <span className="material-symbols-outlined text-[18px]">analytics</span>
+                                        <span className="text-xs font-medium">
+                                            {favoriteTotalElements} {L('totalRecords')}
+                                        </span>
+                                    </div>
+                                    <span className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6]">
+                                        Favorite Hotels Console
                                     </span>
                                 </div>
-                                <span className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6]">
-                                    Favorite Hotels Console
-                                </span>
-                            </div>
 
-                            {/* Favorite Hotels Table Body */}
-                            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-10">
-                                <table className="w-full border-collapse">
-                                    <thead className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] sticky top-0 z-10">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[80px] select-none">ID</th>
-                                            <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[240px] select-none">{L('colHotelInfo')}</th>
-                                            <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[160px] select-none">{L('colLocationStars')}</th>
-                                            <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colDateAdded')}</th>
-                                            <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('status')}</th>
-                                            <th className="px-4 py-3 text-right text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colActions')}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {favoriteLoading ? (
-                                            <TableSkeleton columns={6} rows={favoritePageSize || 10} />
-                                        ) : favoriteBackendItems.length > 0 ? (
-                                            favoriteBackendItems.map((fav, idx) => (
-                                                <tr 
-                                                    key={fav.id ? `fav-${fav.id}-${idx}` : `fav-${idx}`}
-                                                    className="hover:bg-[#f8f9fa] dark:hover:bg-[#202124]/50 transition-colors border-b border-[#f1f3f4] dark:border-[#3c4043] text-xs"
-                                                >
-                                                    {/* ID */}
-                                                    <td className="px-4 py-3 text-[#5f6368] dark:text-[#9aa0a6] font-mono text-[11px]">#{fav.hotelId}</td>
+                                {/* Favorite Hotels Table Body */}
+                                <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-10">
+                                    <table className="w-full border-collapse">
+                                        <thead className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] sticky top-0 z-10">
+                                            <tr>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[80px] select-none">ID</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[240px] select-none">{L('colHotelInfo')}</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[160px] select-none">{L('colLocationStars')}</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colDateAdded')}</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('status')}</th>
+                                                <th className="px-4 py-3 text-right text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colActions')}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {favoriteLoading ? (
+                                                <TableSkeleton columns={6} rows={favoritePageSize || 10} />
+                                            ) : favoriteBackendItems.length > 0 ? (
+                                                favoriteBackendItems.map((fav, idx) => (
+                                                    <tr
+                                                        key={fav.id ? `fav-${fav.id}-${idx}` : `fav-${idx}`}
+                                                        className="hover:bg-[#f8f9fa] dark:hover:bg-[#202124]/50 transition-colors border-b border-[#f1f3f4] dark:border-[#3c4043] text-xs"
+                                                    >
+                                                        {/* ID */}
+                                                        <td className="px-4 py-3 text-[#5f6368] dark:text-[#9aa0a6] font-mono text-[11px]">#{fav.hotelId}</td>
 
-                                                    {/* Hotel Info */}
-                                                    <td className="px-4 py-3">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="size-8 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center font-medium text-xs flex-shrink-0 overflow-hidden">
-                                                                {fav.imageUrl ? (
-                                                                    <img src={fav.imageUrl} alt={fav.hotelName} className="w-full h-full object-cover" />
-                                                                ) : (
-                                                                    <span className="material-symbols-outlined text-[18px]">hotel</span>
-                                                                )}
+                                                        {/* Hotel Info */}
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="size-8 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center font-medium text-xs flex-shrink-0 overflow-hidden">
+                                                                    {fav.imageUrl ? (
+                                                                        <img src={fav.imageUrl} alt={fav.hotelName} className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        <span className="material-symbols-outlined text-[18px]">hotel</span>
+                                                                    )}
+                                                                </div>
+                                                                <span
+                                                                    className="font-medium text-[#202124] dark:text-[#e8eaed] hover:text-[#1a73e8] dark:hover:text-[#8ab4f8] transition-colors cursor-pointer text-xs truncate max-w-[280px]"
+                                                                    onClick={() => navigate(`/travel/hotels/detail/${fav.hotelId}`)}
+                                                                    title={fav.hotelName}
+                                                                >
+                                                                    {fav.hotelName}
+                                                                </span>
                                                             </div>
-                                                            <span 
-                                                                className="font-medium text-[#202124] dark:text-[#e8eaed] hover:text-[#1a73e8] dark:hover:text-[#8ab4f8] transition-colors cursor-pointer text-xs truncate max-w-[280px]" 
-                                                                onClick={() => navigate(`/travel/hotels/detail/${fav.hotelId}`)}
-                                                                title={fav.hotelName}
+                                                        </td>
+
+                                                        {/* Location & Stars */}
+                                                        <td className="px-4 py-3 text-[#3c4043] dark:text-[#e8eaed]">
+                                                            <div>
+                                                                <p className="text-xs font-normal flex items-center gap-1">
+                                                                    <span className="material-symbols-outlined text-[14px] text-[#1a73e8] dark:text-[#8ab4f8]">location_on</span>
+                                                                    <span>{fav.cityName || 'N/A'}</span>
+                                                                </p>
+                                                                <div className="flex items-center gap-0.5 text-[#f9ab00] mt-0.5">
+                                                                    {[...Array(fav.stars || 4)].map((_, i) => (
+                                                                        <span key={`star-${fav.id || idx}-${i}`} className="material-symbols-outlined text-[12px] fill-1">star</span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Audit Details Icon */}
+                                                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                                                            <div
+                                                                className="inline-flex items-center cursor-pointer p-1"
+                                                                onMouseEnter={(e) => {
+                                                                    const rect = e.currentTarget.getBoundingClientRect();
+                                                                    setAuditTooltip({
+                                                                        item: fav,
+                                                                        x: rect.left + rect.width / 2,
+                                                                        y: rect.top - 8
+                                                                    });
+                                                                }}
+                                                                onMouseLeave={() => setAuditTooltip(null)}
                                                             >
-                                                                {fav.hotelName}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-
-                                                    {/* Location & Stars */}
-                                                    <td className="px-4 py-3 text-[#3c4043] dark:text-[#e8eaed]">
-                                                        <div>
-                                                            <p className="text-xs font-normal flex items-center gap-1">
-                                                                <span className="material-symbols-outlined text-[14px] text-[#1a73e8] dark:text-[#8ab4f8]">location_on</span>
-                                                                <span>{fav.cityName || 'N/A'}</span>
-                                                            </p>
-                                                            <div className="flex items-center gap-0.5 text-[#f9ab00] mt-0.5">
-                                                                {[...Array(fav.stars || 4)].map((_, i) => (
-                                                                    <span key={`star-${fav.id || idx}-${i}`} className="material-symbols-outlined text-[12px] fill-1">star</span>
-                                                                ))}
+                                                                <span className="material-symbols-outlined text-[#5f6368] hover:text-[#1a73e8] dark:text-[#9aa0a6] text-[18px] transition-colors leading-none">
+                                                                    info
+                                                                </span>
                                                             </div>
-                                                        </div>
-                                                    </td>
+                                                        </td>
 
-                                                    {/* Audit Details Icon */}
-                                                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                                        <div 
-                                                            className="inline-flex items-center cursor-pointer p-1"
-                                                            onMouseEnter={(e) => {
-                                                                const rect = e.currentTarget.getBoundingClientRect();
-                                                                setAuditTooltip({
-                                                                    item: fav,
-                                                                    x: rect.left + rect.width / 2,
-                                                                    y: rect.top - 8
-                                                                });
-                                                            }}
-                                                            onMouseLeave={() => setAuditTooltip(null)}
-                                                        >
-                                                            <span className="material-symbols-outlined text-[#5f6368] hover:text-[#1a73e8] dark:text-[#9aa0a6] text-[18px] transition-colors leading-none">
-                                                                info
-                                                            </span>
-                                                        </div>
-                                                    </td>
-
-                                                    {/* Status Toggle Switch */}
-                                                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                                        <div className="flex items-center gap-2">
-                                                            <button 
-                                                                type="button" 
-                                                                onClick={() => handleToggleFavoriteStatus(fav)} 
-                                                                className={`relative inline-flex items-center h-[20px] w-[36px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${
-                                                                    fav.status === 'ACTIVE' 
-                                                                        ? 'bg-emerald-500 hover:bg-emerald-600' 
-                                                                        : 'bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600'
-                                                                }`} 
+                                                        {/* Status Toggle Button */}
+                                                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleToggleFavoriteStatus(fav)}
+                                                                className="p-1 inline-flex items-center justify-center transition-transform duration-200 active:scale-90 cursor-pointer bg-transparent border-0 outline-none hover:scale-110"
                                                                 title={fav.status === 'ACTIVE' ? (L('statusActive') || 'Aktif') : (L('statusPassive') || 'Pasif')}
                                                             >
-                                                                <span className={`pointer-events-none inline-block size-[16px] transform rounded-full bg-white shadow-xs transition-transform duration-200 ease-in-out ${
-                                                                    fav.status === 'ACTIVE' ? 'translate-x-[16px]' : 'translate-x-0'
-                                                                }`} />
+                                                                <span className={`material-symbols-outlined text-[20px] transition-colors duration-200 ${fav.status === 'ACTIVE'
+                                                                        ? 'text-[#1a73e8]'
+                                                                        : 'text-[#dadce0] dark:text-[#5f6368] hover:text-[#9aa0a6]'
+                                                                    }`}>
+                                                                    {fav.status === 'ACTIVE' ? 'thumb_up' : 'thumb_up_off_alt'}
+                                                                </span>
                                                             </button>
-                                                            <span className={`text-xs font-medium ${fav.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>
-                                                                {fav.status === 'ACTIVE' ? 'Active' : 'Passive'}
-                                                            </span>
-                                                        </div>
-                                                    </td>
+                                                        </td>
 
-                                                    {/* Actions */}
-                                                    <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                                                        <div className="flex items-center justify-end gap-1">
-                                                            <button 
-                                                                onClick={() => navigate(`/travel/hotels/detail/${fav.hotelId}`)}
-                                                                className="size-8 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#202124] dark:text-[#9aa0a6] transition-colors flex items-center justify-center cursor-pointer"
-                                                                title={L('viewHotelDetail')}
-                                                            >
-                                                                <span className="material-symbols-outlined text-[18px]">visibility</span>
-                                                            </button>
-                                                            <button 
-                                                                onClick={() => handleDeleteFavoriteItem(fav)}
-                                                                className="size-8 rounded-full text-[#5f6368] hover:bg-[#fce8e6] hover:text-[#d93025] dark:hover:bg-[#c5221f]/20 transition-colors flex items-center justify-center cursor-pointer"
-                                                                title={L('removeFromFavorites')}
-                                                            >
-                                                                <span className="material-symbols-outlined text-[18px]">delete</span>
-                                                            </button>
-                                                        </div>
+                                                        {/* Actions */}
+                                                        <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                                                            <div className="flex items-center justify-end gap-1">
+                                                                <button
+                                                                    onClick={() => navigate(`/travel/hotels/detail/${fav.hotelId}`)}
+                                                                    className="size-8 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#202124] dark:text-[#9aa0a6] transition-colors flex items-center justify-center cursor-pointer"
+                                                                    title={L('viewHotelDetail')}
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[18px]">visibility</span>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteFavoriteItem(fav)}
+                                                                    className="size-8 rounded-full text-[#5f6368] hover:bg-[#fce8e6] hover:text-[#d93025] dark:hover:bg-[#c5221f]/20 transition-colors flex items-center justify-center cursor-pointer"
+                                                                    title={L('removeFromFavorites')}
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="6" className="px-4 py-12 text-center text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium italic">
+                                                        {L('noFavoritesFound')}
                                                     </td>
                                                 </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan="6" className="px-4 py-12 text-center text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium italic">
-                                                    {L('noFavoritesFound')}
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
 
-                            {/* Standard Pagination Bar */}
-                            <Pagination 
-                                currentPage={favoritePage}
-                                totalPages={favoriteTotalPages}
-                                pageSize={favoritePageSize}
-                                totalElements={favoriteTotalElements}
-                                onPageChange={(p) => fetchFavoriteHotels(p, favoritePageSize)}
-                                onPageSizeChange={(s) => {
-                                    setFavoritePageSize(s);
-                                    fetchFavoriteHotels(0, s);
-                                }}
-                            />
-                        </div>
-                    ) : null}
+                                {/* Standard Pagination Bar */}
+                                <Pagination
+                                    currentPage={favoritePage}
+                                    totalPages={favoriteTotalPages}
+                                    pageSize={favoritePageSize}
+                                    totalElements={favoriteTotalElements}
+                                    onPageChange={(p) => fetchFavoriteHotels(p, favoritePageSize)}
+                                    onPageSizeChange={(s) => {
+                                        setFavoritePageSize(s);
+                                        fetchFavoriteHotels(0, s);
+                                    }}
+                                />
+                            </div>
+                        ) : null}
                     </div>
                 </div>
             </main>
@@ -2314,17 +2297,16 @@ const MyOffice = () => {
             {/* Google Material 3 Confirmation Modal */}
             {confirmModal.show && (
                 <div className="fixed inset-0 z-[30000] flex items-center justify-center p-4">
-                    <div 
-                        className="modal-overlay fixed inset-0 bg-[#202124]/40 backdrop-blur-sm transition-opacity animate-in fade-in-50" 
+                    <div
+                        className="modal-overlay fixed inset-0 bg-[#202124]/40 backdrop-blur-sm transition-opacity animate-in fade-in-50"
                         onClick={() => setConfirmModal({ ...confirmModal, show: false })}
                     ></div>
                     <div className="relative bg-white dark:bg-[#202124] w-full max-w-sm rounded-[28px] shadow-2xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] animate-in zoom-in-95 duration-200 p-6 text-center">
                         {/* Google Icon Badge */}
-                        <div className={`size-14 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                            confirmModal.type === 'danger' 
-                                ? 'bg-[#fce8e6] text-[#d93025] dark:bg-red-950/40 dark:text-red-400' 
+                        <div className={`size-14 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmModal.type === 'danger'
+                                ? 'bg-[#fce8e6] text-[#d93025] dark:bg-red-950/40 dark:text-red-400'
                                 : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]'
-                        }`}>
+                            }`}>
                             <span className="material-symbols-outlined text-2xl">
                                 {confirmModal.type === 'danger' ? 'delete' : 'help'}
                             </span>
@@ -2340,21 +2322,20 @@ const MyOffice = () => {
 
                         {/* Action Buttons */}
                         <div className="flex items-center gap-3">
-                            <button 
+                            <button
                                 type="button"
-                                onClick={() => setConfirmModal({ ...confirmModal, show: false })} 
+                                onClick={() => setConfirmModal({ ...confirmModal, show: false })}
                                 className="flex-1 h-10 rounded-full text-xs font-medium text-[#1a73e8] dark:text-[#8ab4f8] bg-transparent hover:bg-[#e8f0fe] dark:hover:bg-[#303134] transition-colors"
                             >
                                 {L('cancel')}
                             </button>
-                            <button 
+                            <button
                                 type="button"
-                                onClick={() => { confirmModal.onConfirm(); setConfirmModal({ ...confirmModal, show: false }); }} 
-                                className={`flex-1 h-10 rounded-full text-xs font-medium text-white shadow-sm transition-all active:scale-95 ${
-                                    confirmModal.type === 'danger' 
-                                        ? 'bg-[#d93025] hover:bg-[#c5221f]' 
+                                onClick={() => { confirmModal.onConfirm(); setConfirmModal({ ...confirmModal, show: false }); }}
+                                className={`flex-1 h-10 rounded-full text-xs font-medium text-white shadow-sm transition-all active:scale-95 ${confirmModal.type === 'danger'
+                                        ? 'bg-[#d93025] hover:bg-[#c5221f]'
                                         : 'bg-[#1a73e8] hover:bg-[#1765cc]'
-                                }`}
+                                    }`}
                             >
                                 {L('confirm')}
                             </button>
@@ -2400,35 +2381,35 @@ const MyOffice = () => {
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Name</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        value={userFormData.name} 
-                                        onChange={(e) => setUserFormData(prev => ({ ...prev, name: e.target.value }))} 
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all" 
+                                    <input
+                                        type="text"
+                                        required
+                                        value={userFormData.name}
+                                        onChange={(e) => setUserFormData(prev => ({ ...prev, name: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
                                     />
                                 </div>
                                 <div>
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Surname</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        value={userFormData.surname} 
-                                        onChange={(e) => setUserFormData(prev => ({ ...prev, surname: e.target.value }))} 
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all" 
+                                    <input
+                                        type="text"
+                                        required
+                                        value={userFormData.surname}
+                                        onChange={(e) => setUserFormData(prev => ({ ...prev, surname: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
                                     />
                                 </div>
                             </div>
 
                             <div>
                                 <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Email Address</label>
-                                <input 
-                                    type="email" 
-                                    required 
-                                    autoComplete="new-email" 
-                                    value={userFormData.email} 
-                                    onChange={(e) => setUserFormData(prev => ({ ...prev, email: e.target.value }))} 
-                                    className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all" 
+                                <input
+                                    type="email"
+                                    required
+                                    autoComplete="new-email"
+                                    value={userFormData.email}
+                                    onChange={(e) => setUserFormData(prev => ({ ...prev, email: e.target.value }))}
+                                    className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
                                 />
                             </div>
 
@@ -2436,16 +2417,16 @@ const MyOffice = () => {
                                 <div>
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Password</label>
                                     <div className="relative">
-                                        <input 
-                                            type={showPassword ? "text" : "password"} 
-                                            required 
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            required
                                             autoComplete="new-password"
-                                            value={userFormData.password} 
-                                            onChange={(e) => setUserFormData(prev => ({ ...prev, password: e.target.value }))} 
-                                            className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl pl-3 pr-10 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all" 
+                                            value={userFormData.password}
+                                            onChange={(e) => setUserFormData(prev => ({ ...prev, password: e.target.value }))}
+                                            className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl pl-3 pr-10 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
                                         />
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => setShowPassword(!showPassword)}
                                             className="absolute right-2 top-1/2 -translate-y-1/2 size-7 flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] hover:text-[#1a73e8] transition-colors"
                                         >
@@ -2476,15 +2457,15 @@ const MyOffice = () => {
                                 </div>
                             )}
 
-                            <PhoneInput 
+                            <PhoneInput
                                 label="Phone Number"
                                 value={(userFormData.phoneCountryCode?.startsWith('+') ? userFormData.phoneCountryCode : `+${userFormData.phoneCountryCode}`) + ' ' + userFormData.phoneNumber}
                                 onChange={(val) => {
                                     const parts = val.split(' ');
-                                    setUserFormData(prev => ({ 
-                                        ...prev, 
-                                        phoneCountryCode: parts[0]?.replace('+', '') || '90', 
-                                        phoneNumber: parts[1] || '' 
+                                    setUserFormData(prev => ({
+                                        ...prev,
+                                        phoneCountryCode: parts[0]?.replace('+', '') || '90',
+                                        phoneNumber: parts[1] || ''
                                     }));
                                 }}
                             />
@@ -2492,10 +2473,10 @@ const MyOffice = () => {
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Role</label>
-                                    <select 
-                                        multiple 
-                                        value={userFormData.roleIds} 
-                                        onChange={(e) => setUserFormData(prev => ({ ...prev, roleIds: Array.from(e.target.selectedOptions, option => parseInt(option.value)) }))} 
+                                    <select
+                                        multiple
+                                        value={userFormData.roleIds}
+                                        onChange={(e) => setUserFormData(prev => ({ ...prev, roleIds: Array.from(e.target.selectedOptions, option => parseInt(option.value)) }))}
                                         className="w-full min-h-[80px] bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl p-2 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
                                     >
                                         {roles.map(r => <option key={r.id} value={r.id} className="py-1 px-2 rounded">{r.roleName || r.name}</option>)}
@@ -2503,9 +2484,9 @@ const MyOffice = () => {
                                 </div>
                                 <div>
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Status</label>
-                                    <select 
-                                        value={userFormData.status} 
-                                        onChange={(e) => setUserFormData(prev => ({ ...prev, status: e.target.value }))} 
+                                    <select
+                                        value={userFormData.status}
+                                        onChange={(e) => setUserFormData(prev => ({ ...prev, status: e.target.value }))}
                                         className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
                                     >
                                         <option value="ACTIVE">Active</option>
@@ -2515,16 +2496,16 @@ const MyOffice = () => {
                             </div>
 
                             <div className="pt-3 border-t border-[#dadce0] dark:border-[#3c4043] flex items-center justify-end gap-2.5">
-                                <button 
-                                    type="button" 
-                                    onClick={() => setIsUserModalOpen(false)} 
+                                <button
+                                    type="button"
+                                    onClick={() => setIsUserModalOpen(false)}
                                     className="h-10 px-5 rounded-full text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors"
                                 >
                                     {L('cancel')}
                                 </button>
-                                <button 
-                                    type="submit" 
-                                    disabled={saving} 
+                                <button
+                                    type="submit"
+                                    disabled={saving}
                                     className="h-10 px-6 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium shadow-sm active:scale-95 transition-all disabled:opacity-50"
                                 >
                                     {saving ? L('processing') : L('saveUser')}
@@ -2572,9 +2553,9 @@ const MyOffice = () => {
                             <div className="grid grid-cols-3 gap-3">
                                 <div>
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Gender</label>
-                                    <select 
-                                        value={guestFormData.gender} 
-                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, gender: e.target.value }))} 
+                                    <select
+                                        value={guestFormData.gender}
+                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, gender: e.target.value }))}
                                         className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
                                     >
                                         <option value="MALE">Mr</option>
@@ -2583,22 +2564,22 @@ const MyOffice = () => {
                                 </div>
                                 <div>
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">First Name</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        value={guestFormData.firstName} 
-                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, firstName: e.target.value }))} 
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]" 
+                                    <input
+                                        type="text"
+                                        required
+                                        value={guestFormData.firstName}
+                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
                                     />
                                 </div>
                                 <div>
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Last Name</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        value={guestFormData.lastName} 
-                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, lastName: e.target.value }))} 
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]" 
+                                    <input
+                                        type="text"
+                                        required
+                                        value={guestFormData.lastName}
+                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
                                     />
                                 </div>
                             </div>
@@ -2606,8 +2587,8 @@ const MyOffice = () => {
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Birth Date</label>
-                                    <DatePicker 
-                                        selected={guestFormData.birthDate ? new Date(formatToPickerDate(guestFormData.birthDate)) : null} 
+                                    <DatePicker
+                                        selected={guestFormData.birthDate ? new Date(formatToPickerDate(guestFormData.birthDate)) : null}
                                         onChange={(date) => setGuestFormData(prev => ({ ...prev, birthDate: date ? formatToBackendDate(date.toISOString().split('T')[0]) : '' }))}
                                         dateFormat="dd.MM.yyyy"
                                         placeholderText="DD.MM.YYYY"
@@ -2620,7 +2601,7 @@ const MyOffice = () => {
                                 </div>
                                 <div className="relative">
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Country</label>
-                                    <div 
+                                    <div
                                         onClick={() => setShowGuestCountries(!showGuestCountries)}
                                         className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 flex items-center justify-between cursor-pointer group hover:border-[#1a73e8]"
                                     >
@@ -2642,9 +2623,9 @@ const MyOffice = () => {
                                                 <div className="p-2 border-b border-[#dadce0] dark:border-[#3c4043]">
                                                     <div className="relative">
                                                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-sm">search</span>
-                                                        <input 
-                                                            type="text" 
-                                                            placeholder="Search country..." 
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Search country..."
                                                             value={guestCountrySearch}
                                                             onChange={(e) => setGuestCountrySearch(e.target.value)}
                                                             autoFocus
@@ -2659,8 +2640,8 @@ const MyOffice = () => {
                                                             return name.includes(guestCountrySearch.toLowerCase()) || c.alphaTwoCode.toLowerCase().includes(guestCountrySearch.toLowerCase());
                                                         })
                                                         .map(c => (
-                                                            <div 
-                                                                key={c.id} 
+                                                            <div
+                                                                key={c.id}
                                                                 onClick={() => {
                                                                     setGuestFormData(prev => ({ ...prev, country: c.alphaTwoCode }));
                                                                     setShowGuestCountries(false);
@@ -2685,17 +2666,17 @@ const MyOffice = () => {
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Passport No</label>
-                                    <input 
-                                        type="text" 
-                                        value={guestFormData.passportNo} 
-                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, passportNo: e.target.value }))} 
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]" 
+                                    <input
+                                        type="text"
+                                        value={guestFormData.passportNo}
+                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, passportNo: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
                                     />
                                 </div>
                                 <div>
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Passport Expiry</label>
-                                    <DatePicker 
-                                        selected={guestFormData.passportExpiry ? new Date(formatToPickerDate(guestFormData.passportExpiry)) : null} 
+                                    <DatePicker
+                                        selected={guestFormData.passportExpiry ? new Date(formatToPickerDate(guestFormData.passportExpiry)) : null}
                                         onChange={(date) => setGuestFormData(prev => ({ ...prev, passportExpiry: date ? formatToBackendDate(date.toISOString().split('T')[0]) : '' }))}
                                         dateFormat="dd.MM.yyyy"
                                         placeholderText="DD.MM.YYYY"
@@ -2711,20 +2692,20 @@ const MyOffice = () => {
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Email Address</label>
-                                    <input 
-                                        type="email" 
-                                        required 
-                                        value={guestFormData.email} 
-                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, email: e.target.value }))} 
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]" 
-                                        placeholder="example@mail.com" 
+                                    <input
+                                        type="email"
+                                        required
+                                        value={guestFormData.email}
+                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, email: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                        placeholder="example@mail.com"
                                     />
                                 </div>
                                 <div>
                                     <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Status</label>
-                                    <select 
-                                        value={guestFormData.status} 
-                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, status: e.target.value }))} 
+                                    <select
+                                        value={guestFormData.status}
+                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, status: e.target.value }))}
                                         className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
                                     >
                                         <option value="ACTIVE">Active</option>
@@ -2733,30 +2714,30 @@ const MyOffice = () => {
                                 </div>
                             </div>
 
-                            <PhoneInput 
+                            <PhoneInput
                                 label="Phone Number"
                                 value={(guestFormData.phoneCountryCode?.startsWith('+') ? guestFormData.phoneCountryCode : `+${guestFormData.phoneCountryCode}`) + ' ' + guestFormData.phoneNumber}
                                 onChange={(val) => {
                                     const parts = val.split(' ');
-                                    setGuestFormData(prev => ({ 
-                                        ...prev, 
-                                        phoneCountryCode: parts[0]?.replace('+', '') || '90', 
-                                        phoneNumber: parts[1] || '' 
+                                    setGuestFormData(prev => ({
+                                        ...prev,
+                                        phoneCountryCode: parts[0]?.replace('+', '') || '90',
+                                        phoneNumber: parts[1] || ''
                                     }));
                                 }}
                             />
 
                             <div className="pt-3 border-t border-[#dadce0] dark:border-[#3c4043] flex items-center justify-end gap-2.5">
-                                <button 
-                                    type="button" 
-                                    onClick={() => setIsGuestModalOpen(false)} 
+                                <button
+                                    type="button"
+                                    onClick={() => setIsGuestModalOpen(false)}
                                     className="h-10 px-5 rounded-full text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors"
                                 >
                                     {L('cancel')}
                                 </button>
-                                <button 
-                                    type="submit" 
-                                    disabled={saving} 
+                                <button
+                                    type="submit"
+                                    disabled={saving}
                                     className="h-10 px-6 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium shadow-sm active:scale-95 transition-all disabled:opacity-50"
                                 >
                                     {saving ? L('processing') : L('saveGuest')}
@@ -2768,13 +2749,13 @@ const MyOffice = () => {
             )}
             {/* Fixed Audit Tooltip at Root Level (Never Clipped) */}
             {auditTooltip && (
-                <div 
+                <div
                     style={{ left: `${auditTooltip.x}px`, top: `${auditTooltip.y}px` }}
                     className="fixed -translate-x-1/2 -translate-y-full z-[999999] w-80 sm:w-96 p-4 bg-[#202124]/95 dark:bg-[#171717]/95 backdrop-blur-md text-white rounded-2xl shadow-2xl border border-[#3c4043] text-xs pointer-events-none animate-in fade-in-50 zoom-in-95"
                 >
                     <div className="font-medium text-white border-b border-[#3c4043] pb-2.5 mb-2.5 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-sm text-[#8ab4f8]">history</span> 
+                            <span className="material-symbols-outlined text-sm text-[#8ab4f8]">history</span>
                             <span>Audit & Record Details</span>
                         </div>
                         <span className="text-[10px] font-mono text-[#9aa0a6]">ID: #{auditTooltip.item.id || auditTooltip.item.hotelId}</span>

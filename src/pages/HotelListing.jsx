@@ -1073,6 +1073,14 @@ const HotelListing = () => {
         }
     }, [loadMoreHotels, hotels.length]);
 
+    // Invalidate map size on sidebar toggle
+    React.useEffect(() => {
+        if (mapInstance) {
+            const t = setTimeout(() => mapInstance.invalidateSize(), 350);
+            return () => clearTimeout(t);
+        }
+    }, [isFavOpen, mapInstance]);
+
     // Currency symbols
     const getCurrencySymbol = (code) => {
         const sym = { USD: '$', EUR: '€', GBP: '£', TRY: '₺', AED: 'د.إ', SAR: 'ر.س', JPY: '¥', CNY: '¥', RUB: '₽' };
@@ -1087,12 +1095,10 @@ const HotelListing = () => {
     return (
         <div className="flex h-full overflow-hidden bg-white dark:bg-[#202124] font-sans">
 
-
-
             {/* ════════════════════════════════════════════
                 LEFT PANEL: Hotel List
             ════════════════════════════════════════════ */}
-            <div className="w-[60%] flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134]">
+            <div className="w-[62%] flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[6px_0_25px_rgba(0,0,0,0.22),2px_0_8px_rgba(0,0,0,0.14)] dark:shadow-[8px_0_32px_rgba(0,0,0,0.6)]">
 
                 {/* Search Context Bar */}
                 <div className="px-4 pt-4 pb-3 shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] flex items-center w-full relative z-50">
@@ -1101,132 +1107,131 @@ const HotelListing = () => {
 
                 {/* Filter Chips Row */}
                 <div className="relative shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] z-10">
-                    <div className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide">
-                    {/* All Filters */}
-                    <button
-                        onClick={() => setIsFilterDrawerOpen(true)}
-                        className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors ${activeFilterCount > 0 ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300' : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
-                    >
-                        <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>tune</span>
-                        {currentLang === 'tr' ? 'Tüm filtreler' : currentLang === 'ar' ? 'كل الفلاتر' : currentLang === 'ru' ? 'Все фильтры' : 'All filters'}
-                        {activeFilterCount > 0 && (
-                            <span className="bg-[#1a73e8] text-white text-[10px] font-bold rounded-lg min-w-[16px] h-4 flex items-center justify-center px-1 ml-0.5">
-                                {activeFilterCount}
-                            </span>
-                        )}
-                    </button>
-
-                    {/* Property Type */}
-                    <button
-                        onClick={() => setIsFilterDrawerOpen(true)}
-                        className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[13px] text-[#3c4043] dark:text-slate-200 whitespace-nowrap shrink-0 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors"
-                    >
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>home</span>
-                        {currentLang === 'tr' ? 'Mülk türü' : currentLang === 'ar' ? 'نوع العقار' : 'Property type'}
-                    </button>
-
-                    {/* Free Cancellation */}
-                    <button
-                        onClick={handleFreeCancelChip}
-                        className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors ${searchParams.get('freeCancellation') === 'true' ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300' : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
-                    >
-                        {currentLang === 'tr' ? 'Ücretsiz iptal' : currentLang === 'ar' ? 'إلغاء مجاني' : currentLang === 'ru' ? 'Бесплатная отмена' : 'Free cancellation'}
-                    </button>
-
-                    {/* Guest Rating */}
-                    <button
-                        onClick={() => setIsFilterDrawerOpen(true)}
-                        className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[13px] text-[#3c4043] dark:text-slate-200 whitespace-nowrap shrink-0 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors"
-                    >
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>star</span>
-                        {currentLang === 'tr' ? 'Konuk puanı' : currentLang === 'ar' ? 'تقييم النزلاء' : 'Guest rating'}
-                    </button>
-
-                    {/* Hotel class / star chips */}
-                    <button
-                        onClick={() => setIsFilterDrawerOpen(true)}
-                        className={`flex items-center gap-1 border rounded-lg px-3 h-8 text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors ${urlStars.length > 0 ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300' : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
-                    >
-                        <span style={{ color: '#fabb05', fontSize: '14px' }}>★</span>
-                        {currentLang === 'tr' ? 'Otel sınıfı' : currentLang === 'ar' ? 'فئة الفندق' : 'Hotel class'}
-                    </button>
-
-                    {/* Amenities */}
-                    <button
-                        onClick={() => setIsFilterDrawerOpen(true)}
-                        className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[13px] text-[#3c4043] dark:text-slate-200 whitespace-nowrap shrink-0 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors"
-                    >
-                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>wifi</span>
-                        {currentLang === 'tr' ? 'Sunulan olanaklar' : currentLang === 'ar' ? 'المرافق' : 'Amenities'}
-                    </button>
-                </div>
-
-                {/* Filter Popup Overlay */}
-                {isFilterDrawerOpen && (
-                    <>
-                        <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsFilterDrawerOpen(false)} />
-                        <div className="absolute top-full left-4 mt-2 w-[360px] max-w-[90vw] bg-white dark:bg-[#303134] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-[#dadce0] dark:border-slate-700 z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2" style={{ maxHeight: 'calc(100vh - 200px)' }}>
-                            <div className="flex items-center justify-between px-5 py-4 border-b border-[#e8eaed] dark:border-slate-700 shrink-0">
-                                <h2 className="text-[15px] font-medium text-[#3c4043] dark:text-slate-100">
-                                    {currentLang === 'tr' ? 'Filtreler' : currentLang === 'ar' ? 'الفلاتر' : currentLang === 'ru' ? 'Фильтры' : 'Filters'}
-                                </h2>
-                                <button onClick={() => setIsFilterDrawerOpen(false)} className="text-[#70757a] hover:text-[#3c4043] dark:hover:text-white transition-colors">
-                                    <span className="material-symbols-outlined text-xl">close</span>
-                                </button>
-                            </div>
-                            <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                <Sidebar filters={dynamicFilters} locationNames={locationNames} facilityNames={facilityNames} />
-                            </div>
-                            <div className="px-5 py-3 border-t border-[#e8eaed] dark:border-slate-700 flex justify-between items-center bg-[#f8f9fa] dark:bg-slate-800 shrink-0">
-                                <span className="text-[13px] text-[#70757a]">{hotels.length} {currentLang === 'tr' ? 'sonuç' : 'results'}</span>
-                                <button onClick={() => {
-                                    setSearchParams(new URLSearchParams());
-                                    setIsFilterDrawerOpen(false);
-                                }} className="text-[#1a73e8] text-[13px] font-medium hover:underline">
-                                    {currentLang === 'tr' ? 'Tümünü temizle' : 'Clear all'}
-                                </button>
-                            </div>
-                        </div>
-                    </>
-                )}
-            </div>
-
-                {/* Results count + Sort row */}
-                <div className="flex items-center justify-between px-4 py-2 shrink-0 bg-white dark:bg-[#303134]">
-                    <p className="text-[13px] text-[#3c4043] dark:text-slate-300 truncate">
-                        {resultsText}
-                    </p>
-                    {/* Sort dropdown */}
-                    <div className="relative shrink-0 ml-2" ref={sortDropdownRef}>
+                        <div className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide">
+                        {/* All Filters */}
                         <button
-                            onClick={() => setIsSortOpen(!isSortOpen)}
-                            className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 py-1.5 transition-colors"
+                            onClick={() => setIsFilterDrawerOpen(true)}
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors ${activeFilterCount > 0 ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300' : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
                         >
-                            <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
-                            <span className="hidden sm:inline text-[13px]">{currentSortOption.label}</span>
-                            <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
+                            <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>tune</span>
+                            {currentLang === 'tr' ? 'Tüm filtreler' : currentLang === 'ar' ? 'كل الفلاتr' : currentLang === 'ru' ? 'Все фильтры' : 'All filters'}
+                            {activeFilterCount > 0 && (
+                                <span className="bg-[#1a73e8] text-white text-[10px] font-bold rounded-lg min-w-[16px] h-4 flex items-center justify-center px-1 ml-0.5">
+                                    {activeFilterCount}
+                                </span>
+                            )}
                         </button>
-                        {isSortOpen && (
-                            <div className="absolute right-0 top-full mt-1 w-[240px] bg-white dark:bg-[#303134] rounded-2xl border border-[#e8eaed] dark:border-slate-700 shadow-xl z-[200] py-1.5 animate-in fade-in zoom-in-95 duration-150">
-                                {sortOptions.map(opt => {
-                                    const isSelected = opt.value === currentSortValue;
-                                    return (
-                                        <button
-                                            key={opt.value}
-                                            onClick={() => handleSortSelect(opt.value)}
-                                            className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-left transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] font-medium' : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
-                                        >
-                                            <span className={`material-symbols-outlined ${isSelected ? 'text-[#1a73e8]' : 'text-[#70757a]'}`} style={{ fontSize: '18px' }}>{opt.icon}</span>
-                                            <span className="flex-1">{opt.label}</span>
-                                            {isSelected && <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>check</span>}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        )}
+
+                        {/* Property Type */}
+                        <button
+                            onClick={() => setIsFilterDrawerOpen(true)}
+                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[13px] text-[#3c4043] dark:text-slate-200 whitespace-nowrap shrink-0 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors"
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>home</span>
+                            {currentLang === 'tr' ? 'Mülk türü' : currentLang === 'ar' ? 'نوع العقار' : 'Property type'}
+                        </button>
+
+                        {/* Free Cancellation */}
+                        <button
+                            onClick={handleFreeCancelChip}
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors ${searchParams.get('freeCancellation') === 'true' ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300' : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                        >
+                            {currentLang === 'tr' ? 'Ücretsiz iptal' : currentLang === 'ar' ? 'إلغاء مجاني' : currentLang === 'ru' ? 'Бесплатная отмена' : 'Free cancellation'}
+                        </button>
+
+                        {/* Guest Rating */}
+                        <button
+                            onClick={() => setIsFilterDrawerOpen(true)}
+                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[13px] text-[#3c4043] dark:text-slate-200 whitespace-nowrap shrink-0 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors"
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>star</span>
+                            {currentLang === 'tr' ? 'Konuk puanı' : currentLang === 'ar' ? 'تقييم النزلاء' : 'Guest rating'}
+                        </button>
+
+                        {/* Hotel class / star chips */}
+                        <button
+                            onClick={() => setIsFilterDrawerOpen(true)}
+                            className={`flex items-center gap-1 border rounded-lg px-3 h-8 text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors ${urlStars.length > 0 ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300' : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                        >
+                            <span style={{ color: '#fabb05', fontSize: '14px' }}>★</span>
+                            {currentLang === 'tr' ? 'Otel sınıfı' : currentLang === 'ar' ? 'فئة الفندق' : 'Hotel class'}
+                        </button>
+
+                        {/* Amenities */}
+                        <button
+                            onClick={() => setIsFilterDrawerOpen(true)}
+                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[13px] text-[#3c4043] dark:text-slate-200 whitespace-nowrap shrink-0 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors"
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>wifi</span>
+                            {currentLang === 'tr' ? 'Sunulan olanaklar' : currentLang === 'ar' ? 'المرافق' : 'Amenities'}
+                        </button>
                     </div>
+
+                    {/* Filter Popup Overlay */}
+                    {isFilterDrawerOpen && (
+                        <>
+                            <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsFilterDrawerOpen(false)} />
+                            <div className="absolute top-full left-4 mt-2 w-[360px] max-w-[90vw] bg-white dark:bg-[#303134] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-[#dadce0] dark:border-slate-700 z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+                                <div className="flex items-center justify-between px-5 py-4 border-b border-[#e8eaed] dark:border-slate-700 shrink-0">
+                                    <h2 className="text-[15px] font-medium text-[#3c4043] dark:text-slate-100">
+                                        {currentLang === 'tr' ? 'Filtreler' : currentLang === 'ar' ? 'الفلاتر' : currentLang === 'ru' ? 'Фильтры' : 'Filters'}
+                                    </h2>
+                                    <button onClick={() => setIsFilterDrawerOpen(false)} className="text-[#70757a] hover:text-[#3c4043] dark:hover:text-white transition-colors">
+                                        <span className="material-symbols-outlined text-xl">close</span>
+                                    </button>
+                                </div>
+                                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                    <Sidebar filters={dynamicFilters} locationNames={locationNames} facilityNames={facilityNames} />
+                                </div>
+                                <div className="px-5 py-3 border-t border-[#e8eaed] dark:border-slate-700 flex justify-between items-center bg-[#f8f9fa] dark:bg-slate-800 shrink-0">
+                                    <span className="text-[13px] text-[#70757a]">{hotels.length} {currentLang === 'tr' ? 'sonuç' : 'results'}</span>
+                                    <button onClick={() => {
+                                        setSearchParams(new URLSearchParams());
+                                        setIsFilterDrawerOpen(false);
+                                    }} className="text-[#1a73e8] text-[13px] font-medium hover:underline">
+                                        {currentLang === 'tr' ? 'Tümünü temizle' : 'Clear all'}
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
 
+                    {/* Results count + Sort row */}
+                    <div className="flex items-center justify-between px-4 py-2 shrink-0 bg-white dark:bg-[#303134]">
+                        <p className="text-[13px] text-[#3c4043] dark:text-slate-300 truncate">
+                            {resultsText}
+                        </p>
+                        {/* Sort dropdown */}
+                        <div className="relative shrink-0 ml-2" ref={sortDropdownRef}>
+                            <button
+                                onClick={() => setIsSortOpen(!isSortOpen)}
+                                className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 py-1.5 transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
+                                <span className="hidden sm:inline text-[13px]">{currentSortOption.label}</span>
+                                <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
+                            </button>
+                            {isSortOpen && (
+                                <div className="absolute right-0 top-full mt-1 w-[240px] bg-white dark:bg-[#303134] rounded-2xl border border-[#e8eaed] dark:border-slate-700 shadow-xl z-[200] py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                                    {sortOptions.map(opt => {
+                                        const isSelected = opt.value === currentSortValue;
+                                        return (
+                                            <button
+                                                key={opt.value}
+                                                onClick={() => handleSortSelect(opt.value)}
+                                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-left transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] font-medium' : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                                            >
+                                                <span className={`material-symbols-outlined ${isSelected ? 'text-[#1a73e8]' : 'text-[#70757a]'}`} style={{ fontSize: '18px' }}>{opt.icon}</span>
+                                                <span className="flex-1">{opt.label}</span>
+                                                {isSelected && <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>check</span>}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 {/* ── Scrollable Hotel List ── */}
                 <div
                     ref={listScrollRef}
@@ -1290,56 +1295,59 @@ const HotelListing = () => {
             ════════════════════════════════════════════ */}
             <div className="flex-1 relative flex">
                 <div className="flex-1 relative overflow-hidden">
-                <MapContainer
-                    center={[39.9, 32.8]}
-                    zoom={6}
-                    style={{ height: '100%', width: '100%' }}
-                    zoomControl={false}
-                    attributionControl={true}
-                >
-                    <TileLayer
-                        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        maxZoom={19}
-                    />
-                    {/* Capture map instance */}
-                    <MapInstanceCapture setMap={setMapInstance} />
+                    {/* Top inner shadow - Casts realistic inset shadow inside the top of the map */}
+                    <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_14px_16px_-4px_rgba(0,0,0,0.32),inset_0_4px_6px_-2px_rgba(0,0,0,0.18)] dark:shadow-[inset_0_16px_22px_-4px_rgba(0,0,0,0.65)]" />
 
-                    {/* Price markers for hotels with coordinates */}
-                    {hotels
-                        .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)))
-                        .map(hotel => (
-                            <PriceMarker
-                                key={hotel.id}
-                                hotel={hotel}
-                                isSelected={selectedHotel?.id === hotel.id}
-                                isHovered={hoveredHotel?.id === hotel.id}
-                                onSelect={setSelectedHotel}
-                                onHover={setHoveredHotel}
-                                searchParams={searchParams}
-                                currencySymbol={getCurrencySymbol(hotel.currency)}
-                            />
-                        ))
-                    }
+                    <MapContainer
+                        center={[39.9, 32.8]}
+                        zoom={6}
+                        style={{ height: '100%', width: '100%' }}
+                        zoomControl={false}
+                        attributionControl={true}
+                    >
+                        <TileLayer
+                            url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            maxZoom={19}
+                        />
+                        {/* Capture map instance */}
+                        <MapInstanceCapture setMap={setMapInstance} />
 
-                    {/* Auto-fit to hotel bounds */}
-                    <MapFitControl
-                        hotels={hotels}
-                        shouldRefit={shouldRefitMap}
-                        onRefitDone={React.useCallback(() => setShouldRefitMap(false), [])}
-                    />
+                        {/* Price markers for hotels with coordinates */}
+                        {hotels
+                            .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)))
+                            .map(hotel => (
+                                <PriceMarker
+                                    key={hotel.id}
+                                    hotel={hotel}
+                                    isSelected={selectedHotel?.id === hotel.id}
+                                    isHovered={hoveredHotel?.id === hotel.id}
+                                    onSelect={setSelectedHotel}
+                                    onHover={setHoveredHotel}
+                                    searchParams={searchParams}
+                                    currencySymbol={getCurrencySymbol(hotel.currency)}
+                                />
+                            ))
+                        }
 
-                    {/* Map move detector */}
-                    <MapBoundsWatcher
-                        searchOnMove={searchOnMapMove}
-                        onBoundsChange={handleMapBoundsChange}
-                        onMapMoved={handleMapMoved}
-                        isUserPanRef={isUserPanRef}
-                    />
-                </MapContainer>
+                        {/* Auto-fit to hotel bounds */}
+                        <MapFitControl
+                            hotels={hotels}
+                            shouldRefit={shouldRefitMap}
+                            onRefitDone={React.useCallback(() => setShouldRefitMap(false), [])}
+                        />
 
-                {/* Top center: Search-on-move toggle OR "Listeyi güncelle" button */}
-                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] pointer-events-auto">
+                        {/* Map move detector */}
+                        <MapBoundsWatcher
+                            searchOnMove={searchOnMapMove}
+                            onBoundsChange={handleMapBoundsChange}
+                            onMapMoved={handleMapMoved}
+                            isUserPanRef={isUserPanRef}
+                        />
+                    </MapContainer>
+
+                    {/* Top center: Search-on-move toggle OR "Listeyi güncelle" button */}
+                    <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto">
                     {/* Always show the toggle */}
                     {!mapMoved && (
                         <div className="flex items-center gap-2 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 rounded-full px-3 py-2 shadow-md">
@@ -1384,62 +1392,80 @@ const HotelListing = () => {
 
             {/* Favorites Right Sidebar (Google Style) */}
             <div 
-                className={`relative bg-white dark:bg-[#202124] border-l border-[#e8eaed] dark:border-slate-700 transition-all duration-300 flex flex-col z-[2000] ${isFavOpen ? 'w-[320px] shadow-[-4px_0_15px_rgba(0,0,0,0.05)]' : 'w-12 bg-[#f8f9fa] dark:bg-[#303134] hover:bg-white dark:hover:bg-[#202124]'}`}
+                className={`relative bg-white dark:bg-[#202124] border-l border-[#e8eaed] dark:border-slate-700 transition-all duration-300 flex flex-col z-[2000] shadow-[-6px_0_25px_rgba(0,0,0,0.2),-2px_0_8px_rgba(0,0,0,0.12)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.55)] ${isFavOpen ? 'w-[380px]' : 'w-[72px] bg-[#f8f9fa] dark:bg-[#303134] hover:bg-white dark:hover:bg-[#202124]'}`}
                 onMouseEnter={() => setIsFavOpen(true)}
                 onMouseLeave={() => setIsFavOpen(false)}
             >
                 {!isFavOpen ? (
-                    <div className="flex flex-col items-center w-full py-3 gap-2">
-                        <button className="w-10 h-10 rounded-full flex items-center justify-center text-[#5f6368] dark:text-slate-400 hover:bg-[#f1f3f4] dark:hover:bg-slate-700 transition-colors cursor-pointer">
-                            <span className="material-symbols-outlined text-[20px]">bookmark</span>
+                    <div className="flex flex-col items-center w-full py-4 gap-3">
+                        <button 
+                            onClick={() => setIsFavOpen(true)}
+                            title={currentLang === 'tr' ? 'Seyahat planlarınız ve kaydedilenler' : 'Saved travel plans'}
+                            className="relative w-12 h-12 rounded-2xl bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-600 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#e8f0fe] dark:hover:bg-slate-700/60 shadow-md hover:shadow-lg transition-all cursor-pointer group"
+                        >
+                            <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>
+                            {favorites.length > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-[#1a73e8] text-white text-[11px] font-bold rounded-full min-w-[20px] h-[20px] px-1 flex items-center justify-center border-2 border-white dark:border-[#202124] shadow-sm">
+                                    {favorites.length}
+                                </span>
+                            )}
                         </button>
-                        <div className="w-6 h-[1px] bg-[#dadce0] dark:bg-slate-700 my-1"></div>
-                        <div className="flex flex-col gap-3 mt-1 items-center w-full">
-                            {favorites.slice(0, 4).map(fav => (
-                                <div key={fav.hotelId || fav.id} className="w-8 h-8 rounded-full overflow-hidden border border-[#dadce0] dark:border-slate-600 shadow-sm cursor-pointer hover:opacity-80 transition-opacity">
-                                    <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" />
+                        <div className="w-8 h-[1px] bg-[#dadce0] dark:bg-slate-700 my-0.5"></div>
+                        <div className="flex flex-col gap-2.5 items-center w-full">
+                            {favorites.slice(0, 5).map(fav => (
+                                <div 
+                                    key={fav.hotelId || fav.id} 
+                                    onClick={() => setIsFavOpen(true)}
+                                    title={fav.name || fav.hotelName || fav.names?.en || 'Otel'}
+                                    className="w-11 h-11 rounded-xl overflow-hidden border border-[#dadce0] dark:border-slate-600 shadow-md hover:shadow-lg cursor-pointer hover:scale-105 hover:border-[#1a73e8] transition-all"
+                                >
+                                    <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
                                 </div>
                             ))}
                         </div>
                     </div>
                 ) : (
                     <div className="flex flex-col h-full bg-white dark:bg-[#202124]">
-                        <div className="flex items-center justify-between p-4 pb-2">
-                            <h2 className="text-[18px] font-normal text-[#202124] dark:text-white">{currentLang === 'tr' ? 'Seyahat planlarınız' : 'Your travel plans'} ({favorites.length})</h2>
-                            <button onClick={() => setIsFavOpen(false)} className="w-8 h-8 rounded-full hover:bg-[#f1f3f4] dark:hover:bg-slate-700 flex items-center justify-center text-[#5f6368] dark:text-slate-400 transition-colors">
-                                <span className="material-symbols-outlined text-[20px]">info</span>
+                        <div className="flex items-center justify-between p-4 pb-3 border-b border-[#f1f3f4] dark:border-slate-700/60">
+                            <div>
+                                <h2 className="text-[17px] font-medium text-[#202124] dark:text-white">{currentLang === 'tr' ? 'Seyahat planlarınız' : 'Your travel plans'}</h2>
+                                <p className="text-[12px] text-[#70757a] dark:text-slate-400">{favorites.length} {currentLang === 'tr' ? 'kayıtlı otel' : 'saved hotels'}</p>
+                            </div>
+                            <button 
+                                onClick={() => setIsFavOpen(false)} 
+                                className="w-9 h-9 rounded-full hover:bg-[#f1f3f4] dark:hover:bg-slate-700 flex items-center justify-center text-[#5f6368] dark:text-slate-400 transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">close</span>
                             </button>
                         </div>
                         <div className="flex-1 overflow-y-auto bg-white dark:bg-[#202124]">
-                            <div className="px-4 py-2 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-[#5f6368] dark:text-slate-400 text-[20px]">bookmark</span>
-                                <span className="text-[14px] font-medium text-[#202124] dark:text-slate-200">{currentLang === 'tr' ? 'Kayıtlı öğeler' : 'Saved items'}</span>
-                            </div>
-
                             {favorites.length === 0 ? (
-                                <div className="text-center mt-10 px-4">
-                                    <h3 className="text-[14px] font-medium text-[#202124] dark:text-white mb-2">{currentLang === 'tr' ? 'Burada henüz bir şey yok' : 'Nothing here yet'}</h3>
-                                    <p className="text-[13px] text-[#70757a] dark:text-slate-400">{currentLang === 'tr' ? 'Seyahat etkinlikleriniz siz seyahat öğelerini görüntülemeye veya kaydetmeye başladıktan sonra burada görünecek' : 'Your travel activity will appear here once you start viewing or saving items'}</p>
+                                <div className="text-center mt-12 px-6">
+                                    <div className="w-14 h-14 mx-auto rounded-full bg-[#f1f3f4] dark:bg-slate-700/60 flex items-center justify-center mb-3">
+                                        <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 text-3xl">bookmark_border</span>
+                                    </div>
+                                    <h3 className="text-[15px] font-medium text-[#202124] dark:text-white mb-2">{currentLang === 'tr' ? 'Burada henüz bir şey yok' : 'Nothing here yet'}</h3>
+                                    <p className="text-[13px] text-[#70757a] dark:text-slate-400 leading-relaxed">{currentLang === 'tr' ? 'Beğendiğiniz otellerin üzerindeki yer imi simgesine tıklayarak buraya kaydedebilirsiniz' : 'Save hotels here by clicking the bookmark icon on properties you like'}</p>
                                 </div>
                             ) : (
-                                <div className="px-4 pb-4 pt-1 flex flex-col gap-3">
+                                <div className="p-4 flex flex-col gap-3">
                                     {favorites.map(fav => (
                                         <div 
                                             key={fav.hotelId || fav.id} 
-                                            className="bg-white dark:bg-[#303134] rounded-[16px] border border-[#dadce0] dark:border-slate-700 p-3 flex gap-3 cursor-pointer hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50 transition-colors"
+                                            className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-slate-700 p-3 flex gap-3 cursor-pointer hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50 hover:shadow-sm transition-all"
                                             onClick={() => window.open(`/travel/hotels/detail/${fav.hotelId || fav.id}`, '_blank')}
                                         >
-                                            <div className="shrink-0 w-[72px] h-[72px] rounded-[12px] overflow-hidden bg-[#f1f3f4] dark:bg-slate-800">
-                                                <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" />
+                                            <div className="shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-[#f1f3f4] dark:bg-slate-800">
+                                                <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
                                             </div>
                                             <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
-                                                <h4 className="text-[14px] font-semibold text-[#3c4043] dark:text-white leading-[1.2] line-clamp-2">{fav.name || fav.hotelName || fav.names?.en || 'Otel'}</h4>
+                                                <h4 className="text-[14px] font-semibold text-[#3c4043] dark:text-white leading-[1.25] line-clamp-2">{fav.name || fav.hotelName || fav.names?.en || 'Otel'}</h4>
                                                 <div className="flex items-center gap-1 mt-1 text-[12px] text-[#70757a] dark:text-slate-400">
                                                     {fav.rating && (
                                                         <>
-                                                            <span className="font-medium text-[#70757a] dark:text-slate-300">{fav.rating}</span>
-                                                            <span className="material-symbols-outlined text-[#fbbc04] text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                                                            <span>({fav.reviewCount || Math.floor(Math.random() * 1000) + 100})</span>
+                                                            <span className="font-semibold text-[#3c4043] dark:text-slate-200">{fav.rating}</span>
+                                                            <span className="material-symbols-outlined text-[#fbbc04] text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                                                            <span>({fav.reviewCount || 100})</span>
                                                         </>
                                                     )}
                                                 </div>
@@ -1450,7 +1476,8 @@ const HotelListing = () => {
                                             <div className="shrink-0 flex items-center justify-center">
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }} 
-                                                    className="w-10 h-10 rounded-full border border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 flex items-center justify-center transition-colors shadow-sm"
+                                                    title={currentLang === 'tr' ? 'Kaydedilenlerden kaldır' : 'Remove from saved'}
+                                                    className="w-9 h-9 rounded-full border border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 hover:border-red-200 flex items-center justify-center transition-colors shadow-xs"
                                                 >
                                                     <span className="material-symbols-outlined text-[#1a73e8] dark:text-[#8ab4f8] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>
                                                 </button>

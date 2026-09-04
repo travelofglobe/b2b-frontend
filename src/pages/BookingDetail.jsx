@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { bookingService } from '../services/bookingService';
-import HeaderActions from '../components/HeaderActions';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import { tBD } from '../utils/bookingDetailLocales';
@@ -208,23 +207,22 @@ const BookingDetail = () => {
                 )}
 
                 <div className="flex-1 flex flex-col overflow-hidden relative">
-                    <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-3.5 flex-shrink-0">
+                    <header className="bg-white dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] px-6 py-4 flex-shrink-0 z-10">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => navigate('/bookings')}
-                                    className="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                                    className="w-9 h-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] flex items-center justify-center text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors cursor-pointer"
                                 >
-                                    <span className="material-icons-round text-base">arrow_back</span>
+                                    <span className="material-symbols-outlined text-[20px]">arrow_back</span>
                                 </button>
                                 <div>
-                                    <h1 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{L('title')}</h1>
-                                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                    <h1 className="text-xl font-bold text-[#202124] dark:text-white tracking-tight">{L('title')}</h1>
+                                    <p className="text-xs text-[#5f6368] dark:text-slate-400">
                                         {loading ? L('fetching') : error ? L('errorLoading') : L('bookingInfo')}
                                     </p>
                                 </div>
                             </div>
-                            <HeaderActions />
                         </div>
                     </header>
                     <div className="flex-1 overflow-auto p-5">
@@ -275,18 +273,18 @@ const BookingDetail = () => {
     return (
         <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
             <div className="flex-1 flex flex-col overflow-hidden">
-                <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 py-3.5 flex-shrink-0 z-30">
+                <header className="bg-white dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] px-6 py-4 flex-shrink-0 z-10">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => navigate('/bookings')}
-                                className="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                                className="w-9 h-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] flex items-center justify-center text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors cursor-pointer"
                             >
-                                <span className="material-icons-round text-base">arrow_back</span>
+                                <span className="material-symbols-outlined text-[20px]">arrow_back</span>
                             </button>
                             <div>
-                                <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">{L('title')}</h1>
-                                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                <h1 className="text-xl font-bold text-[#202124] dark:text-white tracking-tight">{L('title')}</h1>
+                                <p className="text-xs text-[#5f6368] dark:text-slate-400">
                                     {L('orderId')} #{booking.orderId} • {booking.hotel?.hotelName || 'N/A'}
                                 </p>
                             </div>
@@ -296,16 +294,15 @@ const BookingDetail = () => {
                             <button
                                 onClick={() => booking.voucher && window.open(`/bookings/${booking.voucher}/voucher`, '_blank')}
                                 disabled={!booking.voucher || booking.status === 'FAILED' || booking.status === 'ERROR' || booking.hotel?.bookingStatus === 'FAILED' || booking.hotel?.bookingStatus === 'ERROR'}
-                                className={`h-8 px-3 rounded-lg flex items-center gap-1.5 font-semibold text-xs transition-all shadow-xs border cursor-pointer ${
+                                className={`h-9 px-4 rounded-full flex items-center gap-1.5 font-medium text-xs transition-all border cursor-pointer ${
                                     !booking.voucher || booking.status === 'FAILED' || booking.status === 'ERROR' || booking.hotel?.bookingStatus === 'FAILED' || booking.hotel?.bookingStatus === 'ERROR'
                                         ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed grayscale opacity-60'
-                                        : 'bg-primary/10 hover:bg-primary/20 text-primary dark:bg-primary/20 dark:hover:bg-primary/30 border-primary/20 active:scale-95'
+                                        : 'bg-[#e8f0fe] hover:bg-[#d2e3fc] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] border-[#dadce0] dark:border-[#1a73e8]/30 active:scale-95'
                                 }`}
                             >
-                                <span className="material-icons-round text-base">receipt_long</span>
+                                <span className="material-symbols-outlined text-[18px]">receipt_long</span>
                                 <span>{booking.voucher ? L('voucher') : L('voucherPending')}</span>
                             </button>
-                            <HeaderActions />
                         </div>
                     </div>
                 </header>

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bookingService } from '../services/bookingService';
-import HeaderActions from '../components/HeaderActions';
 import { useAuth } from '../context/AuthContext';
 import { userService } from '../services/userService';
 import { agencyService } from '../services/agencyService';

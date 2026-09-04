@@ -41,14 +41,14 @@ const StatusMultiSelect = ({ selectedValues, onChange }) => {
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full bg-white/20 dark:bg-slate-800/40 border ${isOpen ? 'border-primary/50 ring-2 ring-primary/20 bg-white/40' : 'border-white/40 dark:border-white/5'} rounded-xl py-1.5 px-2 text-xs font-semibold flex items-center justify-between transition-all outline-none text-slate-700 dark:text-slate-200`}
+                className={`w-full bg-white dark:bg-[#303134] border ${isOpen ? 'border-[#1a73e8] ring-2 ring-[#1a73e8]/20' : 'border-[#dadce0] dark:border-[#5f6368]'} rounded-lg py-1 px-2 text-xs font-medium flex items-center justify-between transition-all outline-none text-[#202124] dark:text-slate-200 shadow-xs hover:border-[#1a73e8]`}
             >
                 <span className="truncate">{getDisplayText()}</span>
-                <span className={`material-icons-round text-xs transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                <span className={`material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>expand_more</span>
             </button>
 
             {isOpen && (
-                <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-[100] overflow-hidden min-w-[170px] animate-in fade-in slide-in-from-top-2">
+                <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl shadow-xl z-[100] overflow-hidden min-w-[170px] animate-in fade-in slide-in-from-top-1">
                     <div className="p-1 max-h-60 overflow-y-auto">
                         {options.map((option) => {
                             const isSelected = selectedValues.includes(option.value);
@@ -56,7 +56,7 @@ const StatusMultiSelect = ({ selectedValues, onChange }) => {
                                 <div
                                     key={option.value}
                                     onClick={() => toggleOption(option.value)}
-                                    className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg transition-colors ${isSelected ? 'bg-primary/10 text-primary font-semibold' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-medium'}`}
+                                    className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer rounded-lg transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-semibold' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-[#202124] dark:text-slate-200 font-medium'}`}
                                 >
                                     <div className={`size-3.5 rounded border flex items-center justify-center transition-all ${isSelected ? 'bg-primary border-primary text-white' : 'border-slate-300 dark:border-slate-600'}`}>
                                         {isSelected && <span className="material-icons-round text-[9px]">check</span>}

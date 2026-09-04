@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { bookingService } from '../services/bookingService';
-import HeaderActions from '../components/HeaderActions';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import StatusMultiSelect from '../components/StatusMultiSelect';
 import GenericMultiSelect from '../components/GenericMultiSelect';
@@ -606,39 +605,33 @@ const MyBookings = () => {
     };
 
     return (
-        <>
-            {/* Ambient Background Glows */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/5 blur-[120px] rounded-full pointer-events-none"></div>
-
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col h-full overflow-hidden relative z-10">
-                {/* Header - Fixed Glassy */}
-                <header className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border-b border-white/40 dark:border-white/5 px-6 py-3.5 flex-shrink-0 z-30 transition-all">
-                    <div className="flex items-center justify-between">
+        <div className="flex-1 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#202124]">
+            {/* Header - Google Flights / Material Standard */}
+            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 py-4 flex-shrink-0 z-20 transition-all">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                                <span className="material-icons-round text-xl">book_online</span>
+                            <div className="w-10 h-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
+                                <span className="material-symbols-outlined text-[24px]">book_online</span>
                             </div>
                             <div>
-                                <h1 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">{L('title')}</h1>
-                                <p className="text-xs font-normal text-slate-500 dark:text-slate-400">
+                                <h1 className="text-xl font-bold text-[#202124] dark:text-white tracking-tight">{L('title')}</h1>
+                                <p className="text-xs text-[#5f6368] dark:text-slate-400">
                                     {L('subtitle')}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             <button
                                 onClick={exportToExcel}
                                 disabled={isExportingExcel || isExportingPdf || loading}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-lg text-xs font-semibold text-emerald-700 dark:text-emerald-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-full text-xs font-medium text-[#1e8e3e] dark:text-emerald-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
                                 title="Export all matching records to Excel"
                             >
                                 {isExportingExcel ? (
                                     <div className="size-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
                                 ) : (
-                                    <span className="material-icons-round text-base">grid_on</span>
+                                    <span className="material-symbols-outlined text-[18px]">grid_on</span>
                                 )}
                                 {isExportingExcel ? L('exporting') : L('exportExcel')}
                             </button>
@@ -646,33 +639,33 @@ const MyBookings = () => {
                             <button
                                 onClick={exportToPdf}
                                 disabled={isExportingExcel || isExportingPdf || loading}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 rounded-lg text-xs font-semibold text-rose-700 dark:text-rose-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-full text-xs font-medium text-[#d93025] dark:text-rose-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
                                 title="Export all matching records to PDF"
                             >
                                 {isExportingPdf ? (
                                     <div className="size-3.5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
                                 ) : (
-                                    <span className="material-icons-round text-base">picture_as_pdf</span>
+                                    <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                                 )}
                                 {isExportingPdf ? L('exporting') : L('exportPdf')}
                             </button>
 
                             <button
                                 onClick={handleSearch}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 transition-all active:scale-95"
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-full text-xs font-medium text-[#3c4043] dark:text-slate-200 transition-all active:scale-95"
                             >
-                                <span className="material-icons-round text-base">refresh</span>
+                                <span className="material-symbols-outlined text-[18px]">refresh</span>
                                 {L('refresh')}
                             </button>
                             <button
                                 onClick={handleClearFilters}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 transition-all active:scale-95"
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-[#303134] hover:bg-red-50 dark:hover:bg-red-950/30 border border-[#dadce0] dark:border-[#5f6368] rounded-full text-xs font-medium text-[#d93025] dark:text-red-400 transition-all active:scale-95"
                             >
-                                <span className="material-icons-round text-base">filter_alt_off</span>
+                                <span className="material-symbols-outlined text-[18px]">filter_alt_off</span>
                                 {L('clear')}
                             </button>
 
-                            <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
+                            <div className="h-5 w-px bg-[#dadce0] dark:bg-[#5f6368] mx-1"></div>
 
                             <ColumnManager 
                                 columns={columns} 
@@ -680,81 +673,74 @@ const MyBookings = () => {
                                 onColumnsChange={handleColumnsChange} 
                                 loading={loading} 
                             />
-
-                            <HeaderActions />
                         </div>
                     </div>
                 </header>
 
-                {/* Content Area - Scrollable */}
-                <div className="flex-1 overflow-auto px-6 py-4 relative">
-                    {/* Background Intensity Glow for Table */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[50%] bg-primary/5 blur-[150px] rounded-full pointer-events-none"></div>
-
+                {/* Content Area - Single Unified Scroll */}
+                <div className="p-6 space-y-4">
                     {/* Compact Summary Cards Section Above Table */}
                     {summaries.length > 0 && (
-                        <div className="mb-4 relative z-10">
-                            <div className="flex flex-col gap-3">
-                                {summaries.map((summary, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex flex-col md:flex-row md:items-center justify-between p-3.5 px-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-xl border border-slate-200/70 dark:border-slate-800 shadow-sm hover:border-primary/30 transition-all gap-4"
-                                    >
-                                        <div className="flex items-center gap-3 w-full md:w-auto border-b md:border-b-0 border-slate-200 dark:border-slate-800 pb-3 md:pb-0 md:pr-6 md:border-r">
-                                            <div className="size-8 rounded-lg bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary shrink-0">
-                                                {summary.currency === 'EUR' ? (
-                                                    <span className="material-icons-round text-lg">euro</span>
-                                                ) : summary.currency === 'USD' ? (
-                                                    <span className="material-icons-round text-lg">attach_money</span>
-                                                ) : summary.currency === 'TRY' ? (
-                                                    <span className="material-icons-round text-lg">currency_lira</span>
-                                                ) : (
-                                                    <span className="material-icons-round text-lg">receipt_long</span>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{summary.currency || 'Total'}</span>
-                                            </div>
+                        <div className="space-y-3">
+                            {summaries.map((summary, index) => (
+                                <div
+                                    key={index}
+                                    className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:border-[#1a73e8]/40 transition-all gap-4"
+                                >
+                                    <div className="flex items-center gap-3 w-full md:w-auto border-b md:border-b-0 border-[#dadce0] dark:border-[#3c4043] pb-3 md:pb-0 md:pr-6 md:border-r">
+                                        <div className="size-9 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
+                                            {summary.currency === 'EUR' ? (
+                                                <span className="material-symbols-outlined text-[20px]">euro</span>
+                                            ) : summary.currency === 'USD' ? (
+                                                <span className="material-symbols-outlined text-[20px]">attach_money</span>
+                                            ) : summary.currency === 'TRY' ? (
+                                                <span className="material-symbols-outlined text-[20px]">currency_lira</span>
+                                            ) : (
+                                                <span className="material-symbols-outlined text-[20px]">receipt_long</span>
+                                            )}
                                         </div>
-
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-8 flex-1">
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Total Reservation</span>
-                                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{summary.bookingCount}</span>
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Net Amount</span>
-                                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{summary.totalNetAmountSum != null ? Number(summary.totalNetAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Markup</span>
-                                                <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{summary.totalMarkupAmountSum != null ? Number(summary.totalMarkupAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Profit</span>
-                                                <span className="text-sm font-bold text-green-600 dark:text-green-400">{summary.totalMarkupAmountSum != null ? Number(summary.totalMarkupAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Sale Amount</span>
-                                                <span className="text-sm font-black text-primary">{summary.totalAmountSum != null ? Number(summary.totalAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Cancel Fee</span>
-                                                <span className="text-sm font-bold text-red-500">{summary.totalCancellationAmountSum != null ? Number(summary.totalCancellationAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : (summary.cancellationAmountSum != null ? Number(summary.cancellationAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00')}</span>
-                                            </div>
+                                        <div>
+                                            <span className="block text-xs font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">{summary.currency || 'Total'}</span>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
+
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-8 flex-1">
+                                        <div className="flex flex-col">
+                                            <span className="text-[11px] text-[#5f6368] dark:text-slate-400 uppercase font-semibold">Total Reservation</span>
+                                            <span className="text-base font-bold text-[#202124] dark:text-white">{summary.bookingCount}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[11px] text-[#5f6368] dark:text-slate-400 uppercase font-semibold">Net Amount</span>
+                                            <span className="text-base font-bold text-[#202124] dark:text-white">{summary.totalNetAmountSum != null ? Number(summary.totalNetAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[11px] text-[#5f6368] dark:text-slate-400 uppercase font-semibold">Markup</span>
+                                            <span className="text-base font-bold text-[#202124] dark:text-white">{summary.totalMarkupAmountSum != null ? Number(summary.totalMarkupAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[11px] text-[#5f6368] dark:text-slate-400 uppercase font-semibold">Profit</span>
+                                            <span className="text-base font-bold text-[#1e8e3e] dark:text-emerald-400">{summary.totalMarkupAmountSum != null ? Number(summary.totalMarkupAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[11px] text-[#5f6368] dark:text-slate-400 uppercase font-semibold">Sale Amount</span>
+                                            <span className="text-base font-bold text-[#1a73e8] dark:text-[#8ab4f8]">{summary.totalAmountSum != null ? Number(summary.totalAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[11px] text-[#5f6368] dark:text-slate-400 uppercase font-semibold">Cancel Fee</span>
+                                            <span className="text-base font-bold text-[#d93025] dark:text-rose-400">{summary.totalCancellationAmountSum != null ? Number(summary.totalCancellationAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : (summary.cancellationAmountSum != null ? Number(summary.cancellationAmountSum).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00')}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
 
-                    {/* Table with Premium Design */}
-                    <div className="relative bg-transparent transition-all duration-500">
+                    {/* Table with Google Material Card Design */}
+                    <div className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full border-collapse">
                                 <thead>
-                                    <tr className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800">
+                                    <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043]">
                                         {columns.map(col => {
                                             const key = col;
                                             const title = {
@@ -794,54 +780,54 @@ const MyBookings = () => {
                                                     onDragStart={(e) => handleDragStart(e, key)}
                                                     onDragOver={(e) => e.preventDefault()}
                                                     onDrop={(e) => handleDrop(e, key)}
-                                                    className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[120px] select-none cursor-move hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                                    className="px-3.5 py-3 text-left text-[11px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[120px] select-none cursor-move hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors"
                                                 >
                                                     <div className="flex items-center gap-1.5">
-                                                        <span className="material-icons-round text-[13px] opacity-40">drag_indicator</span>
+                                                        <span className="material-symbols-outlined text-[14px] text-[#5f6368] dark:text-slate-500 opacity-60">drag_indicator</span>
                                                         {title}
                                                     </div>
                                                 </th>
                                             );
                                         })}
                                     </tr>
-                                    <tr className="bg-slate-50/80 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-700 relative z-20">
+                                    <tr className="bg-white dark:bg-[#303134] border-b border-[#dadce0] dark:border-[#3c4043] relative z-10">
                                         {columns.map(col => (
                                             <td key={col} className="px-2 py-2">
                                                 {col === "Reservation Number" && (
-                                                    <input type="number" value={filters.id} onChange={(e) => handleFilterChange('id', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('colId')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none" />
+                                                    <input type="number" value={filters.id} onChange={(e) => handleFilterChange('id', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('colId')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none" />
                                                 )}
                                                 {col === "Voucher" && (
-                                                    <input type="text" value={filters.voucher} onChange={(e) => handleFilterChange('voucher', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phVoucher')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none" />
+                                                    <input type="text" value={filters.voucher} onChange={(e) => handleFilterChange('voucher', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phVoucher')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none" />
                                                 )}
                                                 {col === "Hotel" && (
-                                                    <input type="text" value={filters.hotelName} onChange={(e) => handleFilterChange('hotelName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phHotelName')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-primary/40 focus:bg-white/40 focus:border-primary/50 transition-all outline-none" />
+                                                    <input type="text" value={filters.hotelName} onChange={(e) => handleFilterChange('hotelName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phHotelName')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none" />
                                                 )}
                                                 {col === "Reservation Date" && (
                                                     <div className="flex flex-col gap-1">
-                                                        <input type="date" value={filters.createDateStart} onChange={(e) => handleFilterChange('createDateStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
-                                                        <input type="date" value={filters.createDateEnd} onChange={(e) => handleFilterChange('createDateEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="date" value={filters.createDateStart} onChange={(e) => handleFilterChange('createDateStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                        <input type="date" value={filters.createDateEnd} onChange={(e) => handleFilterChange('createDateEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
                                                     </div>
                                                 )}
                                                 {col === "Check-in" && (
                                                     <div className="flex flex-col gap-1">
-                                                        <input type="date" value={filters.checkInStart} onChange={(e) => handleFilterChange('checkInStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
-                                                        <input type="date" value={filters.checkInEnd} onChange={(e) => handleFilterChange('checkInEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="date" value={filters.checkInStart} onChange={(e) => handleFilterChange('checkInStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                        <input type="date" value={filters.checkInEnd} onChange={(e) => handleFilterChange('checkInEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
                                                     </div>
                                                 )}
                                                 {col === "Check-out" && (
                                                     <div className="flex flex-col gap-1">
-                                                        <input type="date" value={filters.checkOutStart} onChange={(e) => handleFilterChange('checkOutStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
-                                                        <input type="date" value={filters.checkOutEnd} onChange={(e) => handleFilterChange('checkOutEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="date" value={filters.checkOutStart} onChange={(e) => handleFilterChange('checkOutStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                        <input type="date" value={filters.checkOutEnd} onChange={(e) => handleFilterChange('checkOutEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
                                                     </div>
                                                 )}
                                                 {col === "Sale Amount" && (
                                                     <div className="flex flex-col gap-1">
-                                                        <input type="number" value={filters.minAmount} onChange={(e) => handleFilterChange('minAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMin')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
-                                                        <input type="number" value={filters.maxAmount} onChange={(e) => handleFilterChange('maxAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.minAmount} onChange={(e) => handleFilterChange('minAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMin')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                        <input type="number" value={filters.maxAmount} onChange={(e) => handleFilterChange('maxAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
                                                     </div>
                                                 )}
                                                 {col === "Payment" && (
-                                                    <select value={filters.paymentStatus} onChange={(e) => handleFilterChange('paymentStatus', e.target.value)} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer">
+                                                    <select value={filters.paymentStatus} onChange={(e) => handleFilterChange('paymentStatus', e.target.value)} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer">
                                                         <option value="">{L('all')}</option>
                                                         <option value="PENDING_PAYMENT">{L('pyPending')}</option>
                                                         <option value="PAID_CREDIT_CARD">{L('pyPaidCard')}</option>
@@ -856,12 +842,12 @@ const MyBookings = () => {
                                                 )}
                                                 {col === "Cancel Fee" && (
                                                     <div className="flex flex-col gap-1">
-                                                        <input type="number" value={filters.minCancellationAmount} onChange={(e) => handleFilterChange('minCancellationAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMin')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
-                                                        <input type="number" value={filters.maxCancellationAmount} onChange={(e) => handleFilterChange('maxCancellationAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMax')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.minCancellationAmount} onChange={(e) => handleFilterChange('minCancellationAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMin')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                        <input type="number" value={filters.maxCancellationAmount} onChange={(e) => handleFilterChange('maxCancellationAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMax')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
                                                     </div>
                                                 )}
                                                 {col === "UUID" && (
-                                                    <input type="text" value={filters.bookingUuid} onChange={(e) => handleFilterChange('bookingUuid', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phUuid')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    <input type="text" value={filters.bookingUuid} onChange={(e) => handleFilterChange('bookingUuid', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phUuid')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none" />
                                                 )}
                                                 {col === "GSA" && (
                                                     <GenericMultiSelect options={gsaOptions} selectedValues={filters.gsaIds} onChange={(values) => handleFilterChange('gsaIds', values)} placeholder="Select GSA" />
@@ -873,13 +859,13 @@ const MyBookings = () => {
                                                     <GenericMultiSelect options={agencyOptions} selectedValues={filters.agencyIds} onChange={(values) => handleFilterChange('agencyIds', values)} placeholder="Select Agency" disabled={filters.rsaIds.length > 0 && agencyOptions.length === 0} />
                                                 )}
                                                 {col === "Hotel ID" && (
-                                                    <input type="number" value={filters.internalHotelId} onChange={(e) => handleFilterChange('internalHotelId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Hotel ID" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    <input type="number" value={filters.internalHotelId} onChange={(e) => handleFilterChange('internalHotelId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Hotel ID" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
                                                 )}
                                                 {col === "Supplier" && (
                                                     <GenericMultiSelect options={supplierOptions} selectedValues={filters.supplierIds || []} onChange={(values) => handleFilterChange('supplierIds', values)} placeholder="Select Supplier" alignRight={true} />
                                                 )}
                                                 {col === "Supplier Reservation Number" && (
-                                                    <input type="text" value={filters.supplierVoucher || ''} onChange={(e) => handleFilterChange('supplierVoucher', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Res. No." className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    <input type="text" value={filters.supplierVoucher || ''} onChange={(e) => handleFilterChange('supplierVoucher', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Res. No." className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
                                                 )}
                                                 {col === "Country" && (
                                                     <GenericMultiSelect options={countryOptions} selectedValues={filters.countryIds || []} onChange={(values) => handleFilterChange('countryIds', values)} placeholder="Select Country" alignRight={true} />
@@ -892,39 +878,39 @@ const MyBookings = () => {
                                                 )}
                                                 {col === "Net Amount" && (
                                                     <div className="flex flex-col gap-1">
-                                                        <input type="number" value={filters.minNetAmount} onChange={(e) => handleFilterChange('minNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
-                                                        <input type="number" value={filters.maxNetAmount} onChange={(e) => handleFilterChange('maxNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.minNetAmount} onChange={(e) => handleFilterChange('minNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                        <input type="number" value={filters.maxNetAmount} onChange={(e) => handleFilterChange('maxNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
                                                     </div>
                                                 )}
                                                 {col === "Markup" && (
                                                     <div className="flex flex-col gap-1">
-                                                        <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
-                                                        <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                        <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
                                                     </div>
                                                 )}
                                                 {col === "Profit" && (
                                                     <div className="flex flex-col gap-1">
-                                                        <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
-                                                        <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                        <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
                                                     </div>
                                                 )}
                                                 {col === "Room" && (
-                                                    <input type="text" value={filters.roomName} onChange={(e) => handleFilterChange('roomName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Room" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    <input type="text" value={filters.roomName} onChange={(e) => handleFilterChange('roomName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Room" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
                                                 )}
                                                 {col === "Board Type" && (
                                                     <GenericMultiSelect options={boardTypeOptions} selectedValues={filters.boardTypes || []} onChange={(values) => handleFilterChange('boardTypes', values)} placeholder="Select Board" alignRight={true} />
                                                 )}
                                                 {col === "Guest" && (
                                                     <div className="flex flex-col gap-1">
-                                                        <input type="number" value={filters.minGuest} onChange={(e) => handleFilterChange('minGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
-                                                        <input type="number" value={filters.maxGuest} onChange={(e) => handleFilterChange('maxGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-lg py-1 px-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                        <input type="number" value={filters.minGuest} onChange={(e) => handleFilterChange('minGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                        <input type="number" value={filters.maxGuest} onChange={(e) => handleFilterChange('maxGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
                                                     </div>
                                                 )}
                                                 {col === "Client Reference" && (
-                                                    <input type="text" value={filters.clientReferenceId} onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phClRef')} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none" />
+                                                    <input type="text" value={filters.clientReferenceId} onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phClRef')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
                                                 )}
                                                 {col === "Cancelled?" && (
-                                                    <select value={filters.isCancelled} onChange={(e) => handleFilterChange('isCancelled', e.target.value)} className="w-full bg-white/20 dark:bg-slate-800/40 border border-white/40 dark:border-white/5 rounded-xl py-1.5 px-2 text-xs font-semibold text-slate-700 dark:text-slate-200 outline-none cursor-pointer">
+                                                    <select value={filters.isCancelled} onChange={(e) => handleFilterChange('isCancelled', e.target.value)} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-xs font-medium text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer">
                                                         <option value="">{L('all')}</option>
                                                         <option value="true">{L('yes')}</option>
                                                         <option value="false">{L('no')}</option>
@@ -1012,18 +998,18 @@ const MyBookings = () => {
                             </table>
                         </div>
 
-                        {/* Pagination - Glassy */}
+                        {/* Pagination - Google Material Style */}
                         {totalPages > 0 && (
-                            <div className="border-t border-slate-200/60 dark:border-slate-800 px-6 py-3 flex items-center justify-between bg-white/20 dark:bg-slate-900/20 backdrop-blur-xl">
+                            <div className="border-t border-[#dadce0] dark:border-[#3c4043] px-6 py-3.5 flex flex-wrap items-center justify-between bg-white dark:bg-[#303134] gap-3">
                                 <div className="flex items-center gap-2 text-xs">
-                                    <span className="text-slate-500 dark:text-slate-400">{L('rowsPerPage')}:</span>
+                                    <span className="text-[#5f6368] dark:text-slate-400">{L('rowsPerPage')}:</span>
                                     <select
                                         value={pageSize}
                                         onChange={(e) => {
                                             setPageSize(Number(e.target.value));
                                             setPage(0);
                                         }}
-                                        className="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs outline-none focus:ring-2 focus:ring-primary/40 transition-all"
+                                        className="px-2.5 py-1 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-xs font-medium text-[#202124] dark:text-slate-200 outline-none focus:border-[#1a73e8] transition-all cursor-pointer"
                                     >
                                         <option value="5">5</option>
                                         <option value="10">10</option>
@@ -1032,31 +1018,31 @@ const MyBookings = () => {
                                         <option value="100">100</option>
                                     </select>
                                 </div>
-                                <div className="flex flex-wrap items-center gap-2 text-xs">
-                                    <span className="text-slate-500 dark:text-slate-400 mr-1 sm:mr-3">
+                                <div className="flex flex-wrap items-center gap-3 text-xs">
+                                    <span className="text-[#5f6368] dark:text-slate-400 font-medium">
                                         {page + 1} {L('pageOf')} {totalPages} ({totalElements} {L('total')})
                                     </span>
                                     
-                                    {/* Advanced Pagination Controls */}
-                                    <div className="flex items-center gap-0.5 sm:gap-1 bg-white/60 dark:bg-slate-800/60 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
+                                    {/* Pagination Controls */}
+                                    <div className="flex items-center gap-1">
                                         {/* First Page */}
                                         <button
                                             onClick={() => setPage(0)}
                                             disabled={page === 0}
-                                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-slate-600 dark:text-slate-300"
+                                            className="size-8 rounded-full border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-[#5f6368] dark:text-slate-300"
                                             title="First Page"
                                         >
-                                            <span className="material-icons-round text-[16px]">keyboard_double_arrow_left</span>
+                                            <span className="material-symbols-outlined text-[18px]">first_page</span>
                                         </button>
                                         
                                         {/* Previous Page */}
                                         <button
                                             onClick={() => setPage(p => Math.max(0, p - 1))}
                                             disabled={page === 0}
-                                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-slate-600 dark:text-slate-300"
+                                            className="size-8 rounded-full border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-[#5f6368] dark:text-slate-300"
                                             title="Previous Page"
                                         >
-                                            <span className="material-icons-round text-[16px]">chevron_left</span>
+                                            <span className="material-symbols-outlined text-[18px]">chevron_left</span>
                                         </button>
                                         
                                         {/* Page Numbers */}
@@ -1072,7 +1058,7 @@ const MyBookings = () => {
                                                 
                                                 const pages = [];
                                                 if (startPage > 0) {
-                                                    pages.push(<span key="ellipsis-start" className="px-1 text-slate-400">...</span>);
+                                                    pages.push(<span key="ellipsis-start" className="px-1 text-[#5f6368] dark:text-slate-400">...</span>);
                                                 }
                                                 
                                                 for (let i = startPage; i <= endPage; i++) {
@@ -1080,10 +1066,10 @@ const MyBookings = () => {
                                                         <button
                                                             key={i}
                                                             onClick={() => setPage(i)}
-                                                            className={`min-w-[28px] h-[28px] flex items-center justify-center rounded-lg text-[13px] font-medium transition-all ${
+                                                            className={`min-w-[32px] h-8 px-2 flex items-center justify-center rounded-full text-xs font-medium transition-all ${
                                                                 page === i
-                                                                    ? 'bg-primary text-white shadow-md shadow-primary/20'
-                                                                    : 'hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 bg-transparent'
+                                                                    ? 'bg-[#1a73e8] text-white shadow-xs'
+                                                                    : 'border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-[#3c4043] dark:text-slate-300 bg-white dark:bg-[#202124]'
                                                             }`}
                                                         >
                                                             {i + 1}
@@ -1092,7 +1078,7 @@ const MyBookings = () => {
                                                 }
                                                 
                                                 if (endPage < totalPages - 1) {
-                                                    pages.push(<span key="ellipsis-end" className="px-1 text-slate-400">...</span>);
+                                                    pages.push(<span key="ellipsis-end" className="px-1 text-[#5f6368] dark:text-slate-400">...</span>);
                                                 }
                                                 
                                                 return pages;
@@ -1103,34 +1089,32 @@ const MyBookings = () => {
                                         <button
                                             onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                                             disabled={page >= totalPages - 1}
-                                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-slate-600 dark:text-slate-300"
+                                            className="size-8 rounded-full border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-[#5f6368] dark:text-slate-300"
                                             title="Next Page"
                                         >
-                                            <span className="material-icons-round text-[16px]">chevron_right</span>
+                                            <span className="material-symbols-outlined text-[18px]">chevron_right</span>
                                         </button>
                                         
                                         {/* Last Page */}
                                         <button
                                             onClick={() => setPage(totalPages - 1)}
                                             disabled={page >= totalPages - 1}
-                                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-slate-600 dark:text-slate-300"
+                                            className="size-8 rounded-full border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-[#5f6368] dark:text-slate-300"
                                             title="Last Page"
                                         >
-                                            <span className="material-icons-round text-[16px]">keyboard_double_arrow_right</span>
+                                            <span className="material-symbols-outlined text-[18px]">last_page</span>
                                         </button>
                                     </div>
                                     
                                     {/* Go to page input */}
-                                    <div className="flex items-center bg-white/60 dark:bg-slate-800/60 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
-                                        <div className="flex items-center px-2 border-r border-slate-200 dark:border-slate-700">
-                                            <span className="material-icons-round text-[14px] text-slate-400">redo</span>
-                                        </div>
+                                    <div className="flex items-center bg-white dark:bg-[#202124] px-2 py-0.5 rounded-full border border-[#dadce0] dark:border-[#5f6368]">
+                                        <span className="text-[11px] text-[#5f6368] dark:text-slate-400 mr-1.5 font-medium">Go:</span>
                                         <input 
                                             type="number" 
                                             min="1" 
                                             max={totalPages}
                                             placeholder="#"
-                                            className="w-12 h-7 bg-transparent border-none text-[13px] outline-none text-center text-slate-700 dark:text-slate-200 placeholder:text-slate-400"
+                                            className="w-10 h-6 bg-transparent border-none text-xs outline-none text-center text-[#202124] dark:text-slate-200 placeholder:text-slate-400"
                                             title="Go to page (Enter)"
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') {
@@ -1149,7 +1133,6 @@ const MyBookings = () => {
                     </div>
                 </div>
             </div>
-        </>
     );
 };
 

@@ -31,7 +31,6 @@ import { userService, roleService } from '../services/userService';
 import { guestService } from '../services/guestService';
 import { currencyService } from '../services/currencyService';
 import { favoriteService } from '../services/favoriteService';
-import HeaderActions from '../components/HeaderActions';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import PhoneInput from '../components/PhoneInput';
@@ -1264,23 +1263,49 @@ const MyOffice = () => {
 
             {toast.show && <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[10000] animate-in fade-in slide-in-from-top-4 duration-300"><div className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl rounded-xl flex items-center gap-2.5"><div className={`size-2 rounded-full ${toast.type === 'success' ? 'bg-emerald-400' : 'bg-red-400'} animate-pulse`}></div><p className="text-[10px] font-semibold uppercase tracking-wider">{toast.message}</p></div></div>}
 
-            <main className="flex-1 p-3 md:p-4 flex flex-col h-screen overflow-hidden">
-                <div className="max-w-6xl mx-auto w-full flex flex-col h-full overflow-hidden">
-                    <header className="flex flex-wrap items-center justify-between mb-4 gap-3">
-                        <div className="flex items-center gap-2">
-                            <span className="material-icons-round text-primary text-xl">
-                                {activeTab === 'general' ? 'info' : activeTab === 'users' ? 'groups' : activeTab === 'guests' ? 'recent_actors' : 'favorite'}
-                            </span>
-                            <h1 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                                <span>{L('title')}</span>
-                                <span className="text-slate-300 dark:text-slate-700">/</span>
-                                <span className="text-primary font-bold">
-                                    {activeTab === 'general' ? L('tabGeneral') : activeTab === 'users' ? L('tabUsers') : activeTab === 'guests' ? L('tabGuests') : L('tabFavorites')}
-                                </span>
-                            </h1>
-                        </div>
+            <main className="flex-1 p-4 md:p-6 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#202124]">
+                <div className="max-w-7xl mx-auto w-full flex flex-col h-full min-h-0">
+                    <header className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-4 shrink-0">
                         <div className="flex items-center gap-3">
-                            <HeaderActions />
+                            <div className="w-10 h-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
+                                <span className="material-symbols-outlined text-[24px]">corporate_fare</span>
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold text-[#202124] dark:text-white tracking-tight">{L('title')}</h1>
+                                <p className="text-xs text-[#5f6368] dark:text-slate-400">
+                                    {activeTab === 'general' ? L('tabGeneral') : activeTab === 'users' ? L('tabUsers') : activeTab === 'guests' ? L('tabGuests') : L('tabFavorites')}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Google Material Tabs */}
+                        <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-[#303134] rounded-full border border-[#dadce0] dark:border-[#5f6368] overflow-x-auto">
+                            {[
+                                { id: 'general', icon: 'info', label: L('tabGeneral') },
+                                { id: 'users', icon: 'groups', label: L('tabUsers') },
+                                { id: 'guests', icon: 'recent_actors', label: L('tabGuests') },
+                                { id: 'favorites', icon: 'favorite', label: L('tabFavorites') },
+                            ].map((tab) => {
+                                const isCurrent = activeTab === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setActiveTab(tab.id);
+                                            setSearchParams({ tab: tab.id });
+                                        }}
+                                        className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+                                            isCurrent
+                                                ? 'bg-[#e8f0fe] text-[#1a73e8] font-semibold dark:bg-[#1a73e8]/25 dark:text-[#8ab4f8]'
+                                                : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]'
+                                        }`}
+                                    >
+                                        <span className={`material-symbols-outlined text-[18px] ${isCurrent ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-400'}`}>{tab.icon}</span>
+                                        <span>{tab.label}</span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </header>
 

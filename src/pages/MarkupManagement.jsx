@@ -5,7 +5,6 @@ import { markupService } from '../services/markupService';
 import AgencyMultiSelect from '../components/AgencyMultiSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import AddMarkupModal from '../components/AddMarkupModal';
-import HeaderActions from '../components/HeaderActions';
 import AppleSwitch from '../components/AppleSwitch';
 
 const MK = {
@@ -156,15 +155,26 @@ const MarkupManagement = () => {
     };
 
     return (
-        <div className="h-full flex flex-col p-6 space-y-4 overflow-hidden">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0">
-                <div>
-                    <h1 className="text-base font-semibold text-slate-900 dark:text-white leading-none mb-1">{L('title')}</h1>
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">{L('subtitle')}</p>
+        <div className="flex-1 flex flex-col p-4 md:p-6 space-y-4 min-h-0 bg-[#f8f9fa] dark:bg-[#202124]">
+            {/* Header - Google Standard */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
+                        <span className="material-symbols-outlined text-[24px]">percent</span>
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold text-[#202124] dark:text-white tracking-tight">{L('title')}</h1>
+                        <p className="text-xs text-[#5f6368] dark:text-slate-400">{L('subtitle')}</p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <HeaderActions />
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="flex items-center gap-2 px-5 py-2 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium transition-all shadow-xs active:scale-95 cursor-pointer"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">add</span>
+                        <span>{L('newRule')}</span>
+                    </button>
                 </div>
             </div>
 

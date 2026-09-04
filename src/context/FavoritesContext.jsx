@@ -19,6 +19,18 @@ export const FavoritesProvider = ({ children }) => {
     // Load active favorited hotel IDs from backend (lightweight call)
     const loadActiveHotelIds = useCallback(async () => {
         try {
+            // Also fetch the full list of favorite hotels to populate the context
+            try {
+                const favData = await favoriteService.getFavorites(0, 50, '', '');
+                if (favData && (favData.content || favData.favoriteHotels || favData.items)) {
+                    setFavorites(favData.content || favData.favoriteHotels || favData.items || []);
+                } else if (Array.isArray(favData)) {
+                    setFavorites(favData);
+                }
+            } catch (err) {
+                console.error("Failed to load full favorites list in context:", err);
+            }
+
             const ids = await favoriteService.getActiveHotelIds();
             if (Array.isArray(ids)) {
                 const idSet = new Set(ids.map(id => String(id)));
@@ -63,6 +75,11 @@ export const FavoritesProvider = ({ children }) => {
 
         // Optimistic UI update
         setActiveHotelIds(prev => new Set([...prev, idStr]));
+        setFavorites(prev => {
+            const exists = prev.find(f => String(f.hotelId || f.id) === idStr);
+            if (exists) return prev;
+            return [...prev, hotel];
+        });
 
         try {
             await favoriteService.addFavorite({
@@ -83,6 +100,7 @@ export const FavoritesProvider = ({ children }) => {
             next.delete(targetId);
             return next;
         });
+        setFavorites(prev => prev.filter(f => String(f.hotelId || f.id) !== targetId));
 
         try {
             await favoriteService.deleteByHotelId(Number(targetId));

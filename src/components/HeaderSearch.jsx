@@ -750,7 +750,7 @@ const HeaderSearch = () => {
             if (isMapPage) {
                 navigate(`/map?${searchParamsString}`);
             } else {
-                navigate(`/hotels/${slug}?${searchParamsString}`);
+                navigate(`/travel/hotels/search/${slug}?${searchParamsString}`);
             }
         }
     };

@@ -1,16 +1,26 @@
 import React, { useMemo } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
-import HotelCard from '../components/HotelCard';
-import HotelCardSkeleton from '../components/HotelCardSkeleton';
-import Footer from '../components/Footer';
-import Breadcrumbs from '../components/Breadcrumbs';
 import { parseGuestsParam, validateAndSanitizeDates, formatDateForUrl } from '../utils/searchParamsUtils';
 import { hotelService } from '../services/hotelService';
 import { locationService } from '../services/locationService';
+import ListingSearch from '../components/ListingSearch';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
+import { useFavorites } from '../context/FavoritesContext';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix Leaflet default marker icon paths for Vite
+const DefaultIcon = L.icon({
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
 
 const LISTING_LOCALES = {
     en: {
@@ -74,184 +84,76 @@ const LISTING_LOCALES = {
         allHotels: "جميع الفنادق"
     },
     es: {
-        room: "Habitación",
-        rooms: "Habitaciones",
-        guest: "Huésped",
-        guests: "Huéspedes",
-        searching: "Buscando...",
-        propertiesFound: "propiedades encontradas",
-        sortBy: "ORDENAR POR:",
-        mapView: "Vista de Mapa",
-        backToDashboard: "Volver al Panel",
-        noProperties: "No se encontraron propiedades",
-        recommended: "Más Recomendado",
-        ratingDesc: "Calificación: alta a baja",
-        ratingAsc: "Calificación: baja a alta",
-        starDesc: "Estrellas: alta a baja",
-        starAsc: "Estrellas: baja a alta",
-        reachedEnd: "Has llegado al final de la lista",
-        tryAdjusting: "Intenta ajustar tus filtros o ubicación",
-        allHotels: "Todos los Hoteles"
+        room: "Habitación", rooms: "Habitaciones", guest: "Huésped", guests: "Huéspedes",
+        searching: "Buscando...", propertiesFound: "propiedades encontradas", sortBy: "ORDENAR POR:",
+        mapView: "Vista de Mapa", backToDashboard: "Volver al Panel", noProperties: "No se encontraron propiedades",
+        recommended: "Más Recomendado", ratingDesc: "Calificación: alta a baja", ratingAsc: "Calificación: baja a alta",
+        starDesc: "Estrellas: alta a baja", starAsc: "Estrellas: baja a alta",
+        reachedEnd: "Has llegado al final de la lista", tryAdjusting: "Intenta ajustar tus filtros o ubicación", allHotels: "Todos los Hoteles"
     },
     ru: {
-        room: "Номер",
-        rooms: "Номера",
-        guest: "Гость",
-        guests: "Гости",
-        searching: "Поиск...",
-        propertiesFound: "объектов найдено",
-        sortBy: "СОРТИРОВКА:",
-        mapView: "На карте",
-        backToDashboard: "Панель управления",
-        noProperties: "Объекты не найдены",
-        recommended: "Рекомендуемые",
-        ratingDesc: "Оценка гостей: от высокой к низкой",
-        ratingAsc: "Оценка гостей: от низкой к высокой",
-        starDesc: "Звездность: от высокой к низкой",
-        starAsc: "Звездность: от низкой к высокой",
-        reachedEnd: "Вы дошли до конца списка",
-        tryAdjusting: "Попробуйте изменить фильтры или местоположение",
-        allHotels: "Все отели"
+        room: "Номер", rooms: "Номера", guest: "Гость", guests: "Гости",
+        searching: "Поиск...", propertiesFound: "объектов найдено", sortBy: "СОРТИРОВКА:",
+        mapView: "На карте", backToDashboard: "Панель управления", noProperties: "Объекты не найдены",
+        recommended: "Рекомендуемые", ratingDesc: "Оценка гостей: от высокой к низкой", ratingAsc: "Оценка гостей: от низкой к высокой",
+        starDesc: "Звездность: от высокой к низкой", starAsc: "Звездность: от низкой к высокой",
+        reachedEnd: "Вы дошли до конца списка", tryAdjusting: "Попробуйте изменить фильтры или местоположение", allHotels: "Все отели"
     },
     zh: {
-        room: "间客房",
-        rooms: "间客房",
-        guest: "位旅客",
-        guests: "位旅客",
-        searching: "正在搜索...",
-        propertiesFound: "家酒店",
-        sortBy: "排序方式:",
-        mapView: "地图模式",
-        backToDashboard: "返回仪表板",
-        noProperties: "未找到符合条件的酒店",
-        recommended: "推荐",
-        ratingDesc: "评分：从高到低",
-        ratingAsc: "评分：从低到高",
-        starDesc: "星级：从高到低",
-        starAsc: "星级：从低到高",
-        reachedEnd: "您已浏览完所有酒店",
-        tryAdjusting: "请尝试更改筛选条件或搜索位置",
-        allHotels: "所有酒店"
+        room: "间客房", rooms: "间客房", guest: "位旅客", guests: "位旅客",
+        searching: "正在搜索...", propertiesFound: "家酒店", sortBy: "排序方式:",
+        mapView: "地图模式", backToDashboard: "返回仪表板", noProperties: "未找到符合条件的酒店",
+        recommended: "推荐", ratingDesc: "评分：从高到低", ratingAsc: "评分：从低到高",
+        starDesc: "星级：从高到低", starAsc: "星级：从低到高",
+        reachedEnd: "您已浏览完所有酒店", tryAdjusting: "请尝试更改筛选条件或搜索位置", allHotels: "所有酒店"
     },
     ja: {
-        room: "室",
-        rooms: "室",
-        guest: "名",
-        guests: "名",
-        searching: "検索中...",
-        propertiesFound: "軒のホテルが見つかりました",
-        sortBy: "並べ替え:",
-        mapView: "地図で見る",
-        backToDashboard: "ダッシュボードに戻る",
-        noProperties: "ホテルが見つかりませんでした",
-        recommended: "おすすめ順",
-        ratingDesc: "クチコミ評価：高い順",
-        ratingAsc: "クチコミ評価：低い順",
-        starDesc: "星評価：高い順",
-        starAsc: "星評価：低い順",
-        reachedEnd: "リストの最後に達しました",
-        tryAdjusting: "フィルターまたはエリアを調整してください",
-        allHotels: "すべてのホテル"
+        room: "室", rooms: "室", guest: "名", guests: "名",
+        searching: "検索中...", propertiesFound: "軒のホテルが見つかりました", sortBy: "並べ替え:",
+        mapView: "地図で見る", backToDashboard: "ダッシュボードに戻る", noProperties: "ホテルが見つかりませんでした",
+        recommended: "おすすめ順", ratingDesc: "クチコミ評価：高い順", ratingAsc: "クチコミ評価：低い順",
+        starDesc: "星評価：高い順", starAsc: "星評価：低い順",
+        reachedEnd: "リストの最後に達しました", tryAdjusting: "フィルターまたはエリアを調整してください", allHotels: "すべてのホテル"
     },
     fa: {
-        room: "اتاق",
-        rooms: "اتاق",
-        guest: "مسافر",
-        guests: "مسافر",
-        searching: "در حال جستجو...",
-        propertiesFound: "هتل پیدا شد",
-        sortBy: "مرتب‌سازی بر اساس:",
-        mapView: "نمایش روی نقشه",
-        backToDashboard: "بازگشت به پنل کاربری",
-        noProperties: "هیچ هتلی پیدا نشد",
-        recommended: "بیشترین توصیه",
-        ratingDesc: "امتیاز مسافران: زیاد به کم",
-        ratingAsc: "امتیاز مسافران: کم به زیاد",
-        starDesc: "تعداد ستاره: زیاد به کم",
-        starAsc: "تعداد ستاره: کم به زیاد",
-        reachedEnd: "به پایان لیست رسیده‌اید",
-        tryAdjusting: "فیلترها یا موقعیت خود را تغییر دهید",
-        allHotels: "همه هتل‌ها"
+        room: "اتاق", rooms: "اتاق", guest: "مسافر", guests: "مسافر",
+        searching: "در حال جستجو...", propertiesFound: "هتل پیدا شد", sortBy: "مرتب‌سازی بر اساس:",
+        mapView: "نمایش روی نقشه", backToDashboard: "بازگشت به پنل کاربری", noProperties: "هیچ هتلی پیدا نشد",
+        recommended: "بیشترین توصیه", ratingDesc: "امتیاز مسافران: زیاد به کم", ratingAsc: "امتیاز مسافران: کم به زیاد",
+        starDesc: "تعداد ستاره: زیاد به کم", starAsc: "تعداد ستاره: کم به زیاد",
+        reachedEnd: "به پایان لیست رسیده‌اید", tryAdjusting: "فیلترها یا موقعیت خود را تغییر دهید", allHotels: "همه هتل‌ها"
     },
     fr: {
-        room: "Chambre",
-        rooms: "Chambres",
-        guest: "Voyageur",
-        guests: "Voyageurs",
-        searching: "Recherche...",
-        propertiesFound: "établissements trouvés",
-        sortBy: "TRIER PAR:",
-        mapView: "Vue de Carte",
-        backToDashboard: "Retour au Tableau",
-        noProperties: "Aucun établissement trouvé",
-        recommended: "Plus Recommandés",
-        ratingDesc: "Note des clients : décroissante",
-        ratingAsc: "Note des clients : croissante",
-        starDesc: "Étoiles : décroissant",
-        starAsc: "Étoiles : croissant",
-        reachedEnd: "Vous avez atteint la fin de la liste",
-        tryAdjusting: "Essayez d'ajuster vos filtres ou lieu",
-        allHotels: "Tous les Hôtels"
+        room: "Chambre", rooms: "Chambres", guest: "Voyageur", guests: "Voyageurs",
+        searching: "Recherche...", propertiesFound: "établissements trouvés", sortBy: "TRIER PAR:",
+        mapView: "Vue de Carte", backToDashboard: "Retour au Tableau", noProperties: "Aucun établissement trouvé",
+        recommended: "Plus Recommandés", ratingDesc: "Note des clients : décroissante", ratingAsc: "Note des clients : croissante",
+        starDesc: "Étoiles : décroissant", starAsc: "Étoiles : croissant",
+        reachedEnd: "Vous avez atteint la fin de la liste", tryAdjusting: "Essayez d'ajuster vos filtres ou lieu", allHotels: "Tous les Hôtels"
     },
     it: {
-        room: "Camera",
-        rooms: "Camere",
-        guest: "Ospite",
-        guests: "Ospiti",
-        searching: "Ricerca...",
-        propertiesFound: "strutture trovate",
-        sortBy: "ORDINA PER:",
-        mapView: "Mappa",
-        backToDashboard: "Torna alla Dashboard",
-        noProperties: "Nessuna struttura trovata",
-        recommended: "Più Consigliati",
-        ratingDesc: "Valutazione ospiti: alta a bassa",
-        ratingAsc: "Valutazione ospiti: bassa a alta",
-        starDesc: "Stelle: alta a bassa",
-        starAsc: "Stelle: bassa a alta",
-        reachedEnd: "Hai raggiunto la fine della lista",
-        tryAdjusting: "Prova a modificare i filtri o la località",
-        allHotels: "Tutti gli Hotel"
+        room: "Camera", rooms: "Camere", guest: "Ospite", guests: "Ospiti",
+        searching: "Ricerca...", propertiesFound: "strutture trovate", sortBy: "ORDINA PER:",
+        mapView: "Mappa", backToDashboard: "Torna alla Dashboard", noProperties: "Nessuna struttura trovata",
+        recommended: "Più Consigliati", ratingDesc: "Valutazione ospiti: alta a bassa", ratingAsc: "Valutazione ospiti: bassa a alta",
+        starDesc: "Stelle: alta a bassa", starAsc: "Stelle: bassa a alta",
+        reachedEnd: "Hai raggiunto la fine della lista", tryAdjusting: "Prova a modificare i filtri o la località", allHotels: "Tutti gli Hotel"
     },
     el: {
-        room: "Δωμάτιο",
-        rooms: "Δωμάτια",
-        guest: "Επισκέπτης",
-        guests: "Επισκέπτες",
-        searching: "Αναζήτηση...",
-        propertiesFound: "καταλύματα βρέθηκαν",
-        sortBy: "ΤΑΞΙΝΟΜΗΣΗ ΚΑΤΑ:",
-        mapView: "Προβολή Χάρτη",
-        backToDashboard: "Πίσω στον Πίνακα",
-        noProperties: "Δεν βρέθηκαν καταλύματα",
-        recommended: "Προτεινόμενα",
-        ratingDesc: "Βαθμολογία επισκεπτών: υψηλή προς χαμηλή",
-        ratingAsc: "Βαθμολογία επισκεπτών: χαμηλή προς υψηλή",
-        starDesc: "Αστέρια: υψηλή προς χαμηλή",
-        starAsc: "Αστέρια: χαμηλή προς υψηλή",
-        reachedEnd: "Φτάσατε στο τέλος της λίστας",
-        tryAdjusting: "Δοκιμάστε να αλλάξετε τα φίλτρα ή την τοποθεσία",
-        allHotels: "Όλα τα Ξενοδοχεία"
+        room: "Δωμάτιο", rooms: "Δωμάτια", guest: "Επισκέπτης", guests: "Επισκέπτες",
+        searching: "Αναζήτηση...", propertiesFound: "καταλύματα βρέθηκαν", sortBy: "ΤΑΞΙΝΟΜΗΣΗ ΚΑΤΑ:",
+        mapView: "Προβολή Χάρτη", backToDashboard: "Πίσω στον Πίνακα", noProperties: "Δεν βρέθηκαν καταλύματα",
+        recommended: "Προτεινόμενα", ratingDesc: "Βαθμολογία: υψηλή προς χαμηλή", ratingAsc: "Βαθμολογία: χαμηλή προς υψηλή",
+        starDesc: "Αστέρια: υψηλή προς χαμηλή", starAsc: "Αστέρια: χαμηλή προς υψηλή",
+        reachedEnd: "Φτάσατε στο τέλος της λίστας", tryAdjusting: "Δοκιμάστε να αλλάξετε τα φίλτρα ή την τοποθεσία", allHotels: "Όλα τα Ξενοδοχεία"
     },
     pt: {
-        room: "Quarto",
-        rooms: "Quartos",
-        guest: "Hóspede",
-        guests: "Hóspedes",
-        searching: "Buscando...",
-        propertiesFound: "propriedades encontradas",
-        sortBy: "ORDENAR POR:",
-        mapView: "Ver no Mapa",
-        backToDashboard: "Voltar ao Painel",
-        noProperties: "Nenhuma propriedade encontrada",
-        recommended: "Mais Recomendados",
-        ratingDesc: "Avaliação: alta para baixa",
-        ratingAsc: "Avaliação: baixa para alta",
-        starDesc: "Estrelas: alta para baixa",
-        starAsc: "Estrelas: baixa para alta",
-        reachedEnd: "Você chegou ao final da lista",
-        tryAdjusting: "Tente ajustar seus filtros ou localidade",
-        allHotels: "Todos os Hotéis"
+        room: "Quarto", rooms: "Quartos", guest: "Hóspede", guests: "Hóspedes",
+        searching: "Buscando...", propertiesFound: "propriedades encontradas", sortBy: "ORDENAR POR:",
+        mapView: "Ver no Mapa", backToDashboard: "Voltar ao Painel", noProperties: "Nenhuma propriedade encontrada",
+        recommended: "Mais Recomendados", ratingDesc: "Avaliação: alta para baixa", ratingAsc: "Avaliação: baixa para alta",
+        starDesc: "Estrelas: alta para baixa", starAsc: "Estrelas: baixa para alta",
+        reachedEnd: "Você chegou ao final da lista", tryAdjusting: "Tente ajustar seus filtros ou localidade", allHotels: "Todos os Hotéis"
     }
 };
 
@@ -259,56 +161,288 @@ const tListing = (key, lang = 'tr') => {
     return LISTING_LOCALES[lang]?.[key] || LISTING_LOCALES['en']?.[key] || key;
 };
 
+// ═══════════════════════════════════════════════
+// Map Fit Control - auto-fits map to hotel bounds
+// ═══════════════════════════════════════════════
+const MapFitControl = ({ hotels, shouldRefit, onRefitDone }) => {
+    const map = useMap();
+    React.useEffect(() => {
+        if (!shouldRefit || hotels.length === 0) return;
+        const valid = hotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
+        if (valid.length === 0) return;
+        try {
+            const bounds = L.latLngBounds(valid.map(h => [parseFloat(h.lat), parseFloat(h.lng)]));
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
+                onRefitDone();
+            }
+        } catch (e) { /* ignore */ }
+    }, [shouldRefit, hotels, map, onRefitDone]);
+    return null;
+};
+
+// ═══════════════════════════════════════════════
+// Price Marker - Google Hotels-style price bubble
+// ═══════════════════════════════════════════════
+const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHover, searchParams, currencySymbol }) => {
+    const priceDisplay = hotel.price ? Math.round(hotel.price).toLocaleString('tr-TR') : '';
+    const active = isSelected || isHovered;
+    const icon = L.divIcon({
+        className: '',
+        html: `<div style="position:relative;display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer;">
+            <div style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:1.5px solid ${active ? 'transparent' : 'rgba(60,64,67,0.2)'};background:${active ? '#1a73e8' : 'white'};color:${active ? 'white' : '#3c4043'};box-shadow:0 2px 6px rgba(0,0,0,${active ? '0.3' : '0.15'});transform:${active ? 'scale(1.08)' : 'scale(1)'};transition:all 0.15s ease;display:flex;align-items:center;gap:4px;">
+                <span class="material-symbols-outlined" style="font-size:14px; margin-right:-2px">hotel</span>
+                ${currencySymbol}${priceDisplay}
+            </div>
+            <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${active ? '#1a73e8' : 'white'};margin-top:-1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));"></div>
+        </div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+    });
+    return (
+        <Marker
+            position={[parseFloat(hotel.lat), parseFloat(hotel.lng)]}
+            icon={icon}
+            zIndexOffset={active ? 1000 : 0}
+            eventHandlers={{
+                click: () => onSelect(hotel),
+                mouseover: () => onHover(hotel),
+                mouseout: () => onHover(null),
+            }}
+        >
+            <Popup className="hotel-price-popup" minWidth={220} autoPan={false} closeButton={false}>
+                <div style={{ fontFamily: 'Google Sans,Roboto,Arial,sans-serif', padding: '4px' }}>
+                    <img src={hotel.image} alt={hotel.name} onError={e => { e.target.src = placeholderHotel; }} style={{ width: '100%', height: '110px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />
+                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#3c4043', lineHeight: '1.3', marginBottom: '6px' }}>{hotel.name}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '15px', fontWeight: 700, color: '#3c4043' }}>{currencySymbol}{priceDisplay}</span>
+                        <Link to={`/hotel/${hotel.hotelId}?${searchParams.toString()}`} target="_blank" onClick={e => e.stopPropagation()} style={{ background: '#1a73e8', color: 'white', fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '20px', textDecoration: 'none' }}>
+                            Göster
+                        </Link>
+                    </div>
+                </div>
+            </Popup>
+        </Marker>
+    );
+});
+
+// ═══════════════════════════════════════════════
+// Google Hotels Style Card
+// ═══════════════════════════════════════════════
+const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered, onHover, onSelect, currentLang, isFav, onToggleFav }) => {
+    const [imgIdx, setImgIdx] = React.useState(0);
+    const images = hotel.images?.length > 0 ? hotel.images : [placeholderHotel];
+
+    const getCurrencySymbol = (code) => {
+        const sym = { USD: '$', EUR: '€', GBP: '£', TRY: '₺', AED: 'د.إ', SAR: 'ر.س', JPY: '¥', CNY: '¥', RUB: '₽' };
+        return sym[code] || code || '$';
+    };
+    const currencySymbol = getCurrencySymbol(hotel.currency);
+    const formattedPrice = hotel.price ? Math.round(hotel.price).toLocaleString('tr-TR') : '';
+
+    const starTypeLabelMap = {
+        tr: 'Yıldızlı Otel', en: 'Star Hotel', ar: 'نجوم', de: 'Sterne Hotel',
+        fr: 'Étoiles', ru: 'Звезд', zh: '星酒店', es: 'Estrellas', it: 'Stelle', ja: '星ホテル'
+    };
+    const typeLabel = hotel.stars > 0
+        ? `${hotel.stars} ${starTypeLabelMap[currentLang] || starTypeLabelMap.en}`
+        : (hotel.type || 'Hotel');
+
+    const ratingNum = parseFloat(hotel.rating) || 0;
+
+    const showPricesLabel = {
+        tr: 'Fiyatları göster', en: 'Show prices', ar: 'عرض الأسعار', de: 'Preise anzeigen',
+        fr: 'Voir les prix', ru: 'Показать цены', zh: '查看价格', es: 'Ver precios', it: 'Mostra prezzi', ja: '料金を見る', fa: 'نمایش قیمت'
+    };
+    const freeCancelLabel = {
+        tr: 'Ücretsiz iptal', en: 'Free cancellation', ar: 'إلغاء مجاني', de: 'Kostenlose Stornierung',
+        fr: 'Annulation gratuite', ru: 'Бесплатная отмена', zh: '免费取消', es: 'Cancelación gratuita', it: 'Cancellazione gratuita'
+    };
+
+    const nextImg = (e) => { e.preventDefault(); e.stopPropagation(); setImgIdx(p => (p + 1) % images.length); };
+    const prevImg = (e) => { e.preventDefault(); e.stopPropagation(); setImgIdx(p => (p - 1 + images.length) % images.length); };
+    const isActive = isSelected || isHovered;
+
+    return (
+        <div
+            className={`flex p-4 border-b border-[#e8eaed] dark:border-slate-700 cursor-pointer transition-colors group ${isActive ? 'bg-[#f0f4ff] dark:bg-blue-900/10' : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-800/40'}`}
+            onMouseEnter={() => onHover(hotel)}
+            onMouseLeave={() => onHover(null)}
+            onClick={() => onSelect(isActive ? null : hotel)}
+        >
+            {/* Image */}
+            <div className="relative w-[300px] h-[200px] rounded-xl overflow-hidden shrink-0 mr-5 bg-[#f1f3f4]">
+                <img
+                    src={images[imgIdx]}
+                    alt={hotel.name}
+                    className="w-full h-full object-cover"
+                    onError={e => { e.target.src = placeholderHotel; e.target.onerror = null; }}
+                />
+                {images.length > 1 && (
+                    <>
+                        <button onClick={prevImg} className="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="material-symbols-outlined text-white" style={{ fontSize: '14px' }}>chevron_left</span>
+                        </button>
+                        <button onClick={nextImg} className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="material-symbols-outlined text-white" style={{ fontSize: '14px' }}>chevron_right</span>
+                        </button>
+                        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-0.5">
+                            {images.slice(0, 5).map((_, i) => (
+                                <div key={i} className={`rounded-full transition-all ${i === imgIdx ? 'w-3 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/60'}`} />
+                            ))}
+                        </div>
+                    </>
+                )}
+                <button
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm flex items-center justify-center transition-colors"
+                    onClick={e => { e.preventDefault(); e.stopPropagation(); onToggleFav?.(); }}
+                >
+                    {isFav ? (
+                        <span className="material-symbols-outlined text-[#8ab4f8] dark:text-[#8ab4f8]" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>bookmark</span>
+                    ) : (
+                        <span className="material-symbols-outlined text-white" style={{ fontSize: '16px' }}>bookmark_border</span>
+                    )}
+                </button>
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0 flex flex-col gap-1 py-1">
+                {/* Name + Price */}
+                <div className="flex items-start justify-between gap-4">
+                    <Link
+                        to={`/hotel/${hotel.hotelId}?${searchParams.toString()}`}
+                        target="_blank"
+                        className="text-[20px] font-normal text-[#202124] dark:text-slate-100 hover:underline leading-[1.3] line-clamp-2 flex-1"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {hotel.name}
+                    </Link>
+                    <div className="shrink-0 text-right mt-1">
+                        {hotel.strikethroughPrice && (
+                            <div className="text-[13px] text-[#70757a] dark:text-slate-400 line-through leading-none mb-1 font-roboto">
+                                {currencySymbol}{Math.round(hotel.strikethroughPrice).toLocaleString('tr-TR')}
+                            </div>
+                        )}
+                        <span className="text-[22px] font-bold text-[#202124] dark:text-slate-100 leading-none font-roboto">
+                            {currencySymbol}{formattedPrice}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Rating */}
+                {ratingNum > 0 && (
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[13px] font-medium text-[#3c4043] dark:text-slate-200">{ratingNum.toFixed(1)}</span>
+                        <div className="flex">
+                            {[...Array(5)].map((_, i) => (
+                                <span key={i} style={{ fontSize: '12px', color: i < Math.round(ratingNum) ? '#fabb05' : '#dadce0' }}>★</span>
+                            ))}
+                        </div>
+                        <span className="text-[12px] text-[#70757a] dark:text-slate-400">({hotel.ratingLabel})</span>
+                    </div>
+                )}
+
+                {/* Property type */}
+                <p className="text-[13px] text-[#70757a] dark:text-slate-400 font-roboto">{typeLabel}</p>
+
+                {/* Amenities grid */}
+                {hotel.amenities && hotel.amenities.length > 0 && (
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1">
+                        {hotel.amenities.slice(0, 6).map((amenity, i) => (
+                            <div key={i} className="flex items-center gap-1.5 text-[13px] text-[#5f6368] dark:text-slate-300 min-w-0 font-roboto">
+                                <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 shrink-0" style={{ fontSize: '18px' }}>{amenity.icon}</span>
+                                <span className="truncate">
+                                    {Array.isArray(amenity.label) ? amenity.label[0] : amenity.label}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Bottom row: free cancel + CTA */}
+                <div className="flex items-center justify-between mt-auto pt-4 gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                        {hotel.hasFreeCancellation && (
+                            <span className="text-[12px] text-[#0d652d] dark:text-green-400 font-medium truncate font-roboto">
+                                {freeCancelLabel[currentLang] || freeCancelLabel.en}
+                            </span>
+                        )}
+                        {hotel.boardName && (
+                            <span className="text-[12px] text-[#70757a] dark:text-slate-400 truncate font-roboto">· {hotel.boardName}</span>
+                        )}
+                    </div>
+                    <Link
+                        to={`/hotel/${hotel.hotelId}?${searchParams.toString()}`}
+                        target="_blank"
+                        onClick={e => e.stopPropagation()}
+                        className="shrink-0 inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1558d6] active:bg-[#1246b8] text-white text-[14px] font-medium px-5 py-2 rounded-full transition-colors whitespace-nowrap"
+                    >
+                        {showPricesLabel[currentLang] || showPricesLabel.en}
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
+});
+
+// ═══════════════════════════════════════════════
+// Skeleton loader card
+// ═══════════════════════════════════════════════
+const GoogleCardSkeleton = () => (
+    <div className="flex p-4 border-b border-[#e8eaed] dark:border-slate-700 animate-pulse">
+        <div className="w-[160px] h-[120px] rounded-lg bg-[#f1f3f4] dark:bg-slate-700 shrink-0 mr-4" />
+        <div className="flex-1 space-y-2.5">
+            <div className="h-4 bg-[#f1f3f4] dark:bg-slate-700 rounded-full w-3/4" />
+            <div className="h-3 bg-[#f1f3f4] dark:bg-slate-700 rounded-full w-1/2" />
+            <div className="h-3 bg-[#f1f3f4] dark:bg-slate-700 rounded-full w-2/3" />
+            <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="h-3 bg-[#f1f3f4] dark:bg-slate-700 rounded-full" />
+                <div className="h-3 bg-[#f1f3f4] dark:bg-slate-700 rounded-full" />
+                <div className="h-3 bg-[#f1f3f4] dark:bg-slate-700 rounded-full" />
+                <div className="h-3 bg-[#f1f3f4] dark:bg-slate-700 rounded-full" />
+            </div>
+        </div>
+    </div>
+);
+
+// ═══════════════════════════════════════════════
+// Main HotelListing Component
+// ═══════════════════════════════════════════════
 const HotelListing = () => {
-    // Mapping of facility IDs to Material Icon names and English labels
+    // Facility icon map
     const FACILITY_ICON_MAP = {
-        98445: { icon: 'wifi', label: 'Free Wifi' },
-        48325: { icon: 'wifi', label: 'Wifi Access' },
-        3664: { icon: 'wifi', label: 'High Speed Internet' },
-        616: { icon: 'pool', label: 'Outdoor Pool' },
-        649: { icon: 'pool', label: 'Indoor Pool' },
-        1685: { icon: 'pool', label: 'Kids Pool' },
-        1985: { icon: 'spa', label: 'Spa' },
-        1978: { icon: 'fitness_center', label: 'Health Club' },
-        98455: { icon: 'fitness_center', label: 'Fitness' },
-        47935: { icon: 'fitness_center', label: 'Gym' },
-        641: { icon: 'restaurant', label: 'Restaurant' },
-        3134: { icon: 'local_bar', label: 'Bar' },
-        606: { icon: 'pets', label: 'Pets Allowed' },
-        719: { icon: 'ac_unit', label: 'Air Conditioning' },
-        101165: { icon: 'inventory_2', label: 'Minibar' },
-        618: { icon: 'sports_tennis', label: 'Tennis' },
-        3164: { icon: 'casino', label: 'Casino' },
-        3154: { icon: 'nightlife', label: 'Night Club' },
-        3891: { icon: 'hot_tub', label: 'Jacuzzi' },
-        650: { icon: 'spa', label: 'Sauna' },
-        3064: { icon: 'atm', label: 'ATM' },
-        18006: { icon: 'business_center', label: 'Business Centre' },
-        18366: { icon: 'local_laundry_service', label: 'Laundry' },
-        603: { icon: 'child_care', label: 'Babysitting' },
-        638: { icon: 'explore', label: 'Tour Desk' },
-        646: { icon: 'support_agent', label: 'Concierge' },
-        666: { icon: 'car_rental', label: 'Car Rental' },
-        1993: { icon: 'lock', label: 'Safety Box' },
-        1995: { icon: 'wheelchair_pickup', label: 'Wheelchair Access' },
-        2007: { icon: 'elevator', label: 'Elevator' },
-        98485: { icon: 'security', label: 'Security' },
-        100075: { icon: 'smoking_rooms', label: 'Smoking Area' },
-        1687: { icon: 'water_sports', label: 'Water Sports' },
-        1981: { icon: 'child_friendly', label: 'Kids Club' },
-        3724: { icon: 'beach_access', label: 'Beach' },
-        18126: { icon: 'directions_bike', label: 'Bicycle Rental' },
+        98445: { icon: 'wifi', label: 'Free Wifi' }, 48325: { icon: 'wifi', label: 'Wifi Access' },
+        3664: { icon: 'wifi', label: 'High Speed Internet' }, 616: { icon: 'pool', label: 'Outdoor Pool' },
+        649: { icon: 'pool', label: 'Indoor Pool' }, 1685: { icon: 'pool', label: 'Kids Pool' },
+        1985: { icon: 'spa', label: 'Spa' }, 1978: { icon: 'fitness_center', label: 'Health Club' },
+        98455: { icon: 'fitness_center', label: 'Fitness' }, 47935: { icon: 'fitness_center', label: 'Gym' },
+        641: { icon: 'restaurant', label: 'Restaurant' }, 3134: { icon: 'local_bar', label: 'Bar' },
+        606: { icon: 'pets', label: 'Pets Allowed' }, 719: { icon: 'ac_unit', label: 'Air Conditioning' },
+        101165: { icon: 'inventory_2', label: 'Minibar' }, 618: { icon: 'sports_tennis', label: 'Tennis' },
+        3164: { icon: 'casino', label: 'Casino' }, 3154: { icon: 'nightlife', label: 'Night Club' },
+        3891: { icon: 'hot_tub', label: 'Jacuzzi' }, 650: { icon: 'spa', label: 'Sauna' },
+        3064: { icon: 'atm', label: 'ATM' }, 18006: { icon: 'business_center', label: 'Business Centre' },
+        18366: { icon: 'local_laundry_service', label: 'Laundry' }, 603: { icon: 'child_care', label: 'Babysitting' },
+        638: { icon: 'explore', label: 'Tour Desk' }, 646: { icon: 'support_agent', label: 'Concierge' },
+        666: { icon: 'car_rental', label: 'Car Rental' }, 1993: { icon: 'lock', label: 'Safety Box' },
+        1995: { icon: 'wheelchair_pickup', label: 'Wheelchair Access' }, 2007: { icon: 'elevator', label: 'Elevator' },
+        98485: { icon: 'security', label: 'Security' }, 100075: { icon: 'smoking_rooms', label: 'Smoking Area' },
+        1687: { icon: 'water_sports', label: 'Water Sports' }, 1981: { icon: 'child_friendly', label: 'Kids Club' },
+        3724: { icon: 'beach_access', label: 'Beach' }, 18126: { icon: 'directions_bike', label: 'Bicycle Rental' },
         98415: { icon: 'airport_shuttle', label: 'Airport Shuttle' }
     };
 
     const { i18n } = useTranslation();
     const currentLang = i18n.language || localStorage.getItem('language') || 'tr';
+    const navigate = useNavigate();
 
-    const [viewMode, setViewMode] = React.useState('list'); // 'list', 'grid2', 'grid3'
     const params = useParams();
     const slug = params['*'] || params.slug;
     const { theme, campaign } = params;
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const { favorites, isFavorite, toggleFavorite } = useFavorites();
+    const [isFavOpen, setIsFavOpen] = React.useState(false);
 
     const [hotels, setHotels] = React.useState([]);
     const [page, setPage] = React.useState(0);
@@ -322,9 +456,19 @@ const HotelListing = () => {
     const pageRef = React.useRef(0);
     const hasMoreRef = React.useRef(true);
 
-    /**
-     * Returns default check-in (tomorrow) and check-out (day after) as yyyy-MM-dd strings.
-     */
+    // UI state
+    const [selectedHotel, setSelectedHotel] = React.useState(null);
+    const [hoveredHotel, setHoveredHotel] = React.useState(null);
+    const [shouldRefitMap, setShouldRefitMap] = React.useState(true);
+    const [isSortOpen, setIsSortOpen] = React.useState(false);
+    const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false);
+    const listScrollRef = React.useRef(null);
+    const loaderRef = React.useRef(null);
+    const sortDropdownRef = React.useRef(null);
+
+    const [locationNames, setLocationNames] = React.useState({});
+    const [facilityNames, setFacilityNames] = React.useState({});
+
     const getDefaultDates = () => {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -349,7 +493,6 @@ const HotelListing = () => {
         const roomMaxChildrenParam = searchParams.get('roomMaxChildren');
         const roomMaxExtraBedParam = searchParams.get('roomMaxExtraBed');
         const facilitiesParam = searchParams.get('facilities');
-
         return {
             stars: starsParam ? starsParam.split(',').map(Number) : [],
             freeCancellation: freeCancellationParam === 'true' ? true : freeCancellationParam === 'false' ? false : null,
@@ -363,97 +506,80 @@ const HotelListing = () => {
         };
     };
 
-    const [locationNames, setLocationNames] = React.useState({});
-    const [facilityNames, setFacilityNames] = React.useState({});
-    const loaderRef = React.useRef(null);
-
-    const gridClasses = {
-        'list': 'grid-cols-1',
-        'grid2': 'grid-cols-1 lg:grid-cols-2',
-        'grid3': 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3',
-        'grid4': 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-    };
-
     // Parse params
     const roomState = useMemo(() => {
         const guestsParam = searchParams.get('guests');
-        if (guestsParam) {
-            return parseGuestsParam(guestsParam);
-        }
-        // Fallback for old links
+        if (guestsParam) return parseGuestsParam(guestsParam);
         const adults = searchParams.get('adults');
         const children = searchParams.get('children');
         return [{ adults: parseInt(adults) || 2, children: parseInt(children) || 0, childAges: [] }];
     }, [searchParams]);
 
-    // Computed totals
     const totalAdults = roomState.reduce((sum, r) => sum + r.adults, 0);
     const totalChildren = roomState.reduce((sum, r) => sum + r.children, 0);
     const totalRooms = roomState.length;
     const totalGuests = totalAdults + totalChildren;
 
-    // Get location name from query parameter
     const queryLocation = searchParams.get('q');
-
-    // For hierarchical slugs, take the last segment for the display name
     const getSlugDisplayName = (s) => {
         if (!s) return null;
         const decoded = decodeURIComponent(s);
         const parts = decoded.split('/');
-        const lastPart = parts[parts.length - 1];
-        return lastPart.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        return parts[parts.length - 1].replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     };
-
     const locationName = queryLocation
         ? queryLocation.split(',')[0].trim()
-        : slug
-            ? getSlugDisplayName(slug)
-            : '';
+        : slug ? getSlugDisplayName(slug) : '';
 
     const themeName = theme ? theme.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
     const campaignName = campaign ? campaign.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
 
-    const getPageTitle = (lang) => {
-        if (campaignName) {
-            return lang === 'tr' ? `${campaignName} Otelleri` : `${campaignName} Hotels`;
-        }
-        if (themeName) {
-            return lang === 'tr' ? `${themeName} Otelleri` : `${themeName} Hotels`;
-        }
-        if (!locationName) return tListing('allHotels', lang);
-        switch (lang) {
-            case 'tr': return `${locationName} Otelleri`;
-            case 'zh': return `${locationName}酒店`;
-            case 'ja': return `${locationName}のホテル`;
-            case 'ar': return `فنادق في ${locationName}`;
-            case 'fa': return `هتل‌ها در ${locationName}`;
-            case 'ru': return `Отели в ${locationName}`;
-            case 'fr': return `Hôtels à ${locationName}`;
-            case 'it': return `Hotel a ${locationName}`;
-            case 'el': return `Ξενοδοχεία σε ${locationName}`;
-            case 'pt': return `Hotéis em ${locationName}`;
-            case 'es': return `Hoteles en ${locationName}`;
-            default: return `Hotels in ${locationName}`;
-        }
-    };
-    const pageTitle = getPageTitle(currentLang);
-
-    // Extract locationId from URL params
     const locationId = searchParams.get('locationId');
 
-    const subtitle = `${totalRooms} ${totalRooms > 1 ? tListing('rooms', currentLang) : tListing('room', currentLang)}, ${totalGuests} ${totalGuests !== 1 ? tListing('guests', currentLang) : tListing('guest', currentLang)} • ${isLoading && totalProperties === 0 ? tListing('searching', currentLang) : `${totalProperties || 0} ${tListing('propertiesFound', currentLang)}`}`;
+    // Date formatting - Google Hotels style
+    const formatDateShort = (dateStr) => {
+        if (!dateStr) return '';
+        const monthsTr = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+        const monthsEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const daysTr = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+        const daysEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        try {
+            const d = new Date(dateStr + 'T00:00:00');
+            const months = currentLang === 'tr' ? monthsTr : monthsEn;
+            const days = currentLang === 'tr' ? daysTr : daysEn;
+            return `${d.getDate()} ${months[d.getMonth()]} ${days[d.getDay()]}`;
+        } catch (e) { return dateStr; }
+    };
 
-    // Map API hotel object to UI model
+    // Guest display
+    const guestDisplay = useMemo(() => {
+        const parts = [];
+        if (totalGuests > 0) parts.push(`${totalGuests}`);
+        if (totalRooms > 1) parts.push(`${totalRooms} ${currentLang === 'tr' ? 'oda' : 'rooms'}`);
+        return parts.join(', ') || '2';
+    }, [totalGuests, totalRooms, currentLang]);
+
+    // Results count text
+    const resultsText = useMemo(() => {
+        if (isLoading && totalProperties === 0) return tListing('searching', currentLang);
+        return `${locationName || ''} · ${totalProperties || 0} ${currentLang === 'tr' ? 'sonuç' : 'results'}`;
+    }, [isLoading, totalProperties, locationName, currentLang]);
+
+    // Active filter count for badge
+    const activeFilterCount = React.useMemo(() => {
+        return [
+            searchParams.get('stars'), searchParams.get('locations'), searchParams.get('freeCancellation'),
+            searchParams.get('prePayment'), searchParams.get('roomTwin'), searchParams.get('roomMaxAdult'),
+            searchParams.get('roomMaxChildren'), searchParams.get('roomMaxExtraBed'), searchParams.get('facilities')
+        ].filter(Boolean).length;
+    }, [searchParams]);
+
+    // Map hotel from API to UI model
     const mapApiHotelToModel = React.useCallback((apiHotel) => {
-        // Pick name and star based on language
-        const hotelNames = apiHotel.names || apiHotel.name; // Support both for transition
+        const hotelNames = apiHotel.names || apiHotel.name;
         const name = hotelNames?.[currentLang] || hotelNames?.en || hotelNames?.defaultName || 'Unknown Hotel';
-
-        // Dynamic Stars - new object structure
         const starCount = apiHotel.hotelStar?.star || 0;
         const starLabel = apiHotel.hotelStar?.names?.[currentLang] || apiHotel.hotelStar?.names?.en || '';
-
-        // Extract location from Breadcrumbs if locationPathNames is missing
         let locationString = apiHotel.locationPathNames?.replace(/,/g, ', ');
         if (!locationString && Array.isArray(apiHotel.locationBreadcrumbs)) {
             const crumbs = apiHotel.locationBreadcrumbs
@@ -461,41 +587,26 @@ const HotelListing = () => {
                 .map(crumb => {
                     const n = crumb.name;
                     return n?.translations?.[currentLang] || n?.translations?.en || n?.defaultName;
-                })
-                .filter(Boolean);
-            if (crumbs.length > 0) {
-                locationString = crumbs.join(', ');
-            }
+                }).filter(Boolean);
+            if (crumbs.length > 0) locationString = crumbs.join(', ');
         }
-
-        // Convert score (e.g. 80000) to rating (e.g. 8.0)
         const rating = apiHotel.score ? (apiHotel.score / 10000).toFixed(1) : '0';
-
-        // Rating labels
         let ratingLabel = 'Good';
         const ratingVal = parseFloat(rating);
         if (ratingVal >= 9) ratingLabel = 'Superb';
         else if (ratingVal >= 8) ratingLabel = 'Excellent';
         else if (ratingVal >= 7) ratingLabel = 'Very Good';
 
-        // Dynamic Amenities - check multiple possible field names and formats
         let amenities = [];
         const rawFacs = apiHotel.hotelFacilityIds || apiHotel.facilities || apiHotel.facilityIds || apiHotel.hotelFacilities;
-
         if (rawFacs && Array.isArray(rawFacs)) {
-            // Group by icon to avoid duplicates, but combine labels for the tooltip
             const iconGroups = {};
-
             rawFacs.forEach(f => {
                 const id = typeof f === 'object' ? (f.facilityId || f.id || f.value) : f;
                 const match = FACILITY_ICON_MAP[Number(id)];
-
                 if (match) {
-                    // Use localized name from facility object if available
                     const localizedLabel = typeof f === 'object' && f.names
-                        ? (f.names[currentLang] || f.names.en || match.label)
-                        : match.label;
-
+                        ? (f.names[currentLang] || f.names.en || match.label) : match.label;
                     if (!iconGroups[match.icon]) {
                         iconGroups[match.icon] = { ...match, labels: [localizedLabel] };
                     } else if (!iconGroups[match.icon].labels.includes(localizedLabel)) {
@@ -503,141 +614,71 @@ const HotelListing = () => {
                     }
                 }
             });
-
-            // Convert back to array with labels array for the Tooltip's list display
-            amenities = Object.values(iconGroups).map(group => ({
-                icon: group.icon,
-                label: group.labels // Pass as array for structured list
-            })).slice(0, 10);
+            amenities = Object.values(iconGroups).map(g => ({ icon: g.icon, label: g.labels })).slice(0, 10);
         }
+        if (amenities.length === 0) amenities = [{ icon: 'info', label: ['Details'] }];
 
-        // Fallback if no facilities matched our icon map
-        if (amenities.length === 0) {
-            amenities = [
-                { icon: 'info', label: 'Details' }
-            ];
-        }
-
-        // Handle images with thumbnail priority and local silhouette fallbacks
         let imagesToMap = [];
-
         if (apiHotel.images && apiHotel.images.length > 0) {
-            // Sort by isThumbnail so thumbnail is always first
             const sorted = [...apiHotel.images].sort((a, b) => (b.isThumbnail ? 1 : 0) - (a.isThumbnail ? 1 : 0));
-
-            // Filter: must be the thumbnail OR have 'hotel' category
-            const filtered = sorted.filter(img =>
-                img.isThumbnail || (img.category && img.category.toLowerCase() === 'hotel')
-            );
-
-            // Map to URLs and deduplicate while maintaining order (thumbnail first)
+            const filtered = sorted.filter(img => img.isThumbnail || (img.category && img.category.toLowerCase() === 'hotel'));
             imagesToMap = [...new Set(filtered.map(img => img.url))].filter(url => !!url);
         }
+        if (imagesToMap.length === 0) imagesToMap = [placeholderHotel];
 
-        if (imagesToMap.length === 0) {
-            imagesToMap = [placeholderHotel];
-        }
-
-        const hotelBadges = [];
-        if (apiHotel.isNewProperty) {
-            hotelBadges.push({ type: 'popular', label: 'New Property', color: 'bg-teal-500/80' });
-        }
-        if (apiHotel.preferred && false) { // Deprecated: Replaced by the diagonal isRecommended ribbon
-            hotelBadges.push({ type: 'featured', label: 'Preferred', color: 'bg-amber-500/80' });
-        }
-        if (apiHotel.exclusive) {
-            hotelBadges.push({ type: 'exclusive', label: 'Exclusive', color: 'bg-purple-500/80' });
-        }
-
-        // Extract dynamic price and currency (find lowest price among all rooms)
         let lowestRoom = null;
         let lowestPrice = Infinity;
-
         if (apiHotel.rooms && apiHotel.rooms.length > 0) {
             apiHotel.rooms.forEach(room => {
                 const ratePrice = room?.hubRateModel?.price;
                 const priceValue = ratePrice?.calculatedAmount || ratePrice?.totalPaymentAmount || ratePrice?.markupCalculatedPrice?.holder?.saleAmount || 0;
-                if (priceValue > 0 && priceValue < lowestPrice) {
-                    lowestPrice = priceValue;
-                    lowestRoom = room;
-                }
+                if (priceValue > 0 && priceValue < lowestPrice) { lowestPrice = priceValue; lowestRoom = room; }
             });
         }
-
         const selectedRoom = lowestRoom || apiHotel.rooms?.[0];
         const hubRate = selectedRoom?.hubRateModel;
         const ratePrice = hubRate?.price;
         const priceValue = lowestPrice !== Infinity ? lowestPrice : (ratePrice?.calculatedAmount || ratePrice?.totalPaymentAmount || ratePrice?.markupCalculatedPrice?.holder?.saleAmount || 0);
         const currencyCode = ratePrice?.currency || 'USD';
-        const totalTaxAmount = ratePrice?.totalTaxAmount || 0;
-
-        // Extra returned details from API
         const boardName = selectedRoom?.boardName || hubRate?.boardName || selectedRoom?.boardCode || (selectedRoom?.boardType ? selectedRoom.boardType.replace(/_/g, ' ') : null);
-        const roomName = selectedRoom?.name || selectedRoom?.roomName || selectedRoom?.roomCategoryName;
         const isNonRefundable = hubRate?.nonRefundable === true || selectedRoom?.nonRefundable === true;
         const cancellationPolicies = hubRate?.cancellationPolicies || selectedRoom?.cancellationPolicies;
         const hasFreeCancellation = (cancellationPolicies && cancellationPolicies.length > 0 && cancellationPolicies.some(cp => cp.amount === 0 || cp.penaltyAmount === 0)) || (!isNonRefundable && cancellationPolicies?.length > 0);
         const strikethroughPrice = ratePrice?.strikethroughPrice || ratePrice?.originalPrice || (priceValue > 0 ? priceValue * 1.15 : 0);
 
         return {
-            id: apiHotel.id,
-            hotelId: apiHotel.hotelId,
-            name: name,
-            type: starLabel || 'Hotel',
-            stars: starCount,
-            location: locationString || 'Unknown Location',
-            image: imagesToMap[0],
-            images: imagesToMap,
-            rating: rating,
-            ratingLabel: ratingLabel,
-            ratingColor: 'bg-primary/10 text-primary',
-            price: priceValue,
-            currency: currencyCode,
-            tax: totalTaxAmount,
-            lat: apiHotel.coordinates?.lat,
-            lng: apiHotel.coordinates?.lon,
-            amenities: amenities,
-            transportations: apiHotel.transportations || [],
-            badges: hotelBadges,
-            // Additional returned API data
-            roomName: roomName,
-            boardName: boardName,
-            isNonRefundable: isNonRefundable,
-            hasFreeCancellation: hasFreeCancellation,
+            id: apiHotel.id, hotelId: apiHotel.hotelId, name, type: starLabel || 'Hotel',
+            stars: starCount, location: locationString || 'Unknown Location',
+            image: imagesToMap[0], images: imagesToMap, rating, ratingLabel,
+            ratingColor: 'bg-primary/10 text-primary', price: priceValue, currency: currencyCode,
+            lat: apiHotel.coordinates?.lat, lng: apiHotel.coordinates?.lon,
+            amenities, transportations: apiHotel.transportations || [],
+            badges: [], roomName: selectedRoom?.name || selectedRoom?.roomName,
+            boardName, isNonRefundable, hasFreeCancellation,
             strikethroughPrice: strikethroughPrice > priceValue ? strikethroughPrice : null,
             availableRoomsCount: apiHotel.rooms?.length || 0,
             isRecommended: apiHotel.isRecommended === true || apiHotel.preferred === true,
         };
     }, []);
 
-    // Initial load: fetch location names if possible (mocked for now or from crumbs)
+    // Save to localStorage
     React.useEffect(() => {
-        console.log('HotelListing mounted with locationId:', locationId);
-        if (slug) {
-            localStorage.setItem('last_hotel_search_slug', slug);
-        }
+        if (slug) localStorage.setItem('last_hotel_search_slug', slug);
         const currentParams = searchParams.toString();
-        if (currentParams) {
-            localStorage.setItem('last_hotel_search_params', currentParams);
-        }
+        if (currentParams) localStorage.setItem('last_hotel_search_params', currentParams);
     }, [slug, searchParams]);
 
     // Load hotels from API
     const loadMoreHotels = React.useCallback(async (isReset = false) => {
-        // If we are resetting, we cancel any existing request
         if (isReset && abortControllerRef.current) {
             abortControllerRef.current.abort();
             setIsLoading(false);
             isFetchingRef.current = false;
         }
-
-        // If not a reset, prevent concurrent duplicate calls or calls when no more pages
         if (!isReset) {
             if (isFetchingRef.current || !hasMoreRef.current) return;
         }
-
         isFetchingRef.current = true;
-
         if (isReset) {
             setIsLoading(true);
             setHotels([]);
@@ -647,15 +688,11 @@ const HotelListing = () => {
             setPage(0);
             setHasMore(true);
         }
-
-        // Create new AbortController for this request
         const controller = new AbortController();
         abortControllerRef.current = controller;
-
         try {
             const filters = getSearchParams();
             const currentPage = isReset ? 0 : pageRef.current;
-
             const baseRequest = {
                 locationId,
                 size: 100,
@@ -682,49 +719,33 @@ const HotelListing = () => {
                 sort: sortConfig.field ? sortConfig : null,
                 signal: controller.signal
             };
-
-            // Fetch two pages of size 100 in parallel (total 200 hotels)
             const req1 = hotelService.searchHotels({ ...baseRequest, page: currentPage });
             const req2 = hotelService.searchHotels({ ...baseRequest, page: currentPage + 1 });
-
-            // Wait for both to complete
             const results = await Promise.allSettled([req1, req2]);
-
             const res1 = results[0].status === 'fulfilled' ? results[0].value : null;
             const res2 = results[1].status === 'fulfilled' ? results[1].value : null;
-
             if (res1 && res1.data) {
                 const pageData1 = res1.data;
                 const pageData2 = (res2 && res2.data) ? res2.data : { content: [], last: true };
-
                 const filtersData = res1.filters || res1.data.filters;
                 const content1 = pageData1.content || [];
                 const content2 = pageData2.content || [];
                 const combinedContent = [...content1, ...content2];
                 const mappedHotels = combinedContent.map(h => mapApiHotelToModel(h));
-
                 setHotels(prev => {
                     if (currentPage === 0) return mappedHotels;
                     const existingIds = new Set(prev.map(h => h.id));
-                    const uniqueNew = mappedHotels.filter(h => !existingIds.has(h.id));
-                    return [...prev, ...uniqueNew];
+                    return [...prev, ...mappedHotels.filter(h => !existingIds.has(h.id))];
                 });
                 setTotalProperties(pageData1.totalElements || 0);
-
-                if (currentPage === 0 && filtersData) {
-                    setDynamicFilters(filtersData);
-                }
-
+                if (currentPage === 0 && filtersData) setDynamicFilters(filtersData);
                 const noMore = pageData1.last || pageData2.last || combinedContent.length === 0;
                 const nextHasMore = !noMore;
                 setHasMore(nextHasMore);
                 hasMoreRef.current = nextHasMore;
-
                 const nextPage = currentPage + 2;
                 setPage(nextPage);
                 pageRef.current = nextPage;
-
-                // Extract location names from breadcrumbs continuously across all pages
                 const newLocationNames = {};
                 combinedContent.forEach(hotel => {
                     if (hotel.locationBreadcrumbs) {
@@ -735,19 +756,10 @@ const HotelListing = () => {
                         });
                     }
                 });
-
-                if (Object.keys(newLocationNames).length > 0) {
-                    setLocationNames(prev => ({ ...prev, ...newLocationNames }));
-                }
-
-                // Proactive Background Prefetch:
-                // If this was initial load (currentPage === 0) and more pages exist,
-                // immediately kick off background prefetch for next 2 pages (pages 2 & 3)!
+                if (Object.keys(newLocationNames).length > 0) setLocationNames(prev => ({ ...prev, ...newLocationNames }));
                 if (currentPage === 0 && nextHasMore) {
                     isFetchingRef.current = false;
-                    setTimeout(() => {
-                        loadMoreHotels(false);
-                    }, 50);
+                    setTimeout(() => { loadMoreHotels(false); }, 50);
                     return;
                 }
             } else {
@@ -770,140 +782,82 @@ const HotelListing = () => {
         }
     }, [locationId, mapApiHotelToModel, roomState, searchParams, sortConfig]);
 
-    // Fetch names for any locations in the filters that we haven't seen in the hotel results yet
+    // Fetch missing location names
     React.useEffect(() => {
         if (!dynamicFilters || !dynamicFilters.locationId) return;
-
-        const missingLocIds = dynamicFilters.locationId
-            .map(f => f.value)
-            .filter(id => !locationNames[id]);
-
+        const missingLocIds = dynamicFilters.locationId.map(f => f.value).filter(id => !locationNames[id]);
         if (missingLocIds.length === 0) return;
-
         let isMounted = true;
-
         const fetchMissingNames = async () => {
             const newNames = {};
-            // Fetch in parallel using Promise.allSettled to not break on a single failure
             await Promise.allSettled(missingLocIds.map(async (id) => {
                 try {
                     const data = await locationService.fetchBreadcrumb(id);
                     if (data && data.data && Array.isArray(data.data)) {
-                        // Some endpoints return the array in data.data
                         data.data.forEach(crumb => {
-                            if (crumb.locationId && crumb.name) {
-                                newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
-                            }
+                            if (crumb.locationId && crumb.name) newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
                         });
                     } else if (data && data.breadcrumbs) {
                         data.breadcrumbs.forEach(crumb => {
-                            if (crumb.locationId && crumb.name) {
-                                newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
-                            }
+                            if (crumb.locationId && crumb.name) newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
                         });
                     }
-                } catch (error) {
-                    console.error(`Failed to fetch breadcrumb for location ${id}`, error);
-                }
+                } catch (error) { console.error(`Failed to fetch breadcrumb for location ${id}`, error); }
             }));
-
-            if (isMounted && Object.keys(newNames).length > 0) {
-                setLocationNames(prev => ({ ...prev, ...newNames }));
-            }
+            if (isMounted && Object.keys(newNames).length > 0) setLocationNames(prev => ({ ...prev, ...newNames }));
         };
-
         fetchMissingNames();
-
         return () => { isMounted = false; };
     }, [dynamicFilters, locationNames]);
 
-    // Fetch names for any facilities in the filters that we haven't seen yet
+    // Fetch missing facility names
     React.useEffect(() => {
         if (!dynamicFilters || !dynamicFilters.hotelFacilityIds) return;
-
-        const missingFacIds = dynamicFilters.hotelFacilityIds
-            .map(f => f.value)
-            .filter(id => !facilityNames[id]);
-
+        const missingFacIds = dynamicFilters.hotelFacilityIds.map(f => f.value).filter(id => !facilityNames[id]);
         if (missingFacIds.length === 0) return;
-
         let isMounted = true;
-
         const fetchMissingNames = async () => {
             try {
                 const data = await hotelService.fetchFacilityNames(missingFacIds);
                 if (isMounted && data && Array.isArray(data)) {
                     const newNames = {};
-                    data.forEach(fac => {
-                        // Prioritize nameEn, fallback to others
-                        newNames[fac.facilityId] = fac.nameEn || fac.nameTr || fac.nameDe || `Facility ${fac.facilityId}`;
-                    });
-                    if (Object.keys(newNames).length > 0) {
-                        setFacilityNames(prev => ({ ...prev, ...newNames }));
-                    }
+                    data.forEach(fac => { newNames[fac.facilityId] = fac.nameEn || fac.nameTr || fac.nameDe || `Facility ${fac.facilityId}`; });
+                    if (Object.keys(newNames).length > 0) setFacilityNames(prev => ({ ...prev, ...newNames }));
                 }
-            } catch (error) {
-                console.error(`Failed to fetch facility names`, error);
-            }
+            } catch (error) { console.error(`Failed to fetch facility names`, error); }
         };
-
         fetchMissingNames();
-
         return () => { isMounted = false; };
     }, [dynamicFilters, facilityNames]);
 
-    // Reset when locationId or other filters change
+    // Reset on filter/location change
     React.useEffect(() => {
-        // We don't reset to 0 immediately here to avoid the flicker, 
-        // the reset will happen inside loadMoreHotels(true)
-
         setPage(0);
         setHasMore(true);
-
-        // Scroll to top when filters change
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        // Explicitly trigger first fetch on reset
+        setSelectedHotel(null);
+        setShouldRefitMap(true);
+        if (listScrollRef.current) listScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
         loadMoreHotels(true);
-
-        return () => {
-            if (abortControllerRef.current) {
-                abortControllerRef.current.abort();
-            }
-        };
+        return () => { if (abortControllerRef.current) abortControllerRef.current.abort(); };
     }, [
-        locationId,
-        sortConfig,
-        searchParams.get('checkin'),
-        searchParams.get('checkout'),
-        searchParams.get('guests'),
-        searchParams.get('nationality'),
-        searchParams.get('q'),
-        searchParams.get('stars'),
-        searchParams.get('freeCancellation'),
-        searchParams.get('prePayment'),
-        searchParams.get('locations'),
-        searchParams.get('roomTwin'),
-        searchParams.get('roomMaxAdult'),
-        searchParams.get('roomMaxChildren'),
-        searchParams.get('roomMaxExtraBed'),
-        searchParams.get('facilities')
+        locationId, sortConfig,
+        searchParams.get('checkin'), searchParams.get('checkout'),
+        searchParams.get('guests'), searchParams.get('nationality'), searchParams.get('q'),
+        searchParams.get('stars'), searchParams.get('freeCancellation'), searchParams.get('prePayment'),
+        searchParams.get('locations'), searchParams.get('roomTwin'), searchParams.get('roomMaxAdult'),
+        searchParams.get('roomMaxChildren'), searchParams.get('roomMaxExtraBed'), searchParams.get('facilities')
     ]);
 
-    // Custom sort dropdown state & ref
-    const [isSortOpen, setIsSortOpen] = React.useState(false);
-    const sortDropdownRef = React.useRef(null);
-
+    // Close sort on outside click
     React.useEffect(() => {
         const handleClickOutside = (event) => {
-            if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
-                setIsSortOpen(false);
-            }
+            if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) setIsSortOpen(false);
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Sort
     const sortOptions = [
         { value: 'recommended', label: tListing('recommended', currentLang), icon: 'thumb_up' },
         { value: 'rating_desc', label: tListing('ratingDesc', currentLang), icon: 'star_rate' },
@@ -911,13 +865,10 @@ const HotelListing = () => {
         { value: 'star_desc', label: tListing('starDesc', currentLang), icon: 'star' },
         { value: 'star_asc', label: tListing('starAsc', currentLang), icon: 'grade' },
     ];
-
     const currentSortValue = sortConfig.field
         ? `${sortConfig.field === 'hotelStarCategoryId' ? 'star' : 'rating'}_${sortConfig.order.toLowerCase()}`
         : 'recommended';
-
     const currentSortOption = sortOptions.find(opt => opt.value === currentSortValue) || sortOptions[0];
-
     const handleSortSelect = (val) => {
         let newSort = { field: null, order: 'DESC' };
         switch (val) {
@@ -931,168 +882,354 @@ const HotelListing = () => {
         setIsSortOpen(false);
     };
 
-    React.useEffect(() => {
-        const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && hasMoreRef.current && !isFetchingRef.current && hotels.length > 0) {
-                loadMoreHotels(false);
-            }
-        }, { threshold: 0, rootMargin: '2500px' });
+    // Filter chip handlers
+    const handleStarChipToggle = (star) => {
+        const urlStars = searchParams.get('stars') ? searchParams.get('stars').split(',').map(Number) : [];
+        const newStars = urlStars.includes(star) ? urlStars.filter(s => s !== star) : [...urlStars, star];
+        const newParams = new URLSearchParams(searchParams);
+        if (newStars.length > 0) newParams.set('stars', newStars.join(','));
+        else newParams.delete('stars');
+        setSearchParams(newParams);
+    };
+    const handleFreeCancelChip = () => {
+        const current = searchParams.get('freeCancellation');
+        const newParams = new URLSearchParams(searchParams);
+        if (current === 'true') newParams.delete('freeCancellation');
+        else newParams.set('freeCancellation', 'true');
+        setSearchParams(newParams);
+    };
 
-        if (loaderRef.current) {
-            observer.observe(loaderRef.current);
+    // Scroll-based infinite loading
+    const handleListScroll = React.useCallback((e) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.target;
+        if (scrollHeight - scrollTop - clientHeight < 2500 && hasMoreRef.current && !isFetchingRef.current && hotels.length > 0) {
+            loadMoreHotels(false);
         }
-
-        return () => observer.disconnect();
     }, [loadMoreHotels, hotels.length]);
 
+    // Currency symbols
+    const getCurrencySymbol = (code) => {
+        const sym = { USD: '$', EUR: '€', GBP: '£', TRY: '₺', AED: 'د.إ', SAR: 'ر.س', JPY: '¥', CNY: '¥', RUB: '₽' };
+        return sym[code] || code || '$';
+    };
+
+    const urlStars = searchParams.get('stars') ? searchParams.get('stars').split(',').map(Number) : [];
+
+    // ════════════════════════════════════════════
+    // RENDER
+    // ════════════════════════════════════════════
     return (
-        <div className="relative flex min-h-screen flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200 font-sans">
-            <Header />
-            <main className="flex-1 max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                    <Breadcrumbs locationId={locationId} />
-                    <Link
-                        to="/"
-                        className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-all group"
-                    >
-                        <div className="size-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all shadow-xs shrink-0">
-                            <span className="material-symbols-outlined text-base font-bold group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
-                        </div>
-                        {tListing('backToDashboard', currentLang)}
-                    </Link>
+        <div className="flex h-full overflow-hidden bg-white dark:bg-[#202124] font-sans">
+
+
+
+            {/* ════════════════════════════════════════════
+                LEFT PANEL: Hotel List
+            ════════════════════════════════════════════ */}
+            <div className="w-[60%] flex-shrink-0 flex flex-col relative z-20 border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134]">
+
+                {/* Search Context Bar */}
+                <div className="px-4 pt-4 pb-3 shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] flex items-center w-full relative z-50">
+                    <ListingSearch />
                 </div>
-                <div className="flex flex-col lg:flex-row gap-8">
-                    <Sidebar filters={dynamicFilters} locationNames={locationNames} facilityNames={facilityNames} />
-                    {/* Grid Content Area */}
-                    <div className="flex-1">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                            <div>
-                                <h1 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-0.5 tracking-tight" lang={currentLang === 'tr' ? 'tr' : 'en'}>{pageTitle}</h1>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs font-normal">{subtitle}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[11px] font-normal text-slate-400 dark:text-slate-500 uppercase tracking-wider whitespace-nowrap">
-                                    {tListing('sortBy', currentLang)}:
-                                </span>
-                                <div className="relative" ref={sortDropdownRef}>
-                                    <button
-                                        onClick={() => setIsSortOpen(!isSortOpen)}
-                                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-lg shadow-2xs hover:border-primary/40 hover:shadow-xs transition-all text-[11px] font-medium text-slate-700 dark:text-slate-200 cursor-pointer"
-                                    >
-                                        <span className="material-symbols-outlined text-primary text-[15px]">{currentSortOption.icon}</span>
-                                        <span>{currentSortOption.label}</span>
-                                        <span className={`material-symbols-outlined text-slate-400 text-xs transition-transform duration-200 ${isSortOpen ? 'rotate-180 text-primary' : ''}`}>
-                                            expand_more
-                                        </span>
-                                    </button>
 
-                                    {isSortOpen && (
-                                        <div className="absolute right-0 top-full mt-1.5 w-[200px] bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-xl z-[100] p-1 animate-in fade-in zoom-in-95 duration-150">
-                                            {sortOptions.map((opt) => {
-                                                const isSelected = opt.value === currentSortValue;
-                                                return (
-                                                    <button
-                                                        key={opt.value}
-                                                        onClick={() => handleSortSelect(opt.value)}
-                                                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] text-left transition-all ${
-                                                            isSelected
-                                                                ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-blue-300 font-medium'
-                                                                : 'text-slate-600 dark:text-slate-300 font-normal hover:bg-slate-50 dark:hover:bg-slate-800/60'
-                                                        }`}
-                                                    >
-                                                        <span className={`material-symbols-outlined text-[15px] ${isSelected ? 'text-primary' : 'text-slate-400'}`}>
-                                                            {opt.icon}
-                                                        </span>
-                                                        <span className="flex-1">{opt.label}</span>
-                                                        {isSelected && (
-                                                            <span className="material-symbols-outlined text-xs text-primary">check</span>
-                                                        )}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
+                {/* Filter Chips Row */}
+                <div className="relative shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] z-10">
+                    <div className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide">
+                    {/* All Filters */}
+                    <button
+                        onClick={() => setIsFilterDrawerOpen(true)}
+                        className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors ${activeFilterCount > 0 ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300' : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                    >
+                        <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>tune</span>
+                        {currentLang === 'tr' ? 'Tüm filtreler' : currentLang === 'ar' ? 'كل الفلاتر' : currentLang === 'ru' ? 'Все фильтры' : 'All filters'}
+                        {activeFilterCount > 0 && (
+                            <span className="bg-[#1a73e8] text-white text-[10px] font-bold rounded-lg min-w-[16px] h-4 flex items-center justify-center px-1 ml-0.5">
+                                {activeFilterCount}
+                            </span>
+                        )}
+                    </button>
+
+                    {/* Property Type */}
+                    <button
+                        onClick={() => setIsFilterDrawerOpen(true)}
+                        className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[13px] text-[#3c4043] dark:text-slate-200 whitespace-nowrap shrink-0 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors"
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>home</span>
+                        {currentLang === 'tr' ? 'Mülk türü' : currentLang === 'ar' ? 'نوع العقار' : 'Property type'}
+                    </button>
+
+                    {/* Free Cancellation */}
+                    <button
+                        onClick={handleFreeCancelChip}
+                        className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors ${searchParams.get('freeCancellation') === 'true' ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300' : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                    >
+                        {currentLang === 'tr' ? 'Ücretsiz iptal' : currentLang === 'ar' ? 'إلغاء مجاني' : currentLang === 'ru' ? 'Бесплатная отмена' : 'Free cancellation'}
+                    </button>
+
+                    {/* Guest Rating */}
+                    <button
+                        onClick={() => setIsFilterDrawerOpen(true)}
+                        className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[13px] text-[#3c4043] dark:text-slate-200 whitespace-nowrap shrink-0 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors"
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>star</span>
+                        {currentLang === 'tr' ? 'Konuk puanı' : currentLang === 'ar' ? 'تقييم النزلاء' : 'Guest rating'}
+                    </button>
+
+                    {/* Hotel class / star chips */}
+                    <button
+                        onClick={() => setIsFilterDrawerOpen(true)}
+                        className={`flex items-center gap-1 border rounded-lg px-3 h-8 text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors ${urlStars.length > 0 ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300' : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                    >
+                        <span style={{ color: '#fabb05', fontSize: '14px' }}>★</span>
+                        {currentLang === 'tr' ? 'Otel sınıfı' : currentLang === 'ar' ? 'فئة الفندق' : 'Hotel class'}
+                    </button>
+
+                    {/* Amenities */}
+                    <button
+                        onClick={() => setIsFilterDrawerOpen(true)}
+                        className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[13px] text-[#3c4043] dark:text-slate-200 whitespace-nowrap shrink-0 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors"
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>wifi</span>
+                        {currentLang === 'tr' ? 'Sunulan olanaklar' : currentLang === 'ar' ? 'المرافق' : 'Amenities'}
+                    </button>
+                </div>
+
+                {/* Filter Popup Overlay */}
+                {isFilterDrawerOpen && (
+                    <>
+                        <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsFilterDrawerOpen(false)} />
+                        <div className="absolute top-full left-4 mt-2 w-[360px] max-w-[90vw] bg-white dark:bg-[#303134] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-[#dadce0] dark:border-slate-700 z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+                            <div className="flex items-center justify-between px-5 py-4 border-b border-[#e8eaed] dark:border-slate-700 shrink-0">
+                                <h2 className="text-[15px] font-medium text-[#3c4043] dark:text-slate-100">
+                                    {currentLang === 'tr' ? 'Filtreler' : currentLang === 'ar' ? 'الفلاتر' : currentLang === 'ru' ? 'Фильтры' : 'Filters'}
+                                </h2>
+                                <button onClick={() => setIsFilterDrawerOpen(false)} className="text-[#70757a] hover:text-[#3c4043] dark:hover:text-white transition-colors">
+                                    <span className="material-symbols-outlined text-xl">close</span>
+                                </button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                <Sidebar filters={dynamicFilters} locationNames={locationNames} facilityNames={facilityNames} />
+                            </div>
+                            <div className="px-5 py-3 border-t border-[#e8eaed] dark:border-slate-700 flex justify-between items-center bg-[#f8f9fa] dark:bg-slate-800 shrink-0">
+                                <span className="text-[13px] text-[#70757a]">{hotels.length} {currentLang === 'tr' ? 'sonuç' : 'results'}</span>
+                                <button onClick={() => {
+                                    setSearchParams(new URLSearchParams());
+                                    setIsFilterDrawerOpen(false);
+                                }} className="text-[#1a73e8] text-[13px] font-medium hover:underline">
+                                    {currentLang === 'tr' ? 'Tümünü temizle' : 'Clear all'}
+                                </button>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
+
+                {/* Results count + Sort row */}
+                <div className="flex items-center justify-between px-4 py-2 shrink-0 bg-white dark:bg-[#303134]">
+                    <p className="text-[13px] text-[#3c4043] dark:text-slate-300 truncate">
+                        {resultsText}
+                    </p>
+                    {/* Sort dropdown */}
+                    <div className="relative shrink-0 ml-2" ref={sortDropdownRef}>
+                        <button
+                            onClick={() => setIsSortOpen(!isSortOpen)}
+                            className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 py-1.5 transition-colors"
+                        >
+                            <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
+                            <span className="hidden sm:inline text-[13px]">{currentSortOption.label}</span>
+                            <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
+                        </button>
+                        {isSortOpen && (
+                            <div className="absolute right-0 top-full mt-1 w-[240px] bg-white dark:bg-[#303134] rounded-2xl border border-[#e8eaed] dark:border-slate-700 shadow-xl z-[200] py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                                {sortOptions.map(opt => {
+                                    const isSelected = opt.value === currentSortValue;
+                                    return (
+                                        <button
+                                            key={opt.value}
+                                            onClick={() => handleSortSelect(opt.value)}
+                                            className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-left transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] font-medium' : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                                        >
+                                            <span className={`material-symbols-outlined ${isSelected ? 'text-[#1a73e8]' : 'text-[#70757a]'}`} style={{ fontSize: '18px' }}>{opt.icon}</span>
+                                            <span className="flex-1">{opt.label}</span>
+                                            {isSelected && <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>check</span>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* ── Scrollable Hotel List ── */}
+                <div
+                    ref={listScrollRef}
+                    className="flex-1 overflow-y-auto"
+                    onScroll={handleListScroll}
+                >
+                    {/* Initial skeleton */}
+                    {isLoading && hotels.length === 0 && (
+                        <>{[...Array(6)].map((_, i) => <GoogleCardSkeleton key={i} />)}</>
+                    )}
+
+                    {/* Hotel cards */}
+                    {hotels.map(hotel => (
+                        <GoogleHotelCard
+                            key={hotel.id}
+                            hotel={hotel}
+                            searchParams={searchParams}
+                            isSelected={selectedHotel?.id === hotel.id}
+                            isHovered={hoveredHotel?.id === hotel.id}
+                            onHover={setHoveredHotel}
+                            onSelect={setSelectedHotel}
+                            currentLang={currentLang}
+                            isFav={isFavorite(String(hotel.hotelId))}
+                            onToggleFav={() => toggleFavorite(hotel)}
+                        />
+                    ))}
+
+                    {/* Loading more */}
+                    {isLoading && hotels.length > 0 && (
+                        <>{[...Array(3)].map((_, i) => <GoogleCardSkeleton key={`more-${i}`} />)}</>
+                    )}
+
+                    {/* Sentinel + end state */}
+                    <div ref={loaderRef} className="py-4 flex items-center justify-center">
+                        {!hasMore && hotels.length > 0 && (
+                            <div className="flex items-center gap-3 text-[12px] text-[#70757a] dark:text-slate-400 w-full px-4">
+                                <div className="flex-1 h-px bg-[#e8eaed] dark:bg-slate-700" />
+                                {tListing('reachedEnd', currentLang)}
+                                <div className="flex-1 h-px bg-[#e8eaed] dark:bg-slate-700" />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Empty state */}
+                    {hotels.length === 0 && !isLoading && (
+                        <div className="flex flex-col items-center justify-center py-20 text-center px-8">
+                            <span className="material-symbols-outlined text-5xl text-[#dadce0] dark:text-slate-600 mb-4">search_off</span>
+                            <h3 className="text-[16px] font-medium text-[#3c4043] dark:text-slate-300 mb-2">
+                                {tListing('noProperties', currentLang)}
+                            </h3>
+                            <p className="text-[13px] text-[#70757a] dark:text-slate-400">
+                                {tListing('tryAdjusting', currentLang)}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* ════════════════════════════════════════════
+                RIGHT PANEL: Map & Favorites Sidebar
+            ════════════════════════════════════════════ */}
+            <div className="flex-1 relative flex">
+                <div className="flex-1 relative overflow-hidden">
+                <MapContainer
+                    center={[39.9, 32.8]}
+                    zoom={6}
+                    style={{ height: '100%', width: '100%' }}
+                    zoomControl={true}
+                    attributionControl={true}
+                >
+                    <TileLayer
+                        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        maxZoom={19}
+                    />
+
+                    {/* Price markers for hotels with coordinates */}
+                    {hotels
+                        .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)))
+                        .map(hotel => (
+                            <PriceMarker
+                                key={hotel.id}
+                                hotel={hotel}
+                                isSelected={selectedHotel?.id === hotel.id}
+                                isHovered={hoveredHotel?.id === hotel.id}
+                                onSelect={setSelectedHotel}
+                                onHover={setHoveredHotel}
+                                searchParams={searchParams}
+                                currencySymbol={getCurrencySymbol(hotel.currency)}
+                            />
+                        ))
+                    }
+
+                    {/* Auto-fit to hotel bounds */}
+                    <MapFitControl
+                        hotels={hotels}
+                        shouldRefit={shouldRefitMap}
+                        onRefitDone={React.useCallback(() => setShouldRefitMap(false), [])}
+                    />
+                </MapContainer>
+
+                {/* "Listeyi güncelle" overlay button */}
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000]">
+                    <button
+                        onClick={() => {
+                            setShouldRefitMap(true);
+                        }}
+                        className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 border border-[#dadce0] dark:border-slate-600 rounded-lg px-4 py-2 text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shadow-md transition-colors cursor-pointer"
+                    >
+                        <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>refresh</span>
+                        {currentLang === 'tr' ? 'Listeyi güncelle' : currentLang === 'ar' ? 'تحديث القائمة' : 'Refresh list'}
+                    </button>
+                </div>
+            </div>
+
+            {/* Favorites Right Sidebar (Google Style) */}
+            <div 
+                className={`relative bg-white dark:bg-[#202124] border-l border-[#e8eaed] dark:border-slate-700 transition-all duration-300 flex flex-col z-[2000] ${isFavOpen ? 'w-[320px] shadow-[-4px_0_15px_rgba(0,0,0,0.05)]' : 'w-12 bg-[#f8f9fa] dark:bg-[#303134] hover:bg-white dark:hover:bg-[#202124]'}`}
+                onMouseEnter={() => setIsFavOpen(true)}
+                onMouseLeave={() => setIsFavOpen(false)}
+            >
+                {!isFavOpen ? (
+                    <button className="w-full h-12 flex items-center justify-center text-[#70757a] dark:text-slate-400 hover:text-[#1a73e8] mt-2 cursor-default">
+                        <span className="material-symbols-outlined text-[20px]">bookmark</span>
+                    </button>
+                ) : (
+                    <div className="flex flex-col h-full bg-white dark:bg-[#202124]">
+                        <div className="flex items-center justify-between p-4 border-b border-[#e8eaed] dark:border-slate-700">
+                            <h2 className="text-[16px] font-medium text-[#202124] dark:text-white">{currentLang === 'tr' ? 'Seyahat planlarınız' : 'Your travel plans'} ({favorites.length})</h2>
+                            <button onClick={() => setIsFavOpen(false)} className="w-8 h-8 rounded-full hover:bg-[#f1f3f4] dark:hover:bg-slate-700 flex items-center justify-center text-[#5f6368] dark:text-slate-400">
+                                <span className="material-symbols-outlined text-[20px]">close</span>
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 bg-[#f8f9fa] dark:bg-[#171717]">
+                            {favorites.length === 0 ? (
+                                <div className="text-center mt-10">
+                                    <h3 className="text-[14px] font-medium text-[#202124] dark:text-white mb-2">{currentLang === 'tr' ? 'Burada henüz bir şey yok' : 'Nothing here yet'}</h3>
+                                    <p className="text-[13px] text-[#70757a] dark:text-slate-400">{currentLang === 'tr' ? 'Seyahat etkinlikleriniz siz seyahat öğelerini görüntülemeye veya kaydetmeye başladıktan sonra burada görünecek' : 'Your travel activity will appear here once you start viewing or saving items'}</p>
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* View Controls Toolbar */}
-                        <div className="bg-white dark:bg-[#111a22] border border-slate-200 dark:border-[#233648] rounded-xl p-2 mb-6 flex items-center justify-between shadow-xs">
-                            <Link
-                                to={`/map?${searchParams.toString()}`}
-                                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 border border-slate-200 dark:border-slate-700/80 rounded-lg bg-slate-50/50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-200 hover:text-primary hover:border-primary/50 transition-all shadow-xs"
-                            >
-                                <span className="material-symbols-outlined text-base text-primary">map</span>
-                                {tListing('mapView', currentLang)}
-                            </Link>
-
-                            <div className="flex items-center gap-0.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg p-0.5 border border-slate-100 dark:border-slate-800">
-                                <button
-                                    onClick={() => setViewMode('list')}
-                                    className={`p-1 rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-primary shadow-xs border border-slate-200 dark:border-slate-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
-                                >
-                                    <span className="material-symbols-outlined text-lg">view_list</span>
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('grid2')}
-                                    className={`p-1 rounded-md transition-all ${viewMode === 'grid2' ? 'bg-white dark:bg-slate-700 text-primary shadow-xs border border-slate-200 dark:border-slate-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
-                                >
-                                    <span className="material-symbols-outlined text-lg">grid_view</span>
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('grid3')}
-                                    className={`p-1 rounded-md transition-all ${viewMode === 'grid3' ? 'bg-white dark:bg-slate-700 text-primary shadow-xs border border-slate-200 dark:border-slate-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
-                                >
-                                    <span className="material-symbols-outlined text-lg">grid_on</span>
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('grid4')}
-                                    className={`p-1 rounded-md transition-all ${viewMode === 'grid4' ? 'bg-white dark:bg-slate-700 text-primary shadow-xs border border-slate-200 dark:border-slate-600' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
-                                >
-                                    <span className="material-symbols-outlined text-lg">apps</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Hotel Grid */}
-                        <div className={`grid gap-6 ${gridClasses[viewMode]}`}>
-                            {hotels.length > 0 ? (
-                                hotels.map(hotel => (
-                                    <HotelCard key={hotel.id} hotel={hotel} viewMode={viewMode} />
-                                ))
-                            ) : isLoading ? (
-                                [...Array(6)].map((_, i) => (
-                                    <HotelCardSkeleton key={i} viewMode={viewMode} />
-                                ))
-                            ) : null}
-
-                            {/* Subsequent loading skeletons (Infinite Scroll) */}
-                            {isLoading && hotels.length > 0 && (
-                                [...Array(viewMode === 'list' ? 2 : 4)].map((_, i) => (
-                                    <HotelCardSkeleton key={`more-${i}`} viewMode={viewMode} />
-                                ))
-                            )}
-                        </div>
-
-                        {/* Loading Sentinel */}
-                        <div ref={loaderRef} className="mt-12 py-8 flex flex-col items-center justify-center gap-4">
-                            {!hasMore && hotels.length > 0 && (
-                                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider border-t border-slate-100 dark:border-slate-800 pt-8 w-full text-center">
-                                    {tListing('reachedEnd', currentLang)}
-                                </p>
-                            )}
-                            {hotels.length === 0 && !isLoading && (
-                                <div className="flex flex-col items-center justify-center py-20 text-center">
-                                    <span className="material-symbols-outlined text-6xl text-slate-200 mb-4">search_off</span>
-                                    <h3 className="text-xl font-bold text-slate-400">{tListing('noProperties', currentLang)}</h3>
-                                    <p className="text-slate-500">{tListing('tryAdjusting', currentLang)}</p>
+                            ) : (
+                                <div className="bg-white dark:bg-[#303134] rounded-lg border border-[#e8eaed] dark:border-slate-700 overflow-hidden shadow-sm">
+                                    <div className="px-4 py-3 flex items-center gap-2 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134]">
+                                        <span className="material-symbols-outlined text-[#1a73e8] dark:text-[#8ab4f8] text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>
+                                        <span className="text-[14px] font-medium text-[#202124] dark:text-white">{currentLang === 'tr' ? 'Kayıtlı öğeler' : 'Saved items'}</span>
+                                    </div>
+                                    <div className="p-2 flex flex-col gap-2">
+                                        {favorites.map(fav => (
+                                            <div key={fav.hotelId || fav.id} className="flex gap-3 p-2 hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50 rounded-md cursor-pointer transition-colors border border-transparent hover:border-[#e8eaed] dark:hover:border-slate-600" onClick={() => window.open(`/hotel/${fav.hotelId || fav.id}`, '_blank')}>
+                                                <img src={fav.image || placeholderHotel} className="w-16 h-16 rounded-md object-cover bg-[#f1f3f4] dark:bg-slate-800" />
+                                                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                                    <h4 className="text-[14px] font-medium text-[#202124] dark:text-white line-clamp-1">{fav.name || fav.names?.en || 'Otel'}</h4>
+                                                    <div className="flex items-center gap-1 mt-0.5 text-[12px] text-[#70757a] dark:text-slate-400">
+                                                        {fav.rating && <><span className="text-[#e7711b] font-medium">{fav.rating}</span><span className="material-symbols-outlined text-[#e7711b] text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span></>}
+                                                        <span className="truncate">{fav.type || 'Otel'}</span>
+                                                    </div>
+                                                </div>
+                                                <button onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }} className="w-8 h-8 rounded-full hover:bg-[#f1f3f4] dark:hover:bg-slate-700 flex items-center justify-center shrink-0">
+                                                    <span className="material-symbols-outlined text-[#1a73e8] dark:text-[#8ab4f8] text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>
                     </div>
-                </div>
-            </main>
-            <Footer />
+                )}
+            </div>
+            </div>
         </div>
     );
 };

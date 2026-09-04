@@ -38,10 +38,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/agency-application" element={<AgencyApplicationPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/hotels" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
-            <Route path="/hotels/*" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
-            <Route path="/hotels/theme/:theme" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
-            <Route path="/hotels/campaign/:campaign" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
+
             {/* Generic catch-all for hotel details by slug or id */}
             <Route path="/hotel/:slug" element={<ProtectedRoute><HotelDetail /></ProtectedRoute>} />
             <Route path="/map" element={<ProtectedRoute><MapView /></ProtectedRoute>} />
@@ -49,6 +46,10 @@ function App() {
             {/* Portal Routes with Persistent Sidebar */}
             <Route element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}>
               <Route path="/travel/hotels" element={<Dashboard />} />
+              <Route path="/travel/hotels/search" element={<HotelListing />} />
+              <Route path="/travel/hotels/search/*" element={<HotelListing />} />
+              <Route path="/travel/hotels/search/theme/:theme" element={<HotelListing />} />
+              <Route path="/travel/hotels/search/campaign/:campaign" element={<HotelListing />} />
               <Route path="/travel/search" element={<Navigate to="/travel/hotels" replace />} />
               <Route path="/dashboard" element={<Navigate to="/travel/hotels" replace />} />
               <Route path="/bookings" element={<MyBookings />} />

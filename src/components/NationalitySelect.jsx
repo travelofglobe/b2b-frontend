@@ -93,7 +93,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                 <button
                     type="button"
                     onClick={toggleOpen}
-                    className={`w-full h-14 flex items-center justify-between px-3.5 sm:px-4 border rounded-[4px] bg-white dark:bg-[#303134] transition-all text-left focus:outline-none font-roboto ${
+                    className={`w-full h-full flex items-center justify-between px-3.5 sm:px-4 border rounded-lg bg-white dark:bg-[#303134] transition-all text-left focus:outline-none font-roboto ${
                         isOpen 
                             ? 'border-[#1a73e8] ring-1 ring-[#1a73e8]' 
                             : 'border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'

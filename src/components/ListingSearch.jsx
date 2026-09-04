@@ -359,7 +359,7 @@ const searchLocales = {
     }
 };
 
-const DashboardSearch = () => {
+const ListingSearch = () => {
     const { i18n } = useTranslation();
     const currentLang = i18n.language || 'en';
     const ls = searchLocales[currentLang] || searchLocales['en'];
@@ -647,13 +647,18 @@ const DashboardSearch = () => {
         return `${year}-${month}-${day}`;
     };
 
-    const getUrlParams = (queryOverride) => {
-        const guestsParam = serializeGuestsParam(roomState);
-        let params = `checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&guests=${encodeURIComponent(guestsParam)}&nationality=${encodeURIComponent(nationality)}`;
+    const getUrlParams = (overrides = {}) => {
+        const queryOverride = overrides.query !== undefined ? overrides.query : query;
+        const checkInOverride = overrides.checkInDate !== undefined ? overrides.checkInDate : checkInDate;
+        const checkOutOverride = overrides.checkOutDate !== undefined ? overrides.checkOutDate : checkOutDate;
+        const guestsOverride = overrides.roomState !== undefined ? overrides.roomState : roomState;
+        const natOverride = overrides.nationality !== undefined ? overrides.nationality : nationality;
 
-        const q = queryOverride !== undefined ? queryOverride : query;
-        if (q) {
-            params += `&q=${encodeURIComponent(q)}`;
+        const guestsParam = serializeGuestsParam(guestsOverride);
+        let params = `checkin=${formatDateForUrl(checkInOverride)}&checkout=${formatDateForUrl(checkOutOverride)}&guests=${encodeURIComponent(guestsParam)}&nationality=${encodeURIComponent(natOverride)}`;
+
+        if (queryOverride) {
+            params += `&q=${encodeURIComponent(queryOverride)}`;
         }
         return params;
     };
@@ -673,20 +678,22 @@ const DashboardSearch = () => {
         return (location.name?.translations?.[currentLang] || location.name?.translations?.en || Object.values(location.name?.translations || {})[0] || 'destination').toLowerCase();
     };
 
-    const handleSearch = () => {
-        if (!query.trim()) {
+    const handleSearch = (overrides = {}) => {
+        const activeQuery = overrides.query !== undefined ? overrides.query : query;
+        
+        if (!activeQuery.trim()) {
             setError(true);
             return;
         }
 
-        if (query) {
+        if (activeQuery) {
             const savedLastSearch = localStorage.getItem('dashboard_last_search');
             const savedLastType = localStorage.getItem('dashboard_last_type');
             const savedLastHotelId = localStorage.getItem('dashboard_last_hotelId');
 
-            if (query !== savedLastSearch) {
-                saveSearchHistoryItem(query, 'SEARCH', null, null);
-                localStorage.setItem('dashboard_last_search', query);
+            if (activeQuery !== savedLastSearch) {
+                saveSearchHistoryItem(activeQuery, 'SEARCH', null, null);
+                localStorage.setItem('dashboard_last_search', activeQuery);
                 localStorage.setItem('dashboard_last_type', 'SEARCH');
                 localStorage.removeItem('dashboard_last_hotelId');
                 localStorage.removeItem('dashboard_last_locationId');
@@ -899,17 +906,14 @@ const DashboardSearch = () => {
     const hasAnyResults = matchingHistory.length > 0 || results.regions.length > 0 || results.hotels.length > 0 || loading;
 
     return (
-        <section className="relative group/search w-full flex flex-col items-center">
-            <div className="relative w-full max-w-[1024px] bg-white dark:bg-[#202124] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] px-4 pt-2 pb-10 border-none transition-all duration-300">
-                
-                {/* Top Options (Guests) - Google Flights style */}
-                <div className="flex flex-wrap items-center gap-2 mb-3 relative z-[60]">
+        <section className="relative group/search w-full">
+            <div className="flex-1 flex flex-wrap lg:flex-nowrap items-stretch gap-2 relative z-50">
                     {/* Elegant Guest Selector */}
                     <div className="relative group/field" ref={guestWrapperRef}>
                         <button
                             type="button"
                             onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                            className="flex items-center gap-1.5 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] px-2.5 py-1.5 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[13px] focus:outline-none cursor-pointer"
+                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-[#303134] px-4 h-12 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer"
                         >
                             <span className="material-symbols-outlined text-[18px] text-[#70757a]">person</span>
                             <span className="text-[13px] font-normal text-[#3c4043] dark:text-slate-200">{totalAdults + totalChildren}</span>
@@ -1011,20 +1015,20 @@ const DashboardSearch = () => {
                                     <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
                                         İptal
                                     </button>
-                                    <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
+                                    <button onClick={() => {
+                                        setShowGuestDropdown(false);
+                                        handleSearch();
+                                    }} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
                                         Bitti
                                     </button>
                                 </div>
                             </div>
                         )}
-                    </div>
                 </div>
 
-                {/* Main Search Input Row (Single Line: Destination Input + Nationality Input + Google Flights Twin Datepicker) */}
-                <div className="w-full flex flex-col md:flex-row items-stretch gap-2.5 sm:gap-3 relative z-50">
-                    
-                    {/* Destination Input (Flex-1 fills remaining space) */}
-                    <div className="flex-1 min-w-0 relative group/field h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
+                {/* Top Options (Guests & Nationality) */}
+                <div className="flex items-center gap-2 relative z-[60]">
+                    <div className="flex-1 min-w-0 relative group/field h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
                         <div className="flex items-center gap-3 h-full w-full px-4">
                             <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
                                 {error ? 'error' : 'location_on'}
@@ -1229,11 +1233,14 @@ const DashboardSearch = () => {
                         )}
                     </div>
 
-                    {/* Nationality Selector Input (Fixed clean width, matches autocomplete box style) */}
-                    <div className="w-full md:w-[190px] lg:w-[210px] flex-shrink-0 relative h-14">
+                    {/* Nationality Selector Input */}
+                    <div className="w-full md:w-[150px] lg:w-[170px] flex-shrink-0 relative h-12">
                         <NationalitySelect 
                             value={nationality} 
-                            onChange={setNationality} 
+                            onChange={(newNat) => {
+                                setNationality(newNat);
+                                handleSearch({ nationality: newNat });
+                            }} 
                             inputStyle={true} 
                             onToggle={(isOpen) => {
                                 if (isOpen) {
@@ -1244,11 +1251,11 @@ const DashboardSearch = () => {
                         />
                     </div>
 
-                    {/* Twin Datepicker Container (Fixed clean width, guaranteed single line) */}
-                    <div className={`w-full md:w-[330px] lg:w-[350px] flex-shrink-0 relative h-14 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
+                    {/* Twin Datepicker Container */}
+                    <div className={`w-full md:w-[330px] lg:w-[350px] flex-shrink-0 relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
                         isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')
                             ? ''
-                            : 'border border-[#dadce0] dark:border-slate-600 rounded-[4px] hover:border-[#bdc1c6] transition-all'
+                            : 'border border-[#dadce0] dark:border-slate-600 rounded-lg hover:border-[#bdc1c6] transition-all'
                     }`}>
                         
                         {/* Check-In Half */}
@@ -1346,7 +1353,10 @@ const DashboardSearch = () => {
                         {/* Google Flights 2-Month Datepicker Popover */}
                         <GoogleFlightDatePicker
                             isOpen={isDatePickerOpen}
-                            onClose={() => setIsDatePickerOpen(false)}
+                            onClose={() => {
+                                setIsDatePickerOpen(false);
+                                handleSearch();
+                            }}
                             checkInDate={checkInDate}
                             checkOutDate={checkOutDate}
                             onCheckInChange={setCheckInDate}
@@ -1358,20 +1368,9 @@ const DashboardSearch = () => {
                         />
                     </div>
                 </div>
-
-                {/* Overlapping Blue Search Button (z-[30] so dropdowns at z-[200+] sit above it) */}
-                <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 z-[30]">
-                    <button
-                        onClick={handleSearch}
-                        className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[15px] px-8 py-2.5 flex items-center justify-center gap-2 shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] hover:shadow-lg transition-all active:scale-95"
-                    >
-                        <span className="material-symbols-outlined text-[20px]">search</span>
-                        <span>{ls.searchBtn}</span>
-                    </button>
-                </div>
             </div>
         </section>
     );
 };
 
-export default DashboardSearch;
+export default ListingSearch;

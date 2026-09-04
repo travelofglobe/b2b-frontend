@@ -84,10 +84,10 @@ const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, di
         <div 
             ref={dropdownRef} 
             style={dropdownStyles}
-            className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-lg shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] overflow-hidden max-w-[340px] animate-in fade-in duration-150"
+            className="bg-white dark:bg-[#28292c] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.15)] overflow-hidden max-w-[340px] animate-in fade-in duration-150 font-roboto"
         >
-            <div className="p-2 border-b border-[#dadce0] dark:border-slate-700">
-                <div className="flex items-center gap-2 h-8 px-2.5 bg-[#f1f3f4] dark:bg-slate-800 rounded border border-transparent focus-within:border-[#1a73e8] focus-within:bg-white dark:focus-within:bg-slate-900 transition-colors">
+            <div className="p-2.5 border-b border-[#dadce0] dark:border-[#3c4043] bg-[#f8f9fa] dark:bg-[#202124]">
+                <div className="flex items-center gap-2 h-9 px-3 bg-[#f1f3f4] dark:bg-[#202124] rounded-xl border border-transparent focus-within:border-[#1a73e8] focus-within:bg-white dark:focus-within:bg-[#202124] focus-within:ring-2 focus-within:ring-[#1a73e8]/20 transition-all">
                     <span className="material-symbols-outlined text-[18px] text-[#70757a] dark:text-slate-400 shrink-0">search</span>
                     <input
                         type="text"
@@ -98,7 +98,7 @@ const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, di
                     />
                 </div>
             </div>
-            <div className="py-1 max-h-64 overflow-y-auto custom-scrollbar font-roboto">
+            <div className="p-1.5 max-h-64 overflow-y-auto custom-scrollbar font-roboto space-y-0.5">
                 {filteredOptions.length === 0 ? (
                     <div className="p-3 text-center text-[13px] text-[#70757a] dark:text-slate-400">Sonuç bulunamadı</div>
                 ) : (
@@ -109,30 +109,34 @@ const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, di
                                 key={opt.id}
                                 type="button"
                                 onClick={() => toggleOption(opt.id)}
-                                className={`w-full flex items-center px-3 py-2 text-left transition-colors cursor-pointer text-[13px] font-normal ${
+                                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left transition-colors cursor-pointer text-[13px] font-medium ${
                                     isSelected 
-                                        ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#202124] dark:text-white' 
-                                        : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200'
+                                        ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8]' 
+                                        : 'hover:bg-[#f1f3f4] dark:hover:bg-[#383a3e] text-[#3c4043] dark:text-slate-200'
                                 }`}
                             >
-                                <span className="w-6 flex items-center justify-start shrink-0">
-                                    {isSelected && (
-                                        <span className="material-symbols-outlined text-[18px] text-[#3c4043] dark:text-slate-200">check</span>
-                                    )}
-                                </span>
-                                <div className="flex items-center justify-between gap-2 flex-1 overflow-hidden">
+                                <div className="flex items-center gap-2 flex-1 overflow-hidden mr-2">
                                     <span className="truncate">
-                                        {opt.iconText && <span className="mr-1.5 font-medium text-emerald-600 dark:text-emerald-400">{opt.iconText}</span>}
+                                        {opt.iconText && <span className="mr-1.5 font-bold text-emerald-600 dark:text-emerald-400">{opt.iconText}</span>}
                                         {opt.name}
                                     </span>
                                     {opt.agencyType && (
-                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide shrink-0 ${
-                                            opt.agencyType === 'GSA' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40' : 
-                                            opt.agencyType === 'RSA' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40' : 
-                                            'bg-blue-100 text-blue-700 dark:bg-blue-900/40'
+                                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase shrink-0 ${
+                                            opt.agencyType === 'GSA' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' : 
+                                            opt.agencyType === 'RSA' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300' : 
+                                            'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300'
                                         }`}>
                                             {opt.agencyType}
                                         </span>
+                                    )}
+                                </div>
+                                <div className={`size-4.5 rounded flex items-center justify-center shrink-0 transition-all ${
+                                    isSelected 
+                                        ? 'bg-[#1a73e8] text-white' 
+                                        : 'border border-[#dadce0] dark:border-[#5f6368]'
+                                }`}>
+                                    {isSelected && (
+                                        <span className="material-symbols-outlined text-[14px]">check</span>
                                     )}
                                 </div>
                             </button>
@@ -144,16 +148,25 @@ const GenericMultiSelect = ({ options, selectedValues, onChange, placeholder, di
     ) : null;
 
     return (
-        <div className={`relative w-full ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className={`relative w-full font-roboto ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
             <button
                 ref={buttonRef}
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full bg-white dark:bg-[#303134] border ${isOpen ? 'border-[#1a73e8] ring-1 ring-[#1a73e8]' : 'border-[#dadce0] dark:border-[#5f6368]'} rounded-lg py-1 px-2.5 text-[13px] font-normal flex items-center justify-between transition-all outline-none text-[#202124] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] cursor-pointer`}
+                className={`w-full bg-white dark:bg-[#303134] border ${
+                    isOpen 
+                        ? 'border-[#1a73e8] ring-2 ring-[#1a73e8]/20' 
+                        : 'border-[#dadce0] dark:border-[#5f6368] hover:border-[#1a73e8]/60'
+                } rounded-xl py-2 px-3 text-[13px] font-medium flex items-center justify-between transition-all outline-none text-[#202124] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-[#383a3e] cursor-pointer shadow-2xs`}
             >
                 <span className="flex items-center gap-1.5 truncate">
-                    {icon && <span className="material-symbols-outlined text-[16px] text-emerald-600 dark:text-emerald-400">{icon}</span>}
-                    {getDisplayText()}
+                    {icon && <span className="material-symbols-outlined text-[17px] text-emerald-600 dark:text-emerald-400">{icon}</span>}
+                    <span className="truncate">{getDisplayText()}</span>
+                    {selectedValues && selectedValues.length > 0 && (
+                        <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#e8f0fe] dark:bg-[#1a73e8]/30 text-[#1a73e8] dark:text-[#8ab4f8]">
+                            {selectedValues.length}
+                        </span>
+                    )}
                 </span>
                 <span className={`material-symbols-outlined text-[18px] text-[#70757a] dark:text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>arrow_drop_down</span>
             </button>

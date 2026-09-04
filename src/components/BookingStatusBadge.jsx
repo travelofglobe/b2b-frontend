@@ -14,11 +14,11 @@ const BookingStatusBadge = ({ status, className = '', showIcon = false }) => {
 
     return (
         <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium uppercase tracking-wider whitespace-nowrap align-middle ${config.colorClass} ${className}`}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap align-middle font-roboto shadow-2xs transition-all ${config.colorClass} ${className}`}
             title={`Status: ${config.label}`}
         >
             {showIcon && (
-                <span className="material-icons-round text-[14px] leading-none">
+                <span className="material-symbols-outlined text-[15px] leading-none">
                     {config.icon}
                 </span>
             )}

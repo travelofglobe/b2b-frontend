@@ -1183,9 +1183,19 @@ const HotelListing = () => {
                 onMouseLeave={() => setIsFavOpen(false)}
             >
                 {!isFavOpen ? (
-                    <button className="w-full h-12 flex items-center justify-center text-[#70757a] dark:text-slate-400 hover:text-[#1a73e8] mt-2 cursor-default">
-                        <span className="material-symbols-outlined text-[20px]">bookmark</span>
-                    </button>
+                    <div className="flex flex-col items-center w-full py-3 gap-2">
+                        <button className="w-10 h-10 rounded-full flex items-center justify-center text-[#5f6368] dark:text-slate-400 hover:bg-[#f1f3f4] dark:hover:bg-slate-700 transition-colors cursor-pointer">
+                            <span className="material-symbols-outlined text-[20px]">bookmark</span>
+                        </button>
+                        <div className="w-6 h-[1px] bg-[#dadce0] dark:bg-slate-700 my-1"></div>
+                        <div className="flex flex-col gap-3 mt-1 items-center w-full">
+                            {favorites.slice(0, 4).map(fav => (
+                                <div key={fav.hotelId || fav.id} className="w-8 h-8 rounded-full overflow-hidden border border-[#dadce0] dark:border-slate-600 shadow-sm cursor-pointer hover:opacity-80 transition-opacity">
+                                    <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 ) : (
                     <div className="flex flex-col h-full bg-white dark:bg-[#202124]">
                         <div className="flex items-center justify-between p-4 border-b border-[#e8eaed] dark:border-slate-700">
@@ -1209,9 +1219,9 @@ const HotelListing = () => {
                                     <div className="p-2 flex flex-col gap-2">
                                         {favorites.map(fav => (
                                             <div key={fav.hotelId || fav.id} className="flex gap-3 p-2 hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50 rounded-md cursor-pointer transition-colors border border-transparent hover:border-[#e8eaed] dark:hover:border-slate-600" onClick={() => window.open(`/hotel/${fav.hotelId || fav.id}`, '_blank')}>
-                                                <img src={fav.image || placeholderHotel} className="w-16 h-16 rounded-md object-cover bg-[#f1f3f4] dark:bg-slate-800" />
+                                                <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-16 h-16 rounded-md object-cover bg-[#f1f3f4] dark:bg-slate-800" />
                                                 <div className="flex-1 min-w-0 flex flex-col justify-center">
-                                                    <h4 className="text-[14px] font-medium text-[#202124] dark:text-white line-clamp-1">{fav.name || fav.names?.en || 'Otel'}</h4>
+                                                    <h4 className="text-[14px] font-medium text-[#202124] dark:text-white line-clamp-1">{fav.name || fav.hotelName || fav.names?.en || 'Otel'}</h4>
                                                     <div className="flex items-center gap-1 mt-0.5 text-[12px] text-[#70757a] dark:text-slate-400">
                                                         {fav.rating && <><span className="text-[#e7711b] font-medium">{fav.rating}</span><span className="material-symbols-outlined text-[#e7711b] text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span></>}
                                                         <span className="truncate">{fav.type || 'Otel'}</span>

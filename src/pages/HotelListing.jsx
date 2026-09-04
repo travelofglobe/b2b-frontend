@@ -173,7 +173,7 @@ const MapFitControl = ({ hotels, shouldRefit, onRefitDone }) => {
         try {
             const bounds = L.latLngBounds(valid.map(h => [parseFloat(h.lat), parseFloat(h.lng)]));
             if (bounds.isValid()) {
-                map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
+                map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14, animate: true, duration: 0.8 });
                 onRefitDone();
             }
         } catch (_e) { /* ignore */ }
@@ -490,6 +490,107 @@ const MAP_LAYERS = {
 };
 
 // ═══════════════════════════════════════════════
+// Known Destinations Coordinates & Initial Location Resolver
+// ═══════════════════════════════════════════════
+const KNOWN_DESTINATIONS = {
+    istanbul: { center: [41.0082, 28.9784], zoom: 11, label: 'İstanbul' },
+    antalya: { center: [36.8969, 30.7133], zoom: 11, label: 'Antalya' },
+    ankara: { center: [39.9334, 32.8597], zoom: 11, label: 'Ankara' },
+    izmir: { center: [38.4237, 27.1428], zoom: 11, label: 'İzmir' },
+    bodrum: { center: [37.0344, 27.4305], zoom: 12, label: 'Bodrum' },
+    mugla: { center: [37.0344, 27.4305], zoom: 10, label: 'Muğla' },
+    fethiye: { center: [36.6217, 29.1164], zoom: 12, label: 'Fethiye' },
+    marmaris: { center: [36.8550, 28.2742], zoom: 12, label: 'Marmaris' },
+    cesme: { center: [38.3236, 26.3040], zoom: 12, label: 'Çeşme' },
+    alanya: { center: [36.5438, 31.9998], zoom: 12, label: 'Alanya' },
+    kemer: { center: [36.6025, 30.5600], zoom: 12, label: 'Kemer' },
+    side: { center: [36.7667, 31.3889], zoom: 12, label: 'Side' },
+    belek: { center: [36.8625, 31.0556], zoom: 12, label: 'Belek' },
+    kusadasi: { center: [37.8579, 27.2610], zoom: 12, label: 'Kuşadası' },
+    kas: { center: [36.2000, 29.6389, 13], zoom: 13, label: 'Kaş' },
+    kalkan: { center: [36.2644, 29.4144], zoom: 13, label: 'Kalkan' },
+    ayvalik: { center: [39.3193, 26.6965], zoom: 12, label: 'Ayvalık' },
+    didim: { center: [37.3734, 27.2564], zoom: 12, label: 'Didim' },
+    datca: { center: [36.7262, 27.6860], zoom: 12, label: 'Datça' },
+    trabzon: { center: [41.0027, 39.7168], zoom: 11, label: 'Trabzon' },
+    rize: { center: [41.0201, 40.5234], zoom: 11, label: 'Rize' },
+    bursa: { center: [40.1885, 29.0610], zoom: 11, label: 'Bursa' },
+    kapadokya: { center: [38.6431, 34.8289], zoom: 11, label: 'Kapadokya' },
+    cappadocia: { center: [38.6431, 34.8289], zoom: 11, label: 'Kapadokya' },
+    goreme: { center: [38.6431, 34.8289], zoom: 12, label: 'Göreme' },
+    urgup: { center: [38.6319, 34.9125], zoom: 12, label: 'Ürgüp' },
+    nevsehir: { center: [38.6244, 34.7144], zoom: 11, label: 'Nevşehir' },
+    eskisehir: { center: [39.7667, 30.5256], zoom: 11, label: 'Eskişehir' },
+    adana: { center: [37.0000, 35.3213], zoom: 11, label: 'Adana' },
+    gaziantep: { center: [37.0662, 37.3833], zoom: 11, label: 'Gaziantep' },
+    konya: { center: [37.8714, 32.4846], zoom: 11, label: 'Konya' },
+    denizli: { center: [37.7765, 29.0864], zoom: 11, label: 'Denizli' },
+    pamukkale: { center: [37.9137, 29.1187], zoom: 12, label: 'Pamukkale' },
+    bolu: { center: [40.7358, 31.6061], zoom: 11, label: 'Bolu' },
+    sapanca: { center: [40.6931, 30.2644], zoom: 12, label: 'Sapanca' },
+    yalova: { center: [40.6549, 29.2842], zoom: 11, label: 'Yalova' },
+    canakkale: { center: [40.1553, 26.4142], zoom: 11, label: 'Çanakkale' },
+    dubai: { center: [25.2048, 55.2708], zoom: 11, label: 'Dubai' },
+    london: { center: [51.5074, -0.1278], zoom: 11, label: 'London' },
+    paris: { center: [48.8566, 2.3522], zoom: 11, label: 'Paris' },
+    rome: { center: [41.9028, 12.4964], zoom: 11, label: 'Rome' },
+    milan: { center: [45.4642, 9.1900], zoom: 11, label: 'Milan' },
+    barcelona: { center: [41.3851, 2.1734], zoom: 11, label: 'Barcelona' },
+    madrid: { center: [40.4168, -3.7038], zoom: 11, label: 'Madrid' },
+    berlin: { center: [52.5200, 13.4050], zoom: 11, label: 'Berlin' },
+    munich: { center: [48.1351, 11.5820], zoom: 11, label: 'Munich' },
+    amsterdam: { center: [52.3676, 4.9041], zoom: 11, label: 'Amsterdam' },
+    vienna: { center: [48.2082, 16.3738], zoom: 11, label: 'Vienna' },
+    prague: { center: [50.0755, 14.4378], zoom: 11, label: 'Prague' },
+    athens: { center: [37.9838, 23.7275], zoom: 11, label: 'Athens' },
+    newyork: { center: [40.7128, -74.0060], zoom: 11, label: 'New York' },
+    tokyo: { center: [35.6762, 139.6503], zoom: 11, label: 'Tokyo' },
+    doha: { center: [25.2854, 51.5310], zoom: 11, label: 'Doha' },
+    riyadh: { center: [24.7136, 46.6753], zoom: 11, label: 'Riyadh' }
+};
+
+const normalizeLoc = (str) => {
+    if (!str) return '';
+    return str
+        .toLowerCase()
+        .replace(/ı/g, 'i')
+        .replace(/ğ/g, 'g')
+        .replace(/ü/g, 'u')
+        .replace(/ş/g, 's')
+        .replace(/ö/g, 'o')
+        .replace(/ç/g, 'c')
+        .replace(/[^a-z0-9]/g, '');
+};
+
+const resolveInitialLocation = (slug, q, searchParams) => {
+    const lat = parseFloat(searchParams?.get('lat'));
+    const lng = parseFloat(searchParams?.get('lng'));
+    if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+        return { center: [lat, lng], zoom: 12, label: q || '' };
+    }
+
+    const cleanSlug = normalizeLoc(slug);
+    if (cleanSlug) {
+        for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
+            if (cleanSlug.includes(key) || key.includes(cleanSlug)) {
+                return val;
+            }
+        }
+    }
+
+    const cleanQ = normalizeLoc(q);
+    if (cleanQ) {
+        for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
+            if (cleanQ.includes(key)) {
+                return val;
+            }
+        }
+    }
+
+    return null;
+};
+
+// ═══════════════════════════════════════════════
 // Main HotelListing Component
 // ═══════════════════════════════════════════════
 const HotelListing = () => {
@@ -530,7 +631,7 @@ const HotelListing = () => {
 
     const [hotels, setHotels] = React.useState([]);
     const [page, setPage] = React.useState(0);
-    const [isLoading, setIsLoading] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(true);
     const [hasMore, setHasMore] = React.useState(true);
     const [totalProperties, setTotalProperties] = React.useState(0);
     const [dynamicFilters, setDynamicFilters] = React.useState(null);
@@ -633,6 +734,31 @@ const HotelListing = () => {
     const campaignName = campaign ? campaign.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
 
     const locationId = searchParams.get('locationId');
+
+    // Resolve initial map center immediately so Turkey is not displayed needlessly
+    const initialMapState = React.useMemo(() => {
+        return resolveInitialLocation(slug, searchParams.get('q'), searchParams) || {
+            center: [39.9, 32.8],
+            zoom: 6,
+            label: ''
+        };
+    }, []);
+
+    // Fallback: If unknown destination and locationId exists, fetch coordinates from API
+    React.useEffect(() => {
+        if (!locationId || hotels.length > 0) return;
+        let isMounted = true;
+        locationService.fetchLocationDetails(locationId)
+            .then(data => {
+                if (!isMounted) return;
+                const coords = data?.geoCoordinate || data?.data?.geoCoordinate;
+                if (coords?.lat && coords?.lon && mapInstance && hotels.length === 0) {
+                    mapInstance.setView([coords.lat, coords.lon], 12);
+                }
+            })
+            .catch(() => {});
+        return () => { isMounted = false; };
+    }, [locationId, mapInstance, hotels.length]);
 
     // Date formatting - Google Hotels style
     const formatDateShort = (dateStr) => {
@@ -1345,8 +1471,8 @@ const HotelListing = () => {
                     <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_14px_16px_-4px_rgba(0,0,0,0.32),inset_0_4px_6px_-2px_rgba(0,0,0,0.18)] dark:shadow-[inset_0_16px_22px_-4px_rgba(0,0,0,0.65)]" />
 
                     <MapContainer
-                        center={[39.9, 32.8]}
-                        zoom={6}
+                        center={initialMapState.center}
+                        zoom={initialMapState.zoom}
                         style={{ height: '100%', width: '100%' }}
                         zoomControl={false}
                         attributionControl={true}
@@ -1495,6 +1621,26 @@ const HotelListing = () => {
                         )}
                     </div>
                 </div>
+
+                {/* Initial map loading overlay */}
+                {isLoading && hotels.length === 0 && (
+                    <div className="absolute inset-0 z-[1002] bg-white/70 dark:bg-[#202124]/75 backdrop-blur-xs flex flex-col items-center justify-center transition-all duration-300 pointer-events-auto">
+                        <div className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 shadow-2xl rounded-2xl px-6 py-5 flex flex-col items-center text-center max-w-[290px] animate-in fade-in zoom-in-95 duration-200">
+                            <div className="relative w-12 h-12 flex items-center justify-center mb-3">
+                                <div className="absolute inset-0 rounded-full border-3 border-[#1a73e8]/20 border-t-[#1a73e8] animate-spin" />
+                                <span className="material-symbols-outlined text-[#1a73e8] text-[22px]">
+                                    location_on
+                                </span>
+                            </div>
+                            <div className="text-[14px] font-semibold text-[#202124] dark:text-white">
+                                {locationName || initialMapState.label || (currentLang === 'tr' ? 'Bölge Haritası' : 'Area Map')}
+                            </div>
+                            <div className="text-[12px] text-gray-500 dark:text-slate-400 mt-1">
+                                {currentLang === 'tr' ? 'Oteller ve fiyatlar haritaya yerleştiriliyor...' : 'Loading hotels and prices onto map...'}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Favorites Right Sidebar (Google Style) */}

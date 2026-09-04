@@ -1270,7 +1270,7 @@ const HotelListing = () => {
             {/* ════════════════════════════════════════════
                 LEFT PANEL: Hotel List
             ════════════════════════════════════════════ */}
-            <div className="w-[62%] flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[6px_0_25px_rgba(0,0,0,0.22),2px_0_8px_rgba(0,0,0,0.14)] dark:shadow-[8px_0_32px_rgba(0,0,0,0.6)]">
+            <div className="w-[62%] flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[4px_0_16px_rgba(0,0,0,0.12),1px_0_4px_rgba(0,0,0,0.06)] dark:shadow-[5px_0_20px_rgba(0,0,0,0.35)]">
 
                 {/* Search Context Bar */}
                 <div className="px-4 pt-4 pb-3 shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] flex items-center w-full relative z-50">
@@ -1467,8 +1467,8 @@ const HotelListing = () => {
             ════════════════════════════════════════════ */}
             <div className="flex-1 relative flex">
                 <div className="flex-1 relative overflow-hidden">
-                    {/* Top inner shadow - Casts realistic inset shadow inside the top of the map */}
-                    <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_14px_16px_-4px_rgba(0,0,0,0.32),inset_0_4px_6px_-2px_rgba(0,0,0,0.18)] dark:shadow-[inset_0_16px_22px_-4px_rgba(0,0,0,0.65)]" />
+                    {/* Top inner shadow - Soft realistic inset shadow inside the top of the map */}
+                    <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_6px_8px_-3px_rgba(0,0,0,0.14),inset_0_2px_4px_-1px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_8px_12px_-3px_rgba(0,0,0,0.35)]" />
 
                     <MapContainer
                         center={initialMapState.center}
@@ -1645,7 +1645,7 @@ const HotelListing = () => {
 
             {/* Favorites Right Sidebar (Google Style) */}
             <div 
-                className={`relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 transition-all duration-300 flex flex-col z-[2000] shadow-[-6px_0_25px_rgba(0,0,0,0.2),-2px_0_8px_rgba(0,0,0,0.12)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.55)] ${isFavOpen ? 'w-[380px]' : 'w-[58px]'}`}
+                className={`relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 transition-all duration-300 flex flex-col z-[2000] shadow-[-4px_0_16px_rgba(0,0,0,0.12),-1px_0_4px_rgba(0,0,0,0.06)] dark:shadow-[-5px_0_20px_rgba(0,0,0,0.35)] ${isFavOpen ? 'w-[380px]' : 'w-[58px]'}`}
                 onMouseEnter={() => setIsFavOpen(true)}
                 onMouseLeave={() => setIsFavOpen(false)}
             >

@@ -908,123 +908,6 @@ const ListingSearch = () => {
     return (
         <section className="relative group/search w-full">
             <div className="flex-1 flex flex-wrap lg:flex-nowrap items-stretch gap-2 relative z-50">
-                    {/* Elegant Guest Selector */}
-                    <div className="relative group/field" ref={guestWrapperRef}>
-                        <button
-                            type="button"
-                            onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-[#303134] px-4 h-12 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer"
-                        >
-                            <span className="material-symbols-outlined text-[18px] text-[#70757a]">person</span>
-                            <span className="text-[13px] font-normal text-[#3c4043] dark:text-slate-200">{totalAdults + totalChildren}</span>
-                            <span className="material-symbols-outlined text-[18px] text-[#70757a]">arrow_drop_down</span>
-                        </button>
-
-                        {/* Guest Dropdown - Google Flights Style */}
-                        {showGuestDropdown && (
-                            <div className="absolute top-full left-0 w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[200] animate-in fade-in slide-in-from-top-2 duration-200">
-                                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-3 -mr-3">
-                                    {roomState.map((room, index) => (
-                                        <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 last:mb-0">
-                                            {roomState.length > 1 && (
-                                                <div className="flex justify-between items-center mb-3">
-                                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{ls.roomSingle} {index + 1}</span>
-                                                    <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded hover:bg-red-50">Sil</button>
-                                                </div>
-                                            )}
-                                            
-                                            <div className="flex flex-col gap-4">
-                                                {/* Adults Row */}
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{ls.adults}</span>
-                                                    <div className="flex items-center gap-1">
-                                                        <button 
-                                                            onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} 
-                                                            disabled={room.adults <= 1}
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[20px]">remove</span>
-                                                        </button>
-                                                        <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.adults}</span>
-                                                        <button 
-                                                            onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} 
-                                                            disabled={room.adults >= 6} 
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[20px]">add</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* Children Row */}
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{ls.children}</span>
-                                                        <span className="text-[12px] text-slate-500">{ls.childrenAge}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <button 
-                                                            onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} 
-                                                            disabled={room.children <= 0}
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[20px]">remove</span>
-                                                        </button>
-                                                        <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.children}</span>
-                                                        <button 
-                                                            onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} 
-                                                            disabled={room.children >= 4} 
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[20px]">add</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* Child Ages */}
-                                                {room.children > 0 && (
-                                                    <div className="grid grid-cols-2 gap-3 mt-1">
-                                                        {room.childAges.map((age, ageIdx) => (
-                                                            <div key={ageIdx} className="flex flex-col gap-1">
-                                                                <span className="text-[12px] text-slate-500">{ls.children} {ageIdx + 1} {ls.years}</span>
-                                                                <select
-                                                                    value={age}
-                                                                    onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
-                                                                    className="w-full h-8 bg-white dark:bg-slate-800 rounded border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-0 outline-none text-[#3c4043] dark:text-white"
-                                                                >
-                                                                    {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {ls.years}</option>)}
-                                                                </select>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-
-                                    {roomState.length < 5 && (
-                                        <button onClick={addRoom} className="mt-4 text-[14px] text-[#1a73e8] font-medium hover:underline flex items-center">
-                                            <span className="material-symbols-outlined text-[18px] mr-1">add</span>
-                                            {ls.addRoom}
-                                        </button>
-                                    )}
-                                </div>
-
-                                {/* Google Flights Style Footer */}
-                                <div className="flex items-center justify-end gap-6 mt-6 pt-2">
-                                    <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
-                                        İptal
-                                    </button>
-                                    <button onClick={() => {
-                                        setShowGuestDropdown(false);
-                                        handleSearch();
-                                    }} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
-                                        Bitti
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                </div>
 
                 {/* Top Options (Guests & Nationality) */}
                 <div className="flex items-center gap-2 relative z-[60]">
@@ -1367,6 +1250,123 @@ const ListingSearch = () => {
                             countryCode={holidayCountryCode}
                         />
                     </div>
+                    {/* Elegant Guest Selector */}
+                    <div className="relative group/field" ref={guestWrapperRef}>
+                        <button
+                            type="button"
+                            onClick={() => setShowGuestDropdown(!showGuestDropdown)}
+                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-[#303134] px-4 h-12 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined text-[18px] text-[#70757a]">person</span>
+                            <span className="text-[13px] font-normal text-[#3c4043] dark:text-slate-200">{totalAdults + totalChildren}</span>
+                            <span className="material-symbols-outlined text-[18px] text-[#70757a]">arrow_drop_down</span>
+                        </button>
+
+                        {/* Guest Dropdown - Google Flights Style */}
+                        {showGuestDropdown && (
+                            <div className="absolute top-full left-0 w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-3 -mr-3">
+                                    {roomState.map((room, index) => (
+                                        <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 last:mb-0">
+                                            {roomState.length > 1 && (
+                                                <div className="flex justify-between items-center mb-3">
+                                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{ls.roomSingle} {index + 1}</span>
+                                                    <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded hover:bg-red-50">Sil</button>
+                                                </div>
+                                            )}
+                                            
+                                            <div className="flex flex-col gap-4">
+                                                {/* Adults Row */}
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{ls.adults}</span>
+                                                    <div className="flex items-center gap-1">
+                                                        <button 
+                                                            onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} 
+                                                            disabled={room.adults <= 1}
+                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[20px]">remove</span>
+                                                        </button>
+                                                        <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.adults}</span>
+                                                        <button 
+                                                            onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} 
+                                                            disabled={room.adults >= 6} 
+                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[20px]">add</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Children Row */}
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{ls.children}</span>
+                                                        <span className="text-[12px] text-slate-500">{ls.childrenAge}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <button 
+                                                            onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} 
+                                                            disabled={room.children <= 0}
+                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[20px]">remove</span>
+                                                        </button>
+                                                        <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.children}</span>
+                                                        <button 
+                                                            onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} 
+                                                            disabled={room.children >= 4} 
+                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[20px]">add</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Child Ages */}
+                                                {room.children > 0 && (
+                                                    <div className="grid grid-cols-2 gap-3 mt-1">
+                                                        {room.childAges.map((age, ageIdx) => (
+                                                            <div key={ageIdx} className="flex flex-col gap-1">
+                                                                <span className="text-[12px] text-slate-500">{ls.children} {ageIdx + 1} {ls.years}</span>
+                                                                <select
+                                                                    value={age}
+                                                                    onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
+                                                                    className="w-full h-8 bg-white dark:bg-slate-800 rounded border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-0 outline-none text-[#3c4043] dark:text-white"
+                                                                >
+                                                                    {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {ls.years}</option>)}
+                                                                </select>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {roomState.length < 5 && (
+                                        <button onClick={addRoom} className="mt-4 text-[14px] text-[#1a73e8] font-medium hover:underline flex items-center">
+                                            <span className="material-symbols-outlined text-[18px] mr-1">add</span>
+                                            {ls.addRoom}
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Google Flights Style Footer */}
+                                <div className="flex items-center justify-end gap-6 mt-6 pt-2">
+                                    <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
+                                        İptal
+                                    </button>
+                                    <button onClick={() => {
+                                        setShowGuestDropdown(false);
+                                        handleSearch();
+                                    }} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
+                                        Bitti
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                </div>
                 </div>
             </div>
         </section>

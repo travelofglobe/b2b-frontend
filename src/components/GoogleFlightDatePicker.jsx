@@ -336,7 +336,7 @@ const GoogleFlightDatePicker = ({
     return (
         <div
             ref={popoverRef}
-            className="absolute top-[calc(100%+8px)] right-[-40px] sm:right-[-80px] lg:right-[-120px] bg-white dark:bg-[#202124] rounded-[8px] shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 z-[300] p-4 sm:p-5 animate-in fade-in zoom-in-95 duration-150 max-w-[96vw] font-roboto"
+            className="absolute top-[calc(100%+8px)] left-0 md:left-[-20px] bg-white dark:bg-[#202124] rounded-[8px] shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 z-[1000] p-4 sm:p-5 animate-in fade-in zoom-in-95 duration-150 max-w-[96vw] font-roboto"
             style={{ width: 'max-content' }}
         >
             <div className="flex flex-col md:flex-row gap-6">

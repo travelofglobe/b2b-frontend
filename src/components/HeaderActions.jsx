@@ -185,6 +185,7 @@ const HeaderActions = () => {
                 cancelText={t('common.cancel')}
                 type="danger"
                 icon="logout"
+                agencyInfo={agencyInfo}
             />
         </div>
     );

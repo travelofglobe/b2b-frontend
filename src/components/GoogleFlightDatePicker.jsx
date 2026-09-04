@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import HolidaySidePanel from './HolidaySidePanel';
 
 // Turkish day names according to Google Flights: P, S, Ç, P, C, C, P (starts on Monday)
 const DAY_HEADERS = ['P', 'S', 'Ç', 'P', 'C', 'C', 'P'];
@@ -56,8 +58,10 @@ const GoogleFlightDatePicker = ({
     onClose,
     activeField = 'checkIn', // 'checkIn' | 'checkOut'
     setActiveField,
-    holidays = []
+    holidays = [],
+    countryCode = 'TR'
 }) => {
+    const { t, i18n } = useTranslation();
     const popoverRef = useRef(null);
 
     // Visible base month (left month)
@@ -244,7 +248,19 @@ const GoogleFlightDatePicker = ({
 
                         // Holiday check
                         const formattedIso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                        const isHoliday = holidays?.some(h => (h.date === formattedIso || h.holidayDate === formattedIso));
+                        const holiday = holidays?.find(h => (h.date === formattedIso || h.holidayDate === formattedIso));
+
+                        let isReligious = false;
+                        let displayTooltipName = '';
+                        if (holiday) {
+                            const lowerName = (holiday.holidayName || holiday.name || '').toLowerCase();
+                            isReligious = lowerName.includes('eid') || lowerName.includes('ramazan') || lowerName.includes('kurban');
+
+                            const langPrefix = (i18n.language || 'en').substring(0, 2).toLowerCase();
+                            const hCountry = (holiday.countryCode || countryCode || '').toLowerCase();
+                            const isLocalLang = langPrefix === hCountry;
+                            displayTooltipName = (isLocalLang && holiday.localName) ? holiday.localName : (holiday.holidayName || holiday.name);
+                        }
 
                         let rangeClasses = '';
                         if (isInRange) {
@@ -265,7 +281,7 @@ const GoogleFlightDatePicker = ({
                                     type="button"
                                     disabled={isPast}
                                     onClick={() => handleDayClick(date)}
-                                    className={`size-9 flex items-center justify-center text-[13px] font-medium transition-all relative z-10 ${
+                                    className={`size-9 flex items-center justify-center text-[13px] font-medium transition-all relative z-10 group/day ${
                                         isStart || isEnd
                                             ? 'bg-[#1a73e8] text-white rounded-full shadow-sm font-semibold'
                                             : isPast
@@ -273,9 +289,33 @@ const GoogleFlightDatePicker = ({
                                             : 'text-[#3c4043] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-slate-700 rounded-full'
                                     }`}
                                 >
-                                    {date.getDate()}
-                                    {isHoliday && !isStart && !isEnd && (
-                                        <span className="absolute bottom-1 size-1 rounded-full bg-emerald-500" />
+                                    <span>{date.getDate()}</span>
+                                    {holiday && (
+                                        <span
+                                            className={`absolute bottom-1 w-3.5 h-[2.5px] rounded-full transition-colors ${
+                                                isStart || isEnd
+                                                    ? 'bg-white'
+                                                    : isReligious
+                                                    ? 'bg-emerald-500 shadow-sm'
+                                                    : 'bg-amber-400 shadow-sm'
+                                            }`}
+                                        />
+                                    )}
+
+                                    {/* Holiday Tooltip on Hover */}
+                                    {holiday && !isPast && (
+                                        <div className="hidden group-hover/day:flex flex-col items-center absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900/95 dark:bg-slate-800 text-white text-center px-2.5 py-1.5 rounded-lg shadow-xl pointer-events-none z-[400] whitespace-nowrap border border-slate-700/50 backdrop-blur-sm">
+                                            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                                {holiday.countryCode || countryCode || 'TR'}
+                                            </div>
+                                            <div className="text-[11px] font-semibold text-white max-w-[190px] truncate leading-tight mt-0.5">
+                                                {displayTooltipName}
+                                            </div>
+                                            <div className={`text-[9px] font-medium mt-0.5 ${isReligious ? 'text-emerald-400' : 'text-amber-300'}`}>
+                                                {isReligious ? 'Dini Tatil' : 'Resmi Tatil'}
+                                            </div>
+                                            <div className="w-2 h-2 bg-slate-900/95 dark:bg-slate-800 rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2 border-r border-b border-slate-700/50"></div>
+                                        </div>
                                     )}
                                 </button>
                             </div>
@@ -289,132 +329,158 @@ const GoogleFlightDatePicker = ({
     return (
         <div
             ref={popoverRef}
-            className="absolute top-[calc(100%+8px)] right-0 bg-white dark:bg-[#202124] rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.18)] border border-[#dadce0] dark:border-slate-700 z-[300] p-6 animate-in fade-in zoom-in-95 duration-150"
-            style={{ minWidth: '640px', maxWidth: '720px' }}
+            className="absolute top-[calc(100%+8px)] right-[-40px] sm:right-[-80px] lg:right-[-120px] bg-white dark:bg-[#202124] rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.18)] border border-[#dadce0] dark:border-slate-700 z-[300] p-5 sm:p-6 animate-in fade-in zoom-in-95 duration-150 max-w-[96vw] font-roboto"
+            style={{ width: 'max-content' }}
         >
-            {/* --- Top Bar (Sıfırla on left, Twin Date boxes on right) --- */}
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#dadce0] dark:border-slate-700">
-                {/* Reset button */}
-                <button
-                    type="button"
-                    onClick={handleReset}
-                    className="text-[14px] text-[#1a73e8] hover:text-[#1557b0] font-medium px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                >
-                    Sıfırla
-                </button>
+            <div className="flex flex-col md:flex-row gap-6">
+                {/* Calendars Container */}
+                <div className="flex-1">
+                    {/* --- Top Bar (Sıfırla on left, Twin Date boxes on right) --- */}
+                    <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#dadce0] dark:border-slate-700">
+                        {/* Reset button */}
+                        <button
+                            type="button"
+                            onClick={handleReset}
+                            className="text-[14px] text-[#1a73e8] hover:text-[#1557b0] font-medium px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors cursor-pointer"
+                        >
+                            Sıfırla
+                        </button>
 
-                {/* Twin Date Inputs in Popover Header (matching Google Flights) */}
-                <div className="flex items-center border border-[#dadce0] dark:border-slate-600 rounded-md bg-white dark:bg-[#303134] overflow-hidden">
-                    {/* Check-In Cell */}
-                    <div
-                        onClick={() => setActiveField('checkIn')}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 cursor-pointer transition-colors ${
-                            activeField === 'checkIn'
-                                ? 'ring-2 ring-[#1a73e8] bg-blue-50/40 dark:bg-blue-950/20 rounded-l-md z-10'
-                                : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
-                        }`}
-                    >
-                        <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400">
-                            calendar_today
-                        </span>
-                        <span className="text-[13px] font-medium text-[#202124] dark:text-white whitespace-nowrap min-w-[70px]">
-                            {formatGoogleFlightDate(checkInDate) || 'Tarih seçin'}
-                        </span>
-                        {/* Quick increment/decrement arrows */}
-                        <div className="flex items-center text-[#5f6368] dark:text-slate-400 ml-1">
-                            <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
-                                className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded"
-                                title="1 gün geri"
+                        {/* Twin Date Inputs in Popover Header (matching Google Flights) */}
+                        <div className="flex items-center border border-[#dadce0] dark:border-slate-600 rounded-md bg-white dark:bg-[#303134] overflow-hidden">
+                            {/* Check-In Cell */}
+                            <div
+                                onClick={() => setActiveField('checkIn')}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 cursor-pointer transition-colors ${
+                                    activeField === 'checkIn'
+                                        ? 'ring-2 ring-[#1a73e8] bg-blue-50/40 dark:bg-blue-950/20 rounded-l-md z-10'
+                                        : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                }`}
                             >
-                                <span className="material-symbols-outlined text-[14px]">chevron_left</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); stepCheckIn(1); }}
-                                className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded"
-                                title="1 gün ileri"
+                                <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400">
+                                    calendar_today
+                                </span>
+                                <span className="text-[14px] font-normal text-[#202124] dark:text-white whitespace-nowrap min-w-[70px]">
+                                    {formatGoogleFlightDate(checkInDate) || 'Tarih seçin'}
+                                </span>
+                                {/* Quick increment/decrement arrows */}
+                                <div className="flex items-center text-[#5f6368] dark:text-slate-400 ml-1">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
+                                        className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded"
+                                        title="1 gün geri"
+                                    >
+                                        <span className="material-symbols-outlined text-[14px]">chevron_left</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); stepCheckIn(1); }}
+                                        className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded"
+                                        title="1 gün ileri"
+                                    >
+                                        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Divider */}
+                            <div className="w-[1px] h-6 bg-[#dadce0] dark:bg-slate-600" />
+
+                            {/* Check-Out Cell */}
+                            <div
+                                onClick={() => setActiveField('checkOut')}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 cursor-pointer transition-colors ${
+                                    activeField === 'checkOut'
+                                        ? 'ring-2 ring-[#1a73e8] bg-blue-50/40 dark:bg-blue-950/20 rounded-r-md z-10'
+                                        : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                }`}
                             >
-                                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                            </button>
+                                <span className="text-[14px] font-normal text-[#202124] dark:text-white whitespace-nowrap min-w-[70px]">
+                                    {formatGoogleFlightDate(checkOutDate) || 'Tarih seçin'}
+                                </span>
+                                {/* Quick increment/decrement arrows */}
+                                <div className="flex items-center text-[#5f6368] dark:text-slate-400 ml-1">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
+                                        className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded"
+                                        title="1 gün geri"
+                                    >
+                                        <span className="material-symbols-outlined text-[14px]">chevron_left</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); stepCheckOut(1); }}
+                                        className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded"
+                                        title="1 gün ileri"
+                                    >
+                                        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Divider */}
-                    <div className="w-[1px] h-6 bg-[#dadce0] dark:bg-slate-600" />
+                    {/* --- 2 Months Grid (Left & Right) with Floating Arrow --- */}
+                    <div className="relative flex items-start justify-center gap-6 sm:gap-8">
+                        {/* Prev Month Floating Button */}
+                        <button
+                            type="button"
+                            onClick={handlePrevMonth}
+                            disabled={isBeforeDay(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1), new Date(today.getFullYear(), today.getMonth(), 1))}
+                            className="absolute -left-3 top-0 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed z-20 transition-all text-[#5f6368] dark:text-slate-300"
+                            title="Önceki ay"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                        </button>
 
-                    {/* Check-Out Cell */}
-                    <div
-                        onClick={() => setActiveField('checkOut')}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 cursor-pointer transition-colors ${
-                            activeField === 'checkOut'
-                                ? 'ring-2 ring-[#1a73e8] bg-blue-50/40 dark:bg-blue-950/20 rounded-r-md z-10'
-                                : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
-                        }`}
-                    >
-                        <span className="text-[13px] font-medium text-[#202124] dark:text-white whitespace-nowrap min-w-[70px]">
-                            {formatGoogleFlightDate(checkOutDate) || 'Tarih seçin'}
-                        </span>
-                        {/* Quick increment/decrement arrows */}
-                        <div className="flex items-center text-[#5f6368] dark:text-slate-400 ml-1">
-                            <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
-                                className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded"
-                                title="1 gün geri"
-                            >
-                                <span className="material-symbols-outlined text-[14px]">chevron_left</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); stepCheckOut(1); }}
-                                className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded"
-                                title="1 gün ileri"
-                            >
-                                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                            </button>
-                        </div>
+                        {/* Left Month */}
+                        {renderCalendarMonth(leftMonth, leftDays)}
+
+                        {/* Right Month */}
+                        {renderCalendarMonth(rightMonth, rightDays)}
+
+                        {/* Next Month Floating Button */}
+                        <button
+                            type="button"
+                            onClick={handleNextMonth}
+                            className="absolute -right-3 top-0 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300"
+                            title="Sonraki ay"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                        </button>
                     </div>
+                </div>
+
+                {/* --- Right: Holiday Side Panel --- */}
+                <div className="hidden md:flex border-l border-[#dadce0] dark:border-slate-700 pl-5">
+                    <HolidaySidePanel
+                        holidays={holidays}
+                        visibleMonth={leftMonth}
+                        className="bg-transparent dark:bg-transparent border-none p-0"
+                    />
                 </div>
             </div>
 
-            {/* --- 2 Months Grid (Left & Right) with Floating Arrow --- */}
-            <div className="relative flex items-start justify-center gap-10">
-                {/* Prev Month Floating Button */}
-                <button
-                    type="button"
-                    onClick={handlePrevMonth}
-                    disabled={isBeforeDay(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1), new Date(today.getFullYear(), today.getMonth(), 1))}
-                    className="absolute -left-3 top-0 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed z-20 transition-all text-[#5f6368] dark:text-slate-300"
-                    title="Önceki ay"
-                >
-                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-                </button>
+            {/* --- Footer (Legend on left, Bitti button on right) --- */}
+            <div className="flex items-center justify-between pt-4 mt-4 border-t border-[#dadce0] dark:border-slate-700">
+                {/* Legend indicator */}
+                <div className="flex items-center gap-4 text-xs text-[#5f6368] dark:text-slate-400">
+                    <div className="flex items-center gap-1.5">
+                        <span className="w-3.5 h-[3px] rounded-full bg-amber-400"></span>
+                        <span className="text-[11.5px] font-medium">{t('dashboard.holidays.publicHolidays', 'Resmi Tatiller')}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <span className="w-3.5 h-[3px] rounded-full bg-emerald-500"></span>
+                        <span className="text-[11.5px] font-medium">{t('dashboard.holidays.religiousHolidays', 'Dini Tatiller')}</span>
+                    </div>
+                </div>
 
-                {/* Left Month */}
-                {renderCalendarMonth(leftMonth, leftDays)}
-
-                {/* Right Month */}
-                {renderCalendarMonth(rightMonth, rightDays)}
-
-                {/* Next Month Floating Button */}
-                <button
-                    type="button"
-                    onClick={handleNextMonth}
-                    className="absolute -right-3 top-0 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300"
-                    title="Sonraki ay"
-                >
-                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                </button>
-            </div>
-
-            {/* --- Footer (Bitti button on right) --- */}
-            <div className="flex items-center justify-end pt-5 mt-4 border-t border-[#dadce0] dark:border-slate-700">
                 <button
                     type="button"
                     onClick={onClose}
-                    className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[14px] px-7 py-2 transition-all shadow-sm active:scale-95"
+                    className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[14px] px-7 py-2 transition-all shadow-sm active:scale-95 cursor-pointer"
                 >
                     Bitti
                 </button>

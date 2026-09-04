@@ -43,7 +43,7 @@ const PortalLayout = () => {
                     <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors focus:outline-none">
                         <span className="material-symbols-outlined text-xl">menu</span>
                     </button>
-                    <div className="flex flex-col cursor-pointer select-none" onClick={() => navigate('/dashboard')}>
+                    <div className="flex flex-col cursor-pointer select-none" onClick={() => navigate('/travel/search')}>
                         <span className="text-[14px] font-black text-[#0f172a] dark:text-white tracking-tight leading-none flex items-center">
                             TRAVEL <span className="text-blue-500 mx-1">OF</span> GLOBE
                         </span>
@@ -61,7 +61,7 @@ const PortalLayout = () => {
                     {[
                         { path: '/explore', icon: 'travel_explore', label: 'Keşfet', isCurrent: location.pathname === '/explore' },
                         { path: '/flights', icon: 'flight', label: 'Uçuşlar', isCurrent: location.pathname === '/flights' },
-                        { path: '/dashboard', icon: 'bed', label: 'Oteller', isCurrent: location.pathname === '/dashboard' || location.pathname.startsWith('/hotels') || location.pathname.startsWith('/hotel/') },
+                        { path: '/travel/search', icon: 'bed', label: 'Oteller', isCurrent: location.pathname === '/travel/search' || location.pathname === '/dashboard' || location.pathname.startsWith('/hotels') || location.pathname.startsWith('/hotel/') },
                         { path: '/vacation-rentals', icon: 'home_work', label: 'Kiralık yerler', isCurrent: location.pathname === '/vacation-rentals' },
                     ].map(({ path, icon, label, isCurrent }) => (
                         <button
@@ -90,29 +90,46 @@ const PortalLayout = () => {
                 </div>
             </header>
 
-            <div className="flex flex-1 overflow-hidden relative">
-                {/* Sidebar Overlay */}
-                {isSidebarOpen && (
-                    <div 
-                        className="fixed inset-0 bg-black/20 dark:bg-black/40 z-40" 
-                        onClick={() => setIsSidebarOpen(false)}
-                    ></div>
-                )}
-                
-                {/* Sidebar Drawer */}
-                <aside className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-[280px] absolute inset-y-0 left-0 flex-shrink-0 bg-white dark:bg-[#202124] z-50 flex flex-col h-full transition-transform duration-300 ease-in-out shadow-2xl overflow-hidden`}>
-                    <nav className="flex-1 px-2 py-3 overflow-y-auto scrollbar-hide flex flex-col">
+            {/* Sidebar Overlay (Higher than any in-page searchbar) */}
+            {isSidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/40 z-[900] transition-opacity duration-300 animate-in fade-in" 
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+            
+            {/* Sidebar Drawer (Top level z-[950] like Google Flights) */}
+            <aside className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-[280px] fixed inset-y-0 left-0 flex-shrink-0 bg-white dark:bg-[#202124] z-[950] flex flex-col h-full transition-transform duration-300 ease-in-out shadow-2xl overflow-hidden`}>
+                {/* Drawer Top Header: Hamburger & Logo */}
+                <div className="flex items-center gap-4 px-4 h-16 shrink-0 border-b border-slate-100 dark:border-slate-800">
+                    <button onClick={() => setIsSidebarOpen(false)} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors focus:outline-none">
+                        <span className="material-symbols-outlined text-xl">menu</span>
+                    </button>
+                    <div className="flex flex-col cursor-pointer select-none" onClick={() => { setIsSidebarOpen(false); navigate('/travel/search'); }}>
+                        <span className="text-[14px] font-black text-[#0f172a] dark:text-white tracking-tight leading-none flex items-center">
+                            TRAVEL <span className="text-blue-500 mx-1">OF</span> GLOBE
+                        </span>
+                        <div className="flex items-center gap-1 mt-1">
+                            <div className="h-[1.5px] w-3 bg-blue-300 dark:bg-blue-500/50 rounded-full"></div>
+                            <span className="text-[7px] font-bold tracking-[0.12em] text-slate-400 dark:text-slate-500 leading-none mt-[1px]">
+                                GLOBAL B2B SOLUTIONS
+                            </span>
+                        </div>
+                    </div>
+                </div>
 
-                        {/* --- Navigation Tabs (same as header) --- */}
-                        <div className="space-y-0.5 mb-1">
+                <nav className="flex-1 px-2 py-3 overflow-y-auto scrollbar-hide flex flex-col">
+
+                    {/* --- Navigation Tabs (same as header) --- */}
+                    <div className="space-y-0.5 mb-1">
                             {[
                                 { path: '/explore', icon: 'travel_explore', label: 'Keşfet' },
                                 { path: '/flights', icon: 'flight', label: 'Uçuşlar' },
-                                { path: '/dashboard', icon: 'bed', label: 'Oteller' },
+                                { path: '/travel/search', icon: 'bed', label: 'Oteller' },
                                 { path: '/vacation-rentals', icon: 'home_work', label: 'Kiralık yerler' },
                             ].map(({ path, icon, label }) => {
-                                const isActive = path === '/dashboard'
-                                    ? (location.pathname === '/dashboard' || location.pathname.startsWith('/hotels') || location.pathname.startsWith('/hotel/'))
+                                const isActive = path === '/travel/search'
+                                    ? (location.pathname === '/travel/search' || location.pathname === '/dashboard' || location.pathname.startsWith('/hotels') || location.pathname.startsWith('/hotel/'))
                                     : location.pathname === path;
                                 return (
                                     <button key={path} onClick={() => navigate(path)}
@@ -296,12 +313,11 @@ const PortalLayout = () => {
                     </nav>
                 </aside>
 
-
-
-                <main className="flex-1 flex flex-col h-full overflow-y-auto relative" onScroll={handleScroll}>
-                    <Outlet />
-                </main>
-            </div>
+                <div className="flex flex-1 overflow-hidden relative z-0">
+                    <main className="flex-1 flex flex-col h-full overflow-y-auto relative" onScroll={handleScroll}>
+                        <Outlet />
+                    </main>
+                </div>
 
             {/* Google Flights Style Language Modal */}
             <LanguageModal

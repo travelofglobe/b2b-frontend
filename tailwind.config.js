@@ -13,6 +13,7 @@ export default {
         "background-dark": "#101922",
       },
       fontFamily: {
+        "roboto": ["Roboto", "Arial", "sans-serif"],
         "display": ["Outfit", '"Google Sans"', "sans-serif"],
         "sans": ["Outfit", '"Google Sans"', "sans-serif"]
       },

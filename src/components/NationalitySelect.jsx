@@ -86,22 +86,20 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                 <button
                     type="button"
                     onClick={() => { setIsOpen(!isOpen); setSearchTerm(''); }}
-                    className={`w-full h-14 flex items-center justify-between px-3.5 border rounded-[4px] bg-white dark:bg-[#303134] transition-all text-left focus:outline-none ${
+                    className={`w-full h-14 flex items-center justify-between px-3.5 sm:px-4 border rounded-[4px] bg-white dark:bg-[#303134] transition-all text-left focus:outline-none font-roboto ${
                         isOpen 
                             ? 'border-[#1a73e8] ring-1 ring-[#1a73e8]' 
                             : 'border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
                     }`}
+                    title="Vatandaşlık"
                 >
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                         <span className="text-xl flex-shrink-0 leading-none">{selectedCountry?.flag}</span>
-                        <div className="flex flex-col min-w-0 flex-1 justify-center">
-                            <span className="text-[10px] font-medium text-slate-500 -mb-0.5">Vatandaşlık</span>
-                            <span className="text-base font-normal text-[#3c4043] dark:text-white truncate">
-                                {selectedCountry?.name || selectedCountry?.code || 'Türkiye'}
-                            </span>
-                        </div>
+                        <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
+                            {selectedCountry?.name || selectedCountry?.code || 'Türkiye'}
+                        </span>
                     </div>
-                    <span className="material-symbols-outlined text-[20px] text-slate-500 flex-shrink-0 ml-1">arrow_drop_down</span>
+                    <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0 ml-1">arrow_drop_down</span>
                 </button>
             ) : (
                 <button

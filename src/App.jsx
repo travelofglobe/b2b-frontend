@@ -48,7 +48,8 @@ function App() {
             
             {/* Portal Routes with Persistent Sidebar */}
             <Route element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}>
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/travel/search" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Navigate to="/travel/search" replace />} />
               <Route path="/bookings" element={<MyBookings />} />
               <Route path="/bookings/:bookingId" element={<BookingDetail />} />
               <Route path="/my-office" element={<MyOffice />} />
@@ -80,8 +81,8 @@ function App() {
             {/* Error / Forbidden Pages */}
             <Route path="/forbidden" element={<ProtectedRoute><ForbiddenPage /></ProtectedRoute>} />
             <Route path="/403" element={<ProtectedRoute><ForbiddenPage /></ProtectedRoute>} />
-            {/* Redirect root to hotels (ProtectedRoute will handle auth check) */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* Redirect root to travel search (ProtectedRoute will handle auth check) */}
+            <Route path="/" element={<Navigate to="/travel/search" replace />} />
           </Routes>
         </div>
         </FavoritesProvider>

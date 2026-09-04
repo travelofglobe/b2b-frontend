@@ -380,7 +380,9 @@ const DashboardSearch = () => {
     const [destinationCountryCode, setDestinationCountryCode] = useState(() => localStorage.getItem('dashboard_last_countryCode') || null);
     const [visibleMonth, setVisibleMonth] = useState(new Date());
 
-    const { holidays } = useHolidays(destinationCountryCode);
+    // Resolve country code for holidays: destination > nationality > agency > user location > 'TR'
+    const holidayCountryCode = destinationCountryCode || nationality || localStorage.getItem('agency_country_code') || getUserCountryCode() || 'TR';
+    const { holidays } = useHolidays(holidayCountryCode);
 
     const renderDayContents = (day, date) => {
         const dateStr = format(date, "yyyy-MM-dd");
@@ -1022,35 +1024,32 @@ const DashboardSearch = () => {
                 <div className="w-full flex flex-col md:flex-row items-stretch gap-2.5 sm:gap-3 relative z-50">
                     
                     {/* Destination Input (Flex-1 fills remaining space) */}
-                    <div className="flex-1 min-w-0 relative group/field h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all" ref={searchWrapperRef}>
-                        <div className="flex items-center gap-2.5 h-full w-full px-4">
-                            <span className="material-symbols-outlined text-[20px] text-slate-500 flex-shrink-0">
+                    <div className="flex-1 min-w-0 relative group/field h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
+                        <div className="flex items-center gap-3 h-full w-full px-4">
+                            <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
                                 {error ? 'error' : 'location_on'}
                             </span>
-                            <div className="flex flex-col flex-1 h-full justify-center min-w-0">
-                                {query && <span className="text-[10px] font-medium text-slate-500 -mb-1">Nereye?</span>}
-                                <input
-                                    className={`bg-transparent border-none outline-none focus:ring-0 w-full p-0 text-base font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] tracking-tight ${query ? 'mt-1' : ''}`}
-                                    placeholder={ls.placeholder || "Nereye?"}
-                                    type="text"
-                                    value={query}
-                                    onChange={(e) => {
-                                        isUserInteraction.current = true;
-                                        setQuery(e.target.value);
-                                        if (error) setError(false);
-                                    }}
-                                    onClick={(e) => {
-                                        e.target.select();
-                                        fetchSearchHistory();
-                                        setShowDropdown(true);
-                                    }}
-                                    onFocus={() => {
-                                        fetchSearchHistory();
-                                        setShowDropdown(true);
-                                    }}
-                                    onKeyDown={handleKeyDown}
-                                />
-                            </div>
+                            <input
+                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[15px] font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate"
+                                placeholder={ls.placeholder || "Nereye?"}
+                                type="text"
+                                value={query}
+                                onChange={(e) => {
+                                    isUserInteraction.current = true;
+                                    setQuery(e.target.value);
+                                    if (error) setError(false);
+                                }}
+                                onClick={(e) => {
+                                    e.target.select();
+                                    fetchSearchHistory();
+                                    setShowDropdown(true);
+                                }}
+                                onFocus={() => {
+                                    fetchSearchHistory();
+                                    setShowDropdown(true);
+                                }}
+                                onKeyDown={handleKeyDown}
+                            />
                             {loading && <div className="size-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>}
                         </div>
 
@@ -1146,7 +1145,7 @@ const DashboardSearch = () => {
                     </div>
 
                     {/* Twin Datepicker Container (Fixed clean width, guaranteed single line) */}
-                    <div className="w-full md:w-[330px] lg:w-[350px] flex-shrink-0 relative h-14 border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] transition-all flex items-center google-flight-date-trigger">
+                    <div className="w-full md:w-[330px] lg:w-[350px] flex-shrink-0 relative h-14 border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] transition-all flex items-center google-flight-date-trigger font-roboto">
                         
                         {/* Check-In Half */}
                         <div
@@ -1154,23 +1153,23 @@ const DashboardSearch = () => {
                                 setActiveDateField('checkIn');
                                 setIsDatePickerOpen(true);
                             }}
-                            className={`flex-1 h-full flex items-center justify-between px-2.5 sm:px-3 cursor-pointer transition-colors min-w-0 ${
+                            className={`flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkIn'
                                     ? 'border-2 border-[#1a73e8] rounded-l-[3px]'
                                     : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
                             }`}
                         >
-                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
                                     calendar_today
                                 </span>
-                                <span className="text-[13px] sm:text-[14px] font-normal text-[#3c4043] dark:text-white truncate">
+                                <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
                                     {formatGoogleFlightDate(checkInDate) || 'Giriş'}
                                 </span>
                             </div>
 
                             {/* Quick 1-day step buttons */}
-                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-0.5">
+                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
@@ -1199,20 +1198,20 @@ const DashboardSearch = () => {
                                 setActiveDateField('checkOut');
                                 setIsDatePickerOpen(true);
                             }}
-                            className={`flex-1 h-full flex items-center justify-between px-2.5 sm:px-3 cursor-pointer transition-colors min-w-0 ${
+                            className={`flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkOut'
                                     ? 'border-2 border-[#1a73e8] rounded-r-[3px]'
                                     : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
                             }`}
                         >
                             <div className="flex items-center min-w-0 flex-1">
-                                <span className="text-[13px] sm:text-[14px] font-normal text-[#3c4043] dark:text-white truncate">
+                                <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
                                     {formatGoogleFlightDate(checkOutDate) || 'Çıkış'}
                                 </span>
                             </div>
 
                             {/* Quick 1-day step buttons */}
-                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-0.5">
+                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
@@ -1243,6 +1242,7 @@ const DashboardSearch = () => {
                             activeField={activeDateField}
                             setActiveField={setActiveDateField}
                             holidays={holidays}
+                            countryCode={holidayCountryCode}
                         />
                     </div>
                 </div>

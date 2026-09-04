@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-const HolidaySidePanel = ({ holidays, visibleMonth }) => {
+const HolidaySidePanel = ({ holidays, visibleMonth, className = '' }) => {
     const { t, i18n } = useTranslation();
 
     // visibleMonth is the start date of the first visible month.
@@ -41,10 +41,10 @@ const HolidaySidePanel = ({ holidays, visibleMonth }) => {
         })));
 
         return (
-            <ul className="text-[11px] text-slate-500 dark:text-slate-400 pl-6 flex flex-col gap-1.5 list-none">
+            <ul className="text-[11px] text-slate-500 dark:text-slate-400 pl-5 flex flex-col gap-1.5 list-none">
                 {uniqueNames.map((name, i) => (
                     <li key={i} className="relative leading-tight break-words pr-2" title={name}>
-                        <span className={`absolute -left-3 top-[5px] w-1 h-1 rounded-full ${colorClass}`}></span>
+                        <span className={`absolute -left-3 top-[5px] w-1.5 h-1.5 rounded-full ${colorClass}`}></span>
                         {name}
                     </li>
                 ))}
@@ -52,24 +52,43 @@ const HolidaySidePanel = ({ holidays, visibleMonth }) => {
         );
     };
 
+    const baseWrapperClass = className 
+        ? className 
+        : "border-l border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-r-xl p-4";
+
     return (
-        <div className="holiday-side-panel p-4 min-w-[200px] w-[220px] border-l border-slate-100 dark:border-slate-700 flex flex-col gap-5 bg-white dark:bg-slate-800 rounded-r-xl overflow-y-auto max-h-[320px]">
-            <h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 tracking-tight">{t('dashboard.holidays.title')}</h4>
+        <div className={`holiday-side-panel min-w-[210px] w-[230px] flex flex-col gap-4 overflow-y-auto max-h-[350px] ${baseWrapperClass}`}>
+            <h4 className="text-[13px] font-semibold text-slate-800 dark:text-slate-200 tracking-tight flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-[#1a73e8]">event</span>
+                {t('dashboard.holidays.title', 'Tatil Bilgisi')}
+            </h4>
             
-            <div className="flex flex-col gap-2 mt-1">
+            <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
-                    <div className="w-4 h-[3px] bg-yellow-400 rounded-full"></div>
-                    <span className="text-[13px] font-medium text-slate-700 dark:text-slate-300">{t('dashboard.holidays.publicHolidays')}</span>
+                    <div className="w-3.5 h-[3px] bg-amber-400 rounded-full"></div>
+                    <span className="text-[12px] font-medium text-slate-700 dark:text-slate-300">{t('dashboard.holidays.publicHolidays', 'Resmi Tatiller')}</span>
                 </div>
-                {publicHolidays.length > 0 && renderHolidayList(publicHolidays, 'bg-yellow-400')}
+                {publicHolidays.length > 0 ? (
+                    renderHolidayList(publicHolidays, 'bg-amber-400')
+                ) : (
+                    <p className="text-[10.5px] text-slate-400 dark:text-slate-500 pl-4 italic">
+                        {t('dashboard.holidays.none', 'Bu dönemde yok')}
+                    </p>
+                )}
             </div>
 
-            <div className="flex flex-col gap-2 mt-2">
+            <div className="flex flex-col gap-2 mt-1">
                 <div className="flex items-center gap-2">
-                    <div className="w-4 h-[3px] bg-green-500 rounded-full"></div>
-                    <span className="text-[13px] font-medium text-slate-700 dark:text-slate-300">{t('dashboard.holidays.religiousHolidays')}</span>
+                    <div className="w-3.5 h-[3px] bg-emerald-500 rounded-full"></div>
+                    <span className="text-[12px] font-medium text-slate-700 dark:text-slate-300">{t('dashboard.holidays.religiousHolidays', 'Dini Tatiller')}</span>
                 </div>
-                {religiousHolidays.length > 0 && renderHolidayList(religiousHolidays, 'bg-green-500')}
+                {religiousHolidays.length > 0 ? (
+                    renderHolidayList(religiousHolidays, 'bg-emerald-500')
+                ) : (
+                    <p className="text-[10.5px] text-slate-400 dark:text-slate-500 pl-4 italic">
+                        {t('dashboard.holidays.none', 'Bu dönemde yok')}
+                    </p>
+                )}
             </div>
         </div>
     );

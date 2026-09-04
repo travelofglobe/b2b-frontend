@@ -31,7 +31,7 @@ const UnderConstruction = ({ title, icon }) => {
 
             <div className="mt-10 flex items-center gap-4">
                 <button 
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => navigate('/travel/search')}
                     className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-xs shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all active:scale-95"
                 >
                     Back to Dashboard

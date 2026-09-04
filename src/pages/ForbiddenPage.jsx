@@ -150,7 +150,7 @@ const ForbiddenPage = () => {
                         {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row gap-3.5 justify-center items-center">
                             <button
-                                onClick={() => navigate('/dashboard')}
+                                onClick={() => navigate('/travel/search')}
                                 className="w-full sm:w-auto px-7 py-3.5 bg-primary hover:bg-primary/90 text-white rounded-2xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
                             >
                                 <span className="material-symbols-outlined text-lg">dashboard</span>

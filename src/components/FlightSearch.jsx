@@ -259,18 +259,15 @@ const FlightSearch = ({ onSearch }) => {
                     <div className="flex-1 min-w-0 relative flex items-center">
                         
                         {/* Origin Box */}
-                        <div className="flex-1 h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-l-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all px-3.5 pr-6">
-                            <span className="material-symbols-outlined text-[20px] text-slate-400 mr-2.5 flex-shrink-0">radio_button_unchecked</span>
-                            <div className="flex flex-col flex-1 min-w-0 justify-center">
-                                {origin && <span className="text-[10px] font-medium text-slate-500 -mb-0.5">Nereden?</span>}
-                                <input
-                                    type="text"
-                                    placeholder="Nereden?"
-                                    value={origin}
-                                    onChange={(e) => setOrigin(e.target.value)}
-                                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 text-base font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] truncate"
-                                />
-                            </div>
+                        <div className="flex-1 h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-l-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all px-3.5 sm:px-4 pr-6 font-roboto">
+                            <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 mr-3 flex-shrink-0">radio_button_unchecked</span>
+                            <input
+                                type="text"
+                                placeholder="Nereden?"
+                                value={origin}
+                                onChange={(e) => setOrigin(e.target.value)}
+                                className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 text-[15px] font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 truncate tracking-normal leading-normal"
+                            />
                         </div>
 
                         {/* Circular Swap Button */}
@@ -286,23 +283,20 @@ const FlightSearch = ({ onSearch }) => {
                         </div>
 
                         {/* Destination Box */}
-                        <div className="flex-1 h-14 flex items-center border border-l-0 border-[#dadce0] dark:border-slate-600 rounded-r-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all px-3.5 pl-6">
-                            <span className="material-symbols-outlined text-[20px] text-slate-400 mr-2.5 flex-shrink-0">location_on</span>
-                            <div className="flex flex-col flex-1 min-w-0 justify-center">
-                                {destination && <span className="text-[10px] font-medium text-slate-500 -mb-0.5">Nereye?</span>}
-                                <input
-                                    type="text"
-                                    placeholder="Nereye?"
-                                    value={destination}
-                                    onChange={(e) => setDestination(e.target.value)}
-                                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 text-base font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] truncate"
-                                />
-                            </div>
+                        <div className="flex-1 h-14 flex items-center border border-l-0 border-[#dadce0] dark:border-slate-600 rounded-r-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all px-3.5 sm:px-4 pl-6 font-roboto">
+                            <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 mr-3 flex-shrink-0">location_on</span>
+                            <input
+                                type="text"
+                                placeholder="Nereye?"
+                                value={destination}
+                                onChange={(e) => setDestination(e.target.value)}
+                                className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 text-[15px] font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 truncate tracking-normal leading-normal"
+                            />
                         </div>
                     </div>
 
                     {/* Twin Datepicker Container (Google Flights style) */}
-                    <div className="w-full lg:w-[350px] flex-shrink-0 relative h-14 border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] transition-all flex items-center google-flight-date-trigger">
+                    <div className="w-full lg:w-[350px] flex-shrink-0 relative h-14 border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] transition-all flex items-center google-flight-date-trigger font-roboto">
                         
                         {/* Departure Date Half */}
                         <div
@@ -310,22 +304,22 @@ const FlightSearch = ({ onSearch }) => {
                                 setActiveDateField('checkIn');
                                 setIsDatePickerOpen(true);
                             }}
-                            className={`flex-1 h-full flex items-center justify-between px-2.5 sm:px-3 cursor-pointer transition-colors min-w-0 ${
+                            className={`flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkIn'
                                     ? 'border-2 border-[#1a73e8] rounded-l-[3px]'
                                     : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
                             }`}
                         >
-                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
                                     calendar_today
                                 </span>
-                                <span className="text-[13px] sm:text-[14px] font-normal text-[#3c4043] dark:text-white truncate">
+                                <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
                                     {formatGoogleFlightDate(departureDate) || 'Gidiş'}
                                 </span>
                             </div>
 
-                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-0.5">
+                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); stepDeparture(-1); }}
@@ -353,19 +347,19 @@ const FlightSearch = ({ onSearch }) => {
                                     setActiveDateField('checkOut');
                                     setIsDatePickerOpen(true);
                                 }}
-                                className={`flex-1 h-full flex items-center justify-between px-2.5 sm:px-3 cursor-pointer transition-colors min-w-0 ${
+                                className={`flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                     isDatePickerOpen && activeDateField === 'checkOut'
                                         ? 'border-2 border-[#1a73e8] rounded-r-[3px]'
                                         : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
                                 }`}
                             >
                                 <div className="flex items-center min-w-0 flex-1">
-                                    <span className="text-[13px] sm:text-[14px] font-normal text-[#3c4043] dark:text-white truncate">
+                                    <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
                                         {formatGoogleFlightDate(returnDate) || 'Dönüş'}
                                     </span>
                                 </div>
 
-                                <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-0.5">
+                                <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
                                     <button
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); stepReturn(-1); }}

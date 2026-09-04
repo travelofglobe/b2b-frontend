@@ -1398,7 +1398,7 @@ const HotelListing = () => {
 
             {/* Favorites Right Sidebar (Google Style) */}
             <div 
-                className={`relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 transition-all duration-300 flex flex-col z-[2000] shadow-[-6px_0_25px_rgba(0,0,0,0.2),-2px_0_8px_rgba(0,0,0,0.12)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.55)] ${isFavOpen ? 'w-[380px]' : 'w-[68px]'}`}
+                className={`relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 transition-all duration-300 flex flex-col z-[2000] shadow-[-6px_0_25px_rgba(0,0,0,0.2),-2px_0_8px_rgba(0,0,0,0.12)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.55)] ${isFavOpen ? 'w-[380px]' : 'w-[58px]'}`}
                 onMouseEnter={() => setIsFavOpen(true)}
                 onMouseLeave={() => setIsFavOpen(false)}
             >
@@ -1408,29 +1408,29 @@ const HotelListing = () => {
                         <button 
                             onClick={() => setIsFavOpen(true)}
                             title={currentLang === 'tr' ? 'Seyahat planlarınız ve kaydedilenler' : 'Saved travel plans'}
-                            className="w-full h-[64px] bg-white dark:bg-[#202124] flex items-center justify-center border-b border-[#dadce0] dark:border-slate-700 shadow-[0_2px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] hover:bg-[#f8f9fa] dark:hover:bg-slate-800 transition-colors cursor-pointer relative z-10 group"
+                            className="w-full h-[56px] bg-white dark:bg-[#202124] flex items-center justify-center border-b border-[#dadce0] dark:border-slate-700 shadow-[0_2px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] hover:bg-[#f8f9fa] dark:hover:bg-slate-800 transition-colors cursor-pointer relative z-10 group"
                         >
                             <span 
-                                className="material-symbols-outlined text-[28px] text-[#3c4043] dark:text-slate-200 group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors"
+                                className="material-symbols-outlined text-[25px] text-[#3c4043] dark:text-slate-200 group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors"
                                 style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}
                             >
                                 bookmarks
                             </span>
                             {favorites.length > 0 && (
-                                <span className="absolute top-2.5 right-2 bg-[#1a73e8] text-white text-[10px] font-bold rounded-full min-w-[17px] h-[17px] px-1 flex items-center justify-center shadow-xs">
+                                <span className="absolute top-1.5 right-1.5 bg-[#1a73e8] text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] px-0.5 flex items-center justify-center shadow-xs">
                                     {favorites.length}
                                 </span>
                             )}
                         </button>
 
                         {/* Circular thumbnails underneath */}
-                        <div className="flex flex-col gap-3.5 py-4 items-center w-full">
+                        <div className="flex flex-col gap-3 py-3.5 items-center w-full">
                             {favorites.slice(0, 6).map(fav => (
                                 <div 
                                     key={fav.hotelId || fav.id} 
                                     onClick={() => setIsFavOpen(true)}
                                     title={fav.name || fav.hotelName || fav.names?.en || 'Otel'}
-                                    className="w-11 h-11 rounded-full overflow-hidden cursor-pointer hover:scale-105 transition-transform"
+                                    className="w-9 h-9 rounded-full overflow-hidden cursor-pointer hover:scale-105 transition-transform"
                                 >
                                     <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
                                 </div>

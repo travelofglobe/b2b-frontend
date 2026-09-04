@@ -182,6 +182,35 @@ const MapFitControl = ({ hotels, shouldRefit, onRefitDone }) => {
 };
 
 // ═══════════════════════════════════════════════
+// Map Bounds Watcher - triggers search on map move
+// ═══════════════════════════════════════════════
+const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved }) => {
+    const map = useMap();
+    React.useEffect(() => {
+        if (!map) return;
+        const handleMoveEnd = () => {
+            if (searchOnMove) {
+                const bounds = map.getBounds();
+                onBoundsChange({
+                    north: bounds.getNorth(),
+                    south: bounds.getSouth(),
+                    east: bounds.getEast(),
+                    west: bounds.getWest(),
+                    center: map.getCenter(),
+                    zoom: map.getZoom()
+                });
+            } else {
+                // Signal that the map moved manually (without triggering search)
+                onMapMoved?.();
+            }
+        };
+        map.on('moveend', handleMoveEnd);
+        return () => map.off('moveend', handleMoveEnd);
+    }, [map, searchOnMove, onBoundsChange, onMapMoved]);
+    return null;
+};
+
+// ═══════════════════════════════════════════════
 // Price Marker - Google Hotels-style price bubble
 // ═══════════════════════════════════════════════
 const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHover, searchParams, currencySymbol }) => {
@@ -462,6 +491,8 @@ const HotelListing = () => {
     const [shouldRefitMap, setShouldRefitMap] = React.useState(true);
     const [isSortOpen, setIsSortOpen] = React.useState(false);
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false);
+    const [searchOnMapMove, setSearchOnMapMove] = React.useState(false);
+    const [mapMoved, setMapMoved] = React.useState(false);
     const listScrollRef = React.useRef(null);
     const loaderRef = React.useRef(null);
     const sortDropdownRef = React.useRef(null);
@@ -782,6 +813,15 @@ const HotelListing = () => {
         }
     }, [locationId, mapApiHotelToModel, roomState, searchParams, sortConfig]);
 
+    const handleMapBoundsChange = React.useCallback(() => {
+        loadMoreHotels(true);
+        setMapMoved(false);
+    }, [loadMoreHotels]);
+
+    const handleMapMoved = React.useCallback(() => {
+        setMapMoved(true);
+    }, []);
+
     // Fetch missing location names
     React.useEffect(() => {
         if (!dynamicFilters || !dynamicFilters.locationId) return;
@@ -926,7 +966,7 @@ const HotelListing = () => {
             {/* ════════════════════════════════════════════
                 LEFT PANEL: Hotel List
             ════════════════════════════════════════════ */}
-            <div className="w-[60%] flex-shrink-0 flex flex-col relative z-[1000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134]">
+            <div className="w-[60%] flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134]">
 
                 {/* Search Context Bar */}
                 <div className="px-4 pt-4 pb-3 shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] flex items-center w-full relative z-50">
@@ -1128,7 +1168,7 @@ const HotelListing = () => {
                     center={[39.9, 32.8]}
                     zoom={6}
                     style={{ height: '100%', width: '100%' }}
-                    zoomControl={true}
+                    zoomControl={false}
                     attributionControl={true}
                 >
                     <TileLayer
@@ -1160,19 +1200,51 @@ const HotelListing = () => {
                         shouldRefit={shouldRefitMap}
                         onRefitDone={React.useCallback(() => setShouldRefitMap(false), [])}
                     />
+
+                    {/* Map move detector */}
+                    <MapBoundsWatcher
+                        searchOnMove={searchOnMapMove}
+                        onBoundsChange={handleMapBoundsChange}
+                        onMapMoved={handleMapMoved}
+                    />
                 </MapContainer>
 
-                {/* "Listeyi güncelle" overlay button */}
-                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000]">
-                    <button
-                        onClick={() => {
-                            setShouldRefitMap(true);
-                        }}
-                        className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 border border-[#dadce0] dark:border-slate-600 rounded-lg px-4 py-2 text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shadow-md transition-colors cursor-pointer"
-                    >
-                        <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>refresh</span>
-                        {currentLang === 'tr' ? 'Listeyi güncelle' : currentLang === 'ar' ? 'تحديث القائمة' : 'Refresh list'}
-                    </button>
+                {/* Top center: Search-on-move toggle OR "Listeyi güncelle" button */}
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] pointer-events-auto">
+                    {/* Always show the toggle */}
+                    {!mapMoved && (
+                        <div className="flex items-center gap-2 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 rounded-full px-3 py-2 shadow-md">
+                            <button
+                                onClick={() => setSearchOnMapMove(v => !v)}
+                                className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0 ${
+                                    searchOnMapMove
+                                        ? 'bg-[#1a73e8] border-[#1a73e8]'
+                                        : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
+                                }`}
+                            >
+                                {searchOnMapMove && (
+                                    <span className="material-symbols-outlined text-white" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>check</span>
+                                )}
+                            </button>
+                            <span
+                                onClick={() => setSearchOnMapMove(v => !v)}
+                                className="text-[13px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
+                            >
+                                {currentLang === 'tr' ? 'Harita hareket ettiğinde listeyi güncelle' : 'Search as map moves'}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Show manual update button when map moved but searchOnMove is off */}
+                    {mapMoved && !searchOnMapMove && (
+                        <button
+                            onClick={() => { loadMoreHotels(true); setMapMoved(false); }}
+                            className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 border border-[#dadce0] dark:border-slate-600 rounded-full px-4 py-2 text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shadow-md transition-colors cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>refresh</span>
+                            {currentLang === 'tr' ? 'Listeyi güncelle' : 'Search this area'}
+                        </button>
+                    )}
                 </div>
             </div>
 

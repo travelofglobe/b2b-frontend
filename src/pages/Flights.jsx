@@ -10,18 +10,30 @@ const Flights = () => {
                 <div className="w-full flex flex-col items-center">
                     {/* Image + title overlay container */}
                     <div className="w-full relative overflow-hidden pointer-events-none flex-shrink-0" style={{ maxHeight: '390px' }}>
+                        {/* Light Theme Image */}
+                        {/* Light Theme Image */}
                         <img 
-                            src="/hero-flights.svg" 
+                            src="https://www.gstatic.com/travel-frontend/animation/hero/flights_5.svg" 
                             alt="Google Flights banner illustration"
                             style={{
-                                display: 'block',
                                 width: '100%',
                                 maxWidth: '1200px',
                                 height: 'auto',
-                                opacity: 0.9,
                                 margin: '0 auto'
                             }}
-                            className="dark:opacity-40"
+                            className="block dark:hidden"
+                        />
+                        {/* Dark Theme Image */}
+                        <img 
+                            src="https://www.gstatic.com/travel-frontend/animation/hero/flights_dark_theme_5.svg" 
+                            alt="Google Flights banner illustration"
+                            style={{
+                                width: '100%',
+                                maxWidth: '1200px',
+                                height: 'auto',
+                                margin: '0 auto'
+                            }}
+                            className="hidden dark:block"
                         />
                         {/* Title overlaid on bottom of image with transparent background */}
                         <div 
@@ -29,11 +41,12 @@ const Flights = () => {
                             style={{ paddingBottom: '0px' }}
                         >
                             <h1 
-                                className="text-[44px] md:text-[56px] text-[#202124] dark:text-white font-normal tracking-tight text-center"
+                                className="text-center text-transparent bg-clip-text bg-gradient-to-r from-[#1a73e8] to-[#8ab4f8] dark:from-[#8ab4f8] dark:to-[#e8f0fe]"
                                 style={{ 
-                                    fontFamily: '"Google Sans", "Product Sans", Roboto, Arial, sans-serif', 
-                                    lineHeight: '1.2',
-                                    background: 'transparent',
+                                    fontFamily: '"Google Sans Display", Roboto, "Helvetica Neue", Arial, sans-serif',
+                                    fontSize: '48px',
+                                    fontWeight: 700,
+                                    lineHeight: '64px',
                                     margin: 0
                                 }}
                             >

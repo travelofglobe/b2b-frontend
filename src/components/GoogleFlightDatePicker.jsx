@@ -59,7 +59,8 @@ const GoogleFlightDatePicker = ({
     activeField = 'checkIn', // 'checkIn' | 'checkOut'
     setActiveField,
     holidays = [],
-    countryCode = 'TR'
+    countryCode = 'TR',
+    align = 'left' // 'left' | 'right'
 }) => {
     const { t, i18n } = useTranslation();
     const popoverRef = useRef(null);
@@ -336,7 +337,9 @@ const GoogleFlightDatePicker = ({
     return (
         <div
             ref={popoverRef}
-            className="absolute top-[calc(100%+8px)] left-0 md:left-[-20px] bg-white dark:bg-[#202124] rounded-[8px] shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 z-[1000] p-4 sm:p-5 animate-in fade-in zoom-in-95 duration-150 max-w-[96vw] font-roboto"
+            className={`absolute top-[-16px] sm:top-[-20px] ${
+                align === 'right' ? 'right-0 md:right-[-20px]' : 'left-0 md:left-[-20px]'
+            } bg-white dark:bg-[#202124] rounded-[8px] shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 z-[1000] p-4 sm:p-5 animate-in fade-in zoom-in-95 duration-150 max-w-[96vw] font-roboto`}
             style={{ width: 'max-content' }}
         >
             <div className="flex flex-col md:flex-row gap-6">
@@ -444,13 +447,13 @@ const GoogleFlightDatePicker = ({
                     </div>
 
                     {/* --- 2 Months Grid (Left & Right) with Floating Google Chevrons --- */}
-                    <div className="relative flex items-start justify-center gap-6 sm:gap-8 pt-1">
+                    <div className="relative flex items-start justify-center gap-6 sm:gap-8 pt-1 px-8">
                         {/* Prev Month Floating Button */}
                         {!isBeforeDay(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1), new Date(today.getFullYear(), today.getMonth(), 1)) && (
                             <button
                                 type="button"
                                 onClick={handlePrevMonth}
-                                className="absolute -left-3 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 cursor-pointer"
+                                className="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 cursor-pointer"
                                 title="Önceki ay"
                             >
                                 <span className="material-symbols-outlined text-[18px]">chevron_left</span>
@@ -467,7 +470,7 @@ const GoogleFlightDatePicker = ({
                         <button
                             type="button"
                             onClick={handleNextMonth}
-                            className="absolute -right-3 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 cursor-pointer"
+                            className="absolute right-0 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 cursor-pointer"
                             title="Sonraki ay"
                         >
                             <span className="material-symbols-outlined text-[18px]">chevron_right</span>

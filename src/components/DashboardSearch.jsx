@@ -1355,6 +1355,7 @@ const DashboardSearch = () => {
                             setActiveField={setActiveDateField}
                             holidays={holidays}
                             countryCode={holidayCountryCode}
+                            align="right"
                         />
                     </div>
                 </div>

@@ -13,7 +13,7 @@ const Flights = () => {
                         {/* Light Theme Image */}
                         {/* Light Theme Image */}
                         <img 
-                            src="https://www.gstatic.com/travel-frontend/animation/hero/flights_5.svg" 
+                            src="https://www.gstatic.com/flights/app/deals_header_desktop_2.svg" 
                             alt="Google Flights banner illustration"
                             style={{
                                 width: '100%',
@@ -25,7 +25,7 @@ const Flights = () => {
                         />
                         {/* Dark Theme Image */}
                         <img 
-                            src="https://www.gstatic.com/travel-frontend/animation/hero/flights_dark_theme_5.svg" 
+                            src="https://www.gstatic.com/flights/app/deals_header_desktop_dark_theme_2.svg" 
                             alt="Google Flights banner illustration"
                             style={{
                                 width: '100%',

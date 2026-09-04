@@ -367,9 +367,19 @@ const ListingSearch = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
+    const isGenericAreaText = (txt) => {
+        if (!txt) return false;
+        const lower = txt.trim().toLowerCase();
+        return lower === 'this area' || lower === 'bu alan' || lower === 'search this area' || lower === 'listeyi güncelle';
+    };
+
     // Initialize state from URL params or defaults
     const [query, setQuery] = useState(() => {
-        return searchParams.get('q') || localStorage.getItem('dashboard_last_search') || '';
+        const urlQ = searchParams.get('q');
+        if (urlQ && !isGenericAreaText(urlQ)) return urlQ;
+        const saved = localStorage.getItem('dashboard_last_search');
+        if (saved && !isGenericAreaText(saved)) return saved;
+        return '';
     });
 
     // Nationality State
@@ -569,7 +579,7 @@ const ListingSearch = () => {
     // Sync query when URL 'q' param changes externally (e.g., map area search)
     useEffect(() => {
         const urlQ = searchParams.get('q');
-        if (urlQ && urlQ !== query && !isUserInteraction.current) {
+        if (urlQ && !isGenericAreaText(urlQ) && urlQ !== query && !isUserInteraction.current) {
             setQuery(urlQ);
         }
     }, [searchParams.get('q')]);

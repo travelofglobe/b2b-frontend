@@ -139,8 +139,8 @@ const PortalLayout = () => {
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                             >
-                                <span className={`material-icons-round text-[20px] flex-shrink-0 ${location.pathname.startsWith('/bookings') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>book_online</span>
-                                <span className="text-[13px] font-normal text-left leading-snug">{t('sidebar.myBookings')}</span>
+                                <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname.startsWith('/bookings') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>book_online</span>
+                                <span className="text-sm font-medium text-left leading-snug">{t('sidebar.myBookings')}</span>
                             </button>
                         </div>
 
@@ -155,9 +155,9 @@ const PortalLayout = () => {
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                             >
-                                <span className={`material-icons-round text-[18px] flex-shrink-0 ${location.pathname.startsWith('/my-office') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>corporate_fare</span>
-                                <span className="text-[13px] font-normal text-left leading-snug flex-1">{t('sidebar.myOffice')}</span>
-                                <span className={`material-icons-round text-[18px] transition-transform duration-200 ${isMyOfficeOpen ? 'rotate-90' : ''} ${location.pathname.startsWith('/my-office') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
+                                <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname.startsWith('/my-office') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>corporate_fare</span>
+                                <span className="text-sm font-medium text-left leading-snug flex-1">{t('sidebar.myOffice')}</span>
+                                <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isMyOfficeOpen ? 'rotate-90' : ''} ${location.pathname.startsWith('/my-office') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
                             </button>
 
                             {isMyOfficeOpen && (
@@ -175,8 +175,8 @@ const PortalLayout = () => {
                                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
                                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                                             >
-                                                <span className={`material-icons-round text-[18px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
-                                                <span className="text-[13px] font-normal text-left leading-snug">{label}</span>
+                                                <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
+                                                <span className="text-sm font-medium text-left leading-snug">{label}</span>
                                             </button>
                                         );
                                     })}
@@ -189,9 +189,9 @@ const PortalLayout = () => {
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                             >
-                                <span className={`material-icons-round text-[18px] flex-shrink-0 ${location.pathname.startsWith('/definitions') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>tune</span>
-                                <span className="text-[13px] font-normal text-left leading-snug flex-1">{t('sidebar.definitions')}</span>
-                                <span className={`material-icons-round text-[18px] transition-transform duration-200 ${isDefinitionsOpen ? 'rotate-90' : ''} ${location.pathname.startsWith('/definitions') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
+                                <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname.startsWith('/definitions') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>tune</span>
+                                <span className="text-sm font-medium text-left leading-snug flex-1">{t('sidebar.definitions')}</span>
+                                <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isDefinitionsOpen ? 'rotate-90' : ''} ${location.pathname.startsWith('/definitions') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
                             </button>
 
                             {isDefinitionsOpen && (
@@ -201,8 +201,8 @@ const PortalLayout = () => {
                                             ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
                                             : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                                     >
-                                        <span className={`material-icons-round text-[18px] flex-shrink-0 ${location.pathname === '/definitions/markup' ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>percent</span>
-                                        <span className="text-[13px] font-normal text-left">{t('sidebar.markupManagement')}</span>
+                                        <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname === '/definitions/markup' ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>percent</span>
+                                        <span className="text-sm font-medium text-left leading-snug">{t('sidebar.markupManagement')}</span>
                                     </button>
                                 </div>
                             )}
@@ -225,8 +225,8 @@ const PortalLayout = () => {
                                             ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
                                             : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                                     >
-                                        <span className={`material-icons-round text-[20px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
-                                        <span className="text-[13px] font-normal text-left leading-snug">{label}</span>
+                                        <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
+                                        <span className="text-sm font-medium text-left leading-snug">{label}</span>
                                     </button>
                                 );
                             })}
@@ -239,13 +239,13 @@ const PortalLayout = () => {
                         <div className="space-y-0.5">
                             <button
                                 onClick={() => handleMenuToggle(setIsGSAManagementOpen, isGSAManagementOpen)}
-                                className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group focus:outline-none ${location.pathname.startsWith('/gsa')
+                                className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group focus:outline-none cursor-pointer ${location.pathname.startsWith('/gsa')
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                             >
-                                <span className={`material-icons-round text-[18px] flex-shrink-0 ${location.pathname.startsWith('/gsa') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>admin_panel_settings</span>
-                                <span className="text-[13px] font-normal text-left leading-snug flex-1">{t('sidebar.gsaManagement')}</span>
-                                <span className={`material-icons-round text-[18px] transition-transform duration-200 ${isGSAManagementOpen ? 'rotate-180' : ''} ${location.pathname.startsWith('/gsa') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>expand_more</span>
+                                <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname.startsWith('/gsa') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>admin_panel_settings</span>
+                                <span className="text-sm font-medium text-left leading-snug flex-1">{t('sidebar.gsaManagement')}</span>
+                                <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isGSAManagementOpen ? 'rotate-180' : ''} ${location.pathname.startsWith('/gsa') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>expand_more</span>
                             </button>
 
                             {isGSAManagementOpen && (
@@ -263,8 +263,8 @@ const PortalLayout = () => {
                                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
                                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                                             >
-                                                <span className={`material-icons-round text-[18px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
-                                                <span className="text-[13px] font-normal text-left">{label}</span>
+                                                <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
+                                                <span className="text-sm font-medium text-left leading-snug">{label}</span>
                                             </button>
                                         );
                                     })}
@@ -283,8 +283,8 @@ const PortalLayout = () => {
                                 className="w-full flex items-center justify-between -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800"
                             >
                                 <div className="flex items-center gap-4 min-w-0">
-                                    <span className="material-symbols-outlined text-[22px] flex-shrink-0 text-[#5f6368] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white">language</span>
-                                    <span className="text-[14px] font-medium text-left leading-snug">Dili değiştir</span>
+                                    <span className="material-symbols-outlined text-[20px] flex-shrink-0 text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white">language</span>
+                                    <span className="text-sm font-medium text-left leading-snug">Dili değiştir</span>
                                 </div>
                                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[12px] font-medium text-slate-600 dark:text-slate-300">
                                     <span>{currentLanguage?.flag}</span>

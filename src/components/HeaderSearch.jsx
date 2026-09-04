@@ -726,7 +726,7 @@ const HeaderSearch = () => {
 
             if (savedLastType === 'HOTEL' && query === savedLastSearch && savedLastHotelId) {
                 const searchParamsString = getUrlParams();
-                navigate(`/hotel/${savedLastHotelId}?${searchParamsString}`);
+                navigate(`/travel/hotels/detail/${savedLastHotelId}?${searchParamsString}`);
                 return;
             }
 

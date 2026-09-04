@@ -488,6 +488,13 @@ const ListingSearch = () => {
                 localStorage.setItem('dashboard_last_hotelId', item.targetId);
             }
         }
+
+        if (itemType === 'HOTEL' && item.targetId) {
+            const searchParamsString = getUrlParams({ query: item.query });
+            navigate(`/travel/hotels/detail/${item.targetId}?${searchParamsString}`);
+        } else {
+            handleSearch({ query: item.query, locationId: item.targetId || null });
+        }
     };
 
     const handleDeleteHistoryItem = async (e, id) => {
@@ -666,11 +673,12 @@ const ListingSearch = () => {
     };
 
     const getUrlParams = (overrides = {}) => {
-        const queryOverride = overrides.query !== undefined ? overrides.query : query;
-        const checkInOverride = overrides.checkInDate !== undefined ? overrides.checkInDate : checkInDate;
-        const checkOutOverride = overrides.checkOutDate !== undefined ? overrides.checkOutDate : checkOutDate;
-        const guestsOverride = overrides.roomState !== undefined ? overrides.roomState : roomState;
-        const natOverride = overrides.nationality !== undefined ? overrides.nationality : nationality;
+        const opts = typeof overrides === 'string' ? { query: overrides } : (overrides || {});
+        const queryOverride = opts.query !== undefined ? opts.query : query;
+        const checkInOverride = opts.checkInDate !== undefined ? opts.checkInDate : checkInDate;
+        const checkOutOverride = opts.checkOutDate !== undefined ? opts.checkOutDate : checkOutDate;
+        const guestsOverride = opts.roomState !== undefined ? opts.roomState : roomState;
+        const natOverride = opts.nationality !== undefined ? opts.nationality : nationality;
 
         const guestsParam = serializeGuestsParam(guestsOverride);
         let params = `checkin=${formatDateForUrl(checkInOverride)}&checkout=${formatDateForUrl(checkOutOverride)}&guests=${encodeURIComponent(guestsParam)}&nationality=${encodeURIComponent(natOverride)}`;
@@ -697,7 +705,8 @@ const ListingSearch = () => {
     };
 
     const handleSearch = (overrides = {}) => {
-        const activeQuery = overrides.query !== undefined ? overrides.query : query;
+        const opts = typeof overrides === 'string' ? { query: overrides } : (overrides || {});
+        const activeQuery = opts.query !== undefined ? opts.query : query;
         
         if (!activeQuery.trim()) {
             setError(true);
@@ -717,28 +726,30 @@ const ListingSearch = () => {
                 localStorage.removeItem('dashboard_last_locationId');
             }
 
-            if (savedLastType === 'HOTEL' && query === savedLastSearch && savedLastHotelId) {
-                const searchParamsString = getUrlParams();
-                navigate(`/hotel/${savedLastHotelId}?${searchParamsString}`);
+            if (savedLastType === 'HOTEL' && activeQuery === savedLastSearch && savedLastHotelId) {
+                const searchParamsString = getUrlParams(opts);
+                navigate(`/travel/hotels/detail/${savedLastHotelId}?${searchParamsString}`);
                 return;
             }
             
             // If query contains commas, try to build a hierarchical slug
             // e.g. "Üsküdar, İstanbul, Türkiye" -> ["Üsküdar", "İstanbul", "Türkiye"]
-            const queryParts = query.split(',').map(p => p.trim().toLowerCase());
-            let slug = query.toLowerCase();
+            const queryParts = activeQuery.split(',').map(p => p.trim().toLowerCase());
+            let slug = activeQuery.toLowerCase().trim();
             
             if (queryParts.length >= 2) {
                 // If 3 parts: [District, City, Country] -> slug "istanbul/uskudar"
                 // If 2 parts: [City, Country] -> slug "istanbul"
-                const reversed = queryParts.reverse(); // [Country, City, District]
+                const reversed = [...queryParts].reverse(); // [Country, City, District]
                 slug = reversed.slice(1).join('/');
             }
 
-            // Retrieve locationId from localStorage if it exists
-            const savedLocationId = localStorage.getItem('dashboard_last_locationId');
+            // Retrieve locationId from overrides, then URL searchParams (if query matches), then localStorage
+            const savedLocationId = opts.locationId !== undefined
+                ? opts.locationId
+                : (activeQuery === searchParams.get('q') ? searchParams.get('locationId') : localStorage.getItem('dashboard_last_locationId'));
             const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
-            const searchParamsString = getUrlParams() + locationParam;
+            const searchParamsString = getUrlParams(opts) + locationParam;
 
             localStorage.setItem('last_hotel_search_slug', slug);
             localStorage.setItem('last_hotel_search_params', searchParamsString);
@@ -782,11 +793,13 @@ const ListingSearch = () => {
 
         setQuery(fullName);
         
-        const locationParam = `&locationId=${location.locationId}`;
-        const searchParamsString = getUrlParams(fullName) + locationParam;
+        const locationParam = location.locationId ? `&locationId=${location.locationId}` : '';
+        const searchParamsString = getUrlParams({ query: fullName }) + locationParam;
 
         localStorage.setItem('last_hotel_search_slug', slug);
         localStorage.setItem('last_hotel_search_params', searchParamsString);
+
+        navigate(`/travel/hotels/search/${slug}?${searchParamsString}`);
     };
 
     const handleSelectHotel = (hotel) => {
@@ -824,10 +837,12 @@ const ListingSearch = () => {
 
         setQuery(fullName);
 
-        const searchParamsString = getUrlParams(fullName);
+        const searchParamsString = getUrlParams({ query: fullName });
 
         localStorage.setItem('last_hotel_search_slug', hotel.url || hId);
         localStorage.setItem('last_hotel_search_params', searchParamsString);
+
+        navigate(`/travel/hotels/detail/${hId}?${searchParamsString}`);
     };
 
     // Helper to get Hotel Name
@@ -845,6 +860,7 @@ const ListingSearch = () => {
     };
 
     const handleKeyDown = (e) => {
+        const hasHistoryOnly = (results.regions.length === 0 && results.hotels.length === 0 && matchingHistory.length > 0);
         // Allow Enter key to trigger search actions regardless of dropdown state
         if (e.key === 'Enter') {
             e.preventDefault();

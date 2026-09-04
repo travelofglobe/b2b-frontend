@@ -61,7 +61,7 @@ const PortalLayout = () => {
                 <div className="hidden lg:flex items-center gap-2 font-roboto">
                     {[
                         { path: '/travel/explore', icon: 'travel_explore', label: 'Keşfet', isCurrent: location.pathname === '/travel/explore' || location.pathname === '/explore' },
-                        { path: '/travel/hotels', icon: 'bed', label: 'Oteller', isCurrent: location.pathname === '/travel/hotels' || location.pathname === '/travel/search' || location.pathname === '/dashboard' || location.pathname.startsWith('/hotels') || location.pathname.startsWith('/hotel/') },
+                        { path: '/travel/hotels', icon: 'bed', label: 'Oteller', isCurrent: location.pathname.startsWith('/travel/hotels') || location.pathname.startsWith('/hotel') || location.pathname.startsWith('/map') || location.pathname === '/travel/search' || location.pathname === '/dashboard' },
                         { path: '/travel/flights', icon: 'flight', label: 'Uçuşlar', isCurrent: location.pathname === '/travel/flights' || location.pathname === '/flights' },
                         { path: '/travel/vacation-rentals', icon: 'home_work', label: 'Kiralık yerler', isCurrent: location.pathname === '/travel/vacation-rentals' || location.pathname === '/vacation-rentals' },
                     ].map(({ path, icon, label, isCurrent }) => (
@@ -112,7 +112,7 @@ const PortalLayout = () => {
                                 { path: '/travel/vacation-rentals', icon: 'home_work', label: 'Kiralık yerler' },
                             ].map(({ path, icon, label }) => {
                                 const isActive = path === '/travel/hotels'
-                                    ? (location.pathname === '/travel/hotels' || location.pathname === '/travel/search' || location.pathname === '/dashboard' || location.pathname.startsWith('/hotels') || location.pathname.startsWith('/hotel/'))
+                                    ? (location.pathname.startsWith('/travel/hotels') || location.pathname.startsWith('/hotel') || location.pathname.startsWith('/map') || location.pathname === '/travel/search' || location.pathname === '/dashboard')
                                     : (location.pathname === path || (path === '/travel/explore' && location.pathname === '/explore') || (path === '/travel/flights' && location.pathname === '/flights') || (path === '/travel/vacation-rentals' && location.pathname === '/vacation-rentals'));
                                 return (
                                     <button key={path} onClick={() => { setIsSidebarOpen(false); navigate(path); }}

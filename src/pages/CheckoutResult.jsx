@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { COMMON, getLang } from '../utils/sharedLocales';
 import { useTranslation } from 'react-i18next';
-import Header from '../components/Header';
 import Footer from '../components/Footer';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
@@ -46,17 +45,14 @@ const CheckoutResult = () => {
     const detailUrl = (isSuccess && bookingIdForDetail) ? `/bookings/${bookingIdForDetail}` : '/bookings';
 
     if (!hotel) return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col justify-between">
-            <Header />
+        <div className="flex-1 bg-slate-50 dark:bg-slate-900 flex flex-col justify-between">
             <div className="p-12 text-center text-sm font-semibold text-slate-500">{L('noSession')}</div>
             <Footer />
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-white font-sans flex flex-col justify-between">
-            <Header />
-            
+        <div className="flex-1 bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-white font-sans flex flex-col justify-between">
             <main className="max-w-3xl mx-auto px-4 py-8 sm:py-12 w-full flex-1">
                 {/* Header status icon & title */}
                 <div className="text-center mb-8">

@@ -1,7 +1,6 @@
 import React, { useState, useLayoutEffect, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { hotelService } from '../services/hotelService';
 import CheckoutStepper from '../components/CheckoutStepper';
@@ -942,7 +941,7 @@ const CheckoutPayment = () => {
                 }
             }
 
-            navigate('/hotel/checkout/result', {
+            navigate('/travel/hotels/checkout/result', {
                 state: {
                     ...location.state,
                     totalPrice: grandTotal,
@@ -971,8 +970,7 @@ const CheckoutPayment = () => {
 
     if (isLoadingSession) {
         return (
-            <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
-                <Header />
+            <div className="flex-1 bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
                 <main className="max-w-7xl mx-auto px-6 pt-6 pb-20 w-full">
                     {/* Stepper Skeleton */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
@@ -999,9 +997,8 @@ const CheckoutPayment = () => {
 
     if (!hotel) {
         return (
-            <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white flex flex-col font-sans">
-                <Header />
-                <main className="flex-1 flex items-center justify-center p-6 pt-32 pb-20">
+            <div className="flex-1 bg-background-light dark:bg-background-dark text-slate-900 dark:text-white flex flex-col font-sans">
+                <main className="flex-1 flex items-center justify-center p-6 py-20">
                     <div className="w-full max-w-xl relative group">
                         {/* Glow effect */}
                         <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 via-purple-500/30 to-primary/30 rounded-[40px] blur-2xl opacity-100 transition-opacity duration-500"></div>
@@ -1057,8 +1054,7 @@ const CheckoutPayment = () => {
     const isInsufficientBalance = grandTotal > availableFunds;
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
-            <Header />
+        <div className="flex-1 bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
             <main className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-8 lg:py-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div className="flex-1">
@@ -1071,7 +1067,7 @@ const CheckoutPayment = () => {
                                     setPendingStepId(stepId);
                                     setShowConfirmBack(true);
                                 } else if (stepId === 2) {
-                                    navigate(`/hotel/checkout/guests?sessionId=${sid}`, { state: location.state });
+                                    navigate(`/travel/hotels/checkout/guests?sessionId=${sid}`, { state: location.state });
                                 }
                             }}
                         />
@@ -1086,7 +1082,7 @@ const CheckoutPayment = () => {
                         const hId = hotelSlug || hotel?.id || hotel?.giataId || hotel?.slug;
                         if (pendingStepId === 1 && hId) {
                             const searchStr = originalSearch || '';
-                            navigate(`/hotel/${hId}${searchStr}`, { state: location.state });
+                            navigate(`/travel/hotels/detail/${hId}${searchStr}`, { state: location.state });
                         } else {
                             setShowConfirmBack(false);
                         }

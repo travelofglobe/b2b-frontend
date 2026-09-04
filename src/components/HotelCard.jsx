@@ -96,7 +96,7 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
 
     return (
         <Link
-            to={`/hotel/${hotel.hotelId}?${searchParams.toString()}`}
+            to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
             target="_blank"
             rel="noopener noreferrer"
             onMouseEnter={() => setIsHovered(true)}

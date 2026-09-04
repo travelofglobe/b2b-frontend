@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
-import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useTranslation } from 'react-i18next';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -1624,7 +1623,7 @@ const HotelDetail = () => {
                 await hotelService.saveCheckoutSession(sid, sessionData);
 
                 // Navigate with only sessionId
-                navigate(`/hotel/checkout/guests?sessionId=${sid}`);
+                navigate(`/travel/hotels/checkout/guests?sessionId=${sid}`);
             } catch (err) {
                 console.error('Check rates failed:', err);
                 toastError('Rate check failed. The price might have changed or the room is no longer available.');
@@ -1704,10 +1703,8 @@ const HotelDetail = () => {
     };
 
     return (
-        <div className="relative flex min-h-screen flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200 font-sans">
-            <Header />
-
-            <main className="flex-1 max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
+        <div className="relative flex min-h-full flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200 font-sans">
+            <div className="flex-1 max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
                 <div className="mb-6 flex items-center justify-between">
                     <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
                         {hotel.locationBreadcrumbs?.map((bc, i) => {
@@ -1727,7 +1724,7 @@ const HotelDetail = () => {
                             );
                         }) || <Breadcrumbs />}
                     </div>
-                    <Link to={`/hotels?${searchParams.toString()}`} className="flex items-center gap-1.5 text-sm font-bold text-primary group">
+                    <Link to={`/travel/hotels/search?${searchParams.toString()}`} className="flex items-center gap-1.5 text-sm font-bold text-primary group">
                         <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
                         {tLocal('backToSearch')}
                     </Link>
@@ -2014,7 +2011,7 @@ const HotelDetail = () => {
                         {/* Tab Bar Container */}
                         <div className="relative">
                             {/* Sticky Tab Bar */}
-                            <div className="flex items-center gap-8 border-b border-slate-200 dark:border-slate-800 mb-8 sticky top-[64px] bg-background-light dark:bg-background-dark z-20 overflow-x-auto no-scrollbar py-2 transition-all duration-300">
+                            <div className="flex items-center gap-8 border-b border-slate-200 dark:border-slate-800 mb-8 sticky top-0 bg-background-light dark:bg-background-dark z-20 overflow-x-auto no-scrollbar py-2 transition-all duration-300">
                                 {tabs.map((tab, i) => (
                                     <button
                                         key={i}
@@ -2645,7 +2642,7 @@ const HotelDetail = () => {
 
                     {/* Booking Sidebar - Sticky Behavior Refined */}
                     <div className="lg:col-span-4 h-fit">
-                        <div className="lg:sticky lg:top-[96px] space-y-4">
+                        <div className="lg:sticky lg:top-4 space-y-4">
                             <div className="relative group/sidebar">
                                 {/* Glass Background */}
                                 <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-2xl border border-white/40 dark:border-white/10 shadow-lg transition-all duration-500"></div>
@@ -2845,7 +2842,7 @@ const HotelDetail = () => {
                         </div>
                     </div >
                 </div >
-            </main >
+            </div >
 
             <Footer />
             <BookingConfirmationModal

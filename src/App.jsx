@@ -39,12 +39,12 @@ function App() {
             <Route path="/agency-application" element={<AgencyApplicationPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-            {/* Generic catch-all for hotel details by slug or id */}
-            <Route path="/hotel/:slug" element={<ProtectedRoute><HotelDetail /></ProtectedRoute>} />
-            <Route path="/map" element={<ProtectedRoute><MapView /></ProtectedRoute>} />
-            
             {/* Portal Routes with Persistent Sidebar */}
             <Route element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}>
+              <Route path="/travel/hotels/detail/:slug" element={<HotelDetail />} />
+              <Route path="/travel/hotels/detail" element={<Navigate to="/travel/hotels/search" replace />} />
+              <Route path="/hotel/:slug" element={<HotelDetail />} />
+              <Route path="/hotels" element={<Navigate to="/travel/hotels/search" replace />} />
               <Route path="/travel/hotels" element={<Dashboard />} />
               <Route path="/travel/hotels/search" element={<HotelListing />} />
               <Route path="/travel/hotels/search/*" element={<HotelListing />} />
@@ -74,18 +74,25 @@ function App() {
               <Route path="/gsa/markups" element={<SubAgencyMarkups />} />
               <Route path="/gsa/finance" element={<UnderConstruction title="GSA Finance" icon="attach_money" />} />
               <Route path="/gsa/reports" element={<UnderConstruction title="GSA Reports" icon="assessment" />} />
+
+              {/* Checkout Flow */}
+              <Route path="/travel/hotels/checkout/guests" element={<CheckoutGuestDetails />} />
+              <Route path="/travel/hotels/checkout/payment" element={<CheckoutPayment />} />
+              <Route path="/travel/hotels/checkout/result" element={<CheckoutResult />} />
+              <Route path="/hotel/checkout/guests" element={<CheckoutGuestDetails />} />
+              <Route path="/hotel/checkout/payment" element={<CheckoutPayment />} />
+              <Route path="/hotel/checkout/result" element={<CheckoutResult />} />
+
+              {/* Map View */}
+              <Route path="/map" element={<MapView />} />
+
+              {/* Error / Forbidden Pages */}
+              <Route path="/forbidden" element={<ForbiddenPage />} />
+              <Route path="/403" element={<ForbiddenPage />} />
             </Route>
 
             <Route path="/bookings/:voucherId/voucher" element={<ProtectedRoute><VoucherPage /></ProtectedRoute>} />
 
-            {/* Checkout Flow */}
-            <Route path="/hotel/checkout/guests" element={<ProtectedRoute><CheckoutGuestDetails /></ProtectedRoute>} />
-            <Route path="/hotel/checkout/payment" element={<ProtectedRoute><CheckoutPayment /></ProtectedRoute>} />
-            <Route path="/hotel/checkout/result" element={<ProtectedRoute><CheckoutResult /></ProtectedRoute>} />
-
-            {/* Error / Forbidden Pages */}
-            <Route path="/forbidden" element={<ProtectedRoute><ForbiddenPage /></ProtectedRoute>} />
-            <Route path="/403" element={<ProtectedRoute><ForbiddenPage /></ProtectedRoute>} />
             {/* Redirect root to travel hotels (ProtectedRoute will handle auth check) */}
             <Route path="/" element={<Navigate to="/travel/hotels" replace />} />
           </Routes>

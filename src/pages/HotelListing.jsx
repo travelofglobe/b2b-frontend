@@ -258,7 +258,7 @@ const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHove
                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#3c4043', lineHeight: '1.3', marginBottom: '6px' }}>{hotel.name}</div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '15px', fontWeight: 700, color: '#3c4043' }}>{currencySymbol}{priceDisplay}</span>
-                        <Link to={`/hotel/${hotel.hotelId}?${searchParams.toString()}`} target="_blank" onClick={e => e.stopPropagation()} style={{ background: '#1a73e8', color: 'white', fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '20px', textDecoration: 'none' }}>
+                        <Link to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`} target="_blank" onClick={e => e.stopPropagation()} style={{ background: '#1a73e8', color: 'white', fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '20px', textDecoration: 'none' }}>
                             Göster
                         </Link>
                     </div>
@@ -352,7 +352,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                 {/* Name + Price */}
                 <div className="flex items-start justify-between gap-4">
                     <Link
-                        to={`/hotel/${hotel.hotelId}?${searchParams.toString()}`}
+                        to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
                         target="_blank"
                         className="text-[20px] font-normal text-[#202124] dark:text-slate-100 hover:underline leading-[1.3] line-clamp-2 flex-1"
                         onClick={e => e.stopPropagation()}
@@ -414,7 +414,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         )}
                     </div>
                     <Link
-                        to={`/hotel/${hotel.hotelId}?${searchParams.toString()}`}
+                        to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
                         target="_blank"
                         onClick={e => e.stopPropagation()}
                         className="shrink-0 inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1558d6] active:bg-[#1246b8] text-white text-[14px] font-medium px-5 py-2 rounded-full transition-colors whitespace-nowrap"
@@ -1005,7 +1005,8 @@ const HotelListing = () => {
         loadMoreHotels(true);
         return () => { if (abortControllerRef.current) abortControllerRef.current.abort(); };
     }, [
-        locationId, sortConfig,
+        slug, locationId, sortConfig,
+        searchParams.get('q'),
         searchParams.get('checkin'), searchParams.get('checkout'),
         searchParams.get('guests'), searchParams.get('nationality'),
         searchParams.get('stars'), searchParams.get('freeCancellation'), searchParams.get('prePayment'),
@@ -1426,7 +1427,7 @@ const HotelListing = () => {
                                         <div 
                                             key={fav.hotelId || fav.id} 
                                             className="bg-white dark:bg-[#303134] rounded-[16px] border border-[#dadce0] dark:border-slate-700 p-3 flex gap-3 cursor-pointer hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50 transition-colors"
-                                            onClick={() => window.open(`/hotel/${fav.hotelId || fav.id}`, '_blank')}
+                                            onClick={() => window.open(`/travel/hotels/detail/${fav.hotelId || fav.id}`, '_blank')}
                                         >
                                             <div className="shrink-0 w-[72px] h-[72px] rounded-[12px] overflow-hidden bg-[#f1f3f4] dark:bg-slate-800">
                                                 <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" />

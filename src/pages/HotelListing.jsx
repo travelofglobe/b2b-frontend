@@ -322,11 +322,17 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                 />
                 {images.length > 1 && (
                     <>
-                        <button onClick={prevImg} className="absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span className="material-symbols-outlined text-white" style={{ fontSize: '14px' }}>chevron_left</span>
+                        <button 
+                            onClick={prevImg} 
+                            className="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/80 hover:bg-white text-[#202124] shadow-[0_1px_4px_rgba(0,0,0,0.25)] backdrop-blur-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-95 cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined text-[#202124]" style={{ fontSize: '18px' }}>chevron_left</span>
                         </button>
-                        <button onClick={nextImg} className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span className="material-symbols-outlined text-white" style={{ fontSize: '14px' }}>chevron_right</span>
+                        <button 
+                            onClick={nextImg} 
+                            className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/80 hover:bg-white text-[#202124] shadow-[0_1px_4px_rgba(0,0,0,0.25)] backdrop-blur-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-95 cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined text-[#202124]" style={{ fontSize: '18px' }}>chevron_right</span>
                         </button>
                         <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-0.5">
                             {images.slice(0, 5).map((_, i) => (
@@ -1392,32 +1398,39 @@ const HotelListing = () => {
 
             {/* Favorites Right Sidebar (Google Style) */}
             <div 
-                className={`relative bg-white dark:bg-[#202124] border-l border-[#e8eaed] dark:border-slate-700 transition-all duration-300 flex flex-col z-[2000] shadow-[-6px_0_25px_rgba(0,0,0,0.2),-2px_0_8px_rgba(0,0,0,0.12)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.55)] ${isFavOpen ? 'w-[380px]' : 'w-[72px] bg-[#f8f9fa] dark:bg-[#303134] hover:bg-white dark:hover:bg-[#202124]'}`}
+                className={`relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 transition-all duration-300 flex flex-col z-[2000] shadow-[-6px_0_25px_rgba(0,0,0,0.2),-2px_0_8px_rgba(0,0,0,0.12)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.55)] ${isFavOpen ? 'w-[380px]' : 'w-[68px]'}`}
                 onMouseEnter={() => setIsFavOpen(true)}
                 onMouseLeave={() => setIsFavOpen(false)}
             >
                 {!isFavOpen ? (
-                    <div className="flex flex-col items-center w-full py-4 gap-3">
+                    <div className="flex flex-col items-center w-full bg-white dark:bg-[#202124]">
+                        {/* Top bookmark button block matching screenshot */}
                         <button 
                             onClick={() => setIsFavOpen(true)}
                             title={currentLang === 'tr' ? 'Seyahat planlarınız ve kaydedilenler' : 'Saved travel plans'}
-                            className="relative w-12 h-12 rounded-2xl bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-600 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#e8f0fe] dark:hover:bg-slate-700/60 shadow-md hover:shadow-lg transition-all cursor-pointer group"
+                            className="w-full h-[64px] bg-white dark:bg-[#202124] flex items-center justify-center border-b border-[#dadce0] dark:border-slate-700 shadow-[0_2px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] hover:bg-[#f8f9fa] dark:hover:bg-slate-800 transition-colors cursor-pointer relative z-10 group"
                         >
-                            <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>
+                            <span 
+                                className="material-symbols-outlined text-[28px] text-[#3c4043] dark:text-slate-200 group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors"
+                                style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}
+                            >
+                                bookmarks
+                            </span>
                             {favorites.length > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-[#1a73e8] text-white text-[11px] font-bold rounded-full min-w-[20px] h-[20px] px-1 flex items-center justify-center border-2 border-white dark:border-[#202124] shadow-sm">
+                                <span className="absolute top-2.5 right-2 bg-[#1a73e8] text-white text-[10px] font-bold rounded-full min-w-[17px] h-[17px] px-1 flex items-center justify-center shadow-xs">
                                     {favorites.length}
                                 </span>
                             )}
                         </button>
-                        <div className="w-8 h-[1px] bg-[#dadce0] dark:bg-slate-700 my-0.5"></div>
-                        <div className="flex flex-col gap-2.5 items-center w-full">
-                            {favorites.slice(0, 5).map(fav => (
+
+                        {/* Circular thumbnails underneath */}
+                        <div className="flex flex-col gap-3.5 py-4 items-center w-full">
+                            {favorites.slice(0, 6).map(fav => (
                                 <div 
                                     key={fav.hotelId || fav.id} 
                                     onClick={() => setIsFavOpen(true)}
                                     title={fav.name || fav.hotelName || fav.names?.en || 'Otel'}
-                                    className="w-11 h-11 rounded-xl overflow-hidden border border-[#dadce0] dark:border-slate-600 shadow-md hover:shadow-lg cursor-pointer hover:scale-105 hover:border-[#1a73e8] transition-all"
+                                    className="w-11 h-11 rounded-full overflow-hidden cursor-pointer hover:scale-105 transition-transform"
                                 >
                                     <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
                                 </div>

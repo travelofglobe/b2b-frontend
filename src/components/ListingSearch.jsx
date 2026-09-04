@@ -566,6 +566,14 @@ const ListingSearch = () => {
 
     const isUserInteraction = useRef(false);
 
+    // Sync query when URL 'q' param changes externally (e.g., map area search)
+    useEffect(() => {
+        const urlQ = searchParams.get('q');
+        if (urlQ && urlQ !== query && !isUserInteraction.current) {
+            setQuery(urlQ);
+        }
+    }, [searchParams.get('q')]);
+
     // Debounce search
     useEffect(() => {
         // Only trigger search if user has interacted with the input

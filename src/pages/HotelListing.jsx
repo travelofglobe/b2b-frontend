@@ -189,24 +189,35 @@ const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved }) => {
     React.useEffect(() => {
         if (!map) return;
         const handleMoveEnd = () => {
+            const bounds = map.getBounds();
+            const nw = bounds.getNorthWest();
+            const se = bounds.getSouthEast();
+            const boundsData = {
+                bounds: {
+                    topLeft: { lat: nw.lat, lon: nw.lng },
+                    bottomRight: { lat: se.lat, lon: se.lng }
+                },
+                zoom: map.getZoom()
+            };
             if (searchOnMove) {
-                const bounds = map.getBounds();
-                onBoundsChange({
-                    north: bounds.getNorth(),
-                    south: bounds.getSouth(),
-                    east: bounds.getEast(),
-                    west: bounds.getWest(),
-                    center: map.getCenter(),
-                    zoom: map.getZoom()
-                });
+                onBoundsChange(boundsData);
             } else {
-                // Signal that the map moved manually (without triggering search)
-                onMapMoved?.();
+                onMapMoved?.(boundsData);
             }
         };
         map.on('moveend', handleMoveEnd);
         return () => map.off('moveend', handleMoveEnd);
     }, [map, searchOnMove, onBoundsChange, onMapMoved]);
+    return null;
+};
+
+// Capture map instance
+const MapInstanceCapture = ({ setMap }) => {
+    const map = useMap();
+    React.useEffect(() => {
+        if (map) { setMap(map); map.invalidateSize(); }
+        return () => setMap(null);
+    }, [map, setMap]);
     return null;
 };
 
@@ -493,6 +504,8 @@ const HotelListing = () => {
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false);
     const [searchOnMapMove, setSearchOnMapMove] = React.useState(false);
     const [mapMoved, setMapMoved] = React.useState(false);
+    const [mapInstance, setMapInstance] = React.useState(null);
+    const mapBoundsRef = React.useRef(null); // stores last known bounds for manual search
     const listScrollRef = React.useRef(null);
     const loaderRef = React.useRef(null);
     const sortDropdownRef = React.useRef(null);
@@ -699,8 +712,8 @@ const HotelListing = () => {
         if (currentParams) localStorage.setItem('last_hotel_search_params', currentParams);
     }, [slug, searchParams]);
 
-    // Load hotels from API
-    const loadMoreHotels = React.useCallback(async (isReset = false) => {
+    // Load hotels from API (optionally using geo bounds for map-area search)
+    const loadMoreHotels = React.useCallback(async (isReset = false, geoBounds = null) => {
         if (isReset && abortControllerRef.current) {
             abortControllerRef.current.abort();
             setIsLoading(false);
@@ -725,10 +738,15 @@ const HotelListing = () => {
             const filters = getSearchParams();
             const currentPage = isReset ? 0 : pageRef.current;
             const baseRequest = {
-                locationId,
+                // Use geo bounds if provided (map area search), otherwise use locationId
+                locationId: geoBounds ? null : locationId,
+                geo: geoBounds?.bounds || null,
+                zoom: geoBounds?.zoom || null,
                 size: 100,
                 filters: {
-                    locationIds: filters.locations?.length > 0 ? filters.locations : (locationId ? [parseInt(locationId)] : null),
+                    locationIds: geoBounds
+                        ? [] // when searching by map bounds, don't restrict by locationId
+                        : (filters.locations?.length > 0 ? filters.locations : (locationId ? [parseInt(locationId)] : null)),
                     stars: filters.stars,
                     hasFreeCancellation: filters.freeCancellation,
                     hasPrePayment: filters.prePayment,
@@ -751,16 +769,16 @@ const HotelListing = () => {
                 signal: controller.signal
             };
             const req1 = hotelService.searchHotels({ ...baseRequest, page: currentPage });
-            const req2 = hotelService.searchHotels({ ...baseRequest, page: currentPage + 1 });
-            const results = await Promise.allSettled([req1, req2]);
-            const res1 = results[0].status === 'fulfilled' ? results[0].value : null;
-            const res2 = results[1].status === 'fulfilled' ? results[1].value : null;
+            const req2 = geoBounds ? null : hotelService.searchHotels({ ...baseRequest, page: currentPage + 1 });
+            const results = await Promise.allSettled(req2 ? [req1, req2] : [req1]);
+            const res1 = results[0]?.status === 'fulfilled' ? results[0].value : null;
+            const res2 = results[1]?.status === 'fulfilled' ? results[1].value : null;
             if (res1 && res1.data) {
                 const pageData1 = res1.data;
-                const pageData2 = (res2 && res2.data) ? res2.data : { content: [], last: true };
+                const pageData2 = (res2 && res2.data) ? res2.data : null;
                 const filtersData = res1.filters || res1.data.filters;
                 const content1 = pageData1.content || [];
-                const content2 = pageData2.content || [];
+                const content2 = pageData2?.content || [];
                 const combinedContent = [...content1, ...content2];
                 const mappedHotels = combinedContent.map(h => mapApiHotelToModel(h));
                 setHotels(prev => {
@@ -770,7 +788,8 @@ const HotelListing = () => {
                 });
                 setTotalProperties(pageData1.totalElements || 0);
                 if (currentPage === 0 && filtersData) setDynamicFilters(filtersData);
-                const noMore = pageData1.last || pageData2.last || combinedContent.length === 0;
+                // When geoBounds search, treat as last page (no pagination)
+                const noMore = geoBounds ? true : (pageData1.last || pageData2?.last || combinedContent.length === 0);
                 const nextHasMore = !noMore;
                 setHasMore(nextHasMore);
                 hasMoreRef.current = nextHasMore;
@@ -788,7 +807,8 @@ const HotelListing = () => {
                     }
                 });
                 if (Object.keys(newLocationNames).length > 0) setLocationNames(prev => ({ ...prev, ...newLocationNames }));
-                if (currentPage === 0 && nextHasMore) {
+                // Only continue paginating if NOT a geo bounds search
+                if (!geoBounds && currentPage === 0 && nextHasMore) {
                     isFetchingRef.current = false;
                     setTimeout(() => { loadMoreHotels(false); }, 50);
                     return;
@@ -813,14 +833,75 @@ const HotelListing = () => {
         }
     }, [locationId, mapApiHotelToModel, roomState, searchParams, sortConfig]);
 
-    const handleMapBoundsChange = React.useCallback(() => {
-        loadMoreHotels(true);
-        setMapMoved(false);
-    }, [loadMoreHotels]);
+    const updateUrlForMapSearch = React.useCallback((boundsData) => {
+        if (!boundsData) return;
+        // Clear locationId so the autocomplete sync effect can set the correct new one
+        setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev.toString());
+            newParams.delete('locationId');
+            return newParams;
+        }, { replace: true });
+    }, [setSearchParams]);
 
-    const handleMapMoved = React.useCallback(() => {
+    const handleMapBoundsChange = React.useCallback((boundsData) => {
+        updateUrlForMapSearch(boundsData);
+        loadMoreHotels(true, boundsData);
+        setMapMoved(false);
+    }, [loadMoreHotels, updateUrlForMapSearch]);
+
+    const handleMapMoved = React.useCallback((boundsData) => {
+        mapBoundsRef.current = boundsData;
         setMapMoved(true);
     }, []);
+
+    // Sync autocomplete (q + locationId) with map center after a geo-bounds search
+    // Same logic as MapView.jsx syncBreadcrumbWithCenter
+    React.useEffect(() => {
+        if (!mapInstance || hotels.length === 0 || !mapBoundsRef.current) return;
+
+        const syncAutocompleteWithCenter = () => {
+            try {
+                const center = mapInstance.getCenter();
+                let closestHotel = null;
+                let minDistance = Infinity;
+
+                hotels.forEach(hotel => {
+                    if (hotel.lat && hotel.lng) {
+                        const dist = mapInstance.distance(center, [hotel.lat, hotel.lng]);
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            closestHotel = hotel;
+                        }
+                    }
+                });
+
+                if (closestHotel?.locationBreadcrumbs?.length > 0) {
+                    const breadcrumbs = closestHotel.locationBreadcrumbs;
+                    // Pick the most specific non-country crumb
+                    const crumb = [...breadcrumbs]
+                        .reverse()
+                        .find(c => c.locationType !== 'COUNTRY') || breadcrumbs[breadcrumbs.length - 1];
+
+                    if (crumb?.locationId) {
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.set('locationId', crumb.locationId);
+                        const locName =
+                            crumb.name?.translations?.[currentLang] ||
+                            crumb.name?.translations?.en ||
+                            crumb.name?.defaultName;
+                        if (locName) newParams.set('q', locName);
+                        setSearchParams(newParams, { replace: true });
+                    }
+                }
+            } catch (err) {
+                console.warn('Autocomplete sync failed:', err);
+            }
+        };
+
+        const timer = setTimeout(syncAutocompleteWithCenter, 400);
+        return () => clearTimeout(timer);
+    // Only re-run when hotels list changes after a geo search (mapBoundsRef tracks this)
+    }, [hotels, mapInstance]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Fetch missing location names
     React.useEffect(() => {
@@ -1176,6 +1257,8 @@ const HotelListing = () => {
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         maxZoom={19}
                     />
+                    {/* Capture map instance */}
+                    <MapInstanceCapture setMap={setMapInstance} />
 
                     {/* Price markers for hotels with coordinates */}
                     {hotels
@@ -1238,7 +1321,11 @@ const HotelListing = () => {
                     {/* Show manual update button when map moved but searchOnMove is off */}
                     {mapMoved && !searchOnMapMove && (
                         <button
-                            onClick={() => { loadMoreHotels(true); setMapMoved(false); }}
+                            onClick={() => {
+                                updateUrlForMapSearch(mapBoundsRef.current);
+                                loadMoreHotels(true, mapBoundsRef.current);
+                                setMapMoved(false);
+                            }}
                             className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 border border-[#dadce0] dark:border-slate-600 rounded-full px-4 py-2 text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shadow-md transition-colors cursor-pointer"
                         >
                             <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>refresh</span>

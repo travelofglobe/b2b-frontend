@@ -69,32 +69,32 @@ const AgencyMultiSelect = ({ selectedValues, onChange }) => {
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full h-8 bg-white dark:bg-[#303134] border ${isOpen ? 'border-[#1a73e8] ring-1 ring-[#1a73e8]' : 'border-[#dadce0] dark:border-[#3c4043]'} rounded-lg py-1 px-2.5 text-xs font-medium flex items-center justify-between transition-all outline-none text-[#202124] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] cursor-pointer`}
+                className={`w-full h-8 bg-white dark:bg-[#303134] border ${isOpen ? 'border-[#1a73e8] ring-1 ring-[#1a73e8]' : 'border-[#dadce0] dark:border-[#3c4043]'} rounded-lg py-1 px-2.5 text-[13px] font-normal flex items-center justify-between transition-all outline-none text-[#202124] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] cursor-pointer`}
             >
                 <span className="truncate">{getDisplayText()}</span>
-                <span className={`material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                <span className={`material-symbols-outlined text-[18px] text-[#70757a] dark:text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>arrow_drop_down</span>
             </button>
 
             {isOpen && (
-                <div className="absolute left-0 mt-1 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-lg shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] z-[100] overflow-hidden min-w-[280px] w-max max-w-[340px] animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="absolute left-0 mt-1 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-lg shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] z-[100] overflow-hidden min-w-[280px] w-max max-w-[340px] animate-in fade-in slide-in-from-top-1 duration-150 font-roboto">
                     <div className="p-2 border-b border-[#dadce0] dark:border-[#3c4043]">
                         <div className="relative flex items-center">
-                            <span className="material-symbols-outlined absolute left-2 text-[#5f6368] dark:text-slate-400 text-[18px]">search</span>
+                            <span className="material-symbols-outlined absolute left-2 text-[#70757a] dark:text-slate-400 text-[18px]">search</span>
                             <input
                                 type="text"
-                                placeholder="Search agency..."
+                                placeholder="Acente ara..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-md py-1.5 pl-8 pr-2.5 text-xs font-normal text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
+                                className="w-full bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-md py-1.5 pl-8 pr-2.5 text-[13px] font-normal text-[#202124] dark:text-white placeholder-[#70757a] outline-none focus:border-[#1a73e8]"
                                 autoFocus
                             />
                         </div>
                     </div>
                     <div className="p-1 max-h-64 overflow-y-auto">
                         {loading ? (
-                            <div className="p-3 text-center text-xs text-[#5f6368]">Loading...</div>
+                            <div className="p-3 text-center text-[13px] text-[#70757a]">Yükleniyor...</div>
                         ) : filteredAgencies.length === 0 ? (
-                            <div className="p-3 text-center text-xs text-[#5f6368]">No agency found</div>
+                            <div className="p-3 text-center text-[13px] text-[#70757a]">Acente bulunamadı</div>
                         ) : (
                             filteredAgencies.map((agency) => {
                                 const isSelected = selectedValues.includes(agency.id);
@@ -102,15 +102,19 @@ const AgencyMultiSelect = ({ selectedValues, onChange }) => {
                                     <div
                                         key={agency.id}
                                         onClick={() => toggleOption(agency.id)}
-                                        className={`flex items-center gap-2.5 px-3 py-2 cursor-pointer rounded-md transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-slate-300'}`}
+                                        className={`flex items-center gap-2 px-3 py-2 cursor-pointer rounded transition-colors text-[13px] font-normal ${
+                                            isSelected 
+                                                ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#202124] dark:text-white' 
+                                                : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#3c4043] dark:text-slate-300'
+                                        }`}
                                     >
-                                        <div className="size-4 flex items-center justify-center flex-shrink-0">
-                                            {isSelected && <span className="material-symbols-outlined text-[18px] text-[#1a73e8] dark:text-[#8ab4f8]">check</span>}
+                                        <div className="w-6 flex items-center justify-center flex-shrink-0">
+                                            {isSelected && <span className="material-symbols-outlined text-[18px] text-[#3c4043] dark:text-slate-200">check</span>}
                                         </div>
                                         <div className="flex items-center justify-between gap-2 flex-1 overflow-hidden">
-                                            <span className="text-xs tracking-normal leading-tight whitespace-normal break-words">{agency.name}</span>
+                                            <span className="truncate">{agency.name}</span>
                                             {agency.agencyType && (
-                                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wider shrink-0 ${
+                                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide shrink-0 ${
                                                     agency.agencyType === 'GSA' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40' : 
                                                     agency.agencyType === 'RSA' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40' : 
                                                     'bg-blue-100 text-blue-700 dark:bg-blue-900/40'

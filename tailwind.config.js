@@ -13,9 +13,9 @@ export default {
         "background-dark": "#101922",
       },
       fontFamily: {
-        "roboto": ["Roboto", "Arial", "sans-serif"],
-        "display": ["Outfit", '"Google Sans"', "sans-serif"],
-        "sans": ["Outfit", '"Google Sans"', "sans-serif"]
+        "roboto": ["Roboto", '"Google Sans"', "-apple-system", "BlinkMacSystemFont", '"Segoe UI"', "Arial", "sans-serif"],
+        "display": ["Roboto", '"Google Sans"', "-apple-system", "BlinkMacSystemFont", '"Segoe UI"', "Arial", "sans-serif"],
+        "sans": ["Roboto", '"Google Sans"', "-apple-system", "BlinkMacSystemFont", '"Segoe UI"', "Arial", "sans-serif"]
       },
       borderRadius: {
         "DEFAULT": "0.25rem",

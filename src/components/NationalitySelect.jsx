@@ -115,19 +115,19 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                     type="button"
                     onClick={toggleOpen}
                     className={googleStyle 
-                        ? `flex items-center gap-1.5 px-2.5 py-1.5 rounded transition-colors font-medium text-sm focus:outline-none ${
+                        ? `flex items-center gap-1.5 px-3 py-1.5 rounded transition-colors font-normal text-[13px] focus:outline-none cursor-pointer ${
                             isOpen 
                                 ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300' 
-                                : 'hover:bg-slate-100 dark:hover:bg-slate-700/50 text-[#3c4043] dark:text-slate-300'
+                                : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-700/50 text-[#3c4043] dark:text-slate-300'
                         }`
                         : `w-full flex items-center gap-2 bg-transparent border-none p-0 focus:ring-0 ${compact ? 'justify-center' : ''}`
                     }
                 >
                     <span className={`${compact ? 'text-lg' : 'text-base'} flex-shrink-0`}>{selectedCountry?.flag}</span>
-                    <span className={`${compact ? 'text-[11px]' : 'text-sm'} font-medium truncate`}>
+                    <span className={`${compact ? 'text-[11px]' : 'text-[13px]'} font-normal truncate`}>
                         {compact || googleStyle ? selectedCountry?.code : selectedCountry?.name}
                     </span>
-                    <span className="material-symbols-outlined text-[18px] text-slate-500 flex-shrink-0">
+                    <span className="material-symbols-outlined text-[18px] text-[#70757a] flex-shrink-0">
                         {isOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
                     </span>
                 </button>

@@ -909,11 +909,11 @@ const DashboardSearch = () => {
                         <button
                             type="button"
                             onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                            className="flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/50 px-2.5 py-1.5 rounded transition-colors text-[#3c4043] dark:text-slate-300 font-medium text-sm focus:outline-none"
+                            className="flex items-center gap-1.5 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] px-2.5 py-1.5 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[13px] focus:outline-none cursor-pointer"
                         >
-                            <span className="material-symbols-outlined text-[18px]">person</span>
-                            <span className="text-sm font-medium">{totalAdults + totalChildren}</span>
-                            <span className="material-symbols-outlined text-[18px] text-slate-500">arrow_drop_down</span>
+                            <span className="material-symbols-outlined text-[18px] text-[#70757a]">person</span>
+                            <span className="text-[13px] font-normal text-[#3c4043] dark:text-slate-200">{totalAdults + totalChildren}</span>
+                            <span className="material-symbols-outlined text-[18px] text-[#70757a]">arrow_drop_down</span>
                         </button>
 
                         {/* Guest Dropdown - Google Flights Style */}

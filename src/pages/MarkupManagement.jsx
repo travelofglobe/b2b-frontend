@@ -170,7 +170,7 @@ const MarkupManagement = () => {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-lg text-xs font-medium transition-all shadow-xs active:scale-95 cursor-pointer"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-lg text-[13px] font-medium transition-all shadow-xs active:scale-95 cursor-pointer"
                     >
                         <span className="material-symbols-outlined text-[18px]">add</span>
                         <span>{L('newRule')}</span>
@@ -183,19 +183,19 @@ const MarkupManagement = () => {
                 {/* Toolbar */}
                 <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-[#dadce0] dark:border-[#3c4043] shrink-0">
                     <div className="relative flex-1 min-w-[180px]">
-                        <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-slate-400 text-[18px]">search</span>
+                        <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#70757a] dark:text-slate-400 text-[18px]">search</span>
                         <input
                             type="text"
                             placeholder={L('searchPh')}
                             value={filters.query}
                             onChange={(e) => handleFilterChange('query', e.target.value)}
-                            className="w-full h-8 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg pl-8 pr-3 text-xs font-normal text-[#202124] dark:text-slate-200 outline-none focus:border-[#1a73e8] transition-colors"
+                            className="w-full h-8 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg pl-8 pr-3 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] outline-none focus:border-[#1a73e8] transition-colors"
                         />
                     </div>
                     <select
                         value={filters.status}
                         onChange={(e) => handleFilterChange('status', e.target.value)}
-                        className="h-8 px-2.5 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-xs font-medium text-[#202124] dark:text-slate-200 outline-none cursor-pointer focus:border-[#1a73e8]"
+                        className="h-8 px-2.5 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-[13px] font-normal text-[#202124] dark:text-slate-200 outline-none cursor-pointer focus:border-[#1a73e8]"
                     >
                         <option value="">{L('allRules')}</option>
                         <option value="ACTIVE">{L('active')}</option>
@@ -203,7 +203,7 @@ const MarkupManagement = () => {
                     </select>
                     <button
                         onClick={fetchMarkups}
-                        className={`size-8 flex items-center justify-center bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-all ${loading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}
+                        className={`size-8 flex items-center justify-center bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-[#70757a] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-all cursor-pointer ${loading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}
                     >
                         <span className="material-symbols-outlined text-[18px]">refresh</span>
                     </button>
@@ -218,15 +218,15 @@ const MarkupManagement = () => {
                 {/* Table */}
                 <div className="flex-1 overflow-x-auto overflow-y-auto">
                     <table className="w-full border-collapse">
-                        <thead className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 backdrop-blur-md">
+                        <thead className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] sticky top-0 z-10 backdrop-blur-md">
                             <tr>
-                                <th className="px-3.5 py-2.5 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-14">ID</th>
-                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colRule')}</th>
-                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colHotels')}</th>
-                                <th className="px-3.5 py-2.5 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-20">{L('colPriority')}</th>
-                                <th className="px-3.5 py-2.5 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-20">{L('colValue')}</th>
-                                <th className="px-3.5 py-2.5 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-28">{L('colStatus')}</th>
-                                <th className="px-3.5 py-2.5 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colActions')}</th>
+                                <th className="px-3.5 py-2.5 text-center text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-14">ID</th>
+                                <th className="px-3.5 py-2.5 text-left text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colRule')}</th>
+                                <th className="px-3.5 py-2.5 text-left text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colHotels')}</th>
+                                <th className="px-3.5 py-2.5 text-center text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-20">{L('colPriority')}</th>
+                                <th className="px-3.5 py-2.5 text-center text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-20">{L('colValue')}</th>
+                                <th className="px-3.5 py-2.5 text-center text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-28">{L('colStatus')}</th>
+                                <th className="px-3.5 py-2.5 text-right text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colActions')}</th>
                             </tr>
                         </thead>
                         <tbody className="">

@@ -169,7 +169,7 @@ const SubAgencyMarkups = () => {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-lg text-xs font-medium transition-all shadow-xs active:scale-95 cursor-pointer"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-lg text-[13px] font-medium transition-all shadow-xs active:scale-95 cursor-pointer"
                     >
                         <span className="material-symbols-outlined text-[18px]">add</span>
                         <span>{L('newRule')}</span>
@@ -180,15 +180,15 @@ const SubAgencyMarkups = () => {
             {/* Table Container */}
             <div className="flex-1 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-[#3c4043] shadow-xs flex flex-col overflow-hidden min-h-0">
                 {/* Toolbar */}
-                <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-white/5 shrink-0">
+                <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-[#dadce0] dark:border-[#3c4043] shrink-0">
                     <div className="relative flex-1 min-w-[160px]">
-                        <span className="material-icons-round absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                        <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#70757a] text-[18px]">search</span>
                         <input
                             type="text"
                             placeholder={L('searchPh')}
                             value={filters.query}
                             onChange={(e) => handleFilterChange('query', e.target.value)}
-                            className="w-full h-8 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-8 pr-3 text-xs font-medium outline-none focus:border-primary transition-colors"
+                            className="w-full h-8 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg pl-8 pr-3 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] outline-none focus:border-[#1a73e8] transition-colors"
                         />
                     </div>
                     <div className="min-w-[160px]">
@@ -200,7 +200,7 @@ const SubAgencyMarkups = () => {
                     <select
                         value={filters.status}
                         onChange={(e) => handleFilterChange('status', e.target.value)}
-                        className="h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium outline-none cursor-pointer"
+                        className="h-8 px-2.5 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-[13px] font-normal text-[#202124] dark:text-slate-200 outline-none cursor-pointer focus:border-[#1a73e8]"
                     >
                         <option value="">{L('allRules')}</option>
                         <option value="ACTIVE">{L('active')}</option>
@@ -208,38 +208,38 @@ const SubAgencyMarkups = () => {
                     </select>
                     <button
                         onClick={fetchMarkups}
-                        className={`size-8 flex items-center justify-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 hover:bg-slate-100 transition-all ${loading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}
+                        className={`size-8 flex items-center justify-center bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-[#70757a] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-all cursor-pointer ${loading ? 'animate-spin opacity-50 pointer-events-none' : ''}`}
                     >
-                        <span className="material-icons-round text-sm">refresh</span>
+                        <span className="material-symbols-outlined text-[18px]">refresh</span>
                     </button>
                     {loading && (
                         <div className="flex items-center gap-1.5">
-                            <div className="size-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                            <span className="text-[10px] font-medium text-primary">Loading...</span>
+                            <div className="size-3 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
+                            <span className="text-[10px] font-medium text-[#1a73e8]">Loading...</span>
                         </div>
                     )}
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="ml-auto h-8 px-4 bg-primary text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-primary/90 active:scale-95 transition-all shadow-xs shadow-primary/20 whitespace-nowrap"
+                        className="ml-auto h-8 px-4 bg-[#1a73e8] text-white rounded-lg text-[13px] font-medium flex items-center gap-1.5 hover:bg-[#1765cc] active:scale-95 transition-all shadow-xs whitespace-nowrap cursor-pointer"
                     >
-                        <span className="material-icons-round text-sm">add</span>
+                        <span className="material-symbols-outlined text-[18px]">add</span>
                         {L('newRule')}
                     </button>
                 </div>
 
                 {/* Table */}
                 <div className="flex-1 overflow-x-auto overflow-y-auto">
-                    <table className="w-full text-left text-xs">
-                        <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/80 z-10 border-b border-slate-200 dark:border-white/5">
+                    <table className="w-full text-left text-[13px]">
+                        <thead className="sticky top-0 bg-[#f8f9fa] dark:bg-[#202124] z-10 border-b border-[#dadce0] dark:border-[#3c4043]">
                             <tr>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-14 text-center">ID</th>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{L('colRule')}</th>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{L('colHotels')}</th>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{L('colAgencies')}</th>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-center w-20">{L('colPriority')}</th>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-center w-20">{L('colValue')}</th>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-center w-28">{L('colStatus')}</th>
-                                <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-right">{L('colActions')}</th>
+                                <th className="px-4 py-2.5 text-[11px] font-medium text-[#70757a] uppercase tracking-wider w-14 text-center">ID</th>
+                                <th className="px-4 py-2.5 text-[11px] font-medium text-[#70757a] uppercase tracking-wider">{L('colRule')}</th>
+                                <th className="px-4 py-2.5 text-[11px] font-medium text-[#70757a] uppercase tracking-wider">{L('colHotels')}</th>
+                                <th className="px-4 py-2.5 text-[11px] font-medium text-[#70757a] uppercase tracking-wider">{L('colAgencies')}</th>
+                                <th className="px-4 py-2.5 text-[11px] font-medium text-[#70757a] uppercase tracking-wider text-center w-20">{L('colPriority')}</th>
+                                <th className="px-4 py-2.5 text-[11px] font-medium text-[#70757a] uppercase tracking-wider text-center w-20">{L('colValue')}</th>
+                                <th className="px-4 py-2.5 text-[11px] font-medium text-[#70757a] uppercase tracking-wider text-center w-28">{L('colStatus')}</th>
+                                <th className="px-4 py-2.5 text-[11px] font-medium text-[#70757a] uppercase tracking-wider text-right">{L('colActions')}</th>
                             </tr>
                         </thead>
                         <tbody>

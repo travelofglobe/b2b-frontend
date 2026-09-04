@@ -41,14 +41,14 @@ const StatusMultiSelect = ({ selectedValues, onChange }) => {
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full bg-white dark:bg-[#303134] border ${isOpen ? 'border-[#1a73e8] ring-2 ring-[#1a73e8]/20' : 'border-[#dadce0] dark:border-[#5f6368]'} rounded-lg py-1 px-2 text-xs font-medium flex items-center justify-between transition-all outline-none text-[#202124] dark:text-slate-200 shadow-xs hover:border-[#1a73e8]`}
+                className={`w-full bg-white dark:bg-[#303134] border ${isOpen ? 'border-[#1a73e8] ring-1 ring-[#1a73e8]' : 'border-[#dadce0] dark:border-[#5f6368]'} rounded-lg py-1 px-2.5 text-[13px] font-normal flex items-center justify-between transition-all outline-none text-[#202124] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] cursor-pointer`}
             >
                 <span className="truncate">{getDisplayText()}</span>
-                <span className={`material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                <span className={`material-symbols-outlined text-[18px] text-[#70757a] dark:text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>arrow_drop_down</span>
             </button>
 
             {isOpen && (
-                <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-lg shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] z-[100] overflow-hidden min-w-[170px] animate-in fade-in duration-150">
+                <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-lg shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] z-[100] overflow-hidden min-w-[170px] animate-in fade-in duration-150 font-roboto">
                     <div className="py-1 max-h-60 overflow-y-auto custom-scrollbar">
                         {options.map((option) => {
                             const isSelected = selectedValues.includes(option.value);
@@ -57,15 +57,15 @@ const StatusMultiSelect = ({ selectedValues, onChange }) => {
                                     key={option.value}
                                     type="button"
                                     onClick={() => toggleOption(option.value)}
-                                    className={`w-full flex items-center px-3 py-2 text-left transition-colors cursor-pointer text-xs ${
+                                    className={`w-full flex items-center px-3 py-2 text-left transition-colors cursor-pointer text-[13px] font-normal ${
                                         isSelected 
-                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300 font-medium' 
-                                            : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200 font-normal'
+                                            ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#202124] dark:text-white' 
+                                            : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200'
                                     }`}
                                 >
-                                    <span className="w-5 flex items-center justify-start shrink-0">
+                                    <span className="w-6 flex items-center justify-start shrink-0">
                                         {isSelected && (
-                                            <span className="material-symbols-outlined text-[16px] text-[#1a73e8] dark:text-blue-300">check</span>
+                                            <span className="material-symbols-outlined text-[18px] text-[#3c4043] dark:text-slate-200">check</span>
                                         )}
                                     </span>
                                     <span className="truncate flex-1">{option.label}</span>

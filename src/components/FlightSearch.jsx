@@ -4,14 +4,14 @@ import GoogleFlightDatePicker from './GoogleFlightDatePicker';
 const TRIP_TYPES = [
     { id: 'round_trip', label: 'Gidiş dönüş', icon: 'sync_alt' },
     { id: 'one_way', label: 'Tek yön', icon: 'arrow_right_alt' },
-    { id: 'multi_city', label: 'Çoklu uçuş', icon: 'alt_route' }
+    { id: 'multi_city', label: 'Birden fazla şehir', icon: 'alt_route' }
 ];
 
 const CABIN_CLASSES = [
     { id: 'economy', label: 'Ekonomi' },
-    { id: 'premium_economy', label: 'Premium Ekonomi' },
+    { id: 'premium_economy', label: 'Premium ekonomi' },
     { id: 'business', label: 'Business' },
-    { id: 'first', label: 'Birinci sınıf' }
+    { id: 'first', label: 'First' }
 ];
 
 const FlightSearch = ({ onSearch }) => {
@@ -22,13 +22,15 @@ const FlightSearch = ({ onSearch }) => {
     const [cabinClass, setCabinClass] = useState(CABIN_CLASSES[0]);
     const [showCabinDropdown, setShowCabinDropdown] = useState(false);
 
-    // Passenger count state
-    const [passengers, setPassengers] = useState({ adults: 1, children: 0, infantsOnLap: 0, infantsInSeat: 0 });
+    // Passenger count state (with draft state for cancel/done)
+    const [passengers, setPassengers] = useState({ adults: 1, children: 0, infantsInSeat: 0, infantsOnLap: 0 });
+    const [draftPassengers, setDraftPassengers] = useState({ adults: 1, children: 0, infantsInSeat: 0, infantsOnLap: 0 });
     const [showPassengerDropdown, setShowPassengerDropdown] = useState(false);
 
-    // Location inputs
+    // Location inputs & focus state
     const [origin, setOrigin] = useState('');
     const [destination, setDestination] = useState('İstanbul');
+    const [focusedInput, setFocusedInput] = useState(null);
 
     // Date state
     const today = new Date();
@@ -47,7 +49,7 @@ const FlightSearch = ({ onSearch }) => {
     const passengerRef = useRef(null);
     const cabinRef = useRef(null);
 
-    const totalPassengers = passengers.adults + passengers.children + passengers.infantsOnLap + passengers.infantsInSeat;
+    const totalPassengers = passengers.adults + passengers.children + passengers.infantsInSeat + passengers.infantsOnLap;
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -102,114 +104,217 @@ const FlightSearch = ({ onSearch }) => {
                 {/* Top Options Bar (Trip Type, Passengers, Cabin Class) */}
                 <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-3 relative z-[60]">
                     
-                    {/* 1. Trip Type Dropdown */}
+                    {/* 1. Trip Type Dropdown (Google Flights Style) */}
                     <div className="relative" ref={tripTypeRef}>
                         <button
                             type="button"
-                            onClick={() => setShowTripTypeDropdown(!showTripTypeDropdown)}
-                            className="flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/50 px-2.5 py-1.5 rounded transition-colors text-[#3c4043] dark:text-slate-300 font-medium text-sm focus:outline-none"
+                            onClick={() => {
+                                setShowTripTypeDropdown(!showTripTypeDropdown);
+                                setShowPassengerDropdown(false);
+                                setShowCabinDropdown(false);
+                            }}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 font-normal text-[13px] transition-colors cursor-pointer select-none ${
+                                showTripTypeDropdown
+                                    ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] rounded-t border-b-2 border-[#1a73e8]'
+                                    : 'text-[#70757a] dark:text-slate-300 hover:text-[#202124] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] rounded border-b-2 border-transparent'
+                            }`}
                         >
-                            <span className="material-symbols-outlined text-[18px]">{tripType.icon}</span>
+                            <span className={`material-symbols-outlined text-[18px] ${showTripTypeDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#70757a] dark:text-slate-400'}`}>{tripType.icon}</span>
                             <span>{tripType.label}</span>
-                            <span className="material-symbols-outlined text-[18px] text-slate-500">arrow_drop_down</span>
+                            <span className={`material-symbols-outlined text-[18px] ${showTripTypeDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#70757a] dark:text-slate-400'}`}>
+                                {showTripTypeDropdown ? 'arrow_drop_up' : 'arrow_drop_down'}
+                            </span>
                         </button>
 
                         {showTripTypeDropdown && (
-                            <div className="absolute top-full left-0 mt-1 w-44 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-lg py-1 z-[200] animate-in fade-in duration-150">
-                                {TRIP_TYPES.map(t => (
-                                    <button
-                                        key={t.id}
-                                        type="button"
-                                        onClick={() => {
-                                            setTripType(t);
-                                            setShowTripTypeDropdown(false);
-                                        }}
-                                        className={`w-full px-3 py-2 text-left text-sm flex items-center justify-between hover:bg-[#f1f3f4] dark:hover:bg-slate-800 ${
-                                            tripType.id === t.id ? 'text-[#1a73e8] font-medium bg-blue-50/50 dark:bg-blue-900/20' : 'text-[#3c4043] dark:text-slate-200'
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <span className="material-symbols-outlined text-[18px]">{t.icon}</span>
-                                            <span>{t.label}</span>
-                                        </div>
-                                        {tripType.id === t.id && <span className="material-symbols-outlined text-[18px] text-[#1a73e8]">check</span>}
-                                    </button>
-                                ))}
+                            <div className="absolute top-full left-0 mt-0 w-52 bg-white dark:bg-[#202124] rounded-b-lg rounded-tr-lg border border-[#dadce0] dark:border-[#3c4043] shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] py-1.5 z-[200] animate-in fade-in duration-150">
+                                {TRIP_TYPES.map(t => {
+                                    const isSelected = tripType.id === t.id;
+                                    return (
+                                        <button
+                                            key={t.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setTripType(t);
+                                                setShowTripTypeDropdown(false);
+                                            }}
+                                            className={`w-full py-2.5 pr-4 flex items-center text-left text-[13px] font-normal cursor-pointer transition-colors ${
+                                                isSelected
+                                                    ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#202124] dark:text-white'
+                                                    : 'text-[#3c4043] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-[#303134]'
+                                            }`}
+                                        >
+                                            <div className="w-9 flex items-center justify-center flex-shrink-0">
+                                                {isSelected && (
+                                                    <span className="material-symbols-outlined text-[18px] text-[#3c4043] dark:text-slate-200">
+                                                        check
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span className="truncate">{t.label}</span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
 
-                    {/* 2. Passenger Dropdown */}
+                    {/* 2. Passenger Dropdown (Google Flights Style) */}
                     <div className="relative" ref={passengerRef}>
                         <button
                             type="button"
-                            onClick={() => setShowPassengerDropdown(!showPassengerDropdown)}
-                            className="flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/50 px-2.5 py-1.5 rounded transition-colors text-[#3c4043] dark:text-slate-300 font-medium text-sm focus:outline-none"
+                            onClick={() => {
+                                if (!showPassengerDropdown) {
+                                    setDraftPassengers({ ...passengers });
+                                    setShowPassengerDropdown(true);
+                                    setShowTripTypeDropdown(false);
+                                    setShowCabinDropdown(false);
+                                } else {
+                                    setShowPassengerDropdown(false);
+                                }
+                            }}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 font-normal text-[13px] transition-colors cursor-pointer select-none ${
+                                showPassengerDropdown
+                                    ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] rounded-t border-b-2 border-[#1a73e8]'
+                                    : 'text-[#70757a] dark:text-slate-300 hover:text-[#202124] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] rounded border-b-2 border-transparent'
+                            }`}
                         >
-                            <span className="material-symbols-outlined text-[18px]">person</span>
+                            <span className={`material-symbols-outlined text-[18px] ${showPassengerDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#70757a] dark:text-slate-400'}`}>person</span>
                             <span>{totalPassengers}</span>
-                            <span className="material-symbols-outlined text-[18px] text-slate-500">arrow_drop_down</span>
+                            <span className={`material-symbols-outlined text-[18px] ${showPassengerDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#70757a] dark:text-slate-400'}`}>
+                                {showPassengerDropdown ? 'arrow_drop_up' : 'arrow_drop_down'}
+                            </span>
                         </button>
 
                         {showPassengerDropdown && (
-                            <div className="absolute top-full left-0 mt-1 w-72 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-xl p-4 z-[200] animate-in fade-in duration-150 space-y-4">
-                                {/* Adults */}
+                            <div className="absolute top-full left-0 mt-0 w-80 sm:w-[340px] bg-white dark:bg-[#202124] rounded-b-lg rounded-tr-lg border border-[#dadce0] dark:border-[#3c4043] shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] p-4 sm:p-5 z-[200] animate-in fade-in duration-150 space-y-4">
+                                {/* 1. Yetişkin */}
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-sm font-medium text-[#3c4043] dark:text-white">Yetişkinler</div>
-                                        <div className="text-xs text-slate-500">12 yaş ve üzeri</div>
+                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">Yetişkin</div>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
                                             type="button"
-                                            disabled={passengers.adults <= 1}
-                                            onClick={() => setPassengers(p => ({ ...p, adults: Math.max(1, p.adults - 1) }))}
-                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 flex items-center justify-center"
+                                            disabled={draftPassengers.adults <= 1}
+                                            onClick={() => setDraftPassengers(p => ({
+                                                ...p,
+                                                adults: Math.max(1, p.adults - 1),
+                                                infantsOnLap: Math.min(p.infantsOnLap, Math.max(1, p.adults - 1))
+                                            }))}
+                                            className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
                                         >
                                             <span className="material-symbols-outlined text-[18px]">remove</span>
                                         </button>
-                                        <span className="w-6 text-center text-sm font-medium">{passengers.adults}</span>
+                                        <span className="w-8 text-center text-[13px] font-normal text-[#202124] dark:text-white">{draftPassengers.adults}</span>
                                         <button
                                             type="button"
-                                            onClick={() => setPassengers(p => ({ ...p, adults: p.adults + 1 }))}
-                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] dark:bg-blue-900/30 flex items-center justify-center"
+                                            disabled={draftPassengers.adults >= 9}
+                                            onClick={() => setDraftPassengers(p => ({ ...p, adults: p.adults + 1 }))}
+                                            className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
                                         >
                                             <span className="material-symbols-outlined text-[18px]">add</span>
                                         </button>
                                     </div>
                                 </div>
 
-                                {/* Children */}
+                                {/* 2. Çocuk Sayısı (2-11 Yaş Arası) */}
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-sm font-medium text-[#3c4043] dark:text-white">Çocuklar</div>
-                                        <div className="text-xs text-slate-500">2-11 yaş arası</div>
+                                        <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">2-11 Yaş Arası</div>
+                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">Çocuk Sayısı</div>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
                                             type="button"
-                                            disabled={passengers.children <= 0}
-                                            onClick={() => setPassengers(p => ({ ...p, children: Math.max(0, p.children - 1) }))}
-                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 flex items-center justify-center"
+                                            disabled={draftPassengers.children <= 0}
+                                            onClick={() => setDraftPassengers(p => ({ ...p, children: Math.max(0, p.children - 1) }))}
+                                            className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
                                         >
                                             <span className="material-symbols-outlined text-[18px]">remove</span>
                                         </button>
-                                        <span className="w-6 text-center text-sm font-medium">{passengers.children}</span>
+                                        <span className="w-8 text-center text-[13px] font-normal text-[#202124] dark:text-white">{draftPassengers.children}</span>
                                         <button
                                             type="button"
-                                            onClick={() => setPassengers(p => ({ ...p, children: p.children + 1 }))}
-                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] dark:bg-blue-900/30 flex items-center justify-center"
+                                            disabled={draftPassengers.children >= 9}
+                                            onClick={() => setDraftPassengers(p => ({ ...p, children: p.children + 1 }))}
+                                            className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
                                         >
                                             <span className="material-symbols-outlined text-[18px]">add</span>
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                {/* 3. Koltukta Yolculuk Edecek Bebek Sayısı */}
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">Koltukta</div>
+                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">Yolculuk Edecek Bebek Sayısı</div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            disabled={draftPassengers.infantsInSeat <= 0}
+                                            onClick={() => setDraftPassengers(p => ({ ...p, infantsInSeat: Math.max(0, p.infantsInSeat - 1) }))}
+                                            className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                        >
+                                            <span className="material-symbols-outlined text-[18px]">remove</span>
+                                        </button>
+                                        <span className="w-8 text-center text-[13px] font-normal text-[#202124] dark:text-white">{draftPassengers.infantsInSeat}</span>
+                                        <button
+                                            type="button"
+                                            disabled={draftPassengers.infantsInSeat >= 9}
+                                            onClick={() => setDraftPassengers(p => ({ ...p, infantsInSeat: p.infantsInSeat + 1 }))}
+                                            className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                        >
+                                            <span className="material-symbols-outlined text-[18px]">add</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* 4. Kucakta yolculuk yapacak bebek sayısı */}
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">Kucakta</div>
+                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">yolculuk yapacak bebek sayısı</div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            disabled={draftPassengers.infantsOnLap <= 0}
+                                            onClick={() => setDraftPassengers(p => ({ ...p, infantsOnLap: Math.max(0, p.infantsOnLap - 1) }))}
+                                            className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                        >
+                                            <span className="material-symbols-outlined text-[18px]">remove</span>
+                                        </button>
+                                        <span className="w-8 text-center text-[13px] font-normal text-[#202124] dark:text-white">{draftPassengers.infantsOnLap}</span>
+                                        <button
+                                            type="button"
+                                            disabled={draftPassengers.infantsOnLap >= draftPassengers.adults}
+                                            onClick={() => setDraftPassengers(p => ({ ...p, infantsOnLap: p.infantsOnLap + 1 }))}
+                                            className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                        >
+                                            <span className="material-symbols-outlined text-[18px]">add</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Footer: İptal / Bitti */}
+                                <div className="flex items-center justify-end gap-2 pt-2">
                                     <button
                                         type="button"
                                         onClick={() => setShowPassengerDropdown(false)}
-                                        className="text-sm font-medium text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-950/30 px-3 py-1.5 rounded transition-colors"
+                                        className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] rounded cursor-pointer transition-colors"
+                                    >
+                                        İptal
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setPassengers({ ...draftPassengers });
+                                            setShowPassengerDropdown(false);
+                                        }}
+                                        className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] rounded cursor-pointer transition-colors"
                                     >
                                         Bitti
                                     </button>
@@ -218,35 +323,56 @@ const FlightSearch = ({ onSearch }) => {
                         )}
                     </div>
 
-                    {/* 3. Cabin Class Dropdown */}
+                    {/* 3. Cabin Class Dropdown (Google Flights Style) */}
                     <div className="relative" ref={cabinRef}>
                         <button
                             type="button"
-                            onClick={() => setShowCabinDropdown(!showCabinDropdown)}
-                            className="flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/50 px-2.5 py-1.5 rounded transition-colors text-[#3c4043] dark:text-slate-300 font-medium text-sm focus:outline-none"
+                            onClick={() => {
+                                setShowCabinDropdown(!showCabinDropdown);
+                                setShowTripTypeDropdown(false);
+                                setShowPassengerDropdown(false);
+                            }}
+                            className={`flex items-center gap-1 px-3 py-1.5 font-normal text-[13px] transition-colors cursor-pointer select-none ${
+                                showCabinDropdown
+                                    ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] rounded-t border-b-2 border-[#1a73e8]'
+                                    : 'text-[#70757a] dark:text-slate-300 hover:text-[#202124] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] rounded border-b-2 border-transparent'
+                            }`}
                         >
                             <span>{cabinClass.label}</span>
-                            <span className="material-symbols-outlined text-[18px] text-slate-500">arrow_drop_down</span>
+                            <span className={`material-symbols-outlined text-[18px] ${showCabinDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#70757a] dark:text-slate-400'}`}>
+                                {showCabinDropdown ? 'arrow_drop_up' : 'arrow_drop_down'}
+                            </span>
                         </button>
 
                         {showCabinDropdown && (
-                            <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-lg py-1 z-[200] animate-in fade-in duration-150">
-                                {CABIN_CLASSES.map(c => (
-                                    <button
-                                        key={c.id}
-                                        type="button"
-                                        onClick={() => {
-                                            setCabinClass(c);
-                                            setShowCabinDropdown(false);
-                                        }}
-                                        className={`w-full px-3 py-2 text-left text-sm flex items-center justify-between hover:bg-[#f1f3f4] dark:hover:bg-slate-800 ${
-                                            cabinClass.id === c.id ? 'text-[#1a73e8] font-medium bg-blue-50/50 dark:bg-blue-900/20' : 'text-[#3c4043] dark:text-slate-200'
-                                        }`}
-                                    >
-                                        <span>{c.label}</span>
-                                        {cabinClass.id === c.id && <span className="material-symbols-outlined text-[18px] text-[#1a73e8]">check</span>}
-                                    </button>
-                                ))}
+                            <div className="absolute top-full left-0 mt-0 w-52 bg-white dark:bg-[#202124] rounded-b-lg rounded-tr-lg border border-[#dadce0] dark:border-[#3c4043] shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] py-1.5 z-[200] animate-in fade-in duration-150">
+                                {CABIN_CLASSES.map(c => {
+                                    const isSelected = cabinClass.id === c.id;
+                                    return (
+                                        <button
+                                            key={c.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setCabinClass(c);
+                                                setShowCabinDropdown(false);
+                                            }}
+                                            className={`w-full py-2.5 pr-4 flex items-center text-left text-[13px] font-normal cursor-pointer transition-colors ${
+                                                isSelected
+                                                    ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#202124] dark:text-white'
+                                                    : 'text-[#3c4043] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-[#303134]'
+                                            }`}
+                                        >
+                                            <div className="w-9 flex items-center justify-center flex-shrink-0">
+                                                {isSelected && (
+                                                    <span className="material-symbols-outlined text-[18px] text-[#3c4043] dark:text-slate-200">
+                                                        check
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <span className="truncate">{c.label}</span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -259,44 +385,60 @@ const FlightSearch = ({ onSearch }) => {
                     <div className="flex-1 min-w-0 relative flex items-center">
                         
                         {/* Origin Box */}
-                        <div className="flex-1 h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-l-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all px-3.5 sm:px-4 pr-6 font-roboto">
-                            <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 mr-3 flex-shrink-0">radio_button_unchecked</span>
+                        <div
+                            className={`flex-1 h-14 flex items-center bg-white dark:bg-[#303134] transition-all px-3.5 sm:px-4 pr-11 sm:pr-12 font-roboto ${
+                                focusedInput === 'origin'
+                                    ? 'border-2 border-[#1a73e8] rounded-[4px] z-10'
+                                    : 'border border-[#dadce0] dark:border-slate-600 rounded-l-[4px] hover:border-[#bdc1c6]'
+                            }`}
+                        >
+                            <span className="material-symbols-outlined text-[18px] text-[#70757a] dark:text-slate-400 mr-3 flex-shrink-0">radio_button_unchecked</span>
                             <input
                                 type="text"
                                 placeholder="Nereden?"
                                 value={origin}
+                                onFocus={() => setFocusedInput('origin')}
+                                onBlur={() => setFocusedInput(null)}
                                 onChange={(e) => setOrigin(e.target.value)}
-                                className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 text-[15px] font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 truncate tracking-normal leading-normal"
+                                className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 text-[14px] font-normal text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 truncate tracking-normal leading-normal"
                             />
                         </div>
 
                         {/* Circular Swap Button */}
-                        <div className="absolute left-1/2 -translate-x-1/2 z-10">
+                        <div className="absolute left-1/2 -translate-x-1/2 z-20">
                             <button
                                 type="button"
                                 onClick={handleSwap}
-                                className="w-9 h-9 rounded-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm flex items-center justify-center text-[#5f6368] dark:text-slate-300 transition-transform active:rotate-180 duration-300"
+                                className="w-9 h-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8fafd] dark:hover:bg-slate-700 shadow-[0_1px_2px_0_rgba(60,64,67,0.3)] flex items-center justify-center text-[#70757a] dark:text-slate-300 transition-transform active:rotate-180 duration-300 cursor-pointer"
                                 title="Kalkış ve varış yerini değiştir"
                             >
                                 <span className="material-symbols-outlined text-[18px]">sync_alt</span>
                             </button>
                         </div>
 
-                        {/* Destination Box */}
-                        <div className="flex-1 h-14 flex items-center border border-l-0 border-[#dadce0] dark:border-slate-600 rounded-r-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all px-3.5 sm:px-4 pl-6 font-roboto">
-                            <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 mr-3 flex-shrink-0">location_on</span>
+                        {/* Destination Box - with generous pl-11 to pl-12 for Google Flights icon/text spacing */}
+                        <div
+                            className={`flex-1 h-14 flex items-center bg-white dark:bg-[#303134] transition-all px-3.5 sm:px-4 pl-11 sm:pl-12 font-roboto ${
+                                focusedInput === 'destination'
+                                    ? 'border-2 border-[#1a73e8] rounded-[4px] z-10'
+                                    : 'border border-l-0 border-[#dadce0] dark:border-slate-600 rounded-r-[4px] hover:border-[#bdc1c6]'
+                            }`}
+                        >
+                            <span className="material-symbols-outlined text-[18px] text-[#70757a] dark:text-slate-400 mr-3 flex-shrink-0">location_on</span>
                             <input
                                 type="text"
                                 placeholder="Nereye?"
                                 value={destination}
+                                onFocus={() => setFocusedInput('destination')}
+                                onBlur={() => setFocusedInput(null)}
                                 onChange={(e) => setDestination(e.target.value)}
-                                className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 text-[15px] font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 truncate tracking-normal leading-normal"
+                                className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 text-[14px] font-normal text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 truncate tracking-normal leading-normal"
                             />
                         </div>
                     </div>
 
                     {/* Twin Datepicker Container (Google Flights style) */}
-                    <div className={`w-full lg:w-[350px] flex-shrink-0 relative h-14 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
+                    <div className={`w-full lg:w-[360px] flex-shrink-0 relative h-14 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
                         isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')
                             ? ''
                             : 'border border-[#dadce0] dark:border-slate-600 rounded-[4px] hover:border-[#bdc1c6] transition-all'
@@ -316,16 +458,16 @@ const FlightSearch = ({ onSearch }) => {
                                     : 'rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
                             }`}
                         >
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <span className="material-symbols-outlined text-[18px] text-[#70757a] dark:text-slate-400 flex-shrink-0">
                                     calendar_today
                                 </span>
-                                <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
+                                <span className="text-[13px] font-normal text-[#3c4043] dark:text-white truncate">
                                     {formatGoogleFlightDate(departureDate) || 'Gidiş'}
                                 </span>
                             </div>
 
-                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
+                            <div className="flex items-center text-[#70757a] dark:text-slate-400 shrink-0 ml-1">
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); stepDeparture(-1); }}
@@ -345,7 +487,7 @@ const FlightSearch = ({ onSearch }) => {
 
                         {/* Divider (only visible when neither half is actively focused) */}
                         {!(isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')) && (
-                            <div className="w-[1px] h-7 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
+                            <div className="w-[1px] h-6 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
                         )}
 
                         {/* Return Date Half (Disabled if one_way) */}
@@ -364,12 +506,12 @@ const FlightSearch = ({ onSearch }) => {
                                 }`}
                             >
                                 <div className="flex items-center min-w-0 flex-1">
-                                    <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
+                                    <span className="text-[13px] font-normal text-[#3c4043] dark:text-white truncate">
                                         {formatGoogleFlightDate(returnDate) || 'Dönüş'}
                                     </span>
                                 </div>
 
-                                <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
+                                <div className="flex items-center text-[#70757a] dark:text-slate-400 shrink-0 ml-1">
                                     <button
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); stepReturn(-1); }}
@@ -387,7 +529,7 @@ const FlightSearch = ({ onSearch }) => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex-1 h-full flex items-center px-3 text-slate-400 text-sm italic">
+                            <div className="flex-1 h-full flex items-center px-3 text-slate-400 text-xs italic">
                                 Tek yön
                             </div>
                         )}
@@ -411,9 +553,9 @@ const FlightSearch = ({ onSearch }) => {
                     <button
                         type="button"
                         onClick={handleSearchClick}
-                        className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[15px] px-8 py-2.5 flex items-center justify-center gap-2 shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] hover:shadow-lg transition-all active:scale-95"
+                        className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[14px] px-7 py-2.5 flex items-center justify-center gap-2 shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] hover:shadow-lg transition-all active:scale-95 cursor-pointer"
                     >
-                        <span className="material-symbols-outlined text-[20px]">search</span>
+                        <span className="material-symbols-outlined text-[18px]">search</span>
                         <span>Ara</span>
                     </button>
                 </div>

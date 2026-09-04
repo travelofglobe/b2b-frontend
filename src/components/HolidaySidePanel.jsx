@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-const HolidaySidePanel = ({ holidays, visibleMonth }) => {
+const HolidaySidePanel = ({ holidays, visibleMonth, className = '' }) => {
     const { t, i18n } = useTranslation();
 
     // visibleMonth is the start date of the first visible month.
@@ -28,48 +28,89 @@ const HolidaySidePanel = ({ holidays, visibleMonth }) => {
     const publicHolidays = visibleHolidays.filter(h => !isReligious(h.name || h.holidayName));
     const religiousHolidays = visibleHolidays.filter(h => isReligious(h.name || h.holidayName));
 
+    const formatShortDate = (dateStr) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '';
+        const months = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+        return `${d.getDate()} ${months[d.getMonth()]}`;
+    };
+
     const renderHolidayList = (list, colorClass) => {
         if (list.length === 0) return null;
         
         const langPrefix = (i18n.language || 'en').substring(0, 2).toLowerCase();
         
         // Extract unique names
-        const uniqueNames = Array.from(new Set(list.map(h => {
+        const uniqueItems = Array.from(new Set(list.map(h => {
             const hCountry = (h.countryCode || '').toLowerCase();
             const isLocalLang = langPrefix === hCountry;
-            return (isLocalLang && h.localName) ? h.localName : (h.holidayName || h.name);
-        })));
+            const name = (isLocalLang && h.localName) ? h.localName : (h.holidayName || h.name);
+            return JSON.stringify({ name, date: h.date || h.holidayDate });
+        }))).map(s => JSON.parse(s));
 
         return (
-            <ul className="text-[11px] text-slate-500 dark:text-slate-400 pl-6 flex flex-col gap-1.5 list-none">
-                {uniqueNames.map((name, i) => (
-                    <li key={i} className="relative leading-tight break-words pr-2" title={name}>
-                        <span className={`absolute -left-3 top-[5px] w-1 h-1 rounded-full ${colorClass}`}></span>
-                        {name}
+            <ul className="text-[12.5px] font-roboto pl-1 flex flex-col gap-1 list-none">
+                {uniqueItems.map((item, i) => (
+                    <li key={i} className="flex items-center justify-between gap-2 py-1 px-1.5 rounded hover:bg-[#f1f3f4] dark:hover:bg-slate-700/50 transition-colors">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className={`w-1.5 h-1.5 rounded-full ${colorClass} shrink-0`}></span>
+                            <span className="text-[#3c4043] dark:text-slate-200 truncate font-normal" title={item.name}>{item.name}</span>
+                        </div>
+                        {item.date && (
+                            <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 shrink-0 tabular-nums">
+                                {formatShortDate(item.date)}
+                            </span>
+                        )}
                     </li>
                 ))}
             </ul>
         );
     };
 
+    const baseWrapperClass = className 
+        ? className 
+        : "border-l border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] rounded-r-[8px] p-4";
+
     return (
-        <div className="holiday-side-panel p-4 min-w-[200px] w-[220px] border-l border-slate-100 dark:border-slate-700 flex flex-col gap-5 bg-white dark:bg-slate-800 rounded-r-xl overflow-y-auto max-h-[320px]">
-            <h4 className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 tracking-tight">{t('dashboard.holidays.title')}</h4>
+        <div className={`holiday-side-panel min-w-[210px] w-[230px] flex flex-col gap-3.5 overflow-y-auto max-h-[350px] font-roboto ${baseWrapperClass}`}>
+            <div className="flex items-center gap-2 pb-2.5 border-b border-[#dadce0] dark:border-slate-700">
+                <span className="material-symbols-outlined text-[18px] text-[#1a73e8]">event</span>
+                <h4 className="text-[14px] font-medium text-[#202124] dark:text-white tracking-normal">
+                    {t('dashboard.holidays.title', 'Tatil Bilgisi')}
+                </h4>
+            </div>
             
-            <div className="flex flex-col gap-2 mt-1">
-                <div className="flex items-center gap-2">
-                    <div className="w-4 h-[3px] bg-yellow-400 rounded-full"></div>
-                    <span className="text-[13px] font-medium text-slate-700 dark:text-slate-300">{t('dashboard.holidays.publicHolidays')}</span>
+            <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2 px-1">
+                    <span className="w-3 h-[2.5px] bg-amber-400 rounded-full"></span>
+                    <span className="text-[12px] font-medium text-[#3c4043] dark:text-slate-200">
+                        {t('dashboard.holidays.publicHolidays', 'Resmi Tatiller')}
+                    </span>
                 </div>
-                {publicHolidays.length > 0 && renderHolidayList(publicHolidays, 'bg-yellow-400')}
+                {publicHolidays.length > 0 ? (
+                    renderHolidayList(publicHolidays, 'bg-amber-400')
+                ) : (
+                    <p className="text-[11px] text-[#70757a] dark:text-slate-500 pl-4 italic">
+                        {t('dashboard.holidays.none', 'Bu dönemde yok')}
+                    </p>
+                )}
             </div>
 
-            <div className="flex flex-col gap-2 mt-2">
-                <div className="flex items-center gap-2">
-                    <div className="w-4 h-[3px] bg-green-500 rounded-full"></div>
-                    <span className="text-[13px] font-medium text-slate-700 dark:text-slate-300">{t('dashboard.holidays.religiousHolidays')}</span>
+            <div className="flex flex-col gap-1.5 mt-0.5">
+                <div className="flex items-center gap-2 px-1">
+                    <span className="w-3 h-[2.5px] bg-emerald-500 rounded-full"></span>
+                    <span className="text-[12px] font-medium text-[#3c4043] dark:text-slate-200">
+                        {t('dashboard.holidays.religiousHolidays', 'Dini Tatiller')}
+                    </span>
                 </div>
-                {religiousHolidays.length > 0 && renderHolidayList(religiousHolidays, 'bg-green-500')}
+                {religiousHolidays.length > 0 ? (
+                    renderHolidayList(religiousHolidays, 'bg-emerald-500')
+                ) : (
+                    <p className="text-[11px] text-[#70757a] dark:text-slate-500 pl-4 italic">
+                        {t('dashboard.holidays.none', 'Bu dönemde yok')}
+                    </p>
+                )}
             </div>
         </div>
     );

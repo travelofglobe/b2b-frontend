@@ -726,7 +726,7 @@ const HeaderSearch = () => {
 
             if (savedLastType === 'HOTEL' && query === savedLastSearch && savedLastHotelId) {
                 const searchParamsString = getUrlParams();
-                navigate(`/hotel/${savedLastHotelId}?${searchParamsString}`);
+                navigate(`/travel/hotels/detail/${savedLastHotelId}?${searchParamsString}`);
                 return;
             }
 
@@ -750,7 +750,7 @@ const HeaderSearch = () => {
             if (isMapPage) {
                 navigate(`/map?${searchParamsString}`);
             } else {
-                navigate(`/hotels/${slug}?${searchParamsString}`);
+                navigate(`/travel/hotels/search/${slug}?${searchParamsString}`);
             }
         }
     };
@@ -878,68 +878,65 @@ const HeaderSearch = () => {
                     onKeyDown={handleKeyDown}
                 />
 
-                {/* Autocomplete Dropdown */}
+                {/* Autocomplete Dropdown - Google Style */}
                 {showDropdown && hasAnyResults && (
-                    <div className="absolute top-full left-0 w-[440px] mt-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xl max-h-96 overflow-y-auto z-[1200] p-3 space-y-3 divide-y divide-slate-100 dark:divide-slate-800/60 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute top-full left-0 w-[480px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-[#3c4043] shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] max-h-[440px] overflow-y-auto z-[1200] py-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
                         {/* 1. Past Searches Section */}
                         {matchingHistory.length > 0 && (
-                            <div className="pt-1">
-                                <div className="flex items-center justify-between px-3 py-1 mb-1.5 bg-purple-50/50 dark:bg-purple-900/10 rounded-xl">
-                                    <span className="text-[11px] font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider flex items-center gap-1.5">
-                                        <span className="material-symbols-outlined text-sm">history</span>
-                                        Son Aramalar
-                                        <span className="text-[9px] bg-purple-500/15 text-purple-700 dark:text-purple-300 px-1.5 py-0.2 rounded-full font-semibold">
-                                            {matchingHistory.length}
-                                        </span>
-                                    </span>
+                            <div>
+                                <div className="flex items-center justify-between px-4 py-2 border-b border-[#f1f3f4] dark:border-[#3c4043] mb-1">
+                                    <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">Son Aramalar</span>
                                     {!query.trim() && (
                                         <button
                                             onClick={handleClearHistory}
-                                            className="text-[11px] font-medium text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors px-1.5 py-0.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
-                                            title="Geçmişi Temizle"
+                                            className="text-[11px] font-medium text-[#1a73e8] hover:underline transition-colors"
                                         >
-                                            <span className="material-symbols-outlined text-sm">delete</span>
                                             Temizle
                                         </button>
                                     )}
                                 </div>
-                                <div className="space-y-1">
+                                <div>
                                     {matchingHistory.map((item, index) => {
                                         const itemType = item.type || item.searchType || 'SEARCH';
-                                        const isLocation = itemType === 'LOCATION';
-                                        const isHotel = itemType === 'HOTEL';
+                                        let icon = 'history';
+                                        if (itemType === 'LOCATION') icon = 'location_on';
+                                        else if (itemType === 'HOTEL') icon = 'hotel';
+                                        else if (itemType === 'AIRPORT') icon = 'flight';
+
+                                        let title = item.query || '';
+                                        let subtitle = item.subtitle || '';
+
+                                        if (!subtitle || subtitle === title) {
+                                            if (title.includes(',')) {
+                                                const parts = title.split(',').map(s => s.trim());
+                                                title = parts[0];
+                                                subtitle = parts.slice(1).join(', ');
+                                            }
+                                        }
 
                                         return (
                                             <div
                                                 key={item.id || index}
                                                 onClick={() => handleSelectHistoryItem(item)}
-                                                className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/80 rounded-xl flex items-center justify-between transition-all group cursor-pointer"
+                                                className="w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors group cursor-pointer"
                                             >
-                                                <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                    <div className={`size-8 rounded-xl flex items-center justify-center transition-colors shrink-0 shadow-sm ring-1 ${
-                                                        isLocation
-                                                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20'
-                                                            : isHotel
-                                                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20'
-                                                            : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-purple-500/20'
-                                                    }`}>
-                                                        <span className="material-symbols-outlined text-base">
-                                                            {isLocation ? 'location_city' : isHotel ? 'hotel' : 'history'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{item.query}</div>
-                                                        {item.subtitle && (
-                                                            <div className="text-[10.5px] text-slate-400 truncate">{item.subtitle}</div>
+                                                <div className="flex items-center min-w-0 flex-1 mr-3">
+                                                    <span className="material-symbols-outlined text-[20px] text-[#70757a] dark:text-slate-400 mr-4 shrink-0 select-none">
+                                                        {icon}
+                                                    </span>
+                                                    <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                                        <div className="text-[15px] font-medium text-[#3c4043] dark:text-white leading-tight truncate">{title}</div>
+                                                        {subtitle && (
+                                                            <div className="text-[12px] font-normal text-[#70757a] dark:text-slate-400 leading-normal mt-0.5 truncate">{subtitle}</div>
                                                         )}
                                                     </div>
                                                 </div>
                                                 <button
                                                     onClick={(e) => handleDeleteHistoryItem(e, item.id)}
-                                                    className="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shrink-0 ml-2"
+                                                    className="opacity-0 group-hover:opacity-100 p-1.5 text-[#70757a] hover:text-[#d93025] dark:hover:text-red-400 rounded-full transition-all shrink-0 ml-2"
                                                     title="Bu aramayı sil"
                                                 >
-                                                    <span className="material-symbols-outlined text-sm leading-none block">close</span>
+                                                    <span className="material-symbols-outlined text-[18px] leading-none block">close</span>
                                                 </button>
                                             </div>
                                         );
@@ -950,77 +947,110 @@ const HeaderSearch = () => {
 
                         {/* 2. Locations & Regions Section */}
                         {results.regions.length > 0 && (
-                            <div className="pt-2">
-                                <div className="flex items-center justify-between px-3 py-1 mb-1.5 bg-amber-50/50 dark:bg-amber-900/10 rounded-xl">
-                                    <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                                        <span className="material-symbols-outlined text-sm">location_on</span>
-                                        {ls.popularDestinations}
-                                        <span className="text-[9px] bg-amber-500/15 text-amber-700 dark:text-amber-300 px-1.5 py-0.2 rounded-full font-semibold">
-                                            {results.regions.length}
-                                        </span>
-                                    </span>
+                            <div className={matchingHistory.length > 0 ? "border-t border-[#f1f3f4] dark:border-[#3c4043] pt-1" : ""}>
+                                <div className="px-4 pt-2 pb-1">
+                                    <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.popularDestinations || 'Popüler Noktalar'}</span>
                                 </div>
-                                <div className="space-y-1">
-                                    {results.regions.map((region, index) => (
-                                        <button
-                                            key={region.locationId}
-                                            onClick={() => handleSelectLocation(region)}
-                                            className={`w-full text-left px-3 py-2 hover:bg-amber-50/40 dark:hover:bg-amber-900/20 rounded-xl flex items-center gap-3 transition-all group ${activeIndex === index ? 'bg-amber-50 dark:bg-amber-900/30 ring-1 ring-amber-500/20' : ''}`}
-                                        >
-                                            <div className="size-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center transition-colors shadow-sm ring-1 ring-amber-500/20 shrink-0">
-                                                <span className="material-symbols-outlined text-lg">location_city</span>
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{region.name?.translations?.[currentLang] || region.name?.translations?.en || region.name?.defaultName}</div>
-                                                <div className="text-[11px] font-normal text-slate-500 truncate">{getRegionName(region)}</div>
-                                            </div>
-                                        </button>
-                                    ))}
+                                <div>
+                                    {results.regions.map((region, index) => {
+                                        const rawName = region.name?.translations?.[currentLang] || region.name?.translations?.en || region.name?.defaultName || '';
+                                        const rawSub = getRegionName(region);
+
+                                        let title = rawName;
+                                        let subtitle = rawSub;
+
+                                        if (rawSub === rawName) {
+                                            if (rawName.includes(',')) {
+                                                const parts = rawName.split(',').map(s => s.trim());
+                                                title = parts[0];
+                                                subtitle = parts.slice(1).join(', ');
+                                            } else {
+                                                subtitle = region.countryCode ? `${region.countryCode}` : (currentLang === 'tr' ? 'Şehir / Bölge' : 'City / Region');
+                                            }
+                                        } else if (rawSub.startsWith(rawName + ', ')) {
+                                            subtitle = rawSub.slice(rawName.length + 2);
+                                        }
+
+                                        const lowerTitle = title.toLowerCase();
+                                        let icon = 'location_on';
+                                        if (lowerTitle.includes('airport') || lowerTitle.includes('havalimanı') || lowerTitle.includes('havaalanı')) {
+                                            icon = 'flight';
+                                        } else if (lowerTitle.includes('tren') || lowerTitle.includes('train') || lowerTitle.includes('istasyon') || lowerTitle.includes('station')) {
+                                            icon = 'train';
+                                        }
+
+                                        return (
+                                            <button
+                                                key={region.locationId}
+                                                onClick={() => handleSelectLocation(region)}
+                                                className={`w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${activeIndex === index ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                            >
+                                                <div className="flex items-center min-w-0 flex-1 mr-3">
+                                                    <span className="material-symbols-outlined text-[20px] text-[#70757a] dark:text-slate-400 mr-4 shrink-0 select-none">
+                                                        {icon}
+                                                    </span>
+                                                    <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                                        <div className="text-[15px] font-medium text-[#3c4043] dark:text-white leading-tight truncate">{title}</div>
+                                                        {subtitle && (
+                                                            <div className="text-[12px] font-normal text-[#70757a] dark:text-slate-400 leading-normal mt-0.5 truncate">{subtitle}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
 
                         {/* 3. Hotels Section */}
                         {results.hotels.length > 0 && (
-                            <div className="pt-2">
-                                <div className="flex items-center justify-between px-3 py-1 mb-1.5 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl">
-                                    <span className="text-[11px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-                                        <span className="material-symbols-outlined text-sm">hotel</span>
-                                        {ls.featuredHotels}
-                                        <span className="text-[9px] bg-blue-500/15 text-blue-700 dark:text-blue-300 px-1.5 py-0.2 rounded-full font-semibold">
-                                            {results.hotels.length}
-                                        </span>
-                                    </span>
+                            <div className={(matchingHistory.length > 0 || results.regions.length > 0) ? "border-t border-[#f1f3f4] dark:border-[#3c4043] pt-1" : ""}>
+                                <div className="px-4 pt-2 pb-1">
+                                    <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.featuredHotels || 'Oteller'}</span>
                                 </div>
-                                <div className="space-y-1">
-                                    {results.hotels.map((hotel, index) => (
-                                        <button
-                                            key={hotel.hotelId}
-                                            onClick={() => handleSelectHotel(hotel)}
-                                            className={`w-full text-left px-3 py-2 hover:bg-blue-50/40 dark:hover:bg-blue-900/20 rounded-xl flex items-center gap-3 transition-all group ${activeIndex === (results.regions.length + index) ? 'bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-500/20' : ''}`}
-                                        >
-                                            <div className="size-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center transition-colors shadow-sm ring-1 ring-blue-500/20 shrink-0">
-                                                <span className="material-symbols-outlined text-lg">hotel</span>
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <div className="text-xs font-semibold text-slate-900 dark:text-white tracking-tight truncate">{getHotelName(hotel)}</div>
-                                                <div className="text-[11px] font-normal text-slate-500 truncate">
-                                                    {hotel.locationBreadcrumbs ?
-                                                        hotel.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName).reverse().join(', ')
-                                                        : hotel.countryCode}
+                                <div>
+                                    {results.hotels.map((hotel, index) => {
+                                        const hotelTitle = getHotelName(hotel);
+                                        let hotelSubtitle = hotel.locationBreadcrumbs 
+                                            ? hotel.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName).reverse().join(', ') 
+                                            : (hotel.countryCode || '');
+
+                                        if (hotelSubtitle.startsWith(hotelTitle + ', ')) {
+                                            hotelSubtitle = hotelSubtitle.slice(hotelTitle.length + 2);
+                                        }
+
+                                        return (
+                                            <button
+                                                key={hotel.hotelId}
+                                                onClick={() => handleSelectHotel(hotel)}
+                                                className={`w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${activeIndex === (results.regions.length + index) ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                            >
+                                                <div className="flex items-center min-w-0 flex-1 mr-3">
+                                                    <span className="material-symbols-outlined text-[20px] text-[#70757a] dark:text-slate-400 mr-4 shrink-0 select-none">
+                                                        hotel
+                                                    </span>
+                                                    <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                                        <div className="text-[15px] font-medium text-[#3c4043] dark:text-white leading-tight truncate">{hotelTitle}</div>
+                                                        {hotelSubtitle && (
+                                                            <div className="text-[12px] font-normal text-[#70757a] dark:text-slate-400 leading-normal mt-0.5 truncate">
+                                                                {hotelSubtitle}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </button>
-                                    ))}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
 
                         {/* Loading Indicator */}
                         {loading && (
-                            <div className="flex items-center justify-center py-4 text-slate-400 gap-2">
-                                <div className="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                <span className="text-xs font-medium">Aranıyor...</span>
+                            <div className="flex items-center justify-center py-4 text-[#70757a] gap-2">
+                                <div className="size-4 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
+                                <span className="text-xs font-normal">Aranıyor...</span>
                             </div>
                         )}
                     </div>
@@ -1125,25 +1155,25 @@ const HeaderSearch = () => {
 
             {/* 3. Guests Dropdown */}
             <div className="flex items-center px-3 relative" ref={guestWrapperRef}>
-                <span className="material-symbols-outlined text-slate-400 text-xl mr-2">group</span>
+                <span className="material-symbols-outlined text-[#70757a] text-[20px] mr-1.5">group</span>
                 <button
                     onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                    className="bg-transparent border-none focus:ring-0 text-xs min-w-[80px] text-left text-slate-900 dark:text-white font-medium whitespace-nowrap"
+                    className="bg-transparent border-none focus:ring-0 text-[13px] min-w-[80px] text-left text-[#202124] dark:text-white font-normal whitespace-nowrap cursor-pointer"
                 >
                     {totalAdults} {ls.adults.substring(0, 3)}, {totalChildren} {ls.children.substring(0, 3)}
                 </button>
 
                 {/* Guest Dropdown Panel */}
                 {showGuestDropdown && (
-                    <div className="absolute top-full right-0 mt-4 w-[280px] bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-2xl p-3 z-[1200] overflow-y-auto max-h-[80vh]">
+                    <div className="absolute top-full right-0 mt-3 w-[280px] bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-[#3c4043] shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] p-3 z-[1200] overflow-y-auto max-h-[80vh] font-roboto">
                         {roomState.map((room, index) => (
-                            <div key={index} className="mb-3 pb-3 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0 relative">
+                            <div key={index} className="mb-3 pb-3 border-b border-[#dadce0]/60 dark:border-[#3c4043]/60 last:mb-0 last:pb-0 last:border-0 relative">
                                 <div className="flex items-center justify-between mb-2">
-                                    <div className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">{ls.roomSingle} {index + 1}</div>
+                                    <div className="text-[11px] font-medium uppercase text-[#70757a] tracking-wider">{ls.roomSingle} {index + 1}</div>
                                     {roomState.length > 1 && (
                                         <button
                                             onClick={() => removeRoom(index)}
-                                            className="text-red-500 hover:text-red-700 text-[9px] font-bold uppercase tracking-wider"
+                                            className="text-[#d93025] hover:text-red-700 text-[11px] font-medium uppercase tracking-wider cursor-pointer"
                                         >
                                             {currentLang === 'tr' ? 'Sil' : currentLang === 'ar' ? 'حذف' : 'Remove'}
                                         </button>
@@ -1152,40 +1182,40 @@ const HeaderSearch = () => {
 
                                 {/* Adults */}
                                 <div className="flex items-center justify-between mb-2">
-                                    <div className="text-xs font-bold text-slate-700 dark:text-slate-200">{ls.adults}</div>
+                                    <div className="text-[13px] font-normal text-[#202124] dark:text-slate-200">{ls.adults}</div>
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))}
-                                            className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                            className="w-6 h-6 rounded-full bg-[#f1f3f4] dark:bg-[#303134] flex items-center justify-center text-[#3c4043] dark:text-slate-400 hover:bg-[#e8f0fe] hover:text-[#1a73e8] transition-colors cursor-pointer"
                                         >
-                                            <span className="material-icons-round text-xs">remove</span>
+                                            <span className="material-symbols-outlined text-[16px]">remove</span>
                                         </button>
-                                        <span className="w-3 text-center text-xs font-bold">{room.adults}</span>
+                                        <span className="w-3 text-center text-[13px] font-medium text-[#202124] dark:text-white">{room.adults}</span>
                                         <button
                                             onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))}
-                                            className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                            className="w-6 h-6 rounded-full bg-[#f1f3f4] dark:bg-[#303134] flex items-center justify-center text-[#3c4043] dark:text-slate-400 hover:bg-[#e8f0fe] hover:text-[#1a73e8] transition-colors cursor-pointer"
                                         >
-                                            <span className="material-icons-round text-xs">add</span>
+                                            <span className="material-symbols-outlined text-[16px]">add</span>
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Children */}
                                 <div className="flex items-center justify-between mb-2">
-                                    <div className="text-xs font-bold text-slate-700 dark:text-slate-200">{ls.children}</div>
+                                    <div className="text-[13px] font-normal text-[#202124] dark:text-slate-200">{ls.children}</div>
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))}
-                                            className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                            className="w-6 h-6 rounded-full bg-[#f1f3f4] dark:bg-[#303134] flex items-center justify-center text-[#3c4043] dark:text-slate-400 hover:bg-[#e8f0fe] hover:text-[#1a73e8] transition-colors cursor-pointer"
                                         >
-                                            <span className="material-icons-round text-xs">remove</span>
+                                            <span className="material-symbols-outlined text-[16px]">remove</span>
                                         </button>
-                                        <span className="w-3 text-center text-xs font-bold">{room.children}</span>
+                                        <span className="w-3 text-center text-[13px] font-medium text-[#202124] dark:text-white">{room.children}</span>
                                         <button
                                             onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))}
-                                            className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"
+                                            className="w-6 h-6 rounded-full bg-[#f1f3f4] dark:bg-[#303134] flex items-center justify-center text-[#3c4043] dark:text-slate-400 hover:bg-[#e8f0fe] hover:text-[#1a73e8] transition-colors cursor-pointer"
                                         >
-                                            <span className="material-icons-round text-xs">add</span>
+                                            <span className="material-symbols-outlined text-[16px]">add</span>
                                         </button>
                                     </div>
                                 </div>
@@ -1217,9 +1247,9 @@ const HeaderSearch = () => {
                         {roomState.length < 5 && (
                             <button
                                 onClick={addRoom}
-                                className="w-full py-1.5 bg-blue-50 dark:bg-blue-900/20 text-primary rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors flex items-center justify-center gap-1.5 mt-2"
+                                className="w-full py-1.5 bg-[#e8f0fe] dark:bg-blue-900/20 text-[#1a73e8] rounded-lg text-[12px] font-medium hover:bg-[#d2e3fc] dark:hover:bg-blue-900/40 transition-colors flex items-center justify-center gap-1.5 mt-2 cursor-pointer"
                             >
-                                <span className="material-icons-round text-sm">add_circle</span>
+                                <span className="material-symbols-outlined text-[16px]">add_circle</span>
                                 {ls.addRoom}
                             </button>
                         )}

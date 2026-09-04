@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import { favoriteService } from '../services/favoriteService';
+import { hotelService } from '../services/hotelService';
 
 const FavoritesContext = createContext(null);
 
@@ -19,6 +20,47 @@ export const FavoritesProvider = ({ children }) => {
     // Load active favorited hotel IDs from backend (lightweight call)
     const loadActiveHotelIds = useCallback(async () => {
         try {
+            // Also fetch the full list of favorite hotels to populate the context
+            try {
+                const favData = await favoriteService.getFavorites(0, 50, '', '');
+                let favItems = favData?.content || favData?.favoriteHotels || favData?.items || [];
+                if (!favItems.length && Array.isArray(favData)) favItems = favData;
+
+                if (favItems.length > 0) {
+                    const hotelIdsToFetch = favItems.map(f => f.hotelId);
+                    try {
+                        const enrichedResponse = await hotelService.searchHotels({
+                            filters: { hotelIds: hotelIdsToFetch },
+                            page: 0,
+                            size: hotelIdsToFetch.length
+                        });
+                        
+                        const enrichedHotels = enrichedResponse?.content || enrichedResponse?.hotels || enrichedResponse?.items || [];
+                        
+                        const merged = favItems.map(fav => {
+                            const enriched = enrichedHotels.find(eh => eh.hotelId === fav.hotelId);
+                            if (enriched) {
+                                return { 
+                                    ...fav, 
+                                    ...enriched, 
+                                    name: enriched.name || fav.hotelName || fav.name, 
+                                    image: enriched.images?.[0]?.url || enriched.image || fav.image 
+                                };
+                            }
+                            return { ...fav, name: fav.hotelName || fav.name };
+                        });
+                        setFavorites(merged);
+                    } catch (enrichErr) {
+                        console.error("Failed to enrich favorites:", enrichErr);
+                        setFavorites(favItems.map(f => ({ ...f, name: f.hotelName || f.name })));
+                    }
+                } else {
+                    setFavorites([]);
+                }
+            } catch (err) {
+                console.error("Failed to load full favorites list in context:", err);
+            }
+
             const ids = await favoriteService.getActiveHotelIds();
             if (Array.isArray(ids)) {
                 const idSet = new Set(ids.map(id => String(id)));
@@ -63,6 +105,11 @@ export const FavoritesProvider = ({ children }) => {
 
         // Optimistic UI update
         setActiveHotelIds(prev => new Set([...prev, idStr]));
+        setFavorites(prev => {
+            const exists = prev.find(f => String(f.hotelId || f.id) === idStr);
+            if (exists) return prev;
+            return [...prev, hotel];
+        });
 
         try {
             await favoriteService.addFavorite({
@@ -83,6 +130,7 @@ export const FavoritesProvider = ({ children }) => {
             next.delete(targetId);
             return next;
         });
+        setFavorites(prev => prev.filter(f => String(f.hotelId || f.id) !== targetId));
 
         try {
             await favoriteService.deleteByHotelId(Number(targetId));

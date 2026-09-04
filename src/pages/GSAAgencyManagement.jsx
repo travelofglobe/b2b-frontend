@@ -6,7 +6,6 @@ import AddAgencyModal from '../components/AddAgencyModal';
 import AddAgencyGroupModal from '../components/AddAgencyGroupModal';
 import SubAgencyDetailView from '../components/SubAgencyDetailView';
 import ConfirmModal from '../components/ConfirmModal';
-import HeaderActions from '../components/HeaderActions';
 import AppleSwitch from '../components/AppleSwitch';
 
 const GSAAgencyManagement = () => {
@@ -351,7 +350,7 @@ const GSAAgencyManagement = () => {
     };
 
     return (
-        <div className="h-full flex flex-col p-6 space-y-4 overflow-hidden bg-slate-50/50 dark:bg-transparent">
+        <div className="flex-1 flex flex-col p-4 md:p-6 space-y-4 min-h-0 bg-[#f8f9fa] dark:bg-[#202124]">
             {detailModal.isOpen ? (
                 <SubAgencyDetailView
                     agency={detailModal.agency}
@@ -359,33 +358,43 @@ const GSAAgencyManagement = () => {
                 />
             ) : (
                 <>
-                    {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0">
-                        <div>
-                            <h1 className="text-base font-semibold text-slate-900 dark:text-white leading-none mb-1">Agency Management</h1>
-                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Manage GSA agencies and users</p>
-                        </div>
+                    {/* Header - Google Standard */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
                         <div className="flex items-center gap-3">
-                            <HeaderActions />
+                            <div className="w-10 h-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
+                                <span className="material-symbols-outlined text-[24px]">admin_panel_settings</span>
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold text-[#202124] dark:text-white tracking-tight">Agency Management</h1>
+                                <p className="text-xs text-[#5f6368] dark:text-slate-400">Manage GSA agencies, sub-agencies and users</p>
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Tabs */}
-                    <div className="flex items-center p-1 bg-slate-100/80 dark:bg-slate-900/50 backdrop-blur rounded-xl w-fit shrink-0">
-                        <button
-                            onClick={() => setActiveTab('agencies')}
-                            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'agencies' ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-100'}`}
-                        >
-                            <span className="material-icons-round text-sm">business_center</span>
-                            Agencies
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('groups')}
-                            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'groups' ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-100'}`}
-                        >
-                            <span className="material-icons-round text-sm">groups</span>
-                            Agency Groups
-                        </button>
+                        {/* Google Material Tabs */}
+                        <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-[#303134] rounded-full border border-[#dadce0] dark:border-[#5f6368]">
+                            <button
+                                onClick={() => setActiveTab('agencies')}
+                                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                    activeTab === 'agencies'
+                                        ? 'bg-[#e8f0fe] text-[#1a73e8] font-semibold dark:bg-[#1a73e8]/25 dark:text-[#8ab4f8]'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]'
+                                }`}
+                            >
+                                <span className="material-symbols-outlined text-[18px]">business_center</span>
+                                <span>Agencies</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('groups')}
+                                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                    activeTab === 'groups'
+                                        ? 'bg-[#e8f0fe] text-[#1a73e8] font-semibold dark:bg-[#1a73e8]/25 dark:text-[#8ab4f8]'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]'
+                                }`}
+                            >
+                                <span className="material-symbols-outlined text-[18px]">groups</span>
+                                <span>Agency Groups</span>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Content */}
@@ -393,17 +402,17 @@ const GSAAgencyManagement = () => {
                         {activeTab === 'agencies' ? (
                             <div className="flex flex-col h-full overflow-hidden gap-3">
                                 {/* Compact Stats Bar */}
-                                <div className="flex items-center bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-white/5 overflow-hidden shrink-0">
+                                <div className="flex items-center bg-white dark:bg-[#303134] rounded-lg border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shrink-0">
                                     {[
                                         { label: 'Total Agencies', value: agencySummary.totalAgencyCount, icon: 'business_center', color: 'text-blue-600 dark:text-blue-400', dot: 'bg-blue-500' },
                                         { label: 'Active', value: agencySummary.activeAgencyCount, icon: 'check_circle', color: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
                                         { label: 'Passive', value: agencySummary.passiveAgencyCount, icon: 'pause_circle', color: 'text-rose-500 dark:text-rose-400', dot: 'bg-rose-500' },
                                         { label: 'Direct Integration', value: agencySummary.directIntegrationAgencyCount, icon: 'electric_bolt', color: 'text-violet-600 dark:text-violet-400', dot: 'bg-violet-500' }
                                     ].map((stat, idx, arr) => (
-                                        <div key={idx} className={`flex items-center gap-3 px-5 py-3 flex-1 ${idx < arr.length - 1 ? 'border-r border-slate-100 dark:border-white/5' : ''}`}>
+                                        <div key={idx} className={`flex items-center gap-3 px-5 py-3 flex-1 ${idx < arr.length - 1 ? 'border-r border-[#dadce0] dark:border-[#3c4043]' : ''}`}>
                                             <div className={`size-1.5 rounded-full ${stat.dot} shrink-0`}></div>
                                             <div className="min-w-0">
-                                                <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap">{stat.label}</p>
+                                                <p className="text-[9px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{stat.label}</p>
                                                 <p className={`text-lg font-bold leading-none mt-0.5 ${stat.color}`}>{stat.value}</p>
                                             </div>
                                         </div>
@@ -411,11 +420,11 @@ const GSAAgencyManagement = () => {
                                 </div>
 
                                 {/* Table Container */}
-                                <div className="flex-1 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-white/5 shadow-xs flex flex-col overflow-hidden min-h-0">
+                                <div className="flex-1 bg-white dark:bg-[#303134] rounded-lg border border-[#dadce0] dark:border-[#3c4043] shadow-xs flex flex-col overflow-hidden min-h-0">
                                     {/* Toolbar */}
-                                    <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-white/5 shrink-0">
+                                    <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-[#dadce0] dark:border-[#3c4043] shrink-0">
                                         <div className="relative flex-1 min-w-[160px]">
-                                            <span className="material-icons-round absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                                            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-slate-400 text-[18px]">search</span>
                                             <input
                                                 type="text"
                                                 placeholder="Search agencies..."

@@ -317,8 +317,8 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
     ].filter(Boolean).length;
 
     return (
-        <aside className="w-full lg:w-72 flex-shrink-0 lg:sticky lg:top-24 h-fit">
-            <div className="bg-white/80 dark:bg-[#111a22]/80 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-slate-800/50 shadow-2xl shadow-black/5 dark:shadow-white/5 max-h-[calc(100vh-8rem)] overflow-y-auto custom-scrollbar relative">
+        <aside className="w-full shrink-0 animate-in slide-in-from-left-4 fade-in duration-500">
+            <div className="relative">
                 {/* Sticky Header with Actions */}
                 <div className="sticky top-0 z-50 px-6 py-4 bg-white dark:bg-[#111a22] border-b border-slate-100/50 dark:border-slate-800/50 flex items-center justify-between shadow-lg shadow-black/[0.03] dark:shadow-white/[0.02]">
                     <h2 className="text-sm font-semibold tracking-tight text-slate-800 dark:text-slate-100" lang={currentLang === 'tr' ? 'tr' : 'en'}>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const FORBIDDEN_LOCALES = {
@@ -111,10 +110,8 @@ const ForbiddenPage = () => {
     const loc = FORBIDDEN_LOCALES[currentLang] || FORBIDDEN_LOCALES.en;
 
     return (
-        <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white flex flex-col font-sans" dir={isRtl ? 'rtl' : 'ltr'}>
-            <Header />
-
-            <main className="flex-1 flex items-center justify-center p-6 pt-32 pb-20 relative overflow-hidden">
+        <div className="flex-1 bg-background-light dark:bg-background-dark text-slate-900 dark:text-white flex flex-col font-sans" dir={isRtl ? 'rtl' : 'ltr'}>
+            <main className="flex-1 flex items-center justify-center p-6 py-20 relative overflow-hidden">
                 {/* Background Ambient Glow Effects */}
                 <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[500px] bg-rose-500/10 dark:bg-rose-500/15 rounded-full blur-[140px] pointer-events-none"></div>
                 <div className="absolute bottom-10 right-10 size-[300px] bg-amber-500/10 dark:bg-amber-500/10 rounded-full blur-[100px] pointer-events-none"></div>
@@ -150,7 +147,7 @@ const ForbiddenPage = () => {
                         {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row gap-3.5 justify-center items-center">
                             <button
-                                onClick={() => navigate('/dashboard')}
+                                onClick={() => navigate('/travel/hotels')}
                                 className="w-full sm:w-auto px-7 py-3.5 bg-primary hover:bg-primary/90 text-white rounded-2xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
                             >
                                 <span className="material-symbols-outlined text-lg">dashboard</span>
@@ -158,7 +155,7 @@ const ForbiddenPage = () => {
                             </button>
 
                             <button
-                                onClick={() => navigate('/hotels')}
+                                onClick={() => navigate('/travel/hotels/search')}
                                 className="w-full sm:w-auto px-7 py-3.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
                             >
                                 <span className="material-symbols-outlined text-lg">search</span>

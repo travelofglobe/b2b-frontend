@@ -4,6 +4,7 @@ import HotelListing from './pages/HotelListing';
 import HotelDetail from './pages/HotelDetail';
 import MapView from './pages/MapView';
 import Dashboard from './pages/Dashboard';
+import Flights from './pages/Flights';
 import MyBookings from './pages/MyBookings';
 import BookingDetail from './pages/BookingDetail';
 import LoginPage from './pages/LoginPage';
@@ -37,22 +38,35 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/agency-application" element={<AgencyApplicationPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/hotels" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
-            <Route path="/hotels/*" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
-            <Route path="/hotels/theme/:theme" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
-            <Route path="/hotels/campaign/:campaign" element={<ProtectedRoute><HotelListing /></ProtectedRoute>} />
-            {/* Generic catch-all for hotel details by slug or id */}
-            <Route path="/hotel/:slug" element={<ProtectedRoute><HotelDetail /></ProtectedRoute>} />
-            <Route path="/map" element={<ProtectedRoute><MapView /></ProtectedRoute>} />
-            
+
             {/* Portal Routes with Persistent Sidebar */}
             <Route element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}>
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/travel/hotels/detail/:slug" element={<HotelDetail />} />
+              <Route path="/travel/hotels/detail" element={<Navigate to="/travel/hotels/search" replace />} />
+              <Route path="/hotel/:slug" element={<HotelDetail />} />
+              <Route path="/hotels" element={<Navigate to="/travel/hotels/search" replace />} />
+              <Route path="/travel/hotels" element={<Dashboard />} />
+              <Route path="/travel/hotels/search" element={<HotelListing />} />
+              <Route path="/travel/hotels/search/*" element={<HotelListing />} />
+              <Route path="/travel/hotels/search/theme/:theme" element={<HotelListing />} />
+              <Route path="/travel/hotels/search/campaign/:campaign" element={<HotelListing />} />
+              <Route path="/travel/search" element={<Navigate to="/travel/hotels" replace />} />
+              <Route path="/dashboard" element={<Navigate to="/travel/hotels" replace />} />
               <Route path="/bookings" element={<MyBookings />} />
               <Route path="/bookings/:bookingId" element={<BookingDetail />} />
               <Route path="/my-office" element={<MyOffice />} />
               <Route path="/definitions/markup" element={<MarkupManagement />} />
               
+              {/* Header tab & Google travel routes */}
+              <Route path="/travel/explore" element={<UnderConstruction title="Keşfet" icon="travel_explore" />} />
+              <Route path="/explore" element={<Navigate to="/travel/explore" replace />} />
+              <Route path="/travel/flights" element={<Flights />} />
+              <Route path="/flights" element={<Navigate to="/travel/flights" replace />} />
+              <Route path="/travel/vacation-rentals" element={<UnderConstruction title="Kiralık Yerler" icon="home_work" />} />
+              <Route path="/vacation-rentals" element={<Navigate to="/travel/vacation-rentals" replace />} />
+              <Route path="/flight-deals" element={<UnderConstruction title="Uçuş Fırsatları" icon="auto_awesome" />} />
+              <Route path="/tracked-flight-prices" element={<UnderConstruction title="Takip Edilen Uçuş Fiyatları" icon="show_chart" />} />
+
               <Route path="/finance" element={<UnderConstruction title="Finance" icon="account_balance_wallet" />} />
               <Route path="/accounting" element={<UnderConstruction title="Accounting" icon="analytics" />} />
               <Route path="/operations" element={<UnderConstruction title="Operations" icon="settings" />} />
@@ -60,20 +74,27 @@ function App() {
               <Route path="/gsa/markups" element={<SubAgencyMarkups />} />
               <Route path="/gsa/finance" element={<UnderConstruction title="GSA Finance" icon="attach_money" />} />
               <Route path="/gsa/reports" element={<UnderConstruction title="GSA Reports" icon="assessment" />} />
+
+              {/* Checkout Flow */}
+              <Route path="/travel/hotels/checkout/guests" element={<CheckoutGuestDetails />} />
+              <Route path="/travel/hotels/checkout/payment" element={<CheckoutPayment />} />
+              <Route path="/travel/hotels/checkout/result" element={<CheckoutResult />} />
+              <Route path="/hotel/checkout/guests" element={<CheckoutGuestDetails />} />
+              <Route path="/hotel/checkout/payment" element={<CheckoutPayment />} />
+              <Route path="/hotel/checkout/result" element={<CheckoutResult />} />
+
+              {/* Map View */}
+              <Route path="/map" element={<MapView />} />
+
+              {/* Error / Forbidden Pages */}
+              <Route path="/forbidden" element={<ForbiddenPage />} />
+              <Route path="/403" element={<ForbiddenPage />} />
             </Route>
 
             <Route path="/bookings/:voucherId/voucher" element={<ProtectedRoute><VoucherPage /></ProtectedRoute>} />
 
-            {/* Checkout Flow */}
-            <Route path="/hotel/checkout/guests" element={<ProtectedRoute><CheckoutGuestDetails /></ProtectedRoute>} />
-            <Route path="/hotel/checkout/payment" element={<ProtectedRoute><CheckoutPayment /></ProtectedRoute>} />
-            <Route path="/hotel/checkout/result" element={<ProtectedRoute><CheckoutResult /></ProtectedRoute>} />
-
-            {/* Error / Forbidden Pages */}
-            <Route path="/forbidden" element={<ProtectedRoute><ForbiddenPage /></ProtectedRoute>} />
-            <Route path="/403" element={<ProtectedRoute><ForbiddenPage /></ProtectedRoute>} />
-            {/* Redirect root to hotels (ProtectedRoute will handle auth check) */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* Redirect root to travel hotels (ProtectedRoute will handle auth check) */}
+            <Route path="/" element={<Navigate to="/travel/hotels" replace />} />
           </Routes>
         </div>
         </FavoritesProvider>

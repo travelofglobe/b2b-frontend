@@ -359,7 +359,7 @@ const searchLocales = {
     }
 };
 
-const DashboardSearch = () => {
+const ListingSearch = () => {
     const { i18n } = useTranslation();
     const currentLang = i18n.language || 'en';
     const ls = searchLocales[currentLang] || searchLocales['en'];
@@ -367,9 +367,19 @@ const DashboardSearch = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
+    const isGenericAreaText = (txt) => {
+        if (!txt) return false;
+        const lower = txt.trim().toLowerCase();
+        return lower === 'this area' || lower === 'bu alan' || lower === 'search this area' || lower === 'listeyi güncelle';
+    };
+
     // Initialize state from URL params or defaults
     const [query, setQuery] = useState(() => {
-        return searchParams.get('q') || localStorage.getItem('dashboard_last_search') || '';
+        const urlQ = searchParams.get('q');
+        if (urlQ && !isGenericAreaText(urlQ)) return urlQ;
+        const saved = localStorage.getItem('dashboard_last_search');
+        if (saved && !isGenericAreaText(saved)) return saved;
+        return '';
     });
 
     // Nationality State
@@ -478,6 +488,13 @@ const DashboardSearch = () => {
                 localStorage.setItem('dashboard_last_hotelId', item.targetId);
             }
         }
+
+        if (itemType === 'HOTEL' && item.targetId) {
+            const searchParamsString = getUrlParams({ query: item.query });
+            navigate(`/travel/hotels/detail/${item.targetId}?${searchParamsString}`);
+        } else {
+            handleSearch({ query: item.query, locationId: item.targetId || null });
+        }
     };
 
     const handleDeleteHistoryItem = async (e, id) => {
@@ -566,6 +583,14 @@ const DashboardSearch = () => {
 
     const isUserInteraction = useRef(false);
 
+    // Sync query when URL 'q' param changes externally (e.g., map area search)
+    useEffect(() => {
+        const urlQ = searchParams.get('q');
+        if (urlQ && !isGenericAreaText(urlQ) && urlQ !== query && !isUserInteraction.current) {
+            setQuery(urlQ);
+        }
+    }, [searchParams.get('q')]);
+
     // Debounce search
     useEffect(() => {
         // Only trigger search if user has interacted with the input
@@ -647,13 +672,19 @@ const DashboardSearch = () => {
         return `${year}-${month}-${day}`;
     };
 
-    const getUrlParams = (queryOverride) => {
-        const guestsParam = serializeGuestsParam(roomState);
-        let params = `checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&guests=${encodeURIComponent(guestsParam)}&nationality=${encodeURIComponent(nationality)}`;
+    const getUrlParams = (overrides = {}) => {
+        const opts = typeof overrides === 'string' ? { query: overrides } : (overrides || {});
+        const queryOverride = opts.query !== undefined ? opts.query : query;
+        const checkInOverride = opts.checkInDate !== undefined ? opts.checkInDate : checkInDate;
+        const checkOutOverride = opts.checkOutDate !== undefined ? opts.checkOutDate : checkOutDate;
+        const guestsOverride = opts.roomState !== undefined ? opts.roomState : roomState;
+        const natOverride = opts.nationality !== undefined ? opts.nationality : nationality;
 
-        const q = queryOverride !== undefined ? queryOverride : query;
-        if (q) {
-            params += `&q=${encodeURIComponent(q)}`;
+        const guestsParam = serializeGuestsParam(guestsOverride);
+        let params = `checkin=${formatDateForUrl(checkInOverride)}&checkout=${formatDateForUrl(checkOutOverride)}&guests=${encodeURIComponent(guestsParam)}&nationality=${encodeURIComponent(natOverride)}`;
+
+        if (queryOverride) {
+            params += `&q=${encodeURIComponent(queryOverride)}`;
         }
         return params;
     };
@@ -673,47 +704,52 @@ const DashboardSearch = () => {
         return (location.name?.translations?.[currentLang] || location.name?.translations?.en || Object.values(location.name?.translations || {})[0] || 'destination').toLowerCase();
     };
 
-    const handleSearch = () => {
-        if (!query.trim()) {
+    const handleSearch = (overrides = {}) => {
+        const opts = typeof overrides === 'string' ? { query: overrides } : (overrides || {});
+        const activeQuery = opts.query !== undefined ? opts.query : query;
+        
+        if (!activeQuery.trim()) {
             setError(true);
             return;
         }
 
-        if (query) {
+        if (activeQuery) {
             const savedLastSearch = localStorage.getItem('dashboard_last_search');
             const savedLastType = localStorage.getItem('dashboard_last_type');
             const savedLastHotelId = localStorage.getItem('dashboard_last_hotelId');
 
-            if (query !== savedLastSearch) {
-                saveSearchHistoryItem(query, 'SEARCH', null, null);
-                localStorage.setItem('dashboard_last_search', query);
+            if (activeQuery !== savedLastSearch) {
+                saveSearchHistoryItem(activeQuery, 'SEARCH', null, null);
+                localStorage.setItem('dashboard_last_search', activeQuery);
                 localStorage.setItem('dashboard_last_type', 'SEARCH');
                 localStorage.removeItem('dashboard_last_hotelId');
                 localStorage.removeItem('dashboard_last_locationId');
             }
 
-            if (savedLastType === 'HOTEL' && query === savedLastSearch && savedLastHotelId) {
-                const searchParamsString = getUrlParams();
+            if (savedLastType === 'HOTEL' && activeQuery === savedLastSearch && savedLastHotelId) {
+                const searchParamsString = getUrlParams(opts);
                 navigate(`/travel/hotels/detail/${savedLastHotelId}?${searchParamsString}`);
                 return;
             }
             
             // If query contains commas, try to build a hierarchical slug
             // e.g. "Üsküdar, İstanbul, Türkiye" -> ["Üsküdar", "İstanbul", "Türkiye"]
-            const queryParts = query.split(',').map(p => p.trim().toLowerCase());
-            let slug = query.toLowerCase();
+            const queryParts = activeQuery.split(',').map(p => p.trim().toLowerCase());
+            let slug = activeQuery.toLowerCase().trim();
             
             if (queryParts.length >= 2) {
                 // If 3 parts: [District, City, Country] -> slug "istanbul/uskudar"
                 // If 2 parts: [City, Country] -> slug "istanbul"
-                const reversed = queryParts.reverse(); // [Country, City, District]
+                const reversed = [...queryParts].reverse(); // [Country, City, District]
                 slug = reversed.slice(1).join('/');
             }
 
-            // Retrieve locationId from localStorage if it exists
-            const savedLocationId = localStorage.getItem('dashboard_last_locationId');
+            // Retrieve locationId from overrides, then URL searchParams (if query matches), then localStorage
+            const savedLocationId = opts.locationId !== undefined
+                ? opts.locationId
+                : (activeQuery === searchParams.get('q') ? searchParams.get('locationId') : localStorage.getItem('dashboard_last_locationId'));
             const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
-            const searchParamsString = getUrlParams() + locationParam;
+            const searchParamsString = getUrlParams(opts) + locationParam;
 
             localStorage.setItem('last_hotel_search_slug', slug);
             localStorage.setItem('last_hotel_search_params', searchParamsString);
@@ -757,11 +793,13 @@ const DashboardSearch = () => {
 
         setQuery(fullName);
         
-        const locationParam = `&locationId=${location.locationId}`;
-        const searchParamsString = getUrlParams(fullName) + locationParam;
+        const locationParam = location.locationId ? `&locationId=${location.locationId}` : '';
+        const searchParamsString = getUrlParams({ query: fullName }) + locationParam;
 
         localStorage.setItem('last_hotel_search_slug', slug);
         localStorage.setItem('last_hotel_search_params', searchParamsString);
+
+        navigate(`/travel/hotels/search/${slug}?${searchParamsString}`);
     };
 
     const handleSelectHotel = (hotel) => {
@@ -799,10 +837,12 @@ const DashboardSearch = () => {
 
         setQuery(fullName);
 
-        const searchParamsString = getUrlParams(fullName);
+        const searchParamsString = getUrlParams({ query: fullName });
 
         localStorage.setItem('last_hotel_search_slug', hotel.url || hId);
         localStorage.setItem('last_hotel_search_params', searchParamsString);
+
+        navigate(`/travel/hotels/detail/${hId}?${searchParamsString}`);
     };
 
     // Helper to get Hotel Name
@@ -820,6 +860,7 @@ const DashboardSearch = () => {
     };
 
     const handleKeyDown = (e) => {
+        const hasHistoryOnly = (results.regions.length === 0 && results.hotels.length === 0 && matchingHistory.length > 0);
         // Allow Enter key to trigger search actions regardless of dropdown state
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -899,132 +940,12 @@ const DashboardSearch = () => {
     const hasAnyResults = matchingHistory.length > 0 || results.regions.length > 0 || results.hotels.length > 0 || loading;
 
     return (
-        <section className="relative group/search w-full flex flex-col items-center">
-            <div className="relative w-full max-w-[1024px] bg-white dark:bg-[#202124] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] px-4 pt-2 pb-10 border-none transition-all duration-300">
-                
-                {/* Top Options (Guests) - Google Flights style */}
-                <div className="flex flex-wrap items-center gap-2 mb-3 relative z-[60]">
-                    {/* Elegant Guest Selector */}
-                    <div className="relative group/field" ref={guestWrapperRef}>
-                        <button
-                            type="button"
-                            onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                            className="flex items-center gap-1.5 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] px-2.5 py-1.5 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[13px] focus:outline-none cursor-pointer"
-                        >
-                            <span className="material-symbols-outlined text-[18px] text-[#70757a]">person</span>
-                            <span className="text-[13px] font-normal text-[#3c4043] dark:text-slate-200">{totalAdults + totalChildren}</span>
-                            <span className="material-symbols-outlined text-[18px] text-[#70757a]">arrow_drop_down</span>
-                        </button>
+        <section className="relative group/search w-full">
+            <div className="flex-1 flex flex-wrap lg:flex-nowrap items-stretch gap-2 relative z-50">
 
-                        {/* Guest Dropdown - Google Flights Style */}
-                        {showGuestDropdown && (
-                            <div className="absolute top-full left-0 w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[200] animate-in fade-in slide-in-from-top-2 duration-200">
-                                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-3 -mr-3">
-                                    {roomState.map((room, index) => (
-                                        <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 last:mb-0">
-                                            {roomState.length > 1 && (
-                                                <div className="flex justify-between items-center mb-3">
-                                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{ls.roomSingle} {index + 1}</span>
-                                                    <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded hover:bg-red-50">Sil</button>
-                                                </div>
-                                            )}
-                                            
-                                            <div className="flex flex-col gap-4">
-                                                {/* Adults Row */}
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{ls.adults}</span>
-                                                    <div className="flex items-center gap-1">
-                                                        <button 
-                                                            onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} 
-                                                            disabled={room.adults <= 1}
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[20px]">remove</span>
-                                                        </button>
-                                                        <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.adults}</span>
-                                                        <button 
-                                                            onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} 
-                                                            disabled={room.adults >= 6} 
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[20px]">add</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* Children Row */}
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{ls.children}</span>
-                                                        <span className="text-[12px] text-slate-500">{ls.childrenAge}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <button 
-                                                            onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} 
-                                                            disabled={room.children <= 0}
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[20px]">remove</span>
-                                                        </button>
-                                                        <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.children}</span>
-                                                        <button 
-                                                            onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} 
-                                                            disabled={room.children >= 4} 
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[20px]">add</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* Child Ages */}
-                                                {room.children > 0 && (
-                                                    <div className="grid grid-cols-2 gap-3 mt-1">
-                                                        {room.childAges.map((age, ageIdx) => (
-                                                            <div key={ageIdx} className="flex flex-col gap-1">
-                                                                <span className="text-[12px] text-slate-500">{ls.children} {ageIdx + 1} {ls.years}</span>
-                                                                <select
-                                                                    value={age}
-                                                                    onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
-                                                                    className="w-full h-8 bg-white dark:bg-slate-800 rounded border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-0 outline-none text-[#3c4043] dark:text-white"
-                                                                >
-                                                                    {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {ls.years}</option>)}
-                                                                </select>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-
-                                    {roomState.length < 5 && (
-                                        <button onClick={addRoom} className="mt-4 text-[14px] text-[#1a73e8] font-medium hover:underline flex items-center">
-                                            <span className="material-symbols-outlined text-[18px] mr-1">add</span>
-                                            {ls.addRoom}
-                                        </button>
-                                    )}
-                                </div>
-
-                                {/* Google Flights Style Footer */}
-                                <div className="flex items-center justify-end gap-6 mt-6 pt-2">
-                                    <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
-                                        İptal
-                                    </button>
-                                    <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
-                                        Bitti
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Main Search Input Row (Single Line: Destination Input + Nationality Input + Google Flights Twin Datepicker) */}
-                <div className="w-full flex flex-col md:flex-row items-stretch gap-2.5 sm:gap-3 relative z-50">
-                    
-                    {/* Destination Input (Flex-1 fills remaining space) */}
-                    <div className="flex-1 min-w-0 relative group/field h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
+                {/* Top Options (Guests & Nationality) */}
+                <div className="flex items-center gap-2 relative z-[60]">
+                    <div className="flex-1 min-w-0 relative group/field h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
                         <div className="flex items-center gap-3 h-full w-full px-4">
                             <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
                                 {error ? 'error' : 'location_on'}
@@ -1229,11 +1150,14 @@ const DashboardSearch = () => {
                         )}
                     </div>
 
-                    {/* Nationality Selector Input (Fixed clean width, matches autocomplete box style) */}
-                    <div className="w-full md:w-[190px] lg:w-[210px] flex-shrink-0 relative h-14">
+                    {/* Nationality Selector Input */}
+                    <div className="w-full md:w-[150px] lg:w-[170px] flex-shrink-0 relative h-12">
                         <NationalitySelect 
                             value={nationality} 
-                            onChange={setNationality} 
+                            onChange={(newNat) => {
+                                setNationality(newNat);
+                                handleSearch({ nationality: newNat });
+                            }} 
                             inputStyle={true} 
                             onToggle={(isOpen) => {
                                 if (isOpen) {
@@ -1244,11 +1168,11 @@ const DashboardSearch = () => {
                         />
                     </div>
 
-                    {/* Twin Datepicker Container (Fixed clean width, guaranteed single line) */}
-                    <div className={`w-full md:w-[330px] lg:w-[350px] flex-shrink-0 relative h-14 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
+                    {/* Twin Datepicker Container */}
+                    <div className={`w-full md:w-[330px] lg:w-[350px] flex-shrink-0 relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
                         isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')
                             ? ''
-                            : 'border border-[#dadce0] dark:border-slate-600 rounded-[4px] hover:border-[#bdc1c6] transition-all'
+                            : 'border border-[#dadce0] dark:border-slate-600 rounded-lg hover:border-[#bdc1c6] transition-all'
                     }`}>
                         
                         {/* Check-In Half */}
@@ -1346,7 +1270,10 @@ const DashboardSearch = () => {
                         {/* Google Flights 2-Month Datepicker Popover */}
                         <GoogleFlightDatePicker
                             isOpen={isDatePickerOpen}
-                            onClose={() => setIsDatePickerOpen(false)}
+                            onClose={() => {
+                                setIsDatePickerOpen(false);
+                                handleSearch();
+                            }}
                             checkInDate={checkInDate}
                             checkOutDate={checkOutDate}
                             onCheckInChange={setCheckInDate}
@@ -1355,24 +1282,129 @@ const DashboardSearch = () => {
                             setActiveField={setActiveDateField}
                             holidays={holidays}
                             countryCode={holidayCountryCode}
-                            align="right"
                         />
                     </div>
-                </div>
+                    {/* Elegant Guest Selector */}
+                    <div className="relative group/field" ref={guestWrapperRef}>
+                        <button
+                            type="button"
+                            onClick={() => setShowGuestDropdown(!showGuestDropdown)}
+                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-[#303134] px-4 h-12 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined text-[18px] text-[#70757a]">person</span>
+                            <span className="text-[13px] font-normal text-[#3c4043] dark:text-slate-200">{totalAdults + totalChildren}</span>
+                            <span className="material-symbols-outlined text-[18px] text-[#70757a]">arrow_drop_down</span>
+                        </button>
 
-                {/* Overlapping Blue Search Button (z-[30] so dropdowns at z-[200+] sit above it) */}
-                <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 z-[30]">
-                    <button
-                        onClick={handleSearch}
-                        className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[15px] px-8 py-2.5 flex items-center justify-center gap-2 shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] hover:shadow-lg transition-all active:scale-95"
-                    >
-                        <span className="material-symbols-outlined text-[20px]">search</span>
-                        <span>{ls.searchBtn}</span>
-                    </button>
+                        {/* Guest Dropdown - Google Flights Style */}
+                        {showGuestDropdown && (
+                            <div className="absolute top-full left-0 w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-3 -mr-3">
+                                    {roomState.map((room, index) => (
+                                        <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 last:mb-0">
+                                            {roomState.length > 1 && (
+                                                <div className="flex justify-between items-center mb-3">
+                                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{ls.roomSingle} {index + 1}</span>
+                                                    <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded hover:bg-red-50">Sil</button>
+                                                </div>
+                                            )}
+                                            
+                                            <div className="flex flex-col gap-4">
+                                                {/* Adults Row */}
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{ls.adults}</span>
+                                                    <div className="flex items-center gap-1">
+                                                        <button 
+                                                            onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} 
+                                                            disabled={room.adults <= 1}
+                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[20px]">remove</span>
+                                                        </button>
+                                                        <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.adults}</span>
+                                                        <button 
+                                                            onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} 
+                                                            disabled={room.adults >= 6} 
+                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[20px]">add</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Children Row */}
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{ls.children}</span>
+                                                        <span className="text-[12px] text-slate-500">{ls.childrenAge}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1">
+                                                        <button 
+                                                            onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} 
+                                                            disabled={room.children <= 0}
+                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[20px]">remove</span>
+                                                        </button>
+                                                        <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.children}</span>
+                                                        <button 
+                                                            onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} 
+                                                            disabled={room.children >= 4} 
+                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[20px]">add</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Child Ages */}
+                                                {room.children > 0 && (
+                                                    <div className="grid grid-cols-2 gap-3 mt-1">
+                                                        {room.childAges.map((age, ageIdx) => (
+                                                            <div key={ageIdx} className="flex flex-col gap-1">
+                                                                <span className="text-[12px] text-slate-500">{ls.children} {ageIdx + 1} {ls.years}</span>
+                                                                <select
+                                                                    value={age}
+                                                                    onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
+                                                                    className="w-full h-8 bg-white dark:bg-slate-800 rounded border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-0 outline-none text-[#3c4043] dark:text-white"
+                                                                >
+                                                                    {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {ls.years}</option>)}
+                                                                </select>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {roomState.length < 5 && (
+                                        <button onClick={addRoom} className="mt-4 text-[14px] text-[#1a73e8] font-medium hover:underline flex items-center">
+                                            <span className="material-symbols-outlined text-[18px] mr-1">add</span>
+                                            {ls.addRoom}
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Google Flights Style Footer */}
+                                <div className="flex items-center justify-end gap-6 mt-6 pt-2">
+                                    <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
+                                        İptal
+                                    </button>
+                                    <button onClick={() => {
+                                        setShowGuestDropdown(false);
+                                        handleSearch();
+                                    }} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
+                                        Bitti
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                </div>
                 </div>
             </div>
         </section>
     );
 };
 
-export default DashboardSearch;
+export default ListingSearch;

@@ -5,18 +5,18 @@ import * as XLSX from 'xlsx';
 import { downloadPdfDoc, downloadXlsxWorkbook, downloadCsvContent } from '../utils/fileDownloadHelper';
 
 const MO = {
-  en: { title: 'My Office Management', tabGeneral: 'General Information', tabUsers: 'Users', tabGuests: 'Guests', tabFavorites: 'Favorite Hotels', saveBtn: 'Save Office Profile', saving: 'Synchronizing...', agencyId: 'Agency Identity', baseLocation: 'Base Location', currency: 'Currency', integration: 'Integration', auditTimeline: 'Audit Timeline', created: 'Created', lastUpdate: 'Last Update', sec01: 'Section 01 / Identity', sec02: 'Section 02 / Contact', sec03: 'Section 03 / Geography', sec04: 'Section 04 / Finance', sec05: 'Section 05 / Settings', agencyName: 'Agency Name', officialTitle: 'Official Title', type: 'Type', language: 'Language', parentId: 'Parent ID', directEmail: 'Direct Email', phone: 'Phone Number', country: 'Country', city: 'City', streetAddress: 'Street Address', zipCode: 'Zip Code', taxOffice: 'Tax Office', taxNumber: 'Tax Number', accEmail: 'Accounting Email', accPhone: 'Accounting Phone', accCountry: 'Accounting Country', accCity: 'Accounting City', accAddress: 'Accounting Address', mainCurrency: 'Main Currency', integrationType: 'Integration Type', allowedSale: 'Allowed for Sale', bookingStatus: 'Booking status', selectTerritory: 'Select Territory', selectHub: 'Select Hub', commercialName: 'Commercial Name', legalTitle: 'Legal Title', totalUsers: 'Total Users', activeUsers: 'Active Users', passiveUsers: 'Passive Users', totalGuests: 'Total Guests', activeGuests: 'Active Guests', passiveGuests: 'Passive Guests', searchUsers: 'Search by name or email...', searchGuests: 'Search by name, email or passport...', searchFavorites: 'Search favorite hotels...', noFavoritesFound: 'No favorite hotels found.', removeFromFavorites: 'Remove', viewHotelDetail: 'View Detail', addedOn: 'Date Added', supplierLabel: 'Supplier', hotelName: 'Hotel Name', locationLabel: 'City / Country', starsLabel: 'Stars', allRoles: 'All Roles', allCountries: 'All Countries', active: 'Active', passive: 'Passive', export: 'Export', exportExcel: 'Export Excel', exportPdf: 'Export PDF', exporting: 'Exporting...', refresh: 'Refresh', addUser: 'Add User', addGuest: 'Add Guest', editUser: 'Edit User', editGuest: 'Edit Guest', userInfo: 'Enter user information', guestInfo: 'Enter guest information', name: 'Name', surname: 'Surname', emailAddr: 'Email Address', password: 'Password', role: 'Role', status: 'Status', gender: 'Gender', firstName: 'First Name', lastName: 'Last Name', birthDate: 'Birth Date', passportNo: 'Passport No', passportExpiry: 'Passport Expiry', cancel: 'Cancel', saveUser: 'Save User', saveGuest: 'Save Guest', processing: 'Processing...', confirm: 'Confirm', colUser: 'User', colContact: 'Contact', colRole: 'Role', colStatus: 'Status', colActions: 'Actions', colGuest: 'Guest', colBirth: 'Birth & Country', colPassport: 'Passport', noUsers: 'No users found', noGuests: 'No guests found', deleteUser: 'Delete User', deleteUserMsg: 'This action cannot be undone. All access for this user will be revoked immediately.', deleteGuest: 'Delete Guest', deleteGuestMsg: 'Are you sure you want to remove this guest from your CRM?', profileUpdated: 'Agency profile updated successfully.', updateFailed: 'Update failed.', invalidEmail: 'Please enter a valid email address.', userUpdated: 'User updated successfully', userCreated: 'User created successfully', errorSavingUser: 'Error saving user', userDeleted: 'User deleted successfully', errorDeletingUser: 'Error deleting user', noUserExport: 'No user data to export.', usersExported: 'User list exported successfully.', usersRefreshed: 'User list refreshed', guestUpdated: 'Guest updated successfully', guestCreated: 'Guest created successfully', errorSavingGuest: 'Error saving guest', guestDeleted: 'Guest deleted successfully', errorDeletingGuest: 'Error deleting guest', noGuestExport: 'No guest data to export.', guestsExported: 'Guest list exported successfully.', guestsRefreshed: 'Guest list refreshed', searchAutocompletePlaceholder: 'Select & Add Hotel (Name or ID)...', searchTablePlaceholder: 'Search in table...', allStatuses: 'All Statuses', statusActive: 'Active', statusPassive: 'Passive', colHotelInfo: 'Hotel Information', colUserEmail: 'User Email', colLocationStars: 'Location & Rating', colDateAdded: 'Audit Info', addFavSuccess: 'Hotel added to favorites', addFavError: 'Error adding favorite', deleteFavTitle: 'Remove Favorite Hotel', deleteFavMsg: 'Are you sure you want to remove {{name}} from your favorites?', deleteFavSuccess: 'Favorite hotel removed', deleteFavError: 'Failed to remove favorite', addedBtn: 'Added', addBtn: 'Add', refreshTooltip: 'Refresh', totalRecords: 'Total', pageLabel: 'Page', prevBtn: 'Previous', nextBtn: 'Next', agencyLogo: 'Agency Logo', agencyLogoPlaceholder: 'Agency Logo Area', uploadLogo: 'Upload Logo', changeLogo: 'Change Logo', deleteLogo: 'Delete Logo', deleteLogoTitle: 'Delete Logo', confirmDeleteLogo: 'Are you sure you want to delete the agency logo?', logoRequirementsTitle: 'Logo Guidelines & Format', logoMaxRatioInfo: 'Recommended Resolution: 600 × 240 px', logoMaxSizeInfo: 'Maximum File Size: 2 MB', logoFormatsInfo: 'Supported Formats: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'File size exceeds 2MB limit.', logoInvalidFormat: 'Invalid file format. Please select a PNG, JPG, or SVG file.', logoUploadSuccess: 'Agency logo uploaded successfully.', logoDeleteSuccess: 'Agency logo deleted successfully.', logoUploadError: 'Failed to upload logo.', logoDeleteError: 'Failed to delete logo.', clickToUpload: 'Click to select and upload logo file' },
-  tr: { title: 'Ofis Yönetimi', tabGeneral: 'Genel Bilgiler', tabUsers: 'Kullanıcılar', tabGuests: 'Misafirler', tabFavorites: 'Favori Oteller', saveBtn: 'Ofis Profilini Kaydet', saving: 'Senkronize ediliyor...', agencyId: 'Acente Kimlik', baseLocation: 'Konum', currency: 'Para Birimi', integration: 'Entegrasyon', auditTimeline: 'Denetim Geçmişi', created: 'Oluşturuldu', lastUpdate: 'Son Güncelleme', sec01: 'Bölüm 01 / Kimlik', sec02: 'Bölüm 02 / İletişim', sec03: 'Bölüm 03 / Coğrafya', sec04: 'Bölüm 04 / Finans', sec05: 'Bölüm 05 / Ayarlar', agencyName: 'Acente Adı', officialTitle: 'Resmi Unvan', type: 'Tür', language: 'Dil', parentId: 'Üst ID', directEmail: 'E-posta', phone: 'Telefon', country: 'Ülke', city: 'Şehir', streetAddress: 'Adres', zipCode: 'Posta Kodu', taxOffice: 'Vergi Dairesi', taxNumber: 'Vergi No', accEmail: 'Muhasebe E-posta', accPhone: 'Muhasebe Telefon', accCountry: 'Muhasebe Ülke', accCity: 'Muhasebe Şehir', accAddress: 'Muhasebe Adres', mainCurrency: 'Ana Para Birimi', integrationType: 'Entegrasyon Türü', allowedSale: 'Satışa Açık', bookingStatus: 'Rezervasyon durumu', selectTerritory: 'Bölge Seçin', selectHub: 'Şehir Seçin', commercialName: 'Ticari Ad', legalTitle: 'Hukuki Unvan', totalUsers: 'Toplam Kullanıcı', activeUsers: 'Aktif Kullanıcı', passiveUsers: 'Pasif Kullanıcı', totalGuests: 'Toplam Misafir', activeGuests: 'Aktif Misafir', passiveGuests: 'Pasif Misafir', searchUsers: 'Ad veya e-posta ara...', searchGuests: 'Ad, e-posta veya pasaport ara...', searchFavorites: 'Favori otellerde ara...', noFavoritesFound: 'Henüz favorilere eklenmiş otel bulunmamaktadır.', removeFromFavorites: 'Favoriden Kaldır', viewHotelDetail: 'Detayları Görüntüle', addedOn: 'Favoriye Eklenme Tarihi', supplierLabel: 'Tedarikçi', hotelName: 'Otel Adı', locationLabel: 'Şehir / Ülke', starsLabel: 'Yıldız Bilgisi', allRoles: 'Tüm Roller', allCountries: 'Tüm Ülkeler', active: 'Aktif', passive: 'Pasif', export: 'Dışa Aktar', exportExcel: 'Excel İndir', exportPdf: 'PDF İndir', exporting: 'İndiriliyor...', refresh: 'Yenile', addUser: 'Kullanıcı Ekle', addGuest: 'Misafir Ekle', editUser: 'Kullanıcı Düzenle', editGuest: 'Misafir Düzenle', userInfo: 'Kullanıcı bilgilerini girin', guestInfo: 'Misafir bilgilerini girin', name: 'Ad', surname: 'Soyad', emailAddr: 'E-posta Adresi', password: 'Şifre', role: 'Rol', status: 'Durum', gender: 'Cinsiyet', firstName: 'Ad', lastName: 'Soyad', birthDate: 'Doğum Tarihi', passportNo: 'Pasaport No', passportExpiry: 'Pasaport Bitiş', cancel: 'İptal', saveUser: 'Kullanıcı Kaydet', saveGuest: 'Misafir Kaydet', processing: 'İşleniyor...', confirm: 'Onayla', colUser: 'Kullanıcı', colContact: 'İletişim', colRole: 'Rol', colStatus: 'Durum', colActions: 'İşlemler', colGuest: 'Misafir', colBirth: 'Doğum & Ülke', colPassport: 'Pasaport', noUsers: 'Kullanıcı bulunamadı', noGuests: 'Misafir bulunamadı', deleteUser: 'Kullanıcı Sil', deleteUserMsg: 'Bu işlem geri alınamaz.', deleteGuest: 'Misafir Sil', deleteGuestMsg: 'Bu misafiri CRM sisteminden silmek istediğinize emin misiniz?', profileUpdated: 'Acente profili başarıyla güncellendi.', updateFailed: 'Güncelleme başarısız.', invalidEmail: 'Geçerli bir e-posta adresi girin.', userUpdated: 'Kullanıcı başarıyla güncellendi', userCreated: 'Kullanıcı başarıyla oluşturuldu', errorSavingUser: 'Kullanıcı kaydedilemedi', userDeleted: 'Kullanıcı başarıyla silindi', errorDeletingUser: 'Kullanıcı silinemedi', noUserExport: 'Dışa aktarılacak kullanıcı yok.', usersExported: 'Kullanıcı listesi başarıyla indirildi.', usersRefreshed: 'Kullanıcı listesi yenilendi', guestUpdated: 'Misafir başarıyla güncellendi', guestCreated: 'Misafir başarıyla oluşturuldu', errorSavingGuest: 'Misafir kaydedilemedi', guestDeleted: 'Misafir başarıyla silindi', errorDeletingGuest: 'Misafir silinemedi', noGuestExport: 'Dışa aktarılacak misafir yok.', guestsExported: 'Misafir listesi başarıyla indirildi.', guestsRefreshed: 'Misafir listesi yenilendi', searchAutocompletePlaceholder: 'Sistemden Otel Seç & Favorilere Ekle (Ad veya ID)...', searchTablePlaceholder: 'Tabloda ara...', allStatuses: 'Tüm Durumlar', statusActive: 'Aktif', statusPassive: 'Pasif', colHotelInfo: 'Otel Bilgisi', colUserEmail: 'Kullanıcı (User Email)', colLocationStars: 'Konum & Yıldız', colDateAdded: 'Audit Bilgisi', addFavSuccess: 'Otel favorilere eklendi', addFavError: 'Favori ekleme hatası', deleteFavTitle: 'Favori Oteli Sil', deleteFavMsg: '{{name}} otelini favorilerinizden silmek istediğinize emin misiniz?', deleteFavSuccess: 'Favori otel silindi', deleteFavError: 'Silme işlemi başarısız', addedBtn: 'Eklendi', addBtn: 'Ekle', refreshTooltip: 'Yenile', totalRecords: 'Toplam', pageLabel: 'Sayfa', prevBtn: 'Önceki', nextBtn: 'Sonraki', agencyLogo: 'Acente Logosu', agencyLogoPlaceholder: 'Acente Logo Alanı', uploadLogo: 'Logo Yükle', changeLogo: 'Logoyu Değiştir', deleteLogo: 'Logoyu Sil', deleteLogoTitle: 'Logoyu Sil', confirmDeleteLogo: 'Acente logosunu silmek istediğinize emin misiniz?', logoRequirementsTitle: 'Logo Kuralları & Detaylar', logoMaxRatioInfo: 'Önerilen Çözünürlük: 600 × 240 px', logoMaxSizeInfo: 'Maksimum Dosya Boyutu: 2 MB', logoFormatsInfo: 'Desteklenen Formatlar: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'Dosya boyutu 2MB sınırını aşıyor.', logoInvalidFormat: 'Geçersiz dosya formatı. Lütfen PNG, JPG veya SVG formatında bir dosya seçin.', logoUploadSuccess: 'Acente logosu başarıyla yüklendi.', logoDeleteSuccess: 'Acente logosu başarıyla silindi.', logoUploadError: 'Logo yüklenirken bir hata oluştu.', logoDeleteError: 'Logo silinirken bir hata oluştu.', clickToUpload: 'Logo dosyası seçmek ve yüklemek için tıklayın' },
-  ar: { title: 'إدارة المكتب' },
-  es: { title: 'Mi Oficina' },
-  ru: { title: 'Управление офисом' },
-  zh: { title: '办公室管理' },
-  ja: { title: 'オフィス管理' },
-  fa: { title: 'مدیریت دفتر' },
-  fr: { title: 'Mon Bureau' },
-  it: { title: 'Il mio Ufficio' },
-  el: { title: 'Το Γραφείο Μου' },
-  pt: { title: 'Meu Escritório', tabGeneral: 'Informações Gerais', tabUsers: 'Usuários', tabGuests: 'Hóspedes', tabFavorites: 'Hotéis Favoritos', saveBtn: 'Salvar', saving: 'Sincronizando...', agencyId: 'Identidade', baseLocation: 'Localização', currency: 'Moeda', integration: 'Integração', auditTimeline: 'Auditoria', created: 'Criado', lastUpdate: 'Última Atualização', sec01: 'Seção 01', sec02: 'Seção 02', sec03: 'Seção 03', sec04: 'Seção 04', sec05: 'Seção 05', agencyName: 'Nome da Agência', officialTitle: 'Título Oficial', type: 'Tipo', language: 'Idioma', parentId: 'ID Principal', directEmail: 'Email', phone: 'Telefone', country: 'País', city: 'Cidade', streetAddress: 'Endereço', zipCode: 'CEP', taxOffice: 'Finanças', taxNumber: 'NIF', accEmail: 'Email Contab', accPhone: 'Tel Contab', accCountry: 'País Contab', accCity: 'Cidade Contab', accAddress: 'Endereço Contab', mainCurrency: 'Moeda Principal', integrationType: 'Integração', allowedSale: 'Permitido', bookingStatus: 'Status Reserva', selectTerritory: 'Território', selectHub: 'Hub', commercialName: 'Nome Comercial', legalTitle: 'Título Legal', totalUsers: 'Total', activeUsers: 'Ativos', passiveUsers: 'Inativos', totalGuests: 'Total', activeGuests: 'Ativos', passiveGuests: 'Inativos', searchUsers: 'Buscar...', searchGuests: 'Buscar...', searchFavorites: 'Buscar favoritos...', noFavoritesFound: 'Nenhum hotel favorito encontrado.', removeFromFavorites: 'Remover', viewHotelDetail: 'Ver Detalhes', addedOn: 'Data de Adição', supplierLabel: 'Fornecedor', hotelName: 'Nome do Hotel', locationLabel: 'Cidade / País', starsLabel: 'Estrelas', allRoles: 'Todos os papéis', allCountries: 'Todos os países', active: 'Ativo', passive: 'Inativo', export: 'Exportar', addUser: 'Adicionar', addGuest: 'Adicionar', editUser: 'Editar', editGuest: 'Editar', userInfo: 'Info usuário', guestInfo: 'Info hóspede', name: 'Nome', surname: 'Sobrenome', emailAddr: 'Email', password: 'Senha', role: 'Papel', status: 'Status', gender: 'Gênero', firstName: 'Nome', lastName: 'Sobrenome', birthDate: 'Nascimento', passportNo: 'Passaporte', passportExpiry: 'Validade', cancel: 'Cancelar', saveUser: 'Salvar', saveGuest: 'Salvar', processing: 'Processando...', confirm: 'Confirmar', colUser: 'Usuário', colContact: 'Contato', colRole: 'Papel', colStatus: 'Status', colActions: 'Ações', colGuest: 'Hóspede', colBirth: 'Nascimento', colPassport: 'Passaporte', noUsers: 'Nenhum', noGuests: 'Nenhum', deleteUser: 'Excluir', deleteUserMsg: 'Irreversível.', deleteGuest: 'Excluir', deleteGuestMsg: 'Tem certeza?', profileUpdated: 'Atualizado', updateFailed: 'Falha', invalidEmail: 'Email inválido', userUpdated: 'Atualizado', userCreated: 'Criado', errorSavingUser: 'Erro', userDeleted: 'Excluído', errorDeletingUser: 'Erro', noUserExport: 'Sem dados', usersExported: 'Feito', usersRefreshed: 'Atualizado', guestUpdated: 'Atualizado', guestCreated: 'Criado', errorSavingGuest: 'Erro', guestDeleted: 'Excluído', errorDeletingGuest: 'Erro', noGuestExport: 'Sem dados', guestsExported: 'Feito', guestsRefreshed: 'Atualizado', agencyLogo: 'Logotipo da Agência', agencyLogoPlaceholder: 'Área do Logotipo da Agência', uploadLogo: 'Enviar Logotipo', changeLogo: 'Alterar Logotipo', deleteLogo: 'Excluir Logotipo', deleteLogoTitle: 'Excluir Logotipo', confirmDeleteLogo: 'Tem certeza de que deseja excluir o logotipo da agência?', logoRequirementsTitle: 'Diretrizes do Logotipo', logoMaxRatioInfo: 'Resolução Recomendada: 600 × 240 px', logoMaxSizeInfo: 'Tamanho Máximo: 2 MB', logoFormatsInfo: 'Formatos Suportados: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'O tamanho do arquivo excede o limite de 2MB.', logoInvalidFormat: 'Formato de arquivo inválido. Selecione um arquivo PNG, JPG ou SVG.', logoUploadSuccess: 'Logotipo enviado com sucesso.', logoDeleteSuccess: 'Logotipo excluído com sucesso.', logoUploadError: 'Erro ao enviar logotipo.', logoDeleteError: 'Erro ao excluir logotipo.', clickToUpload: 'Clique para selecionar e enviar o arquivo de logotipo' }
+    en: { title: 'My Office Management', tabGeneral: 'General Information', tabUsers: 'Users', tabGuests: 'Guests', tabFavorites: 'Favorite Hotels', saveBtn: 'Save Office Profile', saving: 'Synchronizing...', agencyId: 'Agency Identity', baseLocation: 'Base Location', currency: 'Currency', integration: 'Integration', auditTimeline: 'Audit Timeline', created: 'Created', lastUpdate: 'Last Update', sec01: 'Section 01 / Identity', sec02: 'Section 02 / Contact', sec03: 'Section 03 / Geography', sec04: 'Section 04 / Finance', sec05: 'Section 05 / Settings', agencyName: 'Agency Name', officialTitle: 'Official Title', type: 'Type', language: 'Language', parentId: 'Parent ID', directEmail: 'Direct Email', phone: 'Phone Number', country: 'Country', city: 'City', streetAddress: 'Street Address', zipCode: 'Zip Code', taxOffice: 'Tax Office', taxNumber: 'Tax Number', accEmail: 'Accounting Email', accPhone: 'Accounting Phone', accCountry: 'Accounting Country', accCity: 'Accounting City', accAddress: 'Accounting Address', mainCurrency: 'Main Currency', integrationType: 'Integration Type', allowedSale: 'Allowed for Sale', bookingStatus: 'Booking status', selectTerritory: 'Select Territory', selectHub: 'Select Hub', commercialName: 'Commercial Name', legalTitle: 'Legal Title', totalUsers: 'Total Users', activeUsers: 'Active Users', passiveUsers: 'Passive Users', totalGuests: 'Total Guests', activeGuests: 'Active Guests', passiveGuests: 'Passive Guests', searchUsers: 'Search by name or email...', searchGuests: 'Search by name, email or passport...', searchFavorites: 'Search favorite hotels...', noFavoritesFound: 'No favorite hotels found.', removeFromFavorites: 'Remove', viewHotelDetail: 'View Detail', addedOn: 'Date Added', supplierLabel: 'Supplier', hotelName: 'Hotel Name', locationLabel: 'City / Country', starsLabel: 'Stars', allRoles: 'All Roles', allCountries: 'All Countries', active: 'Active', passive: 'Passive', export: 'Export', exportExcel: 'Export Excel', exportPdf: 'Export PDF', exporting: 'Exporting...', refresh: 'Refresh', addUser: 'Add User', addGuest: 'Add Guest', editUser: 'Edit User', editGuest: 'Edit Guest', userInfo: 'Enter user information', guestInfo: 'Enter guest information', name: 'Name', surname: 'Surname', emailAddr: 'Email Address', password: 'Password', role: 'Role', status: 'Status', gender: 'Gender', firstName: 'First Name', lastName: 'Last Name', birthDate: 'Birth Date', passportNo: 'Passport No', passportExpiry: 'Passport Expiry', cancel: 'Cancel', saveUser: 'Save User', saveGuest: 'Save Guest', processing: 'Processing...', confirm: 'Confirm', colUser: 'User', colContact: 'Contact', colRole: 'Role', colStatus: 'Status', colActions: 'Actions', colGuest: 'Guest', colBirth: 'Birth & Country', colPassport: 'Passport', noUsers: 'No users found', noGuests: 'No guests found', deleteUser: 'Delete User', deleteUserMsg: 'This action cannot be undone. All access for this user will be revoked immediately.', deleteGuest: 'Delete Guest', deleteGuestMsg: 'Are you sure you want to remove this guest from your CRM?', profileUpdated: 'Agency profile updated successfully.', updateFailed: 'Update failed.', invalidEmail: 'Please enter a valid email address.', userUpdated: 'User updated successfully', userCreated: 'User created successfully', errorSavingUser: 'Error saving user', userDeleted: 'User deleted successfully', errorDeletingUser: 'Error deleting user', noUserExport: 'No user data to export.', usersExported: 'User list exported successfully.', usersRefreshed: 'User list refreshed', guestUpdated: 'Guest updated successfully', guestCreated: 'Guest created successfully', errorSavingGuest: 'Error saving guest', guestDeleted: 'Guest deleted successfully', errorDeletingGuest: 'Error deleting guest', noGuestExport: 'No guest data to export.', guestsExported: 'Guest list exported successfully.', guestsRefreshed: 'Guest list refreshed', searchAutocompletePlaceholder: 'Select & Add Hotel (Name or ID)...', searchTablePlaceholder: 'Search in table...', allStatuses: 'All Statuses', statusActive: 'Active', statusPassive: 'Passive', colHotelInfo: 'Hotel Information', colUserEmail: 'User Email', colLocationStars: 'Location & Rating', colDateAdded: 'Audit Info', addFavSuccess: 'Hotel added to favorites', addFavError: 'Error adding favorite', deleteFavTitle: 'Remove Favorite Hotel', deleteFavMsg: 'Are you sure you want to remove {{name}} from your favorites?', deleteFavSuccess: 'Favorite hotel removed', deleteFavError: 'Failed to remove favorite', addedBtn: 'Added', addBtn: 'Add', refreshTooltip: 'Refresh', totalRecords: 'Total', pageLabel: 'Page', prevBtn: 'Previous', nextBtn: 'Next', agencyLogo: 'Agency Logo', agencyLogoPlaceholder: 'Agency Logo Area', uploadLogo: 'Upload Logo', changeLogo: 'Change Logo', deleteLogo: 'Delete Logo', deleteLogoTitle: 'Delete Logo', confirmDeleteLogo: 'Are you sure you want to delete the agency logo?', logoRequirementsTitle: 'Logo Guidelines & Format', logoMaxRatioInfo: 'Recommended Resolution: 600 × 240 px', logoMaxSizeInfo: 'Maximum File Size: 2 MB', logoFormatsInfo: 'Supported Formats: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'File size exceeds 2MB limit.', logoInvalidFormat: 'Invalid file format. Please select a PNG, JPG, or SVG file.', logoUploadSuccess: 'Agency logo uploaded successfully.', logoDeleteSuccess: 'Agency logo deleted successfully.', logoUploadError: 'Failed to upload logo.', logoDeleteError: 'Failed to delete logo.', clickToUpload: 'Click to select and upload logo file' },
+    tr: { title: 'Ofis Yönetimi', tabGeneral: 'Genel Bilgiler', tabUsers: 'Kullanıcılar', tabGuests: 'Misafirler', tabFavorites: 'Favori Oteller', saveBtn: 'Ofis Profilini Kaydet', saving: 'Senkronize ediliyor...', agencyId: 'Acente Kimlik', baseLocation: 'Konum', currency: 'Para Birimi', integration: 'Entegrasyon', auditTimeline: 'Denetim Geçmişi', created: 'Oluşturuldu', lastUpdate: 'Son Güncelleme', sec01: 'Bölüm 01 / Kimlik', sec02: 'Bölüm 02 / İletişim', sec03: 'Bölüm 03 / Coğrafya', sec04: 'Bölüm 04 / Finans', sec05: 'Bölüm 05 / Ayarlar', agencyName: 'Acente Adı', officialTitle: 'Resmi Unvan', type: 'Tür', language: 'Dil', parentId: 'Üst ID', directEmail: 'E-posta', phone: 'Telefon', country: 'Ülke', city: 'Şehir', streetAddress: 'Adres', zipCode: 'Posta Kodu', taxOffice: 'Vergi Dairesi', taxNumber: 'Vergi No', accEmail: 'Muhasebe E-posta', accPhone: 'Muhasebe Telefon', accCountry: 'Muhasebe Ülke', accCity: 'Muhasebe Şehir', accAddress: 'Muhasebe Adres', mainCurrency: 'Ana Para Birimi', integrationType: 'Entegrasyon Türü', allowedSale: 'Satışa Açık', bookingStatus: 'Rezervasyon durumu', selectTerritory: 'Bölge Seçin', selectHub: 'Şehir Seçin', commercialName: 'Ticari Ad', legalTitle: 'Hukuki Unvan', totalUsers: 'Toplam Kullanıcı', activeUsers: 'Aktif Kullanıcı', passiveUsers: 'Pasif Kullanıcı', totalGuests: 'Toplam Misafir', activeGuests: 'Aktif Misafir', passiveGuests: 'Pasif Misafir', searchUsers: 'Ad veya e-posta ara...', searchGuests: 'Ad, e-posta veya pasaport ara...', searchFavorites: 'Favori otellerde ara...', noFavoritesFound: 'Henüz favorilere eklenmiş otel bulunmamaktadır.', removeFromFavorites: 'Favoriden Kaldır', viewHotelDetail: 'Detayları Görüntüle', addedOn: 'Favoriye Eklenme Tarihi', supplierLabel: 'Tedarikçi', hotelName: 'Otel Adı', locationLabel: 'Şehir / Ülke', starsLabel: 'Yıldız Bilgisi', allRoles: 'Tüm Roller', allCountries: 'Tüm Ülkeler', active: 'Aktif', passive: 'Pasif', export: 'Dışa Aktar', exportExcel: 'Excel İndir', exportPdf: 'PDF İndir', exporting: 'İndiriliyor...', refresh: 'Yenile', addUser: 'Kullanıcı Ekle', addGuest: 'Misafir Ekle', editUser: 'Kullanıcı Düzenle', editGuest: 'Misafir Düzenle', userInfo: 'Kullanıcı bilgilerini girin', guestInfo: 'Misafir bilgilerini girin', name: 'Ad', surname: 'Soyad', emailAddr: 'E-posta Adresi', password: 'Şifre', role: 'Rol', status: 'Durum', gender: 'Cinsiyet', firstName: 'Ad', lastName: 'Soyad', birthDate: 'Doğum Tarihi', passportNo: 'Pasaport No', passportExpiry: 'Pasaport Bitiş', cancel: 'İptal', saveUser: 'Kullanıcı Kaydet', saveGuest: 'Misafir Kaydet', processing: 'İşleniyor...', confirm: 'Onayla', colUser: 'Kullanıcı', colContact: 'İletişim', colRole: 'Rol', colStatus: 'Durum', colActions: 'İşlemler', colGuest: 'Misafir', colBirth: 'Doğum & Ülke', colPassport: 'Pasaport', noUsers: 'Kullanıcı bulunamadı', noGuests: 'Misafir bulunamadı', deleteUser: 'Kullanıcı Sil', deleteUserMsg: 'Bu işlem geri alınamaz.', deleteGuest: 'Misafir Sil', deleteGuestMsg: 'Bu misafiri CRM sisteminden silmek istediğinize emin misiniz?', profileUpdated: 'Acente profili başarıyla güncellendi.', updateFailed: 'Güncelleme başarısız.', invalidEmail: 'Geçerli bir e-posta adresi girin.', userUpdated: 'Kullanıcı başarıyla güncellendi', userCreated: 'Kullanıcı başarıyla oluşturuldu', errorSavingUser: 'Kullanıcı kaydedilemedi', userDeleted: 'Kullanıcı başarıyla silindi', errorDeletingUser: 'Kullanıcı silinemedi', noUserExport: 'Dışa aktarılacak kullanıcı yok.', usersExported: 'Kullanıcı listesi başarıyla indirildi.', usersRefreshed: 'Kullanıcı listesi yenilendi', guestUpdated: 'Misafir başarıyla güncellendi', guestCreated: 'Misafir başarıyla oluşturuldu', errorSavingGuest: 'Misafir kaydedilemedi', guestDeleted: 'Misafir başarıyla silindi', errorDeletingGuest: 'Misafir silinemedi', noGuestExport: 'Dışa aktarılacak misafir yok.', guestsExported: 'Misafir listesi başarıyla indirildi.', guestsRefreshed: 'Misafir listesi yenilendi', searchAutocompletePlaceholder: 'Sistemden Otel Seç & Favorilere Ekle (Ad veya ID)...', searchTablePlaceholder: 'Tabloda ara...', allStatuses: 'Tüm Durumlar', statusActive: 'Aktif', statusPassive: 'Pasif', colHotelInfo: 'Otel Bilgisi', colUserEmail: 'Kullanıcı (User Email)', colLocationStars: 'Konum & Yıldız', colDateAdded: 'Audit Bilgisi', addFavSuccess: 'Otel favorilere eklendi', addFavError: 'Favori ekleme hatası', deleteFavTitle: 'Favori Oteli Sil', deleteFavMsg: '{{name}} otelini favorilerinizden silmek istediğinize emin misiniz?', deleteFavSuccess: 'Favori otel silindi', deleteFavError: 'Silme işlemi başarısız', addedBtn: 'Eklendi', addBtn: 'Ekle', refreshTooltip: 'Yenile', totalRecords: 'Toplam', pageLabel: 'Sayfa', prevBtn: 'Önceki', nextBtn: 'Sonraki', agencyLogo: 'Acente Logosu', agencyLogoPlaceholder: 'Acente Logo Alanı', uploadLogo: 'Logo Yükle', changeLogo: 'Logoyu Değiştir', deleteLogo: 'Logoyu Sil', deleteLogoTitle: 'Logoyu Sil', confirmDeleteLogo: 'Acente logosunu silmek istediğinize emin misiniz?', logoRequirementsTitle: 'Logo Kuralları & Detaylar', logoMaxRatioInfo: 'Önerilen Çözünürlük: 600 × 240 px', logoMaxSizeInfo: 'Maksimum Dosya Boyutu: 2 MB', logoFormatsInfo: 'Desteklenen Formatlar: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'Dosya boyutu 2MB sınırını aşıyor.', logoInvalidFormat: 'Geçersiz dosya formatı. Lütfen PNG, JPG veya SVG formatında bir dosya seçin.', logoUploadSuccess: 'Acente logosu başarıyla yüklendi.', logoDeleteSuccess: 'Acente logosu başarıyla silindi.', logoUploadError: 'Logo yüklenirken bir hata oluştu.', logoDeleteError: 'Logo silinirken bir hata oluştu.', clickToUpload: 'Logo dosyası seçmek ve yüklemek için tıklayın' },
+    ar: { title: 'إدارة المكتب' },
+    es: { title: 'Mi Oficina' },
+    ru: { title: 'Управление офисом' },
+    zh: { title: '办公室管理' },
+    ja: { title: 'オフィス管理' },
+    fa: { title: 'مدیریت دفتر' },
+    fr: { title: 'Mon Bureau' },
+    it: { title: 'Il mio Ufficio' },
+    el: { title: 'Το Γραφείο Μου' },
+    pt: { title: 'Meu Escritório', tabGeneral: 'Informações Gerais', tabUsers: 'Usuários', tabGuests: 'Hóspedes', tabFavorites: 'Hotéis Favoritos', saveBtn: 'Salvar', saving: 'Sincronizando...', agencyId: 'Identidade', baseLocation: 'Localização', currency: 'Moeda', integration: 'Integração', auditTimeline: 'Auditoria', created: 'Criado', lastUpdate: 'Última Atualização', sec01: 'Seção 01', sec02: 'Seção 02', sec03: 'Seção 03', sec04: 'Seção 04', sec05: 'Seção 05', agencyName: 'Nome da Agência', officialTitle: 'Título Oficial', type: 'Tipo', language: 'Idioma', parentId: 'ID Principal', directEmail: 'Email', phone: 'Telefone', country: 'País', city: 'Cidade', streetAddress: 'Endereço', zipCode: 'CEP', taxOffice: 'Finanças', taxNumber: 'NIF', accEmail: 'Email Contab', accPhone: 'Tel Contab', accCountry: 'País Contab', accCity: 'Cidade Contab', accAddress: 'Endereço Contab', mainCurrency: 'Moeda Principal', integrationType: 'Integração', allowedSale: 'Permitido', bookingStatus: 'Status Reserva', selectTerritory: 'Território', selectHub: 'Hub', commercialName: 'Nome Comercial', legalTitle: 'Título Legal', totalUsers: 'Total', activeUsers: 'Ativos', passiveUsers: 'Inativos', totalGuests: 'Total', activeGuests: 'Ativos', passiveGuests: 'Inativos', searchUsers: 'Buscar...', searchGuests: 'Buscar...', searchFavorites: 'Buscar favoritos...', noFavoritesFound: 'Nenhum hotel favorito encontrado.', removeFromFavorites: 'Remover', viewHotelDetail: 'Ver Detalhes', addedOn: 'Data de Adição', supplierLabel: 'Fornecedor', hotelName: 'Nome do Hotel', locationLabel: 'Cidade / País', starsLabel: 'Estrelas', allRoles: 'Todos os papéis', allCountries: 'Todos os países', active: 'Ativo', passive: 'Inativo', export: 'Exportar', addUser: 'Adicionar', addGuest: 'Adicionar', editUser: 'Editar', editGuest: 'Editar', userInfo: 'Info usuário', guestInfo: 'Info hóspede', name: 'Nome', surname: 'Sobrenome', emailAddr: 'Email', password: 'Senha', role: 'Papel', status: 'Status', gender: 'Gênero', firstName: 'Nome', lastName: 'Sobrenome', birthDate: 'Nascimento', passportNo: 'Passaporte', passportExpiry: 'Validade', cancel: 'Cancelar', saveUser: 'Salvar', saveGuest: 'Salvar', processing: 'Processando...', confirm: 'Confirmar', colUser: 'Usuário', colContact: 'Contato', colRole: 'Papel', colStatus: 'Status', colActions: 'Ações', colGuest: 'Hóspede', colBirth: 'Nascimento', colPassport: 'Passaporte', noUsers: 'Nenhum', noGuests: 'Nenhum', deleteUser: 'Excluir', deleteUserMsg: 'Irreversível.', deleteGuest: 'Excluir', deleteGuestMsg: 'Tem certeza?', profileUpdated: 'Atualizado', updateFailed: 'Falha', invalidEmail: 'Email inválido', userUpdated: 'Atualizado', userCreated: 'Criado', errorSavingUser: 'Erro', userDeleted: 'Excluído', errorDeletingUser: 'Erro', noUserExport: 'Sem dados', usersExported: 'Feito', usersRefreshed: 'Atualizado', guestUpdated: 'Atualizado', guestCreated: 'Criado', errorSavingGuest: 'Erro', guestDeleted: 'Excluído', errorDeletingGuest: 'Erro', noGuestExport: 'Sem dados', guestsExported: 'Feito', guestsRefreshed: 'Atualizado', agencyLogo: 'Logotipo da Agência', agencyLogoPlaceholder: 'Área do Logotipo da Agência', uploadLogo: 'Enviar Logotipo', changeLogo: 'Alterar Logotipo', deleteLogo: 'Excluir Logotipo', deleteLogoTitle: 'Excluir Logotipo', confirmDeleteLogo: 'Tem certeza de que deseja excluir o logotipo da agência?', logoRequirementsTitle: 'Diretrizes do Logotipo', logoMaxRatioInfo: 'Resolução Recomendada: 600 × 240 px', logoMaxSizeInfo: 'Tamanho Máximo: 2 MB', logoFormatsInfo: 'Formatos Suportados: PNG, JPG, JPEG, SVG', logoSizeExceeded: 'O tamanho do arquivo excede o limite de 2MB.', logoInvalidFormat: 'Formato de arquivo inválido. Selecione um arquivo PNG, JPG ou SVG.', logoUploadSuccess: 'Logotipo enviado com sucesso.', logoDeleteSuccess: 'Logotipo excluído com sucesso.', logoUploadError: 'Erro ao enviar logotipo.', logoDeleteError: 'Erro ao excluir logotipo.', clickToUpload: 'Clique para selecionar e enviar o arquivo de logotipo' }
 };
 const tMO = (lang, key) => { const l = getLang(lang); return MO[l]?.[key] ?? MO.en[key] ?? COMMON[l]?.[key] ?? COMMON.en[key] ?? key; };
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -31,7 +31,6 @@ import { userService, roleService } from '../services/userService';
 import { guestService } from '../services/guestService';
 import { currencyService } from '../services/currencyService';
 import { favoriteService } from '../services/favoriteService';
-import HeaderActions from '../components/HeaderActions';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import PhoneInput from '../components/PhoneInput';
@@ -99,12 +98,12 @@ const formatDateTime = (dateVal) => {
             dateObj = new Date(dateVal);
         }
         if (isNaN(dateObj.getTime())) return 'N/A';
-        return dateObj.toLocaleString('tr-TR', { 
-            day: '2-digit', 
-            month: '2-digit', 
-            year: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit' 
+        return dateObj.toLocaleString('tr-TR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     } catch {
         return 'N/A';
@@ -268,7 +267,7 @@ const MyOffice = () => {
     const filteredFavorites = React.useMemo(() => {
         if (!favoriteSearchQuery.trim()) return favorites;
         const q = favoriteSearchQuery.toLowerCase();
-        return favorites.filter(item => 
+        return favorites.filter(item =>
             item.name?.toLowerCase().includes(q) ||
             item.city?.toLowerCase().includes(q) ||
             item.country?.toLowerCase().includes(q) ||
@@ -375,10 +374,10 @@ const MyOffice = () => {
         gender: 'MALE',
         firstName: '',
         lastName: '',
-        birthDate: '', 
+        birthDate: '',
         country: '',
         passportNo: '',
-        passportExpiry: '', 
+        passportExpiry: '',
         email: '',
         phoneCountryCode: '90',
         phoneNumber: '',
@@ -702,7 +701,7 @@ const MyOffice = () => {
         e.preventDefault();
         try {
             setSaving(true);
-            
+
             const payload = {
                 ...formData,
                 countryId: formData.countryId ? Number(formData.countryId) : null,
@@ -726,10 +725,10 @@ const MyOffice = () => {
             await agencyService.updateAgency(formData.id, payload);
             showNotification(L('profileUpdated'));
             await fetchInitialData();
-        } catch (err) { 
-            showNotification(err.message || L('updateFailed'), 'error'); 
-        } finally { 
-            setSaving(false); 
+        } catch (err) {
+            showNotification(err.message || L('updateFailed'), 'error');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -760,10 +759,10 @@ const MyOffice = () => {
             }
 
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (userFormData.email && !emailRegex.test(userFormData.email)) { 
-                showNotification(L('invalidEmail'), 'error'); 
-                setSaving(false); 
-                return; 
+            if (userFormData.email && !emailRegex.test(userFormData.email)) {
+                showNotification(L('invalidEmail'), 'error');
+                setSaving(false);
+                return;
             }
             if (editingUser) {
                 await userService.updateUser(editingUser.id, userFormData);
@@ -776,10 +775,10 @@ const MyOffice = () => {
             }
             setIsUserModalOpen(false); fetchUsersData();
             const sumData = await userService.getSummary(); setSummary(prev => ({ ...prev, totalCount: sumData.totalCount, activeCount: sumData.activeCount, passiveCount: sumData.passiveCount }));
-        } catch (err) { 
+        } catch (err) {
             const msg = err.response?.data?.message || err.message || L('errorSavingUser');
             setUserApiError(msg);
-            showNotification(msg, 'error'); 
+            showNotification(msg, 'error');
         } finally { setSaving(false); }
     };
 
@@ -1243,133 +1242,152 @@ const MyOffice = () => {
     return (
         <>
             <style>{`
-                .input-modern { background: rgba(248, 250, 252, 0.6); border: 1px solid #e2e8f0; transition: all 0.2s ease; border-radius: 10px; padding: 0 12px; }
-                .dark .input-modern { background: rgba(30, 41, 59, 0.4); border-color: #334155; }
-                .input-modern:focus { border-color: #3B82F6; background: rgba(59, 130, 246, 0.04); }
-                .map-card { border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-                .dark .map-card { box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-                .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
-                .badge-card { background: white; border: 1px solid #f1f5f9; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-                .dark .badge-card { background: #1e293b; border-color: #334155; }
-                .data-table th { font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 600; padding: 10px 14px; border-bottom: 1px solid #e2e8f0; text-align: left; letter-spacing: 0.05em; }
-                .dark .data-table th { border-color: #334155; color: #94a3b8; }
-                .data-table td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 12px; font-weight: 500; }
-                .dark .data-table td { border-color: #1e293b; }
-                .data-row:hover { background-color: #f8fafc; }
-                .dark .data-row:hover { background-color: #1e293b/50; }
-                .modal-overlay { background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); }
+                .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #dadce0; border-radius: 9999px; }
+                .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #5f6368; }
+                .modal-overlay { background: rgba(32, 33, 36, 0.6); backdrop-filter: blur(4px); }
             `}</style>
 
-            {toast.show && <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[10000] animate-in fade-in slide-in-from-top-4 duration-300"><div className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl rounded-xl flex items-center gap-2.5"><div className={`size-2 rounded-full ${toast.type === 'success' ? 'bg-emerald-400' : 'bg-red-400'} animate-pulse`}></div><p className="text-[10px] font-semibold uppercase tracking-wider">{toast.message}</p></div></div>}
+            {toast.show && (
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[10000] animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="px-4 py-2.5 bg-[#202124] dark:bg-[#e8eaed] text-white dark:text-[#202124] shadow-lg rounded-full flex items-center gap-2.5 border border-[#3c4043] dark:border-transparent">
+                        <div className={`size-2 rounded-full ${toast.type === 'success' ? 'bg-[#34a853]' : 'bg-[#ea4335]'} animate-pulse`}></div>
+                        <p className="text-xs font-medium tracking-normal">{toast.message}</p>
+                    </div>
+                </div>
+            )}
 
-            <main className="flex-1 p-3 md:p-4 flex flex-col h-screen overflow-hidden">
-                <div className="max-w-6xl mx-auto w-full flex flex-col h-full overflow-hidden">
-                    <header className="flex flex-wrap items-center justify-between mb-4 gap-3">
-                        <div className="flex items-center gap-2">
-                            <span className="material-icons-round text-primary text-xl">
-                                {activeTab === 'general' ? 'info' : activeTab === 'users' ? 'groups' : activeTab === 'guests' ? 'recent_actors' : 'favorite'}
-                            </span>
-                            <h1 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                                <span>{L('title')}</span>
-                                <span className="text-slate-300 dark:text-slate-700">/</span>
-                                <span className="text-primary font-bold">
-                                    {activeTab === 'general' ? L('tabGeneral') : activeTab === 'users' ? L('tabUsers') : activeTab === 'guests' ? L('tabGuests') : L('tabFavorites')}
-                                </span>
-                            </h1>
-                        </div>
+            <main className="flex-1 p-4 md:p-6 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#202124]">
+                <div className="max-w-7xl mx-auto w-full flex flex-col h-full min-h-0">
+                    <header className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-4 shrink-0">
                         <div className="flex items-center gap-3">
-                            <HeaderActions />
+                            <div className="w-10 h-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
+                                <span className="material-symbols-outlined text-[24px]">corporate_fare</span>
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-medium text-[#202124] dark:text-[#e8eaed] tracking-tight">{L('title')}</h1>
+                                <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">
+                                    {activeTab === 'general' ? L('tabGeneral') : activeTab === 'users' ? L('tabUsers') : activeTab === 'guests' ? L('tabGuests') : L('tabFavorites')}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Google Material Workspace Tabs */}
+                        <div className="flex items-center gap-1 p-1 bg-white dark:bg-[#303134] rounded-full border border-[#dadce0] dark:border-[#5f6368] shadow-xs overflow-x-auto">
+                            {[
+                                { id: 'general', icon: 'info', label: L('tabGeneral') },
+                                { id: 'users', icon: 'groups', label: L('tabUsers') },
+                                { id: 'guests', icon: 'recent_actors', label: L('tabGuests') },
+                                { id: 'favorites', icon: 'favorite', label: L('tabFavorites') },
+                            ].map((tab) => {
+                                const isCurrent = activeTab === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setActiveTab(tab.id);
+                                            setSearchParams({ tab: tab.id });
+                                        }}
+                                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${isCurrent
+                                                ? 'bg-[#e8f0fe] text-[#1a73e8] font-semibold dark:bg-[#1a73e8]/25 dark:text-[#8ab4f8]'
+                                                : 'text-[#5f6368] dark:text-[#bdc1c6] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]'
+                                            }`}
+                                    >
+                                        <span className={`material-symbols-outlined text-[18px] ${isCurrent ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>{tab.icon}</span>
+                                        <span>{tab.label}</span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </header>
 
                     <div className="flex-1 min-h-0 h-full overflow-hidden">
                         {activeTab === 'general' ? (
-                            <div className="h-full flex gap-5 overflow-hidden pb-3">
+                            <div className="h-full flex flex-col lg:flex-row gap-5 overflow-hidden pb-2">
                                 {/* Left Sidebar Info */}
-                                <div className="w-[300px] flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1 flex-shrink-0">
+                                <div className="w-full lg:w-[320px] flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1 flex-shrink-0">
                                     {/* Agency Identity Card */}
-                                    <div className="bg-gradient-to-br from-white via-slate-50/60 to-blue-50/40 dark:from-slate-900 dark:to-slate-800/90 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs relative overflow-hidden flex-shrink-0">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
-                                        <div className="flex items-center justify-between mb-3 relative z-10">
-                                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs ${formData.agencyType === 'GSA' ? 'bg-primary text-white' : 'bg-emerald-500 text-white'}`}>
-                                                {formData.agencyType}
+                                    <div className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-5 shadow-xs relative overflow-hidden flex-shrink-0">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="px-3 py-1 rounded-full text-[11px] font-medium tracking-wide bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
+                                                {formData.agencyType || 'AGENCY'}
                                             </span>
-                                            <div className="size-7 bg-primary/10 text-primary dark:bg-primary/20 rounded-xl flex items-center justify-center shadow-xs">
-                                                <span className="material-icons-round text-base">corporate_fare</span>
+                                            <div className="size-8 rounded-full bg-[#f1f3f4] dark:bg-[#202124] text-[#5f6368] dark:text-[#9aa0a6] flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-[18px]">domain</span>
                                             </div>
                                         </div>
-                                        <div className="mb-3 relative z-10">
-                                            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">{L('agencyName')}</p>
-                                            <h2 className="text-base font-bold truncate text-slate-900 dark:text-white">{formData.name || 'Your Agency'}</h2>
+                                        <div className="mb-3">
+                                            <p className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider mb-1">{L('agencyName')}</p>
+                                            <h2 className="text-base font-medium truncate text-[#202124] dark:text-[#e8eaed]">{formData.name || 'Your Agency'}</h2>
                                             {formData.officialTitle && (
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate mt-0.5">{formData.officialTitle}</p>
+                                                <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] truncate mt-0.5">{formData.officialTitle}</p>
                                             )}
                                         </div>
-                                        <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs relative z-10">
+                                        <div className="space-y-2.5 pt-3 border-t border-[#f1f3f4] dark:border-[#3c4043] text-xs">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-slate-400 text-[11px] font-semibold">{L('baseLocation')}:</span>
-                                                <span className="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[140px] text-right">{formData.cityName}, {formData.countryName}</span>
+                                                <span className="text-[#5f6368] dark:text-[#9aa0a6] text-xs">{L('baseLocation')}:</span>
+                                                <span className="font-medium text-[#202124] dark:text-[#e8eaed] truncate max-w-[150px] text-right">{formData.cityName}, {formData.countryName}</span>
                                             </div>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-slate-400 text-[11px] font-semibold">{L('currency')}:</span>
-                                                <span className="font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md text-[11px]">{formData.currency}</span>
+                                                <span className="text-[#5f6368] dark:text-[#9aa0a6] text-xs">{L('currency')}:</span>
+                                                <span className="font-medium text-[#1a73e8] dark:text-[#8ab4f8] bg-[#e8f0fe] dark:bg-[#1a73e8]/20 px-2.5 py-0.5 rounded-full text-[11px]">{formData.currency}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Audit & Timeline Card */}
-                                    <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex-shrink-0">
+                                    <div className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-4 shadow-xs flex-shrink-0">
                                         <div className="flex items-center gap-2 mb-3">
-                                            <div className="size-6 bg-slate-100 dark:bg-slate-800 rounded-md flex items-center justify-center text-slate-500">
-                                                <span className="material-icons-round text-sm">history</span>
+                                            <div className="size-7 bg-[#f1f3f4] dark:bg-[#202124] rounded-full flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6]">
+                                                <span className="material-symbols-outlined text-[16px]">history</span>
                                             </div>
-                                            <h3 className="text-xs font-semibold text-slate-800 dark:text-white uppercase tracking-wider">{L('auditTimeline')}</h3>
+                                            <h3 className="text-xs font-semibold text-[#202124] dark:text-[#e8eaed] uppercase tracking-wider">{L('auditTimeline')}</h3>
                                         </div>
                                         <div className="space-y-3 text-xs">
                                             <div className="flex items-start gap-2.5">
-                                                <div className="size-2 bg-primary rounded-full mt-1 shrink-0"></div>
+                                                <div className="size-2 bg-[#1a73e8] rounded-full mt-1 shrink-0"></div>
                                                 <div>
-                                                    <p className="text-[10px] font-semibold text-slate-400 uppercase">{L('created')}</p>
-                                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{new Date(formData.createDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
-                                                    <p className="text-[10px] text-slate-400 italic">by {formData.createdBy}</p>
+                                                    <p className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase">{L('created')}</p>
+                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">{new Date(formData.createDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
+                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] italic">by {formData.createdBy}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-start gap-2.5">
-                                                <div className="size-2 bg-emerald-500 rounded-full mt-1 shrink-0"></div>
+                                                <div className="size-2 bg-[#137333] rounded-full mt-1 shrink-0"></div>
                                                 <div>
-                                                    <p className="text-[10px] font-semibold text-slate-400 uppercase">{L('lastUpdate')}</p>
-                                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{new Date(formData.updateDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
-                                                    <p className="text-[10px] text-slate-400 italic">by {formData.updatedBy}</p>
+                                                    <p className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase">{L('lastUpdate')}</p>
+                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">{new Date(formData.updateDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
+                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] italic">by {formData.updatedBy}</p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     {/* Map Preview */}
-                                    <div className="map-card h-[180px] relative group border border-slate-200 dark:border-slate-800 flex-shrink-0">
+                                    <div className="h-[185px] relative group rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs flex-shrink-0 bg-white dark:bg-[#303134]">
                                         <MapContainer center={mapCenter} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
                                             <ChangeView center={mapCenter} zoom={zoom} />
                                             <TileLayer attribution='&copy; CARTO' url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
                                             <LocationMarker position={[formData.latitude, formData.longitude]} setPosition={setMapLocation} />
                                         </MapContainer>
-                                        <div className="absolute bottom-3 right-3 z-[1000] opacity-0 group-hover:opacity-100 transition-all">
-                                            <button onClick={openInMaps} className="size-7 bg-white dark:bg-slate-900 rounded-lg shadow-md flex items-center justify-center text-primary hover:scale-105 active:scale-95 transition-all">
-                                                <span className="material-icons-round text-sm">open_in_new</span>
+                                        <div className="absolute bottom-3 right-3 z-[1000] opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={openInMaps} className="h-8 px-3 bg-white dark:bg-[#202124] rounded-full shadow-md border border-[#dadce0] dark:border-[#5f6368] flex items-center gap-1.5 text-xs font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] active:scale-95 transition-all cursor-pointer">
+                                                <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                                                <span>Google Maps</span>
                                             </button>
                                         </div>
                                     </div>
 
                                     {/* Agency Logo Card */}
-                                    <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs flex-shrink-0">
+                                    <div className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl overflow-hidden shadow-xs flex-shrink-0 p-4">
                                         {/* Header */}
-                                        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                                        <div className="flex items-center justify-between pb-3 border-b border-[#f1f3f4] dark:border-[#3c4043]">
                                             <div className="flex items-center gap-2">
-                                                <div className="size-6 bg-primary/10 rounded-md flex items-center justify-center">
-                                                    <span className="material-icons-round text-primary text-sm">image</span>
+                                                <div className="size-7 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-full flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
+                                                    <span className="material-symbols-outlined text-[16px]">image</span>
                                                 </div>
-                                                <h3 className="text-xs font-semibold text-slate-800 dark:text-white uppercase tracking-wider">{L('agencyLogo')}</h3>
+                                                <h3 className="text-xs font-semibold text-[#202124] dark:text-[#e8eaed] uppercase tracking-wider">{L('agencyLogo')}</h3>
                                             </div>
                                             {logoUrl && !logoLoading && (
                                                 <div className="flex items-center gap-1">
@@ -1378,25 +1396,25 @@ const MyOffice = () => {
                                                         onClick={() => logoInputRef.current?.click()}
                                                         disabled={logoUploading}
                                                         title={L('changeLogo')}
-                                                        className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors disabled:opacity-50"
+                                                        className="size-7 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] dark:text-[#9aa0a6] transition-colors disabled:opacity-50 cursor-pointer"
                                                     >
-                                                        <span className="material-icons-round text-base">edit</span>
+                                                        <span className="material-symbols-outlined text-[18px]">edit</span>
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={handleDeleteLogo}
                                                         disabled={logoUploading}
                                                         title={L('deleteLogo')}
-                                                        className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                                                        className="size-7 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#fce8e6] hover:text-[#d93025] dark:hover:bg-[#c5221f]/20 transition-colors disabled:opacity-50 cursor-pointer"
                                                     >
-                                                        <span className="material-icons-round text-base">delete_outline</span>
+                                                        <span className="material-symbols-outlined text-[18px]">delete</span>
                                                     </button>
                                                 </div>
                                             )}
                                         </div>
 
                                         {/* Logo display / upload area */}
-                                        <div className="p-4">
+                                        <div className="pt-3">
                                             <input
                                                 ref={logoInputRef}
                                                 type="file"
@@ -1406,14 +1424,14 @@ const MyOffice = () => {
                                             />
 
                                             {logoLoading ? (
-                                                <div className="w-full h-[100px] rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                                <div className="w-full h-[100px] rounded-xl bg-[#f8f9fa] dark:bg-[#202124] flex items-center justify-center">
                                                     <div className="flex flex-col items-center gap-2">
-                                                        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                                        <span className="text-[10px] text-slate-400 font-medium">{L('processing')}</span>
+                                                        <div className="w-5 h-5 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
+                                                        <span className="text-[10px] text-[#5f6368] font-medium">{L('processing')}</span>
                                                     </div>
                                                 </div>
                                             ) : logoUrl ? (
-                                                <div className="relative w-full h-[100px] rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 flex items-center justify-center group">
+                                                <div className="relative w-full h-[100px] rounded-xl overflow-hidden bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-center group p-2">
                                                     <img
                                                         src={logoUrl}
                                                         alt={L('agencyLogo')}
@@ -1421,10 +1439,10 @@ const MyOffice = () => {
                                                         style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                                                     />
                                                     {logoUploading && (
-                                                        <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 flex items-center justify-center rounded-xl">
+                                                        <div className="absolute inset-0 bg-white/80 dark:bg-[#202124]/80 flex items-center justify-center rounded-xl">
                                                             <div className="flex flex-col items-center gap-2">
-                                                                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                                                <span className="text-[10px] text-slate-500 font-medium">{L('processing')}</span>
+                                                                <div className="w-5 h-5 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
+                                                                <span className="text-[10px] text-[#5f6368] font-medium">{L('processing')}</span>
                                                             </div>
                                                         </div>
                                                     )}
@@ -1434,21 +1452,21 @@ const MyOffice = () => {
                                                     type="button"
                                                     onClick={() => logoInputRef.current?.click()}
                                                     disabled={logoUploading}
-                                                    className="w-full h-[100px] rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-primary dark:hover:border-primary bg-slate-50/50 dark:bg-slate-800/30 hover:bg-primary/5 transition-all duration-200 flex flex-col items-center justify-center gap-2 group disabled:opacity-60 disabled:cursor-not-allowed"
+                                                    className="w-full h-[100px] rounded-xl border border-dashed border-[#dadce0] dark:border-[#5f6368] hover:border-[#1a73e8] dark:hover:border-[#8ab4f8] bg-[#f8f9fa] dark:bg-[#202124] hover:bg-[#f8fafd] dark:hover:bg-[#1a73e8]/10 transition-colors flex flex-col items-center justify-center gap-1.5 group disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                                                 >
                                                     {logoUploading ? (
                                                         <>
-                                                            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                                            <span className="text-[10px] font-semibold text-slate-400">{L('processing')}</span>
+                                                            <div className="w-5 h-5 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
+                                                            <span className="text-[10px] font-medium text-[#5f6368]">{L('processing')}</span>
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <div className="size-9 rounded-xl bg-slate-100 dark:bg-slate-700 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
-                                                                <span className="material-icons-round text-slate-400 group-hover:text-primary transition-colors text-lg">add_photo_alternate</span>
+                                                            <div className="size-8 rounded-full bg-white dark:bg-[#303134] text-[#5f6368] group-hover:text-[#1a73e8] group-hover:bg-[#e8f0fe] dark:group-hover:bg-[#1a73e8]/20 flex items-center justify-center transition-colors border border-[#dadce0] dark:border-[#3c4043]">
+                                                                <span className="material-symbols-outlined text-[20px]">add_photo_alternate</span>
                                                             </div>
                                                             <div className="text-center">
-                                                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 group-hover:text-primary transition-colors leading-tight">{L('agencyLogoPlaceholder')}</p>
-                                                                <p className="text-[9px] text-slate-400 mt-0.5">{L('clickToUpload')}</p>
+                                                                <p className="text-[11px] font-medium text-[#202124] dark:text-[#e8eaed] group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors leading-tight">{L('agencyLogoPlaceholder')}</p>
+                                                                <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] mt-0.5">{L('clickToUpload')}</p>
                                                             </div>
                                                         </>
                                                     )}
@@ -1456,19 +1474,19 @@ const MyOffice = () => {
                                             )}
 
                                             {/* Requirements info */}
-                                            <div className="mt-3 space-y-1">
-                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">{L('logoRequirementsTitle')}</p>
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="material-icons-round text-[10px] text-slate-400">aspect_ratio</span>
-                                                    <span className="text-[9px] text-slate-400 font-medium">{L('logoMaxRatioInfo')}</span>
+                                            <div className="mt-3 space-y-1.5 pt-2 border-t border-[#f1f3f4] dark:border-[#3c4043]">
+                                                <p className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">{L('logoRequirementsTitle')}</p>
+                                                <div className="flex items-center gap-1.5 text-[#5f6368] dark:text-[#9aa0a6]">
+                                                    <span className="material-symbols-outlined text-[13px]">aspect_ratio</span>
+                                                    <span className="text-[10px]">{L('logoMaxRatioInfo')}</span>
                                                 </div>
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="material-icons-round text-[10px] text-slate-400">storage</span>
-                                                    <span className="text-[9px] text-slate-400 font-medium">{L('logoMaxSizeInfo')}</span>
+                                                <div className="flex items-center gap-1.5 text-[#5f6368] dark:text-[#9aa0a6]">
+                                                    <span className="material-symbols-outlined text-[13px]">storage</span>
+                                                    <span className="text-[10px]">{L('logoMaxSizeInfo')}</span>
                                                 </div>
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="material-icons-round text-[10px] text-slate-400">image</span>
-                                                    <span className="text-[9px] text-slate-400 font-medium">{L('logoFormatsInfo')}</span>
+                                                <div className="flex items-center gap-1.5 text-[#5f6368] dark:text-[#9aa0a6]">
+                                                    <span className="material-symbols-outlined text-[13px]">image</span>
+                                                    <span className="text-[10px]">{L('logoFormatsInfo')}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -1477,113 +1495,121 @@ const MyOffice = () => {
 
                                 {/* Right Structured Information Grid */}
                                 <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6">
                                         {/* Section 01: Agency Identity */}
-                                        <div className="bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
-                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-                                                <span className="material-icons-round text-primary text-base">badge</span>
-                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">{L('sec01')}</h3>
+                                        <div className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-xs transition-shadow hover:shadow-sm">
+                                            <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-[#f1f3f4] dark:border-[#3c4043]">
+                                                <div className="size-7 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center shrink-0">
+                                                    <span className="material-symbols-outlined text-[18px]">badge</span>
+                                                </div>
+                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#202124] dark:text-[#e8eaed]">{L('sec01')}</h3>
                                             </div>
-                                            <div className="space-y-2.5">
+                                            <div className="space-y-3">
                                                 <div>
-                                                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('agencyName')}</label>
-                                                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.name || '-'}</p>
+                                                    <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('agencyName')}</label>
+                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.name || '-'}</p>
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('officialTitle')}</label>
-                                                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.officialTitle || '-'}</p>
+                                                    <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('officialTitle')}</label>
+                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.officialTitle || '-'}</p>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-2">
+                                                <div className="grid grid-cols-2 gap-3">
                                                     <div>
-                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('type')}</label>
-                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.agencyType || '-'}</p>
+                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('type')}</label>
+                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.agencyType || '-'}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('language')}</label>
-                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.defaultLanguage === 'TR' ? 'Turkish' : 'English'}</p>
+                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('language')}</label>
+                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.defaultLanguage === 'TR' ? 'Turkish' : 'English'}</p>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Section 02: Contact Details */}
-                                        <div className="bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
-                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-                                                <span className="material-icons-round text-indigo-500 text-base">contact_phone</span>
-                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">{L('sec02')}</h3>
+                                        <div className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-xs transition-shadow hover:shadow-sm">
+                                            <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-[#f1f3f4] dark:border-[#3c4043]">
+                                                <div className="size-7 rounded-full bg-[#e6f4ea] dark:bg-[#137333]/20 text-[#137333] dark:text-[#81c995] flex items-center justify-center shrink-0">
+                                                    <span className="material-symbols-outlined text-[18px]">contact_phone</span>
+                                                </div>
+                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#202124] dark:text-[#e8eaed]">{L('sec02')}</h3>
                                             </div>
-                                            <div className="space-y-2.5">
+                                            <div className="space-y-3">
                                                 <div>
-                                                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('directEmail')}</label>
-                                                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.email || '-'}</p>
+                                                    <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('directEmail')}</label>
+                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.email || '-'}</p>
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('phone')}</label>
-                                                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">+{formData.phoneCountryCode} {formData.phoneNumber || '-'}</p>
+                                                    <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('phone')}</label>
+                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">+{formData.phoneCountryCode} {formData.phoneNumber || '-'}</p>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Section 03: Geography & Location */}
-                                        <div className="bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
-                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-                                                <span className="material-icons-round text-emerald-500 text-base">place</span>
-                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">{L('sec03')}</h3>
+                                        <div className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-xs transition-shadow hover:shadow-sm">
+                                            <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-[#f1f3f4] dark:border-[#3c4043]">
+                                                <div className="size-7 rounded-full bg-[#fce8e6] dark:bg-[#c5221f]/20 text-[#c5221f] dark:text-[#f28b82] flex items-center justify-center shrink-0">
+                                                    <span className="material-symbols-outlined text-[18px]">place</span>
+                                                </div>
+                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#202124] dark:text-[#e8eaed]">{L('sec03')}</h3>
                                             </div>
-                                            <div className="space-y-2.5">
-                                                <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-3">
+                                                <div className="grid grid-cols-2 gap-3">
                                                     <div>
-                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('country')}</label>
-                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80 truncate">{formData.countryName || '-'}</p>
+                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('country')}</label>
+                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043] truncate">{formData.countryName || '-'}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('city')}</label>
-                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80 truncate">{formData.cityName || '-'}</p>
+                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('city')}</label>
+                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043] truncate">{formData.cityName || '-'}</p>
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-4 gap-2">
+                                                <div className="grid grid-cols-4 gap-3">
                                                     <div className="col-span-3">
-                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('streetAddress')}</label>
-                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80 truncate">{formData.address || '-'}</p>
+                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('streetAddress')}</label>
+                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043] truncate">{formData.address || '-'}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('zipCode')}</label>
-                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80 text-center">{formData.zipCode || '-'}</p>
+                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('zipCode')}</label>
+                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043] text-center">{formData.zipCode || '-'}</p>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Section 04: Finance */}
-                                        <div className="bg-white/80 dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
-                                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100 dark:border-slate-800">
-                                                <span className="material-icons-round text-amber-500 text-base">payments</span>
-                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">{L('sec04')}</h3>
+                                        <div className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-xs transition-shadow hover:shadow-sm">
+                                            <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-[#f1f3f4] dark:border-[#3c4043]">
+                                                <div className="size-7 rounded-full bg-[#fef7e0] dark:bg-[#ea8600]/20 text-[#b06000] dark:text-[#fdd663] flex items-center justify-center shrink-0">
+                                                    <span className="material-symbols-outlined text-[18px]">payments</span>
+                                                </div>
+                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#202124] dark:text-[#e8eaed]">{L('sec04')}</h3>
                                             </div>
-                                            <div className="space-y-2.5">
-                                                <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-3">
+                                                <div className="grid grid-cols-2 gap-3">
                                                     <div>
-                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('taxOffice')}</label>
-                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.taxOffice || '-'}</p>
+                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('taxOffice')}</label>
+                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.taxOffice || '-'}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('taxNumber')}</label>
-                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.taxNumber || '-'}</p>
+                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('taxNumber')}</label>
+                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.taxNumber || '-'}</p>
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-2">
+                                                <div className="grid grid-cols-2 gap-3">
                                                     <div>
-                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('accEmail')}</label>
-                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80 truncate">{formData.agencyFinancialInfo?.email || '-'}</p>
+                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('accEmail')}</label>
+                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043] truncate">{formData.agencyFinancialInfo?.email || '-'}</p>
                                                     </div>
                                                     <div>
-                                                        <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('accPhone')}</label>
-                                                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80">{formData.agencyFinancialInfo?.phoneCountryCode ? `+${formData.agencyFinancialInfo.phoneCountryCode} ${formData.agencyFinancialInfo.phoneNumber || ''}` : '-'}</p>
+                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('accPhone')}</label>
+                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.agencyFinancialInfo?.phoneCountryCode ? `+${formData.agencyFinancialInfo.phoneCountryCode} ${formData.agencyFinancialInfo.phoneNumber || ''}` : '-'}</p>
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">{L('accAddress')}</label>
-                                                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-800/80 truncate">{formData.agencyFinancialInfo?.address || '-'}</p>
+                                                    <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('accAddress')}</label>
+                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043] truncate">{formData.agencyFinancialInfo?.address || '-'}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -1594,58 +1620,58 @@ const MyOffice = () => {
                             <div className="h-full flex flex-col gap-4 overflow-hidden">
                                 {/* User Summary Cards */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                                    <div className="bg-[#eff6ff] dark:bg-blue-900/10 p-3 rounded-xl border border-blue-100/50 dark:border-blue-800/20 shadow-xs">
+                                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[9px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{L('totalUsers')}</span>
-                                            <div className="size-6 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center text-blue-600 shadow-xs">
-                                                <span className="material-icons-round text-sm">groups</span>
+                                            <span className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">{L('totalUsers')}</span>
+                                            <div className="size-8 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-full flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
+                                                <span className="material-symbols-outlined text-[18px]">groups</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-end gap-1.5">
-                                            <div className="text-xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalCount}</div>
-                                            <div className="text-[9px] font-semibold text-blue-400 mb-0.5">MEMBERS</div>
+                                        <div className="flex items-end gap-2">
+                                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">{statsLoading ? '...' : summary.totalCount}</div>
+                                            <div className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] mb-0.5">MEMBERS</div>
                                         </div>
                                     </div>
-                                    
-                                    <div className="bg-[#f0fdf4] dark:bg-emerald-900/10 p-3 rounded-xl border border-emerald-100/50 dark:border-emerald-800/20 shadow-xs">
+
+                                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">{L('activeUsers')}</span>
-                                            <div className="size-6 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center text-emerald-600 shadow-xs">
-                                                <span className="material-icons-round text-sm">person_check</span>
+                                            <span className="text-[11px] font-medium text-[#137333] dark:text-[#81c995] uppercase tracking-wider">{L('activeUsers')}</span>
+                                            <div className="size-8 bg-[#e6f4ea] dark:bg-[#137333]/20 rounded-full flex items-center justify-center text-[#137333] dark:text-[#81c995]">
+                                                <span className="material-symbols-outlined text-[18px]">person_check</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-end gap-1.5">
-                                            <div className="text-xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.activeCount}</div>
-                                            <div className="text-[9px] font-semibold text-emerald-400 mb-0.5">ONLINE</div>
+                                        <div className="flex items-end gap-2">
+                                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">{statsLoading ? '...' : summary.activeCount}</div>
+                                            <div className="text-[10px] font-medium text-[#137333] dark:text-[#81c995] mb-0.5">ACTIVE</div>
                                         </div>
                                     </div>
-                                    
-                                    <div className="bg-[#fef2f2] dark:bg-red-900/10 p-3 rounded-xl border border-red-100/50 dark:border-red-800/20 shadow-xs">
+
+                                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[9px] font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider">{L('passiveUsers')}</span>
-                                            <div className="size-6 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center text-red-600 shadow-xs">
-                                                <span className="material-icons-round text-sm">person_off</span>
+                                            <span className="text-[11px] font-medium text-[#c5221f] dark:text-[#f28b82] uppercase tracking-wider">{L('passiveUsers')}</span>
+                                            <div className="size-8 bg-[#fce8e6] dark:bg-[#c5221f]/20 rounded-full flex items-center justify-center text-[#c5221f] dark:text-[#f28b82]">
+                                                <span className="material-symbols-outlined text-[18px]">person_off</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-end gap-1.5">
-                                            <div className="text-xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.passiveCount}</div>
-                                            <div className="text-[9px] font-semibold text-red-400 mb-0.5">DISABLED</div>
+                                        <div className="flex items-end gap-2">
+                                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">{statsLoading ? '...' : summary.passiveCount}</div>
+                                            <div className="text-[10px] font-medium text-[#c5221f] dark:text-[#f28b82] mb-0.5">DISABLED</div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex-1 flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
-                                    <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                                        <div className="flex items-center gap-3 flex-1 max-w-xl">
+                                <div className="flex-1 flex flex-col bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs">
+                                    <div className="p-3.5 sm:p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3">
+                                        <div className="flex items-center gap-2.5 flex-1 max-w-xl">
                                             <div className="relative flex-1">
-                                                <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
-                                                <input type="text" placeholder={L('searchUsers')} value={userFilters.query} onChange={(e) => handleUserFilterChange({ ...userFilters, query: e.target.value })} className="w-full h-9 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 text-xs font-semibold outline-none focus:border-primary transition-colors" />
+                                                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
+                                                <input type="text" placeholder={L('searchUsers')} value={userFilters.query} onChange={(e) => handleUserFilterChange({ ...userFilters, query: e.target.value })} className="w-full h-10 bg-[#f1f3f4] dark:bg-[#202124] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#303134] rounded-full pl-10 pr-4 text-xs font-normal text-[#202124] dark:text-[#e8eaed] outline-none transition-all placeholder-[#5f6368] dark:placeholder-[#9aa0a6]" />
                                             </div>
-                                            <select value={userFilters.roleIds[0] || ''} onChange={(e) => handleUserFilterChange({ ...userFilters, roleIds: e.target.value ? [parseInt(e.target.value)] : [] })} className="h-9 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none cursor-pointer">
+                                            <select value={userFilters.roleIds[0] || ''} onChange={(e) => handleUserFilterChange({ ...userFilters, roleIds: e.target.value ? [parseInt(e.target.value)] : [] })} className="h-10 px-3.5 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#3c4043] dark:text-[#bdc1c6] focus:border-[#1a73e8] outline-none cursor-pointer">
                                                 <option value="">{L('allRoles')}</option>
                                                 {roles.map(r => <option key={r.id} value={r.id}>{r.roleName || r.name}</option>)}
                                             </select>
-                                            <select value={userFilters.status} onChange={(e) => handleUserFilterChange({ ...userFilters, status: e.target.value })} className="h-9 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none cursor-pointer">
+                                            <select value={userFilters.status} onChange={(e) => handleUserFilterChange({ ...userFilters, status: e.target.value })} className="h-10 px-3.5 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#3c4043] dark:text-[#bdc1c6] focus:border-[#1a73e8] outline-none cursor-pointer">
                                                 <option value="ACTIVE">Active</option>
                                                 <option value="PASSIVE">Passive</option>
                                             </select>
@@ -1654,56 +1680,128 @@ const MyOffice = () => {
                                             <button
                                                 onClick={handleExportUsersExcel}
                                                 disabled={isExportingUserExcel || isExportingUserPdf || usersLoading}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                                className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#137333] dark:text-[#81c995] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
                                                 title="Export all matching records to Excel"
                                             >
                                                 {isExportingUserExcel ? (
-                                                    <div className="size-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                                    <div className="size-3.5 border-2 border-[#137333] border-t-transparent rounded-full animate-spin"></div>
                                                 ) : (
-                                                    <span className="material-icons-round text-base">grid_on</span>
+                                                    <span className="material-symbols-outlined text-[18px]">table_view</span>
                                                 )}
-                                                {isExportingUserExcel ? L('exporting') : L('exportExcel')}
+                                                <span>{isExportingUserExcel ? L('exporting') : L('exportExcel')}</span>
                                             </button>
 
                                             <button
                                                 onClick={handleExportUsersPdf}
                                                 disabled={isExportingUserExcel || isExportingUserPdf || usersLoading}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 rounded-xl text-xs font-semibold text-rose-700 dark:text-rose-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                                className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#c5221f] dark:text-[#f28b82] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
                                                 title="Export all matching records to PDF"
                                             >
                                                 {isExportingUserPdf ? (
-                                                    <div className="size-3.5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
+                                                    <div className="size-3.5 border-2 border-[#c5221f] border-t-transparent rounded-full animate-spin"></div>
                                                 ) : (
-                                                    <span className="material-icons-round text-base">picture_as_pdf</span>
+                                                    <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                                                 )}
-                                                {isExportingUserPdf ? L('exporting') : L('exportPdf')}
+                                                <span>{isExportingUserPdf ? L('exporting') : L('exportPdf')}</span>
                                             </button>
 
                                             <button
                                                 onClick={() => fetchUsersData(true)}
                                                 disabled={usersLoading}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                                                className="size-10 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50"
+                                                title={L('refresh')}
                                             >
-                                                <span className={`material-icons-round text-base ${usersLoading ? 'animate-spin' : ''}`}>refresh</span>
-                                                {L('refresh')}
+                                                <span className={`material-symbols-outlined text-[18px] ${usersLoading ? 'animate-spin' : ''}`}>refresh</span>
                                             </button>
 
-                                            <button onClick={openAddUser} className="h-9 px-4 bg-primary text-white rounded-xl text-xs font-semibold shadow-md shadow-primary/20 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"><span className="material-icons-round text-base">add</span> {L('addUser')}</button>
+                                            <button onClick={openAddUser} className="h-10 px-5 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium flex items-center gap-1.5 shadow-none hover:shadow-xs active:scale-95 transition-all cursor-pointer"><span className="material-symbols-outlined text-[18px]">add</span> {L('addUser')}</button>
                                         </div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto custom-scrollbar">
                                         <table className="w-full border-collapse">
-                                            <thead className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 backdrop-blur-md">
+                                            <thead className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] sticky top-0 z-10">
                                                 <tr>
-                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colUser')}</th>
-                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colContact')}</th>
-                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colRole')}</th>
-                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colStatus')}</th>
-                                                    <th className="px-3.5 py-2.5 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colActions')}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colUser')}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colContact')}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colRole')}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colStatus')}</th>
+                                                    <th className="px-4 py-3 text-right text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colActions')}</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="">
-                                                {usersLoading ? <TableSkeleton columns={5} /> : users.length > 0 ? users.map((u) => (<tr key={u.id} className="odd:bg-white dark:odd:bg-slate-900/80 even:bg-slate-50/80 dark:even:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-b border-slate-100 dark:border-slate-800/60 text-[11px] group"><td className="px-3.5 py-2.5"><div className="flex items-center gap-2.5"><div className="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-xs bg-[#f0edff] dark:bg-violet-950/50 text-[#7c3aed] dark:text-violet-300 border border-violet-200/60 dark:border-violet-800/40 shadow-2xs shrink-0 relative"><span className="uppercase text-[13px] tracking-tight">{u.name?.[0] || 'U'}{u.surname?.[0] || ''}</span><span className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-[#8b5cf6] text-white flex items-center justify-center ring-2 ring-white dark:ring-slate-900 shadow-2xs"><span className="material-icons-round text-[10px] select-none leading-none">person</span></span></div><div><p className="font-semibold text-slate-800 dark:text-slate-200 text-xs leading-none mb-1">{u.name} {u.surname}</p><p className="text-[10px] text-slate-400 font-mono">ID: #{u.id}</p></div></div></td><td className="px-3.5 py-2.5"><div className="space-y-0.5"><div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs"><span className="material-icons-round text-xs text-slate-400">mail_outline</span> {u.email}</div>{u.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{u.phoneCountryCode} {u.phoneNumber}</div>}</div></td><td className="px-3.5 py-2.5"><div className="flex flex-wrap gap-1">{u.roles?.length > 0 ? u.roles.map((r, idx) => (<span key={r.id || idx} className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-primary text-[10px] font-medium rounded-md">{r.roleName || r.name}</span>)) : <span className="text-slate-400 text-[10px] italic">No Role</span>}</div></td><td className="px-3.5 py-2.5"><div className="flex items-center gap-2"><button type="button" onClick={() => handleToggleUserStatus(u)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${u.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={u.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}><span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${u.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} /></button><span className={`text-[11px] font-medium ${u.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{u.status === 'ACTIVE' ? 'Active' : 'Passive'}</span></div></td><td className="px-3.5 py-2.5 text-right"><div className="flex items-center justify-end gap-1"><button onClick={() => openEditUser(u)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button><button onClick={() => handleDeleteUser(u.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button></div></td></tr>)) : (<tr><td colSpan="5" className="px-4 py-12 text-center"><p className="text-slate-400 text-xs font-medium italic">No users found</p></td></tr>)}
+                                            <tbody>
+                                                {usersLoading ? <TableSkeleton columns={5} /> : users.length > 0 ? users.map((u) => (
+                                                    <tr key={u.id} className="hover:bg-[#f8f9fa] dark:hover:bg-[#202124]/50 transition-colors border-b border-[#f1f3f4] dark:border-[#3c4043] text-xs">
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="size-9 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium text-xs flex items-center justify-center shrink-0">
+                                                                    <span className="uppercase">{u.name?.[0] || 'U'}{u.surname?.[0] || ''}</span>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-medium text-[#202124] dark:text-[#e8eaed] leading-tight mb-0.5">{u.name} {u.surname}</p>
+                                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">ID: #{u.id}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <div className="space-y-0.5 text-xs">
+                                                                <div className="flex items-center gap-1.5 text-[#3c4043] dark:text-[#e8eaed]">
+                                                                    <span className="material-symbols-outlined text-[15px] text-[#5f6368] dark:text-[#9aa0a6]">mail</span>
+                                                                    <span>{u.email}</span>
+                                                                </div>
+                                                                {u.phoneNumber && (
+                                                                    <div className="flex items-center gap-1.5 text-[#5f6368] dark:text-[#9aa0a6] text-[11px]">
+                                                                        <span className="material-symbols-outlined text-[15px]">call</span>
+                                                                        <span>+{u.phoneCountryCode} {u.phoneNumber}</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {u.roles?.length > 0 ? u.roles.map((r, idx) => (
+                                                                    <span key={r.id || idx} className="px-2.5 py-0.5 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] text-[11px] font-medium rounded-full">
+                                                                        {r.roleName || r.name}
+                                                                    </span>
+                                                                )) : (
+                                                                    <span className="text-[#5f6368] dark:text-[#9aa0a6] text-[11px] italic">No Role</span>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex items-center gap-2">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleToggleUserStatus(u)}
+                                                                    className={`relative inline-flex h-[20px] w-[36px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${u.status === 'ACTIVE' ? 'bg-[#1a73e8]' : 'bg-[#dadce0] dark:bg-[#5f6368]'
+                                                                        }`}
+                                                                    title={u.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}
+                                                                >
+                                                                    <span className={`pointer-events-none inline-block size-[16px] transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${u.status === 'ACTIVE' ? 'translate-x-[16px]' : 'translate-x-0'
+                                                                        }`} />
+                                                                </button>
+                                                                <span className={`text-xs font-medium ${u.status === 'ACTIVE' ? 'text-[#137333] dark:text-[#81c995]' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>
+                                                                    {u.status === 'ACTIVE' ? 'Active' : 'Passive'}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-right">
+                                                            <div className="flex items-center justify-end gap-1">
+                                                                <button onClick={() => openEditUser(u)} className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#f1f3f4] dark:text-[#9aa0a6] dark:hover:bg-[#202124] transition-colors cursor-pointer" title={L('editUser')}>
+                                                                    <span className="material-symbols-outlined text-[18px]">edit</span>
+                                                                </button>
+                                                                <button onClick={() => handleDeleteUser(u.id)} className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#fce8e6] hover:text-[#d93025] dark:hover:bg-[#c5221f]/20 transition-colors cursor-pointer" title={L('deleteUser')}>
+                                                                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )) : (
+                                                    <tr>
+                                                        <td colSpan="5" className="px-4 py-12 text-center">
+                                                            <p className="text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium italic">{L('noUsers')}</p>
+                                                        </td>
+                                                    </tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
@@ -1713,58 +1811,58 @@ const MyOffice = () => {
                             <div className="h-full flex flex-col gap-4 overflow-hidden">
                                 {/* Guest Summary Cards */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                                    <div className="bg-[#f5f3ff] dark:bg-purple-900/10 p-3 rounded-xl border border-purple-100/50 dark:border-purple-800/20 shadow-xs">
+                                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[9px] font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Total Guests</span>
-                                            <div className="size-6 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center text-purple-600 shadow-xs">
-                                                <span className="material-icons-round text-sm">recent_actors</span>
+                                            <span className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">{L('totalGuests')}</span>
+                                            <div className="size-8 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-full flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
+                                                <span className="material-symbols-outlined text-[18px]">recent_actors</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-end gap-1.5">
-                                            <div className="text-xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.totalGuestCount}</div>
-                                            <div className="text-[9px] font-semibold text-purple-400 mb-0.5">PROFILES</div>
+                                        <div className="flex items-end gap-2">
+                                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">{statsLoading ? '...' : summary.totalGuestCount}</div>
+                                            <div className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] mb-0.5">PROFILES</div>
                                         </div>
                                     </div>
-                                    
-                                    <div className="bg-[#f0fdf4] dark:bg-emerald-900/10 p-3 rounded-xl border border-emerald-100/50 dark:border-emerald-800/20 shadow-xs">
+
+                                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Active Guests</span>
-                                            <div className="size-6 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center text-emerald-600 shadow-xs">
-                                                <span className="material-icons-round text-sm">how_to_reg</span>
+                                            <span className="text-[11px] font-medium text-[#137333] dark:text-[#81c995] uppercase tracking-wider">{L('activeGuests')}</span>
+                                            <div className="size-8 bg-[#e6f4ea] dark:bg-[#137333]/20 rounded-full flex items-center justify-center text-[#137333] dark:text-[#81c995]">
+                                                <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-end gap-1.5">
-                                            <div className="text-xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.activeGuestCount}</div>
-                                            <div className="text-[9px] font-semibold text-emerald-400 mb-0.5">VERIFIED</div>
+                                        <div className="flex items-end gap-2">
+                                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">{statsLoading ? '...' : summary.activeGuestCount}</div>
+                                            <div className="text-[10px] font-medium text-[#137333] dark:text-[#81c995] mb-0.5">ACTIVE</div>
                                         </div>
                                     </div>
-                                    
-                                    <div className="bg-[#fef2f2] dark:bg-red-900/10 p-3 rounded-xl border border-red-100/50 dark:border-red-800/20 shadow-xs">
+
+                                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[9px] font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider">Passive Guests</span>
-                                            <div className="size-6 bg-white dark:bg-slate-800 rounded-md flex items-center justify-center text-red-600 shadow-xs">
-                                                <span className="material-icons-round text-sm">person_remove</span>
+                                            <span className="text-[11px] font-medium text-[#c5221f] dark:text-[#f28b82] uppercase tracking-wider">{L('passiveGuests')}</span>
+                                            <div className="size-8 bg-[#fce8e6] dark:bg-[#c5221f]/20 rounded-full flex items-center justify-center text-[#c5221f] dark:text-[#f28b82]">
+                                                <span className="material-symbols-outlined text-[18px]">person_remove</span>
                                             </div>
                                         </div>
-                                        <div className="flex items-end gap-1.5">
-                                            <div className="text-xl font-bold text-slate-900 dark:text-white leading-none">{statsLoading ? '...' : summary.passiveGuestCount}</div>
-                                            <div className="text-[9px] font-semibold text-red-400 mb-0.5">ARCHIVED</div>
+                                        <div className="flex items-end gap-2">
+                                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">{statsLoading ? '...' : summary.passiveGuestCount}</div>
+                                            <div className="text-[10px] font-medium text-[#c5221f] dark:text-[#f28b82] mb-0.5">ARCHIVED</div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex-1 flex flex-col bg-white dark:bg-slate-900/50 backdrop-blur-3xl rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
-                                    <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                                        <div className="flex items-center gap-3 flex-1 max-w-xl">
+                                <div className="flex-1 flex flex-col bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs">
+                                    <div className="p-3.5 sm:p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3">
+                                        <div className="flex items-center gap-2.5 flex-1 max-w-xl">
                                             <div className="relative flex-1">
-                                                <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
-                                                <input type="text" placeholder="Search by name, email or passport..." value={guestFilters.query} onChange={(e) => handleGuestFilterChange({ ...guestFilters, query: e.target.value })} className="w-full h-9 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 text-xs font-semibold outline-none focus:border-primary transition-colors" />
+                                                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
+                                                <input type="text" placeholder={L('searchGuests')} value={guestFilters.query} onChange={(e) => handleGuestFilterChange({ ...guestFilters, query: e.target.value })} className="w-full h-10 bg-[#f1f3f4] dark:bg-[#202124] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#303134] rounded-full pl-10 pr-4 text-xs font-normal text-[#202124] dark:text-[#e8eaed] outline-none transition-all placeholder-[#5f6368] dark:placeholder-[#9aa0a6]" />
                                             </div>
-                                            <select value={guestFilters.countryCodes[0] || ''} onChange={(e) => handleGuestFilterChange({ ...guestFilters, countryCodes: e.target.value ? [e.target.value] : [] })} className="h-9 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none cursor-pointer">
-                                                <option value="">All Countries</option>
+                                            <select value={guestFilters.countryCodes[0] || ''} onChange={(e) => handleGuestFilterChange({ ...guestFilters, countryCodes: e.target.value ? [e.target.value] : [] })} className="h-10 px-3.5 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#3c4043] dark:text-[#bdc1c6] focus:border-[#1a73e8] outline-none cursor-pointer">
+                                                <option value="">{L('allCountries')}</option>
                                                 {countries.map(c => <option key={c.locationId} value={c.alphaTwoCode}>{getCountryName(countries, c.alphaTwoCode, currentLang)}</option>)}
                                             </select>
-                                            <select value={guestFilters.status} onChange={(e) => handleGuestFilterChange({ ...guestFilters, status: e.target.value })} className="h-9 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none cursor-pointer">
+                                            <select value={guestFilters.status} onChange={(e) => handleGuestFilterChange({ ...guestFilters, status: e.target.value })} className="h-10 px-3.5 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#3c4043] dark:text-[#bdc1c6] focus:border-[#1a73e8] outline-none cursor-pointer">
                                                 <option value="ACTIVE">Active</option>
                                                 <option value="PASSIVE">Passive</option>
                                             </select>
@@ -1773,119 +1871,136 @@ const MyOffice = () => {
                                             <button
                                                 onClick={handleExportGuestsExcel}
                                                 disabled={isExportingGuestExcel || isExportingGuestPdf || guestsLoading}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                                className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#137333] dark:text-[#81c995] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
                                                 title="Export all matching records to Excel"
                                             >
                                                 {isExportingGuestExcel ? (
-                                                    <div className="size-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                                                    <div className="size-3.5 border-2 border-[#137333] border-t-transparent rounded-full animate-spin"></div>
                                                 ) : (
-                                                    <span className="material-icons-round text-base">grid_on</span>
+                                                    <span className="material-symbols-outlined text-[18px]">table_view</span>
                                                 )}
-                                                {isExportingGuestExcel ? L('exporting') : L('exportExcel')}
+                                                <span>{isExportingGuestExcel ? L('exporting') : L('exportExcel')}</span>
                                             </button>
 
                                             <button
                                                 onClick={handleExportGuestsPdf}
                                                 disabled={isExportingGuestExcel || isExportingGuestPdf || guestsLoading}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 rounded-xl text-xs font-semibold text-rose-700 dark:text-rose-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
+                                                className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#c5221f] dark:text-[#f28b82] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
                                                 title="Export all matching records to PDF"
                                             >
                                                 {isExportingGuestPdf ? (
-                                                    <div className="size-3.5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
+                                                    <div className="size-3.5 border-2 border-[#c5221f] border-t-transparent rounded-full animate-spin"></div>
                                                 ) : (
-                                                    <span className="material-icons-round text-base">picture_as_pdf</span>
+                                                    <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                                                 )}
-                                                {isExportingGuestPdf ? L('exporting') : L('exportPdf')}
+                                                <span>{isExportingGuestPdf ? L('exporting') : L('exportPdf')}</span>
                                             </button>
 
                                             <button
                                                 onClick={() => fetchGuestsData(true)}
                                                 disabled={guestsLoading}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                                                className="size-10 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50"
+                                                title={L('refresh')}
                                             >
-                                                <span className={`material-icons-round text-base ${guestsLoading ? 'animate-spin' : ''}`}>refresh</span>
-                                                {L('refresh')}
+                                                <span className={`material-symbols-outlined text-[18px] ${guestsLoading ? 'animate-spin' : ''}`}>refresh</span>
                                             </button>
 
-                                            <button onClick={openAddGuest} className="h-9 px-4 bg-primary text-white rounded-xl text-xs font-semibold shadow-md shadow-primary/20 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"><span className="material-icons-round text-base">add</span> {L('addGuest')}</button>
+                                            <button onClick={openAddGuest} className="h-10 px-5 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium flex items-center gap-1.5 shadow-none hover:shadow-xs active:scale-95 transition-all cursor-pointer"><span className="material-symbols-outlined text-[18px]">add</span> {L('addGuest')}</button>
                                         </div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto custom-scrollbar">
                                         <table className="w-full border-collapse">
-                                            <thead className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 backdrop-blur-md">
+                                            <thead className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] sticky top-0 z-10">
                                                 <tr>
-                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colGuest')}</th>
-                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colBirth')}</th>
-                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colPassport')}</th>
-                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colContact')}</th>
-                                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colStatus')}</th>
-                                                    <th className="px-3.5 py-2.5 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{L('colActions')}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colGuest')}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colBirth')}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colPassport')}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colContact')}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colStatus')}</th>
+                                                    <th className="px-4 py-3 text-right text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colActions')}</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="">
+                                            <tbody>
                                                 {guestsLoading ? <TableSkeleton columns={6} /> : guests.length > 0 ? guests.map((g) => (
-                                                    <tr key={g.id} className="odd:bg-white dark:odd:bg-slate-900/80 even:bg-slate-50/80 dark:even:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-b border-slate-100 dark:border-slate-800/60 text-[11px] group">
-                                                        <td className="px-3.5 py-2.5">
-                                                            <div className="flex items-center gap-2.5">
-                                                                <div className={`size-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs shrink-0 relative border transition-all ${g.gender === 'FEMALE' ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border-rose-200/80 dark:border-rose-800/40' : g.gender === 'MALE' ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-300 border-sky-200/80 dark:border-sky-800/40' : 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800/40'}`}>
+                                                    <tr key={g.id} className="hover:bg-[#f8f9fa] dark:hover:bg-[#202124]/50 transition-colors border-b border-[#f1f3f4] dark:border-[#3c4043] text-xs">
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`size-9 rounded-full flex items-center justify-center font-medium text-xs shrink-0 ${g.gender === 'FEMALE'
+                                                                        ? 'bg-[#fce8e6] dark:bg-[#c5221f]/20 text-[#c5221f] dark:text-[#f28b82]'
+                                                                        : 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8]'
+                                                                    }`}>
                                                                     <span className="uppercase">{g.firstName?.[0]}{g.lastName?.[0]}</span>
-                                                                    <span className={`absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full text-white flex items-center justify-center shadow-xs ${g.gender === 'FEMALE' ? 'bg-rose-500' : g.gender === 'MALE' ? 'bg-sky-500' : 'bg-indigo-500'}`}>
-                                                                        <span className="material-icons-round text-[9px] leading-none">{g.gender === 'FEMALE' ? 'female' : g.gender === 'MALE' ? 'male' : 'person'}</span>
-                                                                    </span>
                                                                 </div>
                                                                 <div>
-                                                                    <p className="font-medium text-slate-800 dark:text-slate-200 leading-none mb-0.5">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p>
-                                                                    <p className="text-[9px] text-slate-400 font-mono">ID: {g.id}</p>
+                                                                    <p className="font-medium text-[#202124] dark:text-[#e8eaed] leading-tight mb-0.5">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p>
+                                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">ID: #{g.id}</p>
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td className="px-3.5 py-2.5">
+                                                        <td className="px-4 py-3">
                                                             <div className="flex items-center gap-2">
-                                                                <div className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-medium text-slate-500">{g.country || 'N/A'}</div>
+                                                                <span className="px-2 py-0.5 bg-[#f1f3f4] dark:bg-[#202124] rounded text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase">{g.country || 'N/A'}</span>
                                                                 <div>
-                                                                    <p className="text-xs font-medium text-slate-600 dark:text-slate-300">{getCountryName(countries, g.country, currentLang)}</p>
-                                                                    <p className="text-[10px] text-slate-400">Born: {g.birthDate || 'Unknown'}</p>
+                                                                    <p className="text-xs font-medium text-[#3c4043] dark:text-[#e8eaed]">{getCountryName(countries, g.country, currentLang)}</p>
+                                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6]">Born: {g.birthDate || 'Unknown'}</p>
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td className="px-3.5 py-2.5">
+                                                        <td className="px-4 py-3">
                                                             <div className="flex items-center gap-1.5">
-                                                                <div className="size-5 bg-blue-50 dark:bg-blue-900/20 rounded flex items-center justify-center text-primary">
-                                                                    <span className="material-icons-round text-xs">badge</span>
-                                                                </div>
+                                                                <span className="material-symbols-outlined text-[16px] text-[#1a73e8] dark:text-[#8ab4f8]">badge</span>
                                                                 <div>
-                                                                    <p className="text-xs font-medium text-slate-800 dark:text-slate-200">{g.passportNo || 'N/A'}</p>
-                                                                    <p className="text-[10px] text-slate-400">Expires: {g.passportExpiry || 'N/A'}</p>
+                                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">{g.passportNo || 'N/A'}</p>
+                                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6]">Expires: {g.passportExpiry || 'N/A'}</p>
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td className="px-3.5 py-2.5">
-                                                            <div className="space-y-0.5">
-                                                                <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-xs">
-                                                                    <span className="material-icons-round text-xs text-slate-400">mail_outline</span> {g.email}
+                                                        <td className="px-4 py-3">
+                                                            <div className="space-y-0.5 text-xs">
+                                                                <div className="flex items-center gap-1.5 text-[#3c4043] dark:text-[#e8eaed]">
+                                                                    <span className="material-symbols-outlined text-[15px] text-[#5f6368] dark:text-[#9aa0a6]">mail</span>
+                                                                    <span>{g.email}</span>
                                                                 </div>
-                                                                {g.phoneNumber && <div className="flex items-center gap-1.5 text-slate-400 text-[11px]"><span className="material-icons-round text-xs">phone_iphone</span> +{g.phoneCountryCode} {g.phoneNumber}</div>}
+                                                                {g.phoneNumber && (
+                                                                    <div className="flex items-center gap-1.5 text-[#5f6368] dark:text-[#9aa0a6] text-[11px]">
+                                                                        <span className="material-symbols-outlined text-[15px]">call</span>
+                                                                        <span>+{g.phoneCountryCode} {g.phoneNumber}</span>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         </td>
-                                                        <td className="px-3.5 py-2.5">
+                                                        <td className="px-4 py-3">
                                                             <div className="flex items-center gap-2">
-                                                                <button type="button" onClick={() => handleToggleGuestStatus(g)} className={`relative inline-flex h-[22px] w-[40px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${g.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`} title={g.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}>
-                                                                    <span className={`pointer-events-none inline-block size-[18px] transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${g.status === 'ACTIVE' ? 'translate-x-[18px]' : 'translate-x-0'}`} />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleToggleGuestStatus(g)}
+                                                                    className={`relative inline-flex h-[20px] w-[36px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${g.status === 'ACTIVE' ? 'bg-[#1a73e8]' : 'bg-[#dadce0] dark:bg-[#5f6368]'
+                                                                        }`}
+                                                                    title={g.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}
+                                                                >
+                                                                    <span className={`pointer-events-none inline-block size-[16px] transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${g.status === 'ACTIVE' ? 'translate-x-[16px]' : 'translate-x-0'
+                                                                        }`} />
                                                                 </button>
-                                                                <span className={`text-xs font-medium ${g.status === 'ACTIVE' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{g.status === 'ACTIVE' ? 'Active' : 'Passive'}</span>
+                                                                <span className={`text-xs font-medium ${g.status === 'ACTIVE' ? 'text-[#137333] dark:text-[#81c995]' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>
+                                                                    {g.status === 'ACTIVE' ? 'Active' : 'Passive'}
+                                                                </span>
                                                             </div>
                                                         </td>
-                                                        <td className="px-3.5 py-2.5 text-right">
+                                                        <td className="px-4 py-3 text-right">
                                                             <div className="flex items-center justify-end gap-1">
-                                                                <button onClick={() => openEditGuest(g)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round text-base">edit</span></button>
-                                                                <button onClick={() => handleDeleteGuest(g.id)} className="size-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"><span className="material-icons-round text-base">delete_outline</span></button>
+                                                                <button onClick={() => openEditGuest(g)} className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#f1f3f4] dark:text-[#9aa0a6] dark:hover:bg-[#202124] transition-colors cursor-pointer" title={L('editGuest')}>
+                                                                    <span className="material-symbols-outlined text-[18px]">edit</span>
+                                                                </button>
+                                                                <button onClick={() => handleDeleteGuest(g.id)} className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#fce8e6] hover:text-[#d93025] dark:hover:bg-[#c5221f]/20 transition-colors cursor-pointer" title={L('deleteGuest')}>
+                                                                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                                                                </button>
                                                             </div>
                                                         </td>
                                                     </tr>
                                                 )) : (
                                                     <tr>
                                                         <td colSpan="6" className="px-4 py-12 text-center">
-                                                            <p className="text-slate-400 text-xs font-medium italic">No guests found</p>
+                                                            <p className="text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium italic">{L('noGuests')}</p>
                                                         </td>
                                                     </tr>
                                                 )}
@@ -1894,337 +2009,333 @@ const MyOffice = () => {
                                     </div>
                                 </div>
                             </div>
-                    ) : activeTab === 'favorites' ? (
-                        <div className="h-full flex flex-col min-h-0 bg-white dark:bg-[#0B1120] border border-solid border-slate-200/50 dark:border-slate-800/50 rounded-xl shadow-xs relative z-20 overflow-visible">
-                            {/* Filter and Autocomplete Controls Bar */}
-                            <div className="p-4 flex flex-wrap items-center justify-between gap-3 relative z-50 select-none">
-                                {/* Autocomplete Search Dropdown */}
-                                <div ref={hotelAutocompleteRef} className="relative flex-1 max-w-md">
-                                    <div className="relative">
-                                        <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
-                                        <input 
-                                            type="text" 
-                                            placeholder={L('searchAutocompletePlaceholder')} 
-                                            value={hotelAutocompleteQuery}
-                                            onChange={(e) => setHotelAutocompleteQuery(e.target.value)}
-                                            onFocus={() => hotelAutocompleteResults.length > 0 && setShowHotelAutocompleteDropdown(true)}
-                                            className="w-full pl-9 pr-8 py-2 border border-solid border-slate-200 dark:border-slate-800 rounded-lg text-xs font-semibold bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-                                        />
-                                        {hotelAutocompleteLoading && (
-                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 size-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                                        )}
-                                    </div>
-
-                                    {/* Autocomplete Dropdown Overlay */}
-                                    {showHotelAutocompleteDropdown && hotelAutocompleteResults.length > 0 && (
-                                        <div className="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl max-h-64 overflow-y-auto z-[9999] p-1.5 space-y-1 ring-1 ring-black/5 animate-in fade-in-50 zoom-in-95">
-                                            {hotelAutocompleteResults.map((h, idx) => {
-                                                const isFav = isFavorite(h.hotelId);
-                                                return (
-                                                    <div 
-                                                        key={h.hotelId ? `ac-${h.hotelId}-${idx}` : `ac-${idx}`}
-                                                        className="p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors flex items-center justify-between group cursor-pointer"
-                                                    >
-                                                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                                                            <div className={`size-8 rounded-lg ${isFav ? 'bg-emerald-500/10 text-emerald-500' : 'bg-primary/10 text-primary'} flex items-center justify-center font-bold text-xs shrink-0`}>
-                                                                <span className="material-icons-round text-base">{isFav ? 'favorite' : 'hotel'}</span>
-                                                            </div>
-                                                            <div className="min-w-0">
-                                                                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors truncate">
-                                                                    {h.hotelName}
-                                                                </p>
-                                                                <p className="text-[10px] text-slate-400 font-medium">
-                                                                    ID: {h.hotelId} {h.cityName ? `• ${h.cityName}` : ''}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <button 
-                                                            type="button"
-                                                            onClick={(e) => handleAddHotelFromAutocomplete(h, e)}
-                                                            disabled={isFav}
-                                                            className={`h-7 px-2.5 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1 shrink-0 ${
-                                                                isFav 
-                                                                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 cursor-default' 
-                                                                    : 'bg-primary/10 text-primary hover:bg-primary hover:text-white active:scale-95'
-                                                            }`}
-                                                        >
-                                                            <span className="material-icons-round text-xs">{isFav ? 'check' : 'add'}</span>
-                                                            <span>{isFav ? L('addedBtn') : L('addBtn')}</span>
-                                                        </button>
-                                                    </div>
-                                                );
-                                            })}
+                        ) : activeTab === 'favorites' ? (
+                            <div className="h-full flex flex-col min-h-0 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-xs relative z-20 overflow-visible">
+                                {/* Filter and Autocomplete Controls Bar */}
+                                <div className="p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 relative z-50 select-none">
+                                    {/* Autocomplete Search Dropdown */}
+                                    <div ref={hotelAutocompleteRef} className="relative flex-1 max-w-md">
+                                        <div className="relative">
+                                            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
+                                            <input
+                                                type="text"
+                                                placeholder={L('searchAutocompletePlaceholder')}
+                                                value={hotelAutocompleteQuery}
+                                                onChange={(e) => setHotelAutocompleteQuery(e.target.value)}
+                                                onFocus={() => hotelAutocompleteResults.length > 0 && setShowHotelAutocompleteDropdown(true)}
+                                                className="w-full pl-10 pr-8 py-2.5 border border-[#dadce0] dark:border-[#5f6368] rounded-full text-xs font-normal bg-[#f1f3f4] dark:bg-[#202124] text-[#202124] dark:text-[#e8eaed] placeholder-[#5f6368] dark:placeholder-[#9aa0a6] focus:outline-none focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#303134] transition-all"
+                                            />
+                                            {hotelAutocompleteLoading && (
+                                                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4 border-2 border-[#1a73e8]/30 border-t-[#1a73e8] rounded-full animate-spin"></div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
 
-                                {/* Table Search & Filter Controls */}
-                                <div className="flex items-center gap-2">
-                                    <div className="relative">
-                                        <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
-                                        <input 
-                                            type="text"
-                                            placeholder={L('searchTablePlaceholder')}
-                                            value={favoriteSearchQuery}
-                                            onChange={(e) => setFavoriteSearchQuery(e.target.value)}
-                                            className="w-40 sm:w-48 pl-9 pr-3 py-2 border border-solid border-slate-200 dark:border-slate-800 rounded-lg text-xs font-semibold bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-primary transition-colors"
-                                        />
+                                        {/* Autocomplete Dropdown Overlay */}
+                                        {showHotelAutocompleteDropdown && hotelAutocompleteResults.length > 0 && (
+                                            <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-2xl shadow-2xl max-h-64 overflow-y-auto z-[9999] p-2 space-y-1 ring-1 ring-black/5 animate-in fade-in-50 zoom-in-95">
+                                                {hotelAutocompleteResults.map((h, idx) => {
+                                                    const isFav = isFavorite(h.hotelId);
+                                                    return (
+                                                        <div
+                                                            key={h.hotelId ? `ac-${h.hotelId}-${idx}` : `ac-${idx}`}
+                                                            className="p-2.5 hover:bg-[#f1f3f4] dark:hover:bg-[#202124] rounded-xl transition-colors flex items-center justify-between group cursor-pointer"
+                                                        >
+                                                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                                                <div className={`size-8 rounded-full ${isFav ? 'bg-[#e6f4ea] text-[#137333] dark:bg-[#137333]/20 dark:text-[#81c995]' : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]'} flex items-center justify-center font-medium text-xs shrink-0`}>
+                                                                    <span className="material-symbols-outlined text-[18px]">{isFav ? 'favorite' : 'hotel'}</span>
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] group-hover:text-[#1a73e8] transition-colors truncate">
+                                                                        {h.hotelName}
+                                                                    </p>
+                                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6]">
+                                                                        ID: #{h.hotelId} {h.cityName ? `• ${h.cityName}` : ''}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleAddHotelFromAutocomplete(h, e)}
+                                                                disabled={isFav}
+                                                                className={`h-7 px-3 rounded-full text-[11px] font-medium transition-all flex items-center gap-1 shrink-0 ${isFav
+                                                                        ? 'bg-[#e6f4ea] dark:bg-[#137333]/20 text-[#137333] dark:text-[#81c995] cursor-default'
+                                                                        : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] hover:bg-[#1a73e8] hover:text-white active:scale-95'
+                                                                    }`}
+                                                            >
+                                                                <span className="material-symbols-outlined text-[14px]">{isFav ? 'check' : 'add'}</span>
+                                                                <span>{isFav ? L('addedBtn') : L('addBtn')}</span>
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
 
-                                    <select 
-                                        value={favoriteStatusFilter} 
-                                        onChange={(e) => setFavoriteStatusFilter(e.target.value)}
-                                        className="px-3 py-2 border border-solid border-slate-200 dark:border-slate-800 rounded-lg text-xs font-bold bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-primary transition-colors cursor-pointer"
-                                    >
-                                        <option value="">{L('allStatuses')}</option>
-                                        <option value="ACTIVE">{L('statusActive')}</option>
-                                        <option value="PASSIVE">{L('statusPassive')}</option>
-                                    </select>
+                                    {/* Table Search & Filter Controls */}
+                                    <div className="flex items-center gap-2">
+                                        <div className="relative">
+                                            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
+                                            <input
+                                                type="text"
+                                                placeholder={L('searchTablePlaceholder')}
+                                                value={favoriteSearchQuery}
+                                                onChange={(e) => setFavoriteSearchQuery(e.target.value)}
+                                                className="w-40 sm:w-48 pl-9 pr-3 py-2 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#202124] dark:text-[#e8eaed] placeholder-[#5f6368] dark:placeholder-[#9aa0a6] focus:outline-none focus:border-[#1a73e8] transition-colors"
+                                            />
+                                        </div>
 
-                                    <button
-                                        onClick={handleExportFavoritesExcel}
-                                        disabled={isExportingFavExcel || isExportingFavPdf || favoriteLoading}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
-                                        title="Export all matching records to Excel"
-                                    >
-                                        {isExportingFavExcel ? (
-                                            <div className="size-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-                                        ) : (
-                                            <span className="material-icons-round text-base">grid_on</span>
-                                        )}
-                                        {isExportingFavExcel ? L('exporting') : L('exportExcel')}
-                                    </button>
+                                        <select
+                                            value={favoriteStatusFilter}
+                                            onChange={(e) => setFavoriteStatusFilter(e.target.value)}
+                                            className="px-3.5 py-2 border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal bg-white dark:bg-[#202124] text-[#3c4043] dark:text-[#bdc1c6] focus:outline-none focus:border-[#1a73e8] transition-colors cursor-pointer"
+                                        >
+                                            <option value="">{L('allStatuses')}</option>
+                                            <option value="ACTIVE">{L('statusActive')}</option>
+                                            <option value="PASSIVE">{L('statusPassive')}</option>
+                                        </select>
 
-                                    <button
-                                        onClick={handleExportFavoritesPdf}
-                                        disabled={isExportingFavExcel || isExportingFavPdf || favoriteLoading}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 rounded-xl text-xs font-semibold text-rose-700 dark:text-rose-400 transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
-                                        title="Export all matching records to PDF"
-                                    >
-                                        {isExportingFavPdf ? (
-                                            <div className="size-3.5 border-2 border-rose-600 border-t-transparent rounded-full animate-spin"></div>
-                                        ) : (
-                                            <span className="material-icons-round text-base">picture_as_pdf</span>
-                                        )}
-                                        {isExportingFavPdf ? L('exporting') : L('exportPdf')}
-                                    </button>
+                                        <button
+                                            onClick={handleExportFavoritesExcel}
+                                            disabled={isExportingFavExcel || isExportingFavPdf || favoriteLoading}
+                                            className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#137333] dark:text-[#81c995] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                                            title="Export all matching records to Excel"
+                                        >
+                                            {isExportingFavExcel ? (
+                                                <div className="size-3.5 border-2 border-[#137333] border-t-transparent rounded-full animate-spin"></div>
+                                            ) : (
+                                                <span className="material-symbols-outlined text-[18px]">table_view</span>
+                                            )}
+                                            <span>{isExportingFavExcel ? L('exporting') : L('exportExcel')}</span>
+                                        </button>
 
-                                    <button
-                                        onClick={() => fetchFavoriteHotels(favoritePage)}
-                                        disabled={favoriteLoading}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
-                                    >
-                                        <span className={`material-icons-round text-base ${favoriteLoading ? 'animate-spin' : ''}`}>refresh</span>
-                                        {L('refresh')}
-                                    </button>
+                                        <button
+                                            onClick={handleExportFavoritesPdf}
+                                            disabled={isExportingFavExcel || isExportingFavPdf || favoriteLoading}
+                                            className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#c5221f] dark:text-[#f28b82] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                                            title="Export all matching records to PDF"
+                                        >
+                                            {isExportingFavPdf ? (
+                                                <div className="size-3.5 border-2 border-[#c5221f] border-t-transparent rounded-full animate-spin"></div>
+                                            ) : (
+                                                <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                                            )}
+                                            <span>{isExportingFavPdf ? L('exporting') : L('exportPdf')}</span>
+                                        </button>
+
+                                        <button
+                                            onClick={() => fetchFavoriteHotels(favoritePage)}
+                                            disabled={favoriteLoading}
+                                            className="size-10 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50"
+                                            title={L('refresh')}
+                                        >
+                                            <span className={`material-symbols-outlined text-[18px] ${favoriteLoading ? 'animate-spin' : ''}`}>refresh</span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Status Sub-Header Bar */}
-                            <div className="px-4 py-2 bg-slate-50/50 dark:bg-slate-850/20 border-t border-b border-solid border-slate-200/50 dark:border-slate-800/50 flex justify-between items-center select-none shrink-0">
-                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                                    <span className="material-icons-round text-base select-none">analytics</span>
-                                    <span className="text-[11px] font-bold">
-                                        {favoriteTotalElements} {L('totalRecords')}
+                                {/* Status Sub-Header Bar */}
+                                <div className="px-4 py-2 bg-[#f8f9fa] dark:bg-[#202124] border-t border-b border-[#dadce0] dark:border-[#3c4043] flex justify-between items-center select-none shrink-0">
+                                    <div className="flex items-center gap-2 text-[#5f6368] dark:text-[#9aa0a6]">
+                                        <span className="material-symbols-outlined text-[18px]">analytics</span>
+                                        <span className="text-xs font-medium">
+                                            {favoriteTotalElements} {L('totalRecords')}
+                                        </span>
+                                    </div>
+                                    <span className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6]">
+                                        Favorite Hotels Console
                                     </span>
                                 </div>
-                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium italic">
-                                    Favorite Hotels Console
-                                </span>
-                            </div>
 
-                            {/* Favorite Hotels Table Body */}
-                            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-10">
-                                        <table className="w-full border-collapse">
-                                    <thead className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 backdrop-blur-md">
-                                        <tr>
-                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[80px] select-none">ID</th>
-                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[240px] select-none">{L('colHotelInfo')}</th>
-                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[160px] select-none">{L('colLocationStars')}</th>
-                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colDateAdded')}</th>
-                                            <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('status')}</th>
-                                            <th className="px-3.5 py-2.5 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colActions')}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="">
-                                        {favoriteLoading ? (
-                                            <TableSkeleton columns={6} rows={favoritePageSize || 10} />
-                                        ) : favoriteBackendItems.length > 0 ? (
-                                            favoriteBackendItems.map((fav, idx) => (
-                                                <tr 
-                                                    key={fav.id ? `fav-${fav.id}-${idx}` : `fav-${idx}`}
-                                                    className="odd:bg-white dark:odd:bg-slate-900/80 even:bg-slate-50/80 dark:even:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-b border-slate-100 dark:border-slate-800/60 text-[11px] group"
-                                                >
-                                                    {/* ID */}
-                                                    <td className="px-3.5 py-2.5 text-slate-500 dark:text-slate-400 text-[10px] font-mono">#{fav.hotelId}</td>
+                                {/* Favorite Hotels Table Body */}
+                                <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-10">
+                                    <table className="w-full border-collapse">
+                                        <thead className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] sticky top-0 z-10">
+                                            <tr>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[80px] select-none">ID</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[240px] select-none">{L('colHotelInfo')}</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[160px] select-none">{L('colLocationStars')}</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colDateAdded')}</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('status')}</th>
+                                                <th className="px-4 py-3 text-right text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colActions')}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {favoriteLoading ? (
+                                                <TableSkeleton columns={6} rows={favoritePageSize || 10} />
+                                            ) : favoriteBackendItems.length > 0 ? (
+                                                favoriteBackendItems.map((fav, idx) => (
+                                                    <tr
+                                                        key={fav.id ? `fav-${fav.id}-${idx}` : `fav-${idx}`}
+                                                        className="hover:bg-[#f8f9fa] dark:hover:bg-[#202124]/50 transition-colors border-b border-[#f1f3f4] dark:border-[#3c4043] text-xs"
+                                                    >
+                                                        {/* ID */}
+                                                        <td className="px-4 py-3 text-[#5f6368] dark:text-[#9aa0a6] font-mono text-[11px]">#{fav.hotelId}</td>
 
-                                                    {/* Hotel Info */}
-                                                    <td className="px-3.5 py-2.5">
-                                                        <div className="flex items-center gap-2.5">
-                                                            <div className="size-7 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-primary flex items-center justify-center font-medium text-xs flex-shrink-0 overflow-hidden">
-                                                                {fav.imageUrl ? (
-                                                                    <img src={fav.imageUrl} alt={fav.hotelName} className="w-full h-full object-cover" />
-                                                                ) : (
-                                                                    <span className="material-symbols-outlined text-base">hotel</span>
-                                                                )}
+                                                        {/* Hotel Info */}
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="size-8 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center font-medium text-xs flex-shrink-0 overflow-hidden">
+                                                                    {fav.imageUrl ? (
+                                                                        <img src={fav.imageUrl} alt={fav.hotelName} className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        <span className="material-symbols-outlined text-[18px]">hotel</span>
+                                                                    )}
+                                                                </div>
+                                                                <span
+                                                                    className="font-medium text-[#202124] dark:text-[#e8eaed] hover:text-[#1a73e8] dark:hover:text-[#8ab4f8] transition-colors cursor-pointer text-xs truncate max-w-[280px]"
+                                                                    onClick={() => navigate(`/travel/hotels/detail/${fav.hotelId}`)}
+                                                                    title={fav.hotelName}
+                                                                >
+                                                                    {fav.hotelName}
+                                                                </span>
                                                             </div>
-                                                            <span 
-                                                                className="font-semibold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors cursor-pointer text-xs truncate max-w-[280px]" 
-                                                                onClick={() => navigate(`/hotel/${fav.hotelId}`)}
-                                                                title={fav.hotelName}
-                                                            >
-                                                                {fav.hotelName}
-                                                            </span>
-                                                        </div>
-                                                    </td>
+                                                        </td>
 
-                                                    {/* Location & Stars */}
-                                                    <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300">
-                                                        <div>
-                                                            <p className="text-xs font-normal text-slate-600 dark:text-slate-300 flex items-center gap-1">
-                                                                <span className="material-icons-round text-xs text-primary">location_on</span>
-                                                                {fav.cityName || 'N/A'}
-                                                            </p>
-                                                            <div className="flex items-center gap-0.5 text-amber-400 mt-0.5">
-                                                                {[...Array(fav.stars || 4)].map((_, i) => (
-                                                                    <span key={`star-${fav.id || idx}-${i}`} className="material-symbols-outlined text-[10px] fill-1">star</span>
-                                                                ))}
+                                                        {/* Location & Stars */}
+                                                        <td className="px-4 py-3 text-[#3c4043] dark:text-[#e8eaed]">
+                                                            <div>
+                                                                <p className="text-xs font-normal flex items-center gap-1">
+                                                                    <span className="material-symbols-outlined text-[14px] text-[#1a73e8] dark:text-[#8ab4f8]">location_on</span>
+                                                                    <span>{fav.cityName || 'N/A'}</span>
+                                                                </p>
+                                                                <div className="flex items-center gap-0.5 text-[#f9ab00] mt-0.5">
+                                                                    {[...Array(fav.stars || 4)].map((_, i) => (
+                                                                        <span key={`star-${fav.id || idx}-${i}`} className="material-symbols-outlined text-[12px] fill-1">star</span>
+                                                                    ))}
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </td>
+                                                        </td>
 
-                                                    {/* Audit Details Icon */}
-                                                    <td className="px-3.5 py-2.5" onClick={(e) => e.stopPropagation()}>
-                                                        <div 
-                                                            className="inline-flex items-center cursor-pointer p-1"
-                                                            onMouseEnter={(e) => {
-                                                                const rect = e.currentTarget.getBoundingClientRect();
-                                                                setAuditTooltip({
-                                                                    item: fav,
-                                                                    x: rect.left + rect.width / 2,
-                                                                    y: rect.top - 8
-                                                                });
-                                                            }}
-                                                            onMouseLeave={() => setAuditTooltip(null)}
-                                                        >
-                                                            <span className="material-icons-round text-slate-400 hover:text-primary text-lg transition-colors leading-none">
-                                                                info
-                                                            </span>
-                                                        </div>
-                                                    </td>
-
-                                                    {/* Status Toggle Button (Pure Boxless Material Thumbs Up Icon) */}
-                                                    <td className="px-3.5 py-2.5" onClick={(e) => e.stopPropagation()}>
-                                                        <button 
-                                                            type="button" 
-                                                            onClick={() => handleToggleFavoriteStatus(fav)} 
-                                                            className="p-1 inline-flex items-center justify-center transition-transform duration-200 active:scale-90 cursor-pointer bg-transparent border-0 outline-none hover:scale-110"
-                                                            title={fav.status === 'ACTIVE' ? (L('statusActive') || 'Aktif') : (L('statusPassive') || 'Pasif')}
-                                                        >
-                                                            <span className={`material-icons-round text-lg transition-colors duration-200 ${
-                                                                fav.status === 'ACTIVE'
-                                                                    ? 'text-blue-500 hover:text-blue-600'
-                                                                    : 'text-slate-300 dark:text-slate-600 hover:text-slate-400 dark:hover:text-slate-500'
-                                                            }`}>
-                                                                {fav.status === 'ACTIVE' ? 'thumb_up' : 'thumb_up_off_alt'}
-                                                            </span>
-                                                        </button>
-                                                    </td>
-
-                                                    {/* Actions */}
-                                                    <td className="px-3.5 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
-                                                        <div className="flex items-center justify-end gap-0.5">
-                                                            <button 
-                                                                onClick={() => navigate(`/hotel/${fav.hotelId}`)}
-                                                                className="size-7 rounded-lg text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
-                                                                title={L('viewHotelDetail')}
+                                                        {/* Audit Details Icon */}
+                                                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                                                            <div
+                                                                className="inline-flex items-center cursor-pointer p-1"
+                                                                onMouseEnter={(e) => {
+                                                                    const rect = e.currentTarget.getBoundingClientRect();
+                                                                    setAuditTooltip({
+                                                                        item: fav,
+                                                                        x: rect.left + rect.width / 2,
+                                                                        y: rect.top - 8
+                                                                    });
+                                                                }}
+                                                                onMouseLeave={() => setAuditTooltip(null)}
                                                             >
-                                                                <span className="material-icons-round text-base">visibility</span>
-                                                            </button>
-                                                            <button 
-                                                                onClick={() => handleDeleteFavoriteItem(fav)}
-                                                                className="size-7 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors flex items-center justify-center"
-                                                                title={L('removeFromFavorites')}
+                                                                <span className="material-symbols-outlined text-[#5f6368] hover:text-[#1a73e8] dark:text-[#9aa0a6] text-[18px] transition-colors leading-none">
+                                                                    info
+                                                                </span>
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Status Toggle Button */}
+                                                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleToggleFavoriteStatus(fav)}
+                                                                className="p-1 inline-flex items-center justify-center transition-transform duration-200 active:scale-90 cursor-pointer bg-transparent border-0 outline-none hover:scale-110"
+                                                                title={fav.status === 'ACTIVE' ? (L('statusActive') || 'Aktif') : (L('statusPassive') || 'Pasif')}
                                                             >
-                                                                <span className="material-icons-round text-base">delete_outline</span>
+                                                                <span className={`material-symbols-outlined text-[20px] transition-colors duration-200 ${fav.status === 'ACTIVE'
+                                                                        ? 'text-[#1a73e8]'
+                                                                        : 'text-[#dadce0] dark:text-[#5f6368] hover:text-[#9aa0a6]'
+                                                                    }`}>
+                                                                    {fav.status === 'ACTIVE' ? 'thumb_up' : 'thumb_up_off_alt'}
+                                                                </span>
                                                             </button>
-                                                        </div>
+                                                        </td>
+
+                                                        {/* Actions */}
+                                                        <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                                                            <div className="flex items-center justify-end gap-1">
+                                                                <button
+                                                                    onClick={() => navigate(`/travel/hotels/detail/${fav.hotelId}`)}
+                                                                    className="size-8 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#202124] dark:text-[#9aa0a6] transition-colors flex items-center justify-center cursor-pointer"
+                                                                    title={L('viewHotelDetail')}
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[18px]">visibility</span>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteFavoriteItem(fav)}
+                                                                    className="size-8 rounded-full text-[#5f6368] hover:bg-[#fce8e6] hover:text-[#d93025] dark:hover:bg-[#c5221f]/20 transition-colors flex items-center justify-center cursor-pointer"
+                                                                    title={L('removeFromFavorites')}
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="6" className="px-4 py-12 text-center text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium italic">
+                                                        {L('noFavoritesFound')}
                                                     </td>
                                                 </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan="6" className="px-4 py-12 text-center text-slate-400 text-xs font-medium italic">
-                                                    {L('noFavoritesFound')}
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
 
-                            {/* Standard Pagination Bar */}
-                            <Pagination 
-                                currentPage={favoritePage}
-                                totalPages={favoriteTotalPages}
-                                pageSize={favoritePageSize}
-                                totalElements={favoriteTotalElements}
-                                onPageChange={(p) => fetchFavoriteHotels(p, favoritePageSize)}
-                                onPageSizeChange={(s) => {
-                                    setFavoritePageSize(s);
-                                    fetchFavoriteHotels(0, s);
-                                }}
-                            />
-                        </div>
-                    ) : null}
+                                {/* Standard Pagination Bar */}
+                                <Pagination
+                                    currentPage={favoritePage}
+                                    totalPages={favoriteTotalPages}
+                                    pageSize={favoritePageSize}
+                                    totalElements={favoriteTotalElements}
+                                    onPageChange={(p) => fetchFavoriteHotels(p, favoritePageSize)}
+                                    onPageSizeChange={(s) => {
+                                        setFavoritePageSize(s);
+                                        fetchFavoriteHotels(0, s);
+                                    }}
+                                />
+                            </div>
+                        ) : null}
                     </div>
                 </div>
             </main>
 
-            {/* Redesigned Clean Confirmation Modal */}
+            {/* Google Material 3 Confirmation Modal */}
             {confirmModal.show && (
                 <div className="fixed inset-0 z-[30000] flex items-center justify-center p-4">
-                    <div 
-                        className="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity animate-in fade-in-50" 
+                    <div
+                        className="modal-overlay fixed inset-0 bg-[#202124]/40 backdrop-blur-sm transition-opacity animate-in fade-in-50"
                         onClick={() => setConfirmModal({ ...confirmModal, show: false })}
                     ></div>
-                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-sm rounded-[28px] shadow-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 animate-in zoom-in-95 duration-200 p-6 text-center">
-                        {/* Icon Badge */}
-                        <div className={`size-14 rounded-2xl flex items-center justify-center mx-auto mb-4 ${
-                            confirmModal.type === 'danger' 
-                                ? 'bg-red-500/10 text-red-500 ring-8 ring-red-500/5' 
-                                : 'bg-primary/10 text-primary ring-8 ring-primary/5'
-                        }`}>
-                            <span className="material-icons-round text-2xl">
-                                {confirmModal.type === 'danger' ? 'delete_outline' : 'help_outline'}
+                    <div className="relative bg-white dark:bg-[#202124] w-full max-w-sm rounded-[28px] shadow-2xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] animate-in zoom-in-95 duration-200 p-6 text-center">
+                        {/* Google Icon Badge */}
+                        <div className={`size-14 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmModal.type === 'danger'
+                                ? 'bg-[#fce8e6] text-[#d93025] dark:bg-red-950/40 dark:text-red-400'
+                                : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]'
+                            }`}>
+                            <span className="material-symbols-outlined text-2xl">
+                                {confirmModal.type === 'danger' ? 'delete' : 'help'}
                             </span>
                         </div>
 
                         {/* Title & Message */}
-                        <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">
+                        <h3 className="text-base font-semibold text-[#202124] dark:text-white mb-2">
                             {confirmModal.title}
                         </h3>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+                        <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed mb-6">
                             {confirmModal.message}
                         </p>
 
                         {/* Action Buttons */}
-                        <div className="flex items-center gap-2.5">
-                            <button 
+                        <div className="flex items-center gap-3">
+                            <button
                                 type="button"
-                                onClick={() => setConfirmModal({ ...confirmModal, show: false })} 
-                                className="flex-1 h-10 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-all"
+                                onClick={() => setConfirmModal({ ...confirmModal, show: false })}
+                                className="flex-1 h-10 rounded-full text-xs font-medium text-[#1a73e8] dark:text-[#8ab4f8] bg-transparent hover:bg-[#e8f0fe] dark:hover:bg-[#303134] transition-colors"
                             >
                                 {L('cancel')}
                             </button>
-                            <button 
+                            <button
                                 type="button"
-                                onClick={() => { confirmModal.onConfirm(); setConfirmModal({ ...confirmModal, show: false }); }} 
-                                className={`flex-1 h-10 rounded-xl text-xs font-bold text-white shadow-md transition-all active:scale-95 ${
-                                    confirmModal.type === 'danger' 
-                                        ? 'bg-red-500 shadow-red-500/20 hover:bg-red-600' 
-                                        : 'bg-primary shadow-primary/20 hover:bg-primary/90'
-                                }`}
+                                onClick={() => { confirmModal.onConfirm(); setConfirmModal({ ...confirmModal, show: false }); }}
+                                className={`flex-1 h-10 rounded-full text-xs font-medium text-white shadow-sm transition-all active:scale-95 ${confirmModal.type === 'danger'
+                                        ? 'bg-[#d93025] hover:bg-[#c5221f]'
+                                        : 'bg-[#1a73e8] hover:bg-[#1765cc]'
+                                    }`}
                             >
                                 {L('confirm')}
                             </button>
@@ -2233,49 +2344,98 @@ const MyOffice = () => {
                 </div>
             )}
 
-            {/* Modals (Users) */}
+            {/* Google Material 3 User Modal */}
             {isUserModalOpen && (
                 <div className="fixed inset-0 z-[20000] flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="modal-overlay fixed inset-0" onClick={() => setIsUserModalOpen(false)}></div>
-                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-slate-50 dark:border-white/5"><div className="flex items-center justify-between"><div><h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingUser ? L('editUser') : L('addUser')}</h3><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('userInfo')}</p></div><button onClick={() => setIsUserModalOpen(false)} className="size-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round">close</span></button></div></div>
-                        <form onSubmit={handleUserSubmit} className="p-8 space-y-6">
+                    <div className="modal-overlay fixed inset-0 bg-[#202124]/40 backdrop-blur-sm" onClick={() => setIsUserModalOpen(false)}></div>
+                    <div className="relative bg-white dark:bg-[#202124] w-full max-w-xl rounded-[28px] shadow-2xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] animate-in zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="p-6 border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="size-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-xl">{editingUser ? 'manage_accounts' : 'person_add'}</span>
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-semibold text-[#202124] dark:text-white">{editingUser ? L('editUser') : L('addUser')}</h3>
+                                    <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">{L('userInfo')}</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setIsUserModalOpen(false)} className="size-9 rounded-full flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors">
+                                <span className="material-symbols-outlined text-lg">close</span>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleUserSubmit} className="p-6 space-y-4">
                             {userApiError && (
-                                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-center gap-4 animate-in slide-in-from-top-2">
-                                    <div className="size-10 bg-red-500 rounded-xl flex items-center justify-center text-white shrink-0">
-                                        <span className="material-icons-round">error_outline</span>
+                                <div className="p-3.5 bg-[#fce8e6] dark:bg-red-950/30 border border-[#fad2cf] dark:border-red-900/40 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2">
+                                    <div className="size-8 bg-[#d93025] rounded-full flex items-center justify-center text-white shrink-0">
+                                        <span className="material-symbols-outlined text-sm">error</span>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-[10px] font-black text-red-500 uppercase tracking-widest leading-none mb-1">Hata Oluştu</p>
-                                        <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 break-words">{userApiError}</p>
+                                        <p className="text-[11px] font-semibold text-[#d93025] dark:text-red-400">Hata Oluştu</p>
+                                        <p className="text-xs text-[#5f6368] dark:text-[#dadce0] break-words">{userApiError}</p>
                                     </div>
                                 </div>
                             )}
-                            <div className="grid grid-cols-2 gap-4"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Name</label><input type="text" required value={userFormData.name} onChange={(e) => setUserFormData(prev => ({ ...prev, name: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" /></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Surname</label><input type="text" required value={userFormData.surname} onChange={(e) => setUserFormData(prev => ({ ...prev, surname: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" /></div></div>
-                            <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label><input type="email" required autoComplete="new-email" value={userFormData.email} onChange={(e) => setUserFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary transition-all" /></div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={userFormData.name}
+                                        onChange={(e) => setUserFormData(prev => ({ ...prev, name: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Surname</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={userFormData.surname}
+                                        onChange={(e) => setUserFormData(prev => ({ ...prev, surname: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Email Address</label>
+                                <input
+                                    type="email"
+                                    required
+                                    autoComplete="new-email"
+                                    value={userFormData.email}
+                                    onChange={(e) => setUserFormData(prev => ({ ...prev, email: e.target.value }))}
+                                    className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
+                                />
+                            </div>
+
                             {!editingUser && (
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
+                                <div>
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Password</label>
                                     <div className="relative">
-                                        <input 
-                                            type={showPassword ? "text" : "password"} 
-                                            required 
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            required
                                             autoComplete="new-password"
-                                            value={userFormData.password} 
-                                            onChange={(e) => setUserFormData(prev => ({ ...prev, password: e.target.value }))} 
-                                            className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl pl-4 pr-12 text-xs font-bold outline-none focus:border-primary transition-all" 
+                                            value={userFormData.password}
+                                            onChange={(e) => setUserFormData(prev => ({ ...prev, password: e.target.value }))}
+                                            className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl pl-3 pr-10 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
                                         />
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 size-8 flex items-center justify-center text-slate-400 hover:text-primary transition-colors"
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 size-7 flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] hover:text-[#1a73e8] transition-colors"
                                         >
-                                            <span className="material-icons-round text-lg">
+                                            <span className="material-symbols-outlined text-base">
                                                 {showPassword ? 'visibility_off' : 'visibility'}
                                             </span>
                                         </button>
                                     </div>
-                                    <div className="mt-3 grid grid-cols-1 gap-1.5 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-white/5">
+                                    <div className="mt-2.5 grid grid-cols-1 gap-1.5 p-3 bg-[#f8f9fa] dark:bg-[#303134]/50 rounded-xl border border-[#dadce0] dark:border-[#3c4043]">
                                         {[
                                             { key: 'length', label: 'Minimum 12 - Maksimum 16 karakter' },
                                             { key: 'uppercase', label: 'En az 1 büyük harf (A-Z)' },
@@ -2286,209 +2446,344 @@ const MyOffice = () => {
                                             const isValid = validatePassword(userFormData.password)[rule.key];
                                             return (
                                                 <div key={rule.key} className="flex items-center gap-2">
-                                                    <div className={`size-4 rounded-full flex items-center justify-center transition-colors ${isValid ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500'}`}>
-                                                        <span className="material-icons-round text-[10px] font-bold">{isValid ? 'check' : 'close'}</span>
+                                                    <div className={`size-4 rounded-full flex items-center justify-center transition-colors ${isValid ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#f1f3f4] dark:bg-[#3c4043] text-[#5f6368] dark:text-[#9aa0a6]'}`}>
+                                                        <span className="material-symbols-outlined text-[11px] font-bold">{isValid ? 'check' : 'close'}</span>
                                                     </div>
-                                                    <span className={`text-[10px] font-bold transition-colors ${isValid ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>{rule.label}</span>
+                                                    <span className={`text-[11px] font-medium transition-colors ${isValid ? 'text-[#137333] dark:text-emerald-400' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>{rule.label}</span>
                                                 </div>
                                             );
                                         })}
                                     </div>
                                 </div>
                             )}
-                            <PhoneInput 
+
+                            <PhoneInput
                                 label="Phone Number"
                                 value={(userFormData.phoneCountryCode?.startsWith('+') ? userFormData.phoneCountryCode : `+${userFormData.phoneCountryCode}`) + ' ' + userFormData.phoneNumber}
                                 onChange={(val) => {
                                     const parts = val.split(' ');
-                                    setUserFormData(prev => ({ 
-                                        ...prev, 
-                                        phoneCountryCode: parts[0]?.replace('+', '') || '90', 
-                                        phoneNumber: parts[1] || '' 
+                                    setUserFormData(prev => ({
+                                        ...prev,
+                                        phoneCountryCode: parts[0]?.replace('+', '') || '90',
+                                        phoneNumber: parts[1] || ''
                                     }));
                                 }}
                             />
-                            <div className="grid grid-cols-2 gap-4"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Role</label><select multiple value={userFormData.roleIds} onChange={(e) => setUserFormData(prev => ({ ...prev, roleIds: Array.from(e.target.selectedOptions, option => parseInt(option.value)) }))} className="w-full min-h-[80px] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl p-2 text-xs font-bold outline-none focus:border-primary">{roles.map(r => <option key={r.id} value={r.id}>{r.roleName || r.name}</option>)}</select></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Status</label><select value={userFormData.status} onChange={(e) => setUserFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary"><option value="ACTIVE">Active</option><option value="PASSIVE">Passive</option></select></div></div>
-                            <div className="pt-4 flex items-center justify-end gap-3"><button type="button" onClick={() => setIsUserModalOpen(false)} className="h-11 px-6 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">{L('cancel')}</button><button type="submit" disabled={saving} className="h-11 px-8 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">{saving ? L('processing') : L('saveUser')}</button></div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Role</label>
+                                    <select
+                                        multiple
+                                        value={userFormData.roleIds}
+                                        onChange={(e) => setUserFormData(prev => ({ ...prev, roleIds: Array.from(e.target.selectedOptions, option => parseInt(option.value)) }))}
+                                        className="w-full min-h-[80px] bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl p-2 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                    >
+                                        {roles.map(r => <option key={r.id} value={r.id} className="py-1 px-2 rounded">{r.roleName || r.name}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Status</label>
+                                    <select
+                                        value={userFormData.status}
+                                        onChange={(e) => setUserFormData(prev => ({ ...prev, status: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                    >
+                                        <option value="ACTIVE">Active</option>
+                                        <option value="PASSIVE">Passive</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="pt-3 border-t border-[#dadce0] dark:border-[#3c4043] flex items-center justify-end gap-2.5">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsUserModalOpen(false)}
+                                    className="h-10 px-5 rounded-full text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors"
+                                >
+                                    {L('cancel')}
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={saving}
+                                    className="h-10 px-6 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium shadow-sm active:scale-95 transition-all disabled:opacity-50"
+                                >
+                                    {saving ? L('processing') : L('saveUser')}
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* Modals (Guests) */}
+            {/* Google Material 3 Guest Modal */}
             {isGuestModalOpen && (
                 <div className="fixed inset-0 z-[20000] flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="modal-overlay fixed inset-0" onClick={() => setIsGuestModalOpen(false)}></div>
-                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-slate-50 dark:border-white/5"><div className="flex items-center justify-between"><div><h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingGuest ? L('editGuest') : L('addGuest')}</h3><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{L('guestInfo')}</p></div><button onClick={() => setIsGuestModalOpen(false)} className="size-10 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"><span className="material-icons-round">close</span></button></div></div>
-                        <form onSubmit={handleGuestSubmit} className="p-8 space-y-6">
+                    <div className="modal-overlay fixed inset-0 bg-[#202124]/40 backdrop-blur-sm" onClick={() => setIsGuestModalOpen(false)}></div>
+                    <div className="relative bg-white dark:bg-[#202124] w-full max-w-2xl rounded-[28px] shadow-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden animate-in zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="p-6 border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="size-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-xl">{editingGuest ? 'badge' : 'person_add'}</span>
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-semibold text-[#202124] dark:text-white">{editingGuest ? L('editGuest') : L('addGuest')}</h3>
+                                    <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">{L('guestInfo')}</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setIsGuestModalOpen(false)} className="size-9 rounded-full flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors">
+                                <span className="material-symbols-outlined text-lg">close</span>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleGuestSubmit} className="p-6 space-y-4">
                             {guestApiError && (
-                                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-center gap-4 animate-in slide-in-from-top-2">
-                                    <div className="size-10 bg-red-500 rounded-xl flex items-center justify-center text-white shrink-0">
-                                        <span className="material-icons-round">error_outline</span>
+                                <div className="p-3.5 bg-[#fce8e6] dark:bg-red-950/30 border border-[#fad2cf] dark:border-red-900/40 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2">
+                                    <div className="size-8 bg-[#d93025] rounded-full flex items-center justify-center text-white shrink-0">
+                                        <span className="material-symbols-outlined text-sm">error</span>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-[10px] font-black text-red-500 uppercase tracking-widest leading-none mb-1">Hata Oluştu</p>
-                                        <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 break-words">{guestApiError}</p>
+                                        <p className="text-[11px] font-semibold text-[#d93025] dark:text-red-400">Hata Oluştu</p>
+                                        <p className="text-xs text-[#5f6368] dark:text-[#dadce0] break-words">{guestApiError}</p>
                                     </div>
                                 </div>
                             )}
-                            <div className="grid grid-cols-3 gap-4"><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gender</label><select value={guestFormData.gender} onChange={(e) => setGuestFormData(prev => ({ ...prev, gender: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary"><option value="MALE">Mr</option><option value="FEMALE">Mrs</option></select></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">First Name</label><input type="text" required value={guestFormData.firstName} onChange={(e) => setGuestFormData(prev => ({ ...prev, firstName: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" /></div><div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Last Name</label><input type="text" required value={guestFormData.lastName} onChange={(e) => setGuestFormData(prev => ({ ...prev, lastName: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" /></div></div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Birth Date</label>
-                                    <DatePicker 
-                                        selected={guestFormData.birthDate ? new Date(formatToPickerDate(guestFormData.birthDate)) : null} 
+
+                            <div className="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Gender</label>
+                                    <select
+                                        value={guestFormData.gender}
+                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, gender: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                    >
+                                        <option value="MALE">Mr</option>
+                                        <option value="FEMALE">Mrs</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">First Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={guestFormData.firstName}
+                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Last Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={guestFormData.lastName}
+                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Birth Date</label>
+                                    <DatePicker
+                                        selected={guestFormData.birthDate ? new Date(formatToPickerDate(guestFormData.birthDate)) : null}
                                         onChange={(date) => setGuestFormData(prev => ({ ...prev, birthDate: date ? formatToBackendDate(date.toISOString().split('T')[0]) : '' }))}
                                         dateFormat="dd.MM.yyyy"
                                         placeholderText="DD.MM.YYYY"
                                         showMonthDropdown
                                         showYearDropdown
                                         dropdownMode="select"
-                                        className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary w-full"
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
                                         wrapperClassName="w-full"
                                     />
                                 </div>
-                                 <div className="space-y-1 relative">
-                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Country</label>
-                                     <div 
-                                         onClick={() => setShowGuestCountries(!showGuestCountries)}
-                                         className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 flex items-center justify-between cursor-pointer group"
-                                     >
-                                         <span className={`text-xs font-bold ${guestFormData.country ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>
-                                             {guestFormData.country ? (
-                                                 <div className="flex items-center gap-2">
-                                                     <span className="opacity-50 text-[10px]">{guestFormData.country}</span>
-                                                     <span>{getCountryName(countries, guestFormData.country, currentLang)}</span>
-                                                 </div>
-                                             ) : 'Select country...'}
-                                         </span>
-                                         <span className={`material-icons-round text-slate-400 text-sm transition-transform ${showGuestCountries ? 'rotate-180' : ''}`}>expand_more</span>
-                                     </div>
+                                <div className="relative">
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Country</label>
+                                    <div
+                                        onClick={() => setShowGuestCountries(!showGuestCountries)}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 flex items-center justify-between cursor-pointer group hover:border-[#1a73e8]"
+                                    >
+                                        <span className={`text-xs ${guestFormData.country ? 'font-medium text-[#202124] dark:text-white' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>
+                                            {guestFormData.country ? (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="opacity-50 text-[10px] font-bold">{guestFormData.country}</span>
+                                                    <span>{getCountryName(countries, guestFormData.country, currentLang)}</span>
+                                                </div>
+                                            ) : 'Select country...'}
+                                        </span>
+                                        <span className={`material-symbols-outlined text-[#5f6368] dark:text-[#9aa0a6] text-sm transition-transform ${showGuestCountries ? 'rotate-180' : ''}`}>expand_more</span>
+                                    </div>
 
-                                     {showGuestCountries && (
-                                         <>
-                                             <div className="fixed inset-0 z-[1001]" onClick={() => { setShowGuestCountries(false); setGuestCountrySearch(''); }} />
-                                             <div className="absolute top-full left-0 right-0 mt-2 max-h-64 overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-[1002] flex flex-col animate-in fade-in slide-in-from-top-2">
-                                                 <div className="p-2 border-b border-slate-50 dark:border-white/5">
-                                                     <div className="relative">
-                                                         <span className="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
-                                                         <input 
-                                                             type="text" 
-                                                             placeholder="Search country..." 
-                                                             value={guestCountrySearch}
-                                                             onChange={(e) => setGuestCountrySearch(e.target.value)}
-                                                             autoFocus
-                                                             className="w-full h-9 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-xl pl-9 pr-3 text-[11px] font-bold outline-none focus:border-primary transition-all"
-                                                         />
-                                                     </div>
-                                                 </div>
-                                                 <div className="flex-1 overflow-y-auto p-1 custom-scrollbar">
-                                                     {countries
-                                                         .filter(c => {
-                                                             const name = (c.name?.translations?.[currentLang] || c.name?.translations?.en || c.name?.defaultName || '').toLowerCase();
-                                                             return name.includes(guestCountrySearch.toLowerCase()) || c.alphaTwoCode.toLowerCase().includes(guestCountrySearch.toLowerCase());
-                                                         })
-                                                         .map(c => (
-                                                             <div 
-                                                                 key={c.id} 
-                                                                 onClick={() => {
-                                                                     setGuestFormData(prev => ({ ...prev, country: c.alphaTwoCode }));
-                                                                     setShowGuestCountries(false);
-                                                                     setGuestCountrySearch('');
-                                                                 }}
-                                                                 className={`px-3 py-2 rounded-xl text-[11px] font-bold cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${guestFormData.country === c.alphaTwoCode ? 'bg-primary text-white' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
-                                                             >
-                                                                 <div className="flex items-center gap-2">
-                                                                     <span className="opacity-60 text-[9px] w-6 uppercase">{c.alphaTwoCode}</span>
-                                                                     <span>{c.name?.translations?.[currentLang] || c.name?.translations?.en || c.name?.defaultName}</span>
-                                                                 </div>
-                                                                 {guestFormData.country === c.alphaTwoCode && <span className="material-icons-round text-xs">check</span>}
-                                                             </div>
-                                                         ))}
-                                                 </div>
-                                             </div>
-                                         </>
-                                     )}
-                                 </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Passport No</label>
-                                    <input type="text" value={guestFormData.passportNo} onChange={(e) => setGuestFormData(prev => ({ ...prev, passportNo: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none" />
+                                    {showGuestCountries && (
+                                        <>
+                                            <div className="fixed inset-0 z-[1001]" onClick={() => { setShowGuestCountries(false); setGuestCountrySearch(''); }} />
+                                            <div className="absolute top-full left-0 right-0 mt-1 max-h-64 overflow-hidden bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-2xl z-[1002] flex flex-col animate-in fade-in slide-in-from-top-2">
+                                                <div className="p-2 border-b border-[#dadce0] dark:border-[#3c4043]">
+                                                    <div className="relative">
+                                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-sm">search</span>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Search country..."
+                                                            value={guestCountrySearch}
+                                                            onChange={(e) => setGuestCountrySearch(e.target.value)}
+                                                            autoFocus
+                                                            className="w-full h-8 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-full pl-8 pr-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1 overflow-y-auto p-1.5 custom-scrollbar">
+                                                    {countries
+                                                        .filter(c => {
+                                                            const name = (c.name?.translations?.[currentLang] || c.name?.translations?.en || c.name?.defaultName || '').toLowerCase();
+                                                            return name.includes(guestCountrySearch.toLowerCase()) || c.alphaTwoCode.toLowerCase().includes(guestCountrySearch.toLowerCase());
+                                                        })
+                                                        .map(c => (
+                                                            <div
+                                                                key={c.id}
+                                                                onClick={() => {
+                                                                    setGuestFormData(prev => ({ ...prev, country: c.alphaTwoCode }));
+                                                                    setShowGuestCountries(false);
+                                                                    setGuestCountrySearch('');
+                                                                }}
+                                                                className={`px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${guestFormData.country === c.alphaTwoCode ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-[#dadce0]'}`}
+                                                            >
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="opacity-60 text-[10px] w-6 uppercase font-mono">{c.alphaTwoCode}</span>
+                                                                    <span>{c.name?.translations?.[currentLang] || c.name?.translations?.en || c.name?.defaultName}</span>
+                                                                </div>
+                                                                {guestFormData.country === c.alphaTwoCode && <span className="material-symbols-outlined text-sm">check</span>}
+                                                            </div>
+                                                        ))}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Passport Expiry</label>
-                                    <DatePicker 
-                                        selected={guestFormData.passportExpiry ? new Date(formatToPickerDate(guestFormData.passportExpiry)) : null} 
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Passport No</label>
+                                    <input
+                                        type="text"
+                                        value={guestFormData.passportNo}
+                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, passportNo: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Passport Expiry</label>
+                                    <DatePicker
+                                        selected={guestFormData.passportExpiry ? new Date(formatToPickerDate(guestFormData.passportExpiry)) : null}
                                         onChange={(date) => setGuestFormData(prev => ({ ...prev, passportExpiry: date ? formatToBackendDate(date.toISOString().split('T')[0]) : '' }))}
                                         dateFormat="dd.MM.yyyy"
                                         placeholderText="DD.MM.YYYY"
                                         showMonthDropdown
                                         showYearDropdown
                                         dropdownMode="select"
-                                        className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary w-full"
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
                                         wrapperClassName="w-full"
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label><input type="email" required value={guestFormData.email} onChange={(e) => setGuestFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary" placeholder="example@mail.com" /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Status</label><select value={guestFormData.status} onChange={(e) => setGuestFormData(prev => ({ ...prev, status: e.target.value }))} className="w-full h-11 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl px-4 text-xs font-bold outline-none focus:border-primary"><option value="ACTIVE">Active</option><option value="PASSIVE">Passive</option></select></div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Email Address</label>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={guestFormData.email}
+                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, email: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                        placeholder="example@mail.com"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Status</label>
+                                    <select
+                                        value={guestFormData.status}
+                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, status: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                    >
+                                        <option value="ACTIVE">Active</option>
+                                        <option value="PASSIVE">Passive</option>
+                                    </select>
+                                </div>
                             </div>
-                            <PhoneInput 
+
+                            <PhoneInput
                                 label="Phone Number"
                                 value={(guestFormData.phoneCountryCode?.startsWith('+') ? guestFormData.phoneCountryCode : `+${guestFormData.phoneCountryCode}`) + ' ' + guestFormData.phoneNumber}
                                 onChange={(val) => {
                                     const parts = val.split(' ');
-                                    setGuestFormData(prev => ({ 
-                                        ...prev, 
-                                        phoneCountryCode: parts[0]?.replace('+', '') || '90', 
-                                        phoneNumber: parts[1] || '' 
+                                    setGuestFormData(prev => ({
+                                        ...prev,
+                                        phoneCountryCode: parts[0]?.replace('+', '') || '90',
+                                        phoneNumber: parts[1] || ''
                                     }));
                                 }}
                             />
-                            <div className="pt-4 flex items-center justify-end gap-3"><button type="button" onClick={() => setIsGuestModalOpen(false)} className="h-11 px-6 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">{L('cancel')}</button><button type="submit" disabled={saving} className="h-11 px-8 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all">{saving ? L('processing') : L('saveGuest')}</button></div>
+
+                            <div className="pt-3 border-t border-[#dadce0] dark:border-[#3c4043] flex items-center justify-end gap-2.5">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsGuestModalOpen(false)}
+                                    className="h-10 px-5 rounded-full text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors"
+                                >
+                                    {L('cancel')}
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={saving}
+                                    className="h-10 px-6 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium shadow-sm active:scale-95 transition-all disabled:opacity-50"
+                                >
+                                    {saving ? L('processing') : L('saveGuest')}
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
             )}
             {/* Fixed Audit Tooltip at Root Level (Never Clipped) */}
             {auditTooltip && (
-                <div 
+                <div
                     style={{ left: `${auditTooltip.x}px`, top: `${auditTooltip.y}px` }}
-                    className="fixed -translate-x-1/2 -translate-y-full z-[999999] w-80 sm:w-96 p-3.5 bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur-md text-white rounded-xl shadow-2xl border border-white/10 text-[11px] pointer-events-none animate-in fade-in-50 zoom-in-95"
+                    className="fixed -translate-x-1/2 -translate-y-full z-[999999] w-80 sm:w-96 p-4 bg-[#202124]/95 dark:bg-[#171717]/95 backdrop-blur-md text-white rounded-2xl shadow-2xl border border-[#3c4043] text-xs pointer-events-none animate-in fade-in-50 zoom-in-95"
                 >
-                    <div className="font-bold text-slate-200 border-b border-white/10 pb-2 mb-2 flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                            <span className="material-icons-round text-xs text-primary">history</span> Audit & Record Details
+                    <div className="font-medium text-white border-b border-[#3c4043] pb-2.5 mb-2.5 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-sm text-[#8ab4f8]">history</span>
+                            <span>Audit & Record Details</span>
                         </div>
-                        <span className="text-[10px] font-semibold text-slate-400">ID: #{auditTooltip.item.id || auditTooltip.item.hotelId}</span>
+                        <span className="text-[10px] font-mono text-[#9aa0a6]">ID: #{auditTooltip.item.id || auditTooltip.item.hotelId}</span>
                     </div>
-                    <div className="space-y-2 text-slate-300">
+                    <div className="space-y-2 text-[#dadce0]">
                         <div className="flex justify-between items-center gap-3">
-                            <span className="text-slate-400 font-medium shrink-0">Created At:</span>
-                            <span className="font-semibold text-slate-200">{formatDateTime(auditTooltip.item.createDateTime)}</span>
-                        </div>
-                        <div className="flex justify-between items-center gap-3">
-                            <span className="text-slate-400 font-medium shrink-0">Created By:</span>
-                            <span className="font-semibold text-slate-100 break-all">{auditTooltip.item.createdBy || auditTooltip.item.userEmail || 'System'}</span>
-                        </div>
-                        <div className="flex justify-between items-center gap-3 border-t border-white/5 pt-2">
-                            <span className="text-slate-400 font-medium shrink-0">Updated At:</span>
-                            <span className="font-semibold text-slate-200">{formatDateTime(auditTooltip.item.updateDateTime)}</span>
+                            <span className="text-[#9aa0a6] font-medium shrink-0">Created At:</span>
+                            <span className="font-medium text-white">{formatDateTime(auditTooltip.item.createDateTime)}</span>
                         </div>
                         <div className="flex justify-between items-center gap-3">
-                            <span className="text-slate-400 font-medium shrink-0">Updated By:</span>
-                            <span className="font-semibold text-slate-100 break-all">{auditTooltip.item.updatedBy || auditTooltip.item.userEmail || 'System'}</span>
+                            <span className="text-[#9aa0a6] font-medium shrink-0">Created By:</span>
+                            <span className="font-medium text-white break-all">{auditTooltip.item.createdBy || auditTooltip.item.userEmail || 'System'}</span>
                         </div>
-                        <div className="flex justify-between items-center gap-3 border-t border-white/5 pt-2">
-                            <span className="text-slate-400 font-medium shrink-0">Version:</span>
-                            <span className="font-semibold px-2 py-0.5 bg-primary/20 text-primary rounded-md text-[10px]">{auditTooltip.item.version ?? 0}</span>
+                        <div className="flex justify-between items-center gap-3 border-t border-[#3c4043]/50 pt-2">
+                            <span className="text-[#9aa0a6] font-medium shrink-0">Updated At:</span>
+                            <span className="font-medium text-white">{formatDateTime(auditTooltip.item.updateDateTime)}</span>
+                        </div>
+                        <div className="flex justify-between items-center gap-3">
+                            <span className="text-[#9aa0a6] font-medium shrink-0">Updated By:</span>
+                            <span className="font-medium text-white break-all">{auditTooltip.item.updatedBy || auditTooltip.item.userEmail || 'System'}</span>
+                        </div>
+                        <div className="flex justify-between items-center gap-3 border-t border-[#3c4043]/50 pt-2">
+                            <span className="text-[#9aa0a6] font-medium shrink-0">Version:</span>
+                            <span className="font-medium px-2 py-0.5 bg-[#1a73e8]/20 text-[#8ab4f8] rounded-full text-[10px]">v{auditTooltip.item.version ?? 0}</span>
                         </div>
                     </div>
                     {/* Down Arrow */}
-                    <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 size-2 bg-slate-900/95 dark:bg-slate-950/95 rotate-45 border-r border-b border-white/10"></div>
+                    <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 size-2 bg-[#202124]/95 dark:bg-[#171717]/95 rotate-45 border-r border-b border-[#3c4043]"></div>
                 </div>
             )}
         </>

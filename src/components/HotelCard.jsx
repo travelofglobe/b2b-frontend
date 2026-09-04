@@ -96,7 +96,7 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
 
     return (
         <Link
-            to={`/hotel/${hotel.hotelId}?${searchParams.toString()}`}
+            to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
             target="_blank"
             rel="noopener noreferrer"
             onMouseEnter={() => setIsHovered(true)}
@@ -124,17 +124,17 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                         <>
                             <button
                                 onClick={prevImg}
-                                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 size-9 bg-black/40 hover:bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all border border-white/20 shadow-md active:scale-95 cursor-pointer"
+                                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 size-8 bg-white/80 hover:bg-white backdrop-blur-md rounded-full flex items-center justify-center text-slate-800 opacity-0 group-hover:opacity-100 transition-all border border-white/40 shadow-[0_1px_4px_rgba(0,0,0,0.25)] active:scale-95 cursor-pointer"
                                 title="Previous image"
                             >
-                                <span className="material-symbols-outlined text-xl font-bold">chevron_left</span>
+                                <span className="material-symbols-outlined text-lg font-bold">chevron_left</span>
                             </button>
                             <button
                                 onClick={nextImg}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 size-9 bg-black/40 hover:bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all border border-white/20 shadow-md active:scale-95 cursor-pointer"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 size-8 bg-white/80 hover:bg-white backdrop-blur-md rounded-full flex items-center justify-center text-slate-800 opacity-0 group-hover:opacity-100 transition-all border border-white/40 shadow-[0_1px_4px_rgba(0,0,0,0.25)] active:scale-95 cursor-pointer"
                                 title="Next image"
                             >
-                                <span className="material-symbols-outlined text-xl font-bold">chevron_right</span>
+                                <span className="material-symbols-outlined text-lg font-bold">chevron_right</span>
                             </button>
 
                             {/* Dots Indicators */}

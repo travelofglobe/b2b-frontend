@@ -161,7 +161,7 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                <div className="max-w-[1024px] mx-auto px-4 md:px-6 relative z-20">
+                <div className="w-full max-w-[1024px] mx-auto px-4 md:px-6 relative z-20">
 
 
                     {/* Compact 5-Card Single Row Summary Stats Grid */}

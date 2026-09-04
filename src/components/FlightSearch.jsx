@@ -296,7 +296,11 @@ const FlightSearch = ({ onSearch }) => {
                     </div>
 
                     {/* Twin Datepicker Container (Google Flights style) */}
-                    <div className="w-full lg:w-[350px] flex-shrink-0 relative h-14 border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] transition-all flex items-center google-flight-date-trigger font-roboto">
+                    <div className={`w-full lg:w-[350px] flex-shrink-0 relative h-14 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
+                        isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')
+                            ? ''
+                            : 'border border-[#dadce0] dark:border-slate-600 rounded-[4px] hover:border-[#bdc1c6] transition-all'
+                    }`}>
                         
                         {/* Departure Date Half */}
                         <div
@@ -304,10 +308,12 @@ const FlightSearch = ({ onSearch }) => {
                                 setActiveDateField('checkIn');
                                 setIsDatePickerOpen(true);
                             }}
-                            className={`flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
+                            className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkIn'
-                                    ? 'border-2 border-[#1a73e8] rounded-l-[3px]'
-                                    : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                    : isDatePickerOpen && activeDateField === 'checkOut'
+                                    ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    : 'rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
                             }`}
                         >
                             <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -337,8 +343,10 @@ const FlightSearch = ({ onSearch }) => {
                             </div>
                         </div>
 
-                        {/* Divider */}
-                        <div className="w-[1px] h-7 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
+                        {/* Divider (only visible when neither half is actively focused) */}
+                        {!(isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')) && (
+                            <div className="w-[1px] h-7 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
+                        )}
 
                         {/* Return Date Half (Disabled if one_way) */}
                         {tripType.id !== 'one_way' ? (
@@ -347,10 +355,12 @@ const FlightSearch = ({ onSearch }) => {
                                     setActiveDateField('checkOut');
                                     setIsDatePickerOpen(true);
                                 }}
-                                className={`flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
+                                className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                     isDatePickerOpen && activeDateField === 'checkOut'
-                                        ? 'border-2 border-[#1a73e8] rounded-r-[3px]'
-                                        : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                        ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                        : isDatePickerOpen && activeDateField === 'checkIn'
+                                        ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                        : 'rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
                                 }`}
                             >
                                 <div className="flex items-center min-w-0 flex-1">

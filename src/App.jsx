@@ -48,17 +48,21 @@ function App() {
             
             {/* Portal Routes with Persistent Sidebar */}
             <Route element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}>
-              <Route path="/travel/search" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Navigate to="/travel/search" replace />} />
+              <Route path="/travel/hotels" element={<Dashboard />} />
+              <Route path="/travel/search" element={<Navigate to="/travel/hotels" replace />} />
+              <Route path="/dashboard" element={<Navigate to="/travel/hotels" replace />} />
               <Route path="/bookings" element={<MyBookings />} />
               <Route path="/bookings/:bookingId" element={<BookingDetail />} />
               <Route path="/my-office" element={<MyOffice />} />
               <Route path="/definitions/markup" element={<MarkupManagement />} />
               
               {/* Header tab & Google travel routes */}
-              <Route path="/explore" element={<UnderConstruction title="Keşfet" icon="travel_explore" />} />
-              <Route path="/flights" element={<Flights />} />
-              <Route path="/vacation-rentals" element={<UnderConstruction title="Kiralık Yerler" icon="home_work" />} />
+              <Route path="/travel/explore" element={<UnderConstruction title="Keşfet" icon="travel_explore" />} />
+              <Route path="/explore" element={<Navigate to="/travel/explore" replace />} />
+              <Route path="/travel/flights" element={<Flights />} />
+              <Route path="/flights" element={<Navigate to="/travel/flights" replace />} />
+              <Route path="/travel/vacation-rentals" element={<UnderConstruction title="Kiralık Yerler" icon="home_work" />} />
+              <Route path="/vacation-rentals" element={<Navigate to="/travel/vacation-rentals" replace />} />
               <Route path="/flight-deals" element={<UnderConstruction title="Uçuş Fırsatları" icon="auto_awesome" />} />
               <Route path="/tracked-flight-prices" element={<UnderConstruction title="Takip Edilen Uçuş Fiyatları" icon="show_chart" />} />
 
@@ -81,8 +85,8 @@ function App() {
             {/* Error / Forbidden Pages */}
             <Route path="/forbidden" element={<ProtectedRoute><ForbiddenPage /></ProtectedRoute>} />
             <Route path="/403" element={<ProtectedRoute><ForbiddenPage /></ProtectedRoute>} />
-            {/* Redirect root to travel search (ProtectedRoute will handle auth check) */}
-            <Route path="/" element={<Navigate to="/travel/search" replace />} />
+            {/* Redirect root to travel hotels (ProtectedRoute will handle auth check) */}
+            <Route path="/" element={<Navigate to="/travel/hotels" replace />} />
           </Routes>
         </div>
         </FavoritesProvider>

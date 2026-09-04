@@ -166,7 +166,7 @@ const CheckoutResult = () => {
                 {/* Bottom Actions */}
                 <div className="flex items-center justify-center gap-3">
                     <Link
-                        to="/travel/search"
+                        to="/travel/hotels"
                         className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl font-semibold text-xs shadow-md transition-all flex items-center gap-1.5"
                     >
                         <span className="material-symbols-outlined text-base">dashboard</span>

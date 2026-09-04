@@ -25,10 +25,10 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Redirect to travel search if already logged in
+    // Redirect to travel hotels if already logged in
     useEffect(() => {
         if (user) {
-            navigate('/travel/search', { replace: true });
+            navigate('/travel/hotels', { replace: true });
         }
     }, [user, navigate]);
 
@@ -38,7 +38,7 @@ const LoginPage = () => {
         return backgrounds[randomIndex];
     }, []);
 
-    const from = location.state?.from?.pathname || "/travel/search";
+    const from = location.state?.from?.pathname || "/travel/hotels";
 
     const handleSubmit = async (e) => {
         e.preventDefault();

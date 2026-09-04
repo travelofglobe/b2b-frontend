@@ -4,10 +4,17 @@ import { getUserCountryCode } from '../utils/geoUtils';
 
 const PRIORITY_COUNTRY_CODES = ['GB', 'FR', 'DE', 'RU', 'US', 'CN', 'ES', 'NL', 'AT', 'JP'];
 
-const NationalitySelect = ({ value, onChange, compact = false, googleStyle = false, inputStyle = false }) => {
+const NationalitySelect = ({ value, onChange, compact = false, googleStyle = false, inputStyle = false, onToggle }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const wrapperRef = useRef(null);
+
+    const toggleOpen = () => {
+        const next = !isOpen;
+        setIsOpen(next);
+        setSearchTerm('');
+        onToggle?.(next);
+    };
 
     // Sales channel country (or fallback user country)
     const agencyCountryCode = useMemo(() => {
@@ -85,7 +92,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
             {inputStyle ? (
                 <button
                     type="button"
-                    onClick={() => { setIsOpen(!isOpen); setSearchTerm(''); }}
+                    onClick={toggleOpen}
                     className={`w-full h-14 flex items-center justify-between px-3.5 sm:px-4 border rounded-[4px] bg-white dark:bg-[#303134] transition-all text-left focus:outline-none font-roboto ${
                         isOpen 
                             ? 'border-[#1a73e8] ring-1 ring-[#1a73e8]' 
@@ -99,52 +106,60 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                             {selectedCountry?.name || selectedCountry?.code || 'Türkiye'}
                         </span>
                     </div>
-                    <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0 ml-1">arrow_drop_down</span>
+                    <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0 ml-1">
+                        {isOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
+                    </span>
                 </button>
             ) : (
                 <button
                     type="button"
-                    onClick={() => { setIsOpen(!isOpen); setSearchTerm(''); }}
+                    onClick={toggleOpen}
                     className={googleStyle 
-                        ? "flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-700/50 px-2.5 py-1.5 rounded transition-colors text-[#3c4043] dark:text-slate-300 font-medium text-sm focus:outline-none"
+                        ? `flex items-center gap-1.5 px-2.5 py-1.5 rounded transition-colors font-medium text-sm focus:outline-none ${
+                            isOpen 
+                                ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300' 
+                                : 'hover:bg-slate-100 dark:hover:bg-slate-700/50 text-[#3c4043] dark:text-slate-300'
+                        }`
                         : `w-full flex items-center gap-2 bg-transparent border-none p-0 focus:ring-0 ${compact ? 'justify-center' : ''}`
                     }
                 >
                     <span className={`${compact ? 'text-lg' : 'text-base'} flex-shrink-0`}>{selectedCountry?.flag}</span>
-                    <span className={`${compact ? 'text-[11px]' : 'text-sm'} font-medium text-[#3c4043] dark:text-slate-200 truncate`}>
+                    <span className={`${compact ? 'text-[11px]' : 'text-sm'} font-medium truncate`}>
                         {compact || googleStyle ? selectedCountry?.code : selectedCountry?.name}
                     </span>
-                    <span className="material-symbols-outlined text-[18px] text-slate-500 flex-shrink-0">arrow_drop_down</span>
+                    <span className="material-symbols-outlined text-[18px] text-slate-500 flex-shrink-0">
+                        {isOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
+                    </span>
                 </button>
             )}
 
             {isOpen && (
-                <div className={`absolute top-[calc(100%+6px)] left-0 ${inputStyle ? 'w-full min-w-[280px]' : 'w-[280px]'} bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl shadow-[0_4px_16px_rgba(32,33,36,0.28)] z-[250] overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150`}>
+                <div className={`absolute top-[calc(100%+4px)] left-0 ${inputStyle ? 'w-full min-w-[320px]' : 'w-[320px]'} bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-[4px] shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] z-[250] overflow-hidden animate-in fade-in duration-100 font-roboto`}>
                     {/* Search Input Box */}
-                    <div className="px-3 py-2 border-b border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] sticky top-0 z-10">
-                        <div className="flex items-center gap-2 h-9 px-2.5 bg-[#f1f3f4] dark:bg-slate-800 rounded-lg">
-                            <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400">search</span>
+                    <div className="p-2.5 border-b border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] sticky top-0 z-10">
+                        <div className="flex items-center gap-2 h-10 px-3 bg-[#f1f3f4] dark:bg-slate-800 rounded-[4px] border border-transparent focus-within:border-[#1a73e8] focus-within:bg-white dark:focus-within:bg-slate-900 transition-colors">
+                            <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 shrink-0">search</span>
                             <input
                                 type="text"
-                                className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 text-[13px] text-[#202124] dark:text-white placeholder-[#70757a]"
-                                placeholder="Ülke ara..."
+                                className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0 text-[14px] font-roboto text-[#202124] dark:text-white placeholder-[#70757a]"
+                                placeholder="Ülke veya kod ara..."
                                 autoFocus
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                             {searchTerm && (
-                                <button type="button" onClick={() => setSearchTerm('')} className="text-[#5f6368] hover:text-[#202124] dark:hover:text-white">
-                                    <span className="material-symbols-outlined text-[16px]">close</span>
+                                <button type="button" onClick={() => setSearchTerm('')} className="text-[#5f6368] hover:text-[#202124] dark:hover:text-white cursor-pointer">
+                                    <span className="material-symbols-outlined text-[18px]">close</span>
                                 </button>
                             )}
                         </div>
                     </div>
 
-                    {/* Countries List */}
-                    <div className="max-h-[280px] overflow-y-auto py-1 scrollbar-thin">
+                    {/* Countries List (Google Flights Menu Style with Left Checkmark) */}
+                    <div className="max-h-[320px] overflow-y-auto py-1 scrollbar-thin">
                         {!searchTerm.trim() ? (
                             <>
-                                <div className="px-3 py-1.5 text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">
+                                <div className="px-4 py-1.5 text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider bg-slate-50/60 dark:bg-slate-800/40">
                                     Önerilen Ülkeler
                                 </div>
                                 {topSectionList.map(country => {
@@ -157,26 +172,28 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                                                 onChange(country.code);
                                                 setIsOpen(false);
                                             }}
-                                            className={`w-full flex items-center justify-between px-3.5 py-2 text-left transition-colors ${
+                                            className={`w-full flex items-center px-4 py-2.5 text-left transition-colors cursor-pointer ${
                                                 isSelected 
-                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300 font-medium' 
-                                                    : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200'
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#202124] dark:text-white font-normal' 
+                                                    : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200 font-normal'
                                             }`}
                                         >
-                                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                                <span className="text-lg shrink-0 leading-none">{country.flag}</span>
-                                                <span className="text-[13px] truncate">{country.name}</span>
-                                            </div>
-                                            {isSelected && (
-                                                <span className="material-symbols-outlined text-[#1a73e8] text-[18px] shrink-0 ml-2">check</span>
-                                            )}
+                                            {/* Google Flights Checkmark on Left */}
+                                            <span className="w-7 flex items-center justify-start shrink-0">
+                                                {isSelected && (
+                                                    <span className="material-symbols-outlined text-[#5f6368] dark:text-slate-300 text-[20px]">check</span>
+                                                )}
+                                            </span>
+                                            <span className="text-xl shrink-0 mr-3 leading-none">{country.flag}</span>
+                                            <span className="text-[15px] truncate flex-1">{country.name}</span>
+                                            <span className="text-[13px] text-[#70757a] dark:text-slate-400 ml-2 font-normal shrink-0">{country.code}</span>
                                         </button>
                                     );
                                 })}
 
-                                <div className="h-[1px] bg-[#dadce0] dark:bg-slate-700 my-1 mx-3" />
+                                <div className="h-[1px] bg-[#dadce0] dark:bg-slate-700 my-1" />
 
-                                <div className="px-3 py-1.5 text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">
+                                <div className="px-4 py-1.5 text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider bg-slate-50/60 dark:bg-slate-800/40">
                                     Tüm Ülkeler
                                 </div>
                                 {otherCountries.map(country => {
@@ -189,19 +206,20 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                                                 onChange(country.code);
                                                 setIsOpen(false);
                                             }}
-                                            className={`w-full flex items-center justify-between px-3.5 py-2 text-left transition-colors ${
+                                            className={`w-full flex items-center px-4 py-2.5 text-left transition-colors cursor-pointer ${
                                                 isSelected 
-                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300 font-medium' 
-                                                    : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200'
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#202124] dark:text-white font-normal' 
+                                                    : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200 font-normal'
                                             }`}
                                         >
-                                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                                <span className="text-lg shrink-0 leading-none">{country.flag}</span>
-                                                <span className="text-[13px] truncate">{country.name}</span>
-                                            </div>
-                                            {isSelected && (
-                                                <span className="material-symbols-outlined text-[#1a73e8] text-[18px] shrink-0 ml-2">check</span>
-                                            )}
+                                            <span className="w-7 flex items-center justify-start shrink-0">
+                                                {isSelected && (
+                                                    <span className="material-symbols-outlined text-[#5f6368] dark:text-slate-300 text-[20px]">check</span>
+                                                )}
+                                            </span>
+                                            <span className="text-xl shrink-0 mr-3 leading-none">{country.flag}</span>
+                                            <span className="text-[15px] truncate flex-1">{country.name}</span>
+                                            <span className="text-[13px] text-[#70757a] dark:text-slate-400 ml-2 font-normal shrink-0">{country.code}</span>
                                         </button>
                                     );
                                 })}
@@ -218,24 +236,25 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                                                 onChange(country.code);
                                                 setIsOpen(false);
                                             }}
-                                            className={`w-full flex items-center justify-between px-3.5 py-2 text-left transition-colors ${
+                                            className={`w-full flex items-center px-4 py-2.5 text-left transition-colors cursor-pointer ${
                                                 isSelected 
-                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300 font-medium' 
-                                                    : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200'
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#202124] dark:text-white font-normal' 
+                                                    : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200 font-normal'
                                             }`}
                                         >
-                                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                                <span className="text-lg shrink-0 leading-none">{country.flag}</span>
-                                                <span className="text-[13px] truncate">{country.name}</span>
-                                            </div>
-                                            {isSelected && (
-                                                <span className="material-symbols-outlined text-[#1a73e8] text-[18px] shrink-0 ml-2">check</span>
-                                            )}
+                                            <span className="w-7 flex items-center justify-start shrink-0">
+                                                {isSelected && (
+                                                    <span className="material-symbols-outlined text-[#5f6368] dark:text-slate-300 text-[20px]">check</span>
+                                                )}
+                                            </span>
+                                            <span className="text-xl shrink-0 mr-3 leading-none">{country.flag}</span>
+                                            <span className="text-[15px] truncate flex-1">{country.name}</span>
+                                            <span className="text-[13px] text-[#70757a] dark:text-slate-400 ml-2 font-normal shrink-0">{country.code}</span>
                                         </button>
                                     );
                                 })
                             ) : (
-                                <div className="p-4 text-center text-[13px] text-slate-500">
+                                <div className="p-4 text-center text-[13px] text-[#70757a]">
                                     Ülke bulunamadı
                                 </div>
                             )

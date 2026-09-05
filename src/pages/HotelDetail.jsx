@@ -1793,19 +1793,20 @@ const HotelDetail = () => {
             <div className="flex-1 max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-6">
                 {/* Top Navigation & Breadcrumbs */}
                 <div className="mb-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                    <div className="flex items-center gap-2 overflow-x-auto overflow-y-hidden scrollbar-hide py-1">
                         {hotel.locationBreadcrumbs?.map((bc, i) => {
                             const name = bc.name?.translations?.tr || bc.name?.translations?.en || bc.name?.defaultName;
                             return (
                                 <React.Fragment key={bc.locationId}>
                                     <button
+                                        type="button"
                                         onClick={() => handleBreadcrumbClick(bc.locationId, name)}
-                                        className="text-xs font-normal text-[#5f6368] dark:text-slate-400 whitespace-nowrap hover:text-[#1a73e8] transition-colors cursor-pointer"
+                                        className="text-xs font-normal text-[#5f6368] dark:text-slate-400 whitespace-nowrap hover:text-[#1a73e8] transition-colors cursor-pointer bg-transparent border-0 p-0 leading-normal"
                                     >
                                         {name}
                                     </button>
                                     {i < hotel.locationBreadcrumbs.length - 1 && (
-                                        <span className="material-symbols-outlined text-[14px] text-[#70757a]">chevron_right</span>
+                                        <span className="material-symbols-outlined text-[14px] leading-none text-[#70757a] select-none shrink-0">chevron_right</span>
                                     )}
                                 </React.Fragment>
                             );
@@ -1851,15 +1852,21 @@ const HotelDetail = () => {
                     <div className="flex items-center gap-3 shrink-0">
                         <div className="flex items-center gap-2 mr-2">
                             <button
+                                type="button"
                                 onClick={handleFavoriteToggle}
-                                title={isLiked ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                                title={isLiked ? (tLocal('removeFromFavorites') || 'Kaydedilenlerden Çıkar') : (tLocal('saveToFavorites') || 'Kaydet')}
                                 className={`size-10 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
                                     isLiked 
-                                        ? 'bg-red-50 dark:bg-red-950/30 text-red-500 border-red-200 dark:border-red-800' 
+                                        ? 'bg-blue-50 dark:bg-blue-950/30 text-[#1a73e8] dark:text-[#8ab4f8] border-blue-200 dark:border-blue-800' 
                                         : 'border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-slate-700 text-[#5f6368] dark:text-slate-300'
                                 }`}
                             >
-                                <span className={`material-symbols-outlined text-[20px] ${isLiked ? 'fill-1' : ''}`}>favorite</span>
+                                <span 
+                                    className={`material-symbols-outlined text-[20px] ${isLiked ? 'fill-1 text-[#1a73e8] dark:text-[#8ab4f8]' : ''}`}
+                                    style={isLiked ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                                >
+                                    {isLiked ? 'bookmark' : 'bookmark_border'}
+                                </span>
                             </button>
                             <button
                                 onClick={() => setIsShareModalOpen(true)}

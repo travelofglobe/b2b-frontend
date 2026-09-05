@@ -34,7 +34,49 @@ const HolidaySidePanel = ({ holidays, visibleMonth, className = '' }) => {
         return `${d.getDate()} ${months[d.getMonth()]}`;
     };
 
-    const renderHolidayList = (list) => {
+    const formatLongDate = (dateStr) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '';
+        const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+        return `${d.getDate()} ${months[d.getMonth()]}`;
+    };
+
+    const parseHoliday = (rawName) => {
+        if (!rawName) return { title: '', detail: '', fullText: '', hasExtra: false };
+
+        let title = rawName.trim();
+        let detail = '';
+        let hasParenthesis = false;
+
+        // Check for trailing or enclosed parentheses: e.g. "Ramazan Bayramı 1. Gün (Ramazan Bayramı)"
+        const match = title.match(/^(.*?)\s*\((.*?)\)$/);
+        if (match) {
+            title = match[1].trim();
+            detail = match[2].trim();
+            hasParenthesis = true;
+        } else {
+            const anyMatch = title.match(/\((.*?)\)/);
+            if (anyMatch) {
+                detail = anyMatch[1].trim();
+                title = title.replace(/\s*\(.*?\)/, '').trim();
+                hasParenthesis = true;
+            }
+        }
+
+        // If title or full text is long (> 17 chars) or had parentheses
+        const isLong = title.length > 17 || rawName.length > 18;
+        const hasExtra = hasParenthesis || isLong;
+
+        return {
+            title,
+            detail,
+            fullText: rawName.trim(),
+            hasExtra,
+        };
+    };
+
+    const renderHolidayList = (list, isFirstSection = false) => {
         if (list.length === 0) return null;
         
         const langPrefix = (i18n.language || 'en').substring(0, 2).toLowerCase();
@@ -48,24 +90,77 @@ const HolidaySidePanel = ({ holidays, visibleMonth, className = '' }) => {
 
         return (
             <div className="flex flex-col gap-1.5">
-                {uniqueItems.map((item, i) => (
-                    <div
-                        key={i}
-                        className="flex items-center justify-between gap-2 py-1.5 px-2.5 rounded-[4px] bg-[#f8f9fa] dark:bg-[#303134]/60 border border-[#dadce0]/70 dark:border-slate-700/70"
-                    >
-                        <span
-                            className="text-[12.5px] font-normal text-[#202124] dark:text-slate-100 truncate"
-                            title={item.name}
+                {uniqueItems.map((item, i) => {
+                    const parsed = parseHoliday(item.name);
+                    const openDownwards = isFirstSection && i === 0;
+
+                    return (
+                        <div
+                            key={i}
+                            className="relative flex items-center justify-between gap-1.5 py-1.5 px-2.5 rounded-[4px] bg-[#f8f9fa] dark:bg-[#303134]/60 border border-[#dadce0]/70 dark:border-slate-700/70"
                         >
-                            {item.name}
-                        </span>
-                        {item.date && (
-                            <span className="text-[11px] font-medium text-[#5f6368] dark:text-slate-300 bg-white dark:bg-[#202124] px-1.5 py-0.5 rounded-[3px] border border-[#dadce0]/50 dark:border-slate-600/50 shrink-0 tabular-nums">
-                                {formatShortDate(item.date)}
-                            </span>
-                        )}
-                    </div>
-                ))}
+                            <div className="min-w-0 flex-1 overflow-hidden">
+                                <span
+                                    className="block text-[12.5px] font-normal text-[#202124] dark:text-slate-100 whitespace-nowrap overflow-hidden"
+                                    style={{ textOverflow: 'clip' }}
+                                    title={parsed.fullText}
+                                >
+                                    {parsed.title}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {parsed.hasExtra && (
+                                    <div className="group/info inline-flex items-center justify-center">
+                                        <div
+                                            className="w-4 h-4 rounded-full flex items-center justify-center text-[#70757a] group-hover/info:text-[#1a73e8] group-hover/info:bg-[#e8f0fe] dark:text-slate-400 dark:group-hover/info:text-blue-400 dark:group-hover/info:bg-slate-700/60 transition-colors cursor-pointer shrink-0"
+                                            aria-label="Tatil detayı"
+                                        >
+                                            <span className="material-symbols-outlined text-[14px] select-none pointer-events-none leading-none">
+                                                info
+                                            </span>
+                                        </div>
+
+                                        {/* Glitch-free Tooltip: Spans full card width (left-0 right-0), never clipped, arrow precisely over (i) */}
+                                        <div
+                                            className={`pointer-events-none absolute ${
+                                                openDownwards ? 'top-full mt-1.5 flex-col-reverse' : 'bottom-full mb-1.5 flex-col'
+                                            } left-0 right-0 z-[1000] opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all duration-150 flex`}
+                                        >
+                                            <div className="bg-[#202124] dark:bg-slate-800 text-white px-3 py-2 rounded-[6px] shadow-2xl border border-slate-700/70 text-center text-[11.5px] leading-snug break-words w-full">
+                                                <div className="font-medium text-white text-[12px]">{parsed.fullText}</div>
+                                                {parsed.detail && parsed.detail.toLowerCase() !== parsed.title.toLowerCase() && (
+                                                    <div className="text-[10.5px] text-slate-300 dark:text-slate-400 mt-1 pt-1 border-t border-slate-700 leading-tight">
+                                                        {parsed.detail}
+                                                    </div>
+                                                )}
+                                                {item.date && (
+                                                    <div className="text-[10px] text-slate-400 mt-1 flex items-center justify-center gap-1 font-medium">
+                                                        <span className="material-symbols-outlined text-[11px]">calendar_today</span>
+                                                        <span>{formatLongDate(item.date)}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {/* Arrow positioned right over the (i) icon */}
+                                            <div className="flex justify-end w-full pr-[66px]">
+                                                <div
+                                                    className={`w-2.5 h-2.5 bg-[#202124] dark:bg-slate-800 rotate-45 ${
+                                                        openDownwards ? '-mb-1.5 border-l border-t' : '-mt-1.5 border-r border-b'
+                                                    } border-slate-700/70 shrink-0`}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                {item.date && (
+                                    <span className="text-[11px] font-medium text-[#5f6368] dark:text-slate-300 bg-white dark:bg-[#202124] px-1.5 py-0.5 rounded-[3px] border border-[#dadce0]/50 dark:border-slate-600/50 tabular-nums">
+                                        {formatShortDate(item.date)}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         );
     };
@@ -75,7 +170,7 @@ const HolidaySidePanel = ({ holidays, visibleMonth, className = '' }) => {
         : "border-l border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] p-4";
 
     return (
-        <div className={`holiday-side-panel min-w-[210px] w-[235px] flex flex-col gap-3.5 overflow-y-auto max-h-[350px] font-roboto ${baseWrapperClass}`}>
+        <div className={`holiday-side-panel min-w-[210px] w-[240px] flex flex-col gap-3.5 overflow-visible font-roboto ${baseWrapperClass}`}>
             {/* Header */}
             <div className="flex items-center gap-2 pb-2.5 border-b border-[#dadce0] dark:border-slate-700">
                 <span className="material-symbols-outlined text-[18px] text-[#1a73e8]">event</span>
@@ -100,7 +195,7 @@ const HolidaySidePanel = ({ holidays, visibleMonth, className = '' }) => {
                     )}
                 </div>
                 {publicHolidays.length > 0 ? (
-                    renderHolidayList(publicHolidays)
+                    renderHolidayList(publicHolidays, true)
                 ) : (
                     <div className="py-1.5 px-2.5 rounded-[4px] bg-[#f8f9fa] dark:bg-[#303134]/30 border border-dashed border-[#dadce0] dark:border-slate-700 text-[#70757a] dark:text-slate-400 text-[11.5px] font-normal">
                         {t('dashboard.holidays.none', 'Bu dönemde yok')}
@@ -124,7 +219,7 @@ const HolidaySidePanel = ({ holidays, visibleMonth, className = '' }) => {
                     )}
                 </div>
                 {religiousHolidays.length > 0 ? (
-                    renderHolidayList(religiousHolidays)
+                    renderHolidayList(religiousHolidays, false)
                 ) : (
                     <div className="py-1.5 px-2.5 rounded-[4px] bg-[#f8f9fa] dark:bg-[#303134]/30 border border-dashed border-[#dadce0] dark:border-slate-700 text-[#70757a] dark:text-slate-400 text-[11.5px] font-normal">
                         {t('dashboard.holidays.none', 'Bu dönemde yok')}

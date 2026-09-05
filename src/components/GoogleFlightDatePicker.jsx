@@ -529,11 +529,11 @@ const GoogleFlightDatePicker = ({
                 </div>
 
                 {/* --- Right: Holiday Side Panel --- */}
-                <div className="hidden md:flex border-l border-[#dadce0] dark:border-slate-700 pl-5">
+                <div className="hidden md:flex border-l border-[#dadce0] dark:border-slate-700 pl-5 overflow-visible">
                     <HolidaySidePanel
                         holidays={holidays}
                         visibleMonth={leftMonth}
-                        className="bg-transparent dark:bg-transparent border-none p-0"
+                        className="bg-transparent dark:bg-transparent border-none p-0 overflow-visible"
                     />
                 </div>
             </div>

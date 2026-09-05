@@ -62,7 +62,7 @@ const PortalLayout = () => {
                     {[
                         { path: '/travel/explore', icon: 'travel_explore', label: 'Keşfet', isCurrent: location.pathname === '/travel/explore' || location.pathname === '/explore' },
                         { path: '/travel/hotels', icon: 'bed', label: 'Oteller', isCurrent: location.pathname.startsWith('/travel/hotels') || location.pathname.startsWith('/hotel') || location.pathname.startsWith('/map') || location.pathname === '/travel/search' || location.pathname === '/dashboard' },
-                        { path: '/travel/flights', icon: 'flight', label: 'Uçuşlar', isCurrent: location.pathname === '/travel/flights' || location.pathname === '/flights' },
+                        { path: '/travel/flights', icon: 'flight', label: 'Uçuşlar', isCurrent: location.pathname.startsWith('/travel/flights') || location.pathname.startsWith('/flights') },
                         { path: '/travel/vacation-rentals', icon: 'home_work', label: 'Kiralık yerler', isCurrent: location.pathname === '/travel/vacation-rentals' || location.pathname === '/vacation-rentals' },
                     ].map(({ path, icon, label, isCurrent }) => (
                         <button
@@ -113,7 +113,7 @@ const PortalLayout = () => {
                             ].map(({ path, icon, label }) => {
                                 const isActive = path === '/travel/hotels'
                                     ? (location.pathname.startsWith('/travel/hotels') || location.pathname.startsWith('/hotel') || location.pathname.startsWith('/map') || location.pathname === '/travel/search' || location.pathname === '/dashboard')
-                                    : (location.pathname === path || (path === '/travel/explore' && location.pathname === '/explore') || (path === '/travel/flights' && location.pathname === '/flights') || (path === '/travel/vacation-rentals' && location.pathname === '/vacation-rentals'));
+                                    : (location.pathname === path || (path === '/travel/explore' && location.pathname === '/explore') || (path === '/travel/flights' && (location.pathname.startsWith('/travel/flights') || location.pathname.startsWith('/flights'))) || (path === '/travel/vacation-rentals' && location.pathname === '/vacation-rentals'));
                                 return (
                                     <button key={path} onClick={() => { setIsSidebarOpen(false); navigate(path); }}
                                         className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group cursor-pointer ${isActive

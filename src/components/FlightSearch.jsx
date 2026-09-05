@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import GoogleFlightDatePicker from './GoogleFlightDatePicker';
 
 const TRIP_TYPES = [
@@ -161,9 +162,26 @@ const FlightSearch = ({ onSearch }) => {
         });
     };
 
+    const navigate = useNavigate();
+
     const handleSearchClick = () => {
         setHasSearched(true);
-        if (onSearch) onSearch();
+        if (onSearch) {
+            onSearch({ origin, destination, departureDate, returnDate, tripType, cabinClass, passengers });
+        } else {
+            const params = new URLSearchParams({
+                origin: origin || 'İstanbul',
+                destination: destination || 'Ankara',
+                dep: departureDate ? departureDate.toISOString().split('T')[0] : '',
+                ret: returnDate ? returnDate.toISOString().split('T')[0] : '',
+                type: tripType.id || 'round_trip',
+                cabin: cabinClass.id || 'economy',
+                adults: passengers.adults || 2,
+                children: passengers.children || 0,
+                infants: (passengers.infantsInSeat || 0) + (passengers.infantsOnLap || 0)
+            });
+            navigate(`/travel/flights/search?${params.toString()}`);
+        }
     };
 
     return (

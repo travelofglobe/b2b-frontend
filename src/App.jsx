@@ -5,6 +5,7 @@ import HotelDetail from './pages/HotelDetail';
 import MapView from './pages/MapView';
 import Dashboard from './pages/Dashboard';
 import Flights from './pages/Flights';
+import FlightListing from './pages/FlightListing';
 import MyBookings from './pages/MyBookings';
 import BookingDetail from './pages/BookingDetail';
 import LoginPage from './pages/LoginPage';
@@ -60,6 +61,8 @@ function App() {
               {/* Header tab & Google travel routes */}
               <Route path="/travel/explore" element={<UnderConstruction title="Keşfet" icon="travel_explore" />} />
               <Route path="/explore" element={<Navigate to="/travel/explore" replace />} />
+              <Route path="/travel/flights/search" element={<FlightListing />} />
+              <Route path="/flights/search" element={<Navigate to="/travel/flights/search" replace />} />
               <Route path="/travel/flights" element={<Flights />} />
               <Route path="/flights" element={<Navigate to="/travel/flights" replace />} />
               <Route path="/travel/vacation-rentals" element={<UnderConstruction title="Kiralık Yerler" icon="home_work" />} />

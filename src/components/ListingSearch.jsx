@@ -34,7 +34,7 @@ registerLocale('ar', ar);
 
 import { getSearchLocale } from '../utils/searchLocales';
 
-const ListingSearch = () => {
+const ListingSearch = ({ isCompact = false }) => {
     const { i18n } = useTranslation();
     const currentLang = (i18n.language || 'en').split('-')[0].toLowerCase();
     const ls = getSearchLocale(currentLang);
@@ -641,13 +641,13 @@ const ListingSearch = () => {
     return (
         <section className="relative group/search w-full">
             <div className="w-full flex items-center gap-2 relative z-50">
-                <div className="flex-1 min-w-0 relative group/field h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
-                        <div className="flex items-center gap-3 h-full w-full px-4">
+                <div className="flex-1 min-w-[110px] relative group/field h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
+                        <div className={`flex items-center ${isCompact ? "gap-2 px-2.5" : "gap-3 px-4"} h-full w-full`}>
                             <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
                                 {error ? 'error' : 'location_on'}
                             </span>
                             <input
-                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[15px] font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate"
+                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[14.5px] font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate"
                                 placeholder={ls.placeholder || "Nereye?"}
                                 type="text"
                                 value={query}
@@ -847,7 +847,7 @@ const ListingSearch = () => {
                     </div>
 
                     {/* Nationality Selector Input */}
-                    <div className="w-full md:w-[150px] lg:w-[170px] flex-shrink-0 relative h-12">
+                    <div className={`${isCompact ? "w-[76px]" : "w-full md:w-[150px] lg:w-[170px]"} flex-shrink-0 relative h-12 transition-all duration-300`}>
                         <NationalitySelect 
                             value={nationality} 
                             onChange={(newNat) => {
@@ -855,6 +855,7 @@ const ListingSearch = () => {
                                 handleSearch({ nationality: newNat });
                             }} 
                             inputStyle={true} 
+                            compact={isCompact}
                             rounded="rounded-lg"
                             onToggle={(isOpen) => {
                                 if (isOpen) {
@@ -866,7 +867,7 @@ const ListingSearch = () => {
                     </div>
 
                     {/* Twin Datepicker Container */}
-                    <div className={`w-full md:w-[330px] lg:w-[350px] flex-shrink-0 relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
+                    <div className={`${isCompact ? "w-[220px]" : "w-full md:w-[330px] lg:w-[350px]"} flex-shrink-0 relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto transition-all duration-300 ${
                         isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')
                             ? ''
                             : 'border border-[#dadce0] dark:border-slate-600 rounded-lg hover:border-[#bdc1c6] transition-all overflow-hidden'
@@ -879,7 +880,7 @@ const ListingSearch = () => {
                                 setIsDatePickerOpen(true);
                                 setShowDropdown(false);
                             }}
-                            className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
+                            className={`relative flex-1 h-full flex items-center justify-between ${isCompact ? "px-2" : "px-3 sm:px-3.5"} cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkIn'
                                     ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
                                     : isDatePickerOpen && activeDateField === 'checkOut'
@@ -887,34 +888,36 @@ const ListingSearch = () => {
                                     : 'rounded-l-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
                             }`}
                         >
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
+                            <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
+                                <span className="material-symbols-outlined text-[18px] sm:text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
                                     calendar_today
                                 </span>
-                                <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
+                                <span className={`${isCompact ? "text-[13px]" : "text-[15px]"} font-normal text-[#3c4043] dark:text-white truncate`}>
                                     {formatGoogleFlightDate(checkInDate) || 'Giriş'}
                                 </span>
                             </div>
 
                             {/* Quick 1-day step buttons */}
-                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
-                                    className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
-                                    title="1 gün geri"
-                                >
-                                    <span className="material-symbols-outlined text-[15px]">chevron_left</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); stepCheckIn(1); }}
-                                    className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
-                                    title="1 gün ileri"
-                                >
-                                    <span className="material-symbols-outlined text-[15px]">chevron_right</span>
-                                </button>
-                            </div>
+                            {!isCompact && (
+                                <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
+                                        className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                        title="1 gün geri"
+                                    >
+                                        <span className="material-symbols-outlined text-[15px]">chevron_left</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); stepCheckIn(1); }}
+                                        className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                        title="1 gün ileri"
+                                    >
+                                        <span className="material-symbols-outlined text-[15px]">chevron_right</span>
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Middle Vertical Divider (only visible when neither half is actively focused) */}
@@ -929,7 +932,7 @@ const ListingSearch = () => {
                                 setIsDatePickerOpen(true);
                                 setShowDropdown(false);
                             }}
-                            className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
+                            className={`relative flex-1 h-full flex items-center justify-between ${isCompact ? "px-2" : "px-3 sm:px-3.5"} cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkOut'
                                     ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
                                     : isDatePickerOpen && activeDateField === 'checkIn'
@@ -938,30 +941,32 @@ const ListingSearch = () => {
                             }`}
                         >
                             <div className="flex items-center min-w-0 flex-1">
-                                <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
+                                <span className={`${isCompact ? "text-[13px]" : "text-[15px]"} font-normal text-[#3c4043] dark:text-white truncate`}>
                                     {formatGoogleFlightDate(checkOutDate) || 'Çıkış'}
                                 </span>
                             </div>
 
                             {/* Quick 1-day step buttons */}
-                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
-                                    className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
-                                    title="1 gün geri"
-                                >
-                                    <span className="material-symbols-outlined text-[15px]">chevron_left</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); stepCheckOut(1); }}
-                                    className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
-                                    title="1 gün ileri"
-                                >
-                                    <span className="material-symbols-outlined text-[15px]">chevron_right</span>
-                                </button>
-                            </div>
+                            {!isCompact && (
+                                <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
+                                        className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                        title="1 gün geri"
+                                    >
+                                        <span className="material-symbols-outlined text-[15px]">chevron_left</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); stepCheckOut(1); }}
+                                        className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                        title="1 gün ileri"
+                                    >
+                                        <span className="material-symbols-outlined text-[15px]">chevron_right</span>
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Google Flights 2-Month Datepicker Popover */}
@@ -998,7 +1003,7 @@ const ListingSearch = () => {
                         <button
                             type="button"
                             onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-[#303134] px-4 h-12 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer"
+                            className={`flex items-center ${isCompact ? "gap-1 px-2.5" : "gap-1.5 px-3.5"} border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-[#303134] h-12 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer`}
                         >
                             <span className="material-symbols-outlined text-[18px] text-[#70757a]">person</span>
                             <span className="text-[13px] font-normal text-[#3c4043] dark:text-slate-200">{totalAdults + totalChildren}</span>
@@ -1007,7 +1012,7 @@ const ListingSearch = () => {
 
                         {/* Guest Dropdown - Google Flights Style */}
                         {showGuestDropdown && (
-                            <div className="absolute top-full left-0 w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="absolute top-full right-0 w-[320px] sm:w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
                                 <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-3 -mr-3">
                                     {roomState.map((room, index) => (
                                         <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 last:mb-0">

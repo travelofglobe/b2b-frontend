@@ -2026,11 +2026,11 @@ const HotelListing = () => {
             {/* ════════════════════════════════════════════
                 LEFT PANEL: Hotel List
             ════════════════════════════════════════════ */}
-            <div className={`${isMapExpanded ? "w-[38%]" : "w-[62%]"} flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[4px_0_16px_rgba(0,0,0,0.12),1px_0_4px_rgba(0,0,0,0.06)] dark:shadow-[5px_0_20px_rgba(0,0,0,0.35)] transition-[width] duration-300 ease-in-out`}>
+            <div className={`${isMapExpanded ? "w-[44%] min-w-[500px]" : "w-[62%]"} flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[4px_0_16px_rgba(0,0,0,0.12),1px_0_4px_rgba(0,0,0,0.06)] dark:shadow-[5px_0_20px_rgba(0,0,0,0.35)] transition-[width] duration-300 ease-in-out`}>
 
                 {/* Search Context Bar */}
                 <div className="px-4 pt-4 pb-2 shrink-0 bg-white dark:bg-[#303134] flex items-center w-full relative z-50">
-                    <ListingSearch />
+                    <ListingSearch isCompact={isMapExpanded} />
                 </div>
 
                 {/* Filter Chips Row */}

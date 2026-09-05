@@ -116,7 +116,7 @@ const SessionExpiryWarning = () => {
     if (remainingSeconds === 0) return null;
 
     return (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-2rem)] max-w-md pointer-events-auto">
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[99999] w-[calc(100%-2rem)] max-w-md pointer-events-auto">
             <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border border-amber-200 dark:border-amber-900/50 rounded-2xl shadow-2xl shadow-amber-500/10 p-4 flex items-center gap-4 animate-bounce-subtle">
                 <div className="size-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0 relative">
                     <span className="material-icons-round text-amber-600 dark:text-amber-400">timer</span>

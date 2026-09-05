@@ -23,7 +23,8 @@ import { FACILITY_ICON_MAP } from './MapView';
 import Tooltip from '../components/Tooltip';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import RoomGalleryModal from '../components/RoomGalleryModal';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, Marker, Popup } from 'react-leaflet';
+import OpenFreeMapLayer from '../components/OpenFreeMapLayer';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -388,10 +389,7 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                         scrollWheelZoom={true}
                         className="w-full h-full"
                     >
-                        <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                        />
+                        <OpenFreeMapLayer style="auto" />
                         <Marker position={[lat, lng]} icon={customIcon}>
                             <Popup className="custom-hotel-popup">
                                 <div className="p-2 min-w-[200px]">
@@ -2143,6 +2141,7 @@ const HotelDetail = () => {
                                         setNationality(newNat);
                                     }} 
                                     inputStyle={true} 
+                                    rounded="rounded-lg"
                                     onToggle={(isOpen) => {
                                         if (isOpen) {
                                             setShowGuestDropdown(false);

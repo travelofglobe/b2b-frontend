@@ -4,7 +4,7 @@ import { getUserCountryCode } from '../utils/geoUtils';
 
 const PRIORITY_COUNTRY_CODES = ['GB', 'FR', 'DE', 'RU', 'US', 'CN', 'ES', 'NL', 'AT', 'JP'];
 
-const NationalitySelect = ({ value, onChange, compact = false, googleStyle = false, inputStyle = false, onToggle }) => {
+const NationalitySelect = ({ value, onChange, compact = false, googleStyle = false, inputStyle = false, rounded = 'rounded-[4px]', onToggle }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const wrapperRef = useRef(null);
@@ -93,7 +93,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                 <button
                     type="button"
                     onClick={toggleOpen}
-                    className={`w-full h-full flex items-center justify-between px-3.5 sm:px-4 border rounded-lg bg-white dark:bg-[#303134] transition-all text-left focus:outline-none font-roboto ${
+                    className={`w-full h-full flex items-center justify-between px-3.5 sm:px-4 border ${rounded} bg-white dark:bg-[#303134] transition-all text-left focus:outline-none font-roboto ${
                         isOpen 
                             ? 'border-[#1a73e8] ring-1 ring-[#1a73e8]' 
                             : 'border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'

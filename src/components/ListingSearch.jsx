@@ -1156,6 +1156,7 @@ const ListingSearch = () => {
                                 handleSearch({ nationality: newNat });
                             }} 
                             inputStyle={true} 
+                            rounded="rounded-lg"
                             onToggle={(isOpen) => {
                                 if (isOpen) {
                                     setShowDropdown(false);

@@ -141,7 +141,7 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
     };
 
     return (
-        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-medium max-w-full overflow-x-auto scrollbar-hide py-1">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-medium max-w-full overflow-x-auto overflow-y-hidden scrollbar-hide py-1">
             {/* Home Link */}
             <Link
                 to="/"

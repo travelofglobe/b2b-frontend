@@ -561,11 +561,13 @@ const ListingSearch = () => {
         target.setDate(target.getDate() + days);
         if (target < today) return;
         setCheckInDate(target);
+        let nextOut = checkOutDate;
         if (checkOutDate && target >= checkOutDate) {
-            const nextOut = new Date(target);
+            nextOut = new Date(target);
             nextOut.setDate(nextOut.getDate() + 1);
             setCheckOutDate(nextOut);
         }
+        handleSearch({ checkInDate: target, checkOutDate: nextOut });
     };
 
     const stepCheckOut = (days) => {
@@ -573,6 +575,7 @@ const ListingSearch = () => {
         target.setDate(target.getDate() + days);
         if (checkInDate && target <= checkInDate) return;
         setCheckOutDate(target);
+        handleSearch({ checkInDate, checkOutDate: target });
     };
 
     const searchWrapperRef = useRef(null);
@@ -582,6 +585,17 @@ const ListingSearch = () => {
     const [error, setError] = useState(false);
 
     const isUserInteraction = useRef(false);
+
+    // Keep checkInDate and checkOutDate synced when URL parameters change externally
+    useEffect(() => {
+        const checkinParam = searchParams.get('checkin');
+        const checkoutParam = searchParams.get('checkout');
+        if (checkinParam || checkoutParam) {
+            const sanitized = validateAndSanitizeDates(checkinParam, checkoutParam);
+            setCheckInDate(sanitized.checkInDate);
+            setCheckOutDate(sanitized.checkOutDate);
+        }
+    }, [searchParams.get('checkin'), searchParams.get('checkout')]);
 
     // Sync query when URL 'q' param changes externally (e.g., map area search)
     useEffect(() => {
@@ -737,17 +751,26 @@ const ListingSearch = () => {
             const queryParts = activeQuery.split(',').map(p => p.trim().toLowerCase());
             let slug = activeQuery.toLowerCase().trim();
             
-            if (queryParts.length >= 2) {
+            // If currently on hotel search and query has not changed, keep current slug path
+            const currentPath = window.location.pathname;
+            const currentQ = searchParams.get('q');
+            if (currentPath.startsWith('/travel/hotels/search/') && (activeQuery === (currentQ || query))) {
+                const existingSlug = decodeURIComponent(currentPath.replace('/travel/hotels/search/', ''));
+                if (existingSlug && !existingSlug.includes('?')) {
+                    slug = existingSlug;
+                }
+            } else if (queryParts.length >= 2) {
                 // If 3 parts: [District, City, Country] -> slug "istanbul/uskudar"
                 // If 2 parts: [City, Country] -> slug "istanbul"
                 const reversed = [...queryParts].reverse(); // [Country, City, District]
                 slug = reversed.slice(1).join('/');
             }
 
-            // Retrieve locationId from overrides, then URL searchParams (if query matches), then localStorage
+            // Retrieve locationId from overrides, then current URL searchParams, then localStorage
+            const currentUrlLocationId = searchParams.get('locationId');
             const savedLocationId = opts.locationId !== undefined
                 ? opts.locationId
-                : (activeQuery === searchParams.get('q') ? searchParams.get('locationId') : localStorage.getItem('dashboard_last_locationId'));
+                : (currentUrlLocationId || localStorage.getItem('dashboard_last_locationId'));
             const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
             const searchParamsString = getUrlParams(opts) + locationParam;
 
@@ -1170,7 +1193,7 @@ const ListingSearch = () => {
                     <div className={`w-full md:w-[330px] lg:w-[350px] flex-shrink-0 relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
                         isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')
                             ? ''
-                            : 'border border-[#dadce0] dark:border-slate-600 rounded-lg hover:border-[#bdc1c6] transition-all'
+                            : 'border border-[#dadce0] dark:border-slate-600 rounded-lg hover:border-[#bdc1c6] transition-all overflow-hidden'
                     }`}>
                         
                         {/* Check-In Half */}
@@ -1182,10 +1205,10 @@ const ListingSearch = () => {
                             }}
                             className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkIn'
-                                    ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                    ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
                                     : isDatePickerOpen && activeDateField === 'checkOut'
-                                    ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
-                                    : 'rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    : 'rounded-l-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
                             }`}
                         >
                             <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -1232,10 +1255,10 @@ const ListingSearch = () => {
                             }}
                             className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkOut'
-                                    ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                    ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
                                     : isDatePickerOpen && activeDateField === 'checkIn'
-                                    ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
-                                    : 'rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    : 'rounded-r-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
                             }`}
                         >
                             <div className="flex items-center min-w-0 flex-1">
@@ -1268,9 +1291,21 @@ const ListingSearch = () => {
                         {/* Google Flights 2-Month Datepicker Popover */}
                         <GoogleFlightDatePicker
                             isOpen={isDatePickerOpen}
-                            onClose={() => {
+                            onClose={(inDate, outDate) => {
                                 setIsDatePickerOpen(false);
-                                handleSearch();
+                                const finalIn = inDate || checkInDate;
+                                const finalOut = outDate || checkOutDate;
+                                if (finalIn) setCheckInDate(finalIn);
+                                if (finalOut) setCheckOutDate(finalOut);
+                                handleSearch({ checkInDate: finalIn, checkOutDate: finalOut });
+                            }}
+                            onApply={(inDate, outDate) => {
+                                setIsDatePickerOpen(false);
+                                const finalIn = inDate || checkInDate;
+                                const finalOut = outDate || checkOutDate;
+                                if (finalIn) setCheckInDate(finalIn);
+                                if (finalOut) setCheckOutDate(finalOut);
+                                handleSearch({ checkInDate: finalIn, checkOutDate: finalOut });
                             }}
                             checkInDate={checkInDate}
                             checkOutDate={checkOutDate}

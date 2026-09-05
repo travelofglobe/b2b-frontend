@@ -970,7 +970,7 @@ const CheckoutPayment = () => {
 
     if (isLoadingSession) {
         return (
-            <div className="flex-1 bg-[#f8f9fa] dark:bg-[#202124] text-[#202124] dark:text-white font-roboto min-h-screen flex flex-col">
+            <div className="flex-1 bg-white dark:bg-[#202124] text-[#202124] dark:text-white font-roboto min-h-screen flex flex-col">
                 <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-20 w-full">
                     {/* Stepper Skeleton */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -997,7 +997,7 @@ const CheckoutPayment = () => {
 
     if (!hotel) {
         return (
-            <div className="flex-1 bg-[#f8f9fa] dark:bg-[#202124] text-[#202124] dark:text-white flex flex-col font-roboto min-h-screen">
+            <div className="flex-1 bg-white dark:bg-[#202124] text-[#202124] dark:text-white flex flex-col font-roboto min-h-screen">
                 <main className="flex-1 flex items-center justify-center p-6 py-20">
                     <div className="w-full max-w-lg bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 rounded-2xl p-8 text-center shadow-sm">
                         <div className="size-16 bg-[#e8f0fe] dark:bg-slate-700 rounded-full flex items-center justify-center text-[#1a73e8] mx-auto mb-5">
@@ -1044,7 +1044,7 @@ const CheckoutPayment = () => {
     const isInsufficientBalance = grandTotal > availableFunds;
 
     return (
-        <div className="flex-1 bg-[#f8f9fa] dark:bg-[#202124] text-[#202124] dark:text-white font-roboto min-h-screen flex flex-col">
+        <div className="flex-1 bg-white dark:bg-[#202124] text-[#202124] dark:text-white font-roboto min-h-screen flex flex-col">
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div className="flex-1">

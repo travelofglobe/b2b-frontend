@@ -328,7 +328,30 @@ const BookingConfirmationModal = ({ isOpen, onClose, hotelName }) => {
 
 
 const MapModal = ({ isOpen, onClose, hotel }) => {
-    if (!isOpen || !hotel) return null;
+    const [isMounted, setIsMounted] = React.useState(false);
+    const [isClosing, setIsClosing] = React.useState(false);
+
+    React.useEffect(() => {
+        if (isOpen) {
+            requestAnimationFrame(() => setIsMounted(true));
+            setIsClosing(false);
+        } else {
+            setIsMounted(false);
+            setIsClosing(false);
+        }
+    }, [isOpen]);
+
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            setIsClosing(false);
+            setIsMounted(false);
+            onClose?.();
+        }, 300);
+    };
+
+    if (!isOpen && !isClosing) return null;
+    if (!hotel) return null;
 
     const lat = hotel.coordinates?.lat || hotel.lat;
     const lng = hotel.coordinates?.lon || hotel.lng || hotel.lon;
@@ -353,10 +376,18 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
     });
 
     return (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 md:p-10 animate-in fade-in duration-300">
-            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={onClose}></div>
+        <div className={`fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 md:p-10 transition-opacity duration-300 ${
+            isMounted && !isClosing ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}>
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300" onClick={handleClose}></div>
 
-            <div className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-[32px] overflow-hidden shadow-2xl flex flex-col h-[70vh] sm:h-[80vh] animate-in zoom-in-95 duration-500 border border-white/20">
+            <div
+                className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-[32px] overflow-hidden shadow-2xl flex flex-col h-[70vh] sm:h-[80vh] border border-white/20 transition-all duration-300 ease-out"
+                style={{
+                    transform: isMounted && !isClosing ? 'translateY(0)' : 'translateY(80px)',
+                    opacity: isMounted && !isClosing ? 1 : 0
+                }}
+            >
                 {/* Header */}
                 <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
                     <div className="flex items-center gap-4">
@@ -374,7 +405,7 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                         </div>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="size-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-red-500 hover:text-white transition-all duration-500 shadow-sm border border-transparent hover:border-red-400 group"
                     >
                         <span className="material-symbols-outlined text-2xl group-hover:rotate-90 transition-transform duration-500">close</span>
@@ -1758,23 +1789,24 @@ const HotelDetail = () => {
     };
 
     return (
-        <div className="relative flex min-h-full flex-col bg-[#f8f9fa] dark:bg-[#202124] text-[#202124] dark:text-white transition-colors duration-200 font-roboto">
+        <div className="relative flex min-h-full flex-col bg-white dark:bg-[#202124] text-[#202124] dark:text-white transition-colors duration-200 font-roboto">
             <div className="flex-1 max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-6">
                 {/* Top Navigation & Breadcrumbs */}
                 <div className="mb-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                    <div className="flex items-center gap-2 overflow-x-auto overflow-y-hidden scrollbar-hide py-1">
                         {hotel.locationBreadcrumbs?.map((bc, i) => {
                             const name = bc.name?.translations?.tr || bc.name?.translations?.en || bc.name?.defaultName;
                             return (
                                 <React.Fragment key={bc.locationId}>
                                     <button
+                                        type="button"
                                         onClick={() => handleBreadcrumbClick(bc.locationId, name)}
-                                        className="text-xs font-normal text-[#5f6368] dark:text-slate-400 whitespace-nowrap hover:text-[#1a73e8] transition-colors cursor-pointer"
+                                        className="text-xs font-normal text-[#5f6368] dark:text-slate-400 whitespace-nowrap hover:text-[#1a73e8] transition-colors cursor-pointer bg-transparent border-0 p-0 leading-normal"
                                     >
                                         {name}
                                     </button>
                                     {i < hotel.locationBreadcrumbs.length - 1 && (
-                                        <span className="material-symbols-outlined text-[14px] text-[#70757a]">chevron_right</span>
+                                        <span className="material-symbols-outlined text-[14px] leading-none text-[#70757a] select-none shrink-0">chevron_right</span>
                                     )}
                                 </React.Fragment>
                             );
@@ -1820,15 +1852,21 @@ const HotelDetail = () => {
                     <div className="flex items-center gap-3 shrink-0">
                         <div className="flex items-center gap-2 mr-2">
                             <button
+                                type="button"
                                 onClick={handleFavoriteToggle}
-                                title={isLiked ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                                title={isLiked ? (tLocal('removeFromFavorites') || 'Kaydedilenlerden Çıkar') : (tLocal('saveToFavorites') || 'Kaydet')}
                                 className={`size-10 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
                                     isLiked 
-                                        ? 'bg-red-50 dark:bg-red-950/30 text-red-500 border-red-200 dark:border-red-800' 
+                                        ? 'bg-blue-50 dark:bg-blue-950/30 text-[#1a73e8] dark:text-[#8ab4f8] border-blue-200 dark:border-blue-800' 
                                         : 'border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-slate-700 text-[#5f6368] dark:text-slate-300'
                                 }`}
                             >
-                                <span className={`material-symbols-outlined text-[20px] ${isLiked ? 'fill-1' : ''}`}>favorite</span>
+                                <span 
+                                    className={`material-symbols-outlined text-[20px] ${isLiked ? 'fill-1 text-[#1a73e8] dark:text-[#8ab4f8]' : ''}`}
+                                    style={isLiked ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                                >
+                                    {isLiked ? 'bookmark' : 'bookmark_border'}
+                                </span>
                             </button>
                             <button
                                 onClick={() => setIsShareModalOpen(true)}
@@ -1896,7 +1934,7 @@ const HotelDetail = () => {
                             <div className={`flex-1 min-w-[280px] relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger ${
                                 isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')
                                     ? ''
-                                    : 'border border-[#dadce0] dark:border-slate-600 rounded-lg hover:border-[#bdc1c6] transition-all'
+                                    : 'border border-[#dadce0] dark:border-slate-600 rounded-lg hover:border-[#bdc1c6] transition-all overflow-hidden'
                             }`}>
                                 {/* Check-In Half */}
                                 <div
@@ -1907,10 +1945,10 @@ const HotelDetail = () => {
                                     }}
                                     className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                         isDatePickerOpen && activeDateField === 'checkIn'
-                                            ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                            ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
                                             : isDatePickerOpen && activeDateField === 'checkOut'
-                                            ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
-                                            : 'rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                            ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                            : 'rounded-l-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
                                     }`}
                                 >
                                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -1957,10 +1995,10 @@ const HotelDetail = () => {
                                     }}
                                     className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                         isDatePickerOpen && activeDateField === 'checkOut'
-                                            ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                            ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
                                             : isDatePickerOpen && activeDateField === 'checkIn'
-                                            ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
-                                            : 'rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                            ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                            : 'rounded-r-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
                                     }`}
                                 >
                                     <div className="flex items-center min-w-0 flex-1">
@@ -2167,7 +2205,7 @@ const HotelDetail = () => {
                         {/* Tab Bar Container - Google Style */}
                         <div className="relative">
                             {/* Sticky Tab Bar */}
-                            <div className="flex items-center gap-8 border-b border-[#dadce0] dark:border-slate-700 mb-6 sticky top-0 bg-[#f8f9fa] dark:bg-[#202124] z-20 overflow-x-auto no-scrollbar py-0 transition-colors">
+                            <div className="flex items-center gap-8 border-b border-[#dadce0] dark:border-slate-700 mb-6 sticky top-0 bg-white dark:bg-[#202124] z-20 overflow-x-auto scrollbar-hide no-scrollbar py-0 transition-colors">
                                 {tabs.map((tab, i) => (
                                     <button
                                         key={i}

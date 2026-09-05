@@ -1278,7 +1278,7 @@ const MyOffice = () => {
                                 { id: 'general', icon: 'info', label: L('tabGeneral') },
                                 { id: 'users', icon: 'groups', label: L('tabUsers') },
                                 { id: 'guests', icon: 'recent_actors', label: L('tabGuests') },
-                                { id: 'favorites', icon: 'favorite', label: L('tabFavorites') },
+                                { id: 'favorites', icon: 'bookmark', label: L('tabFavorites') },
                             ].map((tab) => {
                                 const isCurrent = activeTab === tab.id;
                                 return (
@@ -2042,7 +2042,7 @@ const MyOffice = () => {
                                                         >
                                                             <div className="flex items-center gap-2.5 min-w-0 pr-2">
                                                                 <div className={`size-8 rounded-full ${isFav ? 'bg-[#e6f4ea] text-[#137333] dark:bg-[#137333]/20 dark:text-[#81c995]' : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]'} flex items-center justify-center font-medium text-xs shrink-0`}>
-                                                                    <span className="material-symbols-outlined text-[18px]">{isFav ? 'favorite' : 'hotel'}</span>
+                                                                    <span className="material-symbols-outlined text-[18px]">{isFav ? 'bookmark' : 'hotel'}</span>
                                                                 </div>
                                                                 <div className="min-w-0">
                                                                     <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] group-hover:text-[#1a73e8] transition-colors truncate">

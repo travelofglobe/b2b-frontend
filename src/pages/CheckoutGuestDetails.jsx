@@ -1290,7 +1290,7 @@ const CheckoutGuestDetails = () => {
 
     if (isLoadingSession) {
         return (
-            <div className="flex-1 bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
+            <div className="flex-1 bg-white dark:bg-[#202124] text-slate-900 dark:text-white font-sans">
                 <main className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-8 lg:py-10">
                     {/* Stepper Skeleton */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
@@ -1318,7 +1318,7 @@ const CheckoutGuestDetails = () => {
 
     if (!selectedRooms) {
         return (
-            <div className="flex-1 bg-background-light dark:bg-background-dark text-slate-900 dark:text-white flex flex-col font-sans">
+            <div className="flex-1 bg-white dark:bg-[#202124] text-slate-900 dark:text-white flex flex-col font-sans">
                 <main className="flex-1 flex items-center justify-center p-6 py-20">
                     <div className="w-full max-w-xl relative group">
                         {/* Glow effect */}
@@ -1384,7 +1384,7 @@ const CheckoutGuestDetails = () => {
     const displayCurrency = checkRate?.price?.currency || selectedRooms[0]?.currency || agencyCurrency || 'USD';
 
     return (
-        <div className="flex-1 min-h-screen bg-[#f8f9fa] dark:bg-[#202124] text-[#202124] dark:text-white font-roboto">
+        <div className="flex-1 min-h-screen bg-white dark:bg-[#202124] text-[#202124] dark:text-white font-roboto">
             <main className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-6 lg:py-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div className="flex-1">

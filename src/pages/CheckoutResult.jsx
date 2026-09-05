@@ -45,14 +45,14 @@ const CheckoutResult = () => {
     const detailUrl = (isSuccess && bookingIdForDetail) ? `/bookings/${bookingIdForDetail}` : '/bookings';
 
     if (!hotel) return (
-        <div className="flex-1 bg-slate-50 dark:bg-slate-900 flex flex-col justify-between">
+        <div className="flex-1 bg-white dark:bg-[#202124] flex flex-col justify-between">
             <div className="p-12 text-center text-sm font-semibold text-slate-500">{L('noSession')}</div>
             <Footer />
         </div>
     );
 
     return (
-        <div className="flex-1 bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-white font-sans flex flex-col justify-between">
+        <div className="flex-1 bg-white dark:bg-[#202124] text-[#202124] dark:text-white font-roboto flex flex-col justify-between">
             <main className="max-w-3xl mx-auto px-4 py-8 sm:py-12 w-full flex-1">
                 {/* Header status icon & title */}
                 <div className="text-center mb-8">

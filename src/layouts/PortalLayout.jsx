@@ -166,7 +166,7 @@ const PortalLayout = () => {
                                         { tab: 'general', icon: 'info', label: t('sidebar.generalInfo') || 'Genel Bilgiler' },
                                         { tab: 'users', icon: 'groups', label: t('sidebar.users') || 'Kullanıcılar' },
                                         { tab: 'guests', icon: 'recent_actors', label: t('sidebar.guests') || 'Misafirler' },
-                                        { tab: 'favorites', icon: 'favorite', label: t('sidebar.favoriteHotels') || 'Favori Oteller' },
+                                        { tab: 'favorites', icon: 'bookmark', label: t('sidebar.favoriteHotels') || 'Favori Oteller' },
                                     ].map(({ tab, icon, label }) => {
                                         const isActive = location.pathname === '/my-office' && (tab === 'general' ? (!location.search || location.search.includes('tab=general')) : location.search.includes(`tab=${tab}`));
                                         return (

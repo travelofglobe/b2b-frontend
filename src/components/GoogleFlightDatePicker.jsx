@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import HolidaySidePanel from './HolidaySidePanel';
 
@@ -56,6 +56,7 @@ const GoogleFlightDatePicker = ({
     onCheckOutChange,
     isOpen,
     onClose,
+    onApply,
     activeField = 'checkIn', // 'checkIn' | 'checkOut'
     setActiveField,
     holidays = [],
@@ -73,6 +74,47 @@ const GoogleFlightDatePicker = ({
 
     const [hoverDate, setHoverDate] = useState(null);
 
+    // Centered modal animation states (slide-up on open, slide-down on close)
+    const [isMounted, setIsMounted] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            requestAnimationFrame(() => {
+                setIsMounted(true);
+            });
+            setIsClosing(false);
+        } else {
+            setIsMounted(false);
+            setIsClosing(false);
+        }
+    }, [isOpen]);
+
+    const handleCloseWithAnimation = (overrideIn, overrideOut) => {
+        setIsClosing(true);
+        setTimeout(() => {
+            setIsClosing(false);
+            setIsMounted(false);
+            const inDate = overrideIn || checkInDate;
+            const outDate = overrideOut || checkOutDate;
+            if (onApply) {
+                onApply(inDate, outDate);
+            }
+            onClose?.(inDate, outDate);
+        }, 260);
+    };
+
+    // Close on escape key
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' && isOpen && !isClosing) {
+                handleCloseWithAnimation();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, isClosing]);
+
     // Sync viewDate when checkInDate changes and popover opens
     useEffect(() => {
         if (isOpen && checkInDate) {
@@ -80,20 +122,20 @@ const GoogleFlightDatePicker = ({
         }
     }, [isOpen]);
 
-    // Close on click outside
+    // Close on click outside with slide-down exit animation
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (popoverRef.current && !popoverRef.current.contains(e.target)) {
                 // If target is inside datepicker trigger container, don't close here
                 if (e.target.closest('.google-flight-date-trigger')) return;
-                onClose?.();
+                handleCloseWithAnimation();
             }
         };
-        if (isOpen) {
+        if (isOpen && !isClosing) {
             document.addEventListener('mousedown', handleClickOutside);
         }
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isOpen, onClose]);
+    }, [isOpen, isClosing]);
 
     // Next / Prev month
     const handlePrevMonth = () => {
@@ -147,27 +189,41 @@ const GoogleFlightDatePicker = ({
 
         if (activeField === 'checkIn') {
             onCheckInChange(date);
+            let nextOut = checkOutDate;
             if (!checkOutDate || !isAfterDay(checkOutDate, date)) {
-                const next = new Date(date);
-                next.setDate(next.getDate() + 1);
-                onCheckOutChange(next);
+                nextOut = new Date(date);
+                nextOut.setDate(nextOut.getDate() + 1);
+                onCheckOutChange(nextOut);
             }
             setActiveField('checkOut');
+            setHoverDate(null);
         } else {
-            // activeField === 'checkOut'
+            // activeField === 'checkOut' or null
             if (checkInDate && isBeforeDay(date, checkInDate)) {
                 // If user clicks a date before checkin, make it the new checkin
                 onCheckInChange(date);
                 const next = new Date(date);
                 next.setDate(next.getDate() + 1);
                 onCheckOutChange(next);
-            } else if (checkInDate && isSameDay(date, checkInDate)) {
-                // Same day not allowed for checkout, make next day
-                const next = new Date(date);
-                next.setDate(next.getDate() + 1);
-                onCheckOutChange(next);
+                setActiveField('checkOut');
+                setHoverDate(null);
             } else {
-                onCheckOutChange(date);
+                let finalCheckOut = date;
+                if (checkInDate && isSameDay(date, checkInDate)) {
+                    // Same day not allowed for checkout, make next day
+                    finalCheckOut = new Date(date);
+                    finalCheckOut.setDate(finalCheckOut.getDate() + 1);
+                }
+                onCheckOutChange(finalCheckOut);
+                setActiveField(null);
+                setHoverDate(null);
+
+                // If onApply callback provided, smoothly close and apply new dates
+                if (onApply) {
+                    setTimeout(() => {
+                        handleCloseWithAnimation(checkInDate, finalCheckOut);
+                    }, 160);
+                }
             }
         }
     };
@@ -279,7 +335,7 @@ const GoogleFlightDatePicker = ({
                             <div
                                 key={date.toISOString()}
                                 className={`h-9 flex items-center justify-center relative ${rangeClasses}`}
-                                onMouseEnter={() => !isPast && setHoverDate(date)}
+                                onMouseEnter={() => !isPast && activeField === 'checkOut' && setHoverDate(date)}
                             >
                                 <button
                                     type="button"
@@ -300,26 +356,26 @@ const GoogleFlightDatePicker = ({
                                     <span>{date.getDate()}</span>
                                     {holiday && (
                                         <span
-                                            className={`absolute bottom-1 w-3 h-[2px] rounded-full transition-colors ${
+                                            className={`absolute bottom-1 w-3.5 h-[3px] rounded-full transition-colors ${
                                                 isStart || isEnd
-                                                    ? 'bg-white'
+                                                    ? 'bg-white shadow-xs'
                                                     : isReligious
-                                                    ? 'bg-emerald-500'
-                                                    : 'bg-amber-400'
+                                                    ? 'bg-emerald-500 ring-2 ring-emerald-500/20'
+                                                    : 'bg-amber-500 ring-2 ring-amber-500/20'
                                             }`}
                                         />
                                     )}
 
                                     {/* Holiday Tooltip on Hover */}
                                     {holiday && !isPast && (
-                                        <div className="hidden group-hover/day:flex flex-col items-center absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900/95 dark:bg-slate-800 text-white text-center px-2.5 py-1.5 rounded-lg shadow-xl pointer-events-none z-[400] whitespace-nowrap border border-slate-700/50 backdrop-blur-sm">
-                                            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                                        <div className="hidden group-hover/day:flex flex-col items-center absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900/95 dark:bg-slate-800 text-white text-center px-3 py-2 rounded-xl shadow-xl pointer-events-none z-[400] whitespace-nowrap border border-slate-700/50 backdrop-blur-sm">
+                                            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                                 {holiday.countryCode || countryCode || 'TR'}
                                             </div>
-                                            <div className="text-[11px] font-semibold text-white max-w-[190px] truncate leading-tight mt-0.5">
+                                            <div className="text-[12.5px] font-semibold text-white max-w-[210px] truncate leading-tight mt-0.5">
                                                 {displayTooltipName}
                                             </div>
-                                            <div className={`text-[9px] font-medium mt-0.5 ${isReligious ? 'text-emerald-400' : 'text-amber-300'}`}>
+                                            <div className={`text-[10px] font-medium mt-1 px-1.5 py-0.5 rounded-full ${isReligious ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
                                                 {isReligious ? 'Dini Tatil' : 'Resmi Tatil'}
                                             </div>
                                             <div className="w-2 h-2 bg-slate-900/95 dark:bg-slate-800 rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2 border-r border-b border-slate-700/50"></div>
@@ -334,13 +390,17 @@ const GoogleFlightDatePicker = ({
         );
     };
 
+    if (!isOpen && !isClosing) return null;
+
     return (
         <div
             ref={popoverRef}
-            className={`absolute top-[-16px] sm:top-[-20px] ${
-                align === 'right' ? 'right-0 md:right-[-20px]' : 'left-0 md:left-[-20px]'
-            } bg-white dark:bg-[#202124] rounded-[8px] shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 z-[1000] p-4 sm:p-5 animate-in fade-in zoom-in-95 duration-150 max-w-[96vw] font-roboto`}
-            style={{ width: 'max-content' }}
+            className="fixed left-1/2 bottom-3 z-[1000] bg-white dark:bg-[#202124] rounded-[8px] shadow-[0_8px_32px_rgba(0,0,0,0.16),0_1px_3px_rgba(60,64,67,0.25)] border border-[#dadce0] dark:border-slate-700 p-5 sm:p-6 max-w-[96vw] max-h-[calc(100vh-24px)] overflow-y-auto font-roboto transition-all duration-300 ease-out pointer-events-auto"
+            style={{
+                width: 'max-content',
+                transform: isMounted && !isClosing ? 'translate(-50%, 0)' : 'translate(-50%, 48px)',
+                opacity: isMounted && !isClosing ? 1 : 0
+            }}
         >
             <div className="flex flex-col md:flex-row gap-6">
                 {/* Calendars Container */}
@@ -447,13 +507,16 @@ const GoogleFlightDatePicker = ({
                     </div>
 
                     {/* --- 2 Months Grid (Left & Right) with Floating Google Chevrons --- */}
-                    <div className="relative flex items-start justify-center gap-6 sm:gap-8 pt-1 px-8">
+                    <div 
+                        className="relative flex items-start justify-center gap-6 sm:gap-8 pt-1 px-12 sm:px-14"
+                        onMouseLeave={() => setHoverDate(null)}
+                    >
                         {/* Prev Month Floating Button */}
                         {!isBeforeDay(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1), new Date(today.getFullYear(), today.getMonth(), 1)) && (
                             <button
                                 type="button"
                                 onClick={handlePrevMonth}
-                                className="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 cursor-pointer"
+                                className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md hover:shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 active:scale-95 cursor-pointer"
                                 title="Önceki ay"
                             >
                                 <span className="material-symbols-outlined text-[18px]">chevron_left</span>
@@ -470,7 +533,7 @@ const GoogleFlightDatePicker = ({
                         <button
                             type="button"
                             onClick={handleNextMonth}
-                            className="absolute right-0 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 cursor-pointer"
+                            className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md hover:shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 active:scale-95 cursor-pointer"
                             title="Sonraki ay"
                         >
                             <span className="material-symbols-outlined text-[18px]">chevron_right</span>
@@ -479,11 +542,11 @@ const GoogleFlightDatePicker = ({
                 </div>
 
                 {/* --- Right: Holiday Side Panel --- */}
-                <div className="hidden md:flex border-l border-[#dadce0] dark:border-slate-700 pl-5">
+                <div className="hidden md:flex border-l border-[#dadce0] dark:border-slate-700 pl-5 overflow-visible">
                     <HolidaySidePanel
                         holidays={holidays}
                         visibleMonth={leftMonth}
-                        className="bg-transparent dark:bg-transparent border-none p-0"
+                        className="bg-transparent dark:bg-transparent border-none p-0 overflow-visible"
                     />
                 </div>
             </div>
@@ -491,20 +554,20 @@ const GoogleFlightDatePicker = ({
             {/* --- Footer (Legend on left, Bitti button on right) --- */}
             <div className="flex items-center justify-between pt-3.5 mt-3.5 border-t border-[#dadce0] dark:border-slate-700 font-roboto">
                 {/* Legend indicator */}
-                <div className="flex items-center gap-4 text-xs text-[#5f6368] dark:text-slate-400">
-                    <div className="flex items-center gap-1.5">
-                        <span className="w-3 h-[2.5px] rounded-full bg-amber-400"></span>
-                        <span className="text-[12px] font-normal">{t('dashboard.holidays.publicHolidays', 'Resmi Tatiller')}</span>
+                <div className="flex items-center gap-6 text-[12.5px] font-normal text-[#5f6368] dark:text-slate-300">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-[3px] rounded-full bg-amber-400"></span>
+                        <span className="text-[12.5px] font-normal">{t('dashboard.holidays.publicHolidays', 'Resmi Tatiller')}</span>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                        <span className="w-3 h-[2.5px] rounded-full bg-emerald-500"></span>
-                        <span className="text-[12px] font-normal">{t('dashboard.holidays.religiousHolidays', 'Dini Tatiller')}</span>
+                    <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-[3px] rounded-full bg-emerald-500"></span>
+                        <span className="text-[12.5px] font-normal">{t('dashboard.holidays.religiousHolidays', 'Dini Tatiller')}</span>
                     </div>
                 </div>
 
                 <button
                     type="button"
-                    onClick={onClose}
+                    onClick={handleCloseWithAnimation}
                     className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[14px] px-7 py-2 transition-all shadow-none hover:shadow active:scale-95 cursor-pointer"
                 >
                     Bitti

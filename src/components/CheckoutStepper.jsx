@@ -88,20 +88,18 @@ const CheckoutStepper = ({ currentStep, onStepClick }) => {
     ];
 
     return (
-        <div className="w-full py-1">
+        <div className="w-full py-1 font-roboto">
             <div className="w-full">
-                <div className="relative flex items-stretch gap-2 p-1.5 bg-slate-100/60 dark:bg-slate-800/40 backdrop-blur-xl rounded-2xl border border-white/50 dark:border-white/5 shadow-md shadow-slate-200/40 dark:shadow-none">
+                <div className="relative flex items-stretch gap-2 p-1.5 bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-slate-700 shadow-xs">
                     
                     {/* Animated Sliding Highlight */}
                     <div 
-                        className="absolute top-1.5 bottom-1.5 bg-white dark:bg-slate-900 rounded-xl shadow-md transition-all duration-700 cubic-bezier(0.4, 0, 0.2, 1) z-0 border border-white/80 dark:border-white/5"
+                        className="absolute top-1.5 bottom-1.5 bg-[#e8f0fe] dark:bg-blue-950/40 rounded-lg transition-all duration-500 ease-out z-0 border border-[#d2e3fc] dark:border-blue-900/60"
                         style={{ 
                             left: `calc(1.5px + ${(currentStep - 1) * (100 / steps.length)}%)`,
                             width: `calc(${100 / steps.length}% - 3px)`
                         }}
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent rounded-xl"></div>
-                    </div>
+                    />
 
                     {steps.map((step) => {
                         const isClickable = onStepClick && (step.id < currentStep || step.id === currentStep + 1);
@@ -112,32 +110,32 @@ const CheckoutStepper = ({ currentStep, onStepClick }) => {
                             <div 
                                 key={step.id}
                                 onClick={() => isClickable && onStepClick(step.id)}
-                                className={`relative flex-1 flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-500 z-10 ${
-                                    isClickable ? 'cursor-pointer hover:bg-white/40 dark:hover:bg-white/5' : 'cursor-default'
+                                className={`relative flex-1 flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all z-10 ${
+                                    isClickable ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40' : 'cursor-default'
                                 }`}
                             >
                                 {/* Icon with background */}
-                                <div className={`size-8 rounded-lg flex items-center justify-center transition-all duration-700 ${
+                                <div className={`size-7 rounded-full flex items-center justify-center transition-all ${
                                     isActive 
-                                        ? 'bg-primary text-white shadow-md shadow-primary/30 scale-105' 
+                                        ? 'bg-[#1a73e8] text-white shadow-xs' 
                                         : isCompleted 
-                                            ? 'bg-emerald-500/10 text-emerald-500' 
-                                            : 'bg-slate-200/50 dark:bg-slate-700/50 text-slate-400'
+                                            ? 'bg-[#e6f4ea] text-[#137333] dark:bg-emerald-950/40 dark:text-emerald-400' 
+                                            : 'bg-[#f1f3f4] dark:bg-slate-800 text-[#70757a]'
                                 }`}>
-                                    <span className="material-symbols-outlined text-base">
-                                        {isCompleted ? 'check_circle' : step.icon}
+                                    <span className="material-symbols-outlined text-[15px]">
+                                        {isCompleted ? 'check' : step.icon}
                                     </span>
                                 </div>
 
                                 {/* Text Info */}
-                                <div className="flex flex-col">
-                                    <span className={`text-[9px] font-semibold uppercase tracking-wider transition-colors duration-500 ${
-                                        isActive ? 'text-primary' : isCompleted ? 'text-emerald-500' : 'text-slate-400'
+                                <div className="flex flex-col min-w-0">
+                                    <span className={`text-[10px] font-medium uppercase tracking-wider transition-colors ${
+                                        isActive ? 'text-[#1a73e8]' : isCompleted ? 'text-[#137333] dark:text-emerald-400' : 'text-[#70757a]'
                                     }`}>
                                         {step.desc}
                                     </span>
-                                    <span className={`text-xs font-bold transition-colors duration-500 whitespace-nowrap ${
-                                        isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'
+                                    <span className={`text-xs font-medium transition-colors truncate ${
+                                        isActive ? 'text-[#202124] dark:text-white font-semibold' : 'text-[#5f6368] dark:text-slate-400'
                                     }`}>
                                         {step.label}
                                     </span>
@@ -145,17 +143,17 @@ const CheckoutStepper = ({ currentStep, onStepClick }) => {
 
                                 {/* Active indicator dot */}
                                 {isActive && (
-                                    <div className="absolute right-2.5 size-1.5 bg-primary rounded-full animate-pulse shadow-[0_0_8px_rgba(255,59,92,0.8)]"></div>
+                                    <div className="ml-auto mr-1 size-1.5 bg-[#1a73e8] rounded-full"></div>
                                 )}
                             </div>
                         );
                     })}
                 </div>
 
-                {/* Progress bar subtle under-line */}
-                <div className="mt-2 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden px-0.5">
+                {/* Progress bar */}
+                <div className="mt-2 h-1 w-full bg-[#e8eaed] dark:bg-slate-800 rounded-full overflow-hidden">
                     <div 
-                        className="h-full bg-gradient-to-r from-primary via-primary/80 to-primary/40 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(255,59,92,0.3)]"
+                        className="h-full bg-[#1a73e8] rounded-full transition-all duration-700 ease-out"
                         style={{ width: `${(currentStep / steps.length) * 100}%` }}
                     ></div>
                 </div>

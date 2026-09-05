@@ -14,7 +14,8 @@ import { mockHotels } from '../data/mockHotels';
 import NationalitySelect from '../components/NationalitySelect';
 import { hotelService } from '../services/hotelService';
 import { useToast } from '../context/ToastContext';
-import { parseGuestsParam, serializeGuestsParam, validateAndSanitizeDates } from '../utils/searchParamsUtils';
+import { parseGuestsParam, serializeGuestsParam, validateAndSanitizeDates, formatDateForUrl } from '../utils/searchParamsUtils';
+import GoogleFlightDatePicker, { formatGoogleFlightDate } from '../components/GoogleFlightDatePicker';
 import { getBoardTypeLabel, getBoardTypeDescription, BOARD_TYPES } from '../utils/boardTypeUtils';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 import { useFavorites } from '../context/FavoritesContext';
@@ -505,7 +506,24 @@ const LOCAL_TRANSLATIONS = {
         show: "Show",
         moreRates: "More Rates",
         fetchingBestRates: "Fetching best rates...",
-        maxRoomsSelectedError: "You searched for {{count}} room(s). You can select a maximum of {{count}} room(s)."
+        maxRoomsSelectedError: "You searched for {{count}} room(s). You can select a maximum of {{count}} room(s).",
+        search: "Search",
+        cancel: "Cancel",
+        done: "Done",
+        in: "In",
+        out: "Out",
+        dailyRates: "Daily Rates",
+        cancellationPolicy: "Cancellation Policy",
+        standardCancellation: "Standard cancellation applies",
+        flexible: "Flexible",
+        cancellationPenalty: "Cancellation Penalty",
+        freeCancel: "Free Cancel",
+        securePayment: "SECURE PAYMENT",
+        protectedBooking: "TOG Protected Booking",
+        checkIn: "Check-in",
+        checkOut: "Check-out",
+        nightsStay: "Nights Stay",
+        nightStay: "Night Stay"
     },
     tr: {
         roomsAndRates: "Odalar & Fiyatlar",
@@ -566,7 +584,24 @@ const LOCAL_TRANSLATIONS = {
         show: "Göster",
         moreRates: "Daha Fazla Fiyat",
         fetchingBestRates: "En iyi fiyatlar sorgulanıyor...",
-        maxRoomsSelectedError: "Aramanızda {{count}} oda belirttiniz. En fazla {{count}} oda seçebilirsiniz."
+        maxRoomsSelectedError: "Aramanızda {{count}} oda belirttiniz. En fazla {{count}} oda seçebilirsiniz.",
+        search: "Ara",
+        cancel: "İptal",
+        done: "Bitti",
+        in: "Giriş",
+        out: "Çıkış",
+        dailyRates: "Günlük Fiyatlar",
+        cancellationPolicy: "İptal Kuralı",
+        standardCancellation: "Standart iptal kuralı geçerlidir",
+        flexible: "Esnek",
+        cancellationPenalty: "İptal Cezası",
+        freeCancel: "Ücretsiz İptal",
+        securePayment: "GÜVENLİ İŞLEM",
+        protectedBooking: "TOG Garantili B2B Rezervasyon",
+        checkIn: "Giriş",
+        checkOut: "Çıkış",
+        nightsStay: "Gece Konaklama",
+        nightStay: "Gece Konaklama"
     },
     ar: {
         roomsAndRates: "الغرف والأسعار",
@@ -1178,6 +1213,12 @@ const HotelDetail = () => {
         return LOCAL_TRANSLATIONS[currentLang]?.[key] || LOCAL_TRANSLATIONS['en']?.[key] || key;
     };
 
+    const formatPrice = (amount, currencyCode) => {
+        const symbol = getCurrencySymbol(currencyCode || agencyCurrency || 'EUR', currencySymbolMap);
+        const val = Number(amount) || 0;
+        return `${symbol} ${val.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    };
+
 
 
     const formatPolicyDate = (dateStr) => {
@@ -1262,9 +1303,32 @@ const HotelDetail = () => {
     });
 
     const [showGuestDropdown, setShowGuestDropdown] = useState(false);
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+    const [activeDateField, setActiveDateField] = useState('checkIn');
     const guestWrapperRef = useRef(null);
     const datePickerRef = useRef(null);
     const lastFetchRef = useRef('');
+
+    const stepCheckIn = (days) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const target = new Date(checkInDate || today);
+        target.setDate(target.getDate() + days);
+        if (target < today) return;
+        setCheckInDate(target);
+        if (checkOutDate && target >= checkOutDate) {
+            const nextOut = new Date(target);
+            nextOut.setDate(nextOut.getDate() + 1);
+            setCheckOutDate(nextOut);
+        }
+    };
+
+    const stepCheckOut = (days) => {
+        const target = new Date(checkOutDate || new Date());
+        target.setDate(target.getDate() + days);
+        if (checkInDate && target <= checkInDate) return;
+        setCheckOutDate(target);
+    };
 
     const { holidays } = useHolidays(dynamicHotel?.address?.countryCode || dynamicHotel?.countryCode);
 
@@ -1511,23 +1575,16 @@ const HotelDetail = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const formatDateForUrl = (date) => {
-        if (!date) return '';
-        const d = new Date(date);
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        return `${day}-${month}-${year}`;
-    };
-
     const handleSearch = () => {
         const guestsParam = serializeGuestsParam(roomState);
-        const params = new URLSearchParams();
+        const params = new URLSearchParams(searchParams);
         params.set('checkin', formatDateForUrl(checkInDate));
         params.set('checkout', formatDateForUrl(checkOutDate));
         params.set('guests', guestsParam);
         params.set('nationality', nationality);
-        params.set('q', hotel.names?.tr || hotel.names?.en || hotel.name || '');
+        if (!params.get('q')) {
+            params.set('q', hotel.names?.tr || hotel.names?.en || hotel.name || '');
+        }
 
         // Keep current path but update search params
         navigate(`${window.location.pathname}?${params.toString()}`);
@@ -1703,9 +1760,10 @@ const HotelDetail = () => {
     };
 
     return (
-        <div className="relative flex min-h-full flex-col bg-background-light dark:bg-background-dark text-slate-900 dark:text-white transition-colors duration-200 font-sans">
-            <div className="flex-1 max-w-[1440px] mx-auto w-full px-6 lg:px-20 py-8">
-                <div className="mb-6 flex items-center justify-between">
+        <div className="relative flex min-h-full flex-col bg-[#f8f9fa] dark:bg-[#202124] text-[#202124] dark:text-white transition-colors duration-200 font-roboto">
+            <div className="flex-1 max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-6">
+                {/* Top Navigation & Breadcrumbs */}
+                <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
                         {hotel.locationBreadcrumbs?.map((bc, i) => {
                             const name = bc.name?.translations?.tr || bc.name?.translations?.en || bc.name?.defaultName;
@@ -1713,310 +1771,413 @@ const HotelDetail = () => {
                                 <React.Fragment key={bc.locationId}>
                                     <button
                                         onClick={() => handleBreadcrumbClick(bc.locationId, name)}
-                                        className="text-xs font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap hover:text-primary transition-colors cursor-pointer"
+                                        className="text-xs font-normal text-[#5f6368] dark:text-slate-400 whitespace-nowrap hover:text-[#1a73e8] transition-colors cursor-pointer"
                                     >
                                         {name}
                                     </button>
                                     {i < hotel.locationBreadcrumbs.length - 1 && (
-                                        <span className="material-symbols-outlined text-xs text-slate-300">chevron_right</span>
+                                        <span className="material-symbols-outlined text-[14px] text-[#70757a]">chevron_right</span>
                                     )}
                                 </React.Fragment>
                             );
                         }) || <Breadcrumbs />}
                     </div>
-                    <Link to={`/travel/hotels/search?${searchParams.toString()}`} className="flex items-center gap-1.5 text-sm font-bold text-primary group">
-                        <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                    <Link to={`/travel/hotels/search?${searchParams.toString()}`} className="flex items-center gap-1.5 text-sm font-medium text-[#1a73e8] hover:underline group">
+                        <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
                         {tLocal('backToSearch')}
                     </Link>
                 </div>
 
-                {/* Hotel Title & Header Section */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+                {/* Hotel Title & Header Section - Google Style */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4 pb-4 border-b border-[#dadce0] dark:border-slate-700">
                     <div>
-                        <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{hotel.names?.tr || hotel.names?.en || hotel.name}</h1>
-                            <div className="flex text-amber-400">
+                        <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
+                            <h1 className="text-2xl sm:text-3xl font-medium text-[#202124] dark:text-white tracking-normal">{hotel.names?.tr || hotel.names?.en || hotel.name}</h1>
+                            <div className="flex text-[#fbbc04]">
                                 {[...Array(hotel.hotelStar?.star || 5)].map((_, i) => (
-                                    <span key={i} className="material-symbols-outlined fill-1 text-base">star</span>
+                                    <span key={i} className="material-symbols-outlined fill-1 text-[18px]">star</span>
                                 ))}
                             </div>
                             {hotel.isRecommended && (
-                                <div className="ml-2 bg-gradient-to-r from-teal-400 to-blue-500 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg shadow-lg shadow-cyan-500/20 flex items-center gap-1.5 animate-in fade-in slide-in-from-left-4 duration-500 border border-cyan-400/50">
+                                <div className="bg-[#e6f4ea] text-[#137333] dark:bg-emerald-950/40 dark:text-emerald-300 border border-[#ceead6] dark:border-emerald-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center gap-1">
                                     <span className="material-symbols-outlined text-[14px] fill-1">thumb_up</span>
                                     Recommended
                                 </div>
                             )}
                         </div>
-                        <div className="flex flex-wrap items-center gap-4 mt-2">
-                            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                                <span className="material-symbols-outlined text-sm text-primary">location_on</span>
-                                <span className="font-semibold text-xs">
-                                    {hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location}
-                                </span>
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-[#5f6368] dark:text-slate-400">
+                            <div className="flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[18px] text-[#5f6368]">location_on</span>
+                                <span>{hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location}</span>
                             </div>
-
+                            <span>•</span>
                             <button
                                 onClick={() => setIsMapModalOpen(true)}
-                                className="text-primary text-xs font-semibold hover:underline">
-                                {tLocal('showOnMap')}
+                                className="text-[#1a73e8] font-medium hover:underline flex items-center gap-1 cursor-pointer">
+                                <span>{tLocal('showOnMap')}</span>
                             </button>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 mr-4">
+                    
+                    <div className="flex items-center gap-3 shrink-0">
+                        <div className="flex items-center gap-2 mr-2">
                             <button
                                 onClick={handleFavoriteToggle}
                                 title={isLiked ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
-                                className={`size-10 rounded-xl flex items-center justify-center transition-all ${isLiked ? 'bg-red-50 dark:bg-red-950/30 text-red-500 border-red-200 dark:border-red-800 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:text-red-500'} border shadow-sm active:scale-90`}
+                                className={`size-10 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
+                                    isLiked 
+                                        ? 'bg-red-50 dark:bg-red-950/30 text-red-500 border-red-200 dark:border-red-800' 
+                                        : 'border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-slate-700 text-[#5f6368] dark:text-slate-300'
+                                }`}
                             >
-                                <span className={`material-symbols-outlined text-xl ${isLiked ? 'fill-1' : ''}`}>favorite</span>
+                                <span className={`material-symbols-outlined text-[20px] ${isLiked ? 'fill-1' : ''}`}>favorite</span>
                             </button>
                             <button
                                 onClick={() => setIsShareModalOpen(true)}
-                                className="size-10 rounded-xl bg-white dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:text-primary transition-all shadow-sm active:scale-90"
+                                className="size-10 rounded-full border border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-slate-700 text-[#5f6368] dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
+                                title="Paylaş"
                             >
-                                <span className="material-symbols-outlined text-xl">share</span>
+                                <span className="material-symbols-outlined text-[20px]">share</span>
                             </button>
                         </div>
-                        <div className="flex flex-col items-end border-l border-slate-200 dark:border-slate-700 pl-5">
-                            <span className="text-base font-bold text-slate-900 dark:text-white leading-none">{hotel.ratingLabel}</span>
-                            <span className="text-xs text-slate-500 font-normal mt-1">1,240 {tLocal('reviewsLabel')}</span>
-                            <span className="text-[10px] text-primary font-semibold flex items-center gap-1 mt-1 uppercase tracking-tight">
-                                <span className="material-symbols-outlined text-xs fill-1">trending_up</span> {tLocal('highlyPopular')}
-                            </span>
+
+                        {/* Rating Display */}
+                        <div className="flex items-center gap-3 border-l border-[#dadce0] dark:border-slate-700 pl-4">
+                            <div className="bg-[#1a73e8] text-white font-medium text-sm px-2.5 py-1 rounded-md">
+                                {hotel.stars || hotel.hotelStar?.star || '4.5'}
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-sm font-medium text-[#202124] dark:text-white leading-tight">{hotel.ratingLabel || 'Çok İyi'}</span>
+                                <span className="text-xs text-[#5f6368] dark:text-slate-400 mt-0.5">1,240 {tLocal('reviewsLabel')}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Quick Info Badges */}
+                {/* Quick Info Badges - Google Chips */}
                 <div className="flex flex-wrap gap-2 mb-6">
-                    {(hotel.facilities?.slice(0, 5).map(f => f.names?.tr || f.names?.en) || ['Free WiFi', 'Free Parking', 'Breakfast Available']).map((item, i) => (
-                        <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all cursor-default backdrop-blur-md shadow-sm">
-                            <span className="material-symbols-outlined text-sm text-primary">check_circle</span> {item}
+                    {(hotel.facilities?.slice(0, 6).map(f => f.names?.tr || f.names?.en) || ['Free WiFi', 'Free Parking', 'Breakfast Available']).map((item, i) => (
+                        <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#303134] text-[#3c4043] dark:text-slate-200 rounded-full text-xs font-normal border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors cursor-default">
+                            <span className="material-symbols-outlined text-[16px] text-[#1a73e8]">check</span> {item}
                         </span>
                     ))}
                 </div>
 
-                {/* Benton Grid Gallery */}
-                <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-3 h-[480px] mb-8 overflow-hidden rounded-2xl relative group/gallery">
-                    <div className="md:col-span-2 md:row-span-2 relative overflow-hidden ring-1 ring-white/10 shadow-2xl cursor-pointer" onClick={() => openLightbox(0, images)}>
-                        <img className="w-full h-full object-cover transition-all duration-700 hover:scale-105" src={images[0]} alt={hotel.name} />
-                        <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs font-semibold shadow-xl border border-white/20">
+                {/* Gallery Grid - Google Travel Style */}
+                <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-2 h-[420px] mb-8 overflow-hidden rounded-xl border border-[#dadce0] dark:border-slate-700 relative group/gallery bg-slate-100 dark:bg-slate-800">
+                    <div className="md:col-span-2 md:row-span-2 relative overflow-hidden cursor-pointer" onClick={() => openLightbox(0, images)}>
+                        <img className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src={images[0]} alt={hotel.name} />
+                        <div className="absolute bottom-3 left-3 bg-white/95 dark:bg-[#202124]/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-medium text-[#202124] dark:text-white shadow-md border border-[#dadce0] dark:border-slate-700">
                             1 / {images.length} {tLocal('photos')}
                         </div>
                     </div>
-                    <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 cursor-pointer" onClick={() => openLightbox(1, images)}>
-                        <img className="w-full h-full object-cover transition-all duration-700 hover:scale-105" src={images[1] || images[0]} alt="" />
-                        <div className="absolute top-4 right-4 flex gap-2 translate-y-2 opacity-0 group-hover/gallery:translate-y-0 group-hover/gallery:opacity-100 transition-all duration-500">
-                            <button
-                                className={`size-9 rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md flex items-center justify-center shadow-xl transition-colors ${isLiked ? 'text-red-500' : 'text-slate-800 dark:text-white hover:text-red-500'}`}
-                                onClick={handleFavoriteToggle}
-                                title={isLiked ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
-                            >
-                                <span className={`material-symbols-outlined text-xl ${isLiked ? 'fill-1' : ''}`}>favorite</span>
-                            </button>
-                            <button className="size-9 rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur-md flex items-center justify-center text-slate-800 dark:text-white shadow-xl hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}><span className="material-symbols-outlined text-xl">share</span></button>
-                        </div>
+                    <div className="hidden md:block relative overflow-hidden cursor-pointer" onClick={() => openLightbox(1, images)}>
+                        <img className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src={images[1] || images[0]} alt="" />
                     </div>
-                    <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 cursor-pointer" onClick={() => openLightbox(2, images)}>
-                        <img className="w-full h-full object-cover transition-all duration-700 hover:scale-105" src={images[2] || images[0]} alt="" />
+                    <div className="hidden md:block relative overflow-hidden cursor-pointer" onClick={() => openLightbox(2, images)}>
+                        <img className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src={images[2] || images[0]} alt="" />
                     </div>
-                    <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 cursor-pointer" onClick={() => openLightbox(3, images)}>
-                        <img className="w-full h-full object-cover transition-all duration-700 hover:scale-105" src={images[3] || images[0]} alt="" />
+                    <div className="hidden md:block relative overflow-hidden cursor-pointer" onClick={() => openLightbox(3, images)}>
+                        <img className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src={images[3] || images[0]} alt="" />
                     </div>
-                    <div className="hidden md:block relative overflow-hidden ring-1 ring-white/10 group/viewall cursor-pointer" onClick={() => openLightbox(0, images)}>
-                        <img className="w-full h-full object-cover group-hover/viewall:scale-110 blur-[2px] transition-all duration-700" src={images[4] || images[0]} alt="" />
-                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center text-white text-center p-4">
-                            <span className="material-symbols-outlined text-4xl mb-2 animate-bounce-slow">photo_library</span>
-                            <span className="text-sm font-black uppercase tracking-widest">{tLocal('showAllPhotos')}</span>
+                    <div className="hidden md:block relative overflow-hidden cursor-pointer group/viewall" onClick={() => openLightbox(0, images)}>
+                        <img className="w-full h-full object-cover group-hover/viewall:scale-105 blur-[1px] transition-transform duration-500" src={images[4] || images[0]} alt="" />
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-xs flex flex-col items-center justify-center text-white text-center p-4">
+                            <span className="material-symbols-outlined text-3xl mb-1">photo_library</span>
+                            <span className="text-xs font-medium tracking-wide">{tLocal('showAllPhotos')}</span>
                         </div>
                     </div>
                 </div>
 
-
                 {/* Main Content Layout */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     <div className="lg:col-span-8">
-                        {/* Compact Search Bar - Now aligned with room cards */}
-                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-[24px] shadow-md grid grid-cols-1 md:grid-cols-10 gap-2 mb-6 h-[72px]">
-                            <div className="md:col-span-4 relative group">
-                                <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 border border-transparent group-hover:bg-slate-100 dark:group-hover:bg-slate-700/50 px-4 rounded-xl cursor-pointer transition-all h-full" onClick={() => datePickerRef.current?.setOpen(true)}>
-                                    <span className="material-symbols-outlined text-primary text-xl shrink-0">calendar_month</span>
-                                    <div className="flex flex-col flex-1 min-w-0">
-                                        <div className="flex items-center justify-between w-full mb-0.5">
-                                            <label className="text-[9px] uppercase tracking-wider font-semibold text-slate-400">{tLocal('checkInOut')}</label>
-                                            {checkInDate && checkOutDate && (
-                                                <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-primary/10 text-primary border border-primary/20 animate-in fade-in zoom-in duration-300">
-                                                    <span className="material-symbols-outlined text-[12px] leading-none">bedtime</span>
-                                                    <span className="text-[9px] font-semibold uppercase tracking-tight">
-                                                        {Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24))} {tLocal('nights')}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <DatePicker
-                                            ref={datePickerRef}
-                                            selected={checkInDate}
-                                            onChange={(dates) => {
-                                                const [start, end] = dates;
-                                                setCheckInDate(start);
-                                                setCheckOutDate(end);
-                                            }}
-                                            startDate={checkInDate}
-                                            endDate={checkOutDate}
-                                            selectsRange
-                                            minDate={new Date()}
-                                            maxDate={checkInDate && !checkOutDate ? new Date(checkInDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null}
-                                            monthsShown={2}
-                                            locale="en-GB"
-                                            className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-xs font-semibold text-slate-900 dark:text-white cursor-pointer whitespace-nowrap"
-                                            wrapperClassName="w-full"
-                                            dateFormat="dd MMM yyyy"
-                                            calendarClassName="shadow-2xl border-none font-sans mt-4"
-                                            popperPlacement="bottom-start"
-                                            renderDayContents={(day, date) => {
-                                                const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                                                const holiday = holidays?.find(h => h.date === formattedDate || h.holidayDate === formattedDate);
-                                                const destCountryCode = dynamicHotel?.address?.countryCode || dynamicHotel?.countryCode;
-                                                
-                                                if (holiday) {
-                                                    return (
-                                                        <div className="holiday-day-container">
-                                                            {day}
-                                                            <div className="holiday-badge"></div>
-                                                            <div className="holiday-tooltip">
-                                                                <div className="holiday-tooltip-country">
-                                                                    {holiday.countryCode || destCountryCode}
-                                                                </div>
-                                                                <div className="holiday-tooltip-date">{holiday.holidayDate || holiday.date || formattedDate}</div>
-                                                                <div className="holiday-tooltip-name">{holiday.holidayName || holiday.name}</div>
-                                                                <div className="holiday-tooltip-type">{holiday.holidayType || holiday.type}</div>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                }
-                                                return day;
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="md:col-span-3 relative group/guest" ref={guestWrapperRef}>
-                                <button
-                                    onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                                    className="w-full h-full flex items-center gap-3 px-4 bg-slate-50 dark:bg-slate-800 border border-transparent hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-xl transition-all text-left"
+                        {/* Google Flights Style Search Bar - Matching Hotel Listing */}
+                        <div className="w-full flex flex-wrap sm:flex-nowrap items-center gap-2 relative z-50 mb-6 font-roboto">
+                            {/* Twin Datepicker Container */}
+                            <div className={`flex-1 min-w-[280px] relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger ${
+                                isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')
+                                    ? ''
+                                    : 'border border-[#dadce0] dark:border-slate-600 rounded-lg hover:border-[#bdc1c6] transition-all'
+                            }`}>
+                                {/* Check-In Half */}
+                                <div
+                                    onClick={() => {
+                                        setActiveDateField('checkIn');
+                                        setIsDatePickerOpen(true);
+                                        setShowGuestDropdown(false);
+                                    }}
+                                    className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
+                                        isDatePickerOpen && activeDateField === 'checkIn'
+                                            ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                            : isDatePickerOpen && activeDateField === 'checkOut'
+                                            ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                            : 'rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    }`}
                                 >
-                                    <span className="material-symbols-outlined text-primary text-xl shrink-0 group-hover/guest:scale-110 transition-transform">group</span>
-                                    <div className="flex flex-col flex-1 min-w-0">
-                                        <label className="text-[9px] uppercase tracking-wider font-semibold text-slate-400 mb-0.5">{tLocal('guestsAndRooms')}</label>
-                                        <span className="text-xs font-semibold text-slate-900 dark:text-white whitespace-nowrap block truncate">
-                                            {totalAdults} {totalAdults > 1 ? tLocal('adults') : tLocal('adult')}, {totalChildren} {totalChildren > 1 ? tLocal('children') : tLocal('child')}
+                                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                        <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
+                                            calendar_today
+                                        </span>
+                                        <span className="text-[14px] sm:text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
+                                            {formatGoogleFlightDate(checkInDate) || 'Giriş'}
                                         </span>
                                     </div>
-                                    <span className="material-symbols-outlined text-slate-400 text-lg group-hover/guest:translate-y-0.5 transition-transform">expand_more</span>
+
+                                    {/* Quick 1-day step buttons */}
+                                    <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
+                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors cursor-pointer"
+                                            title="1 gün geri"
+                                        >
+                                            <span className="material-symbols-outlined text-[15px]">chevron_left</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); stepCheckIn(1); }}
+                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors cursor-pointer"
+                                            title="1 gün ileri"
+                                        >
+                                            <span className="material-symbols-outlined text-[15px]">chevron_right</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Middle Vertical Divider */}
+                                {!(isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')) && (
+                                    <div className="w-[1px] h-7 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
+                                )}
+
+                                {/* Check-Out Half */}
+                                <div
+                                    onClick={() => {
+                                        setActiveDateField('checkOut');
+                                        setIsDatePickerOpen(true);
+                                        setShowGuestDropdown(false);
+                                    }}
+                                    className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
+                                        isDatePickerOpen && activeDateField === 'checkOut'
+                                            ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                            : isDatePickerOpen && activeDateField === 'checkIn'
+                                            ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                            : 'rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    }`}
+                                >
+                                    <div className="flex items-center min-w-0 flex-1">
+                                        <span className="text-[14px] sm:text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
+                                            {formatGoogleFlightDate(checkOutDate) || 'Çıkış'}
+                                        </span>
+                                    </div>
+
+                                    {/* Quick 1-day step buttons */}
+                                    <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
+                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors cursor-pointer"
+                                            title="1 gün geri"
+                                        >
+                                            <span className="material-symbols-outlined text-[15px]">chevron_left</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); stepCheckOut(1); }}
+                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors cursor-pointer"
+                                            title="1 gün ileri"
+                                        >
+                                            <span className="material-symbols-outlined text-[15px]">chevron_right</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Google Flights 2-Month Datepicker Popover */}
+                                <GoogleFlightDatePicker
+                                    isOpen={isDatePickerOpen}
+                                    onClose={() => {
+                                        setIsDatePickerOpen(false);
+                                    }}
+                                    checkInDate={checkInDate}
+                                    checkOutDate={checkOutDate}
+                                    onCheckInChange={setCheckInDate}
+                                    onCheckOutChange={setCheckOutDate}
+                                    activeField={activeDateField}
+                                    setActiveField={setActiveDateField}
+                                    holidays={holidays}
+                                    countryCode={dynamicHotel?.address?.countryCode || dynamicHotel?.countryCode || nationality || 'TR'}
+                                />
+                            </div>
+
+                            {/* Elegant Guest Selector */}
+                            <div className="relative group/field flex-shrink-0" ref={guestWrapperRef}>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowGuestDropdown(!showGuestDropdown);
+                                        setIsDatePickerOpen(false);
+                                    }}
+                                    className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-[#303134] px-4 h-12 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer"
+                                >
+                                    <span className="material-symbols-outlined text-[18px] text-[#70757a]">person</span>
+                                    <span className="text-[13px] font-normal text-[#3c4043] dark:text-slate-200">
+                                        {totalAdults + totalChildren}
+                                    </span>
+                                    <span className="material-symbols-outlined text-[18px] text-[#70757a]">arrow_drop_down</span>
                                 </button>
 
+                                {/* Guest Dropdown - Google Flights Style */}
                                 {showGuestDropdown && (
-                                    <div className="absolute top-full left-0 mt-4 w-[280px] bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700 shadow-2xl p-3 z-[100] max-h-[60vh] overflow-y-auto animate-in fade-in slide-in-from-top-4 duration-300">
-                                        {roomState.map((room, index) => (
-                                            <div key={index} className="mb-3 pb-3 border-b border-slate-100 dark:border-slate-800 last:mb-0 last:pb-0 last:border-0 relative">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <div className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">{tLocal('room')} {index + 1}</div>
+                                    <div className="absolute top-full left-0 w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-3 -mr-3">
+                                            {roomState.map((room, index) => (
+                                                <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 last:mb-0">
                                                     {roomState.length > 1 && (
-                                                        <button
-                                                            onClick={() => removeRoom(index)}
-                                                            className="text-red-500 hover:text-red-700 text-[9px] font-bold uppercase tracking-wider"
-                                                        >
-                                                            {tLocal('remove')}
-                                                        </button>
-                                                    )}
-                                                </div>
-
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <div className="text-xs font-bold text-slate-700 dark:text-slate-200">{tLocal('adults')}</div>
-                                                    <div className="flex items-center gap-2">
-                                                        <button onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"><span className="material-icons-round text-xs">remove</span></button>
-                                                        <span className="w-3 text-center text-xs font-bold">{room.adults}</span>
-                                                        <button onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"><span className="material-icons-round text-xs">add</span></button>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <div className="text-xs font-bold text-slate-700 dark:text-slate-200">{tLocal('children')}</div>
-                                                    <div className="flex items-center gap-2">
-                                                        <button onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"><span className="material-icons-round text-xs">remove</span></button>
-                                                        <span className="w-3 text-center text-xs font-bold">{room.children}</span>
-                                                        <button onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors"><span className="material-icons-round text-xs">add</span></button>
-                                                    </div>
-                                                </div>
-
-                                                {room.children > 0 && (
-                                                    <div className="mb-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                                                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">{tLocal('children')} {tLocal('yr')}</div>
-                                                        <div className="grid grid-cols-4 gap-1.5">
-                                                            {room.childAges.map((age, ageIdx) => (
-                                                                <select
-                                                                    key={ageIdx}
-                                                                    value={age}
-                                                                    onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
-                                                                    className="w-full h-7 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-[10px] px-1 focus:border-primary focus:ring-0"
-                                                                >
-                                                                    {[...Array(18)].map((_, i) => (
-                                                                        <option key={i} value={i}>{i} {tLocal('yr')}</option>
-                                                                    ))}
-                                                                </select>
-                                                            ))}
+                                                        <div className="flex justify-between items-center mb-3">
+                                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{tLocal('room')} {index + 1}</span>
+                                                            <button type="button" onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded hover:bg-red-50">{tLocal('remove')}</button>
                                                         </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                                    )}
 
-                                        {roomState.length < 4 && (
-                                            <button
-                                                onClick={addRoom}
-                                                className="w-full py-1.5 bg-blue-50 dark:bg-blue-900/20 text-primary rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors flex items-center justify-center gap-1.5 mt-2"
-                                            >
-                                                <span className="material-icons-round text-sm">add_circle</span>
-                                                {tLocal('addAnotherRoom')}
+                                                    <div className="flex flex-col gap-4">
+                                                        {/* Adults Row */}
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{tLocal('adults')}</span>
+                                                            <div className="flex items-center gap-1">
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} 
+                                                                    disabled={room.adults <= 1}
+                                                                    className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[20px]">remove</span>
+                                                                </button>
+                                                                <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.adults}</span>
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} 
+                                                                    disabled={room.adults >= 6} 
+                                                                    className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[20px]">add</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Children Row */}
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{tLocal('children')}</span>
+                                                                <span className="text-[12px] text-slate-500">{tLocal('childAge') || '0-17 yaş'}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1">
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} 
+                                                                    disabled={room.children <= 0}
+                                                                    className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[20px]">remove</span>
+                                                                </button>
+                                                                <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.children}</span>
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} 
+                                                                    disabled={room.children >= 4} 
+                                                                    className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[20px]">add</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Child Ages */}
+                                                        {room.children > 0 && (
+                                                            <div className="grid grid-cols-2 gap-3 mt-1">
+                                                                {room.childAges.map((age, ageIdx) => (
+                                                                    <div key={ageIdx} className="flex flex-col gap-1">
+                                                                        <span className="text-[12px] text-slate-500">{tLocal('children')} {ageIdx + 1} {tLocal('yr')}</span>
+                                                                        <select
+                                                                            value={age}
+                                                                            onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
+                                                                            className="w-full h-8 bg-white dark:bg-slate-800 rounded border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-0 outline-none text-[#3c4043] dark:text-white cursor-pointer"
+                                                                        >
+                                                                            {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {tLocal('yr')}</option>)}
+                                                                        </select>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+
+                                            {roomState.length < 5 && (
+                                                <button type="button" onClick={addRoom} className="mt-4 text-[14px] text-[#1a73e8] font-medium hover:underline flex items-center cursor-pointer">
+                                                    <span className="material-symbols-outlined text-[18px] mr-1">add</span>
+                                                    {tLocal('addAnotherRoom')}
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Google Flights Style Footer */}
+                                        <div className="flex items-center justify-end gap-6 mt-6 pt-2">
+                                            <button type="button" onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1.5 rounded transition-colors cursor-pointer">
+                                                {tLocal('cancel') || 'İptal'}
                                             </button>
-                                        )}
+                                            <button type="button" onClick={() => {
+                                                setShowGuestDropdown(false);
+                                            }} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1.5 rounded transition-colors cursor-pointer">
+                                                {tLocal('done') || 'Bitti'}
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="md:col-span-2 relative group/nat">
-                                <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-transparent hover:bg-slate-100 dark:hover:bg-slate-700/50 px-3 rounded-xl transition-all h-full">
-                                    <div className="flex flex-col flex-1 min-w-0">
-                                        <label className="text-[8px] uppercase tracking-wider font-bold text-slate-400 mb-0.5">{tLocal('nationality')}</label>
-                                        <NationalitySelect
-                                            value={nationality}
-                                            onChange={setNationality}
-                                            compact={true}
-                                        />
-                                    </div>
-                                </div>
+                            {/* Nationality Selector Input */}
+                            <div className="w-full sm:w-[150px] lg:w-[160px] flex-shrink-0 relative h-12">
+                                <NationalitySelect 
+                                    value={nationality} 
+                                    onChange={(newNat) => {
+                                        setNationality(newNat);
+                                    }} 
+                                    inputStyle={true} 
+                                    onToggle={(isOpen) => {
+                                        if (isOpen) {
+                                            setShowGuestDropdown(false);
+                                            setIsDatePickerOpen(false);
+                                        }
+                                    }}
+                                />
                             </div>
 
-                            <div className="md:col-span-1 h-full">
+                            {/* Search / Update Button */}
+                            <div className="flex-shrink-0">
                                 <button
+                                    type="button"
                                     onClick={handleSearch}
-                                    className="w-full h-full bg-primary text-white rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 flex items-center justify-center group"
+                                    className="h-12 px-5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-lg font-medium text-[14px] flex items-center justify-center gap-2 shadow-[0_1px_2px_rgba(60,64,67,0.3),0_1px_3px_1px_rgba(60,64,67,0.15)] hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
                                 >
-                                    <span className="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">search</span>
+                                    <span className="material-symbols-outlined text-[20px]">search</span>
+                                    <span className="hidden sm:inline">{tLocal('search') || 'Ara'}</span>
                                 </button>
                             </div>
                         </div>
-                        {/* Tab Bar Container */}
+
+                        {/* Tab Bar Container - Google Style */}
                         <div className="relative">
                             {/* Sticky Tab Bar */}
-                            <div className="flex items-center gap-8 border-b border-slate-200 dark:border-slate-800 mb-8 sticky top-0 bg-background-light dark:bg-background-dark z-20 overflow-x-auto no-scrollbar py-2 transition-all duration-300">
+                            <div className="flex items-center gap-8 border-b border-[#dadce0] dark:border-slate-700 mb-6 sticky top-0 bg-[#f8f9fa] dark:bg-[#202124] z-20 overflow-x-auto no-scrollbar py-0 transition-colors">
                                 {tabs.map((tab, i) => (
                                     <button
                                         key={i}
                                         onClick={() => setActiveTab(tab)}
-                                        className={`py-3 text-xs font-semibold whitespace-nowrap transition-all border-b-2 ${activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
+                                        className={`py-3.5 text-[14px] whitespace-nowrap transition-all border-b-2 cursor-pointer ${
+                                            activeTab === tab 
+                                                ? 'border-[#1a73e8] text-[#1a73e8] font-medium' 
+                                                : 'border-transparent text-[#5f6368] dark:text-slate-400 hover:text-[#202124] dark:hover:text-white font-normal'
+                                        }`}
                                     >
                                         {tLocal(tabLabelMap[tab])}
                                     </button>
@@ -2024,18 +2185,18 @@ const HotelDetail = () => {
                             </div>
 
                             {/* Dynamic Tab Content */}
-                            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <div className="animate-in fade-in slide-in-from-bottom-2 duration-200">
                                 {activeTab === 'Rooms & Rates' && (
                                     <div className="relative space-y-4">
-                                        {/* Local Filters Bar */}
-                                        <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-white/20">
+                                        {/* Filters Bar - Google Chips Style */}
+                                        <div className="flex flex-wrap items-center gap-3 mb-6 p-3 bg-white dark:bg-[#303134] rounded-xl border border-[#dadce0] dark:border-slate-700">
                                             <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-sm text-primary">restaurant</span>
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{tLocal('boardType')}</span>
+                                                <span className="material-symbols-outlined text-[18px] text-[#5f6368]">restaurant</span>
+                                                <span className="text-xs font-medium text-[#5f6368] dark:text-slate-400">{tLocal('boardType')}</span>
                                                 <select
                                                     value={boardTypeFilter}
                                                     onChange={(e) => setBoardTypeFilter(e.target.value)}
-                                                    className="bg-transparent border-none text-xs font-bold focus:ring-0 cursor-pointer"
+                                                    className="bg-transparent border border-[#dadce0] dark:border-slate-600 rounded-md text-xs font-normal text-[#202124] dark:text-white px-2 py-1 focus:border-[#1a73e8] outline-none cursor-pointer"
                                                 >
                                                     <option value="ALL">{tLocal('allBoards')}</option>
                                                     {Object.keys(BOARD_TYPES).map(code => (
@@ -2043,21 +2204,21 @@ const HotelDetail = () => {
                                                     ))}
                                                 </select>
                                             </div>
-                                            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 hidden md:block"></div>
+                                            <div className="w-px h-4 bg-[#dadce0] dark:bg-slate-700 hidden md:block"></div>
                                             <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-sm text-primary">event_busy</span>
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{tLocal('policyLabel')}</span>
+                                                <span className="material-symbols-outlined text-[18px] text-[#5f6368]">event_busy</span>
+                                                <span className="text-xs font-medium text-[#5f6368] dark:text-slate-400">{tLocal('policyLabel')}</span>
                                                 <select
                                                     value={cancelFilter}
                                                     onChange={(e) => setCancelFilter(e.target.value)}
-                                                    className="bg-transparent border-none text-xs font-bold focus:ring-0 cursor-pointer"
+                                                    className="bg-transparent border border-[#dadce0] dark:border-slate-600 rounded-md text-xs font-normal text-[#202124] dark:text-white px-2 py-1 focus:border-[#1a73e8] outline-none cursor-pointer"
                                                 >
                                                     <option value="ALL">{tLocal('allPolicies')}</option>
                                                     <option value="FREE">{tLocal('freeCancellation')}</option>
                                                     <option value="NON_REFUNDABLE">{tLocal('nonRefundable')}</option>
                                                 </select>
                                             </div>
-                                            <div className="ml-auto text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                            <div className="ml-auto text-xs font-normal text-[#5f6368] dark:text-slate-400">
                                                 {groupedRooms.length} {tLocal('roomTypesFound')}
                                             </div>
                                         </div>
@@ -2066,86 +2227,31 @@ const HotelDetail = () => {
                                             // Skeleton loading cards
                                             <div className="space-y-4 animate-in fade-in duration-300">
                                                 {[...Array(3)].map((_, i) => (
-                                                    <div key={i} className="flex flex-col rounded-[28px] border border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl shadow-xl overflow-hidden">
-                                                        {/* Top: image + details — matches real card rounded-t-[28px] flex-row layout */}
-                                                        <div className="flex flex-col md:flex-row rounded-t-[28px]">
-                                                            {/* Image skeleton — md:w-72 h-64 matching real card */}
-                                                            <div className="md:w-72 h-64 md:h-auto shrink-0 relative overflow-hidden bg-slate-200 dark:bg-slate-800 rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px]">
+                                                    <div key={i} className="flex flex-col rounded-xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] overflow-hidden">
+                                                        <div className="flex flex-col md:flex-row">
+                                                            <div className="md:w-72 h-56 md:h-auto shrink-0 relative overflow-hidden bg-slate-200 dark:bg-slate-800">
                                                                 <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15}s` }}></div>
                                                             </div>
-                                                            {/* Content skeleton — p-6 matching real card */}
-                                                            <div className="flex-1 p-6 flex flex-col min-w-0">
-                                                                {/* Badge row */}
+                                                            <div className="flex-1 p-5 flex flex-col min-w-0">
                                                                 <div className="flex justify-end gap-2 mb-3">
-                                                                    <div className="relative overflow-hidden h-5 w-12 bg-slate-100 dark:bg-slate-700/60 rounded-lg">
-                                                                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15}s` }}></div>
-                                                                    </div>
-                                                                    <div className="relative overflow-hidden h-5 w-10 bg-slate-100 dark:bg-slate-700/60 rounded-lg">
-                                                                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + 0.05}s` }}></div>
+                                                                    <div className="relative overflow-hidden h-5 w-12 bg-slate-100 dark:bg-slate-700/60 rounded-md">
+                                                                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent"></div>
                                                                     </div>
                                                                 </div>
-                                                                {/* Room name */}
-                                                                <div className="relative overflow-hidden h-6 w-3/5 bg-slate-200 dark:bg-slate-800 rounded-lg mb-1.5">
-                                                                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15}s` }}></div>
+                                                                <div className="relative overflow-hidden h-6 w-3/5 bg-slate-200 dark:bg-slate-800 rounded-md mb-2">
+                                                                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent"></div>
                                                                 </div>
-                                                                {/* Adults / children */}
-                                                                <div className="flex gap-3 mb-6">
-                                                                    <div className="relative overflow-hidden h-4 w-16 bg-slate-100 dark:bg-slate-700/60 rounded-md">
-                                                                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + 0.05}s` }}></div>
-                                                                    </div>
-                                                                    <div className="relative overflow-hidden h-4 w-16 bg-slate-100 dark:bg-slate-700/60 rounded-md">
-                                                                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + 0.1}s` }}></div>
-                                                                    </div>
-                                                                </div>
-                                                                {/* Attribute icon tags — size-9 matching real */}
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    {[...Array(8)].map((_, j) => (
-                                                                        <div key={j} className="relative overflow-hidden size-9 bg-slate-100 dark:bg-slate-700/60 rounded-xl">
-                                                                            <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + j * 0.04}s` }}></div>
-                                                                        </div>
-                                                                    ))}
+                                                                <div className="flex gap-3 mb-4">
+                                                                    <div className="relative overflow-hidden h-4 w-16 bg-slate-100 dark:bg-slate-700/60 rounded-md"></div>
+                                                                    <div className="relative overflow-hidden h-4 w-16 bg-slate-100 dark:bg-slate-700/60 rounded-md"></div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                        {/* Bottom rates section — matches border-t + p-4 sm:p-6 rates list */}
-                                                        <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-black/20 p-4 sm:p-6 space-y-3 rounded-b-[28px]">
-                                                            <div className="flex items-center justify-between mb-2">
-                                                                <div className="relative overflow-hidden h-3 w-24 bg-slate-200 dark:bg-slate-700 rounded-md">
-                                                                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15}s` }}></div>
-                                                                </div>
-                                                                <div className="relative overflow-hidden h-3 w-32 bg-slate-100 dark:bg-slate-700/60 rounded-md">
-                                                                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + 0.05}s` }}></div>
-                                                                </div>
-                                                            </div>
-                                                            {/* Rate rows */}
-                                                            {[...Array(2)].map((_, r) => (
-                                                                <div key={r} className="relative overflow-hidden h-14 w-full bg-slate-100 dark:bg-slate-800/60 rounded-[18px]">
-                                                                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent" style={{ animationDelay: `${i * 0.15 + r * 0.1 + 0.2}s` }}></div>
-                                                                    <div className="absolute inset-0 flex items-center justify-between px-4">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <div className="size-8 rounded-lg bg-slate-200 dark:bg-slate-700"></div>
-                                                                            <div className="space-y-1.5">
-                                                                                <div className="h-2.5 w-16 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
-                                                                                <div className="h-2 w-24 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="flex items-center gap-3">
-                                                                            <div className="space-y-1 text-right">
-                                                                                <div className="h-5 w-20 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
-                                                                                <div className="h-2 w-14 bg-slate-200 dark:bg-slate-700 rounded-md ml-auto"></div>
-                                                                            </div>
-                                                                            <div className="h-8 w-16 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
                                                         </div>
                                                     </div>
                                                 ))}
-                                                {/* Loading label */}
                                                 <div className="flex items-center justify-center gap-3 py-2">
                                                     <div className="size-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{tLocal('fetchingBestRates')}</p>
+                                                    <p className="text-xs font-medium text-[#5f6368]">{tLocal('fetchingBestRates')}</p>
                                                 </div>
                                             </div>
                                         ) : (
@@ -2156,140 +2262,123 @@ const HotelDetail = () => {
                                                 const hasMoreRates = roomGroup.rates.length > 4;
 
                                                 return (
-                                                    <div key={roomIndex} className="relative group transition-all duration-500 mb-8">
-                                                        <div className={`relative flex flex-col rounded-[28px] border border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl group-hover:bg-white/50 dark:group-hover:bg-slate-900/50 shadow-2xl shadow-black/5 z-10 hover:z-[70] transition-all duration-300`}>
-
-                                                            <div className="flex flex-col md:flex-row rounded-t-[28px]">
+                                                    <div key={roomIndex} className="relative group transition-all duration-300 mb-6">
+                                                        <div className="relative flex flex-col rounded-xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] shadow-none hover:shadow-md transition-shadow overflow-hidden">
+                                                            {/* Room Top Section */}
+                                                            <div className="flex flex-col md:flex-row">
                                                                 {/* Image Section */}
                                                                 <div
-                                                                    className="md:w-72 h-64 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room isolation-isolate rounded-t-[28px] md:rounded-tr-none md:rounded-l-[28px]"
+                                                                    className="md:w-72 h-56 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room"
                                                                     onClick={() => {
                                                                         setSelectedRoomGroup(roomGroup);
                                                                         setIsRoomGalleryOpen(true);
                                                                     }}
                                                                 >
-                                                                    <img className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 will-change-transform" src={roomGroup.images?.[0]?.url || images[roomIndex % images.length]} alt="" />
-                                                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/room:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[4px] will-change-transform">
-                                                                        <div className="size-12 rounded-full bg-white/20 backdrop-blur-xl border border-white/40 flex items-center justify-center text-white scale-75 group-hover/room:scale-100 transition-all duration-500 shadow-2xl">
-                                                                            <span className="material-symbols-outlined text-2xl">fullscreen</span>
-                                                                        </div>
-                                                                    </div>
+                                                                    <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={roomGroup.images?.[0]?.url || images[roomIndex % images.length]} alt="" />
                                                                     {roomGroup.images?.length > 0 && (
-                                                                        <div className="absolute top-5 left-5 bg-black/40 backdrop-blur-xl text-white text-[10px] font-semibold px-3.5 py-2 rounded-2xl flex items-center gap-2 border border-white/20 shadow-lg">
-                                                                            <span className="material-symbols-outlined text-sm">photo_library</span> {roomGroup.images.length} {currentLang === 'tr' ? 'FOTOĞRAF' : 'PHOTOS'}
+                                                                        <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md text-white text-[11px] font-medium px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                                                                            <span className="material-symbols-outlined text-[14px]">photo_library</span> {roomGroup.images.length} {currentLang === 'tr' ? 'Fotoğraf' : 'Photos'}
                                                                         </div>
                                                                     )}
                                                                 </div>
 
                                                                 {/* Details Section */}
-                                                                <div className="flex-1 p-6 flex flex-col min-w-0">
-                                                                    <div className="relative">
-                                                                        <div className="absolute top-0 right-0 flex gap-2">
+                                                                <div className="flex-1 p-5 flex flex-col min-w-0">
+                                                                    <div className="flex items-start justify-between gap-3 mb-2">
+                                                                        <h3 className="text-base sm:text-lg font-medium text-[#202124] dark:text-white leading-tight truncate" lang="en">{roomName}</h3>
+                                                                        <div className="flex items-center gap-1.5 shrink-0">
                                                                             {roomGroup.squareMeter && (
-                                                                                <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9px] font-medium px-2 py-0.5 rounded-lg uppercase tracking-wider border border-blue-500/10 backdrop-blur-md">
+                                                                                <span className="bg-[#f1f3f4] dark:bg-slate-700 text-[#3c4043] dark:text-slate-300 text-xs font-normal px-2.5 py-0.5 rounded-md">
                                                                                     {roomGroup.squareMeter}
                                                                                 </span>
                                                                             )}
-                                                                            <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[9px] font-medium px-2 py-0.5 rounded-lg uppercase tracking-wider border border-orange-500/10 backdrop-blur-md" lang="en">
+                                                                            <span className="bg-[#f1f3f4] dark:bg-slate-700 text-[#3c4043] dark:text-slate-300 text-xs font-normal px-2.5 py-0.5 rounded-md" lang="en">
                                                                                 {roomGroup.roomPaxCapacity || roomGroup.maxAdult} Pax
                                                                             </span>
                                                                         </div>
+                                                                    </div>
 
-                                                                        <div className="mb-3 pr-24">
-                                                                            <h3 className="text-sm sm:text-base font-semibold mb-1 tracking-tight text-slate-900 dark:text-white leading-tight truncate" lang="en">{roomName}</h3>
-                                                                            <div className="flex gap-3 text-slate-500 dark:text-slate-400">
-                                                                                <span className="flex items-center gap-1 text-[11px] font-medium uppercase">
-                                                                                    <span className="material-symbols-outlined text-xs text-primary">group</span> {roomGroup.maxAdult} {roomGroup.maxAdult > 1 ? tLocal('adults') : tLocal('adult')}
-                                                                                </span>
-                                                                                {roomGroup.maxChildren > 0 && (
-                                                                                    <span className="flex items-center gap-1 text-[11px] font-medium uppercase">
-                                                                                        <span className="material-symbols-outlined text-xs text-primary">child_care</span> {roomGroup.maxChildren} {roomGroup.maxChildren > 1 ? tLocal('children') : tLocal('child')}
-                                                                                    </span>
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
+                                                                    <div className="flex gap-4 text-[#5f6368] dark:text-slate-400 text-xs mb-4">
+                                                                        <span className="flex items-center gap-1">
+                                                                            <span className="material-symbols-outlined text-[16px] text-[#5f6368]">group</span> {roomGroup.maxAdult} {roomGroup.maxAdult > 1 ? tLocal('adults') : tLocal('adult')}
+                                                                        </span>
+                                                                        {roomGroup.maxChildren > 0 && (
+                                                                            <span className="flex items-center gap-1">
+                                                                                <span className="material-symbols-outlined text-[16px] text-[#5f6368]">child_care</span> {roomGroup.maxChildren} {roomGroup.maxChildren > 1 ? tLocal('children') : tLocal('child')}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
 
-                                                                        <div className="flex flex-wrap gap-2 mb-6">
-                                                                            {(() => {
-                                                                                const groupedAttributes = (roomGroup.attributes || []).reduce((acc, attr) => {
-                                                                                    const label = attr.names?.tr || attr.names?.en || attr.label;
-                                                                                    const lowerLabel = label?.toLowerCase() || '';
+                                                                    {/* Attribute Chips */}
+                                                                    <div className="flex flex-wrap gap-1.5 mt-auto pt-2">
+                                                                        {(() => {
+                                                                            const groupedAttributes = (roomGroup.attributes || []).reduce((acc, attr) => {
+                                                                                const label = attr.names?.tr || attr.names?.en || attr.label;
+                                                                                const lowerLabel = label?.toLowerCase() || '';
 
-                                                                                    const iconMatch = Object.entries(FACILITY_ICON_MAP).find(([id, data]) =>
-                                                                                        lowerLabel.includes(data.label.toLowerCase()) ||
-                                                                                        data.label.toLowerCase().includes(lowerLabel)
-                                                                                    );
-
-                                                                                    let iconKey = iconMatch ? iconMatch[1].icon : 'done';
-
-                                                                                    if (iconKey === 'done') {
-                                                                                        if (lowerLabel.includes('bed') || lowerLabel.includes('king') || lowerLabel.includes('queen') || lowerLabel.includes('twin')) iconKey = 'bed';
-                                                                                        else if (lowerLabel.includes('view')) {
-                                                                                            if (lowerLabel.includes('sea') || lowerLabel.includes('ocean')) iconKey = 'waves';
-                                                                                            else if (lowerLabel.includes('city') || lowerLabel.includes('skyline')) iconKey = 'location_city';
-                                                                                            else if (lowerLabel.includes('garden') || lowerLabel.includes('park')) iconKey = 'park';
-                                                                                            else if (lowerLabel.includes('mountain')) iconKey = 'terrain';
-                                                                                            else iconKey = 'visibility';
-                                                                                        }
-                                                                                        else if (lowerLabel.includes('sqm') || lowerLabel.includes('meter') || lowerLabel.includes('square')) iconKey = 'straighten';
-                                                                                        else if (lowerLabel.includes('bath') || lowerLabel.includes('shower') || lowerLabel.includes('tub')) iconKey = 'bathtub';
-                                                                                        else if (lowerLabel.includes('coffee') || lowerLabel.includes('tea') || lowerLabel.includes('kettle')) iconKey = 'coffee_maker';
-                                                                                        else if (lowerLabel.includes('breakfast')) iconKey = 'free_breakfast';
-                                                                                        else if (lowerLabel.includes('safe') || lowerLabel.includes('security')) iconKey = 'lock';
-                                                                                        else if (lowerLabel.includes('non-smoking') || lowerLabel.includes('smoke free')) iconKey = 'smoke_free';
-                                                                                        else if (lowerLabel.includes('balcony') || lowerLabel.includes('terrace')) iconKey = 'balcony';
-                                                                                    }
-
-                                                                                    if (!acc[iconKey]) {
-                                                                                        acc[iconKey] = { icon: iconKey, labels: new Set() };
-                                                                                    }
-                                                                                    acc[iconKey].labels.add(label);
-                                                                                    return acc;
-                                                                                }, {});
-
-                                                                                const items = Object.values(groupedAttributes);
-                                                                                const visibleItems = items.slice(0, 12);
-                                                                                const remainingCount = items.length - 12;
-                                                                                return (
-                                                                                    <>
-                                                                                        {visibleItems.map((item, i) => (
-                                                                                            <div key={i} className="group/attr relative">
-                                                                                                <div className="size-9 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center transition-all hover:bg-primary/10 hover:border-primary/30 cursor-help shadow-sm">
-                                                                                                    <span className="material-symbols-outlined text-sm text-primary">
-                                                                                                        {item.icon}
-                                                                                                    </span>
-                                                                                                </div>
-                                                                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-950 text-white text-[9.5px] font-semibold uppercase tracking-wider rounded-xl opacity-0 invisible group-hover/attr:opacity-100 group-hover/attr:visible transition-all whitespace-nowrap z-[200] shadow-2xl pointer-events-none border border-white/10 scale-95 group-hover/attr:scale-100 origin-bottom duration-300">
-                                                                                                    <div className="flex flex-col gap-1">
-                                                                                                        {Array.from(item.labels).map((lbl, idx) => (
-                                                                                                            <div key={idx} className="flex items-center gap-2">
-                                                                                                                <div className="size-1 rounded-full bg-primary/40"></div>
-                                                                                                                {lbl}
-                                                                                                            </div>
-                                                                                                        ))}
-                                                                                                    </div>
-                                                                                                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900 dark:border-t-slate-950"></div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        ))}
-                                                                                        {remainingCount > 0 && (
-                                                                                            <div className="size-9 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-[10px] font-semibold text-slate-400">
-                                                                                                +{remainingCount}
-                                                                                            </div>
-                                                                                        )}
-                                                                                    </>
+                                                                                const iconMatch = Object.entries(FACILITY_ICON_MAP).find(([id, data]) =>
+                                                                                    lowerLabel.includes(data.label.toLowerCase()) ||
+                                                                                    data.label.toLowerCase().includes(lowerLabel)
                                                                                 );
-                                                                            })()}
-                                                                        </div>
+
+                                                                                let iconKey = iconMatch ? iconMatch[1].icon : 'done';
+
+                                                                                if (iconKey === 'done') {
+                                                                                    if (lowerLabel.includes('bed') || lowerLabel.includes('king') || lowerLabel.includes('queen') || lowerLabel.includes('twin')) iconKey = 'bed';
+                                                                                    else if (lowerLabel.includes('view')) {
+                                                                                        if (lowerLabel.includes('sea') || lowerLabel.includes('ocean')) iconKey = 'waves';
+                                                                                        else if (lowerLabel.includes('city') || lowerLabel.includes('skyline')) iconKey = 'location_city';
+                                                                                        else if (lowerLabel.includes('garden') || lowerLabel.includes('park')) iconKey = 'park';
+                                                                                        else if (lowerLabel.includes('mountain')) iconKey = 'terrain';
+                                                                                        else iconKey = 'visibility';
+                                                                                    }
+                                                                                    else if (lowerLabel.includes('sqm') || lowerLabel.includes('meter') || lowerLabel.includes('square')) iconKey = 'straighten';
+                                                                                    else if (lowerLabel.includes('bath') || lowerLabel.includes('shower') || lowerLabel.includes('tub')) iconKey = 'bathtub';
+                                                                                    else if (lowerLabel.includes('coffee') || lowerLabel.includes('tea') || lowerLabel.includes('kettle')) iconKey = 'coffee_maker';
+                                                                                    else if (lowerLabel.includes('breakfast')) iconKey = 'free_breakfast';
+                                                                                    else if (lowerLabel.includes('safe') || lowerLabel.includes('security')) iconKey = 'lock';
+                                                                                    else if (lowerLabel.includes('non-smoking') || lowerLabel.includes('smoke free')) iconKey = 'smoke_free';
+                                                                                    else if (lowerLabel.includes('balcony') || lowerLabel.includes('terrace')) iconKey = 'balcony';
+                                                                                }
+
+                                                                                if (!acc[iconKey]) {
+                                                                                    acc[iconKey] = { icon: iconKey, labels: new Set() };
+                                                                                }
+                                                                                acc[iconKey].labels.add(label);
+                                                                                return acc;
+                                                                            }, {});
+
+                                                                            const items = Object.values(groupedAttributes);
+                                                                            const visibleItems = items.slice(0, 10);
+                                                                            const remainingCount = items.length - 10;
+                                                                            return (
+                                                                                <>
+                                                                                    {visibleItems.map((item, i) => (
+                                                                                        <div key={i} className="group/attr relative" title={Array.from(item.labels).join(', ')}>
+                                                                                            <div className="size-8 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 flex items-center justify-center text-[#5f6368] dark:text-slate-300 hover:text-[#1a73e8] hover:border-[#1a73e8] transition-colors cursor-help">
+                                                                                                <span className="material-symbols-outlined text-[17px]">
+                                                                                                    {item.icon}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ))}
+                                                                                    {remainingCount > 0 && (
+                                                                                        <div className="size-8 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 flex items-center justify-center text-xs text-[#5f6368] font-normal">
+                                                                                            +{remainingCount}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </>
+                                                                            );
+                                                                        })()}
                                                                     </div>
                                                                 </div>
                                                             </div>
 
-                                                            {/* Rates List Section */}
-                                                            <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-black/20 p-4 sm:p-6 space-y-3 rounded-b-[28px]">
-                                                                <div className="flex items-center justify-between mb-2">
-                                                                    <h4 className="text-[9.5px] font-semibold uppercase tracking-wider text-slate-400">{tLocal('availableRates')}</h4>
-                                                                    <div className="text-[8.5px] font-medium text-slate-400 uppercase">{tLocal('pricesIncludeTaxesAndFees')}</div>
+                                                            {/* Rates List Section - Google Style */}
+                                                            <div className="border-t border-[#dadce0] dark:border-slate-700 bg-[#f8f9fa] dark:bg-[#303134]/30 p-4 sm:p-5 space-y-3">
+                                                                <div className="flex items-center justify-between mb-1 text-xs text-[#5f6368] dark:text-slate-400">
+                                                                    <span className="font-medium">{tLocal('availableRates')}</span>
+                                                                    <span>{tLocal('pricesIncludeTaxesAndFees')}</span>
                                                                 </div>
 
                                                                 {ratesToShow.map((rateItem, rateIdx) => {
@@ -2306,46 +2395,66 @@ const HotelDetail = () => {
                                                                                 if (ratePrice <= 0 && !isSelected) return;
                                                                                 toggleRoomSelection(roomName, ratePrice, roomName, rateItem);
                                                                             }}
-                                                                            className={`relative p-3 sm:p-4 rounded-[22px] flex flex-col sm:flex-row items-center justify-between gap-3 transition-all duration-300 border ${ratePrice > 0 ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'} ${isSelected ? 'bg-primary/10 border-primary ring-2 ring-primary/5 shadow-lg' : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-white/5 hover:border-primary/50 shadow-sm'}`}
+                                                                            className={`relative p-3.5 sm:p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 transition-all duration-200 border ${
+                                                                                ratePrice > 0 ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'
+                                                                            } ${
+                                                                                isSelected 
+                                                                                    ? 'bg-[#e8f0fe] dark:bg-blue-950/40 border-[#1a73e8] shadow-sm' 
+                                                                                    : 'bg-white dark:bg-[#202124] border-[#dadce0] dark:border-slate-700 hover:border-[#bdc1c6] shadow-none'
+                                                                            }`}
                                                                         >
-                                                                            <div className="flex items-center gap-4 w-full sm:w-auto">
-                                                                                <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${isSelected ? 'bg-primary text-white shadow-md' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
-                                                                                    <span className="material-symbols-outlined text-base font-semibold">{isSelected ? 'check' : 'add'}</span>
+                                                                            <div className="flex items-center gap-3 w-full sm:w-auto">
+                                                                                <div className={`size-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                                                                    isSelected 
+                                                                                        ? 'bg-[#1a73e8] text-white' 
+                                                                                        : 'bg-[#f1f3f4] dark:bg-slate-700 text-[#5f6368] dark:text-slate-300'
+                                                                                }`}>
+                                                                                    <span className="material-symbols-outlined text-[18px]">{isSelected ? 'check' : 'add'}</span>
                                                                                 </div>
                                                                                 <div className="flex-1 min-w-0">
                                                                                     <div className="flex items-center gap-2 mb-1">
-                                                                                        <p className="font-semibold text-xs text-slate-800 dark:text-slate-100">{rateItem.hubRateModel?.boardName || getBoardTypeLabel(boardType, currentLang)}</p>
+                                                                                        <p className="font-medium text-sm text-[#202124] dark:text-white">
+                                                                                            {rateItem.hubRateModel?.boardName || getBoardTypeLabel(boardType, currentLang)}
+                                                                                        </p>
                                                                                         {isSelected && (
-                                                                                            <span className="bg-primary text-white text-[7px] font-semibold px-2 py-0.5 rounded-full uppercase" lang="en">{tLocal('selected')}</span>
+                                                                                            <span className="bg-[#1a73e8] text-white text-[10px] font-medium px-2 py-0.5 rounded uppercase" lang="en">
+                                                                                                {tLocal('selected')}
+                                                                                            </span>
                                                                                         )}
                                                                                     </div>
                                                                                     <div className="flex flex-wrap items-center gap-2">
                                                                                         <RefundPolicyTooltip
                                                                                             isRefundable={isFreeCancel}
                                                                                             textOverride={isFreeCancel ? tLocal('freeCancellation') : tLocal('nonRefundable')}
-                                                                                            className={`text-[8.5px] font-semibold px-2 py-0.5 rounded-md uppercase tracking-wider ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20'}`}
+                                                                                            className={`text-[11px] font-medium px-2 py-0.5 rounded ${
+                                                                                                isFreeCancel 
+                                                                                                    ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800' 
+                                                                                                    : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                                                                                            }`}
                                                                                         />
                                                                                         <div className="group/cancel relative">
-                                                                                            <span className="text-[8.5px] font-medium text-slate-400 hover:text-primary transition-colors cursor-help border-b border-dashed border-slate-300">{tLocal('viewPolicies')}</span>
-                                                                                            <div className="absolute bottom-full left-0 mb-3 w-72 p-5 bg-slate-900 dark:bg-slate-950 text-white rounded-[24px] shadow-2xl opacity-0 invisible group-hover/cancel:opacity-100 group-hover/cancel:visible transition-all z-[100] border border-slate-700/50 backdrop-blur-xl scale-95 group-hover/cancel:scale-100 origin-bottom-left duration-300">
-                                                                                                <div className="flex items-center gap-2 mb-4 border-b border-slate-800 pb-3">
-                                                                                                    <span className="material-symbols-outlined text-sm text-primary">event_busy</span>
-                                                                                                    <p className="text-[9.5px] uppercase font-semibold tracking-widest">{tLocal('cancellationTimeline')}</p>
+                                                                                            <span className="text-xs text-[#1a73e8] hover:underline cursor-pointer">
+                                                                                                {tLocal('viewPolicies')}
+                                                                                            </span>
+                                                                                            <div className="absolute bottom-full left-0 mb-2 w-72 p-4 bg-white dark:bg-[#202124] text-[#202124] dark:text-white rounded-lg shadow-xl opacity-0 invisible group-hover/cancel:opacity-100 group-hover/cancel:visible transition-all z-[100] border border-[#dadce0] dark:border-slate-700 duration-200">
+                                                                                                <div className="flex items-center gap-2 mb-3 border-b border-[#dadce0] dark:border-slate-700 pb-2">
+                                                                                                    <span className="material-symbols-outlined text-base text-[#1a73e8]">event_busy</span>
+                                                                                                    <p className="text-xs font-semibold uppercase tracking-wider">{tLocal('cancellationTimeline')}</p>
                                                                                                 </div>
-                                                                                                <div className="space-y-4">
+                                                                                                <div className="space-y-3">
                                                                                                     {rateItem.hubRateModel?.price?.cancellationPolicies?.length > 0 ? (
                                                                                                         rateItem.hubRateModel.price.cancellationPolicies.map((policy, pIdx) => (
-                                                                                                            <div key={pIdx} className="relative pl-4 border-l-2 border-slate-800">
-                                                                                                                <div className="flex justify-between items-start mb-1.5">
-                                                                                                                    <span className="text-[8.5px] font-semibold text-slate-400 uppercase">{tLocal('penalty')}</span>
-                                                                                                                    <span className={`text-[10px] font-semibold ${policy.amount === 0 ? 'text-emerald-400' : 'text-orange-400'}`} lang="en">
+                                                                                                            <div key={pIdx} className="relative pl-3 border-l-2 border-[#1a73e8]">
+                                                                                                                <div className="flex justify-between items-start mb-1 text-xs">
+                                                                                                                    <span className="font-medium text-[#5f6368] dark:text-slate-400 uppercase">{tLocal('penalty')}</span>
+                                                                                                                    <span className={`font-semibold ${policy.amount === 0 ? 'text-[#137333]' : 'text-[#d93025]'}`}>
                                                                                                                         {policy.currency} {policy.amount}
                                                                                                                     </span>
                                                                                                                 </div>
-                                                                                                                <p className="text-[8.5px] text-slate-300 font-medium">{tLocal('from')}: {formatPolicyDate(policy.fromDate)}</p>
+                                                                                                                <p className="text-xs text-[#5f6368] dark:text-slate-400">{tLocal('from')}: {formatPolicyDate(policy.fromDate)}</p>
                                                                                                             </div>
                                                                                                         ))
-                                                                                                    ) : <p className="text-[9.5px] text-slate-500 italic">{tLocal('standardPoliciesApply')}</p>}
+                                                                                                    ) : <p className="text-xs text-[#5f6368] dark:text-slate-400 italic">{tLocal('standardPoliciesApply')}</p>}
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
@@ -2353,17 +2462,21 @@ const HotelDetail = () => {
                                                                                 </div>
                                                                             </div>
 
-                                                                            <div className="flex items-center gap-4 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-800 pt-3 sm:pt-0 sm:pl-4 justify-between sm:justify-end">
+                                                                            <div className="flex items-center gap-4 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-[#dadce0] dark:border-slate-700 pt-3 sm:pt-0 sm:pl-4 justify-between sm:justify-end">
                                                                                 <div className="text-right">
                                                                                     <div className="flex items-baseline justify-end gap-1">
-                                                                                        <span className="text-[9.5px] font-semibold text-primary">{getCurrencySymbol(currency, currencySymbolMap)}</span>
-                                                                                        <p className="text-base sm:text-lg font-bold text-primary leading-none tracking-tight">
+                                                                                        <span className="text-xs font-normal text-[#1a73e8]">{getCurrencySymbol(currency, currencySymbolMap)}</span>
+                                                                                        <p className="text-xl font-medium text-[#1a73e8] dark:text-blue-400 leading-none">
                                                                                             {ratePrice.toFixed(2)}
                                                                                         </p>
                                                                                     </div>
-                                                                                    <p className="text-[7px] text-slate-400 font-medium uppercase tracking-widest mt-1">Total Stay</p>
+                                                                                    <p className="text-[11px] text-[#5f6368] dark:text-slate-400 font-normal mt-0.5">Toplam Tutar</p>
                                                                                 </div>
-                                                                                <div className={`px-4 py-2 rounded-xl font-semibold text-[9.5px] uppercase tracking-wider transition-all duration-300 ${isSelected ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-primary text-white hover:scale-105'}`}>
+                                                                                <div className={`px-4 py-2 rounded-lg font-medium text-xs uppercase tracking-wider transition-colors cursor-pointer ${
+                                                                                    isSelected 
+                                                                                        ? 'bg-[#202124] dark:bg-white text-white dark:text-[#202124]' 
+                                                                                        : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-none'
+                                                                                }`}>
                                                                                     {isSelected ? tLocal('remove') : tLocal('selectRate')}
                                                                                 </div>
                                                                             </div>
@@ -2374,10 +2487,10 @@ const HotelDetail = () => {
                                                                 {hasMoreRates && (
                                                                     <button
                                                                         onClick={() => setExpandedRates(prev => ({ ...prev, [roomName]: !prev[roomName] }))}
-                                                                        className="w-full py-3 rounded-2xl bg-white/40 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 text-[9.5px] font-semibold uppercase tracking-wider text-primary hover:bg-white/60 transition-all flex items-center justify-center gap-2"
+                                                                        className="w-full py-2.5 rounded-lg bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 text-xs font-medium text-[#1a73e8] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                                                                     >
-                                                                        <span className="material-symbols-outlined text-sm">{isGroupExpanded ? 'keyboard_arrow_up' : 'expand_more'}</span>
-                                                                        {isGroupExpanded ? 'Show Less Rates' : `Show ${roomGroup.rates.length - 4} More Rates`}
+                                                                        <span className="material-symbols-outlined text-[18px]">{isGroupExpanded ? 'keyboard_arrow_up' : 'expand_more'}</span>
+                                                                        {isGroupExpanded ? (tLocal('showLessRates') || 'Daha Az Fiyat Göster') : `${roomGroup.rates.length - 4} ${tLocal('moreRates') || 'Daha Fazla Fiyat'}`}
                                                                     </button>
                                                                 )}
                                                             </div>
@@ -2390,64 +2503,64 @@ const HotelDetail = () => {
                                 )}
 
                                 {activeTab === 'Overview' && (
-                                    <div className="bg-white dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-500">
-                                        <h2 className="text-base font-semibold mb-4 tracking-tight">About the Property</h2>
+                                    <div className="bg-white dark:bg-[#202124] p-6 rounded-xl border border-[#dadce0] dark:border-slate-700">
+                                        <h2 className="text-lg font-medium mb-4 text-[#202124] dark:text-white">About the Property</h2>
 
                                         <div className="space-y-4">
                                             {hotel.descriptions?.length > 0 ? (
                                                 hotel.descriptions.map((desc, idx) => (
-                                                    <div key={idx} className="space-y-1.5">
-                                                        <h4 className="text-[9px] font-semibold uppercase text-primary tracking-wider">{desc.type}</h4>
+                                                    <div key={idx} className="space-y-1">
+                                                        <h4 className="text-xs font-semibold uppercase text-[#1a73e8] tracking-wider">{desc.type}</h4>
                                                         <p
-                                                            className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed"
+                                                            className="text-sm text-[#3c4043] dark:text-slate-300 leading-relaxed"
                                                             dangerouslySetInnerHTML={{ __html: desc.text }}
                                                         />
                                                     </div>
                                                 ))
                                             ) : (
                                                 <p
-                                                    className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed"
+                                                    className="text-sm text-[#3c4043] dark:text-slate-300 leading-relaxed"
                                                     dangerouslySetInnerHTML={{ __html: hotel.description || "Experience the ultimate luxury at our TOG-certified property." }}
                                                 />
                                             )}
                                         </div>
 
                                         {/* Address & Contact Details */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-[#dadce0] dark:border-slate-700">
                                             <div>
                                                 <div className="flex items-center gap-2 mb-4">
-                                                    <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                                                    <div className="size-8 rounded-lg bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center">
                                                         <span className="material-symbols-outlined text-base">location_on</span>
                                                     </div>
-                                                    <h3 className="text-sm font-semibold">Location Details</h3>
+                                                    <h3 className="text-sm font-medium">Location Details</h3>
                                                 </div>
-                                                <div className="grid grid-cols-1 gap-3">
+                                                <div className="grid grid-cols-1 gap-2.5">
                                                     {hotel.address?.street && (
-                                                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                                                            <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Street Address</span>
-                                                            <p className="text-xs font-medium text-slate-900 dark:text-white leading-relaxed">{hotel.address.street}</p>
+                                                        <div className="p-3 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                                            <span className="text-[10px] font-medium text-[#5f6368] uppercase tracking-wider block mb-0.5">Street Address</span>
+                                                            <p className="text-xs font-normal text-[#202124] dark:text-white leading-relaxed">{hotel.address.street}</p>
                                                         </div>
                                                     )}
-                                                    <div className="grid grid-cols-2 gap-3">
+                                                    <div className="grid grid-cols-2 gap-2.5">
                                                         {(hotel.address?.zipCode || hotel.address?.postalCode) && (
-                                                            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                                                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Postal / Zip</span>
-                                                                <p className="text-xs font-medium text-slate-900 dark:text-white">{hotel.address.zipCode || hotel.address.postalCode}</p>
+                                                            <div className="p-3 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                                                <span className="text-[10px] font-medium text-[#5f6368] uppercase tracking-wider block mb-0.5">Postal / Zip</span>
+                                                                <p className="text-xs font-normal text-[#202124] dark:text-white">{hotel.address.zipCode || hotel.address.postalCode}</p>
                                                             </div>
                                                         )}
                                                         {hotel.address?.cityName && (
-                                                            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                                                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">City</span>
-                                                                <p className="text-xs font-medium text-slate-900 dark:text-white">{hotel.address.cityName}</p>
+                                                            <div className="p-3 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                                                <span className="text-[10px] font-medium text-[#5f6368] uppercase tracking-wider block mb-0.5">City</span>
+                                                                <p className="text-xs font-normal text-[#202124] dark:text-white">{hotel.address.cityName}</p>
                                                             </div>
                                                         )}
                                                     </div>
                                                     {hotel.address?.countryName && (
-                                                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                                                            <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Country</span>
+                                                        <div className="p-3 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                                            <span className="text-[10px] font-medium text-[#5f6368] uppercase tracking-wider block mb-0.5">Country</span>
                                                             <div className="flex items-center gap-1.5">
-                                                                <span className="text-xs font-medium text-slate-900 dark:text-white">{hotel.address.countryName}</span>
-                                                                <span className="text-[9px] font-semibold text-slate-400 uppercase">({hotel.address.countryCode})</span>
+                                                                <span className="text-xs font-normal text-[#202124] dark:text-white">{hotel.address.countryName}</span>
+                                                                <span className="text-[10px] text-[#5f6368]">({hotel.address.countryCode})</span>
                                                             </div>
                                                         </div>
                                                     )}
@@ -2456,393 +2569,451 @@ const HotelDetail = () => {
 
                                             <div>
                                                 <div className="flex items-center gap-2 mb-4">
-                                                    <div className="size-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                                                    <div className="size-8 rounded-lg bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center">
                                                         <span className="material-symbols-outlined text-base">contact_phone</span>
                                                     </div>
-                                                    <h3 className="text-sm font-semibold">Contact Property</h3>
+                                                    <h3 className="text-sm font-medium">Contact Property</h3>
                                                 </div>
-                                                <div className="grid grid-cols-1 gap-3">
+                                                <div className="grid grid-cols-1 gap-2.5">
                                                     {hotel.contact?.phoneNumber && (
-                                                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
+                                                        <div className="p-3 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 flex items-center justify-between">
                                                             <div className="min-w-0">
-                                                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Phone Number</span>
-                                                                <p className="text-xs font-medium text-slate-900 dark:text-white truncate">{hotel.contact.phoneNumber}</p>
+                                                                <span className="text-[10px] font-medium text-[#5f6368] uppercase tracking-wider block mb-0.5">Phone Number</span>
+                                                                <p className="text-xs font-normal text-[#202124] dark:text-white truncate">{hotel.contact.phoneNumber}</p>
                                                             </div>
-                                                            <a href={`tel:${hotel.contact.phoneNumber}`} className="size-8 rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                                            <a href={`tel:${hotel.contact.phoneNumber}`} className="size-8 rounded-md bg-white dark:bg-slate-800 flex items-center justify-center text-[#1a73e8] border border-[#dadce0] dark:border-slate-600">
                                                                 <span className="material-symbols-outlined text-base">call</span>
                                                             </a>
                                                         </div>
                                                     )}
                                                     {hotel.contact?.email && (
-                                                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
+                                                        <div className="p-3 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 flex items-center justify-between">
                                                             <div className="min-w-0">
-                                                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Email Address</span>
-                                                                <p className="text-xs font-medium text-slate-900 dark:text-white truncate">{hotel.contact.email}</p>
+                                                                <span className="text-[10px] font-medium text-[#5f6368] uppercase tracking-wider block mb-0.5">Email Address</span>
+                                                                <p className="text-xs font-normal text-[#202124] dark:text-white truncate">{hotel.contact.email}</p>
                                                             </div>
-                                                            <a href={`mailto:${hotel.contact.email}`} className="size-8 rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                                            <a href={`mailto:${hotel.contact.email}`} className="size-8 rounded-md bg-white dark:bg-slate-800 flex items-center justify-center text-[#1a73e8] border border-[#dadce0] dark:border-slate-600">
                                                                 <span className="material-symbols-outlined text-base">mail</span>
                                                             </a>
                                                         </div>
                                                     )}
                                                     {hotel.contact?.website && (
-                                                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-primary/30 transition-all">
+                                                        <div className="p-3 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 flex items-center justify-between">
                                                             <div className="min-w-0">
-                                                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">Official Website</span>
-                                                                <p className="text-xs font-medium text-primary truncate">{hotel.contact.website}</p>
+                                                                <span className="text-[10px] font-medium text-[#5f6368] uppercase tracking-wider block mb-0.5">Official Website</span>
+                                                                <p className="text-xs font-normal text-[#1a73e8] truncate">{hotel.contact.website}</p>
                                                             </div>
-                                                            <a href={hotel.contact.website} target="_blank" rel="noopener noreferrer" className="size-8 rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
+                                                            <a href={hotel.contact.website} target="_blank" rel="noopener noreferrer" className="size-8 rounded-md bg-white dark:bg-slate-800 flex items-center justify-center text-[#1a73e8] border border-[#dadce0] dark:border-slate-600">
                                                                 <span className="material-symbols-outlined text-base">open_in_new</span>
                                                             </a>
                                                         </div>
                                                     )}
-                                                    {!hotel.contact?.phoneNumber && !hotel.contact?.email && !hotel.contact?.website && (
-                                                        <div className="p-6 rounded-xl border border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center opacity-50">
-                                                            <span className="material-symbols-outlined text-2xl text-slate-300 mb-2">contact_support</span>
-                                                            <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Contact details unavailable</p>
-                                                        </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'Amenities' && (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        {(hotel.facilities || []).map((amenity, idx) => {
+                                            const id = typeof amenity === 'object' ? (amenity.facilityId || amenity.id) : amenity;
+                                            const match = FACILITY_ICON_MAP[Number(id)];
+
+                                            return (
+                                                <div key={idx} className="bg-white dark:bg-[#202124] p-3.5 rounded-xl border border-[#dadce0] dark:border-slate-700 flex items-center gap-3">
+                                                    <div className="size-8 rounded-lg bg-[#e8f0fe] dark:bg-blue-900/30 flex items-center justify-center text-[#1a73e8] shrink-0">
+                                                        <span className="material-symbols-outlined text-base">
+                                                            {match ? match.icon : 'done'}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-xs text-[#3c4043] dark:text-slate-200">
+                                                        {amenity.names?.tr || amenity.names?.en || amenity.label || (match ? match.label : 'Amenity')}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {activeTab === 'Transportation' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {(hotel.transportations || []).map((t, idx) => (
+                                            <div key={idx} className="bg-white dark:bg-[#202124] p-4 rounded-xl border border-[#dadce0] dark:border-slate-700">
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <div className="size-9 rounded-lg bg-[#e8f0fe] dark:bg-blue-900/30 flex items-center justify-center text-[#1a73e8] shrink-0">
+                                                        <span className="material-symbols-outlined text-lg">
+                                                            {t.type === 'AIRPORT' ? 'flight_takeoff' : t.type === 'RAIL' ? 'train' : 'directions_car'}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-medium text-xs text-[#202124] dark:text-white">{t.name || (t.type === 'AIRPORT' ? 'Airport' : t.type === 'RAIL' ? 'Train Station' : 'Location')}</h4>
+                                                        <p className="text-[10px] text-[#1a73e8] font-normal">
+                                                            {t.type === 'AIRPORT' ? 'By Flight' : t.type === 'RAIL' ? 'By Rail' : 'By Road'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1 text-xs text-[#5f6368] dark:text-slate-400">
+                                                    <div className="flex justify-between">
+                                                        <span>Distance:</span>
+                                                        <span className="font-medium text-[#202124] dark:text-white">{t.distanceKm} km</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span>Duration:</span>
+                                                        <span className="font-medium text-[#202124] dark:text-white">{t.durationMinutes} min</span>
+                                                    </div>
+                                                    {t.directions && (
+                                                        <p className="text-[11px] text-[#70757a] italic pt-1 border-t border-[#dadce0] dark:border-slate-700">
+                                                            Via {t.directions}
+                                                        </p>
                                                     )}
                                                 </div>
                                             </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {activeTab === 'Policies' && (
+                                    <div className="bg-white dark:bg-[#202124] p-6 rounded-xl border border-[#dadce0] dark:border-slate-700">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <div className="size-8 rounded-lg bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-base">info</span>
+                                            </div>
+                                            <h2 className="text-base font-medium">Hotel Policies</h2>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="p-4 rounded-xl bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <span className="material-symbols-outlined text-[#1a73e8] text-xl">login</span>
+                                                    <div>
+                                                        <p className="text-[10px] font-medium text-[#5f6368] uppercase tracking-wider">Standard Check-In</p>
+                                                        <h4 className="text-base font-medium text-[#1a73e8]">{hotel.checkIn || '15:00'}</h4>
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs text-[#5f6368] dark:text-slate-400 leading-relaxed">
+                                                    Guests are required to show a photo identification and credit card upon check-in.
+                                                </p>
+                                            </div>
+
+                                            <div className="p-4 rounded-xl bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <span className="material-symbols-outlined text-[#1a73e8] text-xl">logout</span>
+                                                    <div>
+                                                        <p className="text-[10px] font-medium text-[#5f6368] uppercase tracking-wider">Standard Check-Out</p>
+                                                        <h4 className="text-base font-medium text-[#1a73e8]">{hotel.checkOut || '11:00'}</h4>
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs text-[#5f6368] dark:text-slate-400 leading-relaxed">
+                                                    Please ensure your balance is settled and keys are returned to the front desk.
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
-                                )
-                                }
+                                )}
 
-                                {
-                                    activeTab === 'Amenities' && (
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 animate-in fade-in zoom-in-95 duration-500">
-                                            {(hotel.facilities || []).map((amenity, idx) => {
-                                                const id = typeof amenity === 'object' ? (amenity.facilityId || amenity.id) : amenity;
-                                                const match = FACILITY_ICON_MAP[Number(id)];
-
-                                                return (
-                                                    <div key={idx} className="bg-white dark:bg-slate-900/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-3 hover:border-primary/50 transition-all hover:shadow-sm group">
-                                                        <div className="size-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors shrink-0">
-                                                            <span className="material-symbols-outlined text-base">
-                                                                {match ? match.icon : 'done_all'}
-                                                            </span>
-                                                        </div>
-                                                        <span className="font-medium text-xs text-slate-700 dark:text-slate-300">
-                                                            {amenity.names?.tr || amenity.names?.en || amenity.label || (match ? match.label : 'Amenity')}
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
+                                {activeTab === 'Reviews' && (
+                                    <div className="bg-white dark:bg-[#202124] p-10 rounded-xl border border-[#dadce0] dark:border-slate-700 flex flex-col items-center justify-center text-center">
+                                        <div className="size-12 rounded-full bg-[#f1f3f4] dark:bg-slate-700 flex items-center justify-center text-[#5f6368] dark:text-slate-300 mb-3 text-sm font-semibold uppercase">
+                                            R
                                         </div>
-                                    )
-                                }
+                                        <h3 className="text-sm font-medium mb-1">Guest Reviews</h3>
+                                        <p className="text-xs text-[#5f6368]">Real-time feedback from verified Travel of Globe guests.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
 
-                                {
-                                    activeTab === 'Transportation' && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-in fade-in zoom-in-95 duration-500">
-                                            {(hotel.transportations || []).map((t, idx) => (
-                                                <div key={idx} className="bg-white dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all group">
-                                                    <div className="flex items-center gap-3 mb-3">
-                                                        <div className="size-9 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm shrink-0">
-                                                            <span className="material-symbols-outlined text-base">
-                                                                {t.type === 'AIRPORT' ? 'flight_takeoff' : t.type === 'RAIL' ? 'train' : 'directions_car'}
-                                                            </span>
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="font-semibold text-xs text-slate-900 dark:text-white">{t.name || (t.type === 'AIRPORT' ? 'Airport' : t.type === 'RAIL' ? 'Train Station' : 'Location')}</h4>
-                                                            <p className="text-[9px] font-semibold text-primary uppercase tracking-wider">
-                                                                {t.type === 'AIRPORT' ? 'By Flight' : t.type === 'RAIL' ? 'By Rail' : 'By Road'}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-1.5">
-                                                        <div className="flex justify-between text-xs">
-                                                            <span className="text-slate-400 font-medium">Distance:</span>
-                                                            <span className="font-semibold">{t.distanceKm} km</span>
-                                                        </div>
-                                                        <div className="flex justify-between text-xs">
-                                                            <span className="text-slate-400 font-medium">Duration:</span>
-                                                            <span className="font-semibold">{t.durationMinutes} min</span>
-                                                        </div>
-                                                        {t.directions && (
-                                                            <p className="text-[9px] text-slate-400 italic mt-1.5 border-t border-slate-100 dark:border-slate-800 pt-1.5">
-                                                                Via {t.directions}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )
-                                }
-
-                                {
-                                    activeTab === 'Policies' && (
-                                        <div className="animate-in fade-in zoom-in-95 duration-500">
-                                            <div className="bg-white dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
-                                                <div className="flex items-center gap-2 mb-5">
-                                                    <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                                                        <span className="material-symbols-outlined text-base">info</span>
-                                                    </div>
-                                                    <h2 className="text-base font-semibold">Hotel Policies</h2>
-                                                </div>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 group hover:border-primary/30 transition-all">
-                                                        <div className="flex items-center gap-3 mb-3">
-                                                            <div className="size-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
-                                                                <span className="material-symbols-outlined text-lg">login</span>
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Standard Check-In</p>
-                                                                <h4 className="text-base font-semibold text-primary">{hotel.checkIn || '15:00'}</h4>
-                                                            </div>
-                                                        </div>
-                                                        <p className="text-xs text-slate-500 leading-relaxed">
-                                                            Guests are required to show a photo identification and credit card upon check-in.
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 group hover:border-primary/30 transition-all">
-                                                        <div className="flex items-center gap-3 mb-3">
-                                                            <div className="size-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
-                                                                <span className="material-symbols-outlined text-lg">logout</span>
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Standard Check-Out</p>
-                                                                <h4 className="text-base font-semibold text-primary">{hotel.checkOut || '11:00'}</h4>
-                                                            </div>
-                                                        </div>
-                                                        <p className="text-xs text-slate-500 leading-relaxed">
-                                                            Please ensure your balance is settled and keys are returned to the front desk.
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="mt-4 p-4 bg-amber-500/5 rounded-xl border border-amber-500/10 flex items-start gap-3">
-                                                    <span className="material-symbols-outlined text-amber-500 text-base shrink-0">warning</span>
-                                                    <p className="text-xs text-amber-700/80 dark:text-amber-400/80 leading-relaxed">
-                                                        Special requests are subject to availability and cannot be guaranteed. They may incur additional charges.
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )
-                                }
-
-                                {
-                                    activeTab === 'Reviews' && (
-                                        <div className="bg-white dark:bg-slate-900/50 p-10 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center">
-                                            <div className="size-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-4 text-sm font-semibold uppercase">
-                                                R
-                                            </div>
-                                            <h3 className="text-sm font-semibold mb-1">Guest Reviews</h3>
-                                            <p className="text-xs text-slate-500">Real-time feedback from verified Travel of Globe guests.</p>
-                                        </div>
-                                    )
-                                }
-                            </div >
-                        </div >
-                    </div >
-
-                    {/* Booking Sidebar - Sticky Behavior Refined */}
+                    {/* Booking Sidebar - Google Travel Sticky Card with Full Summary Details */}
                     <div className="lg:col-span-4 h-fit">
-                        <div className="lg:sticky lg:top-4 space-y-4">
-                            <div className="relative group/sidebar">
-                                {/* Glass Background */}
-                                <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-2xl border border-white/40 dark:border-white/10 shadow-lg transition-all duration-500"></div>
+                        <div className="lg:sticky lg:top-4 space-y-3 font-roboto">
+                            <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-sm">
+                                {/* Instant Confirmation Alert */}
+                                <div className="flex items-center gap-2 text-[#137333] dark:text-emerald-300 font-medium text-xs mb-3.5 bg-[#e6f4ea] dark:bg-emerald-950/40 p-2.5 rounded-lg border border-[#ceead6] dark:border-emerald-800">
+                                    <span className="material-symbols-outlined text-base fill-1">bolt</span>
+                                    <span>{tLocal('instantConfirmationAvailable')}</span>
+                                </div>
 
-                                {/* Content */}
-                                <div className="relative p-5 z-10">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-sm text-[#1a73e8]">auto_awesome</span>
+                                        {tLocal('reservationSummary')}
+                                    </h3>
+                                    <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                                        {selectedRooms.length} / {roomState.length} {tLocal('room')}
+                                    </span>
+                                </div>
 
-                                    <div className="flex items-center gap-2 text-primary font-semibold text-[9px] mb-4 uppercase tracking-wider bg-primary/5 dark:bg-primary/20 p-2.5 rounded-xl border border-primary/10" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                        <span className="material-symbols-outlined text-sm fill-1">bolt</span>
-                                        {tLocal('instantConfirmationAvailable')}
+                                {/* Hotel Info Preview Card */}
+                                <div className="mb-3.5 rounded-xl overflow-hidden border border-[#dadce0] dark:border-slate-700 shadow-xs">
+                                    <div className="relative h-24 overflow-hidden">
+                                        <img
+                                            src={hotel.images?.[0]?.url || hotel.images?.[0] || images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80'}
+                                            alt={hotel.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
+                                        <div className="absolute bottom-2 left-3 right-3">
+                                            <div className="flex items-center gap-0.5 mb-0.5">
+                                                {[...Array(Number(hotel.stars || hotel.starRating || 5))].map((_, i) => (
+                                                    <span key={i} className="material-symbols-outlined text-[11px] text-[#fbbc04] fill-1">star</span>
+                                                ))}
+                                                {hotel.isRecommended && (
+                                                    <span className="ml-1 bg-[#1a73e8] text-white text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded shadow-xs flex items-center gap-0.5">
+                                                        <span className="material-symbols-outlined text-[10px] fill-1">thumb_up</span>
+                                                        REC
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <h4 className="font-semibold text-white text-xs uppercase tracking-tight leading-tight line-clamp-1">{hotel.name}</h4>
+                                        </div>
                                     </div>
-
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                            <span className="material-symbols-outlined text-sm">auto_awesome</span>
-                                            {tLocal('reservationSummary')}
-                                        </h3>
-                                        <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                                            {selectedRooms.length} / {roomState.length} {tLocal('room')}
-                                        </span>
+                                    <div className="p-2.5 bg-[#f8f9fa] dark:bg-[#303134] space-y-1.5 border-t border-[#dadce0] dark:border-slate-700">
+                                        {(hotel.address || hotel.location) && (
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="material-symbols-outlined text-xs text-[#1a73e8] shrink-0">location_on</span>
+                                                <p className="text-[10px] font-normal text-[#5f6368] dark:text-slate-300 truncate">
+                                                    {typeof hotel.address === 'object' 
+                                                        ? (hotel.address?.addressLine || hotel.address?.street || `${hotel.address?.city || ''}, ${hotel.address?.country || ''}`) 
+                                                        : (hotel.address || hotel.location || '')}
+                                                </p>
+                                            </div>
+                                        )}
+                                        <div className="flex gap-4">
+                                            <div className="flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-[11px] text-[#1a73e8]">login</span>
+                                                <span className="text-[9px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
+                                                    {tLocal('in')}: {hotel.checkIn || '15:00'}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-[11px] text-[#1a73e8]">logout</span>
+                                                <span className="text-[9px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
+                                                    {tLocal('out')}: {hotel.checkOut || '11:00'}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
 
-                                    <div className="space-y-3 mb-4">
-                                        {selectedRooms.length > 0 ? (
-                                            selectedRooms.map((room, idx) => {
-                                                const isFreeCancel = room.hubRateModel?.refundable ?? (room.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0);
-                                                const boardType = room.hubRateModel?.boardCode || 'RO';
+                                {/* Dates & Guests Stay Box */}
+                                <div className="grid grid-cols-2 gap-2 mb-3.5">
+                                    <div className="p-2 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                        <p className="text-[8px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5">{tLocal('checkIn')}</p>
+                                        <p className="text-xs font-semibold text-[#1a73e8] leading-tight">{formattedDates.start}</p>
+                                    </div>
+                                    <div className="p-2 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                        <p className="text-[8px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5">{tLocal('checkOut')}</p>
+                                        <p className="text-xs font-semibold text-[#1a73e8] leading-tight">{formattedDates.end}</p>
+                                    </div>
+                                    <div className="col-span-2 p-2 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 flex justify-between items-center">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-xs text-[#1a73e8]">nights_stay</span>
+                                            <span className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-300 uppercase tracking-wider">
+                                                {currentLang === 'tr' 
+                                                    ? `${nights} Gece Konaklama` 
+                                                    : `${nights} ${nights > 1 ? tLocal('nights') : tLocal('night')} ${tLocal('stay')}`}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-xs text-[#1a73e8]">group</span>
+                                            <span className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-300 uppercase tracking-wider">
+                                                {totalAdults} {totalAdults > 1 ? tLocal('adults') : tLocal('adult')}
+                                                {totalChildren > 0 ? `, ${totalChildren} ${totalChildren > 1 ? tLocal('children') : tLocal('child')}` : ''} ({nationality})
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
 
-                                                return (
-                                                    <div key={idx} className="relative p-3 rounded-xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-xs group/item hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSelectedRooms(prev => prev.filter((_, i) => i !== idx));
-                                                            }}
-                                                            className="absolute -top-1.5 -right-1.5 size-5 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/40 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shadow-md z-20 group/btn"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[13px] group-hover/btn:rotate-90 transition-transform">close</span>
-                                                        </button>
-                                                        <div className="flex justify-between items-start mb-1.5 pr-3">
-                                                            <span className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-tight line-clamp-2">{idx + 1}. <span lang="en">{room.name}</span></span>
-                                                            <div className="flex items-baseline gap-1 shrink-0">
-                                                                <span className="text-[9px] font-bold text-primary">{getCurrencySymbol(room.currency, currencySymbolMap)}</span>
-                                                                <span className="font-bold text-primary text-xs leading-none">{room.rate.toFixed(2)}</span>
+                                {/* Selected Rooms List */}
+                                <div className="space-y-2 mb-3.5">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
+                                            {tLocal('selectedRooms') || 'Seçilen Odalar'}
+                                        </p>
+                                    </div>
+                                    {selectedRooms.length > 0 ? (
+                                        selectedRooms.map((room, idx) => {
+                                            const hubRate = room.hubRateModel || {};
+                                            const priceObj = hubRate.price || {};
+                                            const isFreeCancel = hubRate.refundable ?? (priceObj.cancellationPolicies?.[0]?.amount === 0);
+                                            const boardType = hubRate.boardCode || room.boardCode || 'RO';
+                                            const roomPrice = priceObj.netTotal || priceObj.grossTotal || room.rate || 0;
+                                            const roomCurr = priceObj.currency || room.currency || agencyCurrency || 'EUR';
+                                            const cancellationPolicies = priceObj.cancellationPolicies || room.cancellationPolicies || [];
+
+                                            return (
+                                                <div key={idx} className="relative p-3 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedRooms(prev => prev.filter((_, i) => i !== idx));
+                                                        }}
+                                                        className="absolute top-2 right-2 size-6 text-[#5f6368] hover:text-[#d93025] flex items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                                        title="Kaldır"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[16px]">close</span>
+                                                    </button>
+                                                    <div className="pr-6 mb-1.5">
+                                                        <div className="flex items-start gap-1.5">
+                                                            <div className="size-4 rounded bg-[#e8f0fe] text-[#1a73e8] text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                                                {idx + 1}
                                                             </div>
+                                                            <span className="font-medium text-[#202124] dark:text-white text-xs line-clamp-2">
+                                                                {room.name}
+                                                            </span>
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 mt-1">
-                                                            <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wider">{getBoardTypeLabel(boardType)}</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#dadce0] dark:border-slate-700">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="bg-white dark:bg-slate-800 border border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-300 text-[10px] px-1.5 py-0.5 rounded font-normal">{getBoardTypeLabel(boardType)}</span>
                                                             <RefundPolicyTooltip
                                                                 isRefundable={isFreeCancel}
                                                                 textOverride={isFreeCancel ? tLocal('freeCancellation') : tLocal('nonRefundable')}
-                                                                className={`text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wider ${isFreeCancel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}
+                                                                className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${isFreeCancel ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#f1f3f4] text-[#5f6368]'}`}
                                                             />
                                                         </div>
-                                                    </div>
-                                                );
-                                            })
-                                        ) : (
-                                            <div className="py-8 px-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-center">
-                                                <span className="material-symbols-outlined text-3xl text-slate-300 dark:text-slate-700 mb-1">bed</span>
-                                                <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">{tLocal('pleaseSelectARoom')}</p>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Dynamic Details Section - Harmonized with Checkout Page */}
-                                    <div className="grid grid-cols-2 gap-2 mb-4">
-                                        <div className="p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10">
-                                            <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                {currentLang === 'tr' ? 'CHECK-IN' : 'CHECK-IN'}
-                                            </p>
-                                            <p className="text-xs font-bold uppercase text-primary leading-tight">
-                                                {formattedDates.start}
-                                            </p>
-                                        </div>
-                                        <div className="p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10">
-                                            <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                {currentLang === 'tr' ? 'CHECK-OUT' : 'CHECK-OUT'}
-                                            </p>
-                                            <p className="text-xs font-bold uppercase text-primary leading-tight">
-                                                {formattedDates.end}
-                                            </p>
-                                        </div>
-                                        <div className="col-span-2 p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10 flex justify-between items-center">
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="material-symbols-outlined text-xs text-primary">nights_stay</span>
-                                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                    {currentLang === 'tr' 
-                                                        ? `${nights} Gece Konaklama` 
-                                                        : `${nights} ${nights > 1 ? 'Nights' : 'Night'} Stay`}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="material-symbols-outlined text-xs text-primary">group</span>
-                                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                    {(() => {
-                                                        const adultsLabel = totalAdults > 1 ? (currentLang === 'tr' ? 'Yetişkin' : 'Adults') : (currentLang === 'tr' ? 'Yetişkin' : 'Adult');
-                                                        const childrenLabel = totalChildren > 1 ? (currentLang === 'tr' ? 'Çocuk' : 'Children') : (currentLang === 'tr' ? 'Çocuk' : 'Child');
-                                                        return `${totalAdults} ${adultsLabel}${totalChildren > 0 ? `, ${totalChildren} ${childrenLabel}` : ''}`;
-                                                    })()} ({nationality})
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Daily Prices Section - Show for each selected room */}
-                                    {selectedRooms.length > 0 && selectedRooms.some(r => r.dailyPrices && r.dailyPrices.length > 0) && (
-                                        <div className="mb-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
-                                            <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                                <span className="material-symbols-outlined text-xs">calendar_month</span>
-                                                {tLocal('dailyRates')}
-                                            </p>
-                                            {selectedRooms.map((room, idx) => {
-                                                if (!room.dailyPrices || room.dailyPrices.length === 0) return null;
-                                                return (
-                                                    <div key={idx} className="mb-2 last:mb-0">
-                                                        {selectedRooms.length > 1 && (
-                                                            <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                                                                {tLocal('room')} {idx + 1}
+                                                        <div className="text-right">
+                                                            <span className="text-xs font-bold text-[#202124] dark:text-white">
+                                                                {formatPrice(roomPrice, roomCurr)}
+                                                            </span>
+                                                            <p className="text-[9px] text-[#70757a]">
+                                                                {nights} {nights > 1 ? tLocal('nights') : tLocal('night')}
                                                             </p>
-                                                        )}
-                                                        <div className="space-y-1">
-                                                            {room.dailyPrices.map((dp, dpIdx) => (
-                                                                <div key={dpIdx} className="flex justify-between items-center text-[10px]">
-                                                                    <span className="font-medium text-slate-500 dark:text-slate-400">
-                                                                        {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                                    </span>
-                                                                    <span className="font-bold text-slate-700 dark:text-slate-300">
-                                                                        {getCurrencySymbol(room.currency || agencyCurrency || 'USD', currencySymbolMap)} {(dp.calculatedAmount || dp.amount).toFixed(2)}
-                                                                    </span>
-                                                                </div>
-                                                            ))}
                                                         </div>
                                                     </div>
-                                                );
-                                            })}
+
+                                                    {/* Cancellation Policy Details */}
+                                                    <div className="mt-2 pt-1.5 border-t border-dashed border-[#dadce0] dark:border-slate-700">
+                                                        {cancellationPolicies.length > 0 ? (
+                                                            <div className="space-y-1">
+                                                                <p className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5">
+                                                                    {tLocal('cancellationPolicy')}
+                                                                </p>
+                                                                {cancellationPolicies.map((policy, pIdx) => (
+                                                                    <div key={pIdx} className="flex justify-between items-center text-[10px]">
+                                                                        <span className="text-[#5f6368] dark:text-slate-400">
+                                                                            {policy.fromDate ? formatPolicyDate(policy.fromDate) : (policy.amount === 0 ? tLocal('flexible') : tLocal('cancellationPenalty'))}
+                                                                        </span>
+                                                                        <span className={`font-medium px-1.5 py-0.2 rounded text-[9px] ${
+                                                                            policy.amount === 0 ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
+                                                                        }`}>
+                                                                            {policy.amount === 0 ? tLocal('freeCancel') : formatPrice(policy.amount, policy.currency || roomCurr)}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-[10px] text-[#70757a] flex items-center gap-1">
+                                                                <span className="material-symbols-outlined text-[11px]">info</span>
+                                                                {tLocal('standardCancellation')}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="p-4 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-dashed border-[#dadce0] dark:border-slate-700 text-center">
+                                            <span className="material-symbols-outlined text-2xl text-[#70757a] mb-1">bed</span>
+                                            <p className="text-xs text-[#5f6368] dark:text-slate-400">
+                                                {tLocal('pleaseSelectARoom')}
+                                            </p>
                                         </div>
                                     )}
+                                </div>
 
-                                    <div className="pt-4 border-t border-slate-200 dark:border-slate-800 mb-4">
-                                        <div className="flex items-end justify-between">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-1.5 mb-1.5">
-                                                    <span className="material-symbols-outlined text-slate-400 text-xs">receipt_long</span>
-                                                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider leading-none">{tLocal('totalStayPrice')}</p>
+                                {/* Daily Prices Section (If available) */}
+                                {selectedRooms.length > 0 && selectedRooms.some(r => (r.dailyPrices && r.dailyPrices.length > 0) || (r.hubRateModel?.price?.dailyPrices && r.hubRateModel?.price?.dailyPrices.length > 0)) && (
+                                    <div className="mb-3.5 p-2.5 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                        <p className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-xs text-[#1a73e8]">calendar_month</span>
+                                            {tLocal('dailyRates')}
+                                        </p>
+                                        {selectedRooms.map((room, idx) => {
+                                            const dpList = room.dailyPrices || room.hubRateModel?.price?.dailyPrices || [];
+                                            if (dpList.length === 0) return null;
+                                            const roomCurr = room.hubRateModel?.price?.currency || room.currency || agencyCurrency || 'EUR';
+
+                                            return (
+                                                <div key={idx} className="mb-2 last:mb-0">
+                                                    {selectedRooms.length > 1 && (
+                                                        <p className="text-[8px] font-semibold text-[#70757a] uppercase tracking-wider mb-1">
+                                                            {tLocal('room')} {idx + 1}
+                                                        </p>
+                                                    )}
+                                                    <div className="space-y-1">
+                                                        {dpList.map((dp, dpIdx) => (
+                                                            <div key={dpIdx} className="flex justify-between items-center text-[10px]">
+                                                                <span className="text-[#5f6368] dark:text-slate-400">
+                                                                    {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                </span>
+                                                                <span className="font-semibold text-[#202124] dark:text-white">
+                                                                    {formatPrice(dp.calculatedAmount || dp.amount || 0, roomCurr)}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-baseline gap-1">
-                                                    <span className="text-xs font-bold text-primary uppercase tracking-wider">{getCurrencySymbol(selectedRooms[0]?.currency || agencyCurrency || 'USD', currencySymbolMap)}</span>
-                                                    <p className="text-2xl font-bold text-primary leading-none tracking-tight">
-                                                        {(selectedRooms.reduce((sum, r) => sum + r.rate, 0)).toFixed(2)}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="size-8 rounded-xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">
-                                                <span className="material-symbols-outlined text-base">payments</span>
-                                            </div>
-                                        </div>
+                                            );
+                                        })}
                                     </div>
+                                )}
 
-                                    <button
-                                        onClick={handleInstantReservation}
-                                        disabled={selectedRooms.length === 0 || isCheckingRates}
-                                        className={`w-full font-semibold py-3 rounded-xl transition-all text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 active:scale-[0.98] mb-3 group/btn overflow-hidden relative ${selectedRooms.length > 0 && !isCheckingRates
-                                            ? 'bg-primary text-white shadow-primary/20 hover:scale-[1.01]'
-                                            : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50'
-                                            } ${isCheckingRates ? 'animate-pulse ring-2 ring-primary/20' : ''}`}>
-                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
-                                        <span className="relative z-10 flex items-center gap-2">
-                                            {isCheckingRates ? (
-                                                <>
-                                                    <span className="size-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
-                                                    <span className="animate-pulse">{tLocal('checkingBestRates')}</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    {tLocal('instantReservation')}
-                                                    <span className="material-symbols-outlined text-[16px] group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                                                </>
+                                {/* Total Price Section */}
+                                <div className="mb-4 pt-3 border-t border-[#dadce0] dark:border-slate-700">
+                                    <div className="flex items-baseline justify-between mb-1">
+                                        <div>
+                                            <span className="text-xs text-[#5f6368] dark:text-slate-400 font-medium block">{tLocal('totalStayPrice')}</span>
+                                            <span className="text-[10px] text-[#70757a]">{tLocal('pricesIncludeTaxesAndFees')}</span>
+                                        </div>
+                                        <span className="text-xl font-bold text-[#1a73e8] dark:text-blue-400">
+                                            {formatPrice(
+                                                selectedRooms.reduce((sum, r) => sum + (r.hubRateModel?.price?.netTotal || r.hubRateModel?.price?.grossTotal || r.rate || 0), 0),
+                                                selectedRooms[0]?.hubRateModel?.price?.currency || selectedRooms[0]?.currency || agencyCurrency || 'EUR'
                                             )}
                                         </span>
-                                    </button>
-                                    <p className="text-[9px] text-center text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider">
-                                        {tLocal('b2bAgencyRatesApplied')}
-                                    </p>
+                                    </div>
                                 </div>
+
+                                <button
+                                    onClick={handleInstantReservation}
+                                    disabled={selectedRooms.length === 0 || isCheckingRates}
+                                    className={`w-full font-medium py-3 rounded-lg transition-all text-sm shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] mb-2 ${selectedRooms.length > 0 && !isCheckingRates
+                                        ? 'bg-[#1a73e8] hover:bg-[#1557b0] text-white cursor-pointer'
+                                        : 'bg-[#f1f3f4] dark:bg-slate-800 text-[#70757a] cursor-not-allowed'
+                                        } ${isCheckingRates ? 'animate-pulse' : ''}`}>
+                                    {isCheckingRates ? (
+                                        <>
+                                            <span className="size-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
+                                            <span>{tLocal('checkingBestRates')}</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>{tLocal('instantReservation')}</span>
+                                            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                        </>
+                                    )}
+                                </button>
+                                <p className="text-[10px] text-center text-[#70757a] dark:text-slate-500 font-medium">
+                                    {tLocal('b2bAgencyRatesApplied')}
+                                </p>
                             </div>
 
-                            <div className="mt-4 bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex items-center gap-3">
-                                <div className="size-9 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-xs shrink-0">
+                            <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-3.5 flex items-center gap-3">
+                                <div className="size-9 rounded-lg bg-[#e8f0fe] dark:bg-slate-800 flex items-center justify-center text-[#1a73e8] shrink-0">
                                     <span className="material-symbols-outlined text-lg">verified_user</span>
                                 </div>
                                 <div>
-                                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider leading-none mb-0.5">SECURE PAYMENT</p>
-                                    <p className="text-xs font-bold text-slate-800 dark:text-white">TOG Protected Booking</p>
+                                    <p className="text-[10px] font-medium text-[#70757a] uppercase tracking-wider leading-none mb-0.5">{tLocal('securePayment')}</p>
+                                    <p className="text-xs font-semibold text-[#202124] dark:text-white">{tLocal('protectedBooking')}</p>
                                 </div>
                             </div>
                         </div>
-                    </div >
-                </div >
-            </div >
+                    </div>
+                </div>
+            </div>
 
             <Footer />
             <BookingConfirmationModal

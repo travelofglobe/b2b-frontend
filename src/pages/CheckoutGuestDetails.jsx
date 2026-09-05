@@ -1384,9 +1384,9 @@ const CheckoutGuestDetails = () => {
     const displayCurrency = checkRate?.price?.currency || selectedRooms[0]?.currency || agencyCurrency || 'USD';
 
     return (
-        <div className="flex-1 bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-sans">
-            <main className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-8 lg:py-10">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <div className="flex-1 min-h-screen bg-[#f8f9fa] dark:bg-[#202124] text-[#202124] dark:text-white font-roboto">
+            <main className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-6 lg:py-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div className="flex-1">
                         <CheckoutStepper 
                             currentStep={2} 
@@ -1427,501 +1427,478 @@ const CheckoutGuestDetails = () => {
                     onSelect={handleCrmGuestSelect}
                 />
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     <div className="lg:col-span-7">
-                        {/* Room Stepper */}
-                        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
+                        {/* Room Stepper Pills */}
+                        <div className="flex gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
                             {roomsData.map((room, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => idx < activeRoomIdx && setActiveRoomIdx(idx)}
-                                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border transition-all shrink-0 ${idx === activeRoomIdx ? 'bg-primary border-primary text-white shadow-md shadow-primary/20' : idx < activeRoomIdx ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-white/40 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 cursor-not-allowed'}`}
+                                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg border transition-all shrink-0 text-xs font-medium ${
+                                        idx === activeRoomIdx 
+                                            ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-xs' 
+                                            : idx < activeRoomIdx 
+                                                ? 'bg-[#e6f4ea] border-[#ceead6] text-[#137333] dark:bg-emerald-950/40 dark:text-emerald-400' 
+                                                : 'bg-white dark:bg-[#303134] border-[#dadce0] dark:border-slate-700 text-[#70757a] cursor-not-allowed'
+                                    }`}
                                 >
                                     <span className="material-symbols-outlined text-[16px]">{idx < activeRoomIdx ? 'check_circle' : 'bed'}</span>
-                                    <span className="text-xs font-semibold uppercase tracking-wider whitespace-nowrap">Room {idx + 1}</span>
+                                    <span>{tSummary('room', currentLang)} {idx + 1}</span>
                                 </button>
                             ))}
                         </div>
 
-                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500" key={activeRoomIdx}>
-                            <div className="flex items-center justify-between mb-2" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">{currentRoom.roomName}</h2>
-                                <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[9px] font-semibold text-slate-500 uppercase tracking-wider">{tSummary('occupancyInfo', currentLang)}</span>
+                        <div className="space-y-4" key={activeRoomIdx}>
+                            <div className="flex items-center justify-between" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                <h2 className="text-base font-semibold text-[#202124] dark:text-white">{currentRoom.roomName}</h2>
+                                <span className="px-2.5 py-0.5 bg-[#e8f0fe] text-[#1a73e8] rounded-full text-[10px] font-medium border border-[#d2e3fc]">
+                                    {tSummary('occupancyInfo', currentLang)}
+                                </span>
                             </div>
 
                             {currentRoom.guests.map((guest, gIdx) => (
-                                <div key={gIdx} className="relative group z-[5] focus-within:z-[50]">
-                                    <div className="relative p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-xs z-10 focus-within:z-[100]" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                        <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800/60">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`size-9 rounded-xl flex items-center justify-center transition-colors ${guest.type === 'Adult' ? 'bg-primary/10 text-primary' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                                                    <span className="material-symbols-outlined text-lg">{guest.type === 'Adult' ? 'person' : 'child_care'}</span>
-                                                </div>
-                                                <div>
-                                                    <h3 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
-                                                        {gIdx === 0 && guest.type === 'Adult' 
-                                                            ? tSummary('leadGuest', currentLang) 
-                                                            : `${guest.type === 'Adult' ? tSummary('adult', currentLang) : tSummary('child', currentLang)} ${tSummary('traveler', currentLang)} ${gIdx + 1}`}
-                                                    </h3>
-                                                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">
-                                                        {guest.type === 'Adult' 
-                                                            ? tSummary('standardPolicy', currentLang) 
-                                                            : `${tSummary('childPassenger', currentLang)} • ${tSummary('age', currentLang)} ${guest.age}`}
-                                                    </p>
-                                                </div>
+                                <div key={gIdx} className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-xs" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                    <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#dadce0] dark:border-slate-700">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`size-8 rounded-lg flex items-center justify-center ${guest.type === 'Adult' ? 'bg-[#e8f0fe] text-[#1a73e8]' : 'bg-[#e6f4ea] text-[#137333]'}`}>
+                                                <span className="material-symbols-outlined text-lg">{guest.type === 'Adult' ? 'person' : 'child_care'}</span>
                                             </div>
-                                            <button 
-                                                type="button" 
-                                                onClick={() => {
-                                                    setTargetGuestIndex({ roomIdx: activeRoomIdx, guestIdx: gIdx });
-                                                    setIsCrmModalOpen(true);
-                                                }}
-                                                className="flex items-center gap-1.5 px-2.5 py-1.5 text-primary/70 hover:text-primary bg-primary/5 hover:bg-primary/10 rounded-lg text-xs font-medium transition-colors"
-                                            >
-                                                <span className="material-symbols-outlined text-sm">contact_page</span>
-                                                <span className="hidden sm:inline">{crmText}</span>
-                                                <span className="sm:hidden">CRM</span>
-                                            </button>
+                                            <div>
+                                                <h3 className="text-sm font-semibold text-[#202124] dark:text-white">
+                                                    {gIdx === 0 && guest.type === 'Adult' 
+                                                        ? tSummary('leadGuest', currentLang) 
+                                                        : `${guest.type === 'Adult' ? tSummary('adult', currentLang) : tSummary('child', currentLang)} ${tSummary('traveler', currentLang)} ${gIdx + 1}`}
+                                                </h3>
+                                                <p className="text-[10px] text-[#5f6368] dark:text-slate-400">
+                                                    {guest.type === 'Adult' 
+                                                        ? tSummary('standardPolicy', currentLang) 
+                                                        : `${tSummary('childPassenger', currentLang)} • ${tSummary('age', currentLang)} ${guest.age}`}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            type="button" 
+                                            onClick={() => {
+                                                setTargetGuestIndex({ roomIdx: activeRoomIdx, guestIdx: gIdx });
+                                                setIsCrmModalOpen(true);
+                                            }}
+                                            className="flex items-center gap-1.5 px-3 py-1 text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] rounded-lg text-xs font-medium transition-colors"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">contact_page</span>
+                                            <span className="hidden sm:inline">{crmText}</span>
+                                            <span className="sm:hidden">CRM</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                        <div>
+                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block">{tSummary('firstName', currentLang)}</label>
+                                            <input
+                                                data-field={`${activeRoomIdx}-${gIdx}-firstName`}
+                                                required
+                                                className={`w-full bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} py-2 px-3 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
+                                                placeholder={tSummary('enterFirstName', currentLang)}
+                                                value={guest.firstName}
+                                                onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'firstName', e.target.value)}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block">{tSummary('lastName', currentLang)}</label>
+                                            <input
+                                                data-field={`${activeRoomIdx}-${gIdx}-lastName`}
+                                                required
+                                                className={`w-full bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} py-2 px-3 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
+                                                placeholder={tSummary('enterLastName', currentLang)}
+                                                value={guest.lastName}
+                                                onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'lastName', e.target.value)}
+                                            />
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-0.5 mb-1 block">{tSummary('firstName', currentLang)}</label>
-                                                <input
-                                                    data-field={`${activeRoomIdx}-${gIdx}-firstName`}
-                                                    required
-                                                    className={`w-full bg-slate-50/80 dark:bg-slate-800/80 border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} py-2 px-3.5 rounded-xl outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-xs text-slate-900 dark:text-white`}
-                                                    placeholder={tSummary('enterFirstName', currentLang)}
-                                                    value={guest.firstName}
-                                                    onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'firstName', e.target.value)}
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-0.5 mb-1 block">{tSummary('lastName', currentLang)}</label>
-                                                <input
-                                                    data-field={`${activeRoomIdx}-${gIdx}-lastName`}
-                                                    required
-                                                    className={`w-full bg-slate-50/80 dark:bg-slate-800/80 border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} py-2 px-3.5 rounded-xl outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-xs text-slate-900 dark:text-white`}
-                                                    placeholder={tSummary('enterLastName', currentLang)}
-                                                    value={guest.lastName}
-                                                    onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'lastName', e.target.value)}
-                                                />
-                                            </div>
-
-                                            {/* Birth Date and Gender */}
-                                            <div className="space-y-1">
-                                                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-0.5 mb-1 block">{tSummary('birthDate', currentLang)}</label>
-                                                <input
-                                                    data-field={`${activeRoomIdx}-${gIdx}-birthDate`}
-                                                    type="date"
-                                                    className={`w-full bg-slate-50/80 dark:bg-slate-800/80 border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} py-2 px-3.5 rounded-xl outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-xs uppercase text-slate-900 dark:text-white`}
-                                                    value={guest.birthDate}
-                                                    min="1900-01-01"
-                                                    max={new Date().toISOString().split('T')[0]}
-                                                    onChange={(e) => {
-                                                        handleInputChange(activeRoomIdx, gIdx, 'birthDate', e.target.value);
-                                                    }}
-                                                    onBlur={(e) => {
-                                                        const val = e.target.value;
-                                                        if (val) {
-                                                            const year = parseInt(val.split('-')[0], 10);
-                                                            if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
-                                                                handleInputChange(activeRoomIdx, gIdx, 'birthDate', '');
-                                                            }
+                                        {/* Birth Date and Gender */}
+                                        <div>
+                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block">{tSummary('birthDate', currentLang)}</label>
+                                            <input
+                                                data-field={`${activeRoomIdx}-${gIdx}-birthDate`}
+                                                type="date"
+                                                className={`w-full bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} py-2 px-3 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
+                                                value={guest.birthDate}
+                                                min="1900-01-01"
+                                                max={new Date().toISOString().split('T')[0]}
+                                                onChange={(e) => {
+                                                    handleInputChange(activeRoomIdx, gIdx, 'birthDate', e.target.value);
+                                                }}
+                                                onBlur={(e) => {
+                                                    const val = e.target.value;
+                                                    if (val) {
+                                                        const year = parseInt(val.split('-')[0], 10);
+                                                        if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
+                                                            handleInputChange(activeRoomIdx, gIdx, 'birthDate', '');
                                                         }
-                                                    }}
-                                                />
-                                                {errors[`${activeRoomIdx}-${gIdx}`]?.birthDate && !errors[`${activeRoomIdx}-${gIdx}`]?.ageMismatch && (
-                                                    <p className="text-red-500 text-[10px] font-semibold uppercase tracking-wider mt-1 ml-1 animate-in fade-in duration-300">{tSummary('invalidBirthDate', currentLang)}</p>
-                                                )}
-                                                {errors[`${activeRoomIdx}-${gIdx}`]?.ageMismatch && (
-                                                    <p className="text-red-500 text-[10px] font-semibold uppercase tracking-wider mt-1 ml-1 animate-in fade-in duration-300">
-                                                        {tSummary('childAgeMismatch', currentLang).replace('{age}', guest.age)}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            <div className="space-y-1">
-                                                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-0.5 mb-1 block">{tSummary('gender', currentLang)}</label>
-                                                <div
-                                                    data-field={`${activeRoomIdx}-${gIdx}-gender`}
-                                                    className={`relative p-1 rounded-xl h-10 flex items-center border transition-all duration-300 ${
-                                                        errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-red-500 ring-2 ring-red-500/10' : 'border-slate-200/90 dark:border-slate-700/80'
-                                                    } bg-slate-100/90 dark:bg-slate-800/90`}
-                                                >
-                                                    {/* Animated Sliding Background Indicator */}
-                                                    <div
-                                                        className={`absolute top-1 bottom-1 w-[calc(50%-6px)] rounded-lg transition-all duration-300 ease-out shadow-xs ${
-                                                            guest.gender === 'male'
-                                                                ? 'left-1 bg-blue-600 opacity-100 scale-100'
-                                                                : guest.gender === 'female'
-                                                                ? 'left-[calc(50%+2px)] bg-pink-500 opacity-100 scale-100'
-                                                                : 'left-1 bg-transparent opacity-0 scale-95'
-                                                        }`}
-                                                    />
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'male')}
-                                                        className={`relative z-10 w-1/2 h-full flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer active:scale-95 ${
-                                                            guest.gender === 'male'
-                                                                ? 'text-white'
-                                                                : 'text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400'
-                                                        }`}
-                                                    >
-                                                        <span className={`material-symbols-outlined text-base transition-transform duration-300 ${guest.gender === 'male' ? 'scale-110' : 'scale-100 opacity-70'}`}>male</span>
-                                                        <span>{tSummary('male', currentLang)}</span>
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'female')}
-                                                        className={`relative z-10 w-1/2 h-full flex items-center justify-center gap-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer active:scale-95 ${
-                                                            guest.gender === 'female'
-                                                                ? 'text-white'
-                                                                : 'text-slate-500 dark:text-slate-400 hover:text-pink-500 dark:hover:text-pink-400'
-                                                        }`}
-                                                    >
-                                                        <span className={`material-symbols-outlined text-base transition-transform duration-300 ${guest.gender === 'female' ? 'scale-110' : 'scale-100 opacity-70'}`}>female</span>
-                                                        <span>{tSummary('female', currentLang)}</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {gIdx === 0 && guest.type === 'Adult' && (
-                                                <>
-                                                    <div className="space-y-1">
-                                                        <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-0.5 mb-1 block">{tSummary('emailAddress', currentLang)}</label>
-                                                        <input
-                                                            data-field={`${activeRoomIdx}-${gIdx}-email`}
-                                                            required
-                                                            type="email"
-                                                            className={`w-full bg-slate-50/80 dark:bg-slate-800/80 border ${errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} py-2 px-3.5 rounded-xl outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-xs text-slate-900 dark:text-white`}
-                                                            placeholder={tSummary('enterEmail', currentLang)}
-                                                            value={guest.email}
-                                                            onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'email', e.target.value)}
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <PhoneInput 
-                                                            label={tSummary('phoneNumber', currentLang)}
-                                                            value={guest.phone}
-                                                            onChange={(val) => handleInputChange(activeRoomIdx, gIdx, 'phone', val)}
-                                                            error={errors[`${activeRoomIdx}-${gIdx}`]?.phone}
-                                                        />
-                                                    </div>
-                                                </>
+                                                    }
+                                                }}
+                                            />
+                                            {errors[`${activeRoomIdx}-${gIdx}`]?.birthDate && !errors[`${activeRoomIdx}-${gIdx}`]?.ageMismatch && (
+                                                <p className="text-[#d93025] text-[10px] font-medium mt-1">{tSummary('invalidBirthDate', currentLang)}</p>
+                                            )}
+                                            {errors[`${activeRoomIdx}-${gIdx}`]?.ageMismatch && (
+                                                <p className="text-[#d93025] text-[10px] font-medium mt-1">
+                                                    {tSummary('childAgeMismatch', currentLang).replace('{age}', guest.age)}
+                                                </p>
                                             )}
                                         </div>
+
+                                        <div>
+                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block">{tSummary('gender', currentLang)}</label>
+                                            <div
+                                                data-field={`${activeRoomIdx}-${gIdx}-gender`}
+                                                className={`p-0.5 rounded-lg h-[38px] flex items-center border ${
+                                                    errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'
+                                                } bg-[#f1f3f4] dark:bg-slate-800`}
+                                            >
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'male')}
+                                                    className={`flex-1 h-full flex items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-all ${
+                                                        guest.gender === 'male'
+                                                            ? 'bg-[#1a73e8] text-white shadow-xs'
+                                                            : 'text-[#5f6368] dark:text-slate-400 hover:text-[#202124]'
+                                                    }`}
+                                                >
+                                                    <span className="material-symbols-outlined text-[16px]">male</span>
+                                                    <span>{tSummary('male', currentLang)}</span>
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'female')}
+                                                    className={`flex-1 h-full flex items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-all ${
+                                                        guest.gender === 'female'
+                                                            ? 'bg-[#1a73e8] text-white shadow-xs'
+                                                            : 'text-[#5f6368] dark:text-slate-400 hover:text-[#202124]'
+                                                    }`}
+                                                >
+                                                    <span className="material-symbols-outlined text-[16px]">female</span>
+                                                    <span>{tSummary('female', currentLang)}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {gIdx === 0 && guest.type === 'Adult' && (
+                                            <>
+                                                <div>
+                                                    <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block">{tSummary('emailAddress', currentLang)}</label>
+                                                    <input
+                                                        data-field={`${activeRoomIdx}-${gIdx}-email`}
+                                                        required
+                                                        type="email"
+                                                        className={`w-full bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} py-2 px-3 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
+                                                        placeholder={tSummary('enterEmail', currentLang)}
+                                                        value={guest.email}
+                                                        onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'email', e.target.value)}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <PhoneInput 
+                                                        label={tSummary('phoneNumber', currentLang)}
+                                                        value={guest.phone}
+                                                        onChange={(val) => handleInputChange(activeRoomIdx, gIdx, 'phone', val)}
+                                                        error={errors[`${activeRoomIdx}-${gIdx}`]?.phone}
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             ))}
 
-                            {/* Booking Reference & Remark Section - Added for Book Service */}
+                            {/* Booking Reference & Remark Section */}
                             {activeRoomIdx === roomsData.length - 1 && (
-                                <div className="relative group animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                    <div className="relative p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-xs">
-                                        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800/60">
-                                            <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                                                <span className="material-symbols-outlined text-lg">receipt_long</span>
-                                            </div>
-                                            <div>
-                                                <h3 className="text-base font-bold tracking-tight text-slate-900 dark:text-white" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('bookingReferences', currentLang)}</h3>
-                                                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('internalIdentifiers', currentLang)}</p>
-                                            </div>
+                                <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-xs">
+                                    <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-[#dadce0] dark:border-slate-700">
+                                        <div className="size-7 rounded-lg bg-[#e8f0fe] flex items-center justify-center text-[#1a73e8]">
+                                            <span className="material-symbols-outlined text-base">receipt_long</span>
                                         </div>
+                                        <div>
+                                            <h3 className="text-xs font-semibold text-[#202124] dark:text-white" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('bookingReferences', currentLang)}</h3>
+                                            <p className="text-[10px] text-[#5f6368] dark:text-slate-400" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('internalIdentifiers', currentLang)}</p>
+                                        </div>
+                                    </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-0.5 mb-1 block" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('clientReferenceId', currentLang)}</label>
-                                                <input
-                                                    className="w-full bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 py-2 px-3.5 rounded-xl outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-xs text-slate-900 dark:text-white"
-                                                    placeholder={tSummary('internalReferenceNumber', currentLang)}
-                                                    value={clientReferenceId}
-                                                    onChange={(e) => setClientReferenceId(e.target.value)}
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 ml-0.5 mb-1 block" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('specialRemarks', currentLang)}</label>
-                                                <input
-                                                    className="w-full bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 py-2 px-3.5 rounded-xl outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-2 focus:ring-primary/20 transition-all font-semibold text-xs text-slate-900 dark:text-white"
-                                                    placeholder={tSummary('enterRemarks', currentLang)}
-                                                    value={remark}
-                                                    onChange={(e) => setRemark(e.target.value)}
-                                                />
-                                            </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                        <div>
+                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('clientReferenceId', currentLang)}</label>
+                                            <input
+                                                className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 py-2 px-3 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white"
+                                                placeholder={tSummary('internalReferenceNumber', currentLang)}
+                                                value={clientReferenceId}
+                                                onChange={(e) => setClientReferenceId(e.target.value)}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('specialRemarks', currentLang)}</label>
+                                            <input
+                                                className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 py-2 px-3 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white"
+                                                placeholder={tSummary('enterRemarks', currentLang)}
+                                                value={remark}
+                                                onChange={(e) => setRemark(e.target.value)}
+                                            />
                                         </div>
                                     </div>
                                 </div>
                             )}
 
-                            <div className="pt-10 flex items-center justify-between">
+                            {/* Stepper Buttons */}
+                            <div className="pt-4 flex items-center justify-between">
                                 <button
                                     type="button"
                                     onClick={() => activeRoomIdx > 0 ? setActiveRoomIdx(prev => prev - 1) : navigate(-1)}
-                                    className="px-10 py-5 rounded-[24px] font-black text-[10px] uppercase tracking-[0.2em] text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center gap-3"
+                                    className="px-5 py-2.5 rounded-lg border border-[#dadce0] dark:border-slate-700 font-medium text-xs text-[#1a73e8] hover:bg-white dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
                                     lang={currentLang === 'tr' ? 'tr' : 'en'}
                                 >
-                                    <span className="material-symbols-outlined text-[18px]">keyboard_backspace</span>
+                                    <span className="material-symbols-outlined text-[16px]">arrow_back</span>
                                     {activeRoomIdx > 0 ? `${tSummary('backToRoom', currentLang)} ${activeRoomIdx}` : tSummary('backToSelection', currentLang)}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={handleNext}
-                                    className="px-12 py-5 bg-primary text-white rounded-[24px] font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3"
+                                    className="px-6 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-lg font-medium text-xs shadow-xs transition-all flex items-center gap-2"
                                     lang={currentLang === 'tr' ? 'tr' : 'en'}
                                 >
                                     {activeRoomIdx < roomsData.length - 1 ? (
-                                        <>{tSummary('nextRoom', currentLang)} {activeRoomIdx + 2} <span className="material-symbols-outlined text-[18px]">arrow_forward</span></>
+                                        <>{tSummary('nextRoom', currentLang)} {activeRoomIdx + 2} <span className="material-symbols-outlined text-[16px]">arrow_forward</span></>
                                     ) : (
-                                        <>{tSummary('reviewAndPay', currentLang)} <span className="material-symbols-outlined text-[18px]">credit_score</span></>
+                                        <>{tSummary('reviewAndPay', currentLang)} <span className="material-symbols-outlined text-[16px]">arrow_forward</span></>
                                     )}
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    {/* Sticky Reservation Summary Sidebar */}
-                    <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
-                        <div className="relative group/sidebar">
-                            {/* Glass Background */}
-                            <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl rounded-2xl border border-white/40 dark:border-white/10 shadow-lg transition-all duration-500"></div>
+                    {/* Google Travel Sticky Reservation Summary Sidebar */}
+                    <div className="lg:col-span-5 lg:sticky lg:top-4 space-y-3 font-roboto">
+                        <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-sm">
+                            {/* Instant Confirmation Header */}
+                            <div className="flex items-center gap-2 text-[#137333] dark:text-emerald-300 font-medium text-xs mb-3.5 bg-[#e6f4ea] dark:bg-emerald-950/40 p-2.5 rounded-lg border border-[#ceead6] dark:border-emerald-800" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                <span className="material-symbols-outlined text-base fill-1">bolt</span>
+                                {tSummary('instantConfirmation', currentLang)}
+                            </div>
 
-                            <div className="relative p-5 z-10">
-
-                                {/* Header */}
-                                <div className="flex items-center gap-2 text-primary font-semibold text-[9px] mb-4 uppercase tracking-wider bg-primary/5 dark:bg-primary/20 p-2.5 rounded-xl border border-primary/10" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                    <span className="material-symbols-outlined text-sm fill-1">bolt</span>
-                                    {tSummary('instantConfirmation', currentLang)}
-                                </div>
-
-                                <h3 className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-1.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                    <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                    <span className="material-symbols-outlined text-sm text-[#1a73e8]">auto_awesome</span>
                                     {tSummary('reservationSummary', currentLang)}
                                 </h3>
+                                <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                                    {selectedRooms.length} / {roomState.length} {tSummary('room', currentLang)}
+                                </span>
+                            </div>
 
-                                {/* Hotel Info Card */}
-                                <div className="mb-4 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-xs">
-                                    <div className="relative h-28 overflow-hidden">
-                                        <img
-                                            src={hotelImage}
-                                            alt={hotelName}
-                                            className="w-full h-full object-cover"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-                                        <div className="absolute bottom-2.5 left-3.5 right-3.5">
-                                            <div className="flex items-center gap-0.5 mb-0.5">
-                                                {[...Array(hotelStars)].map((_, i) => (
-                                                    <span key={i} className="material-symbols-outlined text-[10px] text-amber-400 fill-1">star</span>
-                                                ))}
-                                                {hotel.isRecommended && (
-                                                    <span className="ml-1 bg-gradient-to-r from-teal-400 to-blue-500 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-xs flex items-center gap-0.5 border border-cyan-400/50">
-                                                        <span className="material-symbols-outlined text-[10px] fill-1">thumb_up</span>
-                                                        REC
+                            {/* Hotel Info Card */}
+                            <div className="mb-3.5 rounded-xl overflow-hidden border border-[#dadce0] dark:border-slate-700 shadow-xs">
+                                <div className="relative h-24 overflow-hidden">
+                                    <img
+                                        src={hotelImage}
+                                        alt={hotelName}
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
+                                    <div className="absolute bottom-2 left-3 right-3">
+                                        <div className="flex items-center gap-0.5 mb-0.5">
+                                            {[...Array(hotelStars)].map((_, i) => (
+                                                <span key={i} className="material-symbols-outlined text-[11px] text-[#fbbc04] fill-1">star</span>
+                                            ))}
+                                            {hotel.isRecommended && (
+                                                <span className="ml-1 bg-[#1a73e8] text-white text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded shadow-xs flex items-center gap-0.5">
+                                                    <span className="material-symbols-outlined text-[10px] fill-1">thumb_up</span>
+                                                    REC
+                                                </span>
+                                            )}
+                                        </div>
+                                        <h4 className="font-semibold text-white text-xs uppercase tracking-tight leading-tight line-clamp-1">{hotelName}</h4>
+                                    </div>
+                                </div>
+                                <div className="p-2.5 bg-[#f8f9fa] dark:bg-[#303134] space-y-1.5 border-t border-[#dadce0] dark:border-slate-700">
+                                    {hotelAddress && (
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-xs text-[#1a73e8] shrink-0">location_on</span>
+                                            <p className="text-[10px] font-normal text-[#5f6368] dark:text-slate-300 truncate">{hotelAddress}</p>
+                                        </div>
+                                    )}
+                                    <div className="flex gap-4" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                        <div className="flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[11px] text-[#1a73e8]">login</span>
+                                            <span className="text-[9px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">{tSummary('in', currentLang)}: {hotel.checkIn || '15:00'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[11px] text-[#1a73e8]">logout</span>
+                                            <span className="text-[9px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">{tSummary('out', currentLang)}: {hotel.checkOut || '11:00'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Dates & Guests Stay Box */}
+                            <div className="grid grid-cols-2 gap-2 mb-3.5">
+                                <div className="p-2 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                    <p className="text-[8px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('checkIn', currentLang)}</p>
+                                    <p className="text-xs font-semibold text-[#1a73e8] leading-tight">{formattedDates.start}</p>
+                                </div>
+                                <div className="p-2 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                    <p className="text-[8px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('checkOut', currentLang)}</p>
+                                    <p className="text-xs font-semibold text-[#1a73e8] leading-tight">{formattedDates.end}</p>
+                                </div>
+                                <div className="col-span-2 p-2 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 flex justify-between items-center">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-xs text-[#1a73e8]">nights_stay</span>
+                                        <span className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-300 uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                            {currentLang === 'tr' 
+                                                ? `${nights} Gece Konaklama` 
+                                                : `${nights} ${nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)} ${tSummary('stay', currentLang)}`}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-xs text-[#1a73e8]">group</span>
+                                        <span className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-300 uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                            {(() => {
+                                                const adultsCount = checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy?.adults || roomState.reduce((s, r) => s + r.adults, 0);
+                                                const childrenCount = checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy?.child || roomState.reduce((s, r) => s + r.children, 0);
+                                                const adultsLabel = adultsCount > 1 ? tSummary('adults', currentLang) : tSummary('adult', currentLang);
+                                                const childrenLabel = childrenCount > 1 ? tSummary('children', currentLang) : tSummary('child', currentLang);
+                                                return `${adultsCount} ${adultsLabel}${childrenCount > 0 ? `, ${childrenCount} ${childrenLabel}` : ''}`;
+                                            })()}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Room Breakdown */}
+                            <div className="space-y-2 mb-3.5">
+                                <p className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('selectedRooms', currentLang)}</p>
+                                {selectedRooms?.map((room, idx) => {
+                                    const policies = room.cancellationPolicies || [];
+                                    const rawBoard = checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || 'Room Only';
+                                    const boardLabel = rawBoard.toLowerCase() === 'room only' 
+                                        ? tSummary('roomOnly', currentLang) 
+                                        : rawBoard;
+                                    const currentPolicies = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || policies;
+                                    const refundable = checkRatesData?.rooms?.[idx]?.rates?.[0]?.refundable;
+                                    const roomPriceVal = (checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.calculatedAmount || checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || room.rate || 0);
+
+                                    return (
+                                        <div key={idx} className="relative p-3 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                            <div className="pr-2 mb-1.5">
+                                                <div className="flex items-start gap-1.5">
+                                                    <div className="size-4 rounded bg-[#e8f0fe] text-[#1a73e8] text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                                        {idx + 1}
+                                                    </div>
+                                                    <span className="font-medium text-[#202124] dark:text-white text-xs line-clamp-2">
+                                                        {room.name}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#dadce0] dark:border-slate-700">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="bg-white dark:bg-slate-800 border border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-300 text-[10px] px-1.5 py-0.5 rounded font-normal">{boardLabel}</span>
+                                                    {refundable !== undefined && (
+                                                        <RefundPolicyTooltip
+                                                            isRefundable={refundable}
+                                                            className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${refundable ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#f1f3f4] text-[#5f6368]'}`}
+                                                        />
+                                                    )}
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-xs font-bold text-[#202124] dark:text-white">
+                                                        {getCurrencySymbol(displayCurrency, currencySymbolMap)} {roomPriceVal.toFixed(2)}
+                                                    </span>
+                                                    <p className="text-[9px] text-[#70757a]">
+                                                        {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Cancellation Policy Details */}
+                                            <div className="mt-2 pt-1.5 border-t border-dashed border-[#dadce0] dark:border-slate-700">
+                                                {currentPolicies && currentPolicies.length > 0 ? (
+                                                    <div className="space-y-1">
+                                                        <p className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('cancellationPolicy', currentLang)}</p>
+                                                        {currentPolicies.map((policy, pIdx) => (
+                                                            <div key={pIdx} className="flex justify-between items-center text-[10px]">
+                                                                <span className="text-[#5f6368] dark:text-slate-400">
+                                                                    {policy.fromDate 
+                                                                        ? (policy.fromDate.includes('[') 
+                                                                            ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
+                                                                            : new Date(policy.fromDate).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' }))
+                                                                        : (policy.amount === 0 ? tSummary('flexible', currentLang) : tSummary('cancellationPenalty', currentLang))
+                                                                    }
+                                                                </span>
+                                                                <span className={`font-medium px-1.5 py-0.2 rounded text-[9px] ${
+                                                                    policy.amount === 0 ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
+                                                                }`}>
+                                                                    {policy.amount === 0 ? tSummary('freeCancel', currentLang) : `${getCurrencySymbol(policy.currency || displayCurrency, currencySymbolMap)} ${policy.amount.toFixed(2)}`}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-[10px] text-[#70757a] flex items-center gap-1" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                                        <span className="material-symbols-outlined text-[11px]">info</span>
+                                                        {tSummary('standardCancellation', currentLang)}
                                                     </span>
                                                 )}
                                             </div>
-                                            <h3 className="font-bold text-white text-xs uppercase tracking-tight leading-tight line-clamp-1">{hotelName}</h3>
                                         </div>
-                                    </div>
-                                    <div className="p-2.5 bg-slate-50 dark:bg-slate-800/50 space-y-1.5">
-                                        {hotelAddress && (
-                                            <div className="flex items-center gap-1.5">
-                                                <span className="material-symbols-outlined text-xs text-primary shrink-0">location_on</span>
-                                                <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 truncate">{hotelAddress}</p>
-                                            </div>
-                                        )}
-                                        <div className="flex gap-3" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                            <div className="flex items-center gap-1">
-                                                <span className="material-symbols-outlined text-[11px] text-primary">login</span>
-                                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{tSummary('in', currentLang)}: {hotel.checkIn || '15:00'}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <span className="material-symbols-outlined text-[11px] text-primary">logout</span>
-                                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{tSummary('out', currentLang)}: {hotel.checkOut || '11:00'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-2 mb-4">
-                                    <div className="p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10">
-                                        <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('checkIn', currentLang)}</p>
-                                        <p className="text-xs font-bold uppercase text-primary leading-tight">{formattedDates.start}</p>
-                                    </div>
-                                    <div className="p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10">
-                                        <p className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('checkOut', currentLang)}</p>
-                                        <p className="text-xs font-bold uppercase text-primary leading-tight">{formattedDates.end}</p>
-                                    </div>
-                                    <div className="col-span-2 p-2.5 rounded-xl bg-slate-500/5 border border-slate-500/10 flex justify-between items-center">
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="material-symbols-outlined text-xs text-primary">nights_stay</span>
-                                            <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                {currentLang === 'tr' 
-                                                    ? `${nights} Gece Konaklama` 
-                                                    : `${nights} ${nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)} ${tSummary('stay', currentLang)}`}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="material-symbols-outlined text-xs text-primary">group</span>
-                                            <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                {(() => {
-                                                    const adultsCount = checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy?.adults || roomState.reduce((s, r) => s + r.adults, 0);
-                                                    const childrenCount = checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy?.child || roomState.reduce((s, r) => s + r.children, 0);
-                                                    const adultsLabel = adultsCount > 1 ? tSummary('adults', currentLang) : tSummary('adult', currentLang);
-                                                    const childrenLabel = childrenCount > 1 ? tSummary('children', currentLang) : tSummary('child', currentLang);
-                                                    return `${adultsCount} ${adultsLabel}${childrenCount > 0 ? `, ${childrenCount} ${childrenLabel}` : ''}`;
-                                                })()}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Room Breakdown */}
-                                <div className="space-y-3 mb-4">
-                                    <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('selectedRooms', currentLang)}</p>
-                                    {selectedRooms?.map((room, idx) => {
-                                        const policies = room.cancellationPolicies || [];
-                                        const rawBoard = checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || 'Room Only';
-                                        const boardLabel = rawBoard.toLowerCase() === 'room only' 
-                                            ? tSummary('roomOnly', currentLang) 
-                                            : rawBoard;
-                                        
-                                        return (
-                                            <div key={idx} className="relative p-3 rounded-xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/5 shadow-xs">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div className="flex items-start gap-2">
-                                                        <div className="size-5 rounded bg-primary/10 flex items-center justify-center text-[9px] font-bold text-primary shrink-0 mt-0.5">
-                                                            {idx + 1}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-bold text-xs uppercase tracking-tight text-slate-900 dark:text-white line-clamp-2" lang="en">{room.name}</p>
-                                                            <div className="flex flex-wrap gap-1.5 mt-1">
-                                                                <p className="text-[10px] font-medium text-slate-500 uppercase" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                                    {boardLabel}
-                                                                </p>
-                                                                {(() => {
-                                                                    const refundable = checkRatesData?.rooms?.[idx]?.rates?.[0]?.refundable;
-                                                                    if (refundable === undefined) return null;
-                                                                    return (
-                                                                        <RefundPolicyTooltip
-                                                                            isRefundable={refundable}
-                                                                            className={`text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wider ${refundable ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}
-                                                                        />
-                                                                    );
-                                                                })()}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right shrink-0 ml-2">
-                                                        <div className="flex items-baseline justify-end gap-1" lang="en">
-                                                            <span className="text-xs font-bold text-primary leading-none">{getCurrencySymbol(displayCurrency, currencySymbolMap)}</span>
-                                                            <span className="font-bold text-xs text-primary leading-none">
-                                                                {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.calculatedAmount || checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || room.rate).toFixed(2)}
-                                                            </span>
-                                                        </div>
-                                                        <p className="text-[9px] text-slate-400 font-medium uppercase tracking-wider mt-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                            {displayCurrency} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                {/* Cancellation policy */}
-                                                <div className="pt-1.5 border-t border-slate-100 dark:border-slate-700/50">
-                                                    {(() => {
-                                                        const currentPolicies = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || policies;
-                                                        if (!currentPolicies || currentPolicies.length === 0) {
-                                                            return (
-                                                                <span className="text-[10px] font-medium text-slate-400 uppercase flex items-center gap-1" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                                    <span className="material-symbols-outlined text-[11px]">info</span>
-                                                                    {tSummary('standardCancellation', currentLang)}
-                                                                </span>
-                                                            );
-                                                        }
-                                                        return (
-                                                            <div className="space-y-1">
-                                                                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('cancellationPolicy', currentLang)}</p>
-                                                                {currentPolicies.map((policy, pIdx) => {
-                                                                    return (
-                                                                        <div key={pIdx} className="flex justify-between items-center">
-                                                                            <span className="text-[10px] font-medium text-slate-500">
-                                                                                {policy.fromDate 
-                                                                                    ? (policy.fromDate.includes('[') 
-                                                                                        ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
-                                                                                        : new Date(policy.fromDate).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' }))
-                                                                                    : (policy.amount === 0 ? tSummary('flexible', currentLang) : tSummary('cancellationPenalty', currentLang))
-                                                                                }
-                                                                            </span>
-                                                                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                                                                                policy.amount === 0
-                                                                                    ? 'bg-emerald-500/10 text-emerald-500'
-                                                                                    : 'bg-orange-500/10 text-orange-500'
-                                                                            }`} lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                                                                {policy.amount === 0 ? tSummary('freeCancel', currentLang) : `${getCurrencySymbol(policy.currency || displayCurrency, currencySymbolMap)} ${policy.amount.toFixed(2)}`}
-                                                                            </span>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        );
-                                                    })()}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* Grand Total */}
-                                <div className="pt-4 border-t border-slate-200 dark:border-slate-800 mb-4" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                    <div className="flex items-end justify-between">
-                                        <div>
-                                            <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider leading-none mb-1.5">{tSummary('totalStayPrice', currentLang)}</p>
-                                            <div className="flex items-baseline gap-1.5">
-                                                <span className="text-xl font-bold text-primary leading-none">{getCurrencySymbol(displayCurrency, currencySymbolMap)}</span>
-                                                <p className="text-2xl font-bold text-primary leading-none tracking-tight">
-                                                    {isLoadingRates ? '...' : grandTotal.toFixed(2)}
-                                                </p>
-                                            </div>
-                                            <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider mt-1">{displayCurrency} · {tSummary('taxesIncl', currentLang)} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}</p>
-                                        </div>
-                                        <div className="size-8 rounded-xl flex items-center justify-center text-primary bg-primary/10 border border-primary/20">
-                                            <span className="material-symbols-outlined text-base">payments</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Rate Notes */}
-                                {checkRatesData?.notes && checkRatesData.notes.length > 0 && (
-                                    <div className="mb-4 p-3 rounded-xl bg-amber-500/5 border border-amber-500/10" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                        <p className="text-[8px] font-semibold text-amber-600 dark:text-amber-500 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                            <span className="material-symbols-outlined text-[10px]">info</span>
-                                            {tSummary('rateNotes', currentLang)}
-                                        </p>
-                                        <div 
-                                            className="text-[10px] font-normal text-slate-600 dark:text-slate-400 space-y-1 max-h-36 overflow-y-auto pr-2 custom-scrollbar html-content"
-                                            dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(checkRatesData.notes.join('<br/>')) }}
-                                        />
-                                    </div>
-                                )}
-
-                                <p className="text-[9px] text-center text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                                    {tSummary('b2bRates', currentLang)}
-                                </p>
+                                    );
+                                })}
                             </div>
+
+                            {/* Grand Total */}
+                            <div className="pt-3 border-t border-[#dadce0] dark:border-slate-700 mb-3" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                <div className="flex items-baseline justify-between mb-1">
+                                    <div>
+                                        <span className="text-xs text-[#5f6368] dark:text-slate-400 font-medium block">{tSummary('totalStayPrice', currentLang)}</span>
+                                        <span className="text-[10px] text-[#70757a]">{displayCurrency} · {tSummary('taxesIncl', currentLang)}</span>
+                                    </div>
+                                    <span className="text-xl font-bold text-[#1a73e8] dark:text-blue-400">
+                                        {getCurrencySymbol(displayCurrency, currencySymbolMap)} {isLoadingRates ? '...' : grandTotal.toFixed(2)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Rate Notes */}
+                            {checkRatesData?.notes && checkRatesData.notes.length > 0 && (
+                                <div className="mb-3 p-2.5 rounded-lg bg-[#fef7e0] dark:bg-amber-950/30 border border-[#fce8e6] dark:border-amber-900/50" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                    <p className="text-[9px] font-semibold text-amber-800 dark:text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-[12px]">info</span>
+                                        {tSummary('rateNotes', currentLang)}
+                                    </p>
+                                    <div 
+                                        className="text-[10px] font-normal text-amber-900 dark:text-amber-200 space-y-1 max-h-32 overflow-y-auto pr-2 custom-scrollbar html-content"
+                                        dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(checkRatesData.notes.join('<br/>')) }}
+                                    />
+                                </div>
+                            )}
+
+                            <p className="text-[10px] text-center text-[#70757a] dark:text-slate-500 font-medium" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                {tSummary('b2bRates', currentLang)}
+                            </p>
                         </div>
 
                         {/* Security Badge */}
-                        <div className="bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 flex items-center gap-3" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                            <div className="size-9 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-xs shrink-0">
+                        <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-3.5 flex items-center gap-3" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                            <div className="size-9 rounded-lg bg-[#e8f0fe] dark:bg-slate-800 flex items-center justify-center text-[#1a73e8] shrink-0">
                                 <span className="material-symbols-outlined text-lg">verified_user</span>
                             </div>
                             <div>
-                                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider leading-none mb-0.5">{tSummary('securePayment', currentLang)}</p>
-                                <p className="text-xs font-bold text-slate-800 dark:text-white">{tSummary('protectedBooking', currentLang)}</p>
+                                <p className="text-[10px] font-medium text-[#70757a] uppercase tracking-wider leading-none mb-0.5">{tSummary('securePayment', currentLang)}</p>
+                                <p className="text-xs font-semibold text-[#202124] dark:text-white">{tSummary('protectedBooking', currentLang)}</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </main>
+            <Footer />
             <Footer />
             <style jsx="true">{`
                 .html-content ul {

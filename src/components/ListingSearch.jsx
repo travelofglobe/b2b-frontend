@@ -941,11 +941,8 @@ const ListingSearch = () => {
 
     return (
         <section className="relative group/search w-full">
-            <div className="flex-1 flex flex-wrap lg:flex-nowrap items-stretch gap-2 relative z-50">
-
-                {/* Top Options (Guests & Nationality) */}
-                <div className="flex items-center gap-2 relative z-[60]">
-                    <div className="flex-1 min-w-0 relative group/field h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
+            <div className="w-full flex items-center gap-2 relative z-50">
+                <div className="flex-1 min-w-0 relative group/field h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
                         <div className="flex items-center gap-3 h-full w-full px-4">
                             <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
                                 {error ? 'error' : 'location_on'}
@@ -1285,7 +1282,7 @@ const ListingSearch = () => {
                         />
                     </div>
                     {/* Elegant Guest Selector */}
-                    <div className="relative group/field" ref={guestWrapperRef}>
+                    <div className="relative group/field flex-shrink-0" ref={guestWrapperRef}>
                         <button
                             type="button"
                             onClick={() => setShowGuestDropdown(!showGuestDropdown)}
@@ -1400,8 +1397,7 @@ const ListingSearch = () => {
                                 </div>
                             </div>
                         )}
-                </div>
-                </div>
+                    </div>
             </div>
         </section>
     );

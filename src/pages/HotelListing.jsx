@@ -191,8 +191,8 @@ const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved, isUserPanR
         touchstart: () => { if (isUserPanRef) isUserPanRef.current = true; },
         moveend: (e) => {
             if (isUserPanRef && !isUserPanRef.current) return;
+            if (isUserPanRef) isUserPanRef.current = false;
             const map = e.target;
-            map.invalidateSize();
             const bounds = map.getBounds();
             const nw = bounds.getNorthWest();
             const se = bounds.getSouthEast();
@@ -226,26 +226,68 @@ const MapInstanceCapture = ({ setMap }) => {
 // ═══════════════════════════════════════════════
 // Price Marker - Google Hotels-style price bubble
 // ═══════════════════════════════════════════════
-const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHover, searchParams, currencySymbol }) => {
+const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHover, searchParams, currencySymbol, isFav, currentLang }) => {
     const priceDisplay = hotel.price ? Math.round(hotel.price).toLocaleString('tr-TR') : '';
     const active = isSelected || isHovered;
-    const icon = L.divIcon({
-        className: '',
-        html: `<div style="position:relative;display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer;">
-            <div style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:1.5px solid ${active ? 'transparent' : 'rgba(60,64,67,0.2)'};background:${active ? '#1a73e8' : 'white'};color:${active ? 'white' : '#3c4043'};box-shadow:0 2px 6px rgba(0,0,0,${active ? '0.3' : '0.15'});transform:${active ? 'scale(1.08)' : 'scale(1)'};transition:all 0.15s ease;display:flex;align-items:center;gap:4px;">
-                <span class="material-symbols-outlined" style="font-size:14px; margin-right:-2px">hotel</span>
-                ${currencySymbol}${priceDisplay}
+
+    const icon = React.useMemo(() => {
+        let borderStyle, bgStyle, colorStyle, iconHtml, badgeHtml, shadowStyle, arrowBg;
+
+        if (active) {
+            bgStyle = '#1a73e8';
+            colorStyle = 'white';
+            borderStyle = isFav ? '2px solid #174ea6' : '1.5px solid transparent';
+            shadowStyle = '0 3px 12px rgba(26,115,232,0.45)';
+            arrowBg = '#1a73e8';
+            iconHtml = `<span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:white;${isFav ? "font-variation-settings:'FILL' 1;" : ""}">
+                ${isFav ? 'bookmark' : 'hotel'}
+            </span>`;
+        } else if (isFav) {
+            bgStyle = '#ffffff';
+            colorStyle = '#1a73e8';
+            borderStyle = '2px solid #1a73e8';
+            shadowStyle = '0 3px 10px rgba(26,115,232,0.35)';
+            arrowBg = '#1a73e8';
+            iconHtml = `<span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:#1a73e8;font-variation-settings:'FILL' 1;">
+                bookmark
+            </span>`;
+        } else {
+            bgStyle = 'white';
+            colorStyle = '#3c4043';
+            borderStyle = '1.5px solid rgba(60,64,67,0.2)';
+            shadowStyle = '0 2px 6px rgba(0,0,0,0.15)';
+            arrowBg = 'white';
+            iconHtml = `<span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:#5f6368;">
+                hotel
+            </span>`;
+        }
+
+        badgeHtml = isFav ? `
+            <div style="position:absolute;top:-8px;right:-7px;background:#1a73e8;color:white;width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.3);border:2px solid white;z-index:10;">
+                <span class="material-symbols-outlined" style="font-size:12px;font-variation-settings:'FILL' 1;line-height:1;display:flex;align-items:center;justify-content:center;">bookmark</span>
             </div>
-            <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${active ? '#1a73e8' : 'white'};margin-top:-1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));"></div>
-        </div>`,
-        iconSize: [0, 0],
-        iconAnchor: [0, 0],
-    });
+        ` : '';
+
+        return L.divIcon({
+            className: '',
+            html: `<div style="position:relative;display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer;">
+                ${badgeHtml}
+                <div style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:${isFav ? '800' : '700'};font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:${borderStyle};background:${bgStyle};color:${colorStyle};box-shadow:${shadowStyle};transform:${active ? 'scale(1.1)' : isFav ? 'scale(1.05)' : 'scale(1)'};transition:all 0.15s ease;display:flex;align-items:center;gap:4px;">
+                    ${iconHtml}
+                    ${currencySymbol}${priceDisplay}
+                </div>
+                <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${arrowBg};margin-top:-1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));"></div>
+            </div>`,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
+        });
+    }, [active, isFav, currencySymbol, priceDisplay]);
+
     return (
         <Marker
             position={[parseFloat(hotel.lat), parseFloat(hotel.lng)]}
             icon={icon}
-            zIndexOffset={active ? 1000 : 0}
+            zIndexOffset={active ? 1000 : isFav ? 500 : 0}
             eventHandlers={{
                 click: () => onSelect(hotel),
                 mouseover: () => onHover(hotel),
@@ -254,12 +296,20 @@ const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHove
         >
             <Popup className="hotel-price-popup" minWidth={220} autoPan={false} closeButton={false}>
                 <div style={{ fontFamily: 'Google Sans,Roboto,Arial,sans-serif', padding: '4px' }}>
-                    <img src={hotel.image} alt={hotel.name} onError={e => { e.target.src = placeholderHotel; }} style={{ width: '100%', height: '110px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />
+                    <div style={{ position: 'relative' }}>
+                        <img src={hotel.image} alt={hotel.name} onError={e => { e.target.src = placeholderHotel; }} style={{ width: '100%', height: '110px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />
+                        {isFav && (
+                            <div style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', padding: '3px 8px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '4px', color: '#8ab4f8', fontSize: '11px', fontWeight: 600 }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>bookmark</span>
+                                <span>{currentLang === 'tr' ? 'Kaydedildi' : currentLang === 'ar' ? 'تم الحفظ' : 'Saved'}</span>
+                            </div>
+                        )}
+                    </div>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#3c4043', lineHeight: '1.3', marginBottom: '6px' }}>{hotel.name}</div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '15px', fontWeight: 700, color: '#3c4043' }}>{currencySymbol}{priceDisplay}</span>
                         <Link to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`} target="_blank" onClick={e => e.stopPropagation()} style={{ background: '#1a73e8', color: 'white', fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '20px', textDecoration: 'none' }}>
-                            Göster
+                            {currentLang === 'tr' ? 'Göster' : currentLang === 'ar' ? 'عرض' : 'View'}
                         </Link>
                     </div>
                 </div>
@@ -390,22 +440,29 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                     </div>
                 )}
 
-                {/* Property type */}
-                <p className="text-[13px] text-[#70757a] dark:text-slate-400 font-roboto">{typeLabel}</p>
+                {/* Amenities grid (3x3 - 9 items) */}
+                {(() => {
+                    const displayAmenities = [
+                        ...(typeLabel ? [{ icon: 'hotel', label: typeLabel }] : []),
+                        ...(hotel.amenities || []).filter(a => {
+                            const lbl = Array.isArray(a.label) ? a.label[0] : a.label;
+                            return lbl && lbl !== typeLabel;
+                        })
+                    ].slice(0, 9);
 
-                {/* Amenities grid */}
-                {hotel.amenities && hotel.amenities.length > 0 && (
-                    <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1">
-                        {hotel.amenities.slice(0, 6).map((amenity, i) => (
-                            <div key={i} className="flex items-center gap-1.5 text-[13px] text-[#5f6368] dark:text-slate-300 min-w-0 font-roboto">
-                                <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 shrink-0" style={{ fontSize: '18px' }}>{amenity.icon}</span>
-                                <span className="truncate">
-                                    {Array.isArray(amenity.label) ? amenity.label[0] : amenity.label}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                )}
+                    return displayAmenities.length > 0 ? (
+                        <div className="grid grid-cols-3 gap-x-3 gap-y-1 mt-1">
+                            {displayAmenities.map((amenity, i) => (
+                                <div key={i} className="flex items-center gap-1.5 text-[13px] text-[#5f6368] dark:text-slate-300 min-w-0 font-roboto">
+                                    <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 shrink-0" style={{ fontSize: '18px' }}>{amenity.icon}</span>
+                                    <span className="truncate">
+                                        {Array.isArray(amenity.label) ? amenity.label[0] : amenity.label}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : null;
+                })()}
 
                 {/* Bottom row: free cancel + CTA */}
                 <div className="flex items-center justify-between mt-auto pt-4 gap-2">
@@ -423,7 +480,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
                         target="_blank"
                         onClick={e => e.stopPropagation()}
-                        className="shrink-0 inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1558d6] active:bg-[#1246b8] text-white text-[14px] font-medium px-5 py-2 rounded-full transition-colors whitespace-nowrap"
+                        className="shrink-0 inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-[13.5px] font-medium h-[31px] px-4 rounded-full transition-colors whitespace-nowrap font-roboto shadow-[0_1px_2px_rgba(60,64,67,0.3)] hover:shadow-[0_1px_3px_1px_rgba(60,64,67,0.15)]"
                     >
                         {showPricesLabel[currentLang] || showPricesLabel.en}
                     </Link>
@@ -591,6 +648,304 @@ const resolveInitialLocation = (slug, q, searchParams) => {
 };
 
 // ═══════════════════════════════════════════════
+// Quick Amenities Filter List (Google Hotels Style)
+// ═══════════════════════════════════════════════
+export const QUICK_AMENITIES = [
+    {
+        id: 'free_wifi',
+        labelTr: 'Ücretsiz kablosuz bağlantı',
+        labelEn: 'Free Wi-Fi',
+        labelAr: 'واي فاي مجاني',
+        icon: 'wifi',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'wifi')) return true;
+            if (h.facilityIds?.some(id => [98445, 48325, 3664, 334].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('wifi') || text.includes('wi-fi') || text.includes('kablosuz') || text.includes('internet');
+        }
+    },
+    {
+        id: 'free_breakfast',
+        labelTr: 'Ücretsiz kahvaltı',
+        labelEn: 'Free breakfast',
+        labelAr: 'إفطار مجاني',
+        icon: 'coffee',
+        match: (h) => {
+            const bName = (h.boardName || '').toLowerCase();
+            if (bName.includes('breakfast') || bName.includes('kahvaltı') || bName.includes('bb') || bName.includes('bed & breakfast') || bName.includes('bed and breakfast') || bName.includes('half board') || bName.includes('all inclusive') || bName.includes('tam pansiyon') || bName.includes('yarım pansiyon')) return true;
+            if (h.amenities?.some(a => ['coffee', 'free_breakfast', 'local_cafe'].includes(a.icon))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('breakfast') || text.includes('kahvaltı');
+        }
+    },
+    {
+        id: 'restaurant',
+        labelTr: 'Restoran',
+        labelEn: 'Restaurant',
+        labelAr: 'مطعم',
+        icon: 'restaurant',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'restaurant')) return true;
+            if (h.facilityIds?.some(id => [641].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('restaurant') || text.includes('restoran') || text.includes('dining');
+        }
+    },
+    {
+        id: 'bar',
+        labelTr: 'Bar',
+        labelEn: 'Bar',
+        labelAr: 'بار',
+        icon: 'local_bar',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'local_bar')) return true;
+            if (h.facilityIds?.some(id => [3134].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('bar') || text.includes('lounge');
+        }
+    },
+    {
+        id: 'kid_friendly',
+        labelTr: 'Çocuklar için uygun',
+        labelEn: 'Kid-friendly',
+        labelAr: 'مناسب للأطفال',
+        icon: 'stroller',
+        match: (h) => {
+            if (h.amenities?.some(a => ['child_friendly', 'child_care', 'stroller'].includes(a.icon))) return true;
+            if (h.facilityIds?.some(id => [603, 1981, 1685].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('kid') || text.includes('child') || text.includes('çocuk') || text.includes('bebek') || text.includes('family') || text.includes('aile');
+        }
+    },
+    {
+        id: 'pets',
+        labelTr: 'Evcil hayvan kabul ediliyor',
+        labelEn: 'Pet-friendly',
+        labelAr: 'يسمح بالحيوانات الأليفة',
+        icon: 'pets',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'pets')) return true;
+            if (h.facilityIds?.some(id => [606].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('pet') || text.includes('evcil') || text.includes('hayvan');
+        }
+    },
+    {
+        id: 'free_parking',
+        labelTr: 'Ücretsiz park alanı',
+        labelEn: 'Free parking',
+        labelAr: 'موقف سيارات مجاني',
+        icon: 'local_parking',
+        match: (h) => {
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('ücretsiz park') || text.includes('free park') || text.includes('ücretsiz otopark') || text.includes('free self parking');
+        }
+    },
+    {
+        id: 'parking',
+        labelTr: 'Park Alanı',
+        labelEn: 'Parking',
+        labelAr: 'موقف سيارات',
+        icon: 'local_parking',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'local_parking')) return true;
+            if (h.facilityIds?.some(id => [610].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('park') || text.includes('otopark') || text.includes('garage') || text.includes('valet');
+        }
+    },
+    {
+        id: 'ev_charging',
+        labelTr: 'EV şarj noktası',
+        labelEn: 'EV charger',
+        labelAr: 'شاحن المركبات الكهربائية',
+        icon: 'bolt',
+        match: (h) => {
+            if (h.amenities?.some(a => ['bolt', 'ev_station'].includes(a.icon))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('ev ') || text.includes('electric') || text.includes('şarj') || text.includes('charger');
+        }
+    },
+    {
+        id: 'room_service',
+        labelTr: 'Oda servisi',
+        labelEn: 'Room service',
+        labelAr: 'خدمة الغرف',
+        icon: 'room_service',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'room_service')) return true;
+            if (h.facilityIds?.some(id => [611].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('room service') || text.includes('oda servisi');
+        }
+    },
+    {
+        id: 'gym',
+        labelTr: 'Spor salonu',
+        labelEn: 'Fitness center',
+        labelAr: 'صالة رياضية',
+        icon: 'fitness_center',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'fitness_center')) return true;
+            if (h.facilityIds?.some(id => [1978, 98455, 47935].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('gym') || text.includes('fitness') || text.includes('spor salonu') || text.includes('sağlık kulübü');
+        }
+    },
+    {
+        id: 'spa',
+        labelTr: 'Spa',
+        labelEn: 'Spa',
+        labelAr: 'سبا',
+        icon: 'spa',
+        match: (h) => {
+            if (h.amenities?.some(a => ['spa', 'hot_tub'].includes(a.icon))) return true;
+            if (h.facilityIds?.some(id => [1985, 650, 3891].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('spa') || text.includes('sauna') || text.includes('masaj') || text.includes('wellness') || text.includes('hamam') || text.includes('jakuzi');
+        }
+    },
+    {
+        id: 'pool',
+        labelTr: 'Havuz',
+        labelEn: 'Pool',
+        labelAr: 'مسبح',
+        icon: 'pool',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'pool')) return true;
+            if (h.facilityIds?.some(id => [616, 649, 1685].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('pool') || text.includes('havuz');
+        }
+    },
+    {
+        id: 'indoor_pool',
+        labelTr: 'Kapalı havuz',
+        labelEn: 'Indoor pool',
+        labelAr: 'مسبح داخلي',
+        icon: 'pool',
+        match: (h) => {
+            if (h.facilityIds?.some(id => [649].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('indoor pool') || text.includes('kapalı havuz');
+        }
+    },
+    {
+        id: 'outdoor_pool',
+        labelTr: 'Açık havuz',
+        labelEn: 'Outdoor pool',
+        labelAr: 'مسبح خارجي',
+        icon: 'pool',
+        match: (h) => {
+            if (h.facilityIds?.some(id => [616].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('outdoor pool') || text.includes('açık havuz');
+        }
+    },
+    {
+        id: 'ac',
+        labelTr: 'Klimalı',
+        labelEn: 'Air conditioning',
+        labelAr: 'تكييف هواء',
+        icon: 'ac_unit',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'ac_unit')) return true;
+            if (h.facilityIds?.some(id => [719].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('klima') || text.includes('air condition');
+        }
+    },
+    {
+        id: 'wheelchair',
+        labelTr: 'Tekerlekli sandalyeye uygun',
+        labelEn: 'Wheelchair accessible',
+        labelAr: 'مناسب للكراسي المتحركة',
+        icon: 'accessible',
+        match: (h) => {
+            if (h.amenities?.some(a => ['accessible', 'wheelchair_pickup'].includes(a.icon))) return true;
+            if (h.facilityIds?.some(id => [1995].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('wheelchair') || text.includes('engelli') || text.includes('tekerlekli sandalye');
+        }
+    },
+    {
+        id: 'beach',
+        labelTr: 'Plaj',
+        labelEn: 'Beach',
+        labelAr: 'شاطئ',
+        icon: 'beach_access',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'beach_access')) return true;
+            if (h.facilityIds?.some(id => [3724].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('beach') || text.includes('plaj');
+        }
+    },
+    {
+        id: 'all_inclusive',
+        labelTr: 'Her şey dahil',
+        labelEn: 'All-inclusive',
+        labelAr: 'شامل كلياً',
+        icon: 'all_inclusive',
+        match: (h) => {
+            const bName = (h.boardName || '').toLowerCase();
+            return bName.includes('all inclusive') || bName.includes('her şey dahil') || bName.includes('ai') || JSON.stringify(h.amenities || []).toLowerCase().includes('all inclusive');
+        }
+    },
+    {
+        id: 'hot_tub',
+        labelTr: 'Jakuzi',
+        labelEn: 'Hot tub / Jacuzzi',
+        labelAr: 'جاكوزي',
+        icon: 'hot_tub',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'hot_tub')) return true;
+            if (h.facilityIds?.some(id => [3891].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('jakuzi') || text.includes('jacuzzi') || text.includes('hot tub');
+        }
+    },
+    {
+        id: 'airport_shuttle',
+        labelTr: 'Havalimanı servisi',
+        labelEn: 'Airport shuttle',
+        labelAr: 'خدمة نقل المطار',
+        icon: 'airport_shuttle',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'airport_shuttle')) return true;
+            if (h.facilityIds?.some(id => [98415].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('airport') || text.includes('havalimanı') || text.includes('havaalanı');
+        }
+    },
+    {
+        id: 'business_center',
+        labelTr: 'İş merkezi',
+        labelEn: 'Business center',
+        labelAr: 'مركز أعمال',
+        icon: 'business_center',
+        match: (h) => {
+            if (h.amenities?.some(a => ['business_center', 'meeting_room'].includes(a.icon))) return true;
+            if (h.facilityIds?.some(id => [18006, 1991].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('business') || text.includes('iş merkezi') || text.includes('toplantı');
+        }
+    },
+    {
+        id: 'smoke_free',
+        labelTr: 'Sigara içilmeyen otel',
+        labelEn: 'Smoke-free hotel',
+        labelAr: 'فندق خالي من التدخين',
+        icon: 'smoke_free',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'smoke_free')) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('smoke free') || text.includes('sigara içilmez') || text.includes('non-smoking');
+        }
+    }
+];
+
+// ═══════════════════════════════════════════════
 // Main HotelListing Component
 // ═══════════════════════════════════════════════
 const HotelListing = () => {
@@ -618,7 +973,8 @@ const HotelListing = () => {
     };
 
     const { i18n } = useTranslation();
-    const currentLang = i18n.language || localStorage.getItem('language') || 'tr';
+    const rawLang = i18n.language || localStorage.getItem('language') || 'tr';
+    const currentLang = rawLang.toLowerCase().startsWith('tr') ? 'tr' : rawLang;
     const navigate = useNavigate();
 
     const params = useParams();
@@ -628,6 +984,65 @@ const HotelListing = () => {
 
     const { favorites, isFavorite, toggleFavorite } = useFavorites();
     const [isFavOpen, setIsFavOpen] = React.useState(false);
+    const favOpenTimerRef = React.useRef(null);
+    const favCloseTimerRef = React.useRef(null);
+
+    const handleFavMouseEnter = React.useCallback(() => {
+        if (favCloseTimerRef.current) {
+            clearTimeout(favCloseTimerRef.current);
+            favCloseTimerRef.current = null;
+        }
+        if (!isFavOpen && !favOpenTimerRef.current) {
+            favOpenTimerRef.current = setTimeout(() => {
+                setIsFavOpen(true);
+                favOpenTimerRef.current = null;
+            }, 300);
+        }
+    }, [isFavOpen]);
+
+    const handleFavMouseLeave = React.useCallback(() => {
+        if (favOpenTimerRef.current) {
+            clearTimeout(favOpenTimerRef.current);
+            favOpenTimerRef.current = null;
+        }
+        if (isFavOpen && !favCloseTimerRef.current) {
+            favCloseTimerRef.current = setTimeout(() => {
+                setIsFavOpen(false);
+                favCloseTimerRef.current = null;
+            }, 250);
+        }
+    }, [isFavOpen]);
+
+    const handleFavButtonClick = React.useCallback(() => {
+        if (favOpenTimerRef.current) {
+            clearTimeout(favOpenTimerRef.current);
+            favOpenTimerRef.current = null;
+        }
+        if (favCloseTimerRef.current) {
+            clearTimeout(favCloseTimerRef.current);
+            favCloseTimerRef.current = null;
+        }
+        setIsFavOpen(prev => !prev);
+    }, []);
+
+    const handleCloseFav = React.useCallback(() => {
+        if (favOpenTimerRef.current) {
+            clearTimeout(favOpenTimerRef.current);
+            favOpenTimerRef.current = null;
+        }
+        if (favCloseTimerRef.current) {
+            clearTimeout(favCloseTimerRef.current);
+            favCloseTimerRef.current = null;
+        }
+        setIsFavOpen(false);
+    }, []);
+
+    React.useEffect(() => {
+        return () => {
+            if (favOpenTimerRef.current) clearTimeout(favOpenTimerRef.current);
+            if (favCloseTimerRef.current) clearTimeout(favCloseTimerRef.current);
+        };
+    }, []);
 
     const [hotels, setHotels] = React.useState([]);
     const [page, setPage] = React.useState(0);
@@ -659,6 +1074,228 @@ const HotelListing = () => {
     const listScrollRef = React.useRef(null);
     const loaderRef = React.useRef(null);
     const sortDropdownRef = React.useRef(null);
+    // ── Quick Filter: Amenities ──
+    const [isAmenitiesOpen, setIsAmenitiesOpen] = React.useState(false);
+    const [amenitiesPosition, setAmenitiesPosition] = React.useState({ top: 0, left: 0 });
+    const amenitiesBtnRef = React.useRef(null);
+    const amenitiesDropdownRef = React.useRef(null);
+
+    // ── Quick Filter: Hotel Star Rating (Otel sınıfı) ──
+    const [isStarOpen, setIsStarOpen] = React.useState(false);
+    const [starPosition, setStarPosition] = React.useState({ top: 0, left: 0 });
+    const starBtnRef = React.useRef(null);
+    const starDropdownRef = React.useRef(null);
+
+    // ── Quick Filter: Price (Fiyat) ──
+    const [isPriceOpen, setIsPriceOpen] = React.useState(false);
+    const [pricePosition, setPricePosition] = React.useState({ top: 0, left: 0 });
+    const priceBtnRef = React.useRef(null);
+    const priceDropdownRef = React.useRef(null);
+
+    const urlStars = React.useMemo(() => {
+        const p = searchParams.get('stars');
+        return p ? p.split(',').map(Number) : [];
+    }, [searchParams]);
+
+    // Dynamic price boundaries from loaded hotels
+    const { minHotelPrice, maxHotelPrice } = React.useMemo(() => {
+        let min = Infinity;
+        let max = -Infinity;
+        hotels.forEach(h => {
+            if (h.price && h.price > 0) {
+                if (h.price < min) min = h.price;
+                if (h.price > max) max = h.price;
+            }
+        });
+        if (min === Infinity) min = 0;
+        if (max === -Infinity || max <= 0) max = 10000;
+        const roundedMax = Math.max(10000, Math.ceil(max / 1000) * 1000);
+        return { minHotelPrice: 0, maxHotelPrice: roundedMax };
+    }, [hotels]);
+
+    const [priceRange, setPriceRange] = React.useState([0, 10000]);
+    const [isPriceCustomized, setIsPriceCustomized] = React.useState(false);
+
+    React.useEffect(() => {
+        if (!isPriceCustomized) {
+            setPriceRange([0, maxHotelPrice]);
+        }
+    }, [maxHotelPrice, isPriceCustomized]);
+
+    const priceHistogram = React.useMemo(() => {
+        const bucketCount = 24;
+        const buckets = new Array(bucketCount).fill(0);
+        const validPrices = hotels.map(h => h.price).filter(p => p && p > 0);
+
+        if (validPrices.length > 0) {
+            const step = maxHotelPrice / bucketCount;
+            validPrices.forEach(p => {
+                const idx = Math.min(bucketCount - 1, Math.floor(p / step));
+                if (idx >= 0) buckets[idx]++;
+            });
+        } else {
+            const defaultCurve = [1, 2, 4, 7, 12, 18, 25, 28, 24, 20, 15, 11, 8, 6, 4, 3, 2, 2, 1, 1, 1, 0, 0, 1];
+            return defaultCurve.map((val, i) => ({
+                height: Math.max(4, Math.min(42, Math.round((val / 28) * 42))),
+                index: i
+            }));
+        }
+
+        const maxInBucket = Math.max(1, ...buckets);
+        return buckets.map((count, i) => ({
+            height: count === 0 ? 3 : Math.max(4, Math.min(42, Math.round((count / maxInBucket) * 42))),
+            count,
+            index: i
+        }));
+    }, [hotels, maxHotelPrice]);
+
+    const isPriceActive = isPriceCustomized && (priceRange[0] > 0 || priceRange[1] < maxHotelPrice);
+
+    const updateStarPosition = React.useCallback(() => {
+        if (starBtnRef.current) {
+            const rect = starBtnRef.current.getBoundingClientRect();
+            const popupWidth = 350;
+            const screenWidth = window.innerWidth;
+            let left = rect.left;
+            if (left + popupWidth > screenWidth - 16) {
+                left = Math.max(16, screenWidth - popupWidth - 16);
+            }
+            setStarPosition({
+                top: Math.round(rect.bottom + 4),
+                left: Math.round(left)
+            });
+        }
+    }, []);
+
+    const updatePricePosition = React.useCallback(() => {
+        if (priceBtnRef.current) {
+            const rect = priceBtnRef.current.getBoundingClientRect();
+            const popupWidth = 350;
+            const screenWidth = window.innerWidth;
+            let left = rect.left;
+            if (left + popupWidth > screenWidth - 16) {
+                left = Math.max(16, screenWidth - popupWidth - 16);
+            }
+            setPricePosition({
+                top: Math.round(rect.bottom + 4),
+                left: Math.round(left)
+            });
+        }
+    }, []);
+
+    const handleToggleStar = () => {
+        if (!isStarOpen) {
+            updateStarPosition();
+            setIsPriceOpen(false);
+            setIsAmenitiesOpen(false);
+        }
+        setIsStarOpen(prev => !prev);
+    };
+
+    const handleTogglePrice = () => {
+        if (!isPriceOpen) {
+            updatePricePosition();
+            setIsStarOpen(false);
+            setIsAmenitiesOpen(false);
+        }
+        setIsPriceOpen(prev => !prev);
+    };
+
+    const handleClearStars = () => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('stars');
+        setSearchParams(newParams);
+    };
+
+    const handleClearPrice = () => {
+        setPriceRange([0, maxHotelPrice]);
+        setIsPriceCustomized(false);
+    };
+
+    React.useEffect(() => {
+        if (!isStarOpen) return;
+        updateStarPosition();
+        window.addEventListener('resize', updateStarPosition);
+        window.addEventListener('scroll', updateStarPosition, true);
+        return () => {
+            window.removeEventListener('resize', updateStarPosition);
+            window.removeEventListener('scroll', updateStarPosition, true);
+        };
+    }, [isStarOpen, updateStarPosition]);
+
+    React.useEffect(() => {
+        if (!isPriceOpen) return;
+        updatePricePosition();
+        window.addEventListener('resize', updatePricePosition);
+        window.addEventListener('scroll', updatePricePosition, true);
+        return () => {
+            window.removeEventListener('resize', updatePricePosition);
+            window.removeEventListener('scroll', updatePricePosition, true);
+        };
+    }, [isPriceOpen, updatePricePosition]);
+
+    const selectedAmenities = React.useMemo(() => {
+        const p = searchParams.get('amenities');
+        return p ? p.split(',').filter(Boolean) : [];
+    }, [searchParams]);
+
+    const handleToggleAmenity = (amenityId) => {
+        const newParams = new URLSearchParams(searchParams);
+        let nextList;
+        if (selectedAmenities.includes(amenityId)) {
+            nextList = selectedAmenities.filter(id => id !== amenityId);
+        } else {
+            nextList = [...selectedAmenities, amenityId];
+        }
+        if (nextList.length > 0) {
+            newParams.set('amenities', nextList.join(','));
+        } else {
+            newParams.delete('amenities');
+        }
+        setSearchParams(newParams);
+    };
+
+    const handleClearAmenities = () => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('amenities');
+        setSearchParams(newParams);
+    };
+
+    const updateAmenitiesPosition = React.useCallback(() => {
+        if (amenitiesBtnRef.current) {
+            const rect = amenitiesBtnRef.current.getBoundingClientRect();
+            const popupWidth = 360;
+            const screenWidth = window.innerWidth;
+            let left = rect.left;
+            if (left + popupWidth > screenWidth - 16) {
+                left = Math.max(16, screenWidth - popupWidth - 16);
+            }
+            setAmenitiesPosition({
+                top: Math.round(rect.bottom + 4),
+                left: Math.round(left)
+            });
+        }
+    }, []);
+
+    const handleToggleAmenities = () => {
+        if (!isAmenitiesOpen) {
+            updateAmenitiesPosition();
+            setIsStarOpen(false);
+            setIsPriceOpen(false);
+        }
+        setIsAmenitiesOpen(prev => !prev);
+    };
+
+    React.useEffect(() => {
+        if (!isAmenitiesOpen) return;
+        updateAmenitiesPosition();
+        window.addEventListener('resize', updateAmenitiesPosition);
+        window.addEventListener('scroll', updateAmenitiesPosition, true);
+        return () => {
+            window.removeEventListener('resize', updateAmenitiesPosition);
+            window.removeEventListener('scroll', updateAmenitiesPosition, true);
+        };
+    }, [isAmenitiesOpen, updateAmenitiesPosition]);
 
     const [locationNames, setLocationNames] = React.useState({});
     const [facilityNames, setFacilityNames] = React.useState({});
@@ -744,22 +1381,6 @@ const HotelListing = () => {
         };
     }, []);
 
-    // Fallback: If unknown destination and locationId exists, fetch coordinates from API
-    React.useEffect(() => {
-        if (!locationId || hotels.length > 0) return;
-        let isMounted = true;
-        locationService.fetchLocationDetails(locationId)
-            .then(data => {
-                if (!isMounted) return;
-                const coords = data?.geoCoordinate || data?.data?.geoCoordinate;
-                if (coords?.lat && coords?.lon && mapInstance && hotels.length === 0) {
-                    mapInstance.setView([coords.lat, coords.lon], 12);
-                }
-            })
-            .catch(() => {});
-        return () => { isMounted = false; };
-    }, [locationId, mapInstance, hotels.length]);
-
     // Date formatting - Google Hotels style
     const formatDateShort = (dateStr) => {
         if (!dateStr) return '';
@@ -783,20 +1404,46 @@ const HotelListing = () => {
         return parts.join(', ') || '2';
     }, [totalGuests, totalRooms, currentLang]);
 
+    // Filtered hotels based on selected quick amenities & price range
+    const displayedHotels = React.useMemo(() => {
+        let filtered = hotels;
+        if (selectedAmenities.length > 0) {
+            filtered = filtered.filter(hotel => {
+                return selectedAmenities.every(amenityId => {
+                    const def = QUICK_AMENITIES.find(a => a.id === amenityId);
+                    return def ? def.match(hotel) : true;
+                });
+            });
+        }
+        if (isPriceActive) {
+            filtered = filtered.filter(hotel => {
+                if (!hotel.price || hotel.price <= 0) return true;
+                const matchesMin = hotel.price >= priceRange[0];
+                const matchesMax = priceRange[1] >= maxHotelPrice ? true : hotel.price <= priceRange[1];
+                return matchesMin && matchesMax;
+            });
+        }
+        return filtered;
+    }, [hotels, selectedAmenities, isPriceActive, priceRange, maxHotelPrice]);
+
     // Results count text
     const resultsText = useMemo(() => {
         if (isLoading && totalProperties === 0) return tListing('searching', currentLang);
-        return `${locationName || ''} · ${totalProperties || 0} ${currentLang === 'tr' ? 'sonuç' : 'results'}`;
-    }, [isLoading, totalProperties, locationName, currentLang]);
+        const isCustomFiltered = selectedAmenities.length > 0 || isPriceActive;
+        const count = isCustomFiltered ? displayedHotels.length : (totalProperties || hotels.length || 0);
+        return `${locationName || ''} · ${count} ${currentLang === 'tr' ? 'sonuç' : 'results'}`;
+    }, [isLoading, totalProperties, locationName, currentLang, selectedAmenities.length, isPriceActive, displayedHotels.length, hotels.length]);
 
     // Active filter count for badge
     const activeFilterCount = React.useMemo(() => {
-        return [
+        const count = [
             searchParams.get('stars'), searchParams.get('locations'), searchParams.get('freeCancellation'),
             searchParams.get('prePayment'), searchParams.get('roomTwin'), searchParams.get('roomMaxAdult'),
-            searchParams.get('roomMaxChildren'), searchParams.get('roomMaxExtraBed'), searchParams.get('facilities')
+            searchParams.get('roomMaxChildren'), searchParams.get('roomMaxExtraBed'), searchParams.get('facilities'),
+            searchParams.get('amenities')
         ].filter(Boolean).length;
-    }, [searchParams]);
+        return count + (isPriceActive ? 1 : 0);
+    }, [searchParams, isPriceActive]);
 
     // Map hotel from API to UI model
     const mapApiHotelToModel = React.useCallback((apiHotel) => {
@@ -838,7 +1485,7 @@ const HotelListing = () => {
                     }
                 }
             });
-            amenities = Object.values(iconGroups).map(g => ({ icon: g.icon, label: g.labels })).slice(0, 10);
+            amenities = Object.values(iconGroups).map(g => ({ icon: g.icon, label: g.labels })).slice(0, 20);
         }
         if (amenities.length === 0) amenities = [{ icon: 'info', label: ['Details'] }];
 
@@ -883,6 +1530,9 @@ const HotelListing = () => {
             availableRoomsCount: apiHotel.rooms?.length || 0,
             isRecommended: apiHotel.isRecommended === true || apiHotel.preferred === true,
             locationBreadcrumbs: apiHotel.locationBreadcrumbs,
+            facilityIds: (rawFacs && Array.isArray(rawFacs))
+                ? rawFacs.map(f => typeof f === 'object' ? (f.facilityId || f.id || f.value) : f).map(Number).filter(Boolean)
+                : []
         };
     }, []);
 
@@ -895,6 +1545,11 @@ const HotelListing = () => {
 
     // Load hotels from API (optionally using geo bounds for map-area search)
     const loadMoreHotels = React.useCallback(async (isReset = false, geoBounds = null) => {
+        const activeGeoBounds = geoBounds || mapBoundsRef.current;
+        if (activeGeoBounds) {
+            setShouldRefitMap(false);
+            isMapSearchRef.current = true;
+        }
         if (isReset && abortControllerRef.current) {
             abortControllerRef.current.abort();
             setIsLoading(false);
@@ -906,15 +1561,15 @@ const HotelListing = () => {
         isFetchingRef.current = true;
         if (isReset) {
             setIsLoading(true);
-            setHotels([]);
+            if (!activeGeoBounds) {
+                setHotels([]);
+                mapBoundsRef.current = null;
+            }
             setTotalProperties(0);
             pageRef.current = 0;
             hasMoreRef.current = true;
             setPage(0);
             setHasMore(true);
-            if (!geoBounds) {
-                mapBoundsRef.current = null;
-            }
         }
         const controller = new AbortController();
         abortControllerRef.current = controller;
@@ -923,12 +1578,12 @@ const HotelListing = () => {
             const currentPage = isReset ? 0 : pageRef.current;
             const baseRequest = {
                 // Use geo bounds if provided (map area search), otherwise use locationId
-                locationId: geoBounds ? null : locationId,
-                geo: geoBounds?.bounds || null,
-                zoom: geoBounds?.zoom || null,
+                locationId: activeGeoBounds ? null : locationId,
+                geo: activeGeoBounds?.bounds || null,
+                zoom: activeGeoBounds?.zoom || null,
                 size: 100,
                 filters: {
-                    locationIds: geoBounds
+                    locationIds: activeGeoBounds
                         ? [] // when searching by map bounds, don't restrict by locationId
                         : (filters.locations?.length > 0 ? filters.locations : (locationId ? [parseInt(locationId)] : null)),
                     stars: filters.stars,
@@ -953,8 +1608,8 @@ const HotelListing = () => {
                 signal: controller.signal
             };
             const req1 = hotelService.searchHotels({ ...baseRequest, page: currentPage });
-            const req2 = geoBounds ? null : hotelService.searchHotels({ ...baseRequest, page: currentPage + 1 });
-            const results = await Promise.allSettled(req2 ? [req1, req2] : [req1]);
+            const req2 = hotelService.searchHotels({ ...baseRequest, page: currentPage + 1 });
+            const results = await Promise.allSettled([req1, req2]);
             const res1 = results[0]?.status === 'fulfilled' ? results[0].value : null;
             const res2 = results[1]?.status === 'fulfilled' ? results[1].value : null;
             if (res1 && res1.data) {
@@ -972,8 +1627,7 @@ const HotelListing = () => {
                 });
                 setTotalProperties(pageData1.totalElements || 0);
                 if (currentPage === 0 && filtersData) setDynamicFilters(filtersData);
-                // When geoBounds search, treat as last page (no pagination)
-                const noMore = geoBounds ? true : (pageData1.last || pageData2?.last || combinedContent.length === 0);
+                const noMore = (pageData1.last || pageData2?.last || combinedContent.length === 0);
                 const nextHasMore = !noMore;
                 setHasMore(nextHasMore);
                 hasMoreRef.current = nextHasMore;
@@ -991,10 +1645,9 @@ const HotelListing = () => {
                     }
                 });
                 if (Object.keys(newLocationNames).length > 0) setLocationNames(prev => ({ ...prev, ...newLocationNames }));
-                // Only continue paginating if NOT a geo bounds search
-                if (!geoBounds && currentPage === 0 && nextHasMore) {
+                if (currentPage === 0 && nextHasMore) {
                     isFetchingRef.current = false;
-                    setTimeout(() => { loadMoreHotels(false); }, 50);
+                    setTimeout(() => { loadMoreHotels(false, activeGeoBounds); }, 50);
                     return;
                 }
             } else {
@@ -1091,16 +1744,11 @@ const HotelListing = () => {
                     locName = closestHotel.location.split(',')[0].trim();
                 }
 
-                if (locName || crumb?.locationId) {
+                if (locName) {
                     isMapSearchRef.current = true;
                     setSearchParams(prev => {
                         const newParams = new URLSearchParams(prev.toString());
-                        if (crumb?.locationId) {
-                            newParams.set('locationId', String(crumb.locationId));
-                        }
-                        if (locName) {
-                            newParams.set('q', locName);
-                        }
+                        newParams.set('q', locName);
                         return newParams;
                     }, { replace: true });
                 }
@@ -1185,11 +1833,29 @@ const HotelListing = () => {
         searchParams.get('roomMaxChildren'), searchParams.get('roomMaxExtraBed'), searchParams.get('facilities')
     ]);
 
-    // Close sort and layer dropdowns on outside click
+    // Close sort, layer, amenities, star, and price dropdowns on outside click
     React.useEffect(() => {
         const handleClickOutside = (event) => {
             if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) setIsSortOpen(false);
             if (layerMenuRef.current && !layerMenuRef.current.contains(event.target)) setIsLayerMenuOpen(false);
+            if (
+                amenitiesDropdownRef.current && !amenitiesDropdownRef.current.contains(event.target) &&
+                amenitiesBtnRef.current && !amenitiesBtnRef.current.contains(event.target)
+            ) {
+                setIsAmenitiesOpen(false);
+            }
+            if (
+                starDropdownRef.current && !starDropdownRef.current.contains(event.target) &&
+                starBtnRef.current && !starBtnRef.current.contains(event.target)
+            ) {
+                setIsStarOpen(false);
+            }
+            if (
+                priceDropdownRef.current && !priceDropdownRef.current.contains(event.target) &&
+                priceBtnRef.current && !priceBtnRef.current.contains(event.target)
+            ) {
+                setIsPriceOpen(false);
+            }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -1222,8 +1888,8 @@ const HotelListing = () => {
 
     // Filter chip handlers
     const handleStarChipToggle = (star) => {
-        const urlStars = searchParams.get('stars') ? searchParams.get('stars').split(',').map(Number) : [];
-        const newStars = urlStars.includes(star) ? urlStars.filter(s => s !== star) : [...urlStars, star];
+        const currentStars = searchParams.get('stars') ? searchParams.get('stars').split(',').map(Number) : [];
+        const newStars = currentStars.includes(star) ? currentStars.filter(s => s !== star) : [...currentStars, star];
         const newParams = new URLSearchParams(searchParams);
         if (newStars.length > 0) newParams.set('stars', newStars.join(','));
         else newParams.delete('stars');
@@ -1241,17 +1907,9 @@ const HotelListing = () => {
     const handleListScroll = React.useCallback((e) => {
         const { scrollTop, scrollHeight, clientHeight } = e.target;
         if (scrollHeight - scrollTop - clientHeight < 2500 && hasMoreRef.current && !isFetchingRef.current && hotels.length > 0) {
-            loadMoreHotels(false);
+            loadMoreHotels(false, mapBoundsRef.current);
         }
     }, [loadMoreHotels, hotels.length]);
-
-    // Invalidate map size on sidebar toggle
-    React.useEffect(() => {
-        if (mapInstance) {
-            const t = setTimeout(() => mapInstance.invalidateSize(), 350);
-            return () => clearTimeout(t);
-        }
-    }, [isFavOpen, mapInstance]);
 
     // Currency symbols
     const getCurrencySymbol = (code) => {
@@ -1259,7 +1917,30 @@ const HotelListing = () => {
         return sym[code] || code || '$';
     };
 
-    const urlStars = searchParams.get('stars') ? searchParams.get('stars').split(',').map(Number) : [];
+    const currentCurrencySymbol = React.useMemo(() => {
+        const hotelWithCurr = hotels.find(h => h.currency);
+        return getCurrencySymbol(hotelWithCurr ? hotelWithCurr.currency : 'TRY');
+    }, [hotels]);
+
+    const starChipLabel = React.useMemo(() => {
+        if (urlStars.length === 0) {
+            return currentLang === 'tr' ? 'Otel sınıfı' : currentLang === 'ar' ? 'فئة الفندق' : 'Hotel class';
+        }
+        if (urlStars.length === 1) {
+            return `${urlStars[0]} ${currentLang === 'tr' ? 'yıldızlı' : 'star'}`;
+        }
+        return `${urlStars.slice().sort((a,b) => a-b).join(', ')} ${currentLang === 'tr' ? 'yıldızlı' : 'stars'}`;
+    }, [urlStars, currentLang]);
+
+    const priceChipLabel = React.useMemo(() => {
+        if (isPriceActive) {
+            return `${currentCurrencySymbol}${priceRange[0].toLocaleString('tr-TR')} - ${currentCurrencySymbol}${priceRange[1].toLocaleString('tr-TR')}${priceRange[1] >= maxHotelPrice ? '+' : ''}`;
+        }
+        return currentLang === 'tr' ? 'Fiyat' : currentLang === 'ar' ? 'السعر' : 'Price';
+    }, [isPriceActive, priceRange, maxHotelPrice, currentCurrencySymbol, currentLang]);
+
+    const minPercent = Math.max(0, Math.min(100, (priceRange[0] / maxHotelPrice) * 100));
+    const maxPercent = Math.max(0, Math.min(100, (priceRange[1] / maxHotelPrice) * 100));
 
     // ════════════════════════════════════════════
     // RENDER
@@ -1273,77 +1954,513 @@ const HotelListing = () => {
             <div className="w-[62%] flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[4px_0_16px_rgba(0,0,0,0.12),1px_0_4px_rgba(0,0,0,0.06)] dark:shadow-[5px_0_20px_rgba(0,0,0,0.35)]">
 
                 {/* Search Context Bar */}
-                <div className="px-4 pt-4 pb-3 shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] flex items-center w-full relative z-50">
+                <div className="px-4 pt-4 pb-2 shrink-0 bg-white dark:bg-[#303134] flex items-center w-full relative z-50">
                     <ListingSearch />
                 </div>
 
                 {/* Filter Chips Row */}
                 <div className="relative shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] z-10">
-                        <div className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto scrollbar-hide">
-                        {/* All Filters */}
+                    <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto scrollbar-hide">
+                        {/* 1. All Filters - Google Outlined Button */}
                         <button
+                            type="button"
                             onClick={() => setIsFilterDrawerOpen(true)}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors ${activeFilterCount > 0 ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300' : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3.5 h-9 text-[#1a73e8] dark:text-blue-400 font-medium text-[13.5px] bg-white dark:bg-[#303134] hover:bg-blue-50/50 dark:hover:bg-blue-950/30 shrink-0 transition-colors select-none font-roboto"
                         >
-                            <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>tune</span>
-                            {currentLang === 'tr' ? 'Tüm filtreler' : currentLang === 'ar' ? 'كل الفلاتr' : currentLang === 'ru' ? 'Все фильтры' : 'All filters'}
+                            <span className="material-symbols-outlined text-[18px] text-[#1a73e8] dark:text-blue-400">tune</span>
+                            <span>{currentLang === 'tr' ? 'Tüm filtreler' : currentLang === 'ar' ? 'كل الفلاتر' : currentLang === 'ru' ? 'Все фильтры' : 'All filters'}</span>
                             {activeFilterCount > 0 && (
-                                <span className="bg-[#1a73e8] text-white text-[10px] font-bold rounded-lg min-w-[16px] h-4 flex items-center justify-center px-1 ml-0.5">
+                                <span className="bg-[#1a73e8] text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 ml-0.5">
                                     {activeFilterCount}
                                 </span>
                             )}
                         </button>
 
-                        {/* Property Type */}
+                        {/* 2. Price Quick Filter Chip */}
                         <button
-                            onClick={() => setIsFilterDrawerOpen(true)}
-                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[13px] text-[#3c4043] dark:text-slate-200 whitespace-nowrap shrink-0 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors"
+                            ref={priceBtnRef}
+                            type="button"
+                            onClick={handleTogglePrice}
+                            className={`flex items-center gap-1.5 border rounded-lg px-3.5 h-9 text-[13.5px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
+                                isPriceActive
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                    : isPriceOpen
+                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
+                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                            }`}
                         >
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>home</span>
-                            {currentLang === 'tr' ? 'Mülk türü' : currentLang === 'ar' ? 'نوع العقار' : 'Property type'}
+                            <span className={`material-symbols-outlined text-[18px] ${isPriceActive ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
+                                payments
+                            </span>
+                            <span>{priceChipLabel}</span>
+                            <span className={`material-symbols-outlined text-[18px] ${isPriceActive ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                {isPriceOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
+                            </span>
                         </button>
 
-                        {/* Free Cancellation */}
+                        {/* 3. Offers / Deals (Teklifler) */}
                         <button
+                            type="button"
                             onClick={handleFreeCancelChip}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors ${searchParams.get('freeCancellation') === 'true' ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300' : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                            className={`flex items-center gap-1.5 border rounded-lg px-3.5 h-9 text-[13.5px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
+                                searchParams.get('freeCancellation') === 'true'
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                            }`}
                         >
-                            {currentLang === 'tr' ? 'Ücretsiz iptal' : currentLang === 'ar' ? 'إلغاء مجاني' : currentLang === 'ru' ? 'Бесплатная отмена' : 'Free cancellation'}
+                            <span className={`material-symbols-outlined text-[18px] ${searchParams.get('freeCancellation') === 'true' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
+                                sell
+                            </span>
+                            <span>{currentLang === 'tr' ? 'Teklifler' : currentLang === 'ar' ? 'العروض' : 'Deals'}</span>
+                            <span className={`material-symbols-outlined text-[18px] ${searchParams.get('freeCancellation') === 'true' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                arrow_drop_down
+                            </span>
                         </button>
 
-                        {/* Guest Rating */}
+                        {/* 4. Hotel Star Rating Quick Filter Chip */}
                         <button
-                            onClick={() => setIsFilterDrawerOpen(true)}
-                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[13px] text-[#3c4043] dark:text-slate-200 whitespace-nowrap shrink-0 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors"
+                            ref={starBtnRef}
+                            type="button"
+                            onClick={handleToggleStar}
+                            className={`flex items-center gap-1.5 border rounded-lg px-3.5 h-9 text-[13.5px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
+                                urlStars.length > 0
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                    : isStarOpen
+                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
+                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                            }`}
                         >
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>star</span>
-                            {currentLang === 'tr' ? 'Konuk puanı' : currentLang === 'ar' ? 'تقييم النزلاء' : 'Guest rating'}
+                            <span className={`material-symbols-outlined text-[18px] ${urlStars.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
+                                stars
+                            </span>
+                            <span>{starChipLabel}</span>
+                            <span className={`material-symbols-outlined text-[18px] ${urlStars.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                {isStarOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
+                            </span>
                         </button>
 
-                        {/* Hotel class / star chips */}
+                        {/* 5. Amenities (Sunulan olanaklar) Quick Filter Button */}
                         <button
-                            onClick={() => setIsFilterDrawerOpen(true)}
-                            className={`flex items-center gap-1 border rounded-lg px-3 h-8 text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors ${urlStars.length > 0 ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300' : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                            ref={amenitiesBtnRef}
+                            type="button"
+                            onClick={handleToggleAmenities}
+                            className={`flex items-center gap-1.5 border rounded-lg px-3.5 h-9 text-[13.5px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
+                                selectedAmenities.length > 0
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                    : isAmenitiesOpen
+                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
+                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                            }`}
                         >
-                            <span style={{ color: '#fabb05', fontSize: '14px' }}>★</span>
-                            {currentLang === 'tr' ? 'Otel sınıfı' : currentLang === 'ar' ? 'فئة الفندق' : 'Hotel class'}
-                        </button>
-
-                        {/* Amenities */}
-                        <button
-                            onClick={() => setIsFilterDrawerOpen(true)}
-                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[13px] text-[#3c4043] dark:text-slate-200 whitespace-nowrap shrink-0 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors"
-                        >
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>wifi</span>
-                            {currentLang === 'tr' ? 'Sunulan olanaklar' : currentLang === 'ar' ? 'المرافق' : 'Amenities'}
+                            <span className={`material-symbols-outlined text-[18px] ${selectedAmenities.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
+                                room_service
+                            </span>
+                            <span>{currentLang === 'ar' ? 'المرافق' : 'Sunulan olanaklar'}</span>
+                            {selectedAmenities.length > 0 && (
+                                <span className="bg-[#1a73e8] text-white text-[10px] font-bold rounded-lg min-w-[16px] h-4 flex items-center justify-center px-1">
+                                    {selectedAmenities.length}
+                                </span>
+                            )}
+                            <span className={`material-symbols-outlined text-[18px] ${selectedAmenities.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                {isAmenitiesOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
+                            </span>
                         </button>
                     </div>
+
+                    <style>{`
+                        .google-range-slider::-webkit-slider-thumb {
+                            appearance: none;
+                            pointer-events: auto;
+                            width: 24px;
+                            height: 24px;
+                            border-radius: 50%;
+                            cursor: grab;
+                            opacity: 0;
+                        }
+                        .google-range-slider::-moz-range-thumb {
+                            pointer-events: auto;
+                            width: 24px;
+                            height: 24px;
+                            border-radius: 50%;
+                            cursor: grab;
+                            opacity: 0;
+                            border: none;
+                        }
+                    `}</style>
+
+                    {/* ════════════════════════════════════════════
+                        POPUP 1: Otel Sınıfı (Hotel Stars) Dropdown Overlay
+                    ════════════════════════════════════════════ */}
+                    {isStarOpen && (
+                        <>
+                            <div className="fixed inset-0 z-[2400] bg-transparent" onClick={() => setIsStarOpen(false)} />
+                            <div
+                                ref={starDropdownRef}
+                                style={{
+                                    top: `${starPosition.top}px`,
+                                    left: `${starPosition.left}px`
+                                }}
+                                className="fixed z-[2500] w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
+                            >
+                                {/* Header */}
+                                <div className="flex items-center justify-between pt-3.5 px-5 pb-1 shrink-0">
+                                    <h3 className="text-[16px] font-medium text-[#202124] dark:text-slate-100 font-roboto">
+                                        {currentLang === 'tr' ? 'Otel sınıfı' : currentLang === 'ar' ? 'فئة الفندق' : 'Hotel class'}
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsStarOpen(false)}
+                                        className="w-7 h-7 rounded-full flex items-center justify-center text-[#5f6368] hover:text-[#202124] dark:text-slate-400 dark:hover:text-white hover:bg-[#f1f3f4] dark:hover:bg-slate-700 transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">close</span>
+                                    </button>
+                                </div>
+
+                                {/* 2x2 Grid */}
+                                <div className="px-5 py-2">
+                                    <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-lg overflow-hidden">
+                                        {/* 2 Yıldızlı */}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleStarChipToggle(2)}
+                                            className={`py-3 px-2 text-center flex flex-col items-center justify-center border-r border-b border-[#dadce0] dark:border-slate-700 cursor-pointer transition-colors select-none ${
+                                                urlStars.includes(2)
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
+                                                    : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
+                                            }`}
+                                        >
+                                            <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(2) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
+                                                {currentLang === 'tr' ? '2 yıldızlı' : '2-star'}
+                                            </span>
+                                            <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(2) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                                {currentLang === 'tr' ? 'Sadece temel olanaklar' : 'Just the essentials'}
+                                            </span>
+                                        </button>
+
+                                        {/* 3 Yıldızlı */}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleStarChipToggle(3)}
+                                            className={`py-3 px-2 text-center flex flex-col items-center justify-center border-b border-[#dadce0] dark:border-slate-700 cursor-pointer transition-colors select-none ${
+                                                urlStars.includes(3)
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
+                                                    : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
+                                            }`}
+                                        >
+                                            <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(3) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
+                                                {currentLang === 'tr' ? '3 yıldızlı' : '3-star'}
+                                            </span>
+                                            <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(3) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                                {currentLang === 'tr' ? 'Kaliteli konfor' : 'Quality comfort'}
+                                            </span>
+                                        </button>
+
+                                        {/* 4 Yıldızlı */}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleStarChipToggle(4)}
+                                            className={`py-3 px-2 text-center flex flex-col items-center justify-center border-r border-[#dadce0] dark:border-slate-700 cursor-pointer transition-colors select-none ${
+                                                urlStars.includes(4)
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
+                                                    : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
+                                            }`}
+                                        >
+                                            <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(4) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
+                                                {currentLang === 'tr' ? '4 yıldızlı' : '4-star'}
+                                            </span>
+                                            <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(4) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                                {currentLang === 'tr' ? 'Çok sayıda ek hizmet' : 'Multiple amenities'}
+                                            </span>
+                                        </button>
+
+                                        {/* 5 Yıldızlı */}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleStarChipToggle(5)}
+                                            className={`py-3 px-2 text-center flex flex-col items-center justify-center cursor-pointer transition-colors select-none ${
+                                                urlStars.includes(5)
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
+                                                    : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
+                                            }`}
+                                        >
+                                            <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(5) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
+                                                {currentLang === 'tr' ? '5 yıldızlı' : '5-star'}
+                                            </span>
+                                            <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(5) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                                {currentLang === 'tr' ? 'Üst düzey hizmet' : 'Exceptional service'}
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Footer with Temizle */}
+                                <div className="px-5 pb-3 pt-0 flex justify-end items-center shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={handleClearStars}
+                                        disabled={urlStars.length === 0}
+                                        className={`text-[13px] font-medium font-roboto transition-colors select-none ${
+                                            urlStars.length > 0
+                                                ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded px-2 py-0.5 cursor-pointer'
+                                                : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
+                                        }`}
+                                    >
+                                        {currentLang === 'tr' ? 'Temizle' : currentLang === 'ar' ? 'مسح' : 'Clear'}
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* ════════════════════════════════════════════
+                        POPUP 2: Fiyat (Price) Dropdown Overlay
+                    ════════════════════════════════════════════ */}
+                    {isPriceOpen && (
+                        <>
+                            <div className="fixed inset-0 z-[2400] bg-transparent" onClick={() => setIsPriceOpen(false)} />
+                            <div
+                                ref={priceDropdownRef}
+                                style={{
+                                    top: `${pricePosition.top}px`,
+                                    left: `${pricePosition.left}px`
+                                }}
+                                className="fixed z-[2500] w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
+                            >
+                                {/* Header */}
+                                <div className="flex items-center justify-between pt-3.5 px-5 pb-1 shrink-0">
+                                    <h3 className="text-[16px] font-medium text-[#202124] dark:text-slate-100 font-roboto">
+                                        {currentLang === 'tr' ? 'Fiyat' : currentLang === 'ar' ? 'السعر' : 'Price'}
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsPriceOpen(false)}
+                                        className="w-7 h-7 rounded-full flex items-center justify-center text-[#5f6368] hover:text-[#202124] dark:text-slate-400 dark:hover:text-white hover:bg-[#f1f3f4] dark:hover:bg-slate-700 transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">close</span>
+                                    </button>
+                                </div>
+
+                                {/* Slider and Histogram Content */}
+                                <div className="px-10 pt-8 pb-3 flex flex-col">
+                                    {/* Histogram Bars */}
+                                    <div className="flex items-end gap-[2px] h-[34px] px-1 mb-0 relative z-0 pointer-events-none select-none">
+                                        {priceHistogram.map((item, idx) => (
+                                            <div
+                                                key={idx}
+                                                className="flex-1 bg-[#dadce0] dark:bg-slate-600 rounded-t-[2px] transition-all"
+                                                style={{ height: `${Math.round(item.height * 0.85)}px` }}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Range Slider Container */}
+                                    <div className="relative w-full h-7 flex items-center">
+                                        {/* Inactive Base Track */}
+                                        <div className="absolute left-0 right-0 h-[4px] bg-[#dadce0] dark:bg-slate-600 rounded-full pointer-events-none" />
+
+                                        {/* Active Track Highlight */}
+                                        <div
+                                            className="absolute h-[4px] bg-[#1a73e8] rounded-full pointer-events-none z-10"
+                                            style={{
+                                                left: `${minPercent}%`,
+                                                width: `${Math.max(0, maxPercent - minPercent)}%`
+                                            }}
+                                        />
+
+                                        {/* Left Thumb Dot */}
+                                        <div
+                                            className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-[18px] h-[18px] bg-[#1a73e8] rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.3)] pointer-events-none z-10"
+                                            style={{ left: `${minPercent}%` }}
+                                        />
+
+                                        {/* Left Tooltip Bubble */}
+                                        <div
+                                            className="absolute -top-8 bg-[#1a73e8] text-white text-[12px] font-medium px-2.5 py-0.5 rounded-full shadow-sm whitespace-nowrap pointer-events-none z-30 select-none flex items-center justify-center font-roboto"
+                                            style={{
+                                                left: `${minPercent}%`,
+                                                transform: minPercent < 15 ? `translateX(-${Math.max(15, minPercent * 3.3)}%)` : 'translateX(-50%)'
+                                            }}
+                                        >
+                                            <span>{currentCurrencySymbol}{priceRange[0].toLocaleString('tr-TR')}</span>
+                                            <div
+                                                className="absolute top-full w-0 h-0 border-x-[4px] border-x-transparent border-t-[4px] border-t-[#1a73e8]"
+                                                style={{
+                                                    left: minPercent < 15 ? `${Math.max(15, minPercent * 3.3)}%` : '50%',
+                                                    transform: 'translateX(-50%)'
+                                                }}
+                                            />
+                                        </div>
+
+                                        {/* Right Thumb Dot */}
+                                        <div
+                                            className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-[18px] h-[18px] bg-[#1a73e8] rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.3)] pointer-events-none z-10"
+                                            style={{ left: `${maxPercent}%` }}
+                                        />
+
+                                        {/* Right Tooltip Bubble */}
+                                        <div
+                                            className="absolute -top-8 bg-[#1a73e8] text-white text-[12px] font-medium px-2.5 py-0.5 rounded-full shadow-sm whitespace-nowrap pointer-events-none z-30 select-none flex items-center justify-center font-roboto"
+                                            style={{
+                                                left: `${maxPercent}%`,
+                                                transform: maxPercent > 85 ? `translateX(-${50 + (maxPercent - 85) * 2.3}%)` : 'translateX(-50%)'
+                                            }}
+                                        >
+                                            <span>{currentCurrencySymbol}{priceRange[1].toLocaleString('tr-TR')}{priceRange[1] >= maxHotelPrice ? '+' : ''}</span>
+                                            <div
+                                                className="absolute top-full w-0 h-0 border-x-[4px] border-x-transparent border-t-[4px] border-t-[#1a73e8]"
+                                                style={{
+                                                    left: maxPercent > 85 ? `${50 + (maxPercent - 85) * 2.3}%` : '50%',
+                                                    transform: 'translateX(-50%)'
+                                                }}
+                                            />
+                                        </div>
+
+                                        {/* Hidden interactive range inputs */}
+                                        <input
+                                            type="range"
+                                            min={0}
+                                            max={maxHotelPrice}
+                                            step={100}
+                                            value={priceRange[0]}
+                                            onChange={(e) => {
+                                                const val = Math.min(Number(e.target.value), priceRange[1] - 100);
+                                                setPriceRange([val, priceRange[1]]);
+                                                setIsPriceCustomized(true);
+                                            }}
+                                            className={`google-range-slider absolute inset-0 w-full pointer-events-none appearance-none bg-transparent ${priceRange[0] > maxHotelPrice * 0.5 ? 'z-30' : 'z-20'}`}
+                                        />
+                                        <input
+                                            type="range"
+                                            min={0}
+                                            max={maxHotelPrice}
+                                            step={100}
+                                            value={priceRange[1]}
+                                            onChange={(e) => {
+                                                const val = Math.max(Number(e.target.value), priceRange[0] + 100);
+                                                setPriceRange([priceRange[0], val]);
+                                                setIsPriceCustomized(true);
+                                            }}
+                                            className={`google-range-slider absolute inset-0 w-full pointer-events-none appearance-none bg-transparent ${priceRange[1] <= maxHotelPrice * 0.5 ? 'z-30' : 'z-20'}`}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Footer with Temizle */}
+                                <div className="px-5 pb-3 pt-0 flex justify-end items-center shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={handleClearPrice}
+                                        disabled={!isPriceActive}
+                                        className={`text-[13px] font-medium font-roboto transition-colors select-none ${
+                                            isPriceActive
+                                                ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded px-2 py-0.5 cursor-pointer'
+                                                : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
+                                        }`}
+                                    >
+                                        {currentLang === 'tr' ? 'Temizle' : currentLang === 'ar' ? 'مسح' : 'Clear'}
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* ════════════════════════════════════════════
+                        POPUP 3: Sunulan Olanaklar Dropdown Popup Overlay
+                    ════════════════════════════════════════════ */}
+                    {isAmenitiesOpen && (
+                        <>
+                            <div className="fixed inset-0 z-[2400] bg-transparent" onClick={() => setIsAmenitiesOpen(false)} />
+                            <div
+                                ref={amenitiesDropdownRef}
+                                style={{
+                                    top: `${amenitiesPosition.top}px`,
+                                    left: `${amenitiesPosition.left}px`
+                                }}
+                                className="fixed z-[2500] w-[350px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
+                            >
+                                {/* Header */}
+                                <div className="flex items-center justify-between pt-3.5 px-5 pb-1 shrink-0">
+                                    <h3 className="text-[16px] font-medium text-[#202124] dark:text-slate-100 font-roboto">
+                                        {currentLang === 'ar' ? 'المرافق' : 'Sunulan olanaklar'}
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAmenitiesOpen(false)}
+                                        className="w-7 h-7 rounded-full flex items-center justify-center text-[#5f6368] hover:text-[#202124] dark:text-slate-400 dark:hover:text-white hover:bg-[#f1f3f4] dark:hover:bg-slate-700 transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">close</span>
+                                    </button>
+                                </div>
+
+                                {/* 2-Column Grid */}
+                                <div className="px-5 py-2 max-h-[420px] overflow-y-auto custom-scrollbar">
+                                    <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-lg overflow-hidden">
+                                        {QUICK_AMENITIES.map((amenity, index) => {
+                                            const isSelected = selectedAmenities.includes(amenity.id);
+                                            const label = currentLang === 'ar' ? (amenity.labelAr || amenity.labelTr) : amenity.labelTr;
+                                            const isLeftCol = index % 2 === 0;
+                                            const totalRows = Math.ceil(QUICK_AMENITIES.length / 2);
+                                            const currentRow = Math.floor(index / 2);
+                                            const isLastRow = currentRow === totalRows - 1;
+
+                                            return (
+                                                <button
+                                                    key={amenity.id}
+                                                    type="button"
+                                                    onClick={() => handleToggleAmenity(amenity.id)}
+                                                    className={`flex flex-col items-center justify-center py-3 px-2 text-center cursor-pointer transition-colors select-none ${
+                                                        isLeftCol ? 'border-r border-[#dadce0] dark:border-slate-700' : ''
+                                                    } ${
+                                                        !isLastRow ? 'border-b border-[#dadce0] dark:border-slate-700' : ''
+                                                    } ${
+                                                        isSelected
+                                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                                            : 'bg-white dark:bg-[#303134] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700/60'
+                                                    }`}
+                                                >
+                                                    <span
+                                                        className={`material-symbols-outlined text-[22px] mb-1 transition-colors ${
+                                                            isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'
+                                                        }`}
+                                                    >
+                                                        {amenity.icon}
+                                                    </span>
+                                                    <span className="text-[12.5px] leading-tight font-roboto">
+                                                        {label}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                        {QUICK_AMENITIES.length % 2 !== 0 && (
+                                            <div className="bg-white dark:bg-[#303134]" />
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Footer with Temizle */}
+                                <div className="px-5 pb-3 pt-0 flex justify-end items-center shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={handleClearAmenities}
+                                        disabled={selectedAmenities.length === 0}
+                                        className={`text-[13px] font-medium font-roboto transition-colors select-none ${
+                                            selectedAmenities.length > 0
+                                                ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded px-2 py-0.5 cursor-pointer'
+                                                : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
+                                        }`}
+                                    >
+                                        {currentLang === 'ar' ? 'مسح' : 'Temizle'}
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
 
                     {/* Filter Popup Overlay */}
                     {isFilterDrawerOpen && (
                         <>
                             <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsFilterDrawerOpen(false)} />
-                            <div className="absolute top-full left-4 mt-2 w-[360px] max-w-[90vw] bg-white dark:bg-[#303134] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-[#dadce0] dark:border-slate-700 z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+                            <div className="absolute top-full left-4 mt-0 w-[360px] max-w-[90vw] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2" style={{ maxHeight: 'calc(100vh - 200px)' }}>
                                 <div className="flex items-center justify-between px-5 py-4 border-b border-[#e8eaed] dark:border-slate-700 shrink-0">
                                     <h2 className="text-[15px] font-medium text-[#3c4043] dark:text-slate-100">
                                         {currentLang === 'tr' ? 'Filtreler' : currentLang === 'ar' ? 'الفلاتر' : currentLang === 'ru' ? 'Фильтры' : 'Filters'}
@@ -1353,7 +2470,7 @@ const HotelListing = () => {
                                     </button>
                                 </div>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                    <Sidebar filters={dynamicFilters} locationNames={locationNames} facilityNames={facilityNames} />
+                                    <Sidebar filters={dynamicFilters} locationNames={locationNames} facilityNames={facilityNames} hideHeader={true} />
                                 </div>
                                 <div className="px-5 py-3 border-t border-[#e8eaed] dark:border-slate-700 flex justify-between items-center bg-[#f8f9fa] dark:bg-slate-800 shrink-0">
                                     <span className="text-[13px] text-[#70757a]">{hotels.length} {currentLang === 'tr' ? 'sonuç' : 'results'}</span>
@@ -1370,38 +2487,46 @@ const HotelListing = () => {
                 </div>
 
                     {/* Results count + Sort row */}
-                    <div className="flex items-center justify-between px-4 py-2 shrink-0 bg-white dark:bg-[#303134]">
-                        <p className="text-[13px] text-[#3c4043] dark:text-slate-300 truncate">
+                    <div className="flex items-center justify-between px-4 py-2.5 shrink-0 bg-white dark:bg-[#303134]">
+                        <p className="text-[15.5px] font-medium text-[#202124] dark:text-slate-100 font-roboto tracking-tight truncate">
                             {resultsText}
                         </p>
-                        {/* Sort dropdown */}
-                        <div className="relative shrink-0 ml-2" ref={sortDropdownRef}>
-                            <button
-                                onClick={() => setIsSortOpen(!isSortOpen)}
-                                className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 py-1.5 transition-colors"
+                        <div className="flex items-center gap-2 shrink-0">
+                            {/* Sort dropdown */}
+                            <div className="relative shrink-0" ref={sortDropdownRef}>
+                                <button
+                                    onClick={() => setIsSortOpen(!isSortOpen)}
+                                    className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 py-1.5 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
+                                    <span className="hidden sm:inline text-[13px] font-medium">{currentSortOption.label}</span>
+                                    <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
+                                </button>
+                                {isSortOpen && (
+                                    <div className="absolute right-0 top-full mt-1 w-[240px] bg-white dark:bg-[#303134] rounded-2xl border border-[#e8eaed] dark:border-slate-700 shadow-xl z-[200] py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                                        {sortOptions.map(opt => {
+                                            const isSelected = opt.value === currentSortValue;
+                                            return (
+                                                <button
+                                                    key={opt.value}
+                                                    onClick={() => handleSortSelect(opt.value)}
+                                                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-left transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] font-medium' : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                                                >
+                                                    <span className={`material-symbols-outlined ${isSelected ? 'text-[#1a73e8]' : 'text-[#70757a]'}`} style={{ fontSize: '18px' }}>{opt.icon}</span>
+                                                    <span className="flex-1">{opt.label}</span>
+                                                    {isSelected && <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>check</span>}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                            <span 
+                                className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 hover:text-[#202124] dark:hover:text-white cursor-pointer select-none"
+                                title="Sonuç bilgisi"
                             >
-                                <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
-                                <span className="hidden sm:inline text-[13px]">{currentSortOption.label}</span>
-                                <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
-                            </button>
-                            {isSortOpen && (
-                                <div className="absolute right-0 top-full mt-1 w-[240px] bg-white dark:bg-[#303134] rounded-2xl border border-[#e8eaed] dark:border-slate-700 shadow-xl z-[200] py-1.5 animate-in fade-in zoom-in-95 duration-150">
-                                    {sortOptions.map(opt => {
-                                        const isSelected = opt.value === currentSortValue;
-                                        return (
-                                            <button
-                                                key={opt.value}
-                                                onClick={() => handleSortSelect(opt.value)}
-                                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-left transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] font-medium' : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
-                                            >
-                                                <span className={`material-symbols-outlined ${isSelected ? 'text-[#1a73e8]' : 'text-[#70757a]'}`} style={{ fontSize: '18px' }}>{opt.icon}</span>
-                                                <span className="flex-1">{opt.label}</span>
-                                                {isSelected && <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>check</span>}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                                info
+                            </span>
                         </div>
                     </div>
                 {/* ── Scrollable Hotel List ── */}
@@ -1416,7 +2541,7 @@ const HotelListing = () => {
                     )}
 
                     {/* Hotel cards */}
-                    {hotels.map(hotel => (
+                    {displayedHotels.map(hotel => (
                         <GoogleHotelCard
                             key={hotel.id}
                             hotel={hotel}
@@ -1426,7 +2551,7 @@ const HotelListing = () => {
                             onHover={setHoveredHotel}
                             onSelect={setSelectedHotel}
                             currentLang={currentLang}
-                            isFav={isFavorite(String(hotel.hotelId))}
+                            isFav={isFavorite(String(hotel.hotelId || hotel.id))}
                             onToggleFav={() => toggleFavorite(hotel)}
                         />
                     ))}
@@ -1447,7 +2572,27 @@ const HotelListing = () => {
                         )}
                     </div>
 
-                    {/* Empty state */}
+                    {/* Empty state for filtered quick amenities */}
+                    {displayedHotels.length === 0 && hotels.length > 0 && !isLoading && (
+                        <div className="flex flex-col items-center justify-center py-20 text-center px-8">
+                            <span className="material-symbols-outlined text-5xl text-[#dadce0] dark:text-slate-600 mb-4">filter_alt_off</span>
+                            <h3 className="text-[16px] font-medium text-[#3c4043] dark:text-slate-200 mb-2">
+                                {currentLang === 'tr' ? 'Seçilen filtrelere uygun otel bulunamadı' : 'No properties match your filters'}
+                            </h3>
+                            <p className="text-[13px] text-[#70757a] dark:text-slate-400 mb-4">
+                                {currentLang === 'tr' ? 'Olanak filtrelerini temizleyerek diğer sonuçları görebilirsiniz.' : 'Try adjusting or clearing your filters to see more results.'}
+                            </p>
+                            <button
+                                onClick={handleClearAmenities}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1a73e8] hover:bg-[#1558d6] text-white text-[13px] font-medium rounded-full transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">close</span>
+                                {currentLang === 'tr' ? 'Olanak filtrelerini temizle' : 'Clear amenity filters'}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Empty state when no hotels returned from search */}
                     {hotels.length === 0 && !isLoading && (
                         <div className="flex flex-col items-center justify-center py-20 text-center px-8">
                             <span className="material-symbols-outlined text-5xl text-[#dadce0] dark:text-slate-600 mb-4">search_off</span>
@@ -1465,7 +2610,7 @@ const HotelListing = () => {
             {/* ════════════════════════════════════════════
                 RIGHT PANEL: Map & Favorites Sidebar
             ════════════════════════════════════════════ */}
-            <div className="flex-1 relative flex">
+            <div className="flex-1 relative flex overflow-hidden">
                 <div className="flex-1 relative overflow-hidden">
                     {/* Top inner shadow - Soft realistic inset shadow inside the top of the map */}
                     <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_6px_8px_-3px_rgba(0,0,0,0.14),inset_0_2px_4px_-1px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_8px_12px_-3px_rgba(0,0,0,0.35)]" />
@@ -1488,7 +2633,7 @@ const HotelListing = () => {
                         <MapInstanceCapture setMap={setMapInstance} />
 
                         {/* Price markers for hotels with coordinates */}
-                        {hotels
+                        {displayedHotels
                             .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)))
                             .map(hotel => (
                                 <PriceMarker
@@ -1500,13 +2645,15 @@ const HotelListing = () => {
                                     onHover={setHoveredHotel}
                                     searchParams={searchParams}
                                     currencySymbol={getCurrencySymbol(hotel.currency)}
+                                    isFav={isFavorite(String(hotel.hotelId || hotel.id))}
+                                    currentLang={currentLang}
                                 />
                             ))
                         }
 
                         {/* Auto-fit to hotel bounds */}
                         <MapFitControl
-                            hotels={hotels}
+                            hotels={displayedHotels}
                             shouldRefit={shouldRefitMap}
                             onRefitDone={React.useCallback(() => setShouldRefitMap(false), [])}
                         />
@@ -1552,12 +2699,13 @@ const HotelListing = () => {
                             onClick={() => {
                                 isUserPanRef.current = false;
                                 isMapSearchRef.current = true;
+                                setShouldRefitMap(false);
                                 setMapMoved(false);
                                 loadMoreHotels(true, mapBoundsRef.current);
                             }}
                             className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 border border-[#dadce0] dark:border-slate-600 rounded-full px-4 py-2 text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shadow-md transition-colors cursor-pointer"
                         >
-                            <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>refresh</span>
+                            <span className={`material-symbols-outlined text-[#1a73e8] ${isLoading ? 'animate-spin' : ''}`} style={{ fontSize: '18px' }}>refresh</span>
                             {currentLang === 'tr' ? 'Listeyi güncelle' : 'Search this area'}
                         </button>
                     )}
@@ -1621,134 +2769,121 @@ const HotelListing = () => {
                         )}
                     </div>
                 </div>
-
-                {/* Initial map loading overlay */}
-                {isLoading && hotels.length === 0 && (
-                    <div className="absolute inset-0 z-[1002] bg-white/70 dark:bg-[#202124]/75 backdrop-blur-xs flex flex-col items-center justify-center transition-all duration-300 pointer-events-auto">
-                        <div className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 shadow-2xl rounded-2xl px-6 py-5 flex flex-col items-center text-center max-w-[290px] animate-in fade-in zoom-in-95 duration-200">
-                            <div className="relative w-12 h-12 flex items-center justify-center mb-3">
-                                <div className="absolute inset-0 rounded-full border-3 border-[#1a73e8]/20 border-t-[#1a73e8] animate-spin" />
-                                <span className="material-symbols-outlined text-[#1a73e8] text-[22px]">
-                                    location_on
-                                </span>
-                            </div>
-                            <div className="text-[14px] font-semibold text-[#202124] dark:text-white">
-                                {locationName || initialMapState.label || (currentLang === 'tr' ? 'Bölge Haritası' : 'Area Map')}
-                            </div>
-                            <div className="text-[12px] text-gray-500 dark:text-slate-400 mt-1">
-                                {currentLang === 'tr' ? 'Oteller ve fiyatlar haritaya yerleştiriliyor...' : 'Loading hotels and prices onto map...'}
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
 
-            {/* Favorites Right Sidebar (Google Style) */}
+            {/* Favorites Right Sidebar Dock (Google Style - Fixed width) */}
             <div 
-                className={`relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 transition-all duration-300 flex flex-col z-[2000] shadow-[-4px_0_16px_rgba(0,0,0,0.12),-1px_0_4px_rgba(0,0,0,0.06)] dark:shadow-[-5px_0_20px_rgba(0,0,0,0.35)] ${isFavOpen ? 'w-[380px]' : 'w-[58px]'}`}
-                onMouseEnter={() => setIsFavOpen(true)}
-                onMouseLeave={() => setIsFavOpen(false)}
+                className="w-[58px] shrink-0 relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 flex flex-col z-[2000]"
+                onMouseEnter={handleFavMouseEnter}
+                onMouseLeave={handleFavMouseLeave}
             >
-                {!isFavOpen ? (
-                    <div className="flex flex-col items-center w-full bg-white dark:bg-[#202124]">
-                        {/* Top bookmark button block matching screenshot */}
-                        <button 
-                            onClick={() => setIsFavOpen(true)}
-                            title={currentLang === 'tr' ? 'Seyahat planlarınız ve kaydedilenler' : 'Saved travel plans'}
-                            className="w-full h-[56px] bg-white dark:bg-[#202124] flex items-center justify-center border-b border-[#dadce0] dark:border-slate-700 shadow-[0_2px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] hover:bg-[#f8f9fa] dark:hover:bg-slate-800 transition-colors cursor-pointer relative z-10 group"
+                <div className="flex flex-col items-center w-full bg-white dark:bg-[#202124]">
+                    {/* Top bookmark button block matching screenshot */}
+                    <button 
+                        onClick={handleFavButtonClick}
+                        title={currentLang === 'tr' ? 'Seyahat planlarınız ve kaydedilenler' : 'Saved travel plans'}
+                        className="w-full h-[56px] bg-white dark:bg-[#202124] flex items-center justify-center border-b border-[#dadce0] dark:border-slate-700 shadow-[0_2px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] hover:bg-[#f8f9fa] dark:hover:bg-slate-800 transition-colors cursor-pointer relative z-10 group"
+                    >
+                        <span 
+                            className="material-symbols-outlined text-[25px] text-[#3c4043] dark:text-slate-200 group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors"
+                            style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}
                         >
-                            <span 
-                                className="material-symbols-outlined text-[25px] text-[#3c4043] dark:text-slate-200 group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors"
-                                style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}
-                            >
-                                bookmarks
+                            bookmarks
+                        </span>
+                        {favorites.length > 0 && (
+                            <span className="absolute top-1.5 right-1.5 bg-[#1a73e8] text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] px-0.5 flex items-center justify-center shadow-xs">
+                                {favorites.length}
                             </span>
-                            {favorites.length > 0 && (
-                                <span className="absolute top-1.5 right-1.5 bg-[#1a73e8] text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] px-0.5 flex items-center justify-center shadow-xs">
-                                    {favorites.length}
-                                </span>
-                            )}
-                        </button>
+                        )}
+                    </button>
 
-                        {/* Circular thumbnails underneath */}
-                        <div className="flex flex-col gap-3 py-3.5 items-center w-full">
-                            {favorites.slice(0, 6).map(fav => (
+                    {/* Circular thumbnails underneath */}
+                    <div className="flex flex-col gap-3 py-3.5 items-center w-full">
+                        {favorites.slice(0, 6).map(fav => (
+                            <div 
+                                key={fav.hotelId || fav.id} 
+                                onClick={handleFavButtonClick}
+                                title={fav.name || fav.hotelName || fav.names?.en || 'Otel'}
+                                className="w-9 h-9 rounded-full overflow-hidden cursor-pointer hover:scale-105 transition-transform"
+                            >
+                                <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Favorites Overlay Drawer (Floats over the map without changing map dimensions) */}
+            <div 
+                className={`absolute top-0 right-0 h-full w-[380px] bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 shadow-[-8px_0_24px_rgba(0,0,0,0.16),-2px_0_6px_rgba(0,0,0,0.08)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.6)] flex flex-col z-[2010] transform transition-transform duration-300 ease-in-out ${
+                    isFavOpen 
+                        ? 'translate-x-0 pointer-events-auto' 
+                        : 'translate-x-full pointer-events-none'
+                }`}
+                onMouseEnter={handleFavMouseEnter}
+                onMouseLeave={handleFavMouseLeave}
+            >
+                <div className="flex items-center justify-between p-4 pb-3 border-b border-[#f1f3f4] dark:border-slate-700/60">
+                    <div>
+                        <h2 className="text-[17px] font-medium text-[#202124] dark:text-white">{currentLang === 'tr' ? 'Seyahat planlarınız' : 'Your travel plans'}</h2>
+                        <p className="text-[12px] text-[#70757a] dark:text-slate-400">{favorites.length} {currentLang === 'tr' ? 'kayıtlı otel' : 'saved hotels'}</p>
+                    </div>
+                    <button 
+                        onClick={handleCloseFav} 
+                        className="w-9 h-9 rounded-full hover:bg-[#f1f3f4] dark:hover:bg-slate-700 flex items-center justify-center text-[#5f6368] dark:text-slate-400 transition-colors cursor-pointer"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+                <div className="flex-1 overflow-y-auto bg-white dark:bg-[#202124]">
+                    {favorites.length === 0 ? (
+                        <div className="text-center mt-12 px-6">
+                            <div className="w-14 h-14 mx-auto rounded-full bg-[#f1f3f4] dark:bg-slate-700/60 flex items-center justify-center mb-3">
+                                <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 text-3xl">bookmark_border</span>
+                            </div>
+                            <h3 className="text-[15px] font-medium text-[#202124] dark:text-white mb-2">{currentLang === 'tr' ? 'Burada henüz bir şey yok' : 'Nothing here yet'}</h3>
+                            <p className="text-[13px] text-[#70757a] dark:text-slate-400 leading-relaxed">{currentLang === 'tr' ? 'Beğendiğiniz otellerin üzerindeki yer imi simgesine tıklayarak buraya kaydedebilirsiniz' : 'Save hotels here by clicking the bookmark icon on properties you like'}</p>
+                        </div>
+                    ) : (
+                        <div className="p-4 flex flex-col gap-3">
+                            {favorites.map(fav => (
                                 <div 
                                     key={fav.hotelId || fav.id} 
-                                    onClick={() => setIsFavOpen(true)}
-                                    title={fav.name || fav.hotelName || fav.names?.en || 'Otel'}
-                                    className="w-9 h-9 rounded-full overflow-hidden cursor-pointer hover:scale-105 transition-transform"
+                                    className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-slate-700 p-3 flex gap-3 cursor-pointer hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50 hover:shadow-sm transition-all"
+                                    onClick={() => window.open(`/travel/hotels/detail/${fav.hotelId || fav.id}`, '_blank')}
                                 >
-                                    <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
+                                    <div className="shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-[#f1f3f4] dark:bg-slate-800">
+                                        <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
+                                    </div>
+                                    <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
+                                        <h4 className="text-[14px] font-semibold text-[#3c4043] dark:text-white leading-[1.25] line-clamp-2">{fav.name || fav.hotelName || fav.names?.en || 'Otel'}</h4>
+                                        <div className="flex items-center gap-1 mt-1 text-[12px] text-[#70757a] dark:text-slate-400">
+                                            {fav.rating && (
+                                                <>
+                                                    <span className="font-semibold text-[#3c4043] dark:text-slate-200">{fav.rating}</span>
+                                                    <span className="material-symbols-outlined text-[#fbbc04] text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                                                    <span>({fav.reviewCount || 100})</span>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div className="text-[12px] text-[#70757a] dark:text-slate-400 mt-0.5 truncate">
+                                            {fav.stars ? `${fav.stars} yıldızlı otel` : 'Otel'}
+                                        </div>
+                                    </div>
+                                    <div className="shrink-0 flex items-center justify-center">
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }} 
+                                            title={currentLang === 'tr' ? 'Kaydedilenlerden kaldır' : 'Remove from saved'}
+                                            className="w-9 h-9 rounded-full border border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 hover:border-red-200 flex items-center justify-center transition-colors shadow-xs"
+                                        >
+                                            <span className="material-symbols-outlined text-[#1a73e8] dark:text-[#8ab4f8] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
-                    </div>
-                ) : (
-                    <div className="flex flex-col h-full bg-white dark:bg-[#202124]">
-                        <div className="flex items-center justify-between p-4 pb-3 border-b border-[#f1f3f4] dark:border-slate-700/60">
-                            <div>
-                                <h2 className="text-[17px] font-medium text-[#202124] dark:text-white">{currentLang === 'tr' ? 'Seyahat planlarınız' : 'Your travel plans'}</h2>
-                                <p className="text-[12px] text-[#70757a] dark:text-slate-400">{favorites.length} {currentLang === 'tr' ? 'kayıtlı otel' : 'saved hotels'}</p>
-                            </div>
-                            <button 
-                                onClick={() => setIsFavOpen(false)} 
-                                className="w-9 h-9 rounded-full hover:bg-[#f1f3f4] dark:hover:bg-slate-700 flex items-center justify-center text-[#5f6368] dark:text-slate-400 transition-colors"
-                            >
-                                <span className="material-symbols-outlined text-[20px]">close</span>
-                            </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto bg-white dark:bg-[#202124]">
-                            {favorites.length === 0 ? (
-                                <div className="text-center mt-12 px-6">
-                                    <div className="w-14 h-14 mx-auto rounded-full bg-[#f1f3f4] dark:bg-slate-700/60 flex items-center justify-center mb-3">
-                                        <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 text-3xl">bookmark_border</span>
-                                    </div>
-                                    <h3 className="text-[15px] font-medium text-[#202124] dark:text-white mb-2">{currentLang === 'tr' ? 'Burada henüz bir şey yok' : 'Nothing here yet'}</h3>
-                                    <p className="text-[13px] text-[#70757a] dark:text-slate-400 leading-relaxed">{currentLang === 'tr' ? 'Beğendiğiniz otellerin üzerindeki yer imi simgesine tıklayarak buraya kaydedebilirsiniz' : 'Save hotels here by clicking the bookmark icon on properties you like'}</p>
-                                </div>
-                            ) : (
-                                <div className="p-4 flex flex-col gap-3">
-                                    {favorites.map(fav => (
-                                        <div 
-                                            key={fav.hotelId || fav.id} 
-                                            className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-slate-700 p-3 flex gap-3 cursor-pointer hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50 hover:shadow-sm transition-all"
-                                            onClick={() => window.open(`/travel/hotels/detail/${fav.hotelId || fav.id}`, '_blank')}
-                                        >
-                                            <div className="shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-[#f1f3f4] dark:bg-slate-800">
-                                                <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
-                                            </div>
-                                            <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
-                                                <h4 className="text-[14px] font-semibold text-[#3c4043] dark:text-white leading-[1.25] line-clamp-2">{fav.name || fav.hotelName || fav.names?.en || 'Otel'}</h4>
-                                                <div className="flex items-center gap-1 mt-1 text-[12px] text-[#70757a] dark:text-slate-400">
-                                                    {fav.rating && (
-                                                        <>
-                                                            <span className="font-semibold text-[#3c4043] dark:text-slate-200">{fav.rating}</span>
-                                                            <span className="material-symbols-outlined text-[#fbbc04] text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                                                            <span>({fav.reviewCount || 100})</span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                                <div className="text-[12px] text-[#70757a] dark:text-slate-400 mt-0.5 truncate">
-                                                    {fav.stars ? `${fav.stars} yıldızlı otel` : 'Otel'}
-                                                </div>
-                                            </div>
-                                            <div className="shrink-0 flex items-center justify-center">
-                                                <button 
-                                                    onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }} 
-                                                    title={currentLang === 'tr' ? 'Kaydedilenlerden kaldır' : 'Remove from saved'}
-                                                    className="w-9 h-9 rounded-full border border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 hover:border-red-200 flex items-center justify-center transition-colors shadow-xs"
-                                                >
-                                                    <span className="material-symbols-outlined text-[#1a73e8] dark:text-[#8ab4f8] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
             </div>
         </div>

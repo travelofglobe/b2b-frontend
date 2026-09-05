@@ -27,9 +27,10 @@ L.Marker.prototype.options.icon = DefaultIcon;
 import { LISTING_LOCALES, AMENITY_LOCALES, getAmenityText, getLayerLabel, tListing } from '../utils/hotelListingLocales';
 
 // ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // Map Fit Control - auto-fits map to hotel bounds
 // ═══════════════════════════════════════════════
-const MapFitControl = ({ hotels, shouldRefit, onRefitDone }) => {
+const MapFitControl = ({ hotels, shouldRefit, onRefitDone, isProgrammaticMoveRef }) => {
     const map = useMap();
     React.useEffect(() => {
         if (!shouldRefit || hotels.length === 0) return;
@@ -38,43 +39,110 @@ const MapFitControl = ({ hotels, shouldRefit, onRefitDone }) => {
         try {
             const bounds = L.latLngBounds(valid.map(h => [parseFloat(h.lat), parseFloat(h.lng)]));
             if (bounds.isValid()) {
+                if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+
+                // Clear the programmatic flag after the fit animation and any resulting events have settled
+                map.once('moveend', () => {
+                    setTimeout(() => {
+                        if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                    }, 300);
+                });
+
                 map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14, animate: true, duration: 0.8 });
                 onRefitDone();
+
+                // Fallback timeout in case moveend doesn't fire
+                const timer = setTimeout(() => {
+                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                }, 1500);
+                return () => clearTimeout(timer);
             }
-        } catch (_e) { /* ignore */ }
-    }, [shouldRefit, hotels, map, onRefitDone]);
+        } catch (_e) {
+            if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+        }
+    }, [shouldRefit, hotels, map, onRefitDone, isProgrammaticMoveRef]);
     return null;
 };
 
 // ═══════════════════════════════════════════════
-// Map Bounds Watcher - triggers search on map move (user interactions only)
+// Map Bounds Watcher - triggers search on map move or zoom (user interactions)
 // ═══════════════════════════════════════════════
-const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved, isUserPanRef }) => {
-    useMapEvents({
-        mousedown: () => { if (isUserPanRef) isUserPanRef.current = true; },
-        wheel: () => { if (isUserPanRef) isUserPanRef.current = true; },
-        touchstart: () => { if (isUserPanRef) isUserPanRef.current = true; },
-        moveend: (e) => {
-            if (isUserPanRef && !isUserPanRef.current) return;
-            if (isUserPanRef) isUserPanRef.current = false;
-            const map = e.target;
+const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved, isProgrammaticMoveRef }) => {
+    const debounceTimerRef = React.useRef(null);
+    const lastBoundsDataRef = React.useRef(null);
+
+    const handleUpdate = React.useCallback((map) => {
+        if (isProgrammaticMoveRef && isProgrammaticMoveRef.current) {
+            return;
+        }
+
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+
+        debounceTimerRef.current = setTimeout(() => {
+            if (isProgrammaticMoveRef && isProgrammaticMoveRef.current) {
+                return;
+            }
+
             const bounds = map.getBounds();
             const nw = bounds.getNorthWest();
             const se = bounds.getSouthEast();
+            const currentZoom = map.getZoom();
+
             const boundsData = {
                 bounds: {
                     topLeft: { lat: nw.lat, lon: nw.lng },
                     bottomRight: { lat: se.lat, lon: se.lng }
                 },
-                zoom: map.getZoom()
+                zoom: currentZoom
             };
+
+            // Avoid duplicate triggers if bounds and zoom haven't actually changed
+            const prev = lastBoundsDataRef.current;
+            if (prev) {
+                const eps = 0.000001;
+                if (
+                    prev.zoom === currentZoom &&
+                    Math.abs(prev.bounds.topLeft.lat - boundsData.bounds.topLeft.lat) < eps &&
+                    Math.abs(prev.bounds.topLeft.lon - boundsData.bounds.topLeft.lon) < eps &&
+                    Math.abs(prev.bounds.bottomRight.lat - boundsData.bounds.bottomRight.lat) < eps &&
+                    Math.abs(prev.bounds.bottomRight.lon - boundsData.bounds.bottomRight.lon) < eps
+                ) {
+                    return;
+                }
+            }
+
+            lastBoundsDataRef.current = boundsData;
+
             if (searchOnMove) {
                 onBoundsChange(boundsData);
             } else {
                 onMapMoved?.(boundsData);
             }
+        }, 150);
+    }, [searchOnMove, onBoundsChange, onMapMoved, isProgrammaticMoveRef]);
+
+    useMapEvents({
+        dragstart: () => {
+            if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+        },
+        moveend: (e) => {
+            handleUpdate(e.target);
+        },
+        zoomend: (e) => {
+            handleUpdate(e.target);
         }
     });
+
+    React.useEffect(() => {
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, []);
+
     return null;
 };
 
@@ -1020,6 +1088,7 @@ const HotelListing = () => {
     const layerMenuRef = React.useRef(null);
     const mapBoundsRef = React.useRef(null); // stores last known bounds for manual search
     const isUserPanRef = React.useRef(false);
+    const isProgrammaticMoveRef = React.useRef(false);
     const isMapSearchRef = React.useRef(false);
     const listScrollRef = React.useRef(null);
     const loaderRef = React.useRef(null);
@@ -2594,6 +2663,7 @@ const HotelListing = () => {
                             hotels={displayedHotels}
                             shouldRefit={shouldRefitMap}
                             onRefitDone={React.useCallback(() => setShouldRefitMap(false), [])}
+                            isProgrammaticMoveRef={isProgrammaticMoveRef}
                         />
 
                         {/* Map move detector */}
@@ -2601,7 +2671,7 @@ const HotelListing = () => {
                             searchOnMove={searchOnMapMove}
                             onBoundsChange={handleMapBoundsChange}
                             onMapMoved={handleMapMoved}
-                            isUserPanRef={isUserPanRef}
+                            isProgrammaticMoveRef={isProgrammaticMoveRef}
                         />
                     </MapContainer>
 
@@ -2707,6 +2777,26 @@ const HotelListing = () => {
                             </div>
                         )}
                     </div>
+                </div>
+
+                {/* Bottom-right: Zoom in / Zoom out controls (Google Maps style) */}
+                <div className="absolute bottom-5 right-4 z-[1005] flex flex-col bg-white dark:bg-[#303134] rounded-xl shadow-md border border-[#dadce0] dark:border-slate-600 overflow-hidden pointer-events-auto">
+                    <button
+                        type="button"
+                        onClick={() => mapInstance?.zoomIn()}
+                        className="w-8 h-8 flex items-center justify-center text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors border-b border-[#dadce0] dark:border-slate-600 cursor-pointer"
+                        title={currentLang === 'tr' ? 'Yakınlaştır' : 'Zoom in'}
+                    >
+                        <span className="material-symbols-outlined text-[18px]">add</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => mapInstance?.zoomOut()}
+                        className="w-8 h-8 flex items-center justify-center text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                        title={currentLang === 'tr' ? 'Uzaklaştır' : 'Zoom out'}
+                    >
+                        <span className="material-symbols-outlined text-[18px]">remove</span>
+                    </button>
                 </div>
             </div>
 

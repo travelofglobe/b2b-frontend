@@ -8,7 +8,8 @@ import { locationService } from '../services/locationService';
 import ListingSearch from '../components/ListingSearch';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
 import { useFavorites } from '../context/FavoritesContext';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import OpenFreeMapLayer from '../components/OpenFreeMapLayer';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -511,38 +512,50 @@ const GoogleCardSkeleton = () => (
 );
 
 // ═══════════════════════════════════════════════
-// Map Tile Layers Configuration
+// OpenFreeMap Styles Configuration
 // ═══════════════════════════════════════════════
 const MAP_LAYERS = {
-    voyager: {
-        id: 'voyager',
-        label: 'Sade Seyahat',
-        labelEn: 'Clean Travel',
-        desc: 'Sade, yumuşak renkli ve modern (Google Maps stili)',
-        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
+    auto: {
+        id: 'auto',
+        label: 'Otomatik (Aydınlık / Koyu)',
+        labelEn: 'Auto (Bright / Dark)',
+        desc: 'Varsayılan Bright, karanlık modda otomatik Dark stile geçer',
+        icon: 'brightness_auto'
+    },
+    bright: {
+        id: 'bright',
+        label: 'OpenFreeMap Bright',
+        labelEn: 'OpenFreeMap Bright',
+        desc: 'Canlı, renkli ve yüksek kontrastlı modern harita stili',
+        icon: 'light_mode'
+    },
+    dark: {
+        id: 'dark',
+        label: 'OpenFreeMap Dark',
+        labelEn: 'OpenFreeMap Dark',
+        desc: 'Gece ve karanlık tema için optimize edilmiş koyu harita',
+        icon: 'dark_mode'
+    },
+    liberty: {
+        id: 'liberty',
+        label: 'OpenFreeMap Liberty',
+        labelEn: 'OpenFreeMap Liberty',
+        desc: 'Tam detaylı ve zengin vektör harita stili',
+        icon: 'map'
     },
     positron: {
         id: 'positron',
-        label: 'Ultra Minimal',
-        labelEn: 'Ultra Minimal',
-        desc: 'Açık gri, sıfır gürültü, POI ve fiyatlar maksimum netlikte',
-        url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
+        label: 'OpenFreeMap Positron',
+        labelEn: 'OpenFreeMap Positron',
+        desc: 'Açık gri, sade ve minimalist harita stili',
+        icon: 'contrast'
     },
-    osm: {
-        id: 'osm',
-        label: 'Klasik Harita',
-        labelEn: 'Classic OSM',
-        desc: 'Standart OpenStreetMap katmanı',
-        url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        subdomains: 'abc',
-        maxZoom: 19
+    fiord: {
+        id: 'fiord',
+        label: 'OpenFreeMap Fiord',
+        labelEn: 'OpenFreeMap Fiord',
+        desc: 'Yumuşak mavi ve pastel tonlarında sakin harita',
+        icon: 'palette'
     }
 };
 
@@ -1065,7 +1078,7 @@ const HotelListing = () => {
     const [searchOnMapMove, setSearchOnMapMove] = React.useState(false);
     const [mapMoved, setMapMoved] = React.useState(false);
     const [mapInstance, setMapInstance] = React.useState(null);
-    const [mapLayer, setMapLayer] = React.useState('voyager');
+    const [mapLayer, setMapLayer] = React.useState('auto');
     const [isLayerMenuOpen, setIsLayerMenuOpen] = React.useState(false);
     const layerMenuRef = React.useRef(null);
     const mapBoundsRef = React.useRef(null); // stores last known bounds for manual search
@@ -2622,13 +2635,7 @@ const HotelListing = () => {
                         zoomControl={false}
                         attributionControl={true}
                     >
-                        <TileLayer
-                            key={mapLayer}
-                            url={MAP_LAYERS[mapLayer]?.url || MAP_LAYERS.voyager.url}
-                            attribution={MAP_LAYERS[mapLayer]?.attribution || MAP_LAYERS.voyager.attribution}
-                            subdomains={MAP_LAYERS[mapLayer]?.subdomains || 'abcd'}
-                            maxZoom={MAP_LAYERS[mapLayer]?.maxZoom || 20}
-                        />
+                        <OpenFreeMapLayer style={mapLayer} />
                         {/* Capture map instance */}
                         <MapInstanceCapture setMap={setMapInstance} />
 
@@ -2749,7 +2756,7 @@ const HotelListing = () => {
                                             }`}
                                         >
                                             <span className={`material-symbols-outlined text-[20px] mt-0.5 ${isSelected ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-gray-400'}`}>
-                                                {layer.id === 'voyager' ? 'palette' : layer.id === 'positron' ? 'contrast' : 'public'}
+                                                {layer.icon || 'public'}
                                             </span>
                                             <div className="flex-1">
                                                 <div className="text-[13px] font-medium leading-tight flex items-center justify-between">

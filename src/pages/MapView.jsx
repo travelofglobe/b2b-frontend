@@ -5,8 +5,8 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import { locationService } from '../services/locationService';
 import { hotelService } from '../services/hotelService';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
-import { useMapEvents } from 'react-leaflet';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, Marker, Popup, useMap } from 'react-leaflet';
+import OpenFreeMapLayer from '../components/OpenFreeMapLayer';
 import FilterPanel from '../components/FilterPanel';
 import { parseGuestsParam } from '../utils/searchParamsUtils';
 import 'leaflet/dist/leaflet.css';
@@ -1188,10 +1188,7 @@ const MapView = () => {
                                 zoomControl={false}
                             >
                                 <MapInstanceCapture setMap={setMap} />
-                                <TileLayer
-                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                                />
+                                <OpenFreeMapLayer style="auto" />
 
                                 <MapBoundsListener
                                     onBoundsChange={setCurrentBounds}

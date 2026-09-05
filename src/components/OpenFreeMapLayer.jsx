@@ -6,6 +6,7 @@ import * as maplibregl from 'maplibre-gl';
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useDarkMode } from '../hooks/useDarkMode';
+import { getGoogleMapsStyle, GOOGLE_MAPS_PALETTE } from '../utils/googleMapsStyle';
 
 // Configure MapLibre worker for Vite
 if (typeof window !== 'undefined' && maplibregl.setWorkerUrl) {
@@ -13,6 +14,9 @@ if (typeof window !== 'undefined' && maplibregl.setWorkerUrl) {
 }
 
 export const OPENFREEMAP_STYLES = {
+    google: 'google',
+    google_light: 'google_light',
+    google_dark: 'google_dark',
     bright: 'https://tiles.openfreemap.org/styles/bright',
     dark: 'https://tiles.openfreemap.org/styles/dark',
     liberty: 'https://tiles.openfreemap.org/styles/liberty',
@@ -20,20 +24,33 @@ export const OPENFREEMAP_STYLES = {
     fiord: 'https://tiles.openfreemap.org/styles/fiord',
 };
 
-export const OpenFreeMapLayer = ({ style = 'auto' }) => {
+export { GOOGLE_MAPS_PALETTE };
+
+export const OpenFreeMapLayer = ({ style = 'auto', colorOverrides }) => {
     const map = useMap();
     const isDark = useDarkMode();
     const glLayerRef = useRef(null);
-    const currentStyleUrlRef = useRef(null);
+    const currentStyleKeyRef = useRef(null);
 
-    // Resolve the exact style URL based on the mode and props
-    let targetStyleUrl;
-    if (style === 'auto' || !style) {
-        targetStyleUrl = isDark ? OPENFREEMAP_STYLES.dark : OPENFREEMAP_STYLES.liberty;
-    } else if (OPENFREEMAP_STYLES[style]) {
-        targetStyleUrl = OPENFREEMAP_STYLES[style];
+    // Resolve the exact style and a unique key for change detection
+    let targetStyle;
+    let styleKey;
+
+    if (style === 'auto' || !style || style === 'google') {
+        targetStyle = getGoogleMapsStyle(isDark, colorOverrides);
+        styleKey = `google_${isDark ? 'dark' : 'light'}_${JSON.stringify(colorOverrides || {})}`;
+    } else if (style === 'google_light') {
+        targetStyle = getGoogleMapsStyle(false, colorOverrides);
+        styleKey = `google_light_${JSON.stringify(colorOverrides || {})}`;
+    } else if (style === 'google_dark') {
+        targetStyle = getGoogleMapsStyle(true, colorOverrides);
+        styleKey = `google_dark_${JSON.stringify(colorOverrides || {})}`;
+    } else if (OPENFREEMAP_STYLES[style] && style !== 'google') {
+        targetStyle = OPENFREEMAP_STYLES[style];
+        styleKey = targetStyle;
     } else {
-        targetStyleUrl = style;
+        targetStyle = style;
+        styleKey = typeof style === 'string' ? style : 'custom_style_obj';
     }
 
     useEffect(() => {
@@ -41,14 +58,14 @@ export const OpenFreeMapLayer = ({ style = 'auto' }) => {
 
         // If layer already exists and is on the map, update style if possible
         if (glLayerRef.current) {
-            if (currentStyleUrlRef.current === targetStyleUrl) {
+            if (currentStyleKeyRef.current === styleKey) {
                 return;
             }
             try {
                 const maplibreMap = glLayerRef.current.getMaplibreMap?.();
                 if (maplibreMap && typeof maplibreMap.setStyle === 'function') {
-                    currentStyleUrlRef.current = targetStyleUrl;
-                    maplibreMap.setStyle(targetStyleUrl);
+                    currentStyleKeyRef.current = styleKey;
+                    maplibreMap.setStyle(targetStyle);
                     return;
                 }
             } catch (e) {
@@ -62,11 +79,11 @@ export const OpenFreeMapLayer = ({ style = 'auto' }) => {
             glLayerRef.current = null;
         }
 
-        currentStyleUrlRef.current = targetStyleUrl;
+        currentStyleKeyRef.current = styleKey;
 
         try {
             const glLayer = L.maplibreGL({
-                style: targetStyleUrl,
+                style: targetStyle,
                 attribution: '<a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> &copy; <a href="https://www.openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
             });
 
@@ -84,7 +101,7 @@ export const OpenFreeMapLayer = ({ style = 'auto' }) => {
                 glLayerRef.current = null;
             }
         };
-    }, [map, targetStyleUrl]);
+    }, [map, targetStyle, styleKey]);
 
     return null;
 };

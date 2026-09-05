@@ -25,6 +25,8 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 import { LISTING_LOCALES, AMENITY_LOCALES, getAmenityText, getLayerLabel, tListing } from '../utils/hotelListingLocales';
+import { MAP_POIS } from '../data/mapPoiData';
+import PoiMarker from '../components/PoiMarker';
 
 // ═══════════════════════════════════════════════
 // ═══════════════════════════════════════════════
@@ -280,7 +282,7 @@ const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHove
 // ═══════════════════════════════════════════════
 // Google Hotels Style Card
 // ═══════════════════════════════════════════════
-const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered, onHover, onSelect, currentLang, isFav, onToggleFav }) => {
+const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered, onHover, onSelect, currentLang, isFav, onToggleFav, isCompact = false }) => {
     const [imgIdx, setImgIdx] = React.useState(0);
     const images = hotel.images?.length > 0 ? hotel.images : [placeholderHotel];
 
@@ -322,7 +324,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
             onClick={() => onSelect(isActive ? null : hotel)}
         >
             {/* Image */}
-            <div className="relative w-[300px] h-[200px] rounded-xl overflow-hidden shrink-0 mr-5 bg-[#f1f3f4]">
+            <div className={`relative ${isCompact ? "w-[190px] h-[145px] mr-3.5" : "w-[300px] h-[200px] mr-5"} rounded-xl overflow-hidden shrink-0 bg-[#f1f3f4] transition-all duration-300`}>
                 <img
                     src={images[imgIdx]}
                     alt={hotel.name}
@@ -452,10 +454,10 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
 // ═══════════════════════════════════════════════
 // Skeleton loader card (mirrors GoogleHotelCard 1:1 in dimensions & layout)
 // ═══════════════════════════════════════════════
-const GoogleCardSkeleton = () => (
+const GoogleCardSkeleton = ({ isCompact = false }) => (
     <div className="flex p-4 border-b border-[#e8eaed] dark:border-slate-700 animate-pulse bg-white dark:bg-[#303134]">
         {/* Image skeleton: mirrors w-[300px] h-[200px] rounded-xl mr-5 */}
-        <div className="relative w-[300px] h-[200px] rounded-xl bg-[#f1f3f4] dark:bg-slate-700/80 shrink-0 mr-5 overflow-hidden">
+        <div className={`relative ${isCompact ? "w-[190px] h-[145px] mr-3.5" : "w-[300px] h-[200px] mr-5"} rounded-xl bg-[#f1f3f4] dark:bg-slate-700/80 shrink-0 overflow-hidden transition-all duration-300`}>
             <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/10 dark:bg-black/25" />
         </div>
 
@@ -512,12 +514,19 @@ const GoogleCardSkeleton = () => (
 // OpenFreeMap Styles Configuration
 // ═══════════════════════════════════════════════
 const MAP_LAYERS = {
+    google: {
+        id: 'google',
+        label: 'Google Maps Stili',
+        labelEn: 'Google Maps Style',
+        desc: 'Google Maps renk paletiyle optimize edilmiş modern vektör harita',
+        icon: 'map'
+    },
     liberty: {
         id: 'liberty',
         label: 'OpenFreeMap Liberty',
         labelEn: 'OpenFreeMap Liberty',
         desc: 'Tam detaylı ve zengin vektör harita stili',
-        icon: 'map'
+        icon: 'explore'
     },
     bright: {
         id: 'bright',
@@ -549,9 +558,9 @@ const MAP_LAYERS = {
     },
     auto: {
         id: 'auto',
-        label: 'Otomatik (Liberty / Koyu)',
-        labelEn: 'Auto (Liberty / Dark)',
-        desc: 'Aydınlık modda Liberty, karanlık modda Dark stile geçer',
+        label: 'Otomatik (Google / Koyu)',
+        labelEn: 'Auto (Google / Dark)',
+        desc: 'Aydınlık modda Google Maps, karanlık modda Dark stile geçer',
         icon: 'brightness_auto'
     }
 };
@@ -1078,12 +1087,42 @@ const HotelListing = () => {
     const [mapInstance, setMapInstance] = React.useState(null);
     const isDark = useDarkMode();
     const userChangedLayerRef = React.useRef(false);
-    const [mapLayer, setMapLayer] = React.useState(() => isDark ? 'dark' : 'liberty');
+    const [mapLayer, setMapLayer] = React.useState(() => isDark ? 'dark' : 'google');
     const [isLayerMenuOpen, setIsLayerMenuOpen] = React.useState(false);
+
+    // Map expansion & POI category states
+    const [isMapExpanded, setIsMapExpanded] = React.useState(false);
+    const [activePoiCategories, setActivePoiCategories] = React.useState({
+        tourist: true,
+        transit: false,
+        restaurants: false,
+        shopping: false
+    });
+
+    const togglePoiCategory = React.useCallback((categoryKey) => {
+        setActivePoiCategories(prev => ({
+            ...prev,
+            [categoryKey]: !prev[categoryKey]
+        }));
+    }, []);
+
+    const toggleMapExpand = React.useCallback(() => {
+        setIsMapExpanded(prev => !prev);
+    }, []);
+
+    React.useEffect(() => {
+        if (!mapInstance) return;
+        const t1 = setTimeout(() => mapInstance.invalidateSize(), 80);
+        const t2 = setTimeout(() => mapInstance.invalidateSize(), 320);
+        return () => {
+            clearTimeout(t1);
+            clearTimeout(t2);
+        };
+    }, [isMapExpanded, mapInstance]);
 
     React.useEffect(() => {
         if (!userChangedLayerRef.current) {
-            setMapLayer(isDark ? 'dark' : 'liberty');
+            setMapLayer(isDark ? 'dark' : 'google');
         }
     }, [isDark]);
     const layerMenuRef = React.useRef(null);
@@ -1987,11 +2026,11 @@ const HotelListing = () => {
             {/* ════════════════════════════════════════════
                 LEFT PANEL: Hotel List
             ════════════════════════════════════════════ */}
-            <div className="w-[62%] flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[4px_0_16px_rgba(0,0,0,0.12),1px_0_4px_rgba(0,0,0,0.06)] dark:shadow-[5px_0_20px_rgba(0,0,0,0.35)]">
+            <div className={`${isMapExpanded ? "w-[44%] min-w-[500px]" : "w-[62%]"} flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[4px_0_16px_rgba(0,0,0,0.12),1px_0_4px_rgba(0,0,0,0.06)] dark:shadow-[5px_0_20px_rgba(0,0,0,0.35)] transition-[width] duration-300 ease-in-out`}>
 
                 {/* Search Context Bar */}
                 <div className="px-4 pt-4 pb-2 shrink-0 bg-white dark:bg-[#303134] flex items-center w-full relative z-50">
-                    <ListingSearch />
+                    <ListingSearch isCompact={isMapExpanded} />
                 </div>
 
                 {/* Filter Chips Row */}
@@ -2573,7 +2612,7 @@ const HotelListing = () => {
                 >
                     {/* Initial skeleton */}
                     {isLoading && hotels.length === 0 && (
-                        <>{[...Array(6)].map((_, i) => <GoogleCardSkeleton key={i} />)}</>
+                        <>{[...Array(6)].map((_, i) => <GoogleCardSkeleton key={i} isCompact={isMapExpanded} />)}</>
                     )}
 
                     {/* Hotel cards */}
@@ -2589,6 +2628,7 @@ const HotelListing = () => {
                             currentLang={currentLang}
                             isFav={isFavorite(String(hotel.hotelId || hotel.id))}
                             onToggleFav={() => toggleFavorite(hotel)}
+                            isCompact={isMapExpanded}
                         />
                     ))}
 
@@ -2662,6 +2702,14 @@ const HotelListing = () => {
                         {/* Capture map instance */}
                         <MapInstanceCapture setMap={setMapInstance} />
 
+                        {/* Points of interest for selected categories */}
+                        {MAP_POIS
+                            .filter(poi => activePoiCategories[poi.category])
+                            .map(poi => (
+                                <PoiMarker key={poi.id} poi={poi} currentLang={currentLang} />
+                            ))
+                        }
+
                         {/* Price markers for hotels with coordinates */}
                         {displayedHotels
                             .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)))
@@ -2697,6 +2745,101 @@ const HotelListing = () => {
                             isProgrammaticMoveRef={isProgrammaticMoveRef}
                         />
                     </MapContainer>
+
+                    {/* Top-left: Expand Button + 4 Category Icons (Google Maps style) */}
+                    <div className="absolute top-3.5 left-3.5 z-[1005] flex flex-col gap-2.5 pointer-events-auto">
+                        {/* Map Expansion Toggle (resizes map width without fullscreen) */}
+                        <button
+                            type="button"
+                            onClick={toggleMapExpand}
+                            className="w-10 h-10 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-xl shadow-md border border-[#dadce0] dark:border-slate-600 flex items-center justify-center transition-all cursor-pointer group"
+                            title={isMapExpanded ? tListing('collapseMap', currentLang) : tListing('expandMap', currentLang)}
+                        >
+                            <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-300 group-hover:text-[#1a73e8] transition-colors">
+                                {isMapExpanded ? 'close_fullscreen' : 'fullscreen'}
+                            </span>
+                        </button>
+
+                        {/* 4 Category Icons: Transit, Restaurants, Attractions, Shopping */}
+                        <div className="bg-white dark:bg-[#303134] rounded-2xl shadow-md border border-[#dadce0] dark:border-slate-600 flex flex-col items-center py-1.5 px-1 gap-1">
+                            {/* 1. Public Transport */}
+                            <button
+                                type="button"
+                                onClick={() => togglePoiCategory('transit')}
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                                    activePoiCategories.transit
+                                        ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 ring-2 ring-[#1a73e8]/30 shadow-xs'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                }`}
+                                title={tListing('publicTransport', currentLang)}
+                            >
+                                <span className="material-symbols-outlined text-[19px]">directions_transit</span>
+                            </button>
+
+                            {/* 2. Restaurants */}
+                            <button
+                                type="button"
+                                onClick={() => togglePoiCategory('restaurants')}
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                                    activePoiCategories.restaurants
+                                        ? 'bg-[#fce8e6] dark:bg-red-900/40 text-[#ea4335] dark:text-red-300 ring-2 ring-[#ea4335]/30 shadow-xs'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                }`}
+                                title={tListing('restaurants', currentLang)}
+                            >
+                                <span className="material-symbols-outlined text-[19px]">restaurant</span>
+                            </button>
+
+                            {/* 3. Touristic places / Attractions */}
+                            <button
+                                type="button"
+                                onClick={() => togglePoiCategory('tourist')}
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                                    activePoiCategories.tourist
+                                        ? 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                }`}
+                                title={tListing('touristAttractions', currentLang)}
+                            >
+                                <span className="material-symbols-outlined text-[19px]">photo_camera</span>
+                            </button>
+
+                            {/* 4. Shopping areas */}
+                            <button
+                                type="button"
+                                onClick={() => togglePoiCategory('shopping')}
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                                    activePoiCategories.shopping
+                                        ? 'bg-[#fce4ec] dark:bg-pink-900/40 text-[#e91e63] dark:text-pink-300 ring-2 ring-[#e91e63]/30 shadow-xs'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                }`}
+                                title={tListing('shoppingAreas', currentLang)}
+                            >
+                                <span className="material-symbols-outlined text-[19px]">shopping_bag</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Top-right: Zoom in / Zoom out controls (Google Maps style) */}
+                    <div className="absolute top-3.5 right-3.5 z-[1005] flex flex-col bg-white dark:bg-[#303134] rounded-2xl shadow-md border border-[#dadce0] dark:border-slate-600 overflow-hidden pointer-events-auto">
+                        <button
+                            type="button"
+                            onClick={() => mapInstance?.zoomIn()}
+                            className="w-10 h-10 flex items-center justify-center text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                            title={tListing('zoomIn', currentLang)}
+                        >
+                            <span className="material-symbols-outlined text-[20px]">add</span>
+                        </button>
+                        <div className="w-6 h-[1px] bg-[#e8eaed] dark:bg-slate-600 mx-auto" />
+                        <button
+                            type="button"
+                            onClick={() => mapInstance?.zoomOut()}
+                            className="w-10 h-10 flex items-center justify-center text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                            title={tListing('zoomOut', currentLang)}
+                        >
+                            <span className="material-symbols-outlined text-[20px]">remove</span>
+                        </button>
+                    </div>
 
                     {/* Top center: Search-on-move toggle OR "Listeyi güncelle" button */}
                     <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto">
@@ -2801,25 +2944,7 @@ const HotelListing = () => {
                     </div>
                 </div>
 
-                {/* Bottom-right: Zoom in / Zoom out controls (Google Maps style) */}
-                <div className="absolute bottom-5 right-4 z-[1005] flex flex-col bg-white dark:bg-[#303134] rounded-xl shadow-md border border-[#dadce0] dark:border-slate-600 overflow-hidden pointer-events-auto">
-                    <button
-                        type="button"
-                        onClick={() => mapInstance?.zoomIn()}
-                        className="w-8 h-8 flex items-center justify-center text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors border-b border-[#dadce0] dark:border-slate-600 cursor-pointer"
-                        title={currentLang === 'tr' ? 'Yakınlaştır' : 'Zoom in'}
-                    >
-                        <span className="material-symbols-outlined text-[18px]">add</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => mapInstance?.zoomOut()}
-                        className="w-8 h-8 flex items-center justify-center text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                        title={currentLang === 'tr' ? 'Uzaklaştır' : 'Zoom out'}
-                    >
-                        <span className="material-symbols-outlined text-[18px]">remove</span>
-                    </button>
-                </div>
+
             </div>
 
             {/* Favorites Right Sidebar Dock (Google Style - Fixed width) */}

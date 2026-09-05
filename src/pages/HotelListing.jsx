@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Sidebar from '../components/Sidebar';
 import { parseGuestsParam, validateAndSanitizeDates, formatDateForUrl } from '../utils/searchParamsUtils';
@@ -991,6 +991,7 @@ const HotelListing = () => {
     const slug = params['*'] || params.slug;
     const { theme, campaign } = params;
     const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
 
     const { favorites, isFavorite, toggleFavorite } = useFavorites();
     const [isFavOpen, setIsFavOpen] = React.useState(false);
@@ -1089,7 +1090,7 @@ const HotelListing = () => {
     const mapBoundsRef = React.useRef(null); // stores last known bounds for manual search
     const isUserPanRef = React.useRef(false);
     const isProgrammaticMoveRef = React.useRef(false);
-    const isMapSearchRef = React.useRef(false);
+    const isSyncingQRef = React.useRef(false);
     const listScrollRef = React.useRef(null);
     const loaderRef = React.useRef(null);
     const sortDropdownRef = React.useRef(null);
@@ -1558,10 +1559,16 @@ const HotelListing = () => {
 
     // Load hotels from API (optionally using geo bounds for map-area search)
     const loadMoreHotels = React.useCallback(async (isReset = false, geoBounds = null) => {
-        const activeGeoBounds = geoBounds || mapBoundsRef.current;
+        // If this is a reset search without explicit geoBounds, it's a new location/filter search.
+        if (isReset && !geoBounds) {
+            mapBoundsRef.current = null;
+            setMapMoved(false);
+            setShouldRefitMap(true);
+        }
+
+        const activeGeoBounds = geoBounds || (isReset ? null : mapBoundsRef.current);
         if (activeGeoBounds) {
             setShouldRefitMap(false);
-            isMapSearchRef.current = true;
         }
         if (isReset && abortControllerRef.current) {
             abortControllerRef.current.abort();
@@ -1574,10 +1581,7 @@ const HotelListing = () => {
         isFetchingRef.current = true;
         if (isReset) {
             setIsLoading(true);
-            if (!activeGeoBounds) {
-                setHotels([]);
-                mapBoundsRef.current = null;
-            }
+            setHotels([]);
             setTotalProperties(0);
             pageRef.current = 0;
             hasMoreRef.current = true;
@@ -1685,7 +1689,6 @@ const HotelListing = () => {
 
     const handleMapBoundsChange = React.useCallback((boundsData) => {
         mapBoundsRef.current = boundsData;
-        isMapSearchRef.current = true;
         setMapMoved(false);
         loadMoreHotels(true, boundsData);
     }, [loadMoreHotels]);
@@ -1758,12 +1761,29 @@ const HotelListing = () => {
                 }
 
                 if (locName) {
-                    isMapSearchRef.current = true;
-                    setSearchParams(prev => {
-                        const newParams = new URLSearchParams(prev.toString());
-                        newParams.set('q', locName);
-                        return newParams;
-                    }, { replace: true });
+                    const currentQ = searchParams.get('q');
+                    const currentLocId = searchParams.get('locationId');
+                    const targetLocId = crumb?.locationId ? String(crumb.locationId) : null;
+                    if (currentQ !== locName || currentLocId !== targetLocId) {
+                        isSyncingQRef.current = true;
+                        setSearchParams(prev => {
+                            const newParams = new URLSearchParams(prev.toString());
+                            newParams.set('q', locName);
+                            if (targetLocId) {
+                                newParams.set('locationId', targetLocId);
+                            } else {
+                                newParams.delete('locationId');
+                            }
+                            return newParams;
+                        }, { replace: true });
+
+                        localStorage.setItem('dashboard_last_search', locName);
+                        if (targetLocId) {
+                            localStorage.setItem('dashboard_last_locationId', targetLocId);
+                        } else {
+                            localStorage.removeItem('dashboard_last_locationId');
+                        }
+                    }
                 }
             } catch (err) {
                 console.warn('Autocomplete sync failed:', err);
@@ -1825,20 +1845,23 @@ const HotelListing = () => {
 
     // Reset on filter/location change
     React.useEffect(() => {
-        if (isMapSearchRef.current) {
-            isMapSearchRef.current = false;
+        if (isSyncingQRef.current) {
+            isSyncingQRef.current = false;
             return;
         }
         setPage(0);
         setHasMore(true);
         setSelectedHotel(null);
         setShouldRefitMap(true);
+        mapBoundsRef.current = null;
+        setMapMoved(false);
         if (listScrollRef.current) listScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
         loadMoreHotels(true);
         return () => { if (abortControllerRef.current) abortControllerRef.current.abort(); };
     }, [
         slug, locationId, sortConfig,
         searchParams.get('q'),
+        location.state?.searchTimestamp,
         searchParams.get('checkin'), searchParams.get('checkout'),
         searchParams.get('guests'), searchParams.get('nationality'),
         searchParams.get('stars'), searchParams.get('freeCancellation'), searchParams.get('prePayment'),
@@ -2706,7 +2729,6 @@ const HotelListing = () => {
                         <button
                             onClick={() => {
                                 isUserPanRef.current = false;
-                                isMapSearchRef.current = true;
                                 setShouldRefitMap(false);
                                 setMapMoved(false);
                                 loadMoreHotels(true, mapBoundsRef.current);

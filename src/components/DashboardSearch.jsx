@@ -684,10 +684,10 @@ const DashboardSearch = () => {
                                 {/* Google Flights Style Footer */}
                                 <div className="flex items-center justify-end gap-6 mt-6 pt-2">
                                     <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
-                                        İptal
+                                        {ls.cancel || 'Cancel'}
                                     </button>
                                     <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
-                                        Bitti
+                                        {ls.done || 'Done'}
                                     </button>
                                 </div>
                             </div>
@@ -946,7 +946,7 @@ const DashboardSearch = () => {
                                     calendar_today
                                 </span>
                                 <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
-                                    {formatGoogleFlightDate(checkInDate) || 'Giriş'}
+                                    {formatGoogleFlightDate(checkInDate) || ls.checkIn || 'Check-in'}
                                 </span>
                             </div>
 
@@ -956,7 +956,7 @@ const DashboardSearch = () => {
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
                                     className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
-                                    title="1 gün geri"
+                                    title={ls.dayBack || '1 day earlier'}
                                 >
                                     <span className="material-symbols-outlined text-[15px]">chevron_left</span>
                                 </button>
@@ -964,7 +964,7 @@ const DashboardSearch = () => {
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); stepCheckIn(1); }}
                                     className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
-                                    title="1 gün ileri"
+                                    title={ls.dayForward || '1 day later'}
                                 >
                                     <span className="material-symbols-outlined text-[15px]">chevron_right</span>
                                 </button>
@@ -993,7 +993,7 @@ const DashboardSearch = () => {
                         >
                             <div className="flex items-center min-w-0 flex-1">
                                 <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
-                                    {formatGoogleFlightDate(checkOutDate) || 'Çıkış'}
+                                    {formatGoogleFlightDate(checkOutDate) || ls.checkOut || 'Check-out'}
                                 </span>
                             </div>
 
@@ -1003,7 +1003,7 @@ const DashboardSearch = () => {
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
                                     className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
-                                    title="1 gün geri"
+                                    title={ls.dayBack || '1 day earlier'}
                                 >
                                     <span className="material-symbols-outlined text-[15px]">chevron_left</span>
                                 </button>
@@ -1011,7 +1011,7 @@ const DashboardSearch = () => {
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); stepCheckOut(1); }}
                                     className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
-                                    title="1 gün ileri"
+                                    title={ls.dayForward || '1 day later'}
                                 >
                                     <span className="material-symbols-outlined text-[15px]">chevron_right</span>
                                 </button>

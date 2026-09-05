@@ -26,7 +26,13 @@ export const searchLocales = {
         addRoom: "Add Another Room",
         searchBtn: "Search",
         cityRegion: "City / Region",
-        remove: "Remove"
+        remove: "Remove",
+        cancel: "Cancel",
+        done: "Done",
+        checkIn: "Check-in",
+        checkOut: "Check-out",
+        dayBack: "1 day earlier",
+        dayForward: "1 day later"
     },
     tr: {
         hotels: "Oteller",
@@ -55,7 +61,13 @@ export const searchLocales = {
         addRoom: "Başka Oda Ekle",
         searchBtn: "Ara",
         cityRegion: "Şehir / Bölge",
-        remove: "Sil"
+        remove: "Sil",
+        cancel: "İptal",
+        done: "Bitti",
+        checkIn: "Giriş",
+        checkOut: "Çıkış",
+        dayBack: "1 gün geri",
+        dayForward: "1 gün ileri"
     },
     ar: {
         hotels: "فنادق",
@@ -84,7 +96,13 @@ export const searchLocales = {
         addRoom: "إضافة غرفة أخرى",
         searchBtn: "بحث",
         cityRegion: "المدينة / المنطقة",
-        remove: "حذف"
+        remove: "حذف",
+        cancel: "إلغاء",
+        done: "تم",
+        checkIn: "تسجيل الوصول",
+        checkOut: "تسجيل المغادرة",
+        dayBack: "يوم واحد قبل",
+        dayForward: "يوم واحد بعد"
     },
     es: {
         hotels: "Hoteles",
@@ -113,7 +131,13 @@ export const searchLocales = {
         addRoom: "Añadir Otra Habitación",
         searchBtn: "Buscar",
         cityRegion: "Ciudad / Región",
-        remove: "Eliminar"
+        remove: "Eliminar",
+        cancel: "Cancelar",
+        done: "Listo",
+        checkIn: "Entrada",
+        checkOut: "Salida",
+        dayBack: "1 día antes",
+        dayForward: "1 día después"
     },
     ru: {
         hotels: "Отели",
@@ -142,7 +166,13 @@ export const searchLocales = {
         addRoom: "Добавить еще номер",
         searchBtn: "Найти",
         cityRegion: "Город / Регион",
-        remove: "Удалить"
+        remove: "Удалить",
+        cancel: "Отмена",
+        done: "Готово",
+        checkIn: "Заезд",
+        checkOut: "Выезд",
+        dayBack: "На 1 день раньше",
+        dayForward: "На 1 день позже"
     },
     zh: {
         hotels: "酒店",
@@ -171,7 +201,13 @@ export const searchLocales = {
         addRoom: "添加另一个客房",
         searchBtn: "搜索",
         cityRegion: "城市 / 地区",
-        remove: "删除"
+        remove: "删除",
+        cancel: "取消",
+        done: "完成",
+        checkIn: "入住",
+        checkOut: "退房",
+        dayBack: "提前1天",
+        dayForward: "推迟1天"
     },
     ja: {
         hotels: "ホテル",
@@ -200,7 +236,13 @@ export const searchLocales = {
         addRoom: "別の客室を追加",
         searchBtn: "検索",
         cityRegion: "都市 / 地域",
-        remove: "削除"
+        remove: "削除",
+        cancel: "キャンセル",
+        done: "完了",
+        checkIn: "チェックイン",
+        checkOut: "チェックアウト",
+        dayBack: "1日前",
+        dayForward: "1日後"
     },
     fa: {
         hotels: "هتل‌ها",
@@ -229,7 +271,13 @@ export const searchLocales = {
         addRoom: "افزودن اتاق دیگر",
         searchBtn: "جستجو",
         cityRegion: "شهر / منطقه",
-        remove: "حذف"
+        remove: "حذف",
+        cancel: "لغو",
+        done: "انجام شد",
+        checkIn: "ورود",
+        checkOut: "خروج",
+        dayBack: "۱ روز قبل",
+        dayForward: "۱ روز بعد"
     },
     fr: {
         hotels: "Hôtels",
@@ -258,7 +306,13 @@ export const searchLocales = {
         addRoom: "Ajouter Une Autre Chambre",
         searchBtn: "Rechercher",
         cityRegion: "Ville / Région",
-        remove: "Supprimer"
+        remove: "Supprimer",
+        cancel: "Annuler",
+        done: "Terminé",
+        checkIn: "Arrivée",
+        checkOut: "Départ",
+        dayBack: "1 jour plus tôt",
+        dayForward: "1 jour plus tard"
     },
     it: {
         hotels: "Hotel",
@@ -287,7 +341,48 @@ export const searchLocales = {
         addRoom: "Aggiungi Un'Altra Camera",
         searchBtn: "Cerca",
         cityRegion: "Città / Regione",
-        remove: "Rimuovi"
+        remove: "Rimuovi",
+        cancel: "Annulla",
+        done: "Fatto",
+        checkIn: "Check-in",
+        checkOut: "Check-out",
+        dayBack: "1 giorno prima",
+        dayForward: "1 giorno dopo"
+    },
+    de: {
+        hotels: "Hotel",
+        transfer: "Transfer",
+        tours: "Touren",
+        carRental: "Mietwagen",
+        soon: "DEMNÄCHST",
+        location: "Standort",
+        destinationRequired: "Reiseziel erforderlich",
+        placeholder: "Nach Stadt, Hotel oder Region suchen",
+        popularDestinations: "Beliebte Reiseziele",
+        featuredHotels: "Empfohlene Hotels",
+        checkInOut: "Anreise / Abreise",
+        nights: "Nächte",
+        nightSingle: "Nacht",
+        nationality: "Nationalität",
+        occupants: "Gäste",
+        roomsAndGuests: "Zimmer & Gäste",
+        roomsTotal: "Zimmer Gesamt",
+        roomSingle: "Zimmer",
+        adults: "Erwachsene",
+        adultsAge: "12+ J.",
+        children: "Kinder",
+        childrenAge: "0-11 J.",
+        years: "Jahre",
+        addRoom: "Weiteres Zimmer hinzufügen",
+        searchBtn: "Suchen",
+        cityRegion: "Stadt / Region",
+        remove: "Entfernen",
+        cancel: "Abbrechen",
+        done: "Fertig",
+        checkIn: "Anreise",
+        checkOut: "Abreise",
+        dayBack: "1 Tag früher",
+        dayForward: "1 Tag später"
     },
     el: {
         hotels: "Ξενοδοχεία",
@@ -316,7 +411,13 @@ export const searchLocales = {
         addRoom: "Προσθήκη Δωματίου",
         searchBtn: "Αναζήτηση",
         cityRegion: "Πόλη / Περιοχή",
-        remove: "Διαγραφή"
+        remove: "Διαγραφή",
+        cancel: "Ακύρωση",
+        done: "Τέλος",
+        checkIn: "Άφιξη",
+        checkOut: "Αναχώρηση",
+        dayBack: "1 ημέρα νωρίτερα",
+        dayForward: "1 ημέρα αργότερα"
     },
     pt: {
         hotels: "Hotéis",
@@ -345,7 +446,13 @@ export const searchLocales = {
         addRoom: "Adicionar Outro Quarto",
         searchBtn: "Buscar",
         cityRegion: "Cidade / Região",
-        remove: "Remover"
+        remove: "Remover",
+        cancel: "Cancelar",
+        done: "Concluído",
+        checkIn: "Entrada",
+        checkOut: "Saída",
+        dayBack: "1 dia antes",
+        dayForward: "1 dia depois"
     }
 };
 

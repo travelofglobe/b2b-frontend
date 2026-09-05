@@ -443,16 +443,17 @@ const ListingSearch = () => {
 
             // Retrieve locationId from overrides, then current URL searchParams, then localStorage
             const currentUrlLocationId = searchParams.get('locationId');
+            const isSameQuery = (activeQuery === (currentQ || query));
             const savedLocationId = opts.locationId !== undefined
                 ? opts.locationId
-                : (currentUrlLocationId || localStorage.getItem('dashboard_last_locationId'));
+                : (isSameQuery ? (currentUrlLocationId || localStorage.getItem('dashboard_last_locationId')) : null);
             const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
             const searchParamsString = getUrlParams(opts) + locationParam;
 
             localStorage.setItem('last_hotel_search_slug', slug);
             localStorage.setItem('last_hotel_search_params', searchParamsString);
 
-            navigate(`/travel/hotels/search/${slug}?${searchParamsString}`);
+            navigate(`/travel/hotels/search/${slug}?${searchParamsString}`, { state: { searchTimestamp: Date.now() } });
         }
     };
 
@@ -497,7 +498,7 @@ const ListingSearch = () => {
         localStorage.setItem('last_hotel_search_slug', slug);
         localStorage.setItem('last_hotel_search_params', searchParamsString);
 
-        navigate(`/travel/hotels/search/${slug}?${searchParamsString}`);
+        navigate(`/travel/hotels/search/${slug}?${searchParamsString}`, { state: { searchTimestamp: Date.now() } });
     };
 
     const handleSelectHotel = (hotel) => {

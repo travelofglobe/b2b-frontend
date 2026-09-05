@@ -6,110 +6,7 @@ import PlaneLoading from '../components/PlaneLoading';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
 import { countryCodes } from '../utils/countryCodes';
-
-// Local translation dictionary mapping for Agency Application page
-const localTranslations = {
-    en: {
-        title: "Agency Application",
-        subtitle: "Become our partner and access global luxury B2B inventory.",
-        step1: "Company Details",
-        step2: "Authorized Person",
-        step3: "Business Profile",
-        step1Header: "Step 1: Company Information",
-        step2Header: "Step 2: Authorized Representative",
-        step3Header: "Step 3: Business Profile",
-        companyLegalName: "Company Legal Name *",
-        brandName: "Brand Name",
-        taxNumber: "Tax Number / VAT ID *",
-        taxOffice: "Tax Office",
-        country: "Country *",
-        city: "City *",
-        businessAddress: "Business Address *",
-        postalCode: "Postal Code",
-        website: "Website",
-        companyRegNumber: "Company Reg Number",
-        firstName: "First Name *",
-        lastName: "Last Name *",
-        jobTitle: "Job Title",
-        emailAddress: "Email Address *",
-        mobilePhone: "Mobile Phone *",
-        whatsAppNumber: "WhatsApp Number",
-        preferredLanguage: "Preferred Language *",
-        timeZone: "Time Zone *",
-        profilePhoto: "Profile Photo",
-        agencyType: "Agency Type *",
-        monthlyVolume: "Monthly Booking Volume *",
-        preferredCurrency: "Preferred Currency *",
-        mainMarkets: "Main Markets Served * (Select Multi)",
-        apiIntegration: "API Integration Needed",
-        apiIntegrationSub: "Do you require dynamic XML/JSON feeds?",
-        currentSuppliers: "Current Suppliers",
-        additionalNotes: "Additional Notes",
-        gdprConsent: "I authorize the processing of my personal data under GDPR/KVKK compliance guidelines for evaluation purposes.",
-        recaptchaLabel: "I am not a robot",
-        back: "Back",
-        backToLogin: "Back to Login",
-        continue: "Continue",
-        submit: "Submit Application",
-        successTitle: "Application Received!",
-        successMessage: "Thank you for applying. We have successfully registered your application. Our onboarding team will evaluate your business profile within 24-48 hours.",
-        successDispatched: "A confirmation email has been dispatched to:",
-        returnToLogin: "Return to Login",
-        enterManually: "Enter manually",
-        selectFromList: "Select from list",
-        searchCountry: "Search and select country..."
-    },
-    tr: {
-        title: "Acente Başvurusu",
-        subtitle: "İş ortağımız olun ve küresel lüks B2B envanterine erişin.",
-        step1: "Şirket Bilgileri",
-        step2: "Yetkili Temsilci",
-        step3: "İş Profili",
-        step1Header: "Adım 1: Şirket Bilgileri",
-        step2Header: "Adım 2: Yetkili Temsilci",
-        step3Header: "Adım 3: İş Profili",
-        companyLegalName: "Şirket Resmi Unvanı *",
-        brandName: "Marka / Ticari Unvan",
-        taxNumber: "Vergi Numarası / VAT ID *",
-        taxOffice: "Vergi Dairesi",
-        country: "Ülke *",
-        city: "Şehir *",
-        businessAddress: "İş Adresi *",
-        postalCode: "Posta Kodu",
-        website: "Web Sitesi",
-        companyRegNumber: "Ticari Sicil Numarası",
-        firstName: "Ad *",
-        lastName: "Soyad *",
-        jobTitle: "Görev Unvanı",
-        emailAddress: "E-posta Adresi *",
-        mobilePhone: "Cep Telefonu *",
-        whatsAppNumber: "WhatsApp Numarası",
-        preferredLanguage: "Tercih Edilen Dil *",
-        timeZone: "Saat Dilimi *",
-        profilePhoto: "Profil Fotoğrafı",
-        agencyType: "Acente Türü *",
-        monthlyVolume: "Aylık Rezervasyon Hacmi *",
-        preferredCurrency: "Tercih Edilen Para Birimi *",
-        mainMarkets: "Hizmet Verilen Ana Pazarlar * (Çoklu Seçim)",
-        apiIntegration: "API Entegrasyonu Gerekli mi?",
-        apiIntegrationSub: "Dinamik XML/JSON veri akışı talep ediyor musunuz?",
-        currentSuppliers: "Mevcut Tedarikçiler",
-        additionalNotes: "Ek Notlar",
-        gdprConsent: "Kişisel verilerimin KVKK/GDPR uyum çerçevesinde işlenmesine ve değerlendirme amacıyla kullanılmasına izin veriyorum.",
-        recaptchaLabel: "Ben robot değilim",
-        back: "Geri",
-        backToLogin: "Girişe Dön",
-        continue: "Devam Et",
-        submit: "Başvuruyu Tamamla",
-        successTitle: "Başvuru Alındı!",
-        successMessage: "Başvurunuz için teşekkür ederiz. Bilgileriniz başarıyla kaydedilmiştir. Onboarding ekibimiz 24-48 saat içinde başvurunuzu değerlendirecektir.",
-        successDispatched: "Onay e-postası şu adrese gönderilmiştir:",
-        returnToLogin: "Giriş Ekranına Dön",
-        enterManually: "Elle girin",
-        selectFromList: "Listeden seçin",
-        searchCountry: "Ülke arayın ve seçin..."
-    }
-};
+import { getAgencyAppLocale } from '../utils/agencyAppLocales';
 
 // Automatically load backgrounds from assets
 const backgroundModules = import.meta.glob('../assets/backgrounds/*', { eager: true });
@@ -120,8 +17,8 @@ const AgencyApplicationPage = () => {
     const navigate = useNavigate();
 
     // Select translation bundle
-    const currentLang = i18n.language?.startsWith('tr') ? 'tr' : 'en';
-    const loc = localTranslations[currentLang] || localTranslations.en;
+    const currentLang = (i18n.language || 'en').split('-')[0].toLowerCase();
+    const loc = getAgencyAppLocale(currentLang);
     
     // UI States
     const [step, setStep] = useState(1);
@@ -230,7 +127,7 @@ const AgencyApplicationPage = () => {
         try {
             const isDuplicate = await agencyApplicationService.checkDuplicateTax(formData.taxNumber);
             if (isDuplicate) {
-                setTaxError(currentLang === 'tr' ? 'Bu Vergi Numarası ile daha önce başvuru yapılmış.' : 'An application with this Tax Number already exists.');
+                setTaxError(loc.taxDuplicate);
             } else {
                 setTaxError('');
             }
@@ -245,7 +142,7 @@ const AgencyApplicationPage = () => {
         try {
             const isDuplicate = await agencyApplicationService.checkDuplicateEmail(formData.emailAddress);
             if (isDuplicate) {
-                setEmailError(currentLang === 'tr' ? 'Bu E-posta Adresi ile daha önce başvuru yapılmış.' : 'An application with this Email Address already exists.');
+                setEmailError(loc.emailDuplicate);
             } else {
                 setEmailError('');
             }
@@ -322,49 +219,49 @@ const AgencyApplicationPage = () => {
 
     // Form Validators
     const validateStep1 = () => {
-        if (!formData.companyLegalName) return currentLang === 'tr' ? 'Şirket Resmi Unvanı zorunludur' : 'Company Legal Name is required';
-        if (!formData.taxNumber) return currentLang === 'tr' ? 'Vergi Numarası zorunludur' : 'Tax Number is required';
+        if (!formData.companyLegalName) return loc.companyLegalNameReq;
+        if (!formData.taxNumber) return loc.taxNumberReq;
         if (taxError) return taxError;
-        if (!formData.countryId) return currentLang === 'tr' ? 'Ülke seçimi zorunludur' : 'Country is required';
+        if (!formData.countryId) return loc.countryReq;
         
         // Validation for city: either cityId must be selected OR cityName must be typed
         const hasCityId = !!formData.cityId;
         const hasCityName = !!formData.cityName && formData.cityName.trim().length > 0;
         if (!hasCityId && !hasCityName) {
-            return currentLang === 'tr' ? 'Şehir bilgisi zorunludur' : 'City is required';
+            return loc.cityReq;
         }
 
-        if (!formData.businessAddress) return currentLang === 'tr' ? 'İş Adresi zorunludur' : 'Business Address is required';
+        if (!formData.businessAddress) return loc.addressReq;
         if (formData.website) {
             const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/;
             if (!urlPattern.test(formData.website)) {
-                return currentLang === 'tr' ? 'Web sitesi adresi geçerli bir URL olmalıdır' : 'Website must be a valid URL';
+                return loc.validUrl;
             }
         }
         return '';
     };
 
     const validateStep2 = () => {
-        if (!formData.firstName) return currentLang === 'tr' ? 'Ad zorunludur' : 'First Name is required';
-        if (!formData.lastName) return currentLang === 'tr' ? 'Soyad zorunludur' : 'Last Name is required';
-        if (!formData.emailAddress) return currentLang === 'tr' ? 'E-posta Adresi zorunludur' : 'Email Address is required';
+        if (!formData.firstName) return loc.firstNameReq;
+        if (!formData.lastName) return loc.lastNameReq;
+        if (!formData.emailAddress) return loc.emailReq;
         if (emailError) return emailError;
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(formData.emailAddress)) {
-            return currentLang === 'tr' ? 'Geçerli bir e-posta adresi giriniz' : 'Email must be a valid email address';
+            return loc.validEmail;
         }
-        if (!formData.mobilePhoneCountryCode) return currentLang === 'tr' ? 'Telefon Kodu seçimi zorunludur' : 'Phone Code is required';
-        if (!formData.mobilePhoneNumber) return currentLang === 'tr' ? 'Cep Telefonu zorunludur' : 'Mobile Phone Number is required';
+        if (!formData.mobilePhoneCountryCode) return loc.phoneCodeReq;
+        if (!formData.mobilePhoneNumber) return loc.mobilePhoneReq;
         if (!/^\d+$/.test(formData.mobilePhoneNumber)) {
-            return currentLang === 'tr' ? 'Cep Telefonu sadece rakamlardan oluşmalıdır' : 'Mobile Phone Number must contain digits only';
+            return loc.mobilePhoneDigits;
         }
         return '';
     };
 
     const validateStep3 = () => {
-        if (!formData.agencyType) return currentLang === 'tr' ? 'Acente Türü zorunludur' : 'Agency Type is required';
-        if (formData.mainMarketsServed.length === 0) return currentLang === 'tr' ? 'Lütfen en az bir hizmet verilen pazar seçin' : 'Please select at least one Market Served';
-        if (!formData.kvkkAccepted) return currentLang === 'tr' ? 'KVKK / GDPR onayını kabul etmelisiniz' : 'You must accept the KVKK / GDPR compliance terms';
+        if (!formData.agencyType) return loc.agencyTypeReq;
+        if (formData.mainMarketsServed.length === 0) return loc.marketReq;
+        if (!formData.kvkkAccepted) return loc.gdprReq;
         return '';
     };
 
@@ -401,7 +298,7 @@ const AgencyApplicationPage = () => {
             await agencyApplicationService.submitApplication(formData);
             setSuccessMode(true);
         } catch (error) {
-            setFormError(error.message || (currentLang === 'tr' ? 'Başvuru gönderilirken bir hata oluştu.' : 'Submission failed. Please try again.'));
+            setFormError(error.message || loc.submissionFailed);
         } finally {
             setIsLoading(false);
         }

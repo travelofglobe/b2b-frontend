@@ -21,9 +21,157 @@ const starSuffixes = {
     pt: { star: 'estrelas', stars: 'estrelas' }
 };
 
+const hotelCardLocales = {
+    en: {
+        recommended: 'Recommended',
+        freeCancellation: 'Free Cancellation',
+        nonRefundable: 'Non-Refundable',
+        roomOptions: 'room options',
+        inclTaxes: 'incl. taxes & fees',
+        viewDetails: 'View Details',
+        checkAvailability: 'Check Availability',
+        addToFavorites: 'Add to Favorites',
+        removeFromFavorites: 'Remove from Favorites',
+        inclTax: 'incl. {amount} tax'
+    },
+    tr: {
+        recommended: 'Önerilen',
+        freeCancellation: 'Ücretsiz İptal',
+        nonRefundable: 'İade Edilemez',
+        roomOptions: 'oda seçeneği',
+        inclTaxes: 'vergiler dahil',
+        viewDetails: 'Detayları Gör',
+        checkAvailability: 'Müsaitliği Kontrol Et',
+        addToFavorites: 'Favorilere Ekle',
+        removeFromFavorites: 'Favorilerden Çıkar',
+        inclTax: '{amount} vergi dahil'
+    },
+    ar: {
+        recommended: 'موصى به',
+        freeCancellation: 'إلغاء مجاني',
+        nonRefundable: 'غير قابل للاسترداد',
+        roomOptions: 'خيارات الغرف',
+        inclTaxes: 'شامل الضرائب والرسوم',
+        viewDetails: 'عرض التفاصيل',
+        checkAvailability: 'التحقق من التوفر',
+        addToFavorites: 'إضافة إلى المفضلة',
+        removeFromFavorites: 'إزالة من المفضلة',
+        inclTax: 'شامل {amount} ضريبة'
+    },
+    es: {
+        recommended: 'Recomendado',
+        freeCancellation: 'Cancelación gratuita',
+        nonRefundable: 'No reembolsable',
+        roomOptions: 'opciones de habitación',
+        inclTaxes: 'impuestos y tasas incluidos',
+        viewDetails: 'Ver detalles',
+        checkAvailability: 'Comprobar disponibilidad',
+        addToFavorites: 'Añadir a favoritos',
+        removeFromFavorites: 'Eliminar de favoritos',
+        inclTax: 'incl. {amount} de impuestos'
+    },
+    ru: {
+        recommended: 'Рекомендуем',
+        freeCancellation: 'Бесплатная отмена',
+        nonRefundable: 'Без возврата',
+        roomOptions: 'вариантов номеров',
+        inclTaxes: 'включая налоги и сборы',
+        viewDetails: 'Подробнее',
+        checkAvailability: 'Проверить наличие',
+        addToFavorites: 'В избранное',
+        removeFromFavorites: 'Удалить из избранного',
+        inclTax: 'вкл. {amount} налогов'
+    },
+    zh: {
+        recommended: '推荐',
+        freeCancellation: '免费取消',
+        nonRefundable: '不可退款',
+        roomOptions: '种房型可选',
+        inclTaxes: '含税及附加费',
+        viewDetails: '查看详情',
+        checkAvailability: '查询空房',
+        addToFavorites: '加入收藏',
+        removeFromFavorites: '取消收藏',
+        inclTax: '含 {amount} 税费'
+    },
+    ja: {
+        recommended: 'おすすめ',
+        freeCancellation: 'キャンセル無料',
+        nonRefundable: '返金不可',
+        roomOptions: '部屋の選択肢',
+        inclTaxes: '税金・手数料込み',
+        viewDetails: '詳細を見る',
+        checkAvailability: '空室状況を確認',
+        addToFavorites: 'お気に入りに追加',
+        removeFromFavorites: 'お気に入りから削除',
+        inclTax: '{amount}の税金込み'
+    },
+    fa: {
+        recommended: 'پیشنهادی',
+        freeCancellation: 'کنسلی رایگان',
+        nonRefundable: 'غیر قابل استرداد',
+        roomOptions: 'گزینه اتاق',
+        inclTaxes: 'شامل مالیات و عوارض',
+        viewDetails: 'مشاهده جزئیات',
+        checkAvailability: 'بررسی ظرفیت',
+        addToFavorites: 'افزودن به علاقه‌مندی‌ها',
+        removeFromFavorites: 'حذف از علاقه‌مندی‌ها',
+        inclTax: 'شامل {amount} مالیات'
+    },
+    fr: {
+        recommended: 'Recommandé',
+        freeCancellation: 'Annulation gratuite',
+        nonRefundable: 'Non remboursable',
+        roomOptions: 'options de chambres',
+        inclTaxes: 'taxes et frais inclus',
+        viewDetails: 'Voir les détails',
+        checkAvailability: 'Vérifier la disponibilité',
+        addToFavorites: 'Ajouter aux favoris',
+        removeFromFavorites: 'Supprimer des favoris',
+        inclTax: 'incl. {amount} de taxes'
+    },
+    it: {
+        recommended: 'Consigliato',
+        freeCancellation: 'Cancellazione gratuita',
+        nonRefundable: 'Non rimborsabile',
+        roomOptions: 'opzioni di camere',
+        inclTaxes: 'tasse e commissioni incluse',
+        viewDetails: 'Vedi dettagli',
+        checkAvailability: 'Verifica disponibilità',
+        addToFavorites: 'Aggiungi ai preferiti',
+        removeFromFavorites: 'Rimuovi dai preferiti',
+        inclTax: 'incl. {amount} di tasse'
+    },
+    el: {
+        recommended: 'Προτεινόμενο',
+        freeCancellation: 'Δωρεάν ακύρωση',
+        nonRefundable: 'Μη επιστρέψιμη',
+        roomOptions: 'επιλογές δωματίων',
+        inclTaxes: 'περιλαμβάνονται φόροι & τέλη',
+        viewDetails: 'Δείτε λεπτομέρειες',
+        checkAvailability: 'Έλεγχος διαθεσιμότητας',
+        addToFavorites: 'Προσθήκη στα αγαπημένα',
+        removeFromFavorites: 'Αφαίρεση από τα αγαπημένα',
+        inclTax: 'περιλ. {amount} φόρος'
+    },
+    pt: {
+        recommended: 'Recomendado',
+        freeCancellation: 'Cancelamento gratuito',
+        nonRefundable: 'Não reembolsável',
+        roomOptions: 'opções de quartos',
+        inclTaxes: 'impostos e taxas incluídos',
+        viewDetails: 'Ver detalhes',
+        checkAvailability: 'Verificar disponibilidade',
+        addToFavorites: 'Adicionar aos favoritos',
+        removeFromFavorites: 'Remover dos favoritos',
+        inclTax: 'incl. {amount} de taxas'
+    }
+};
+
 const HotelCard = ({ hotel, viewMode = 'list' }) => {
     const { i18n } = useTranslation();
-    const currentLang = i18n.language || 'tr';
+    const currentLang = (i18n.language || 'en').split('-')[0].toLowerCase();
+    const loc = hotelCardLocales[currentLang] || hotelCardLocales.en;
     const { isFavorite, toggleFavorite } = useFavorites();
     const hotelId = hotel.hotelId || hotel.id;
     const isFav = isFavorite(hotelId);
@@ -167,13 +315,13 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                     {hotel.isRecommended && (
                         <div className="bg-gradient-to-r from-teal-400 to-blue-500 text-white text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-lg shadow-cyan-500/30 flex items-center gap-1 animate-in fade-in slide-in-from-left-4 duration-500 border border-cyan-400/50 mt-0.5">
                             <span className="material-symbols-outlined text-[10px] fill-1">thumb_up</span>
-                            {currentLang === 'tr' ? 'Önerilen' : 'Recommended'}
+                            {loc.recommended}
                         </div>
                     )}
                 </div>
                 <button
                     onClick={handleFavorite}
-                    title={isFav ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                    title={isFav ? loc.removeFromFavorites : loc.addToFavorites}
                     className={`absolute top-2.5 right-2.5 z-10 size-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-xs transition-all ${
                         isFav ? 'text-red-500 hover:scale-110' : 'text-slate-700 dark:text-slate-200 hover:text-red-500 hover:scale-110'
                     }`}
@@ -270,13 +418,13 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                         {hotel.hasFreeCancellation && (
                             <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/40 text-[10px] font-medium flex items-center gap-1">
                                 <span className="material-symbols-outlined text-[12px]">event_available</span>
-                                <span>{currentLang === 'tr' ? 'Ücretsiz İptal' : 'Free Cancellation'}</span>
+                                <span>{loc.freeCancellation}</span>
                             </span>
                         )}
                         {hotel.isNonRefundable && !hotel.hasFreeCancellation && (
                             <span className="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/40 text-[10px] font-medium flex items-center gap-1">
                                 <span className="material-symbols-outlined text-[12px]">info</span>
-                                <span>{currentLang === 'tr' ? 'İade Edilemez' : 'Non-Refundable'}</span>
+                                <span>{loc.nonRefundable}</span>
                             </span>
                         )}
                         {hotel.roomName && (
@@ -287,7 +435,7 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                         )}
                         {hotel.availableRoomsCount > 1 && (
                             <span className="text-[10px] font-normal text-slate-400 self-center ml-0.5">
-                                ({hotel.availableRoomsCount} {currentLang === 'tr' ? 'oda seçeneği' : 'room options'})
+                                ({hotel.availableRoomsCount} {loc.roomOptions})
                             </span>
                         )}
                     </div>
@@ -314,19 +462,19 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                                     <span className="material-symbols-outlined text-[11px] text-emerald-500">check_circle</span>
                                     <span>
                                         {hotel.tax > 0 
-                                            ? `incl. ${currencySymbol}${hotel.tax.toFixed(2)} tax` 
-                                            : currentLang === 'tr' ? 'vergiler dahil' : 'incl. taxes & fees'}
+                                            ? loc.inclTax.replace('{amount}', `${currencySymbol}${hotel.tax.toFixed(2)}`) 
+                                            : loc.inclTaxes}
                                     </span>
                                 </div>
                             </div>
                         ) : (
-                            <span className="text-xs font-semibold text-slate-500 uppercase">Check Availability</span>
+                            <span className="text-xs font-semibold text-slate-500 uppercase">{loc.checkAvailability}</span>
                         )}
                     </div>
                     <div
                         className={`bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-all shadow-xs hover:shadow-primary/20 active:scale-95 flex items-center justify-center shrink-0 whitespace-nowrap ${isList ? 'text-xs py-2.5 px-5' : 'text-xs py-2 px-4'}`}
                     >
-                        {currentLang === 'tr' ? 'Detayları Gör' : 'View Details'}
+                        {loc.viewDetails}
                     </div>
                 </div>
             </div>

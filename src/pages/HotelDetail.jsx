@@ -1752,7 +1752,7 @@ const HotelDetail = () => {
             <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
                 <div className="flex flex-col items-center gap-6">
                     <div className="size-20 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                    <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-xs" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                    <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-xs" lang={currentLang}>
                         {tLocal('fetchingBestRates')}
                     </p>
                 </div>
@@ -2314,7 +2314,7 @@ const HotelDetail = () => {
                                                                     <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={roomGroup.images?.[0]?.url || images[roomIndex % images.length]} alt="" />
                                                                     {roomGroup.images?.length > 0 && (
                                                                         <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md text-white text-[11px] font-medium px-2.5 py-1 rounded-md flex items-center gap-1.5">
-                                                                            <span className="material-symbols-outlined text-[14px]">photo_library</span> {roomGroup.images.length} {currentLang === 'tr' ? 'Fotoğraf' : 'Photos'}
+                                                                            <span className="material-symbols-outlined text-[14px]">photo_library</span> {roomGroup.images.length} {tLocal('photos')}
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -2848,9 +2848,7 @@ const HotelDetail = () => {
                                         <div className="flex items-center gap-1.5">
                                             <span className="material-symbols-outlined text-xs text-[#1a73e8]">nights_stay</span>
                                             <span className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-300 uppercase tracking-wider">
-                                                {currentLang === 'tr' 
-                                                    ? `${nights} Gece Konaklama` 
-                                                    : `${nights} ${nights > 1 ? tLocal('nights') : tLocal('night')} ${tLocal('stay')}`}
+                                                {nights} {nights > 1 ? tLocal('nights') : tLocal('night')} {tLocal('stay')}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-1.5">

@@ -1,18 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import GoogleFlightDatePicker from './GoogleFlightDatePicker';
+import { getFlightLocale } from '../utils/flightLocales';
 
 const TRIP_TYPES = [
-    { id: 'round_trip', label: 'Gidiş dönüş', icon: 'sync_alt' },
-    { id: 'one_way', label: 'Tek yön', icon: 'arrow_right_alt' },
-    { id: 'multi_city', label: 'Birden fazla şehir', icon: 'alt_route' }
+    { id: 'round_trip', icon: 'sync_alt' },
+    { id: 'one_way', icon: 'arrow_right_alt' },
+    { id: 'multi_city', icon: 'alt_route' }
 ];
 
 const CABIN_CLASSES = [
-    { id: 'economy', label: 'Ekonomi' },
-    { id: 'premium_economy', label: 'Premium ekonomi' },
-    { id: 'business', label: 'Business' },
-    { id: 'first', label: 'First' }
+    { id: 'economy' },
+    { id: 'premium_economy' },
+    { id: 'business' },
+    { id: 'first' }
 ];
 
 // Helper component for Google Flights notched input box
@@ -77,6 +79,9 @@ const NotchedInputBox = ({ side, isFocused, children, className }) => {
 };
 
 const FlightSearch = ({ onSearch }) => {
+    const { i18n } = useTranslation();
+    const fl = getFlightLocale(i18n.language);
+
     // Top dropdown states
     const [tripType, setTripType] = useState(TRIP_TYPES[0]);
     const [showTripTypeDropdown, setShowTripTypeDropdown] = useState(false);
@@ -126,10 +131,11 @@ const FlightSearch = ({ onSearch }) => {
 
     const formatGoogleFlightDate = (date) => {
         if (!date) return '';
-        const day = date.getDate();
-        const months = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
-        const days = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
-        return `${day} ${months[date.getMonth()]} ${days[date.getDay()]}`;
+        try {
+            return new Intl.DateTimeFormat(i18n.language || 'en', { day: 'numeric', month: 'short', weekday: 'short' }).format(date);
+        } catch (e) {
+            return `${date.getDate()}/${date.getMonth() + 1}`;
+        }
     };
 
     const stepDeparture = (days) => {
@@ -207,7 +213,7 @@ const FlightSearch = ({ onSearch }) => {
                             }`}
                         >
                             <span className={`material-symbols-outlined text-[19px] ${showTripTypeDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-300'}`}>{tripType.icon}</span>
-                            <span>{tripType.label}</span>
+                            <span>{fl[tripType.id] || tripType.id}</span>
                             <span className={`material-symbols-outlined text-[19px] ${showTripTypeDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-300'}`}>
                                 {showTripTypeDropdown ? 'arrow_drop_up' : 'arrow_drop_down'}
                             </span>
@@ -238,7 +244,7 @@ const FlightSearch = ({ onSearch }) => {
                                                     </span>
                                                 )}
                                             </div>
-                                            <span className="truncate">{t.label}</span>
+                                            <span className="truncate">{fl[t.id] || t.id}</span>
                                         </button>
                                     );
                                 })}
@@ -278,7 +284,8 @@ const FlightSearch = ({ onSearch }) => {
                                 {/* 1. Yetişkin */}
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">Yetişkin</div>
+                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">{fl.adults}</div>
+                                        <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">{fl.adultsSub}</div>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -308,8 +315,8 @@ const FlightSearch = ({ onSearch }) => {
                                 {/* 2. Çocuk Sayısı (2-11 Yaş Arası) */}
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">2-11 Yaş Arası</div>
-                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">Çocuk Sayısı</div>
+                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">{fl.children}</div>
+                                        <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">{fl.childrenSub}</div>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -335,8 +342,8 @@ const FlightSearch = ({ onSearch }) => {
                                 {/* 3. Koltukta Yolculuk Edecek Bebek Sayısı */}
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">Koltukta</div>
-                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">Yolculuk Edecek Bebek Sayısı</div>
+                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">{fl.infantsSeat}</div>
+                                        <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">{fl.infantsSeatSub}</div>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -362,8 +369,8 @@ const FlightSearch = ({ onSearch }) => {
                                 {/* 4. Kucakta yolculuk yapacak bebek sayısı */}
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">Kucakta</div>
-                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">yolculuk yapacak bebek sayısı</div>
+                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">{fl.infantsLap}</div>
+                                        <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">{fl.infantsLapSub}</div>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -393,7 +400,7 @@ const FlightSearch = ({ onSearch }) => {
                                         onClick={() => setShowPassengerDropdown(false)}
                                         className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] rounded cursor-pointer transition-colors"
                                     >
-                                        İptal
+                                        {fl.cancel}
                                     </button>
                                     <button
                                         type="button"
@@ -403,7 +410,7 @@ const FlightSearch = ({ onSearch }) => {
                                         }}
                                         className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] rounded cursor-pointer transition-colors"
                                     >
-                                        Bitti
+                                        {fl.done}
                                     </button>
                                 </div>
                             </div>
@@ -425,7 +432,7 @@ const FlightSearch = ({ onSearch }) => {
                                     : 'text-[#3c4043] dark:text-slate-200 hover:text-[#202124] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] rounded border-b-2 border-transparent'
                             }`}
                         >
-                            <span>{cabinClass.label}</span>
+                            <span>{fl[cabinClass.id] || cabinClass.id}</span>
                             <span className={`material-symbols-outlined text-[19px] ${showCabinDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-300'}`}>
                                 {showCabinDropdown ? 'arrow_drop_up' : 'arrow_drop_down'}
                             </span>
@@ -456,7 +463,7 @@ const FlightSearch = ({ onSearch }) => {
                                                     </span>
                                                 )}
                                             </div>
-                                            <span className="truncate">{c.label}</span>
+                                            <span className="truncate">{fl[c.id] || c.id}</span>
                                         </button>
                                     );
                                 })}
@@ -479,7 +486,7 @@ const FlightSearch = ({ onSearch }) => {
                                 </svg>
                                 <input
                                     type="text"
-                                    placeholder="Nereden?"
+                                    placeholder={fl.whereFrom}
                                     value={origin}
                                     onFocus={() => setFocusedInput('origin')}
                                     onBlur={() => setFocusedInput(null)}
@@ -495,7 +502,7 @@ const FlightSearch = ({ onSearch }) => {
                                 type="button"
                                 onClick={handleSwap}
                                 className="w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-slate-200/50 dark:hover:bg-slate-700/50 active:bg-slate-200/80 dark:active:bg-slate-700/80 flex items-center justify-center text-[#5f6368] dark:text-slate-300 active:scale-90 transition-all cursor-pointer select-none"
-                                title="Kalkış ve varış yerini değiştir"
+                                title={fl.whereFrom + ' - ' + fl.whereTo}
                             >
                                 <svg 
                                     className="w-[18px] h-[18px] text-[#3c4043] dark:text-slate-200 transition-transform duration-300 ease-in-out" 
@@ -524,7 +531,7 @@ const FlightSearch = ({ onSearch }) => {
                                 </svg>
                                 <input
                                     type="text"
-                                    placeholder="Nereye?"
+                                    placeholder={fl.whereTo}
                                     value={destination}
                                     onFocus={() => setFocusedInput('destination')}
                                     onBlur={() => setFocusedInput(null)}
@@ -561,7 +568,7 @@ const FlightSearch = ({ onSearch }) => {
                                     calendar_today
                                 </span>
                                 <span className="text-[13.5px] font-medium text-[#3c4043] dark:text-white truncate">
-                                    {formatGoogleFlightDate(departureDate) || 'Gidiş'}
+                                    {formatGoogleFlightDate(departureDate) || fl.departure}
                                 </span>
                             </div>
 
@@ -605,7 +612,7 @@ const FlightSearch = ({ onSearch }) => {
                             >
                                 <div className="flex items-center min-w-0 flex-1">
                                     <span className="text-[13.5px] font-medium text-[#3c4043] dark:text-white truncate">
-                                        {formatGoogleFlightDate(returnDate) || 'Dönüş'}
+                                        {formatGoogleFlightDate(returnDate) || fl.return}
                                     </span>
                                 </div>
 
@@ -628,7 +635,7 @@ const FlightSearch = ({ onSearch }) => {
                             </div>
                         ) : (
                             <div className="flex-1 h-full flex items-center px-3 text-[#70757a] dark:text-slate-400 text-xs italic">
-                                Tek yön
+                                {fl.one_way}
                             </div>
                         )}
 
@@ -654,7 +661,7 @@ const FlightSearch = ({ onSearch }) => {
                         className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[14px] px-7 py-2.5 flex items-center justify-center gap-2 shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] hover:shadow-lg transition-all active:scale-95 cursor-pointer"
                     >
                         <span className="material-symbols-outlined text-[18px]">search</span>
-                        <span>Ara</span>
+                        <span>{fl.search}</span>
                     </button>
                 </div>
             </div>
@@ -667,10 +674,10 @@ const FlightSearch = ({ onSearch }) => {
                             <span className="material-symbols-outlined text-[32px]">flight_takeoff</span>
                         </div>
                         <h3 className="text-xl font-medium text-[#202124] dark:text-white mb-2">
-                            Uçuş Servisleri Hazırlanıyor
+                            {fl.comingSoonTitle}
                         </h3>
                         <p className="text-sm text-[#5f6368] dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-                            {origin || 'Seçilen kalkış'} &rarr; {destination || 'Seçilen varış'} için uçuş arama ve biletleme entegrasyonumuz çok yakında aktif olacaktır.
+                            {fl.comingSoonDesc.replace('{origin}', origin || fl.whereFrom).replace('{destination}', destination || fl.whereTo)}
                         </p>
                     </div>
                 </div>

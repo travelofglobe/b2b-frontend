@@ -173,32 +173,39 @@ const FilterModal = ({ isOpen, onClose, filters, locationNames, facilityNames })
 
 // MapBoundsListener
 const MapBoundsListener = ({ onBoundsChange, isUserPanRef, isProgrammaticMoveRef }) => {
+    const handleBoundsUpdate = (map) => {
+        if (isProgrammaticMoveRef && isProgrammaticMoveRef.current) {
+            isProgrammaticMoveRef.current = false;
+            return;
+        }
+        // Force recalculation of container dimensions before calculating bounds
+        map.invalidateSize();
+
+        const bounds = map.getBounds();
+        const nw = bounds.getNorthWest();
+        const se = bounds.getSouthEast();
+
+        onBoundsChange({
+            bounds: {
+                topLeft: { lat: nw.lat, lon: nw.lng },
+                bottomRight: { lat: se.lat, lon: se.lng }
+            },
+            isUserPan: isUserPanRef.current,
+            zoom: map.getZoom()
+        });
+    };
+
     useMapEvents({
         mousedown: () => { isUserPanRef.current = true; },
         wheel: () => { isUserPanRef.current = true; },
         touchstart: () => { isUserPanRef.current = true; },
-        moveend: (e) => {
-            if (isProgrammaticMoveRef && isProgrammaticMoveRef.current) {
-                isProgrammaticMoveRef.current = false;
-                return;
+        zoomstart: () => {
+            if (!isProgrammaticMoveRef?.current) {
+                isUserPanRef.current = true;
             }
-            const map = e.target;
-            // Force recalculation of container dimensions before calculating bounds
-            map.invalidateSize();
-
-            const bounds = map.getBounds();
-            const nw = bounds.getNorthWest();
-            const se = bounds.getSouthEast();
-
-            onBoundsChange({
-                bounds: {
-                    topLeft: { lat: nw.lat, lon: nw.lng },
-                    bottomRight: { lat: se.lat, lon: se.lng }
-                },
-                isUserPan: isUserPanRef.current,
-                zoom: map.getZoom()
-            });
-        }
+        },
+        moveend: (e) => handleBoundsUpdate(e.target),
+        zoomend: (e) => handleBoundsUpdate(e.target)
     });
     return null;
 };
@@ -991,10 +998,12 @@ const MapView = () => {
     };
 
     const handleZoomIn = () => {
+        isUserPanRef.current = true;
         if (map) map.zoomIn();
     };
 
     const handleZoomOut = () => {
+        isUserPanRef.current = true;
         if (map) map.zoomOut();
     };
 

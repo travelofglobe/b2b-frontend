@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import GoogleFlightDatePicker from '../components/GoogleFlightDatePicker';
+import { getFlightLocale } from '../utils/flightLocales';
 
 // Notched Input Box Component for the Google Flights search bar
 const NotchedInputBox = ({ side, isFocused, children, className }) => {
@@ -343,10 +345,29 @@ const FlightListing = () => {
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
     const [activeDateField, setActiveDateField] = useState('checkIn');
 
-    const [tripType, setTripType] = useState(TRIP_TYPES.find(t => t.id === qType) || TRIP_TYPES[0]);
+    const { t, i18n } = useTranslation();
+    const currentLang = i18n.language || 'en';
+    const fl = useMemo(() => getFlightLocale(currentLang), [currentLang]);
+
+    const TRIP_TYPES = useMemo(() => [
+        { id: 'round_trip', label: fl.round_trip, icon: 'sync_alt' },
+        { id: 'one_way', label: fl.one_way, icon: 'arrow_right_alt' },
+        { id: 'multi_city', label: fl.multi_city, icon: 'alt_route' }
+    ], [fl]);
+
+    const CABIN_CLASSES = useMemo(() => [
+        { id: 'economy', label: fl.economy },
+        { id: 'premium_economy', label: fl.premium_economy },
+        { id: 'business', label: fl.business },
+        { id: 'first', label: fl.first }
+    ], [fl]);
+
+    const [tripTypeId, setTripTypeId] = useState(qType);
+    const tripType = useMemo(() => TRIP_TYPES.find(t => t.id === tripTypeId) || TRIP_TYPES[0], [TRIP_TYPES, tripTypeId]);
     const [showTripTypeDropdown, setShowTripTypeDropdown] = useState(false);
 
-    const [cabinClass, setCabinClass] = useState(CABIN_CLASSES.find(c => c.id === qCabin) || CABIN_CLASSES[0]);
+    const [cabinClassId, setCabinClassId] = useState(qCabin);
+    const cabinClass = useMemo(() => CABIN_CLASSES.find(c => c.id === cabinClassId) || CABIN_CLASSES[0], [CABIN_CLASSES, cabinClassId]);
     const [showCabinDropdown, setShowCabinDropdown] = useState(false);
 
     const [passengers, setPassengers] = useState({ adults: qAdults, children: 0, infantsInSeat: 0, infantsOnLap: 0 });
@@ -385,10 +406,11 @@ const FlightListing = () => {
 
     const formatGoogleFlightDate = (date) => {
         if (!date) return '';
-        const day = date.getDate();
-        const months = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
-        const days = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
-        return `${day} ${months[date.getMonth()]} ${days[date.getDay()]}`;
+        try {
+            return new Intl.DateTimeFormat(currentLang, { day: 'numeric', month: 'short', weekday: 'short' }).format(date);
+        } catch {
+            return date.toLocaleDateString();
+        }
     };
 
     const stepDeparture = (days) => {
@@ -494,7 +516,7 @@ const FlightListing = () => {
                                                 key={t.id}
                                                 type="button"
                                                 onClick={() => {
-                                                    setTripType(t);
+                                                    setTripTypeId(t.id);
                                                     setShowTripTypeDropdown(false);
                                                 }}
                                                 className={`w-full py-2.5 pr-4 flex items-center text-left text-[13.5px] font-normal cursor-pointer transition-colors ${
@@ -546,7 +568,7 @@ const FlightListing = () => {
                             {showPassengerDropdown && (
                                 <div className="absolute top-full left-0 mt-0 w-80 sm:w-[340px] bg-white dark:bg-[#202124] rounded-b-lg rounded-tr-lg border border-[#dadce0] dark:border-[#3c4043] shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] p-4 sm:p-5 z-[200] animate-in fade-in duration-150 space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">Yetişkin</div>
+                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">{fl.adults}</div>
                                         <div className="flex items-center gap-2">
                                             <button
                                                 type="button"
@@ -573,7 +595,7 @@ const FlightListing = () => {
                                             onClick={() => setShowPassengerDropdown(false)}
                                             className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] rounded cursor-pointer"
                                         >
-                                            İptal
+                                            {fl.cancel}
                                         </button>
                                         <button
                                             type="button"
@@ -583,7 +605,7 @@ const FlightListing = () => {
                                             }}
                                             className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] rounded cursor-pointer"
                                         >
-                                            Bitti
+                                            {fl.done}
                                         </button>
                                     </div>
                                 </div>
@@ -620,7 +642,7 @@ const FlightListing = () => {
                                                 key={c.id}
                                                 type="button"
                                                 onClick={() => {
-                                                    setCabinClass(c);
+                                                    setCabinClassId(c.id);
                                                     setShowCabinDropdown(false);
                                                 }}
                                                 className={`w-full py-2.5 pr-4 flex items-center text-left text-[13.5px] font-normal cursor-pointer transition-colors ${
@@ -657,7 +679,7 @@ const FlightListing = () => {
                                     </svg>
                                     <input
                                         type="text"
-                                        placeholder="Nereden?"
+                                        placeholder={fl.whereFrom}
                                         value={origin}
                                         onFocus={() => setFocusedInput('origin')}
                                         onBlur={() => setFocusedInput(null)}
@@ -673,7 +695,7 @@ const FlightListing = () => {
                                     type="button"
                                     onClick={handleSwap}
                                     className="w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-slate-200/50 dark:hover:bg-slate-700/50 active:bg-slate-200/80 dark:active:bg-slate-700/80 flex items-center justify-center text-[#5f6368] dark:text-slate-300 active:scale-90 transition-all cursor-pointer select-none"
-                                    title="Kalkış ve varış yerini değiştir"
+                                    title={fl.swapLocations}
                                 >
                                     <svg 
                                         className="w-[18px] h-[18px] text-[#3c4043] dark:text-slate-200 transition-transform duration-300 ease-in-out" 
@@ -702,7 +724,7 @@ const FlightListing = () => {
                                     </svg>
                                     <input
                                         type="text"
-                                        placeholder="Nereye?"
+                                        placeholder={fl.whereTo}
                                         value={destination}
                                         onFocus={() => setFocusedInput('destination')}
                                         onBlur={() => setFocusedInput(null)}
@@ -737,7 +759,7 @@ const FlightListing = () => {
                                 <div className="flex items-center gap-2 min-w-0 flex-1">
                                     <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-300 flex-shrink-0">calendar_today</span>
                                     <span className="text-[13.5px] font-medium text-[#3c4043] dark:text-white truncate">
-                                        {formatGoogleFlightDate(departureDate) || 'Gidiş'}
+                                        {formatGoogleFlightDate(departureDate) || fl.departure}
                                     </span>
                                 </div>
 
@@ -781,7 +803,7 @@ const FlightListing = () => {
                                 >
                                     <div className="flex items-center min-w-0 flex-1">
                                         <span className="text-[13.5px] font-medium text-[#3c4043] dark:text-white truncate">
-                                            {formatGoogleFlightDate(returnDate) || 'Dönüş'}
+                                            {formatGoogleFlightDate(returnDate) || fl.return}
                                         </span>
                                     </div>
 
@@ -804,7 +826,7 @@ const FlightListing = () => {
                                 </div>
                             ) : (
                                 <div className="flex-1 h-full flex items-center px-3 text-[#70757a] dark:text-slate-400 text-xs italic">
-                                    Tek yön
+                                    {fl.one_way}
                                 </div>
                             )}
 
@@ -832,7 +854,7 @@ const FlightListing = () => {
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shrink-0 transition-colors cursor-pointer"
                         >
                             <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-300">tune</span>
-                            <span>Tüm filtreler</span>
+                            <span>{fl.allFilters}</span>
                         </button>
 
                         {/* Aktarmalar */}
@@ -845,7 +867,7 @@ const FlightListing = () => {
                                     : 'border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#3c4043] dark:text-slate-200'
                             }`}
                         >
-                            <span>Aktarmalar</span>
+                            <span>{fl.stops}</span>
                             <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-300">arrow_drop_down</span>
                         </button>
 
@@ -859,7 +881,7 @@ const FlightListing = () => {
                                     : 'border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#3c4043] dark:text-slate-200'
                             }`}
                         >
-                            <span>Hava yolu şirketleri</span>
+                            <span>{fl.airlines}</span>
                             <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-300">arrow_drop_down</span>
                         </button>
 
@@ -868,7 +890,7 @@ const FlightListing = () => {
                             type="button"
                             className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shrink-0 transition-colors cursor-pointer"
                         >
-                            <span>Bagaj</span>
+                            <span>{fl.baggage}</span>
                             <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-300">arrow_drop_down</span>
                         </button>
 
@@ -878,7 +900,7 @@ const FlightListing = () => {
                             onClick={() => setOpenFilterModal(openFilterModal === 'price' ? null : 'price')}
                             className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shrink-0 transition-colors cursor-pointer"
                         >
-                            <span>Fiyat</span>
+                            <span>{fl.price}</span>
                             <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-300">arrow_drop_down</span>
                         </button>
 
@@ -887,7 +909,7 @@ const FlightListing = () => {
                             type="button"
                             className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shrink-0 transition-colors cursor-pointer"
                         >
-                            <span>Kalkış zamanı</span>
+                            <span>{fl.departureTimeFilter}</span>
                             <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-300">arrow_drop_down</span>
                         </button>
 
@@ -901,7 +923,7 @@ const FlightListing = () => {
                                     : 'border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#3c4043] dark:text-slate-200'
                             }`}
                         >
-                            <span>Emisyon</span>
+                            <span>{fl.emissions}</span>
                             <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-300">arrow_drop_down</span>
                         </button>
 
@@ -910,7 +932,7 @@ const FlightListing = () => {
                             type="button"
                             className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shrink-0 transition-colors cursor-pointer"
                         >
-                            <span>Aktarma yapılabilen havalimanları</span>
+                            <span>{fl.connectingAirports}</span>
                             <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-300">arrow_drop_down</span>
                         </button>
 
@@ -919,7 +941,7 @@ const FlightListing = () => {
                             type="button"
                             className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shrink-0 transition-colors cursor-pointer"
                         >
-                            <span>Süre</span>
+                            <span>{fl.durationFilter}</span>
                             <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-300">arrow_drop_down</span>
                         </button>
                     </div>
@@ -942,7 +964,7 @@ const FlightListing = () => {
                                 : 'bg-white dark:bg-[#202124] text-[#3c4043] dark:text-slate-300 border border-[#dadce0] dark:border-slate-700 hover:bg-[#f8f9fa]'
                         }`}
                     >
-                        <span>En iyi</span>
+                        <span>{fl.bestFlights}</span>
                         <span className="material-symbols-outlined text-[16px] text-[#70757a] dark:text-slate-400">info</span>
                     </button>
 
@@ -956,8 +978,8 @@ const FlightListing = () => {
                                 : 'bg-white dark:bg-[#202124] text-[#3c4043] dark:text-slate-300 border border-[#dadce0] dark:border-slate-700 hover:bg-[#f8f9fa]'
                         }`}
                     >
-                        <span>En ucuz</span>
-                        <span className="text-[12px] text-[#5f6368] dark:text-slate-400 font-normal">en düşük:</span>
+                        <span>{fl.cheapest}</span>
+                        <span className="text-[12px] text-[#5f6368] dark:text-slate-400 font-normal">{fl.lowestPriceLabel}</span>
                         <span className="text-[14px] font-bold text-[#137333] dark:text-emerald-400">₺{lowestPrice}</span>
                         <span className="material-symbols-outlined text-[16px] text-[#70757a] dark:text-slate-400">info</span>
                     </button>
@@ -967,15 +989,15 @@ const FlightListing = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                     <div>
                         <h2 className="text-[17px] font-semibold text-[#202124] dark:text-white leading-tight">
-                            En popüler gidiş seçenekleri
+                            {fl.popularDepartures}
                         </h2>
                         <div className="text-[11.5px] text-[#70757a] dark:text-slate-400 leading-snug mt-0.5">
-                            Fiyat-performans durumuna göre sıralanmıştır <span className="inline-block align-middle cursor-pointer hover:text-slate-700">ⓘ</span> Fiyatlara {totalPassengers} kişi için zorunlu vergiler ve ücretler dahildir. İsteğe bağlı ödemeler ve <span className="text-[#1a73e8] underline cursor-pointer">bagaj ücretleri</span> geçerli olabilir. <span className="text-[#1a73e8] underline cursor-pointer">Yolcu yardımı</span> ile ilgili bilgiler
+                            {fl.pricePerfNotice} <span className="inline-block align-middle cursor-pointer hover:text-slate-700">ⓘ</span> {fl.mandatoryTaxesNotice.replace('{count}', totalPassengers)} <span className="text-[#1a73e8] underline cursor-pointer">{fl.passengerAssistance}</span>
                         </div>
                     </div>
 
                     <div className="shrink-0 flex items-center gap-1 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#e8f0fe] dark:hover:bg-[#1a73e8]/20 px-2.5 py-1 rounded cursor-pointer transition-colors">
-                        <span>En popüler uçuşlara göre sıralandı</span>
+                        <span>{fl.sortedByPopular}</span>
                         <span className="material-symbols-outlined text-[16px]">swap_vert</span>
                     </div>
                 </div>
@@ -984,7 +1006,7 @@ const FlightListing = () => {
                 <div className="bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 overflow-hidden divide-y divide-[#dadce0] dark:divide-slate-700 shadow-sm mb-8">
                     {popularFlights.length === 0 ? (
                         <div className="p-8 text-center text-slate-500">
-                            Filtrelere uygun uçuş bulunamadı. Lütfen filtrelerinizi sıfırlayın.
+                            {fl.noFilteredFlights}
                         </div>
                     ) : (
                         popularFlights.map((flight) => {
@@ -1020,7 +1042,7 @@ const FlightListing = () => {
                                             {/* Times / Date Header */}
                                             {isExpanded ? (
                                                 <div className="text-[15px] font-semibold text-[#202124] dark:text-white animate-in fade-in duration-200">
-                                                    Gidiş · {formatGoogleFlightDate(departureDate) || '5 Eki Pzt'}
+                                                    {fl.departure} · {formatGoogleFlightDate(departureDate)}
                                                 </div>
                                             ) : (
                                                 <>
@@ -1044,7 +1066,7 @@ const FlightListing = () => {
 
                                                     <div className="min-w-[80px] hidden md:block">
                                                         <div className="text-[13.5px] font-normal text-[#202124] dark:text-slate-300">
-                                                            {flight.stops}
+                                                            {flight.stops === 'Aktarmasız' ? fl.direct : flight.stops}
                                                         </div>
                                                     </div>
 
@@ -1091,7 +1113,7 @@ const FlightListing = () => {
                                                     }}
                                                     className="px-4 py-1.5 border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8fafd] dark:hover:bg-[#303134] text-[#1a73e8] dark:text-[#8ab4f8] rounded-full text-[13.5px] font-medium transition-all active:scale-95 cursor-pointer shadow-xs animate-in fade-in duration-200"
                                                 >
-                                                    Uçuşu seç
+                                                    {fl.selectFlight}
                                                 </button>
                                             )}
 
@@ -1099,7 +1121,7 @@ const FlightListing = () => {
                                             <div className="text-left sm:text-right">
                                                 <div className="flex items-center sm:justify-end gap-1.5">
                                                     {!isExpanded && flight.hasBaggageIncluded && (
-                                                        <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-400" title="Kayıtlı bagaj dahil">
+                                                        <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-400" title={fl.includedBaggage}>
                                                             luggage
                                                         </span>
                                                     )}
@@ -1108,7 +1130,7 @@ const FlightListing = () => {
                                                     </span>
                                                 </div>
                                                 <div className="text-[11px] text-[#70757a] dark:text-slate-400">
-                                                    {tripType.id === 'round_trip' ? 'gidiş dönüş' : 'tek yön'}
+                                                    {tripType.id === 'round_trip' ? fl.round_trip.toLowerCase() : fl.one_way.toLowerCase()}
                                                 </div>
                                             </div>
 
@@ -1150,7 +1172,7 @@ const FlightListing = () => {
                                                             {/* Dotted Connecting Line with Duration */}
                                                             <div className="relative border-l-2 border-dotted border-slate-300 dark:border-slate-600 -ml-4 pl-4 py-2">
                                                                 <div className="text-[12px] text-[#70757a] dark:text-slate-400">
-                                                                    Seyahat süresi: {flight.duration}
+                                                                    {fl.travelDuration}: {flight.duration}
                                                                 </div>
                                                             </div>
 
@@ -1177,7 +1199,7 @@ const FlightListing = () => {
                                                             <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400 shrink-0 mt-0.5">
                                                                 airline_seat_recline_extra
                                                             </span>
-                                                            <span>Ortalama bacak mesafesi ({flight.legroom})</span>
+                                                            <span>{fl.legroomAvg} ({flight.legroom})</span>
                                                         </div>
 
                                                         {/* Feature 2: Media / Stream */}
@@ -1185,7 +1207,7 @@ const FlightListing = () => {
                                                             <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400 shrink-0 mt-0.5">
                                                                 phone_android
                                                             </span>
-                                                            <span>Cihazınıza medya içeriği akışı gerçekleştirin</span>
+                                                            <span>{fl.streamMedia}</span>
                                                         </div>
 
                                                         {/* Feature 3: Emissions */}
@@ -1193,7 +1215,7 @@ const FlightListing = () => {
                                                             <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400 shrink-0 mt-0.5">
                                                                 public
                                                             </span>
-                                                            <span>Tahmini emisyon: {flight.emissions}</span>
+                                                            <span>{fl.estEmissions}: {flight.emissions}</span>
                                                         </div>
 
                                                         {/* Feature 4: Contrail warming effect */}
@@ -1201,7 +1223,7 @@ const FlightListing = () => {
                                                             <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400 shrink-0 mt-0.5">
                                                                 flight_takeoff
                                                             </span>
-                                                            <span>Yoğunlaşma izine bağlı ısınmaya potansiyel etkisi: Düşük <span className="inline-block cursor-pointer hover:text-slate-700">ⓘ</span></span>
+                                                            <span>{fl.contrailWarming} <span className="inline-block cursor-pointer hover:text-slate-700">ⓘ</span></span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1219,10 +1241,10 @@ const FlightListing = () => {
                     <div className="mt-8">
                         <div className="mb-3">
                             <h3 className="text-[16px] font-semibold text-[#202124] dark:text-white leading-tight">
-                                Diğer gidiş uçuşları
+                                {fl.otherDepartures}
                             </h3>
                             <div className="text-[11.5px] text-[#70757a] dark:text-slate-400 mt-0.5">
-                                Fiyat veya süre açısından daha farklı alternatif uçuşlar
+                                {fl.otherDeparturesDesc}
                             </div>
                         </div>
 
@@ -1261,7 +1283,7 @@ const FlightListing = () => {
                                             onClick={() => setSelectedFlightForBooking(flight)}
                                             className="px-4 py-1.5 border border-[#dadce0] hover:bg-[#f8fafd] text-[#1a73e8] font-medium text-xs rounded-full cursor-pointer transition-colors"
                                         >
-                                            Seç
+                                            {fl.selectBtn}
                                         </button>
                                     </div>
                                 </div>
@@ -1280,7 +1302,7 @@ const FlightListing = () => {
                         </div>
                         <div className="text-center">
                             <h3 className="text-lg font-semibold text-[#202124] dark:text-white">
-                                {selectedFlightForBooking.airline} Uçuşu Seçildi
+                                {fl.flightSelectedTitle.replace('{airline}', selectedFlightForBooking.airline)}
                             </h3>
                             <p className="text-sm text-[#5f6368] dark:text-slate-400 mt-1">
                                 {origin} ({selectedFlightForBooking.depAirport}) &rarr; {destination} ({selectedFlightForBooking.arrAirport})
@@ -1295,17 +1317,17 @@ const FlightListing = () => {
                                 onClick={() => setSelectedFlightForBooking(null)}
                                 className="flex-1 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-sm font-medium hover:bg-slate-50 cursor-pointer"
                             >
-                                Kapat
+                                {fl.close}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => {
-                                    alert(`${selectedFlightForBooking.airline} (${selectedFlightForBooking.flightNo}) için rezervasyon adımı başlatılıyor.`);
+                                    alert(`${selectedFlightForBooking.airline} (${selectedFlightForBooking.flightNo}) ${fl.bookingStarted}`);
                                     setSelectedFlightForBooking(null);
                                 }}
                                 className="flex-1 py-2.5 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-sm font-medium cursor-pointer shadow-md"
                             >
-                                Rezervasyona İlerle
+                                {fl.proceedBooking}
                             </button>
                         </div>
                     </div>

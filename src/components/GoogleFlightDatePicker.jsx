@@ -2,28 +2,14 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 're
 import { useTranslation } from 'react-i18next';
 import HolidaySidePanel from './HolidaySidePanel';
 
-// Turkish day names according to Google Flights: P, S, Ç, P, C, C, P (starts on Monday)
-const DAY_HEADERS = ['P', 'S', 'Ç', 'P', 'C', 'C', 'P'];
-
-const MONTH_NAMES_TR = [
-    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
-];
-
-const SHORT_MONTHS_TR = [
-    'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz',
-    'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'
-];
-
-const SHORT_DAYS_TR = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
-
-export const formatGoogleFlightDate = (date) => {
+export const formatGoogleFlightDate = (date, lang = 'en') => {
     if (!date || isNaN(new Date(date).getTime())) return '';
     const d = new Date(date);
-    const day = d.getDate();
-    const month = SHORT_MONTHS_TR[d.getMonth()];
-    const weekday = SHORT_DAYS_TR[d.getDay()];
-    return `${day} ${month} ${weekday}`;
+    try {
+        return new Intl.DateTimeFormat(lang || 'en', { day: 'numeric', month: 'short', weekday: 'short' }).format(d);
+    } catch {
+        return d.toLocaleDateString();
+    }
 };
 
 const isSameDay = (d1, d2) => {
@@ -261,22 +247,40 @@ const GoogleFlightDatePicker = ({
         setActiveField('checkIn');
     };
 
+    const dayHeaders = useMemo(() => {
+        const headers = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(2023, 0, 2 + i);
+            try {
+                headers.push(new Intl.DateTimeFormat(i18n.language || 'en', { weekday: 'narrow' }).format(d));
+            } catch {
+                headers.push(['M', 'T', 'W', 'T', 'F', 'S', 'S'][i]);
+            }
+        }
+        return headers;
+    }, [i18n.language]);
+
     if (!isOpen) return null;
 
     // Render single calendar month
     const renderCalendarMonth = (monthDate, days) => {
-        const monthTitle = MONTH_NAMES_TR[monthDate.getMonth()];
+        let monthTitle = '';
+        try {
+            monthTitle = new Intl.DateTimeFormat(i18n.language || 'en', { month: 'long', year: 'numeric' }).format(monthDate);
+        } catch {
+            monthTitle = monthDate.toLocaleDateString();
+        }
 
         return (
             <div className="w-[280px] sm:w-[300px]">
                 {/* Month title */}
-                <h3 className="text-[15px] font-medium text-[#202124] dark:text-white text-center mb-4">
+                <h3 className="text-[15px] font-medium text-[#202124] dark:text-white text-center mb-4 capitalize">
                     {monthTitle}
                 </h3>
 
-                {/* Day headers (P, S, Ç, P, C, C, P) */}
+                {/* Day headers */}
                 <div className="grid grid-cols-7 mb-2">
-                    {DAY_HEADERS.map((h, i) => (
+                    {dayHeaders.map((h, i) => (
                         <div key={i} className="text-center text-[11px] font-medium text-[#70757a] dark:text-slate-400">
                             {h}
                         </div>
@@ -413,7 +417,7 @@ const GoogleFlightDatePicker = ({
                             onClick={handleReset}
                             className="text-[14px] text-[#1a73e8] hover:text-[#1557b0] font-medium px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors cursor-pointer"
                         >
-                            Sıfırla
+                            {t('common.reset', 'Sıfırla')}
                         </button>
 
                         {/* Twin Date Inputs in Popover Header (matching Google Flights) */}
@@ -439,7 +443,7 @@ const GoogleFlightDatePicker = ({
                                 <span className={`text-[14px] font-normal text-[#202124] dark:text-white whitespace-nowrap min-w-[70px] ${
                                     activeField === 'checkIn' ? 'bg-[#d2e3fc] dark:bg-blue-900/60 px-1 rounded-[2px]' : ''
                                 }`}>
-                                    {formatGoogleFlightDate(checkInDate) || 'Tarih seçin'}
+                                    {formatGoogleFlightDate(checkInDate, i18n.language) || t('common.selectDate', 'Tarih seçin')}
                                 </span>
                                 {/* Quick increment/decrement arrows */}
                                 <div className="flex items-center text-[#5f6368] dark:text-slate-400 ml-1">
@@ -447,7 +451,7 @@ const GoogleFlightDatePicker = ({
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
                                         className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded cursor-pointer"
-                                        title="1 gün geri"
+                                        title={t('common.prevDay', '1 gün geri')}
                                     >
                                         <span className="material-symbols-outlined text-[14px]">chevron_left</span>
                                     </button>
@@ -455,7 +459,7 @@ const GoogleFlightDatePicker = ({
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); stepCheckIn(1); }}
                                         className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded cursor-pointer"
-                                        title="1 gün ileri"
+                                        title={t('common.nextDay', '1 gün ileri')}
                                     >
                                         <span className="material-symbols-outlined text-[14px]">chevron_right</span>
                                     </button>
@@ -481,7 +485,7 @@ const GoogleFlightDatePicker = ({
                                 <span className={`text-[14px] font-normal text-[#202124] dark:text-white whitespace-nowrap min-w-[70px] ${
                                     activeField === 'checkOut' ? 'bg-[#d2e3fc] dark:bg-blue-900/60 px-1 rounded-[2px]' : ''
                                 }`}>
-                                    {formatGoogleFlightDate(checkOutDate) || 'Tarih seçin'}
+                                    {formatGoogleFlightDate(checkOutDate, i18n.language) || t('common.selectDate', 'Tarih seçin')}
                                 </span>
                                 {/* Quick increment/decrement arrows */}
                                 <div className="flex items-center text-[#5f6368] dark:text-slate-400 ml-1">
@@ -489,7 +493,7 @@ const GoogleFlightDatePicker = ({
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
                                         className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded cursor-pointer"
-                                        title="1 gün geri"
+                                        title={t('common.prevDay', '1 gün geri')}
                                     >
                                         <span className="material-symbols-outlined text-[14px]">chevron_left</span>
                                     </button>
@@ -497,7 +501,7 @@ const GoogleFlightDatePicker = ({
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); stepCheckOut(1); }}
                                         className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded cursor-pointer"
-                                        title="1 gün ileri"
+                                        title={t('common.nextDay', '1 gün ileri')}
                                     >
                                         <span className="material-symbols-outlined text-[14px]">chevron_right</span>
                                     </button>
@@ -517,7 +521,7 @@ const GoogleFlightDatePicker = ({
                                 type="button"
                                 onClick={handlePrevMonth}
                                 className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md hover:shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 active:scale-95 cursor-pointer"
-                                title="Önceki ay"
+                                title={t('common.prevMonth', 'Önceki ay')}
                             >
                                 <span className="material-symbols-outlined text-[18px]">chevron_left</span>
                             </button>
@@ -534,7 +538,7 @@ const GoogleFlightDatePicker = ({
                             type="button"
                             onClick={handleNextMonth}
                             className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md hover:shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 active:scale-95 cursor-pointer"
-                            title="Sonraki ay"
+                            title={t('common.nextMonth', 'Sonraki ay')}
                         >
                             <span className="material-symbols-outlined text-[18px]">chevron_right</span>
                         </button>
@@ -570,7 +574,7 @@ const GoogleFlightDatePicker = ({
                     onClick={handleCloseWithAnimation}
                     className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[14px] px-7 py-2 transition-all shadow-none hover:shadow active:scale-95 cursor-pointer"
                 >
-                    Bitti
+                    {t('common.done', 'Bitti')}
                 </button>
             </div>
         </div>

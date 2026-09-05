@@ -45,11 +45,22 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
     const [formErrors, setFormErrors] = useState({});
 
     // Localization
-    const currentLang = localStorage.getItem('language') || 'tr';
-    const t = {
+    const currentLang = localStorage.getItem('language') || 'en';
+    const VALIDATION_LOCALES = {
         en: { required: "This field is required", invalidEmail: "Invalid email address" },
-        tr: { required: "Bu alan zorunludur", invalidEmail: "Geçersiz e-posta adresi" }
-    }[currentLang] || { en: { required: "This field is required", invalidEmail: "Invalid email address" } };
+        tr: { required: "Bu alan zorunludur", invalidEmail: "Geçersiz e-posta adresi" },
+        ar: { required: "هذا الحقل مطلوب", invalidEmail: "عنوان بريد إلكتروني غير صالح" },
+        es: { required: "Este campo es obligatorio", invalidEmail: "Dirección de correo no válida" },
+        ru: { required: "Это поле обязательно для заполнения", invalidEmail: "Неверный адрес электронной почты" },
+        zh: { required: "此字段为必填项", invalidEmail: "无效的电子邮件地址" },
+        ja: { required: "この項目は必須です", invalidEmail: "無効なメールアドレスです" },
+        fa: { required: "این فیلد الزامی است", invalidEmail: "آدرس ایمیل نامعتبر است" },
+        fr: { required: "Ce champ est obligatoire", invalidEmail: "Adresse e-mail non valide" },
+        it: { required: "Questo campo è obbligatorio", invalidEmail: "Indirizzo email non valido" },
+        el: { required: "Αυτό το πεδίο είναι υποχρεωτικό", invalidEmail: "Μη έγκυρη διεύθυνση email" },
+        pt: { required: "Este campo é obrigatório", invalidEmail: "Endereço de e-mail inválido" }
+    };
+    const t = VALIDATION_LOCALES[currentLang.split('-')[0]] || VALIDATION_LOCALES.en;
 
     // Sync form with initialData for Edit Mode
     useEffect(() => {

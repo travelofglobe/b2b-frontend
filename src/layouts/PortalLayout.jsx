@@ -57,13 +57,12 @@ const PortalLayout = () => {
                 </div>
 
                 {/* Center: Tabs */}
-                {/* Center: Tabs */}
                 <div className="hidden lg:flex items-center gap-2 font-roboto">
                     {[
-                        { path: '/travel/explore', icon: 'travel_explore', label: 'Keşfet', isCurrent: location.pathname === '/travel/explore' || location.pathname === '/explore' },
-                        { path: '/travel/hotels', icon: 'bed', label: 'Oteller', isCurrent: location.pathname.startsWith('/travel/hotels') || location.pathname.startsWith('/hotel') || location.pathname.startsWith('/map') || location.pathname === '/travel/search' || location.pathname === '/dashboard' },
-                        { path: '/travel/flights', icon: 'flight', label: 'Uçuşlar', isCurrent: location.pathname.startsWith('/travel/flights') || location.pathname.startsWith('/flights') },
-                        { path: '/travel/vacation-rentals', icon: 'home_work', label: 'Kiralık yerler', isCurrent: location.pathname === '/travel/vacation-rentals' || location.pathname === '/vacation-rentals' },
+                        { path: '/travel/explore', icon: 'travel_explore', label: t('nav.explore'), isCurrent: location.pathname === '/travel/explore' || location.pathname === '/explore' },
+                        { path: '/travel/hotels', icon: 'bed', label: t('nav.hotels'), isCurrent: location.pathname.startsWith('/travel/hotels') || location.pathname.startsWith('/hotel') || location.pathname.startsWith('/map') || location.pathname === '/travel/search' || location.pathname === '/dashboard' },
+                        { path: '/travel/flights', icon: 'flight', label: t('nav.flights'), isCurrent: location.pathname.startsWith('/travel/flights') || location.pathname.startsWith('/flights') },
+                        { path: '/travel/vacation-rentals', icon: 'home_work', label: t('nav.vacationRentals'), isCurrent: location.pathname === '/travel/vacation-rentals' || location.pathname === '/vacation-rentals' },
                     ].map(({ path, icon, label, isCurrent }) => (
                         <button
                             key={path}
@@ -106,10 +105,10 @@ const PortalLayout = () => {
                     {/* --- Navigation Tabs (same as header) --- */}
                     <div className="space-y-0.5 mb-1">
                             {[
-                                { path: '/travel/explore', icon: 'travel_explore', label: 'Keşfet' },
-                                { path: '/travel/flights', icon: 'flight', label: 'Uçuşlar' },
-                                { path: '/travel/hotels', icon: 'bed', label: 'Oteller' },
-                                { path: '/travel/vacation-rentals', icon: 'home_work', label: 'Kiralık yerler' },
+                                { path: '/travel/explore', icon: 'travel_explore', label: t('nav.explore') },
+                                { path: '/travel/flights', icon: 'flight', label: t('nav.flights') },
+                                { path: '/travel/hotels', icon: 'bed', label: t('nav.hotels') },
+                                { path: '/travel/vacation-rentals', icon: 'home_work', label: t('nav.vacationRentals') },
                             ].map(({ path, icon, label }) => {
                                 const isActive = path === '/travel/hotels'
                                     ? (location.pathname.startsWith('/travel/hotels') || location.pathname.startsWith('/hotel') || location.pathname.startsWith('/map') || location.pathname === '/travel/search' || location.pathname === '/dashboard')
@@ -284,7 +283,7 @@ const PortalLayout = () => {
                             >
                                 <div className="flex items-center gap-4 min-w-0">
                                     <span className="material-symbols-outlined text-[20px] flex-shrink-0 text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white">language</span>
-                                    <span className="text-sm font-medium text-left leading-snug">Dili değiştir</span>
+                                    <span className="text-sm font-medium text-left leading-snug">{t('nav.changeLanguage')}</span>
                                 </div>
                                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[12px] font-medium text-slate-600 dark:text-slate-300">
                                     <span>{currentLanguage?.flag}</span>

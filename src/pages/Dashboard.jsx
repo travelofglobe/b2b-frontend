@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 
 const Dashboard = () => {
     const { t, i18n } = useTranslation();
+    const currentLang = (i18n.language || 'en').split('-')[0].toLowerCase();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
     const [bookings, setBookings] = useState([]);
@@ -40,7 +41,7 @@ const Dashboard = () => {
                 const list = data?.bookings?.content ?? data?.content ?? data;
                 setBookings(Array.isArray(list) ? list : []);
             } catch (err) {
-                setError(err.message || 'Rezervasyonlar yüklenemedi.');
+                setError(err.message || (currentLang === 'tr' ? 'Rezervasyonlar yüklenemedi.' : 'Failed to load bookings.'));
             } finally {
                 setLoading(false);
             }
@@ -161,7 +162,7 @@ const Dashboard = () => {
                                     margin: 0
                                 }}
                             >
-                                Oteller
+                                {t('nav.hotels') || (currentLang === 'tr' ? 'Oteller' : 'Hotels')}
                             </h1>
                         </div>
                     </div>
@@ -181,7 +182,7 @@ const Dashboard = () => {
                         <div
                             onClick={handleBookingsTodayClick}
                             className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-3 px-3.5 rounded-xl border border-slate-200/70 dark:border-slate-800 shadow-xs flex flex-col justify-between group hover:border-emerald-500/50 hover:bg-emerald-500/[0.03] dark:hover:bg-emerald-500/[0.05] hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
-                            title="Bugünkü onaylanan rezervasyonları görüntüle"
+                            title={currentLang === 'tr' ? 'Bugünkü onaylanan rezervasyonları görüntüle' : 'View confirmed bookings today'}
                         >
                             <div className="flex items-center justify-between">
                                 <div>
@@ -221,7 +222,7 @@ const Dashboard = () => {
                         <div
                             onClick={handleErrorRateClick}
                             className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-3 px-3.5 rounded-xl border border-slate-200/70 dark:border-slate-800 shadow-xs flex flex-col justify-between group hover:border-amber-500/50 hover:bg-amber-500/[0.03] dark:hover:bg-amber-500/[0.05] hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
-                            title="Bugünkü hatalı rezervasyonları görüntüle"
+                            title={currentLang === 'tr' ? 'Bugünkü hatalı rezervasyonları görüntüle' : 'View error bookings today'}
                         >
                             <div className="flex items-center justify-between">
                                 <div>

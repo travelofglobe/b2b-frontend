@@ -59,13 +59,13 @@ function App() {
               <Route path="/definitions/markup" element={<MarkupManagement />} />
               
               {/* Header tab & Google travel routes */}
-              <Route path="/travel/explore" element={<UnderConstruction title="Keşfet" icon="travel_explore" />} />
+              <Route path="/travel/explore" element={<UnderConstruction titleKey="nav.explore" title="Keşfet" icon="travel_explore" />} />
               <Route path="/explore" element={<Navigate to="/travel/explore" replace />} />
               <Route path="/travel/flights/search" element={<FlightListing />} />
               <Route path="/flights/search" element={<Navigate to="/travel/flights/search" replace />} />
               <Route path="/travel/flights" element={<Flights />} />
               <Route path="/flights" element={<Navigate to="/travel/flights" replace />} />
-              <Route path="/travel/vacation-rentals" element={<UnderConstruction title="Kiralık Yerler" icon="home_work" />} />
+              <Route path="/travel/vacation-rentals" element={<UnderConstruction titleKey="nav.vacationRentals" title="Kiralık Yerler" icon="home_work" />} />
               <Route path="/vacation-rentals" element={<Navigate to="/travel/vacation-rentals" replace />} />
               <Route path="/flight-deals" element={<UnderConstruction title="Uçuş Fırsatları" icon="auto_awesome" />} />
               <Route path="/tracked-flight-prices" element={<UnderConstruction title="Takip Edilen Uçuş Fiyatları" icon="show_chart" />} />

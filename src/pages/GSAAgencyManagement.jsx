@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { agencyService } from '../services/agencyService';
 import { agencyGroupService } from '../services/agencyGroupService';
 import { locationService } from '../services/locationService';
@@ -7,51 +8,17 @@ import AddAgencyGroupModal from '../components/AddAgencyGroupModal';
 import SubAgencyDetailView from '../components/SubAgencyDetailView';
 import ConfirmModal from '../components/ConfirmModal';
 import AppleSwitch from '../components/AppleSwitch';
+import { GSA_LOCALES } from '../utils/gsaLocales';
+import { getLang } from '../utils/sharedLocales';
 
 const GSAAgencyManagement = () => {
     const [activeTab, setActiveTab] = useState('agencies');
     const [isLoading, setIsLoading] = useState(false);
     
     // Localization
-    const currentLang = localStorage.getItem('language') || 'tr';
-    const t = {
-        en: {
-            activeWarning: "There are active agencies associated with this group. Are you sure you want to delete it?",
-            confirmPermanently: "Are you sure you want to permanently delete",
-            undoWarning: "This action cannot be undone.",
-            titleAgency: "Delete Agency",
-            titleGroup: "Delete Agency Group",
-            yesDelete: "Yes, Delete",
-            keep: "Keep",
-            agency: "Agency",
-            group: "Group",
-            agencyDetail: "Agency Detail"
-        },
-        tr: {
-            activeWarning: "Grup ile ilişkili aktif acenteler var. Silmek istediğinize emin misiniz?",
-            confirmPermanently: "isimli kaydı kalıcı olarak silmek istediğinize emin misiniz?",
-            undoWarning: "Bu işlem geri alınamaz.",
-            titleAgency: "Acenteyi Sil",
-            titleGroup: "Acente Grubunu Sil",
-            yesDelete: "Evet, Sil",
-            keep: "Vazgeç",
-            agency: "Acente",
-            group: "Grup",
-            agencyDetail: "Acente Detay"
-        }
-    }[currentLang] || {
-        en: {
-            activeWarning: "There are active agencies associated with this group. Are you sure you want to delete it?",
-            confirmPermanently: "Are you sure you want to permanently delete",
-            undoWarning: "This action cannot be undone.",
-            titleAgency: "Delete Agency",
-            titleGroup: "Delete Agency Group",
-            yesDelete: "Yes, Delete",
-            keep: "Keep",
-            agency: "Agency",
-            group: "Group"
-        }
-    };
+    const { i18n } = useTranslation();
+    const currentLang = getLang(i18n.language || localStorage.getItem('language') || 'en');
+    const t = GSA_LOCALES[currentLang] || GSA_LOCALES.en;
     
     // Modal Management
     const [agencyModal, setAgencyModal] = useState({ isOpen: false, mode: 'add', data: null });
@@ -365,8 +332,8 @@ const GSAAgencyManagement = () => {
                                 <span className="material-symbols-outlined text-[24px]">admin_panel_settings</span>
                             </div>
                             <div>
-                                <h1 className="text-xl font-bold text-[#202124] dark:text-white tracking-tight">Agency Management</h1>
-                                <p className="text-xs text-[#5f6368] dark:text-slate-400">Manage GSA agencies, sub-agencies and users</p>
+                                <h1 className="text-xl font-bold text-[#202124] dark:text-white tracking-tight">{t.pageTitle}</h1>
+                                <p className="text-xs text-[#5f6368] dark:text-slate-400">{t.pageSubtitle}</p>
                             </div>
                         </div>
 
@@ -381,7 +348,7 @@ const GSAAgencyManagement = () => {
                                 }`}
                             >
                                 <span className="material-symbols-outlined text-[18px]">business_center</span>
-                                <span>Agencies</span>
+                                <span>{t.tabAgencies}</span>
                             </button>
                             <button
                                 onClick={() => setActiveTab('groups')}
@@ -392,7 +359,7 @@ const GSAAgencyManagement = () => {
                                 }`}
                             >
                                 <span className="material-symbols-outlined text-[18px]">groups</span>
-                                <span>Agency Groups</span>
+                                <span>{t.tabGroups}</span>
                             </button>
                         </div>
                     </div>
@@ -404,10 +371,10 @@ const GSAAgencyManagement = () => {
                                 {/* Compact Stats Bar */}
                                 <div className="flex items-center bg-white dark:bg-[#303134] rounded-lg border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shrink-0">
                                     {[
-                                        { label: 'Total Agencies', value: agencySummary.totalAgencyCount, icon: 'business_center', color: 'text-blue-600 dark:text-blue-400', dot: 'bg-blue-500' },
-                                        { label: 'Active', value: agencySummary.activeAgencyCount, icon: 'check_circle', color: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
-                                        { label: 'Passive', value: agencySummary.passiveAgencyCount, icon: 'pause_circle', color: 'text-rose-500 dark:text-rose-400', dot: 'bg-rose-500' },
-                                        { label: 'Direct Integration', value: agencySummary.directIntegrationAgencyCount, icon: 'electric_bolt', color: 'text-violet-600 dark:text-violet-400', dot: 'bg-violet-500' }
+                                        { label: t.statTotalAgencies, value: agencySummary.totalAgencyCount, icon: 'business_center', color: 'text-blue-600 dark:text-blue-400', dot: 'bg-blue-500' },
+                                        { label: t.statActive, value: agencySummary.activeAgencyCount, icon: 'check_circle', color: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
+                                        { label: t.statPassive, value: agencySummary.passiveAgencyCount, icon: 'pause_circle', color: 'text-rose-500 dark:text-rose-400', dot: 'bg-rose-500' },
+                                        { label: t.statDirectIntegration, value: agencySummary.directIntegrationAgencyCount, icon: 'electric_bolt', color: 'text-violet-600 dark:text-violet-400', dot: 'bg-violet-500' }
                                     ].map((stat, idx, arr) => (
                                         <div key={idx} className={`flex items-center gap-3 px-5 py-3 flex-1 ${idx < arr.length - 1 ? 'border-r border-[#dadce0] dark:border-[#3c4043]' : ''}`}>
                                             <div className={`size-1.5 rounded-full ${stat.dot} shrink-0`}></div>
@@ -427,39 +394,39 @@ const GSAAgencyManagement = () => {
                                             <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-slate-400 text-[18px]">search</span>
                                             <input
                                                 type="text"
-                                                placeholder="Search agencies..."
+                                                placeholder={t.searchAgencies}
                                                 value={agencyFilters.query}
                                                 onChange={(e) => handleFilterChange('query', e.target.value)}
                                                 className="w-full h-8 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-8 pr-3 text-xs font-medium outline-none focus:border-primary transition-colors"
                                             />
                                         </div>
                                         <select value={agencyFilters.status} onChange={(e) => handleFilterChange('status', e.target.value)} className="h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium outline-none cursor-pointer">
-                                            <option value="">All Status</option>
-                                            <option value="ACTIVE">Active</option>
-                                            <option value="PASSIVE">Passive</option>
+                                            <option value="">{t.allStatus}</option>
+                                            <option value="ACTIVE">{t.active}</option>
+                                            <option value="PASSIVE">{t.passive}</option>
                                         </select>
                                         <select value={agencyFilters.agencyType} onChange={(e) => handleFilterChange('agencyType', e.target.value)} className="h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium outline-none cursor-pointer">
-                                            <option value="">All Types</option>
-                                            <option value="AGENCY">Agency</option>
-                                            <option value="RSA">RSA</option>
+                                            <option value="">{t.allTypes}</option>
+                                            <option value="AGENCY">{t.agency}</option>
+                                            <option value="RSA">{t.rsa}</option>
                                         </select>
                                         <select value={agencyFilters.countryId} onChange={(e) => handleFilterChange('countryId', e.target.value)} className="h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium outline-none cursor-pointer">
-                                            <option value="">All Countries</option>
+                                            <option value="">{t.allCountries}</option>
                                             {countries.map(c => <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>)}
                                         </select>
                                         <select value={agencyFilters.cityId} onChange={(e) => handleFilterChange('cityId', e.target.value)} disabled={!agencyFilters.countryId} className="h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium outline-none cursor-pointer disabled:opacity-50">
-                                            <option value="">{agencyFilters.countryId ? 'All Cities' : 'Select country first'}</option>
+                                            <option value="">{agencyFilters.countryId ? t.allCities : t.selectCountryFirst}</option>
                                             {cities.map(c => <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>)}
                                         </select>
                                         {isLoading && (
                                             <div className="flex items-center gap-1.5">
                                                 <div className="size-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                                <span className="text-[10px] font-medium text-primary">Loading...</span>
+                                                <span className="text-[10px] font-medium text-primary">{t.loading}</span>
                                             </div>
                                         )}
                                         <button onClick={handleAddClick} className="ml-auto h-8 px-4 bg-primary text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-primary/90 active:scale-95 transition-all shadow-xs shadow-primary/20 whitespace-nowrap">
                                             <span className="material-icons-round text-sm">add</span>
-                                            Add Agency
+                                            {t.addAgency}
                                         </button>
                                     </div>
 
@@ -468,13 +435,13 @@ const GSAAgencyManagement = () => {
                                         <table className="w-full text-left text-xs">
                                             <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/80 z-10 border-b border-slate-200 dark:border-white/5">
                                                 <tr>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-16">ID</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Agency</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-20">Type</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Location</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-20 text-center">Currency</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-32 text-center">Status</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-16">{t.colId}</th>
+                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{t.colAgency}</th>
+                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-20">{t.colType}</th>
+                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{t.colLocation}</th>
+                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-20 text-center">{t.colCurrency}</th>
+                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-32 text-center">{t.colStatus}</th>
+                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-right">{t.colActions}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -535,7 +502,7 @@ const GSAAgencyManagement = () => {
                                                         <td colSpan="7" className="py-16 text-center">
                                                             <div className="flex flex-col items-center gap-2 text-slate-300">
                                                                 <span className="material-icons-round text-4xl">search_off</span>
-                                                                <span className="text-xs font-semibold text-slate-400">No agencies found</span>
+                                                                <span className="text-xs font-semibold text-slate-400">{t.noAgenciesFound}</span>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -546,7 +513,7 @@ const GSAAgencyManagement = () => {
 
                                     {/* Footer */}
                                     <div className="px-4 py-2.5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/30">
-                                        <span className="text-[10px] font-medium text-slate-400">{totalAgencyCount} agencies found</span>
+                                        <span className="text-[10px] font-medium text-slate-400">{totalAgencyCount} {t.tabAgencies}</span>
                                         <div className="flex gap-1.5">
                                             <button disabled={agencyFilters.page === 0} onClick={() => handleFilterChange('page', agencyFilters.page - 1)} className="size-7 rounded-lg border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-400 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
                                                 <span className="material-icons-round text-sm">chevron_left</span>
@@ -564,9 +531,9 @@ const GSAAgencyManagement = () => {
                                 {/* Compact Stats Bar */}
                                 <div className="flex items-center bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-white/5 overflow-hidden shrink-0">
                                     {[
-                                        { label: 'Total Groups', value: groupSummary.totalGroupCount, dot: 'bg-blue-500', color: 'text-blue-600 dark:text-blue-400' },
-                                        { label: 'Active', value: groupSummary.activeGroupCount, dot: 'bg-emerald-500', color: 'text-emerald-600 dark:text-emerald-400' },
-                                        { label: 'Passive', value: groupSummary.passiveGroupCount, dot: 'bg-rose-500', color: 'text-rose-500 dark:text-rose-400' }
+                                        { label: t.statTotalGroups, value: groupSummary.totalGroupCount, dot: 'bg-blue-500', color: 'text-blue-600 dark:text-blue-400' },
+                                        { label: t.statActive, value: groupSummary.activeGroupCount, dot: 'bg-emerald-500', color: 'text-emerald-600 dark:text-emerald-400' },
+                                        { label: t.statPassive, value: groupSummary.passiveGroupCount, dot: 'bg-rose-500', color: 'text-rose-500 dark:text-rose-400' }
                                     ].map((stat, idx, arr) => (
                                         <div key={idx} className={`flex items-center gap-3 px-5 py-3 flex-1 ${idx < arr.length - 1 ? 'border-r border-slate-100 dark:border-white/5' : ''}`}>
                                             <div className={`size-1.5 rounded-full ${stat.dot} shrink-0`}></div>
@@ -586,20 +553,20 @@ const GSAAgencyManagement = () => {
                                             <span className="material-icons-round absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
                                             <input
                                                 type="text"
-                                                placeholder="Search groups..."
+                                                placeholder={t.searchGroups}
                                                 value={groupFilters.query}
                                                 onChange={(e) => handleGroupFilterChange('query', e.target.value)}
                                                 className="w-full h-8 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-8 pr-3 text-xs font-medium outline-none focus:border-primary transition-colors"
                                             />
                                         </div>
                                         <select value={groupFilters.status} onChange={(e) => handleGroupFilterChange('status', e.target.value)} className="h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium outline-none cursor-pointer">
-                                            <option value="">All Status</option>
-                                            <option value="ACTIVE">Active</option>
-                                            <option value="PASSIVE">Passive</option>
+                                            <option value="">{t.allStatus}</option>
+                                            <option value="ACTIVE">{t.active}</option>
+                                            <option value="PASSIVE">{t.passive}</option>
                                         </select>
                                         <button onClick={handleAddClick} className="ml-auto h-8 px-4 bg-primary text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-primary/90 active:scale-95 transition-all shadow-xs shadow-primary/20 whitespace-nowrap">
                                             <span className="material-icons-round text-sm">add</span>
-                                            Add Group
+                                            {t.addGroup}
                                         </button>
                                     </div>
 
@@ -608,13 +575,12 @@ const GSAAgencyManagement = () => {
                                         <table className="w-full text-left text-xs">
                                             <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/80 z-10 border-b border-slate-200 dark:border-white/5">
                                                 <tr>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-16">ID</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Group Name</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Description</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Agencies</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Created By</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-16">{t.colId}</th>
+                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{t.colGroupName}</th>
+                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{t.colDescription}</th>
+                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{t.colAgenciesCount}</th>
+                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{t.colStatus}</th>
+                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-right">{t.colActions}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -638,27 +604,23 @@ const GSAAgencyManagement = () => {
                                                             </td>
                                                             <td className="px-4 py-2.5">
                                                                 <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded text-[10px] font-semibold">
-                                                                    {group.agencies?.length || 0} agencies
+                                                                    {group.agencies?.length || 0} {t.tabAgencies}
                                                                 </span>
-                                                            </td>
-                                                            <td className="px-4 py-2.5">
-                                                                <p className="text-xs font-medium text-slate-600 dark:text-slate-300">{group.createdBy || 'System'}</p>
-                                                                <p className="text-[10px] text-slate-400">{new Date(group.createDateTime).toLocaleDateString(localStorage.getItem('language') || 'tr')}</p>
                                                             </td>
                                                             <td className="px-4 py-2.5">
                                                                 <div className="flex items-center gap-1.5">
                                                                     <AppleSwitch checked={group.status === 'ACTIVE'} onChange={() => handleGroupStatusToggle(group)} size="sm" />
                                                                     <span className={`text-[9px] font-semibold uppercase tracking-wider ${group.status === 'ACTIVE' ? 'text-emerald-500' : 'text-slate-400'}`}>
-                                                                        {group.status === 'ACTIVE' ? 'Active' : 'Passive'}
+                                                                        {group.status === 'ACTIVE' ? t.active : t.passive}
                                                                     </span>
                                                                 </div>
                                                             </td>
                                                             <td className="px-4 py-2.5 text-right">
                                                                 <div className="flex items-center justify-end gap-0.5">
-                                                                    <button onClick={() => handleGroupEditClick(group)} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 transition-all">
+                                                                    <button onClick={() => handleGroupEditClick(group)} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 transition-all" title={t.editGroup}>
                                                                         <span className="material-icons-round text-sm">edit</span>
                                                                     </button>
-                                                                    <button onClick={() => handleGroupDeleteClick(group)} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all">
+                                                                    <button onClick={() => handleGroupDeleteClick(group)} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all" title={t.deleteGroup}>
                                                                         <span className="material-icons-round text-sm">delete_outline</span>
                                                                     </button>
                                                                 </div>
@@ -670,7 +632,7 @@ const GSAAgencyManagement = () => {
                                                         <td colSpan="7" className="py-16 text-center">
                                                             <div className="flex flex-col items-center gap-2 text-slate-300">
                                                                 <span className="material-icons-round text-4xl">group_off</span>
-                                                                <span className="text-xs font-semibold text-slate-400">No groups found</span>
+                                                                <span className="text-xs font-semibold text-slate-400">{t.noGroupsFound}</span>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -722,16 +684,12 @@ const GSAAgencyManagement = () => {
                                 {deleteModal.hasActiveAgencies && deleteModal.type === 'group' && (
                                     <span className="text-rose-500 block mb-2 font-semibold">{t.activeWarning}</span>
                                 )}
-                                {currentLang === 'tr' ? (
-                                    <><b className="text-slate-900 dark:text-white uppercase">{deleteModal.name}</b> {t.confirmPermanently}</>
-                                ) : (
-                                    <>{t.confirmPermanently} <b className="text-slate-900 dark:text-white uppercase">{deleteModal.name}</b>?</>
-                                )}
+                                <b className="text-slate-900 dark:text-white uppercase">{deleteModal.name}</b> {t.confirmPermanently}
                                 <br />
                                 <span className="text-slate-500 dark:text-slate-400 mt-2 block">{t.undoWarning}</span>
                             </span>
                         }
-                        confirmText={deleteModal.isDeleting ? (currentLang === 'tr' ? "Siliniyor..." : "Deleting...") : `${t.yesDelete} ${deleteModal.type === 'agency' ? t.agency : t.group}`}
+                        confirmText={deleteModal.isDeleting ? (t.deleting || (t.yesDelete ? `${t.yesDelete}...` : "Deleting...")) : `${t.yesDelete} ${deleteModal.type === 'agency' ? t.agency : t.group}`}
                         cancelText={`${t.keep} ${deleteModal.type === 'agency' ? t.agency : t.group}`}
                         type="danger"
                     />

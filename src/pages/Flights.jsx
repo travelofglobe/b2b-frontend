@@ -1,7 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import FlightSearch from '../components/FlightSearch';
 
 const Flights = () => {
+    const { t } = useTranslation();
     return (
         <div className="min-h-full flex flex-col bg-white dark:bg-[#202124] text-slate-800 dark:text-slate-100 font-sans pb-20">
             <main className="flex-1 flex flex-col bg-white dark:bg-[#202124]">
@@ -50,7 +52,7 @@ const Flights = () => {
                                     margin: 0
                                 }}
                             >
-                                Uçuşlar
+                                {t('nav.flights')}
                             </h1>
                         </div>
                     </div>

@@ -681,7 +681,7 @@ const MyBookings = () => {
                                 type="text"
                                 value={quickSearch}
                                 onChange={(e) => setQuickSearch(e.target.value)}
-                                placeholder={currentLang === 'tr' ? 'Rezervasyon no, voucher veya otel ara...' : 'Search by res no, voucher or hotel...'}
+                                placeholder={L('searchPlaceholder')}
                                 className="w-full pl-9 pr-8 py-2 bg-[#f1f3f4] dark:bg-[#303134] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#202124] rounded-xl text-[13px] text-[#202124] dark:text-white placeholder-[#70757a] outline-none transition-all shadow-2xs"
                             />
                             {quickSearch && (
@@ -721,7 +721,7 @@ const MyBookings = () => {
                             }`}
                         >
                             <span className="material-symbols-outlined text-[18px]">tune</span>
-                            <span>{currentLang === 'tr' ? 'Filtreler' : 'Filters'}</span>
+                            <span>{L('filters')}</span>
                             {activeFiltersCount > 0 && (
                                 <span className="size-4.5 rounded-full bg-[#1a73e8] text-white text-[10px] font-bold flex items-center justify-center">
                                     {activeFiltersCount}
@@ -741,13 +741,13 @@ const MyBookings = () => {
                                     ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-sm'
                                     : 'bg-white dark:bg-[#303134] border-[#dadce0] dark:border-[#5f6368] text-[#3c4043] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]'
                             }`}
-                            title={currentLang === 'tr' ? 'Tablo başlığı altındaki sütun filtrelerini aç/kapat' : 'Toggle inline column filters'}
+                            title={L('toggleColumnFilters')}
                         >
                             <span className="material-symbols-outlined text-[17px]">
                                 {showColumnFilters ? 'filter_list_off' : 'filter_list'}
                             </span>
                             <span className="hidden sm:inline">
-                                {currentLang === 'tr' ? 'Sütun Filtreleri' : 'Column Filters'}
+                                {L('columnFilters')}
                             </span>
                         </button>
 
@@ -821,7 +821,7 @@ const MyBookings = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <span className="text-xs font-semibold text-[#5f6368] dark:text-slate-400">
-                                            {currentLang === 'tr' ? 'Para Birimi:' : 'Currency:'}
+                                            {L('currency')}
                                         </span>
                                         <div className="flex items-center bg-[#eaecef] dark:bg-[#303134] p-1 rounded-xl">
                                             {summaries.map((s, idx) => (
@@ -840,7 +840,7 @@ const MyBookings = () => {
                                         </div>
                                     </div>
                                     <span className="text-xs text-[#70757a] dark:text-slate-400 hidden sm:inline">
-                                        {currentLang === 'tr' ? 'Seçili para birimine göre istatistikler' : 'Statistics based on selected currency'}
+                                        {L('currencyStats')}
                                     </span>
                                 </div>
                             )}
@@ -850,7 +850,7 @@ const MyBookings = () => {
                                 <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-4 shadow-xs hover:border-[#1a73e8]/40 transition-all flex flex-col justify-between">
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                            {currentLang === 'tr' ? 'Rezervasyon' : 'Bookings'}
+                                            {L('bookings')}
                                         </span>
                                         <div className="w-8 h-8 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
                                             <span className="material-symbols-outlined text-[18px]">calendar_month</span>
@@ -861,7 +861,7 @@ const MyBookings = () => {
                                             {currentSummary.bookingCount ?? 0}
                                         </div>
                                         <span className="text-[11px] text-[#70757a] dark:text-slate-400">
-                                            {currentSummary.currency || ''} {currentLang === 'tr' ? 'toplam kayıt' : 'total records'}
+                                            {currentSummary.currency || ''} {L('totalRecords')}
                                         </span>
                                     </div>
                                 </div>
@@ -870,7 +870,7 @@ const MyBookings = () => {
                                 <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-4 shadow-xs hover:border-[#1a73e8]/40 transition-all flex flex-col justify-between">
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                            {currentLang === 'tr' ? 'Satış Tutarı' : 'Sale Amount'}
+                                            {L('saleAmount')}
                                         </span>
                                         <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-[#1a73e8] dark:text-blue-400">
                                             <span className="material-symbols-outlined text-[18px]">payments</span>
@@ -882,7 +882,7 @@ const MyBookings = () => {
                                             <span className="text-sm font-semibold ml-1">{currentSummary.currency || ''}</span>
                                         </div>
                                         <span className="text-[11px] text-[#70757a] dark:text-slate-400">
-                                            {currentLang === 'tr' ? 'Toplam ciro' : 'Total revenue'}
+                                            {L('totalRevenue')}
                                         </span>
                                     </div>
                                 </div>
@@ -891,7 +891,7 @@ const MyBookings = () => {
                                 <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-4 shadow-xs hover:border-[#1a73e8]/40 transition-all flex flex-col justify-between">
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                            {currentLang === 'tr' ? 'Net Tutar' : 'Net Amount'}
+                                            {L('netAmount')}
                                         </span>
                                         <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[#5f6368] dark:text-slate-300">
                                             <span className="material-symbols-outlined text-[18px]">receipt_long</span>
@@ -903,7 +903,7 @@ const MyBookings = () => {
                                             <span className="text-sm font-semibold ml-1">{currentSummary.currency || ''}</span>
                                         </div>
                                         <span className="text-[11px] text-[#70757a] dark:text-slate-400">
-                                            {currentLang === 'tr' ? 'Tedarikçi maliyeti' : 'Supplier cost'}
+                                            {L('supplierCost')}
                                         </span>
                                     </div>
                                 </div>
@@ -912,7 +912,7 @@ const MyBookings = () => {
                                 <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-4 shadow-xs hover:border-emerald-500/40 transition-all flex flex-col justify-between">
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                            {currentLang === 'tr' ? 'Kâr / Markup' : 'Profit / Markup'}
+                                            {L('profitMarkup')}
                                         </span>
                                         <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-[#1e8e3e] dark:text-emerald-400">
                                             <span className="material-symbols-outlined text-[18px]">trending_up</span>
@@ -924,7 +924,7 @@ const MyBookings = () => {
                                             <span className="text-sm font-semibold ml-1">{currentSummary.currency || ''}</span>
                                         </div>
                                         <span className="text-[11px] text-[#70757a] dark:text-slate-400">
-                                            {currentLang === 'tr' ? 'Net marj' : 'Net margin'}
+                                            {L('netMargin')}
                                         </span>
                                     </div>
                                 </div>
@@ -933,7 +933,7 @@ const MyBookings = () => {
                                 <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-4 shadow-xs hover:border-rose-500/40 transition-all flex flex-col justify-between col-span-2 sm:col-span-1">
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                            {currentLang === 'tr' ? 'İptal Kesintisi' : 'Cancel Fee'}
+                                            {L('colCancelFee')}
                                         </span>
                                         <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center text-[#d93025] dark:text-rose-400">
                                             <span className="material-symbols-outlined text-[18px]">cancel</span>
@@ -945,7 +945,7 @@ const MyBookings = () => {
                                             <span className="text-sm font-semibold ml-1">{currentSummary.currency || ''}</span>
                                         </div>
                                         <span className="text-[11px] text-[#70757a] dark:text-slate-400">
-                                            {currentLang === 'tr' ? 'Ceza & kesinti' : 'Penalty & fees'}
+                                            {L('penaltyFees')}
                                         </span>
                                     </div>
                                 </div>
@@ -961,7 +961,7 @@ const MyBookings = () => {
                             <div className="flex items-center gap-2">
                                 <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-[#8ab4f8]">filter_alt</span>
                                 <h3 className="text-sm font-bold text-[#202124] dark:text-white">
-                                    {currentLang === 'tr' ? 'Detaylı Rezervasyon Filtreleri' : 'Detailed Booking Filters'}
+                                    {L('detailedFilters')}
                                 </h3>
                             </div>
                             <div className="flex items-center gap-2">
@@ -987,7 +987,7 @@ const MyBookings = () => {
                             {/* Group 1: Rezervasyon & Referans */}
                             <div className="space-y-3 bg-[#f8f9fa] dark:bg-[#202124] p-3.5 rounded-xl border border-[#dadce0]/60 dark:border-[#3c4043]/60">
                                 <span className="block font-bold text-[#3c4043] dark:text-slate-200 uppercase tracking-wider text-[11px]">
-                                    {currentLang === 'tr' ? 'Rezervasyon & Ref' : 'Booking & Ref'}
+                                    {L('bookingRef')}
                                 </span>
                                 <div>
                                     <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">{L('colId')}</label>
@@ -1024,7 +1024,7 @@ const MyBookings = () => {
                             {/* Group 2: Tarihler */}
                             <div className="space-y-3 bg-[#f8f9fa] dark:bg-[#202124] p-3.5 rounded-xl border border-[#dadce0]/60 dark:border-[#3c4043]/60">
                                 <span className="block font-bold text-[#3c4043] dark:text-slate-200 uppercase tracking-wider text-[11px]">
-                                    {currentLang === 'tr' ? 'Tarih Aralıkları' : 'Date Ranges'}
+                                    {L('dateRanges')}
                                 </span>
                                 <div>
                                     <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">{L('colCreated')}</label>
@@ -1052,7 +1052,7 @@ const MyBookings = () => {
                             {/* Group 3: Konaklama & Konum */}
                             <div className="space-y-3 bg-[#f8f9fa] dark:bg-[#202124] p-3.5 rounded-xl border border-[#dadce0]/60 dark:border-[#3c4043]/60">
                                 <span className="block font-bold text-[#3c4043] dark:text-slate-200 uppercase tracking-wider text-[11px]">
-                                    {currentLang === 'tr' ? 'Konaklama & Konum' : 'Hotel & Location'}
+                                    {L('hotelLocation')}
                                 </span>
                                 <div>
                                     <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">{L('colHotel')}</label>
@@ -1065,27 +1065,27 @@ const MyBookings = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">Country</label>
-                                    <GenericMultiSelect options={countryOptions} selectedValues={filters.countryIds || []} onChange={(values) => handleFilterChange('countryIds', values)} placeholder="Select Country" />
+                                    <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">{L('country')}</label>
+                                    <GenericMultiSelect options={countryOptions} selectedValues={filters.countryIds || []} onChange={(values) => handleFilterChange('countryIds', values)} placeholder={L('selectCountry')} />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">City</label>
-                                    <GenericMultiSelect options={cityOptions} selectedValues={filters.cityIds || []} onChange={(values) => handleFilterChange('cityIds', values)} placeholder="Select City" />
+                                    <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">{L('city')}</label>
+                                    <GenericMultiSelect options={cityOptions} selectedValues={filters.cityIds || []} onChange={(values) => handleFilterChange('cityIds', values)} placeholder={L('selectCity')} />
                                 </div>
                             </div>
 
                             {/* Group 4: Acente, Finans & Durum */}
                             <div className="space-y-3 bg-[#f8f9fa] dark:bg-[#202124] p-3.5 rounded-xl border border-[#dadce0]/60 dark:border-[#3c4043]/60">
                                 <span className="block font-bold text-[#3c4043] dark:text-slate-200 uppercase tracking-wider text-[11px]">
-                                    {currentLang === 'tr' ? 'Acente & Finans' : 'Agency & Finance'}
+                                    {L('agencyFinance')}
                                 </span>
                                 <div>
                                     <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">{L('colAgencyName')}</label>
-                                    <GenericMultiSelect options={agencyOptions} selectedValues={filters.agencyIds} onChange={(values) => handleFilterChange('agencyIds', values)} placeholder="Select Agency" />
+                                    <GenericMultiSelect options={agencyOptions} selectedValues={filters.agencyIds} onChange={(values) => handleFilterChange('agencyIds', values)} placeholder={L('selectAgency')} />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">Currency</label>
-                                    <GenericMultiSelect options={currencyOptions} selectedValues={filters.currencies || []} onChange={(values) => handleFilterChange('currencies', values)} placeholder="Select Currency" />
+                                    <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">{L('currency')}</label>
+                                    <GenericMultiSelect options={currencyOptions} selectedValues={filters.currencies || []} onChange={(values) => handleFilterChange('currencies', values)} placeholder={L('selectCurrency')} />
                                 </div>
                                 <div>
                                     <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">{L('colAmount')} (Min - Max)</label>
@@ -1103,7 +1103,7 @@ const MyBookings = () => {
                                 onClick={() => setIsAdvancedFiltersOpen(false)}
                                 className="px-4 py-2 rounded-xl text-xs font-semibold text-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] cursor-pointer"
                             >
-                                {currentLang === 'tr' ? 'Vazgeç' : 'Cancel'}
+                                {L('cancel')}
                             </button>
                             <button
                                 type="button"
@@ -1111,7 +1111,7 @@ const MyBookings = () => {
                                 className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
                             >
                                 <span className="material-symbols-outlined text-[16px]">search</span>
-                                {currentLang === 'tr' ? 'Filtreleri Uygula' : 'Apply Filters'}
+                                {L('applyFilters')}
                             </button>
                         </div>
                     </div>

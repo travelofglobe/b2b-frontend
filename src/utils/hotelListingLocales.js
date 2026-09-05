@@ -14,7 +14,11 @@ export const LISTING_LOCALES = {
         searchMapMoves: "Search as map moves", searchThisArea: "Search this area", mapLayer: "Map Layer", mapStyle: "Map Style",
         savedPlans: "Your travel plans", savedHotels: "saved hotels", savedPlansTitle: "Saved travel plans",
         nothingHereYet: "Nothing here yet", nothingHereYetDesc: "Save hotels here by clicking the bookmark icon on properties you like",
-        removeFromSaved: "Remove from saved"
+        removeFromSaved: "Remove from saved",
+        expandMap: "Expand map", collapseMap: "Collapse map",
+        publicTransport: "Public transport", restaurants: "Restaurant areas",
+        touristAttractions: "Touristic places", shoppingAreas: "Shopping areas",
+        zoomIn: "Zoom in", zoomOut: "Zoom out"
     },
     tr: {
         room: "Oda", rooms: "Oda", guest: "Misafir", guests: "Misafir",
@@ -31,7 +35,11 @@ export const LISTING_LOCALES = {
         searchMapMoves: "Harita hareket ettiğinde listeyi güncelle", searchThisArea: "Listeyi güncelle", mapLayer: "Harita Katmanı", mapStyle: "Harita Stili",
         savedPlans: "Seyahat planlarınız", savedHotels: "kayıtlı otel", savedPlansTitle: "Seyahat planlarınız ve kaydedilenler",
         nothingHereYet: "Burada henüz bir şey yok", nothingHereYetDesc: "Beğendiğiniz otellerin üzerindeki yer imi simgesine tıklayarak buraya kaydedebilirsiniz",
-        removeFromSaved: "Kaydedilenlerden kaldır"
+        removeFromSaved: "Kaydedilenlerden kaldır",
+        expandMap: "Haritayı genişlet", collapseMap: "Haritayı daralt",
+        publicTransport: "Toplu taşıma", restaurants: "Restoran bölgeleri",
+        touristAttractions: "Turistik yerler", shoppingAreas: "Alışveriş bölgeleri",
+        zoomIn: "Yakınlaştır", zoomOut: "Uzaklaştır"
     },
     ar: {
         room: "غرفة", rooms: "غرف", guest: "نزيل", guests: "نزلاء",

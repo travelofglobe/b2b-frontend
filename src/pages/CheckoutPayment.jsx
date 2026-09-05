@@ -739,6 +739,36 @@ const tSummary = (key, lang = 'tr') => {
         };
         return mapping[baseLang] || mapping['en'];
     }
+    if (key === 'paymentMethod') {
+        const mapping = {
+            en: "Payment Method", tr: "Ödeme Yöntemi", ar: "طريقة الدفع", es: "Método de Pago", ru: "Способ оплаты", zh: "支付方式", ja: "支払い方法", fa: "روش پرداخت", fr: "Mode de paiement", it: "Metodo di pagamento", el: "Τρόπος Πληρωμής", pt: "Método de Pagamento"
+        };
+        return mapping[baseLang] || mapping['en'];
+    }
+    if (key === 'instantSettlement') {
+        const mapping = {
+            en: "Instant Settlement", tr: "Anında Tahsilat", ar: "تسوية فورية", es: "Liquidación Instantánea", ru: "Мгновенный расчет", zh: "实时结算", ja: "即時決済", fa: "تسویه آنی", fr: "Règlement instantané", it: "Regolamento istantaneo", el: "Άμεσος Διακανονισμός", pt: "Liquidação Instantânea"
+        };
+        return mapping[baseLang] || mapping['en'];
+    }
+    if (key === 'creditCard') {
+        const mapping = {
+            en: "Credit Card", tr: "Kredi Kartı", ar: "بطاقة ائتمان", es: "Tarjeta de Crédito", ru: "Кредитная карта", zh: "信用卡", ja: "クレジットカード", fa: "کارت اعتباری", fr: "Carte de crédit", it: "Carta di credito", el: "Πιστωτική Κάρτα", pt: "Cartão de Crédito"
+        };
+        return mapping[baseLang] || mapping['en'];
+    }
+    if (key === 'comingSoon') {
+        const mapping = {
+            en: "Coming Soon", tr: "Yakında", ar: "قريباً", es: "Próximamente", ru: "Скоро", zh: "即将推出", ja: "近日公開", fa: "به‌زودی", fr: "Bientôt disponible", it: "Prossimamente", el: "Σύντομα κοντά σας", pt: "Em breve"
+        };
+        return mapping[baseLang] || mapping['en'];
+    }
+    if (key === 'soon') {
+        const mapping = {
+            en: "Soon", tr: "Pek Yakında", ar: "قريباً", es: "Pronto", ru: "Скоро", zh: "即将推出", ja: "まもなく", fa: "به‌زودی", fr: "Bientôt", it: "Presto", el: "Σύντομα", pt: "Em breve"
+        };
+        return mapping[baseLang] || mapping['en'];
+    }
     return CHECKOUT_SUMMARY_LOCALES[baseLang]?.[key] || CHECKOUT_SUMMARY_LOCALES['en']?.[key] || key;
 };
 const CheckoutPayment = () => {
@@ -1088,7 +1118,7 @@ const CheckoutPayment = () => {
                         {/* Google Style Payment Method Selection */}
                         <div className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-slate-700 p-4 shadow-xs">
                             <h2 className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-3">
-                                {currentLang === 'tr' ? 'Ödeme Yöntemi' : 'Payment Method'}
+                                {tSummary('paymentMethod', currentLang)}
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <button
@@ -1112,7 +1142,7 @@ const CheckoutPayment = () => {
                                                 B2B Deposit
                                             </h3>
                                             <p className="text-[11px] text-[#5f6368] dark:text-slate-400">
-                                                {currentLang === 'tr' ? 'Anında Tahsilat' : 'Instant Settlement'}
+                                                {tSummary('instantSettlement', currentLang)}
                                             </p>
                                         </div>
                                     </div>
@@ -1131,15 +1161,15 @@ const CheckoutPayment = () => {
                                         </div>
                                         <div>
                                             <h3 className="text-xs font-medium text-gray-500 dark:text-slate-400">
-                                                {currentLang === 'tr' ? 'Kredi Kartı' : 'Credit Card'}
+                                                {tSummary('creditCard', currentLang)}
                                             </h3>
                                             <p className="text-[11px] text-gray-400">
-                                                {currentLang === 'tr' ? 'Yakında' : 'Coming Soon'}
+                                                {tSummary('comingSoon', currentLang)}
                                             </p>
                                         </div>
                                     </div>
                                     <span className="bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-300 text-[10px] font-medium px-2 py-0.5 rounded-md">
-                                        {currentLang === 'tr' ? 'Pek Yakında' : 'Soon'}
+                                        {tSummary('soon', currentLang)}
                                     </span>
                                 </div>
                             </div>
@@ -1259,7 +1289,7 @@ const CheckoutPayment = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="p-5 rounded-2xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-xs" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                            <div className="p-5 rounded-2xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-xs" lang={currentLang}>
                                 <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[#dadce0] dark:border-slate-700">
                                     <div className="size-9 rounded-lg bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8]">
                                         <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
@@ -1353,11 +1383,11 @@ const CheckoutPayment = () => {
                             {/* Card Header Badge */}
                             <div className="p-4 pb-3 border-b border-[#dadce0] dark:border-slate-700">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                    <h3 className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5" lang={currentLang}>
                                         <span className="material-symbols-outlined text-base text-[#1a73e8]">receipt_long</span>
                                         {tSummary('reservationSummary', currentLang)}
                                     </h3>
-                                    <span className="inline-flex items-center gap-1 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-blue-400 text-[10px] font-medium px-2 py-0.5 rounded-full" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                    <span className="inline-flex items-center gap-1 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-blue-400 text-[10px] font-medium px-2 py-0.5 rounded-full" lang={currentLang}>
                                         <span className="material-symbols-outlined text-xs">bolt</span>
                                         {tSummary('instantConfirmation', currentLang)}
                                     </span>
@@ -1391,7 +1421,7 @@ const CheckoutPayment = () => {
                                                 <span className="truncate">{hotelAddress}</span>
                                             </div>
                                         )}
-                                        <div className="flex gap-4 text-[11px] text-[#5f6368] dark:text-slate-400" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                        <div className="flex gap-4 text-[11px] text-[#5f6368] dark:text-slate-400" lang={currentLang}>
                                             <div className="flex items-center gap-1">
                                                 <span className="material-symbols-outlined text-xs text-[#1a73e8]">login</span>
                                                 <span>{tSummary('in', currentLang)}: {hotel.checkIn || '15:00'}</span>
@@ -1407,20 +1437,18 @@ const CheckoutPayment = () => {
                                 {/* Booking Dates Pill Grid */}
                                 <div className="grid grid-cols-2 gap-2 text-xs">
                                     <div className="p-2.5 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-[#dadce0] dark:border-slate-700">
-                                        <p className="text-[10px] text-[#5f6368] dark:text-slate-400 mb-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('checkIn', currentLang)}</p>
+                                        <p className="text-[10px] text-[#5f6368] dark:text-slate-400 mb-0.5" lang={currentLang}>{tSummary('checkIn', currentLang)}</p>
                                         <p className="font-semibold text-[#1a73e8]">{formattedDates.start}</p>
                                     </div>
                                     <div className="p-2.5 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-[#dadce0] dark:border-slate-700">
-                                        <p className="text-[10px] text-[#5f6368] dark:text-slate-400 mb-0.5" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('checkOut', currentLang)}</p>
+                                        <p className="text-[10px] text-[#5f6368] dark:text-slate-400 mb-0.5" lang={currentLang}>{tSummary('checkOut', currentLang)}</p>
                                         <p className="font-semibold text-[#1a73e8]">{formattedDates.end}</p>
                                     </div>
                                     <div className="col-span-2 p-2.5 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-[#dadce0] dark:border-slate-700 flex justify-between items-center text-[11px]">
                                         <div className="flex items-center gap-1.5 text-[#3c4043] dark:text-slate-300">
                                             <span className="material-symbols-outlined text-sm text-[#1a73e8]">nights_stay</span>
                                             <span className="font-medium">
-                                                {currentLang === 'tr' 
-                                                    ? `${nights} Gece Konaklama` 
-                                                    : `${nights} ${nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)} ${tSummary('stay', currentLang)}`}
+                                                {`${nights} ${nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)} ${tSummary('stay', currentLang)}`}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-1.5 text-[#3c4043] dark:text-slate-300">
@@ -1440,7 +1468,7 @@ const CheckoutPayment = () => {
 
                                 {/* Room Breakdown */}
                                 <div className="space-y-2.5">
-                                    <p className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider" lang={currentLang === 'tr' ? 'tr' : 'en'}>{tSummary('selectedRooms', currentLang)}</p>
+                                    <p className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider" lang={currentLang}>{tSummary('selectedRooms', currentLang)}</p>
                                     {selectedRooms?.map((room, idx) => {
                                         const policies = room.cancellationPolicies || [];
                                         return (
@@ -1452,7 +1480,7 @@ const CheckoutPayment = () => {
                                                         </div>
                                                         <div>
                                                             <p className="font-medium text-[#202124] dark:text-white line-clamp-2">{room.name}</p>
-                                                            <div className="flex flex-wrap gap-1.5 mt-1" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                                            <div className="flex flex-wrap gap-1.5 mt-1" lang={currentLang}>
                                                                 <span className="text-[10px] text-[#5f6368] dark:text-slate-400">
                                                                     {checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName === 'RO' || !checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName === 'Room Only' ? tSummary('roomOnly', currentLang) : checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName}
                                                                 </span>
@@ -1478,7 +1506,7 @@ const CheckoutPayment = () => {
                                                 </div>
 
                                                 {/* Cancellation policy */}
-                                                <div className="pt-2 border-t border-gray-200 dark:border-slate-700/60" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                                <div className="pt-2 border-t border-gray-200 dark:border-slate-700/60" lang={currentLang}>
                                                     {(() => {
                                                         const currentPolicies = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || policies;
                                                         if (!currentPolicies || currentPolicies.length === 0) {
@@ -1522,7 +1550,7 @@ const CheckoutPayment = () => {
 
                                 {/* Rate Notes */}
                                 {checkRatesData?.notes && checkRatesData.notes.length > 0 && (
-                                    <div className="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 text-xs" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                    <div className="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 text-xs" lang={currentLang}>
                                         <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                                             <span className="material-symbols-outlined text-xs">info</span>
                                             {tSummary('rateNotes', currentLang)}
@@ -1535,7 +1563,7 @@ const CheckoutPayment = () => {
                                 )}
 
                                 {/* Grand Total Card */}
-                                <div className="pt-3 border-t border-[#dadce0] dark:border-slate-700" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                <div className="pt-3 border-t border-[#dadce0] dark:border-slate-700" lang={currentLang}>
                                     <div className="flex items-center justify-between mb-1">
                                         <p className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">{tSummary('totalStayPrice', currentLang)}</p>
                                         <div className="text-right">
@@ -1557,7 +1585,7 @@ const CheckoutPayment = () => {
                                             ? 'opacity-50 cursor-not-allowed' 
                                             : ''
                                     }`}
-                                    lang={currentLang === 'tr' ? 'tr' : 'en'}
+                                    lang={currentLang}
                                 >
                                     {isProcessing ? (
                                         <>
@@ -1572,14 +1600,14 @@ const CheckoutPayment = () => {
                                     )}
                                 </button>
 
-                                <p className="text-[10px] text-center text-[#5f6368] dark:text-slate-400 font-medium" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                                <p className="text-[10px] text-center text-[#5f6368] dark:text-slate-400 font-medium" lang={currentLang}>
                                     {tSummary('b2bRates', currentLang)}
                                 </p>
                             </div>
                         </div>
 
                         {/* Security Badge */}
-                        <div className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 rounded-xl p-3 flex items-center gap-3" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                        <div className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 rounded-xl p-3 flex items-center gap-3" lang={currentLang}>
                             <div className="size-8 rounded-lg bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] shrink-0">
                                 <span className="material-symbols-outlined text-base">verified_user</span>
                             </div>

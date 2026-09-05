@@ -252,6 +252,27 @@ export const MY_BOOKINGS_LOCALES = {
         summaryTitle: 'Σύνοψη κρατήσεων', summarySubtitle: 'Ανά νόμισμα',
         bookings: 'Κρατήσεις', totalAmount: 'Συνολικό ποσό',
     },
+    fa: {
+        title: 'رزروهای من',
+        subtitle: 'مدیریت و پیگیری تمامی رزروهای سفر',
+        refresh: 'به‌روزرسانی', clear: 'پاک کردن',
+        exportExcel: 'خروجی اکسل', exportPdf: 'خروجی PDF', exporting: 'در حال خروجی گرفتن...',
+        colId: 'شناسه', colVoucher: 'واچر', colHotel: 'هتل',
+        colCreated: 'تاریخ ایجاد', colCheckIn: 'ورود', colCheckOut: 'خروج',
+        colAmount: 'مبلغ', colPayment: 'پرداخت', colStatus: 'وضعیت',
+        colCancelFee: 'جریمه کنسلی', colUuid: 'UUID', colAgencyName: 'نام آژانس',
+        colAgencyId: 'شناسه آژانس', colHotelId: 'شناسه هتل', colClRef: 'کد پیگیری مشتری',
+        colCancelled: 'کنسل شده؟',
+        all: 'همه', yes: 'بله', no: 'خیر',
+        phHotelName: 'نام هتل', phMin: 'حداقل', phMax: 'حداکثر',
+        phVoucher: 'واچر', phUuid: 'UUID', phClRef: 'کد پیگیری',
+        pyPending: 'در انتظار پرداخت', pyPaidCard: 'پرداخت شده (کارت)', pyPaidAcc: 'پرداخت شده (حساب)',
+        pyRefCard: 'مسترد شده (کارت)', pyRefAcc: 'مسترد شده (حساب)', pyFailed: 'ناموفق',
+        noBookings: 'هیچ رزروی یافت نشد', errorPrefix: 'خطا',
+        rowsPerPage: 'تعداد سطر در صفحه', pageOf: 'از', total: 'مجموع',
+        summaryTitle: 'خلاصه رزروها', summarySubtitle: 'مرور رزروها بر اساس واحد پول',
+        bookings: 'رزروها', totalAmount: 'مبلغ کل',
+    },
 };
 
 export const tMB = (lang, key) => {

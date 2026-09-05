@@ -24,144 +24,7 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const LISTING_LOCALES = {
-    en: {
-        room: "Room",
-        rooms: "Rooms",
-        guest: "Guest",
-        guests: "Guests",
-        searching: "Searching...",
-        propertiesFound: "properties found",
-        sortBy: "SORT BY:",
-        mapView: "Map View",
-        backToDashboard: "Back to Dashboard",
-        noProperties: "No properties found",
-        recommended: "Most Recommended",
-        ratingDesc: "Guest Rating: High to Low",
-        ratingAsc: "Guest Rating: Low to High",
-        starDesc: "Star Rating: High to Low",
-        starAsc: "Star Rating: Low to High",
-        reachedEnd: "You've reached the end of the list",
-        tryAdjusting: "Try adjusting your filters or location",
-        allHotels: "All Hotels"
-    },
-    tr: {
-        room: "Oda",
-        rooms: "Oda",
-        guest: "Misafir",
-        guests: "Misafir",
-        searching: "Aranıyor...",
-        propertiesFound: "tesis bulundu",
-        sortBy: "SIRALAMA:",
-        mapView: "Harita Görünümü",
-        backToDashboard: "Panele Dön",
-        noProperties: "Tesis bulunamadı",
-        recommended: "En Çok Önerilen",
-        ratingDesc: "Puan: Yüksekten Düşüğe",
-        ratingAsc: "Puan: Düşükten Yükseğe",
-        starDesc: "Yıldız: Yüksekten Düşüğe",
-        starAsc: "Yıldız: Düşükten Yükseğe",
-        reachedEnd: "Listenin sonuna ulaştınız",
-        tryAdjusting: "Filtrelerinizi veya arama kelimenizi değiştirmeyi deneyin",
-        allHotels: "Tüm Oteller"
-    },
-    ar: {
-        room: "غرفة",
-        rooms: "غرف",
-        guest: "نزيل",
-        guests: "نزلاء",
-        searching: "جاري البحث...",
-        propertiesFound: "عقارات تم العثور عليها",
-        sortBy: "ترتيب حسب:",
-        mapView: "عرض الخريطة",
-        backToDashboard: "العودة إلى لوحة القيادة",
-        noProperties: "لم يتم العثور على عقارات",
-        recommended: "الأكثر موصى به",
-        ratingDesc: "تقييم النزلاء: من الأعلى إلى الأقل",
-        ratingAsc: "تقييم النزلاء: من الأقل إلى الأعلى",
-        starDesc: "تصنيف النجوم: من الأعلى إلى الأقل",
-        starAsc: "تصنيف النجوم: من الأقل إلى الأعلى",
-        reachedEnd: "لقد وصلت إلى نهاية القائمة",
-        tryAdjusting: "حاول تعديل الفلاتر أو الموقع",
-        allHotels: "جميع الفنادق"
-    },
-    es: {
-        room: "Habitación", rooms: "Habitaciones", guest: "Huésped", guests: "Huéspedes",
-        searching: "Buscando...", propertiesFound: "propiedades encontradas", sortBy: "ORDENAR POR:",
-        mapView: "Vista de Mapa", backToDashboard: "Volver al Panel", noProperties: "No se encontraron propiedades",
-        recommended: "Más Recomendado", ratingDesc: "Calificación: alta a baja", ratingAsc: "Calificación: baja a alta",
-        starDesc: "Estrellas: alta a baja", starAsc: "Estrellas: baja a alta",
-        reachedEnd: "Has llegado al final de la lista", tryAdjusting: "Intenta ajustar tus filtros o ubicación", allHotels: "Todos los Hoteles"
-    },
-    ru: {
-        room: "Номер", rooms: "Номера", guest: "Гость", guests: "Гости",
-        searching: "Поиск...", propertiesFound: "объектов найдено", sortBy: "СОРТИРОВКА:",
-        mapView: "На карте", backToDashboard: "Панель управления", noProperties: "Объекты не найдены",
-        recommended: "Рекомендуемые", ratingDesc: "Оценка гостей: от высокой к низкой", ratingAsc: "Оценка гостей: от низкой к высокой",
-        starDesc: "Звездность: от высокой к низкой", starAsc: "Звездность: от низкой к высокой",
-        reachedEnd: "Вы дошли до конца списка", tryAdjusting: "Попробуйте изменить фильтры или местоположение", allHotels: "Все отели"
-    },
-    zh: {
-        room: "间客房", rooms: "间客房", guest: "位旅客", guests: "位旅客",
-        searching: "正在搜索...", propertiesFound: "家酒店", sortBy: "排序方式:",
-        mapView: "地图模式", backToDashboard: "返回仪表板", noProperties: "未找到符合条件的酒店",
-        recommended: "推荐", ratingDesc: "评分：从高到低", ratingAsc: "评分：从低到高",
-        starDesc: "星级：从高到低", starAsc: "星级：从低到高",
-        reachedEnd: "您已浏览完所有酒店", tryAdjusting: "请尝试更改筛选条件或搜索位置", allHotels: "所有酒店"
-    },
-    ja: {
-        room: "室", rooms: "室", guest: "名", guests: "名",
-        searching: "検索中...", propertiesFound: "軒のホテルが見つかりました", sortBy: "並べ替え:",
-        mapView: "地図で見る", backToDashboard: "ダッシュボードに戻る", noProperties: "ホテルが見つかりませんでした",
-        recommended: "おすすめ順", ratingDesc: "クチコミ評価：高い順", ratingAsc: "クチコミ評価：低い順",
-        starDesc: "星評価：高い順", starAsc: "星評価：低い順",
-        reachedEnd: "リストの最後に達しました", tryAdjusting: "フィルターまたはエリアを調整してください", allHotels: "すべてのホテル"
-    },
-    fa: {
-        room: "اتاق", rooms: "اتاق", guest: "مسافر", guests: "مسافر",
-        searching: "در حال جستجو...", propertiesFound: "هتل پیدا شد", sortBy: "مرتب‌سازی بر اساس:",
-        mapView: "نمایش روی نقشه", backToDashboard: "بازگشت به پنل کاربری", noProperties: "هیچ هتلی پیدا نشد",
-        recommended: "بیشترین توصیه", ratingDesc: "امتیاز مسافران: زیاد به کم", ratingAsc: "امتیاز مسافران: کم به زیاد",
-        starDesc: "تعداد ستاره: زیاد به کم", starAsc: "تعداد ستاره: کم به زیاد",
-        reachedEnd: "به پایان لیست رسیده‌اید", tryAdjusting: "فیلترها یا موقعیت خود را تغییر دهید", allHotels: "همه هتل‌ها"
-    },
-    fr: {
-        room: "Chambre", rooms: "Chambres", guest: "Voyageur", guests: "Voyageurs",
-        searching: "Recherche...", propertiesFound: "établissements trouvés", sortBy: "TRIER PAR:",
-        mapView: "Vue de Carte", backToDashboard: "Retour au Tableau", noProperties: "Aucun établissement trouvé",
-        recommended: "Plus Recommandés", ratingDesc: "Note des clients : décroissante", ratingAsc: "Note des clients : croissante",
-        starDesc: "Étoiles : décroissant", starAsc: "Étoiles : croissant",
-        reachedEnd: "Vous avez atteint la fin de la liste", tryAdjusting: "Essayez d'ajuster vos filtres ou lieu", allHotels: "Tous les Hôtels"
-    },
-    it: {
-        room: "Camera", rooms: "Camere", guest: "Ospite", guests: "Ospiti",
-        searching: "Ricerca...", propertiesFound: "strutture trovate", sortBy: "ORDINA PER:",
-        mapView: "Mappa", backToDashboard: "Torna alla Dashboard", noProperties: "Nessuna struttura trovata",
-        recommended: "Più Consigliati", ratingDesc: "Valutazione ospiti: alta a bassa", ratingAsc: "Valutazione ospiti: bassa a alta",
-        starDesc: "Stelle: alta a bassa", starAsc: "Stelle: bassa a alta",
-        reachedEnd: "Hai raggiunto la fine della lista", tryAdjusting: "Prova a modificare i filtri o la località", allHotels: "Tutti gli Hotel"
-    },
-    el: {
-        room: "Δωμάτιο", rooms: "Δωμάτια", guest: "Επισκέπτης", guests: "Επισκέπτες",
-        searching: "Αναζήτηση...", propertiesFound: "καταλύματα βρέθηκαν", sortBy: "ΤΑΞΙΝΟΜΗΣΗ ΚΑΤΑ:",
-        mapView: "Προβολή Χάρτη", backToDashboard: "Πίσω στον Πίνακα", noProperties: "Δεν βρέθηκαν καταλύματα",
-        recommended: "Προτεινόμενα", ratingDesc: "Βαθμολογία: υψηλή προς χαμηλή", ratingAsc: "Βαθμολογία: χαμηλή προς υψηλή",
-        starDesc: "Αστέρια: υψηλή προς χαμηλή", starAsc: "Αστέρια: χαμηλή προς υψηλή",
-        reachedEnd: "Φτάσατε στο τέλος της λίστας", tryAdjusting: "Δοκιμάστε να αλλάξετε τα φίλτρα ή την τοποθεσία", allHotels: "Όλα τα Ξενοδοχεία"
-    },
-    pt: {
-        room: "Quarto", rooms: "Quartos", guest: "Hóspede", guests: "Hóspedes",
-        searching: "Buscando...", propertiesFound: "propriedades encontradas", sortBy: "ORDENAR POR:",
-        mapView: "Ver no Mapa", backToDashboard: "Voltar ao Painel", noProperties: "Nenhuma propriedade encontrada",
-        recommended: "Mais Recomendados", ratingDesc: "Avaliação: alta para baixa", ratingAsc: "Avaliação: baixa para alta",
-        starDesc: "Estrelas: alta para baixa", starAsc: "Estrelas: baixa para alta",
-        reachedEnd: "Você chegou ao final da lista", tryAdjusting: "Tente ajustar seus filtros ou localidade", allHotels: "Todos os Hotéis"
-    }
-};
-
-const tListing = (key, lang = 'tr') => {
-    return LISTING_LOCALES[lang]?.[key] || LISTING_LOCALES['en']?.[key] || key;
-};
+import { LISTING_LOCALES, AMENITY_LOCALES, getAmenityText, getLayerLabel, tListing } from '../utils/hotelListingLocales';
 
 // ═══════════════════════════════════════════════
 // Map Fit Control - auto-fits map to hotel bounds
@@ -329,7 +192,7 @@ const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHove
                         {isFav && (
                             <div style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(15, 23, 42, 0.78)', backdropFilter: 'blur(6px)', padding: '3px 8px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '4px', color: '#38bdf8', fontSize: '11px', fontWeight: 600, border: '1px solid rgba(6, 182, 212, 0.4)', boxShadow: '0 2px 6px rgba(0,0,0,0.3)' }}>
                                 <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>bookmark</span>
-                                <span>{currentLang === 'tr' ? 'Kaydedildi' : currentLang === 'ar' ? 'تم الحفظ' : 'Saved'}</span>
+                                <span>{tListing('saved', currentLang)}</span>
                             </div>
                         )}
                     </div>
@@ -337,7 +200,7 @@ const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHove
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '15px', fontWeight: 700, color: '#3c4043' }}>{currencySymbol}{priceDisplay}</span>
                         <Link to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`} target="_blank" onClick={e => e.stopPropagation()} style={{ background: '#1a73e8', color: 'white', fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '20px', textDecoration: 'none' }}>
-                            {currentLang === 'tr' ? 'Göster' : currentLang === 'ar' ? 'عرض' : 'View'}
+                            {tListing('view', currentLang)}
                         </Link>
                     </div>
                 </div>
@@ -1471,15 +1334,9 @@ const HotelListing = () => {
     // Date formatting - Google Hotels style
     const formatDateShort = (dateStr) => {
         if (!dateStr) return '';
-        const monthsTr = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
-        const monthsEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const daysTr = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
-        const daysEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         try {
             const d = new Date(dateStr + 'T00:00:00');
-            const months = currentLang === 'tr' ? monthsTr : monthsEn;
-            const days = currentLang === 'tr' ? daysTr : daysEn;
-            return `${d.getDate()} ${months[d.getMonth()]} ${days[d.getDay()]}`;
+            return new Intl.DateTimeFormat(currentLang, { day: 'numeric', month: 'short', weekday: 'short' }).format(d);
         } catch (e) { return dateStr; }
     };
 
@@ -1487,7 +1344,7 @@ const HotelListing = () => {
     const guestDisplay = useMemo(() => {
         const parts = [];
         if (totalGuests > 0) parts.push(`${totalGuests}`);
-        if (totalRooms > 1) parts.push(`${totalRooms} ${currentLang === 'tr' ? 'oda' : 'rooms'}`);
+        if (totalRooms > 1) parts.push(`${totalRooms} ${tListing('rooms', currentLang)}`);
         return parts.join(', ') || '2';
     }, [totalGuests, totalRooms, currentLang]);
 
@@ -1518,7 +1375,7 @@ const HotelListing = () => {
         if (isLoading && totalProperties === 0) return tListing('searching', currentLang);
         const isCustomFiltered = selectedAmenities.length > 0 || isPriceActive;
         const count = isCustomFiltered ? displayedHotels.length : (totalProperties || hotels.length || 0);
-        return `${locationName || ''} · ${count} ${currentLang === 'tr' ? 'sonuç' : 'results'}`;
+        return `${locationName || ''} · ${count} ${tListing('results', currentLang)}`;
     }, [isLoading, totalProperties, locationName, currentLang, selectedAmenities.length, isPriceActive, displayedHotels.length, hotels.length]);
 
     // Active filter count for badge
@@ -2011,19 +1868,19 @@ const HotelListing = () => {
 
     const starChipLabel = React.useMemo(() => {
         if (urlStars.length === 0) {
-            return currentLang === 'tr' ? 'Otel sınıfı' : currentLang === 'ar' ? 'فئة الفندق' : 'Hotel class';
+            return tListing('hotelClass', currentLang);
         }
         if (urlStars.length === 1) {
-            return `${urlStars[0]} ${currentLang === 'tr' ? 'yıldızlı' : 'star'}`;
+            return `${urlStars[0]} ${tListing('starSingle', currentLang)}`;
         }
-        return `${urlStars.slice().sort((a,b) => a-b).join(', ')} ${currentLang === 'tr' ? 'yıldızlı' : 'stars'}`;
+        return `${urlStars.slice().sort((a,b) => a-b).join(', ')} ${tListing('starPlural', currentLang)}`;
     }, [urlStars, currentLang]);
 
     const priceChipLabel = React.useMemo(() => {
         if (isPriceActive) {
             return `${currentCurrencySymbol}${priceRange[0].toLocaleString('tr-TR')} - ${currentCurrencySymbol}${priceRange[1].toLocaleString('tr-TR')}${priceRange[1] >= maxHotelPrice ? '+' : ''}`;
         }
-        return currentLang === 'tr' ? 'Fiyat' : currentLang === 'ar' ? 'السعر' : 'Price';
+        return tListing('price', currentLang);
     }, [isPriceActive, priceRange, maxHotelPrice, currentCurrencySymbol, currentLang]);
 
     const minPercent = Math.max(0, Math.min(100, (priceRange[0] / maxHotelPrice) * 100));
@@ -2055,7 +1912,7 @@ const HotelListing = () => {
                             className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3.5 h-9 text-[#1a73e8] dark:text-blue-400 font-medium text-[13.5px] bg-white dark:bg-[#303134] hover:bg-blue-50/50 dark:hover:bg-blue-950/30 shrink-0 transition-colors select-none font-roboto"
                         >
                             <span className="material-symbols-outlined text-[18px] text-[#1a73e8] dark:text-blue-400">tune</span>
-                            <span>{currentLang === 'tr' ? 'Tüm filtreler' : currentLang === 'ar' ? 'كل الفلاتر' : currentLang === 'ru' ? 'Все фильтры' : 'All filters'}</span>
+                            <span>{tListing('allFilters', currentLang)}</span>
                             {activeFilterCount > 0 && (
                                 <span className="bg-[#1a73e8] text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 ml-0.5">
                                     {activeFilterCount}
@@ -2098,7 +1955,7 @@ const HotelListing = () => {
                             <span className={`material-symbols-outlined text-[18px] ${searchParams.get('freeCancellation') === 'true' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
                                 sell
                             </span>
-                            <span>{currentLang === 'tr' ? 'Teklifler' : currentLang === 'ar' ? 'العروض' : 'Deals'}</span>
+                            <span>{tListing('deals', currentLang)}</span>
                             <span className={`material-symbols-outlined text-[18px] ${searchParams.get('freeCancellation') === 'true' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
                                 arrow_drop_down
                             </span>
@@ -2142,7 +1999,7 @@ const HotelListing = () => {
                             <span className={`material-symbols-outlined text-[18px] ${selectedAmenities.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
                                 room_service
                             </span>
-                            <span>{currentLang === 'ar' ? 'المرافق' : 'Sunulan olanaklar'}</span>
+                            <span>{tListing('amenities', currentLang)}</span>
                             {selectedAmenities.length > 0 && (
                                 <span className="bg-[#1a73e8] text-white text-[10px] font-bold rounded-lg min-w-[16px] h-4 flex items-center justify-center px-1">
                                     {selectedAmenities.length}
@@ -2192,7 +2049,7 @@ const HotelListing = () => {
                                 {/* Header */}
                                 <div className="flex items-center justify-between pt-3.5 px-5 pb-1 shrink-0">
                                     <h3 className="text-[16px] font-medium text-[#202124] dark:text-slate-100 font-roboto">
-                                        {currentLang === 'tr' ? 'Otel sınıfı' : currentLang === 'ar' ? 'فئة الفندق' : 'Hotel class'}
+                                        {tListing('hotelClass', currentLang)}
                                     </h3>
                                     <button
                                         type="button"
@@ -2217,10 +2074,10 @@ const HotelListing = () => {
                                             }`}
                                         >
                                             <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(2) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
-                                                {currentLang === 'tr' ? '2 yıldızlı' : '2-star'}
+                                                2 {tListing('starSingle', currentLang)}
                                             </span>
                                             <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(2) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                {currentLang === 'tr' ? 'Sadece temel olanaklar' : 'Just the essentials'}
+                                                {tListing('star2Desc', currentLang)}
                                             </span>
                                         </button>
 
@@ -2235,10 +2092,10 @@ const HotelListing = () => {
                                             }`}
                                         >
                                             <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(3) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
-                                                {currentLang === 'tr' ? '3 yıldızlı' : '3-star'}
+                                                3 {tListing('starSingle', currentLang)}
                                             </span>
                                             <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(3) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                {currentLang === 'tr' ? 'Kaliteli konfor' : 'Quality comfort'}
+                                                {tListing('star3Desc', currentLang)}
                                             </span>
                                         </button>
 
@@ -2253,10 +2110,10 @@ const HotelListing = () => {
                                             }`}
                                         >
                                             <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(4) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
-                                                {currentLang === 'tr' ? '4 yıldızlı' : '4-star'}
+                                                4 {tListing('starSingle', currentLang)}
                                             </span>
                                             <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(4) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                {currentLang === 'tr' ? 'Çok sayıda ek hizmet' : 'Multiple amenities'}
+                                                {tListing('star4Desc', currentLang)}
                                             </span>
                                         </button>
 
@@ -2271,10 +2128,10 @@ const HotelListing = () => {
                                             }`}
                                         >
                                             <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(5) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
-                                                {currentLang === 'tr' ? '5 yıldızlı' : '5-star'}
+                                                5 {tListing('starSingle', currentLang)}
                                             </span>
                                             <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(5) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                {currentLang === 'tr' ? 'Üst düzey hizmet' : 'Exceptional service'}
+                                                {tListing('star5Desc', currentLang)}
                                             </span>
                                         </button>
                                     </div>
@@ -2292,7 +2149,7 @@ const HotelListing = () => {
                                                 : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
                                         }`}
                                     >
-                                        {currentLang === 'tr' ? 'Temizle' : currentLang === 'ar' ? 'مسح' : 'Clear'}
+                                        {tListing('clear', currentLang)}
                                     </button>
                                 </div>
                             </div>
@@ -2316,7 +2173,7 @@ const HotelListing = () => {
                                 {/* Header */}
                                 <div className="flex items-center justify-between pt-3.5 px-5 pb-1 shrink-0">
                                     <h3 className="text-[16px] font-medium text-[#202124] dark:text-slate-100 font-roboto">
-                                        {currentLang === 'tr' ? 'Fiyat' : currentLang === 'ar' ? 'السعر' : 'Price'}
+                                        {tListing('price', currentLang)}
                                     </h3>
                                     <button
                                         type="button"
@@ -2444,7 +2301,7 @@ const HotelListing = () => {
                                                 : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
                                         }`}
                                     >
-                                        {currentLang === 'tr' ? 'Temizle' : currentLang === 'ar' ? 'مسح' : 'Clear'}
+                                        {tListing('clear', currentLang)}
                                     </button>
                                 </div>
                             </div>
@@ -2468,7 +2325,7 @@ const HotelListing = () => {
                                 {/* Header */}
                                 <div className="flex items-center justify-between pt-3.5 px-5 pb-1 shrink-0">
                                     <h3 className="text-[16px] font-medium text-[#202124] dark:text-slate-100 font-roboto">
-                                        {currentLang === 'ar' ? 'المرافق' : 'Sunulan olanaklar'}
+                                        {tListing('amenities', currentLang)}
                                     </h3>
                                     <button
                                         type="button"
@@ -2484,7 +2341,7 @@ const HotelListing = () => {
                                     <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-lg overflow-hidden">
                                         {QUICK_AMENITIES.map((amenity, index) => {
                                             const isSelected = selectedAmenities.includes(amenity.id);
-                                            const label = currentLang === 'ar' ? (amenity.labelAr || amenity.labelTr) : amenity.labelTr;
+                                            const label = getAmenityText(amenity.id, currentLang) || amenity.labelEn || amenity.labelTr;
                                             const isLeftCol = index % 2 === 0;
                                             const totalRows = Math.ceil(QUICK_AMENITIES.length / 2);
                                             const currentRow = Math.floor(index / 2);
@@ -2536,7 +2393,7 @@ const HotelListing = () => {
                                                 : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
                                         }`}
                                     >
-                                        {currentLang === 'ar' ? 'مسح' : 'Temizle'}
+                                        {tListing('clear', currentLang)}
                                     </button>
                                 </div>
                             </div>
@@ -2550,7 +2407,7 @@ const HotelListing = () => {
                             <div className="absolute top-full left-4 mt-0 w-[360px] max-w-[90vw] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2" style={{ maxHeight: 'calc(100vh - 200px)' }}>
                                 <div className="flex items-center justify-between px-5 py-4 border-b border-[#e8eaed] dark:border-slate-700 shrink-0">
                                     <h2 className="text-[15px] font-medium text-[#3c4043] dark:text-slate-100">
-                                        {currentLang === 'tr' ? 'Filtreler' : currentLang === 'ar' ? 'الفلاتر' : currentLang === 'ru' ? 'Фильтры' : 'Filters'}
+                                        {tListing('filters', currentLang)}
                                     </h2>
                                     <button onClick={() => setIsFilterDrawerOpen(false)} className="text-[#70757a] hover:text-[#3c4043] dark:hover:text-white transition-colors">
                                         <span className="material-symbols-outlined text-xl">close</span>
@@ -2560,12 +2417,12 @@ const HotelListing = () => {
                                     <Sidebar filters={dynamicFilters} locationNames={locationNames} facilityNames={facilityNames} hideHeader={true} />
                                 </div>
                                 <div className="px-5 py-3 border-t border-[#e8eaed] dark:border-slate-700 flex justify-between items-center bg-[#f8f9fa] dark:bg-slate-800 shrink-0">
-                                    <span className="text-[13px] text-[#70757a]">{hotels.length} {currentLang === 'tr' ? 'sonuç' : 'results'}</span>
+                                    <span className="text-[13px] text-[#70757a]">{hotels.length} {tListing('results', currentLang)}</span>
                                     <button onClick={() => {
                                         setSearchParams(new URLSearchParams());
                                         setIsFilterDrawerOpen(false);
                                     }} className="text-[#1a73e8] text-[13px] font-medium hover:underline">
-                                        {currentLang === 'tr' ? 'Tümünü temizle' : 'Clear all'}
+                                        {tListing('clearAll', currentLang)}
                                     </button>
                                 </div>
                             </div>
@@ -2664,17 +2521,17 @@ const HotelListing = () => {
                         <div className="flex flex-col items-center justify-center py-20 text-center px-8">
                             <span className="material-symbols-outlined text-5xl text-[#dadce0] dark:text-slate-600 mb-4">filter_alt_off</span>
                             <h3 className="text-[16px] font-medium text-[#3c4043] dark:text-slate-200 mb-2">
-                                {currentLang === 'tr' ? 'Seçilen filtrelere uygun otel bulunamadı' : 'No properties match your filters'}
+                                {tListing('noFilterMatch', currentLang)}
                             </h3>
                             <p className="text-[13px] text-[#70757a] dark:text-slate-400 mb-4">
-                                {currentLang === 'tr' ? 'Olanak filtrelerini temizleyerek diğer sonuçları görebilirsiniz.' : 'Try adjusting or clearing your filters to see more results.'}
+                                {tListing('noFilterMatchDesc', currentLang)}
                             </p>
                             <button
                                 onClick={handleClearAmenities}
                                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1a73e8] hover:bg-[#1558d6] text-white text-[13px] font-medium rounded-full transition-colors"
                             >
                                 <span className="material-symbols-outlined text-[16px]">close</span>
-                                {currentLang === 'tr' ? 'Olanak filtrelerini temizle' : 'Clear amenity filters'}
+                                {tListing('clearAmenities', currentLang)}
                             </button>
                         </div>
                     )}
@@ -2769,7 +2626,7 @@ const HotelListing = () => {
                                 onClick={() => setSearchOnMapMove(v => !v)}
                                 className="text-[13px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
                             >
-                                {currentLang === 'tr' ? 'Harita hareket ettiğinde listeyi güncelle' : 'Search as map moves'}
+                                {tListing('searchMapMoves', currentLang)}
                             </span>
                         </div>
                     )}
@@ -2787,7 +2644,7 @@ const HotelListing = () => {
                             className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 border border-[#dadce0] dark:border-slate-600 rounded-full px-4 py-2 text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shadow-md transition-colors cursor-pointer"
                         >
                             <span className={`material-symbols-outlined text-[#1a73e8] ${isLoading ? 'animate-spin' : ''}`} style={{ fontSize: '18px' }}>refresh</span>
-                            {currentLang === 'tr' ? 'Listeyi güncelle' : 'Search this area'}
+                            {tListing('searchThisArea', currentLang)}
                         </button>
                     )}
                 </div>
@@ -2798,12 +2655,12 @@ const HotelListing = () => {
                         <button
                             onClick={() => setIsLayerMenuOpen(v => !v)}
                             className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 border border-[#dadce0] dark:border-slate-600 rounded-full px-3 py-2 shadow-md transition-all cursor-pointer select-none text-[13px] font-medium"
-                            title={currentLang === 'tr' ? 'Harita Katmanı' : 'Map Layer'}
+                            title={tListing('mapLayer', currentLang)}
                         >
                             <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>
                                 layers
                             </span>
-                            <span>{currentLang === 'tr' ? MAP_LAYERS[mapLayer]?.label : MAP_LAYERS[mapLayer]?.labelEn}</span>
+                            <span>{getLayerLabel(MAP_LAYERS[mapLayer], currentLang)}</span>
                             <span className="material-symbols-outlined text-[16px] text-gray-500">
                                 {isLayerMenuOpen ? 'expand_more' : 'expand_less'}
                             </span>
@@ -2812,7 +2669,7 @@ const HotelListing = () => {
                         {isLayerMenuOpen && (
                             <div className="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl shadow-xl p-2 flex flex-col gap-1 text-left animate-in fade-in zoom-in-95 duration-150">
                                 <div className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                                    {currentLang === 'tr' ? 'Harita Stili' : 'Map Style'}
+                                    {tListing('mapStyle', currentLang)}
                                 </div>
                                 {Object.values(MAP_LAYERS).map(layer => {
                                     const isSelected = mapLayer === layer.id;
@@ -2835,7 +2692,7 @@ const HotelListing = () => {
                                             </span>
                                             <div className="flex-1">
                                                 <div className="text-[13px] font-medium leading-tight flex items-center justify-between">
-                                                    {currentLang === 'tr' ? layer.label : layer.labelEn}
+                                                    {getLayerLabel(layer, currentLang)}
                                                     {isSelected && (
                                                         <span className="material-symbols-outlined text-[16px] text-[#1a73e8] dark:text-[#8ab4f8]">check</span>
                                                     )}
@@ -2863,7 +2720,7 @@ const HotelListing = () => {
                     {/* Top bookmark button block matching screenshot */}
                     <button 
                         onClick={handleFavButtonClick}
-                        title={currentLang === 'tr' ? 'Seyahat planlarınız ve kaydedilenler' : 'Saved travel plans'}
+                        title={tListing('savedPlansTitle', currentLang)}
                         className="w-full h-[56px] bg-white dark:bg-[#202124] flex items-center justify-center border-b border-[#dadce0] dark:border-slate-700 shadow-[0_2px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] hover:bg-[#f8f9fa] dark:hover:bg-slate-800 transition-colors cursor-pointer relative z-10 group"
                     >
                         <span 
@@ -2907,8 +2764,8 @@ const HotelListing = () => {
             >
                 <div className="flex items-center justify-between p-4 pb-3 border-b border-[#f1f3f4] dark:border-slate-700/60">
                     <div>
-                        <h2 className="text-[17px] font-medium text-[#202124] dark:text-white">{currentLang === 'tr' ? 'Seyahat planlarınız' : 'Your travel plans'}</h2>
-                        <p className="text-[12px] text-[#70757a] dark:text-slate-400">{favorites.length} {currentLang === 'tr' ? 'kayıtlı otel' : 'saved hotels'}</p>
+                        <h2 className="text-[17px] font-medium text-[#202124] dark:text-white">{tListing('savedPlans', currentLang)}</h2>
+                        <p className="text-[12px] text-[#70757a] dark:text-slate-400">{favorites.length} {tListing('savedHotels', currentLang)}</p>
                     </div>
                     <button 
                         onClick={handleCloseFav} 
@@ -2923,8 +2780,8 @@ const HotelListing = () => {
                             <div className="w-14 h-14 mx-auto rounded-full bg-[#f1f3f4] dark:bg-slate-700/60 flex items-center justify-center mb-3">
                                 <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 text-3xl">bookmark_border</span>
                             </div>
-                            <h3 className="text-[15px] font-medium text-[#202124] dark:text-white mb-2">{currentLang === 'tr' ? 'Burada henüz bir şey yok' : 'Nothing here yet'}</h3>
-                            <p className="text-[13px] text-[#70757a] dark:text-slate-400 leading-relaxed">{currentLang === 'tr' ? 'Beğendiğiniz otellerin üzerindeki yer imi simgesine tıklayarak buraya kaydedebilirsiniz' : 'Save hotels here by clicking the bookmark icon on properties you like'}</p>
+                            <h3 className="text-[15px] font-medium text-[#202124] dark:text-white mb-2">{tListing('nothingHereYet', currentLang)}</h3>
+                            <p className="text-[13px] text-[#70757a] dark:text-slate-400 leading-relaxed">{tListing('nothingHereYetDesc', currentLang)}</p>
                         </div>
                     ) : (
                         <div className="p-4 flex flex-col gap-3">
@@ -2949,13 +2806,13 @@ const HotelListing = () => {
                                             )}
                                         </div>
                                         <div className="text-[12px] text-[#70757a] dark:text-slate-400 mt-0.5 truncate">
-                                            {fav.stars ? `${fav.stars} yıldızlı otel` : 'Otel'}
+                                            {fav.stars ? `${fav.stars} ${tListing('starSingle', currentLang)}` : ''}
                                         </div>
                                     </div>
                                     <div className="shrink-0 flex items-center justify-center">
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }} 
-                                            title={currentLang === 'tr' ? 'Kaydedilenlerden kaldır' : 'Remove from saved'}
+                                            title={tListing('removeFromSaved', currentLang)}
                                             className="w-9 h-9 rounded-full border border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 hover:border-red-200 flex items-center justify-center transition-colors shadow-xs"
                                         >
                                             <span className="material-symbols-outlined text-[#1a73e8] dark:text-[#8ab4f8] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>

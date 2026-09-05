@@ -7,7 +7,7 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
     const [loading, setLoading] = useState(false);
     const location = useLocation();
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     const currentLang = i18n.language || 'en';
 
     useEffect(() => {
@@ -88,9 +88,9 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
         return (
             <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-medium text-slate-400 animate-pulse">
                 <span className="material-symbols-outlined text-[16px]">home</span>
-                <span>Home</span>
+                <span>{t('common.home')}</span>
                 <span className="text-slate-300 dark:text-slate-700">/</span>
-                <span>Loading...</span>
+                <span>{t('common.loading')}</span>
             </nav>
         );
     }
@@ -100,7 +100,7 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
             <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-medium">
                 <Link to="/" className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors group">
                     <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">home</span>
-                    <span>Home</span>
+                    <span>{t('common.home')}</span>
                 </Link>
             </nav>
         );
@@ -148,7 +148,7 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
                 className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors shrink-0 group"
             >
                 <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-primary transition-colors">home</span>
-                <span>Home</span>
+                <span>{t('common.home')}</span>
             </Link>
 
             {breadcrumbs.map((crumb, index) => {

@@ -191,8 +191,8 @@ const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved, isUserPanR
         touchstart: () => { if (isUserPanRef) isUserPanRef.current = true; },
         moveend: (e) => {
             if (isUserPanRef && !isUserPanRef.current) return;
+            if (isUserPanRef) isUserPanRef.current = false;
             const map = e.target;
-            map.invalidateSize();
             const bounds = map.getBounds();
             const nw = bounds.getNorthWest();
             const se = bounds.getSouthEast();
@@ -628,6 +628,65 @@ const HotelListing = () => {
 
     const { favorites, isFavorite, toggleFavorite } = useFavorites();
     const [isFavOpen, setIsFavOpen] = React.useState(false);
+    const favOpenTimerRef = React.useRef(null);
+    const favCloseTimerRef = React.useRef(null);
+
+    const handleFavMouseEnter = React.useCallback(() => {
+        if (favCloseTimerRef.current) {
+            clearTimeout(favCloseTimerRef.current);
+            favCloseTimerRef.current = null;
+        }
+        if (!isFavOpen && !favOpenTimerRef.current) {
+            favOpenTimerRef.current = setTimeout(() => {
+                setIsFavOpen(true);
+                favOpenTimerRef.current = null;
+            }, 300);
+        }
+    }, [isFavOpen]);
+
+    const handleFavMouseLeave = React.useCallback(() => {
+        if (favOpenTimerRef.current) {
+            clearTimeout(favOpenTimerRef.current);
+            favOpenTimerRef.current = null;
+        }
+        if (isFavOpen && !favCloseTimerRef.current) {
+            favCloseTimerRef.current = setTimeout(() => {
+                setIsFavOpen(false);
+                favCloseTimerRef.current = null;
+            }, 250);
+        }
+    }, [isFavOpen]);
+
+    const handleFavButtonClick = React.useCallback(() => {
+        if (favOpenTimerRef.current) {
+            clearTimeout(favOpenTimerRef.current);
+            favOpenTimerRef.current = null;
+        }
+        if (favCloseTimerRef.current) {
+            clearTimeout(favCloseTimerRef.current);
+            favCloseTimerRef.current = null;
+        }
+        setIsFavOpen(prev => !prev);
+    }, []);
+
+    const handleCloseFav = React.useCallback(() => {
+        if (favOpenTimerRef.current) {
+            clearTimeout(favOpenTimerRef.current);
+            favOpenTimerRef.current = null;
+        }
+        if (favCloseTimerRef.current) {
+            clearTimeout(favCloseTimerRef.current);
+            favCloseTimerRef.current = null;
+        }
+        setIsFavOpen(false);
+    }, []);
+
+    React.useEffect(() => {
+        return () => {
+            if (favOpenTimerRef.current) clearTimeout(favOpenTimerRef.current);
+            if (favCloseTimerRef.current) clearTimeout(favCloseTimerRef.current);
+        };
+    }, []);
 
     const [hotels, setHotels] = React.useState([]);
     const [page, setPage] = React.useState(0);
@@ -879,7 +938,8 @@ const HotelListing = () => {
 
     // Load hotels from API (optionally using geo bounds for map-area search)
     const loadMoreHotels = React.useCallback(async (isReset = false, geoBounds = null) => {
-        if (geoBounds) {
+        const activeGeoBounds = geoBounds || mapBoundsRef.current;
+        if (activeGeoBounds) {
             setShouldRefitMap(false);
             isMapSearchRef.current = true;
         }
@@ -894,7 +954,7 @@ const HotelListing = () => {
         isFetchingRef.current = true;
         if (isReset) {
             setIsLoading(true);
-            if (!geoBounds) {
+            if (!activeGeoBounds) {
                 setHotels([]);
                 mapBoundsRef.current = null;
             }
@@ -911,12 +971,12 @@ const HotelListing = () => {
             const currentPage = isReset ? 0 : pageRef.current;
             const baseRequest = {
                 // Use geo bounds if provided (map area search), otherwise use locationId
-                locationId: geoBounds ? null : locationId,
-                geo: geoBounds?.bounds || null,
-                zoom: geoBounds?.zoom || null,
+                locationId: activeGeoBounds ? null : locationId,
+                geo: activeGeoBounds?.bounds || null,
+                zoom: activeGeoBounds?.zoom || null,
                 size: 100,
                 filters: {
-                    locationIds: geoBounds
+                    locationIds: activeGeoBounds
                         ? [] // when searching by map bounds, don't restrict by locationId
                         : (filters.locations?.length > 0 ? filters.locations : (locationId ? [parseInt(locationId)] : null)),
                     stars: filters.stars,
@@ -941,8 +1001,8 @@ const HotelListing = () => {
                 signal: controller.signal
             };
             const req1 = hotelService.searchHotels({ ...baseRequest, page: currentPage });
-            const req2 = geoBounds ? null : hotelService.searchHotels({ ...baseRequest, page: currentPage + 1 });
-            const results = await Promise.allSettled(req2 ? [req1, req2] : [req1]);
+            const req2 = hotelService.searchHotels({ ...baseRequest, page: currentPage + 1 });
+            const results = await Promise.allSettled([req1, req2]);
             const res1 = results[0]?.status === 'fulfilled' ? results[0].value : null;
             const res2 = results[1]?.status === 'fulfilled' ? results[1].value : null;
             if (res1 && res1.data) {
@@ -960,8 +1020,7 @@ const HotelListing = () => {
                 });
                 setTotalProperties(pageData1.totalElements || 0);
                 if (currentPage === 0 && filtersData) setDynamicFilters(filtersData);
-                // When geoBounds search, treat as last page (no pagination)
-                const noMore = geoBounds ? true : (pageData1.last || pageData2?.last || combinedContent.length === 0);
+                const noMore = (pageData1.last || pageData2?.last || combinedContent.length === 0);
                 const nextHasMore = !noMore;
                 setHasMore(nextHasMore);
                 hasMoreRef.current = nextHasMore;
@@ -979,10 +1038,9 @@ const HotelListing = () => {
                     }
                 });
                 if (Object.keys(newLocationNames).length > 0) setLocationNames(prev => ({ ...prev, ...newLocationNames }));
-                // Only continue paginating if NOT a geo bounds search
-                if (!geoBounds && currentPage === 0 && nextHasMore) {
+                if (currentPage === 0 && nextHasMore) {
                     isFetchingRef.current = false;
-                    setTimeout(() => { loadMoreHotels(false); }, 50);
+                    setTimeout(() => { loadMoreHotels(false, activeGeoBounds); }, 50);
                     return;
                 }
             } else {
@@ -1224,17 +1282,10 @@ const HotelListing = () => {
     const handleListScroll = React.useCallback((e) => {
         const { scrollTop, scrollHeight, clientHeight } = e.target;
         if (scrollHeight - scrollTop - clientHeight < 2500 && hasMoreRef.current && !isFetchingRef.current && hotels.length > 0) {
-            loadMoreHotels(false);
+            loadMoreHotels(false, mapBoundsRef.current);
         }
     }, [loadMoreHotels, hotels.length]);
 
-    // Invalidate map size on sidebar toggle
-    React.useEffect(() => {
-        if (mapInstance) {
-            const t = setTimeout(() => mapInstance.invalidateSize(), 350);
-            return () => clearTimeout(t);
-        }
-    }, [isFavOpen, mapInstance]);
 
     // Currency symbols
     const getCurrencySymbol = (code) => {
@@ -1448,7 +1499,7 @@ const HotelListing = () => {
             {/* ════════════════════════════════════════════
                 RIGHT PANEL: Map & Favorites Sidebar
             ════════════════════════════════════════════ */}
-            <div className="flex-1 relative flex">
+            <div className="flex-1 relative flex overflow-hidden">
                 <div className="flex-1 relative overflow-hidden">
                     {/* Top inner shadow - Soft realistic inset shadow inside the top of the map */}
                     <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_6px_8px_-3px_rgba(0,0,0,0.14),inset_0_2px_4px_-1px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_8px_12px_-3px_rgba(0,0,0,0.35)]" />
@@ -1607,112 +1658,119 @@ const HotelListing = () => {
                 </div>
             </div>
 
-            {/* Favorites Right Sidebar (Google Style) */}
+            {/* Favorites Right Sidebar Dock (Google Style - Fixed width) */}
             <div 
-                className={`relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 transition-all duration-300 flex flex-col z-[2000] shadow-[-4px_0_16px_rgba(0,0,0,0.12),-1px_0_4px_rgba(0,0,0,0.06)] dark:shadow-[-5px_0_20px_rgba(0,0,0,0.35)] ${isFavOpen ? 'w-[380px]' : 'w-[58px]'}`}
-                onMouseEnter={() => setIsFavOpen(true)}
-                onMouseLeave={() => setIsFavOpen(false)}
+                className="w-[58px] shrink-0 relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 flex flex-col z-[2000]"
+                onMouseEnter={handleFavMouseEnter}
+                onMouseLeave={handleFavMouseLeave}
             >
-                {!isFavOpen ? (
-                    <div className="flex flex-col items-center w-full bg-white dark:bg-[#202124]">
-                        {/* Top bookmark button block matching screenshot */}
-                        <button 
-                            onClick={() => setIsFavOpen(true)}
-                            title={currentLang === 'tr' ? 'Seyahat planlarınız ve kaydedilenler' : 'Saved travel plans'}
-                            className="w-full h-[56px] bg-white dark:bg-[#202124] flex items-center justify-center border-b border-[#dadce0] dark:border-slate-700 shadow-[0_2px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] hover:bg-[#f8f9fa] dark:hover:bg-slate-800 transition-colors cursor-pointer relative z-10 group"
+                <div className="flex flex-col items-center w-full bg-white dark:bg-[#202124]">
+                    {/* Top bookmark button block matching screenshot */}
+                    <button 
+                        onClick={handleFavButtonClick}
+                        title={currentLang === 'tr' ? 'Seyahat planlarınız ve kaydedilenler' : 'Saved travel plans'}
+                        className="w-full h-[56px] bg-white dark:bg-[#202124] flex items-center justify-center border-b border-[#dadce0] dark:border-slate-700 shadow-[0_2px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] hover:bg-[#f8f9fa] dark:hover:bg-slate-800 transition-colors cursor-pointer relative z-10 group"
+                    >
+                        <span 
+                            className="material-symbols-outlined text-[25px] text-[#3c4043] dark:text-slate-200 group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors"
+                            style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}
                         >
-                            <span 
-                                className="material-symbols-outlined text-[25px] text-[#3c4043] dark:text-slate-200 group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors"
-                                style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}
-                            >
-                                bookmarks
+                            bookmarks
+                        </span>
+                        {favorites.length > 0 && (
+                            <span className="absolute top-1.5 right-1.5 bg-[#1a73e8] text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] px-0.5 flex items-center justify-center shadow-xs">
+                                {favorites.length}
                             </span>
-                            {favorites.length > 0 && (
-                                <span className="absolute top-1.5 right-1.5 bg-[#1a73e8] text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] px-0.5 flex items-center justify-center shadow-xs">
-                                    {favorites.length}
-                                </span>
-                            )}
-                        </button>
+                        )}
+                    </button>
 
-                        {/* Circular thumbnails underneath */}
-                        <div className="flex flex-col gap-3 py-3.5 items-center w-full">
-                            {favorites.slice(0, 6).map(fav => (
+                    {/* Circular thumbnails underneath */}
+                    <div className="flex flex-col gap-3 py-3.5 items-center w-full">
+                        {favorites.slice(0, 6).map(fav => (
+                            <div 
+                                key={fav.hotelId || fav.id} 
+                                onClick={handleFavButtonClick}
+                                title={fav.name || fav.hotelName || fav.names?.en || 'Otel'}
+                                className="w-9 h-9 rounded-full overflow-hidden cursor-pointer hover:scale-105 transition-transform"
+                            >
+                                <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Favorites Overlay Drawer (Floats over the map without changing map dimensions) */}
+            <div 
+                className={`absolute top-0 right-0 h-full w-[380px] bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 shadow-[-8px_0_24px_rgba(0,0,0,0.16),-2px_0_6px_rgba(0,0,0,0.08)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.6)] flex flex-col z-[2010] transform transition-transform duration-300 ease-in-out ${
+                    isFavOpen 
+                        ? 'translate-x-0 pointer-events-auto' 
+                        : 'translate-x-full pointer-events-none'
+                }`}
+                onMouseEnter={handleFavMouseEnter}
+                onMouseLeave={handleFavMouseLeave}
+            >
+                <div className="flex items-center justify-between p-4 pb-3 border-b border-[#f1f3f4] dark:border-slate-700/60">
+                    <div>
+                        <h2 className="text-[17px] font-medium text-[#202124] dark:text-white">{currentLang === 'tr' ? 'Seyahat planlarınız' : 'Your travel plans'}</h2>
+                        <p className="text-[12px] text-[#70757a] dark:text-slate-400">{favorites.length} {currentLang === 'tr' ? 'kayıtlı otel' : 'saved hotels'}</p>
+                    </div>
+                    <button 
+                        onClick={handleCloseFav} 
+                        className="w-9 h-9 rounded-full hover:bg-[#f1f3f4] dark:hover:bg-slate-700 flex items-center justify-center text-[#5f6368] dark:text-slate-400 transition-colors cursor-pointer"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+                <div className="flex-1 overflow-y-auto bg-white dark:bg-[#202124]">
+                    {favorites.length === 0 ? (
+                        <div className="text-center mt-12 px-6">
+                            <div className="w-14 h-14 mx-auto rounded-full bg-[#f1f3f4] dark:bg-slate-700/60 flex items-center justify-center mb-3">
+                                <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 text-3xl">bookmark_border</span>
+                            </div>
+                            <h3 className="text-[15px] font-medium text-[#202124] dark:text-white mb-2">{currentLang === 'tr' ? 'Burada henüz bir şey yok' : 'Nothing here yet'}</h3>
+                            <p className="text-[13px] text-[#70757a] dark:text-slate-400 leading-relaxed">{currentLang === 'tr' ? 'Beğendiğiniz otellerin üzerindeki yer imi simgesine tıklayarak buraya kaydedebilirsiniz' : 'Save hotels here by clicking the bookmark icon on properties you like'}</p>
+                        </div>
+                    ) : (
+                        <div className="p-4 flex flex-col gap-3">
+                            {favorites.map(fav => (
                                 <div 
                                     key={fav.hotelId || fav.id} 
-                                    onClick={() => setIsFavOpen(true)}
-                                    title={fav.name || fav.hotelName || fav.names?.en || 'Otel'}
-                                    className="w-9 h-9 rounded-full overflow-hidden cursor-pointer hover:scale-105 transition-transform"
+                                    className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-slate-700 p-3 flex gap-3 cursor-pointer hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50 hover:shadow-sm transition-all"
+                                    onClick={() => window.open(`/travel/hotels/detail/${fav.hotelId || fav.id}`, '_blank')}
                                 >
-                                    <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
+                                    <div className="shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-[#f1f3f4] dark:bg-slate-800">
+                                        <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
+                                    </div>
+                                    <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
+                                        <h4 className="text-[14px] font-semibold text-[#3c4043] dark:text-white leading-[1.25] line-clamp-2">{fav.name || fav.hotelName || fav.names?.en || 'Otel'}</h4>
+                                        <div className="flex items-center gap-1 mt-1 text-[12px] text-[#70757a] dark:text-slate-400">
+                                            {fav.rating && (
+                                                <>
+                                                    <span className="font-semibold text-[#3c4043] dark:text-slate-200">{fav.rating}</span>
+                                                    <span className="material-symbols-outlined text-[#fbbc04] text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                                                    <span>({fav.reviewCount || 100})</span>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div className="text-[12px] text-[#70757a] dark:text-slate-400 mt-0.5 truncate">
+                                            {fav.stars ? `${fav.stars} yıldızlı otel` : 'Otel'}
+                                        </div>
+                                    </div>
+                                    <div className="shrink-0 flex items-center justify-center">
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }} 
+                                            title={currentLang === 'tr' ? 'Kaydedilenlerden kaldır' : 'Remove from saved'}
+                                            className="w-9 h-9 rounded-full border border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 hover:border-red-200 flex items-center justify-center transition-colors shadow-xs"
+                                        >
+                                            <span className="material-symbols-outlined text-[#1a73e8] dark:text-[#8ab4f8] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
-                    </div>
-                ) : (
-                    <div className="flex flex-col h-full bg-white dark:bg-[#202124]">
-                        <div className="flex items-center justify-between p-4 pb-3 border-b border-[#f1f3f4] dark:border-slate-700/60">
-                            <div>
-                                <h2 className="text-[17px] font-medium text-[#202124] dark:text-white">{currentLang === 'tr' ? 'Seyahat planlarınız' : 'Your travel plans'}</h2>
-                                <p className="text-[12px] text-[#70757a] dark:text-slate-400">{favorites.length} {currentLang === 'tr' ? 'kayıtlı otel' : 'saved hotels'}</p>
-                            </div>
-                            <button 
-                                onClick={() => setIsFavOpen(false)} 
-                                className="w-9 h-9 rounded-full hover:bg-[#f1f3f4] dark:hover:bg-slate-700 flex items-center justify-center text-[#5f6368] dark:text-slate-400 transition-colors"
-                            >
-                                <span className="material-symbols-outlined text-[20px]">close</span>
-                            </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto bg-white dark:bg-[#202124]">
-                            {favorites.length === 0 ? (
-                                <div className="text-center mt-12 px-6">
-                                    <div className="w-14 h-14 mx-auto rounded-full bg-[#f1f3f4] dark:bg-slate-700/60 flex items-center justify-center mb-3">
-                                        <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 text-3xl">bookmark_border</span>
-                                    </div>
-                                    <h3 className="text-[15px] font-medium text-[#202124] dark:text-white mb-2">{currentLang === 'tr' ? 'Burada henüz bir şey yok' : 'Nothing here yet'}</h3>
-                                    <p className="text-[13px] text-[#70757a] dark:text-slate-400 leading-relaxed">{currentLang === 'tr' ? 'Beğendiğiniz otellerin üzerindeki yer imi simgesine tıklayarak buraya kaydedebilirsiniz' : 'Save hotels here by clicking the bookmark icon on properties you like'}</p>
-                                </div>
-                            ) : (
-                                <div className="p-4 flex flex-col gap-3">
-                                    {favorites.map(fav => (
-                                        <div 
-                                            key={fav.hotelId || fav.id} 
-                                            className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-slate-700 p-3 flex gap-3 cursor-pointer hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50 hover:shadow-sm transition-all"
-                                            onClick={() => window.open(`/travel/hotels/detail/${fav.hotelId || fav.id}`, '_blank')}
-                                        >
-                                            <div className="shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-[#f1f3f4] dark:bg-slate-800">
-                                                <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
-                                            </div>
-                                            <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
-                                                <h4 className="text-[14px] font-semibold text-[#3c4043] dark:text-white leading-[1.25] line-clamp-2">{fav.name || fav.hotelName || fav.names?.en || 'Otel'}</h4>
-                                                <div className="flex items-center gap-1 mt-1 text-[12px] text-[#70757a] dark:text-slate-400">
-                                                    {fav.rating && (
-                                                        <>
-                                                            <span className="font-semibold text-[#3c4043] dark:text-slate-200">{fav.rating}</span>
-                                                            <span className="material-symbols-outlined text-[#fbbc04] text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                                                            <span>({fav.reviewCount || 100})</span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                                <div className="text-[12px] text-[#70757a] dark:text-slate-400 mt-0.5 truncate">
-                                                    {fav.stars ? `${fav.stars} yıldızlı otel` : 'Otel'}
-                                                </div>
-                                            </div>
-                                            <div className="shrink-0 flex items-center justify-center">
-                                                <button 
-                                                    onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }} 
-                                                    title={currentLang === 'tr' ? 'Kaydedilenlerden kaldır' : 'Remove from saved'}
-                                                    className="w-9 h-9 rounded-full border border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 hover:border-red-200 flex items-center justify-center transition-colors shadow-xs"
-                                                >
-                                                    <span className="material-symbols-outlined text-[#1a73e8] dark:text-[#8ab4f8] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
             </div>
         </div>

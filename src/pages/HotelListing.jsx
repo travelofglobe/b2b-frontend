@@ -226,26 +226,68 @@ const MapInstanceCapture = ({ setMap }) => {
 // ═══════════════════════════════════════════════
 // Price Marker - Google Hotels-style price bubble
 // ═══════════════════════════════════════════════
-const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHover, searchParams, currencySymbol }) => {
+const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHover, searchParams, currencySymbol, isFav, currentLang }) => {
     const priceDisplay = hotel.price ? Math.round(hotel.price).toLocaleString('tr-TR') : '';
     const active = isSelected || isHovered;
-    const icon = L.divIcon({
-        className: '',
-        html: `<div style="position:relative;display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer;">
-            <div style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:1.5px solid ${active ? 'transparent' : 'rgba(60,64,67,0.2)'};background:${active ? '#1a73e8' : 'white'};color:${active ? 'white' : '#3c4043'};box-shadow:0 2px 6px rgba(0,0,0,${active ? '0.3' : '0.15'});transform:${active ? 'scale(1.08)' : 'scale(1)'};transition:all 0.15s ease;display:flex;align-items:center;gap:4px;">
-                <span class="material-symbols-outlined" style="font-size:14px; margin-right:-2px">hotel</span>
-                ${currencySymbol}${priceDisplay}
+
+    const icon = React.useMemo(() => {
+        let borderStyle, bgStyle, colorStyle, iconHtml, badgeHtml, shadowStyle, arrowBg;
+
+        if (active) {
+            bgStyle = '#1a73e8';
+            colorStyle = 'white';
+            borderStyle = isFav ? '2px solid #174ea6' : '1.5px solid transparent';
+            shadowStyle = '0 3px 12px rgba(26,115,232,0.45)';
+            arrowBg = '#1a73e8';
+            iconHtml = `<span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:white;${isFav ? "font-variation-settings:'FILL' 1;" : ""}">
+                ${isFav ? 'bookmark' : 'hotel'}
+            </span>`;
+        } else if (isFav) {
+            bgStyle = '#ffffff';
+            colorStyle = '#1a73e8';
+            borderStyle = '2px solid #1a73e8';
+            shadowStyle = '0 3px 10px rgba(26,115,232,0.35)';
+            arrowBg = '#1a73e8';
+            iconHtml = `<span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:#1a73e8;font-variation-settings:'FILL' 1;">
+                bookmark
+            </span>`;
+        } else {
+            bgStyle = 'white';
+            colorStyle = '#3c4043';
+            borderStyle = '1.5px solid rgba(60,64,67,0.2)';
+            shadowStyle = '0 2px 6px rgba(0,0,0,0.15)';
+            arrowBg = 'white';
+            iconHtml = `<span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:#5f6368;">
+                hotel
+            </span>`;
+        }
+
+        badgeHtml = isFav ? `
+            <div style="position:absolute;top:-8px;right:-7px;background:#1a73e8;color:white;width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.3);border:2px solid white;z-index:10;">
+                <span class="material-symbols-outlined" style="font-size:12px;font-variation-settings:'FILL' 1;line-height:1;display:flex;align-items:center;justify-content:center;">bookmark</span>
             </div>
-            <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${active ? '#1a73e8' : 'white'};margin-top:-1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));"></div>
-        </div>`,
-        iconSize: [0, 0],
-        iconAnchor: [0, 0],
-    });
+        ` : '';
+
+        return L.divIcon({
+            className: '',
+            html: `<div style="position:relative;display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer;">
+                ${badgeHtml}
+                <div style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:${isFav ? '800' : '700'};font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:${borderStyle};background:${bgStyle};color:${colorStyle};box-shadow:${shadowStyle};transform:${active ? 'scale(1.1)' : isFav ? 'scale(1.05)' : 'scale(1)'};transition:all 0.15s ease;display:flex;align-items:center;gap:4px;">
+                    ${iconHtml}
+                    ${currencySymbol}${priceDisplay}
+                </div>
+                <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${arrowBg};margin-top:-1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));"></div>
+            </div>`,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
+        });
+    }, [active, isFav, currencySymbol, priceDisplay]);
+
     return (
         <Marker
             position={[parseFloat(hotel.lat), parseFloat(hotel.lng)]}
             icon={icon}
-            zIndexOffset={active ? 1000 : 0}
+            zIndexOffset={active ? 1000 : isFav ? 500 : 0}
             eventHandlers={{
                 click: () => onSelect(hotel),
                 mouseover: () => onHover(hotel),
@@ -254,12 +296,20 @@ const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHove
         >
             <Popup className="hotel-price-popup" minWidth={220} autoPan={false} closeButton={false}>
                 <div style={{ fontFamily: 'Google Sans,Roboto,Arial,sans-serif', padding: '4px' }}>
-                    <img src={hotel.image} alt={hotel.name} onError={e => { e.target.src = placeholderHotel; }} style={{ width: '100%', height: '110px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />
+                    <div style={{ position: 'relative' }}>
+                        <img src={hotel.image} alt={hotel.name} onError={e => { e.target.src = placeholderHotel; }} style={{ width: '100%', height: '110px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />
+                        {isFav && (
+                            <div style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', padding: '3px 8px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '4px', color: '#8ab4f8', fontSize: '11px', fontWeight: 600 }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>bookmark</span>
+                                <span>{currentLang === 'tr' ? 'Kaydedildi' : currentLang === 'ar' ? 'تم الحفظ' : 'Saved'}</span>
+                            </div>
+                        )}
+                    </div>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#3c4043', lineHeight: '1.3', marginBottom: '6px' }}>{hotel.name}</div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{ fontSize: '15px', fontWeight: 700, color: '#3c4043' }}>{currencySymbol}{priceDisplay}</span>
                         <Link to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`} target="_blank" onClick={e => e.stopPropagation()} style={{ background: '#1a73e8', color: 'white', fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '20px', textDecoration: 'none' }}>
-                            Göster
+                            {currentLang === 'tr' ? 'Göster' : currentLang === 'ar' ? 'عرض' : 'View'}
                         </Link>
                     </div>
                 </div>
@@ -591,6 +641,304 @@ const resolveInitialLocation = (slug, q, searchParams) => {
 };
 
 // ═══════════════════════════════════════════════
+// Quick Amenities Filter List (Google Hotels Style)
+// ═══════════════════════════════════════════════
+export const QUICK_AMENITIES = [
+    {
+        id: 'free_wifi',
+        labelTr: 'Ücretsiz kablosuz bağlantı',
+        labelEn: 'Free Wi-Fi',
+        labelAr: 'واي فاي مجاني',
+        icon: 'wifi',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'wifi')) return true;
+            if (h.facilityIds?.some(id => [98445, 48325, 3664, 334].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('wifi') || text.includes('wi-fi') || text.includes('kablosuz') || text.includes('internet');
+        }
+    },
+    {
+        id: 'free_breakfast',
+        labelTr: 'Ücretsiz kahvaltı',
+        labelEn: 'Free breakfast',
+        labelAr: 'إفطار مجاني',
+        icon: 'coffee',
+        match: (h) => {
+            const bName = (h.boardName || '').toLowerCase();
+            if (bName.includes('breakfast') || bName.includes('kahvaltı') || bName.includes('bb') || bName.includes('bed & breakfast') || bName.includes('bed and breakfast') || bName.includes('half board') || bName.includes('all inclusive') || bName.includes('tam pansiyon') || bName.includes('yarım pansiyon')) return true;
+            if (h.amenities?.some(a => ['coffee', 'free_breakfast', 'local_cafe'].includes(a.icon))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('breakfast') || text.includes('kahvaltı');
+        }
+    },
+    {
+        id: 'restaurant',
+        labelTr: 'Restoran',
+        labelEn: 'Restaurant',
+        labelAr: 'مطعم',
+        icon: 'restaurant',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'restaurant')) return true;
+            if (h.facilityIds?.some(id => [641].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('restaurant') || text.includes('restoran') || text.includes('dining');
+        }
+    },
+    {
+        id: 'bar',
+        labelTr: 'Bar',
+        labelEn: 'Bar',
+        labelAr: 'بار',
+        icon: 'local_bar',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'local_bar')) return true;
+            if (h.facilityIds?.some(id => [3134].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('bar') || text.includes('lounge');
+        }
+    },
+    {
+        id: 'kid_friendly',
+        labelTr: 'Çocuklar için uygun',
+        labelEn: 'Kid-friendly',
+        labelAr: 'مناسب للأطفال',
+        icon: 'stroller',
+        match: (h) => {
+            if (h.amenities?.some(a => ['child_friendly', 'child_care', 'stroller'].includes(a.icon))) return true;
+            if (h.facilityIds?.some(id => [603, 1981, 1685].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('kid') || text.includes('child') || text.includes('çocuk') || text.includes('bebek') || text.includes('family') || text.includes('aile');
+        }
+    },
+    {
+        id: 'pets',
+        labelTr: 'Evcil hayvan kabul ediliyor',
+        labelEn: 'Pet-friendly',
+        labelAr: 'يسمح بالحيوانات الأليفة',
+        icon: 'pets',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'pets')) return true;
+            if (h.facilityIds?.some(id => [606].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('pet') || text.includes('evcil') || text.includes('hayvan');
+        }
+    },
+    {
+        id: 'free_parking',
+        labelTr: 'Ücretsiz park alanı',
+        labelEn: 'Free parking',
+        labelAr: 'موقف سيارات مجاني',
+        icon: 'local_parking',
+        match: (h) => {
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('ücretsiz park') || text.includes('free park') || text.includes('ücretsiz otopark') || text.includes('free self parking');
+        }
+    },
+    {
+        id: 'parking',
+        labelTr: 'Park Alanı',
+        labelEn: 'Parking',
+        labelAr: 'موقف سيارات',
+        icon: 'local_parking',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'local_parking')) return true;
+            if (h.facilityIds?.some(id => [610].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('park') || text.includes('otopark') || text.includes('garage') || text.includes('valet');
+        }
+    },
+    {
+        id: 'ev_charging',
+        labelTr: 'EV şarj noktası',
+        labelEn: 'EV charger',
+        labelAr: 'شاحن المركبات الكهربائية',
+        icon: 'bolt',
+        match: (h) => {
+            if (h.amenities?.some(a => ['bolt', 'ev_station'].includes(a.icon))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('ev ') || text.includes('electric') || text.includes('şarj') || text.includes('charger');
+        }
+    },
+    {
+        id: 'room_service',
+        labelTr: 'Oda servisi',
+        labelEn: 'Room service',
+        labelAr: 'خدمة الغرف',
+        icon: 'room_service',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'room_service')) return true;
+            if (h.facilityIds?.some(id => [611].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('room service') || text.includes('oda servisi');
+        }
+    },
+    {
+        id: 'gym',
+        labelTr: 'Spor salonu',
+        labelEn: 'Fitness center',
+        labelAr: 'صالة رياضية',
+        icon: 'fitness_center',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'fitness_center')) return true;
+            if (h.facilityIds?.some(id => [1978, 98455, 47935].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('gym') || text.includes('fitness') || text.includes('spor salonu') || text.includes('sağlık kulübü');
+        }
+    },
+    {
+        id: 'spa',
+        labelTr: 'Spa',
+        labelEn: 'Spa',
+        labelAr: 'سبا',
+        icon: 'spa',
+        match: (h) => {
+            if (h.amenities?.some(a => ['spa', 'hot_tub'].includes(a.icon))) return true;
+            if (h.facilityIds?.some(id => [1985, 650, 3891].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('spa') || text.includes('sauna') || text.includes('masaj') || text.includes('wellness') || text.includes('hamam') || text.includes('jakuzi');
+        }
+    },
+    {
+        id: 'pool',
+        labelTr: 'Havuz',
+        labelEn: 'Pool',
+        labelAr: 'مسبح',
+        icon: 'pool',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'pool')) return true;
+            if (h.facilityIds?.some(id => [616, 649, 1685].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('pool') || text.includes('havuz');
+        }
+    },
+    {
+        id: 'indoor_pool',
+        labelTr: 'Kapalı havuz',
+        labelEn: 'Indoor pool',
+        labelAr: 'مسبح داخلي',
+        icon: 'pool',
+        match: (h) => {
+            if (h.facilityIds?.some(id => [649].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('indoor pool') || text.includes('kapalı havuz');
+        }
+    },
+    {
+        id: 'outdoor_pool',
+        labelTr: 'Açık havuz',
+        labelEn: 'Outdoor pool',
+        labelAr: 'مسبح خارجي',
+        icon: 'pool',
+        match: (h) => {
+            if (h.facilityIds?.some(id => [616].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('outdoor pool') || text.includes('açık havuz');
+        }
+    },
+    {
+        id: 'ac',
+        labelTr: 'Klimalı',
+        labelEn: 'Air conditioning',
+        labelAr: 'تكييف هواء',
+        icon: 'ac_unit',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'ac_unit')) return true;
+            if (h.facilityIds?.some(id => [719].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('klima') || text.includes('air condition');
+        }
+    },
+    {
+        id: 'wheelchair',
+        labelTr: 'Tekerlekli sandalyeye uygun',
+        labelEn: 'Wheelchair accessible',
+        labelAr: 'مناسب للكراسي المتحركة',
+        icon: 'accessible',
+        match: (h) => {
+            if (h.amenities?.some(a => ['accessible', 'wheelchair_pickup'].includes(a.icon))) return true;
+            if (h.facilityIds?.some(id => [1995].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('wheelchair') || text.includes('engelli') || text.includes('tekerlekli sandalye');
+        }
+    },
+    {
+        id: 'beach',
+        labelTr: 'Plaj',
+        labelEn: 'Beach',
+        labelAr: 'شاطئ',
+        icon: 'beach_access',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'beach_access')) return true;
+            if (h.facilityIds?.some(id => [3724].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('beach') || text.includes('plaj');
+        }
+    },
+    {
+        id: 'all_inclusive',
+        labelTr: 'Her şey dahil',
+        labelEn: 'All-inclusive',
+        labelAr: 'شامل كلياً',
+        icon: 'all_inclusive',
+        match: (h) => {
+            const bName = (h.boardName || '').toLowerCase();
+            return bName.includes('all inclusive') || bName.includes('her şey dahil') || bName.includes('ai') || JSON.stringify(h.amenities || []).toLowerCase().includes('all inclusive');
+        }
+    },
+    {
+        id: 'hot_tub',
+        labelTr: 'Jakuzi',
+        labelEn: 'Hot tub / Jacuzzi',
+        labelAr: 'جاكوزي',
+        icon: 'hot_tub',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'hot_tub')) return true;
+            if (h.facilityIds?.some(id => [3891].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('jakuzi') || text.includes('jacuzzi') || text.includes('hot tub');
+        }
+    },
+    {
+        id: 'airport_shuttle',
+        labelTr: 'Havalimanı servisi',
+        labelEn: 'Airport shuttle',
+        labelAr: 'خدمة نقل المطار',
+        icon: 'airport_shuttle',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'airport_shuttle')) return true;
+            if (h.facilityIds?.some(id => [98415].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('airport') || text.includes('havalimanı') || text.includes('havaalanı');
+        }
+    },
+    {
+        id: 'business_center',
+        labelTr: 'İş merkezi',
+        labelEn: 'Business center',
+        labelAr: 'مركز أعمال',
+        icon: 'business_center',
+        match: (h) => {
+            if (h.amenities?.some(a => ['business_center', 'meeting_room'].includes(a.icon))) return true;
+            if (h.facilityIds?.some(id => [18006, 1991].includes(Number(id)))) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('business') || text.includes('iş merkezi') || text.includes('toplantı');
+        }
+    },
+    {
+        id: 'smoke_free',
+        labelTr: 'Sigara içilmeyen otel',
+        labelEn: 'Smoke-free hotel',
+        labelAr: 'فندق خالي من التدخين',
+        icon: 'smoke_free',
+        match: (h) => {
+            if (h.amenities?.some(a => a.icon === 'smoke_free')) return true;
+            const text = JSON.stringify(h.amenities || []).toLowerCase();
+            return text.includes('smoke free') || text.includes('sigara içilmez') || text.includes('non-smoking');
+        }
+    }
+];
+
+// ═══════════════════════════════════════════════
 // Main HotelListing Component
 // ═══════════════════════════════════════════════
 const HotelListing = () => {
@@ -618,7 +966,8 @@ const HotelListing = () => {
     };
 
     const { i18n } = useTranslation();
-    const currentLang = i18n.language || localStorage.getItem('language') || 'tr';
+    const rawLang = i18n.language || localStorage.getItem('language') || 'tr';
+    const currentLang = rawLang.toLowerCase().startsWith('tr') ? 'tr' : rawLang;
     const navigate = useNavigate();
 
     const params = useParams();
@@ -718,6 +1067,54 @@ const HotelListing = () => {
     const listScrollRef = React.useRef(null);
     const loaderRef = React.useRef(null);
     const sortDropdownRef = React.useRef(null);
+    const [isAmenitiesOpen, setIsAmenitiesOpen] = React.useState(false);
+    const [amenitiesPosition, setAmenitiesPosition] = React.useState({ top: 0, left: 0 });
+    const amenitiesBtnRef = React.useRef(null);
+    const amenitiesDropdownRef = React.useRef(null);
+
+    const selectedAmenities = React.useMemo(() => {
+        const p = searchParams.get('amenities');
+        return p ? p.split(',').filter(Boolean) : [];
+    }, [searchParams]);
+
+    const handleToggleAmenity = (amenityId) => {
+        const newParams = new URLSearchParams(searchParams);
+        let nextList;
+        if (selectedAmenities.includes(amenityId)) {
+            nextList = selectedAmenities.filter(id => id !== amenityId);
+        } else {
+            nextList = [...selectedAmenities, amenityId];
+        }
+        if (nextList.length > 0) {
+            newParams.set('amenities', nextList.join(','));
+        } else {
+            newParams.delete('amenities');
+        }
+        setSearchParams(newParams);
+    };
+
+    const handleClearAmenities = () => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('amenities');
+        setSearchParams(newParams);
+    };
+
+    const handleToggleAmenities = () => {
+        if (!isAmenitiesOpen && amenitiesBtnRef.current) {
+            const rect = amenitiesBtnRef.current.getBoundingClientRect();
+            const popupWidth = 420;
+            const screenWidth = window.innerWidth;
+            let left = rect.left;
+            if (left + popupWidth > screenWidth - 16) {
+                left = Math.max(16, screenWidth - popupWidth - 16);
+            }
+            setAmenitiesPosition({
+                top: rect.bottom + 8,
+                left: left
+            });
+        }
+        setIsAmenitiesOpen(prev => !prev);
+    };
 
     const [locationNames, setLocationNames] = React.useState({});
     const [facilityNames, setFacilityNames] = React.useState({});
@@ -826,18 +1223,31 @@ const HotelListing = () => {
         return parts.join(', ') || '2';
     }, [totalGuests, totalRooms, currentLang]);
 
+    // Filtered hotels based on selected quick amenities
+    const displayedHotels = React.useMemo(() => {
+        if (selectedAmenities.length === 0) return hotels;
+        return hotels.filter(hotel => {
+            return selectedAmenities.every(amenityId => {
+                const def = QUICK_AMENITIES.find(a => a.id === amenityId);
+                return def ? def.match(hotel) : true;
+            });
+        });
+    }, [hotels, selectedAmenities]);
+
     // Results count text
     const resultsText = useMemo(() => {
         if (isLoading && totalProperties === 0) return tListing('searching', currentLang);
-        return `${locationName || ''} · ${totalProperties || 0} ${currentLang === 'tr' ? 'sonuç' : 'results'}`;
-    }, [isLoading, totalProperties, locationName, currentLang]);
+        const count = selectedAmenities.length > 0 ? displayedHotels.length : (totalProperties || hotels.length || 0);
+        return `${locationName || ''} · ${count} ${currentLang === 'tr' ? 'sonuç' : 'results'}`;
+    }, [isLoading, totalProperties, locationName, currentLang, selectedAmenities.length, displayedHotels.length, hotels.length]);
 
     // Active filter count for badge
     const activeFilterCount = React.useMemo(() => {
         return [
             searchParams.get('stars'), searchParams.get('locations'), searchParams.get('freeCancellation'),
             searchParams.get('prePayment'), searchParams.get('roomTwin'), searchParams.get('roomMaxAdult'),
-            searchParams.get('roomMaxChildren'), searchParams.get('roomMaxExtraBed'), searchParams.get('facilities')
+            searchParams.get('roomMaxChildren'), searchParams.get('roomMaxExtraBed'), searchParams.get('facilities'),
+            searchParams.get('amenities')
         ].filter(Boolean).length;
     }, [searchParams]);
 
@@ -926,6 +1336,9 @@ const HotelListing = () => {
             availableRoomsCount: apiHotel.rooms?.length || 0,
             isRecommended: apiHotel.isRecommended === true || apiHotel.preferred === true,
             locationBreadcrumbs: apiHotel.locationBreadcrumbs,
+            facilityIds: (rawFacs && Array.isArray(rawFacs))
+                ? rawFacs.map(f => typeof f === 'object' ? (f.facilityId || f.id || f.value) : f).map(Number).filter(Boolean)
+                : []
         };
     }, []);
 
@@ -1226,11 +1639,17 @@ const HotelListing = () => {
         searchParams.get('roomMaxChildren'), searchParams.get('roomMaxExtraBed'), searchParams.get('facilities')
     ]);
 
-    // Close sort and layer dropdowns on outside click
+    // Close sort, layer, and amenities dropdowns on outside click
     React.useEffect(() => {
         const handleClickOutside = (event) => {
             if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) setIsSortOpen(false);
             if (layerMenuRef.current && !layerMenuRef.current.contains(event.target)) setIsLayerMenuOpen(false);
+            if (
+                amenitiesDropdownRef.current && !amenitiesDropdownRef.current.contains(event.target) &&
+                amenitiesBtnRef.current && !amenitiesBtnRef.current.contains(event.target)
+            ) {
+                setIsAmenitiesOpen(false);
+            }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -1363,15 +1782,120 @@ const HotelListing = () => {
                             {currentLang === 'tr' ? 'Otel sınıfı' : currentLang === 'ar' ? 'فئة الفندق' : 'Hotel class'}
                         </button>
 
-                        {/* Amenities */}
+                        {/* Sunulan olanaklar (Amenities) Quick Filter Button */}
                         <button
-                            onClick={() => setIsFilterDrawerOpen(true)}
-                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[13px] text-[#3c4043] dark:text-slate-200 whitespace-nowrap shrink-0 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors"
+                            ref={amenitiesBtnRef}
+                            onClick={handleToggleAmenities}
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors ${
+                                selectedAmenities.length > 0
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300'
+                                    : isAmenitiesOpen
+                                    ? 'border-[#1a73e8] text-[#1a73e8] bg-[#f8f9fa] dark:bg-slate-700'
+                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                            }`}
                         >
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>wifi</span>
-                            {currentLang === 'tr' ? 'Sunulan olanaklar' : currentLang === 'ar' ? 'المرافق' : 'Amenities'}
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>home</span>
+                            <span>{currentLang === 'ar' ? 'المرافق' : 'Sunulan olanaklar'}</span>
+                            {selectedAmenities.length > 0 && (
+                                <span className="bg-[#1a73e8] text-white text-[10px] font-bold rounded-lg min-w-[16px] h-4 flex items-center justify-center px-1">
+                                    {selectedAmenities.length}
+                                </span>
+                            )}
+                            <span className={`material-symbols-outlined transition-transform duration-200 ${isAmenitiesOpen ? 'rotate-180 text-[#1a73e8]' : 'text-[#70757a]'}`} style={{ fontSize: '16px' }}>
+                                expand_more
+                            </span>
                         </button>
                     </div>
+
+                    {/* Sunulan Olanaklar Dropdown Popup Overlay */}
+                    {isAmenitiesOpen && (
+                        <>
+                            <div className="fixed inset-0 z-[2400] bg-transparent" onClick={() => setIsAmenitiesOpen(false)} />
+                            <div
+                                ref={amenitiesDropdownRef}
+                                style={{
+                                    top: `${amenitiesPosition.top}px`,
+                                    left: `${amenitiesPosition.left}px`
+                                }}
+                                className="fixed z-[2500] w-[380px] sm:w-[420px] max-w-[calc(100vw-32px)] bg-white dark:bg-[#303134] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.22)] border border-[#dadce0] dark:border-slate-700 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+                            >
+                                {/* Header */}
+                                <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#e8eaed] dark:border-slate-700 shrink-0">
+                                    <h3 className="text-[16px] font-semibold text-[#202124] dark:text-slate-100 font-roboto">
+                                        {currentLang === 'ar' ? 'المرافق' : 'Sunulan olanaklar'}
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsAmenitiesOpen(false)}
+                                        className="w-8 h-8 rounded-full flex items-center justify-center text-[#5f6368] hover:text-[#202124] dark:text-slate-400 dark:hover:text-white hover:bg-[#f1f3f4] dark:hover:bg-slate-700 transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-[20px]">close</span>
+                                    </button>
+                                </div>
+
+                                {/* 2-Column Grid */}
+                                <div className="p-4 max-h-[460px] overflow-y-auto custom-scrollbar">
+                                    <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-xl overflow-hidden">
+                                        {QUICK_AMENITIES.map((amenity, index) => {
+                                            const isSelected = selectedAmenities.includes(amenity.id);
+                                            const label = currentLang === 'ar' ? (amenity.labelAr || amenity.labelTr) : amenity.labelTr;
+                                            const isLeftCol = index % 2 === 0;
+                                            const totalRows = Math.ceil(QUICK_AMENITIES.length / 2);
+                                            const currentRow = Math.floor(index / 2);
+                                            const isLastRow = currentRow === totalRows - 1;
+
+                                            return (
+                                                <button
+                                                    key={amenity.id}
+                                                    type="button"
+                                                    onClick={() => handleToggleAmenity(amenity.id)}
+                                                    className={`flex flex-col items-center justify-center py-4 px-3 text-center cursor-pointer transition-all duration-150 select-none ${
+                                                        isLeftCol ? 'border-r border-[#dadce0] dark:border-slate-700' : ''
+                                                    } ${
+                                                        !isLastRow ? 'border-b border-[#dadce0] dark:border-slate-700' : ''
+                                                    } ${
+                                                        isSelected
+                                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                                            : 'bg-white dark:bg-[#303134] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700/60'
+                                                    }`}
+                                                >
+                                                    <span
+                                                        className={`material-symbols-outlined text-[26px] mb-1.5 transition-colors ${
+                                                            isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'
+                                                        }`}
+                                                    >
+                                                        {amenity.icon}
+                                                    </span>
+                                                    <span className="text-[13px] leading-tight font-roboto">
+                                                        {label}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                        {QUICK_AMENITIES.length % 2 !== 0 && (
+                                            <div className="bg-white dark:bg-[#303134]" />
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Footer with Temizle */}
+                                <div className="px-5 py-3 border-t border-[#e8eaed] dark:border-slate-700 flex justify-end items-center bg-white dark:bg-[#303134] shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={handleClearAmenities}
+                                        disabled={selectedAmenities.length === 0}
+                                        className={`text-[13px] font-medium transition-colors font-roboto ${
+                                            selectedAmenities.length > 0
+                                                ? 'text-[#1a73e8] hover:underline cursor-pointer'
+                                                : 'text-[#9aa0a6] cursor-not-allowed opacity-60'
+                                        }`}
+                                    >
+                                        {currentLang === 'ar' ? 'مسح' : 'Temizle'}
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
 
                     {/* Filter Popup Overlay */}
                     {isFilterDrawerOpen && (
@@ -1450,7 +1974,7 @@ const HotelListing = () => {
                     )}
 
                     {/* Hotel cards */}
-                    {hotels.map(hotel => (
+                    {displayedHotels.map(hotel => (
                         <GoogleHotelCard
                             key={hotel.id}
                             hotel={hotel}
@@ -1460,7 +1984,7 @@ const HotelListing = () => {
                             onHover={setHoveredHotel}
                             onSelect={setSelectedHotel}
                             currentLang={currentLang}
-                            isFav={isFavorite(String(hotel.hotelId))}
+                            isFav={isFavorite(String(hotel.hotelId || hotel.id))}
                             onToggleFav={() => toggleFavorite(hotel)}
                         />
                     ))}
@@ -1481,7 +2005,27 @@ const HotelListing = () => {
                         )}
                     </div>
 
-                    {/* Empty state */}
+                    {/* Empty state for filtered quick amenities */}
+                    {displayedHotels.length === 0 && hotels.length > 0 && !isLoading && (
+                        <div className="flex flex-col items-center justify-center py-20 text-center px-8">
+                            <span className="material-symbols-outlined text-5xl text-[#dadce0] dark:text-slate-600 mb-4">filter_alt_off</span>
+                            <h3 className="text-[16px] font-medium text-[#3c4043] dark:text-slate-200 mb-2">
+                                {currentLang === 'tr' ? 'Seçilen filtrelere uygun otel bulunamadı' : 'No properties match your filters'}
+                            </h3>
+                            <p className="text-[13px] text-[#70757a] dark:text-slate-400 mb-4">
+                                {currentLang === 'tr' ? 'Olanak filtrelerini temizleyerek diğer sonuçları görebilirsiniz.' : 'Try adjusting or clearing your filters to see more results.'}
+                            </p>
+                            <button
+                                onClick={handleClearAmenities}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1a73e8] hover:bg-[#1558d6] text-white text-[13px] font-medium rounded-full transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">close</span>
+                                {currentLang === 'tr' ? 'Olanak filtrelerini temizle' : 'Clear amenity filters'}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Empty state when no hotels returned from search */}
                     {hotels.length === 0 && !isLoading && (
                         <div className="flex flex-col items-center justify-center py-20 text-center px-8">
                             <span className="material-symbols-outlined text-5xl text-[#dadce0] dark:text-slate-600 mb-4">search_off</span>
@@ -1522,7 +2066,7 @@ const HotelListing = () => {
                         <MapInstanceCapture setMap={setMapInstance} />
 
                         {/* Price markers for hotels with coordinates */}
-                        {hotels
+                        {displayedHotels
                             .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)))
                             .map(hotel => (
                                 <PriceMarker
@@ -1534,13 +2078,15 @@ const HotelListing = () => {
                                     onHover={setHoveredHotel}
                                     searchParams={searchParams}
                                     currencySymbol={getCurrencySymbol(hotel.currency)}
+                                    isFav={isFavorite(String(hotel.hotelId || hotel.id))}
+                                    currentLang={currentLang}
                                 />
                             ))
                         }
 
                         {/* Auto-fit to hotel bounds */}
                         <MapFitControl
-                            hotels={hotels}
+                            hotels={displayedHotels}
                             shouldRefit={shouldRefitMap}
                             onRefitDone={React.useCallback(() => setShouldRefitMap(false), [])}
                         />

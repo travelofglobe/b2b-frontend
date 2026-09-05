@@ -80,7 +80,7 @@ const FILTER_LOCALES = {
         en: "Extra Beds", tr: "İlave Yatak", ar: "أسرة إضافية", es: "Camas supletorias", ru: "Доп. кроватей", zh: "加床", ja: "台", fa: "تخت اضافه", fr: "Lits d'appoint", it: "Letti aggiuntivi", el: "Πρόσθετα Κρεβάτια", pt: "Camas extra"
     },
     hotelFacilities: {
-        en: "Hotel Facilities", tr: "Otel Olanakları", ar: "مرافق الفندق", es: "Instalaciones del hotel", ru: "Удобства отеля", zh: "酒店设施", ja: "ホテル設備", fa: "امکانات هتل", fr: "Équipements de l'hôtel", it: "Servizi dell'hotel", el: "Παροχές Ξενοδοχείου", pt: "Instalações do hotel"
+        en: "Hotel Facilities", tr: "Sunulan olanaklar", ar: "مرافق الفندق", es: "Instalaciones del hotel", ru: "Удобства отеля", zh: "酒店设施", ja: "ホテル設備", fa: "امکانات هتل", fr: "Équipements de l'hôtel", it: "Servizi dell'hotel", el: "Παροχές Ξενοδοχείου", pt: "Instalações do hotel"
     },
     searchFacilities: {
         en: "Search facilities...", tr: "Olanak ara...", ar: "البحث عن المرافق...", es: "Buscar instalaciones...", ru: "Поиск удобств...", zh: "搜索设施...", ja: "設備を検索...", fa: "جستجوی امکانات...", fr: "Rechercher des équipements...", it: "Cerca servizi...", el: "Αναζήτηση παροχών...", pt: "Pesquisar instalações..."

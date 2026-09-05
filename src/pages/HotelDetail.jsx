@@ -328,7 +328,30 @@ const BookingConfirmationModal = ({ isOpen, onClose, hotelName }) => {
 
 
 const MapModal = ({ isOpen, onClose, hotel }) => {
-    if (!isOpen || !hotel) return null;
+    const [isMounted, setIsMounted] = React.useState(false);
+    const [isClosing, setIsClosing] = React.useState(false);
+
+    React.useEffect(() => {
+        if (isOpen) {
+            requestAnimationFrame(() => setIsMounted(true));
+            setIsClosing(false);
+        } else {
+            setIsMounted(false);
+            setIsClosing(false);
+        }
+    }, [isOpen]);
+
+    const handleClose = () => {
+        setIsClosing(true);
+        setTimeout(() => {
+            setIsClosing(false);
+            setIsMounted(false);
+            onClose?.();
+        }, 300);
+    };
+
+    if (!isOpen && !isClosing) return null;
+    if (!hotel) return null;
 
     const lat = hotel.coordinates?.lat || hotel.lat;
     const lng = hotel.coordinates?.lon || hotel.lng || hotel.lon;
@@ -353,10 +376,18 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
     });
 
     return (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 md:p-10 animate-in fade-in duration-300">
-            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={onClose}></div>
+        <div className={`fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 md:p-10 transition-opacity duration-300 ${
+            isMounted && !isClosing ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}>
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300" onClick={handleClose}></div>
 
-            <div className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-[32px] overflow-hidden shadow-2xl flex flex-col h-[70vh] sm:h-[80vh] animate-in zoom-in-95 duration-500 border border-white/20">
+            <div
+                className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-[32px] overflow-hidden shadow-2xl flex flex-col h-[70vh] sm:h-[80vh] border border-white/20 transition-all duration-300 ease-out"
+                style={{
+                    transform: isMounted && !isClosing ? 'translateY(0)' : 'translateY(80px)',
+                    opacity: isMounted && !isClosing ? 1 : 0
+                }}
+            >
                 {/* Header */}
                 <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
                     <div className="flex items-center gap-4">
@@ -374,7 +405,7 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                         </div>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="size-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-red-500 hover:text-white transition-all duration-500 shadow-sm border border-transparent hover:border-red-400 group"
                     >
                         <span className="material-symbols-outlined text-2xl group-hover:rotate-90 transition-transform duration-500">close</span>

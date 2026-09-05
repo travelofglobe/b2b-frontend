@@ -1021,7 +1021,7 @@ const DashboardSearch = () => {
                 </div>
 
                 {/* Main Search Input Row (Single Line: Destination Input + Nationality Input + Google Flights Twin Datepicker) */}
-                <div className="w-full flex flex-col md:flex-row items-stretch gap-2.5 sm:gap-3 relative z-50">
+                <div className={`w-full flex flex-col md:flex-row items-stretch gap-2.5 sm:gap-3 relative ${isDatePickerOpen ? 'z-[100]' : 'z-50'}`}>
                     
                     {/* Destination Input (Flex-1 fills remaining space) */}
                     <div className="flex-1 min-w-0 relative group/field h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>

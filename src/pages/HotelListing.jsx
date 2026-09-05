@@ -480,7 +480,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
                         target="_blank"
                         onClick={e => e.stopPropagation()}
-                        className="shrink-0 inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-[14px] font-medium h-[36px] px-5 rounded-full transition-colors whitespace-nowrap font-roboto"
+                        className="shrink-0 inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-[13.5px] font-medium h-[31px] px-4 rounded-full transition-colors whitespace-nowrap font-roboto shadow-[0_1px_2px_rgba(60,64,67,0.3)] hover:shadow-[0_1px_3px_1px_rgba(60,64,67,0.15)]"
                     >
                         {showPricesLabel[currentLang] || showPricesLabel.en}
                     </Link>
@@ -1961,13 +1961,13 @@ const HotelListing = () => {
                 {/* Filter Chips Row */}
                 <div className="relative shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] z-10">
                     <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto scrollbar-hide">
-                        {/* 1. All Filters - Clean Google Link Button without border */}
+                        {/* 1. All Filters - Google Outlined Button */}
                         <button
                             type="button"
                             onClick={() => setIsFilterDrawerOpen(true)}
-                            className="flex items-center gap-1.5 text-[#1a73e8] dark:text-blue-400 font-medium text-[14px] hover:bg-blue-50/70 dark:hover:bg-blue-950/40 px-2.5 h-9 rounded-lg shrink-0 transition-colors select-none font-roboto"
+                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3.5 h-9 text-[#1a73e8] dark:text-blue-400 font-medium text-[13.5px] bg-white dark:bg-[#303134] hover:bg-blue-50/50 dark:hover:bg-blue-950/30 shrink-0 transition-colors select-none font-roboto"
                         >
-                            <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400">tune</span>
+                            <span className="material-symbols-outlined text-[18px] text-[#1a73e8] dark:text-blue-400">tune</span>
                             <span>{currentLang === 'tr' ? 'Tüm filtreler' : currentLang === 'ar' ? 'كل الفلاتر' : currentLang === 'ru' ? 'Все фильтры' : 'All filters'}</span>
                             {activeFilterCount > 0 && (
                                 <span className="bg-[#1a73e8] text-white text-[10px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 ml-0.5">
@@ -1976,29 +1976,7 @@ const HotelListing = () => {
                             )}
                         </button>
 
-                        {/* 2. Hotel Star Rating Quick Filter Chip */}
-                        <button
-                            ref={starBtnRef}
-                            type="button"
-                            onClick={handleToggleStar}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3.5 h-9 text-[13.5px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
-                                urlStars.length > 0
-                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
-                                    : isStarOpen
-                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-normal'
-                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-normal hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
-                            }`}
-                        >
-                            <span className={`material-symbols-outlined text-[18px] ${urlStars.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
-                                stars
-                            </span>
-                            <span>{starChipLabel}</span>
-                            <span className={`material-symbols-outlined text-[18px] ${urlStars.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                {isStarOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
-                            </span>
-                        </button>
-
-                        {/* 3. Price Quick Filter Chip */}
+                        {/* 2. Price Quick Filter Chip */}
                         <button
                             ref={priceBtnRef}
                             type="button"
@@ -2007,8 +1985,8 @@ const HotelListing = () => {
                                 isPriceActive
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                     : isPriceOpen
-                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-normal'
-                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-normal hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
+                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
                             }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${isPriceActive ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
@@ -2020,14 +1998,14 @@ const HotelListing = () => {
                             </span>
                         </button>
 
-                        {/* 4. Offers / Deals (Teklifler) */}
+                        {/* 3. Offers / Deals (Teklifler) */}
                         <button
                             type="button"
                             onClick={handleFreeCancelChip}
                             className={`flex items-center gap-1.5 border rounded-lg px-3.5 h-9 text-[13.5px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
                                 searchParams.get('freeCancellation') === 'true'
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
-                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-normal hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
                             }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${searchParams.get('freeCancellation') === 'true' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
@@ -2039,7 +2017,29 @@ const HotelListing = () => {
                             </span>
                         </button>
 
-                        {/* 7. Amenities (Sunulan olanaklar) Quick Filter Button */}
+                        {/* 4. Hotel Star Rating Quick Filter Chip */}
+                        <button
+                            ref={starBtnRef}
+                            type="button"
+                            onClick={handleToggleStar}
+                            className={`flex items-center gap-1.5 border rounded-lg px-3.5 h-9 text-[13.5px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
+                                urlStars.length > 0
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                    : isStarOpen
+                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
+                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                            }`}
+                        >
+                            <span className={`material-symbols-outlined text-[18px] ${urlStars.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
+                                stars
+                            </span>
+                            <span>{starChipLabel}</span>
+                            <span className={`material-symbols-outlined text-[18px] ${urlStars.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                {isStarOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
+                            </span>
+                        </button>
+
+                        {/* 5. Amenities (Sunulan olanaklar) Quick Filter Button */}
                         <button
                             ref={amenitiesBtnRef}
                             type="button"
@@ -2048,8 +2048,8 @@ const HotelListing = () => {
                                 selectedAmenities.length > 0
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                     : isAmenitiesOpen
-                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-normal'
-                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-normal hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
+                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
                             }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${selectedAmenities.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
@@ -2487,8 +2487,8 @@ const HotelListing = () => {
                 </div>
 
                     {/* Results count + Sort row */}
-                    <div className="flex items-center justify-between px-4 py-2 shrink-0 bg-white dark:bg-[#303134]">
-                        <p className="text-[14px] font-normal text-[#3c4043] dark:text-slate-200 font-roboto truncate">
+                    <div className="flex items-center justify-between px-4 py-2.5 shrink-0 bg-white dark:bg-[#303134]">
+                        <p className="text-[15.5px] font-medium text-[#202124] dark:text-slate-100 font-roboto tracking-tight truncate">
                             {resultsText}
                         </p>
                         <div className="flex items-center gap-2 shrink-0">

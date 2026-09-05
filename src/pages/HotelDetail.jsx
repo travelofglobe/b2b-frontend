@@ -1789,7 +1789,7 @@ const HotelDetail = () => {
     };
 
     return (
-        <div className="relative flex min-h-full flex-col bg-[#f8f9fa] dark:bg-[#202124] text-[#202124] dark:text-white transition-colors duration-200 font-roboto">
+        <div className="relative flex min-h-full flex-col bg-white dark:bg-[#202124] text-[#202124] dark:text-white transition-colors duration-200 font-roboto">
             <div className="flex-1 max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-6">
                 {/* Top Navigation & Breadcrumbs */}
                 <div className="mb-4 flex items-center justify-between">
@@ -2205,7 +2205,7 @@ const HotelDetail = () => {
                         {/* Tab Bar Container - Google Style */}
                         <div className="relative">
                             {/* Sticky Tab Bar */}
-                            <div className="flex items-center gap-8 border-b border-[#dadce0] dark:border-slate-700 mb-6 sticky top-0 bg-[#f8f9fa] dark:bg-[#202124] z-20 overflow-x-auto no-scrollbar py-0 transition-colors">
+                            <div className="flex items-center gap-8 border-b border-[#dadce0] dark:border-slate-700 mb-6 sticky top-0 bg-white dark:bg-[#202124] z-20 overflow-x-auto scrollbar-hide no-scrollbar py-0 transition-colors">
                                 {tabs.map((tab, i) => (
                                     <button
                                         key={i}

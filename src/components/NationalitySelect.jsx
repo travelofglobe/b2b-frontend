@@ -341,7 +341,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                     ref={triggerRef}
                     type="button"
                     onClick={toggleOpen}
-                    className={`nationality-trigger w-full h-full flex items-center justify-between px-3.5 sm:px-4 border ${rounded} bg-white dark:bg-[#303134] transition-all text-left focus:outline-none font-roboto ${
+                    className={`nationality-trigger w-full h-full flex items-center justify-between px-3.5 sm:px-4 border ${rounded} bg-white dark:bg-[#303134] transition-all text-left focus:outline-none font-roboto cursor-pointer ${
                         isOpen 
                             ? 'border-[#1a73e8] ring-1 ring-[#1a73e8]' 
                             : 'border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
@@ -349,12 +349,12 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                     title={t('common.nationality', 'Vatandaşlık')}
                 >
                     <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                        <span className="text-xl flex-shrink-0 leading-none">{selectedCountry?.flag}</span>
-                        <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
+                        <span className="text-lg flex-shrink-0 leading-none">{selectedCountry?.flag}</span>
+                        <span className="text-[14px] font-normal text-[#202124] dark:text-white truncate">
                             {selectedCountry?.name || selectedCountry?.code || 'Türkiye'}
                         </span>
                     </div>
-                    <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0 ml-1">
+                    <span className="material-symbols-outlined text-[19px] text-[#5f6368] dark:text-slate-300 flex-shrink-0 ml-1">
                         {isOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
                     </span>
                 </button>

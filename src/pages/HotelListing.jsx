@@ -512,12 +512,19 @@ const GoogleCardSkeleton = () => (
 // OpenFreeMap Styles Configuration
 // ═══════════════════════════════════════════════
 const MAP_LAYERS = {
+    google: {
+        id: 'google',
+        label: 'Google Maps Stili',
+        labelEn: 'Google Maps Style',
+        desc: 'Google Maps renk paletiyle optimize edilmiş modern vektör harita',
+        icon: 'map'
+    },
     liberty: {
         id: 'liberty',
         label: 'OpenFreeMap Liberty',
         labelEn: 'OpenFreeMap Liberty',
         desc: 'Tam detaylı ve zengin vektör harita stili',
-        icon: 'map'
+        icon: 'explore'
     },
     bright: {
         id: 'bright',
@@ -549,9 +556,9 @@ const MAP_LAYERS = {
     },
     auto: {
         id: 'auto',
-        label: 'Otomatik (Liberty / Koyu)',
-        labelEn: 'Auto (Liberty / Dark)',
-        desc: 'Aydınlık modda Liberty, karanlık modda Dark stile geçer',
+        label: 'Otomatik (Google / Koyu)',
+        labelEn: 'Auto (Google / Dark)',
+        desc: 'Aydınlık modda Google Maps, karanlık modda Dark stile geçer',
         icon: 'brightness_auto'
     }
 };
@@ -1078,12 +1085,12 @@ const HotelListing = () => {
     const [mapInstance, setMapInstance] = React.useState(null);
     const isDark = useDarkMode();
     const userChangedLayerRef = React.useRef(false);
-    const [mapLayer, setMapLayer] = React.useState(() => isDark ? 'dark' : 'liberty');
+    const [mapLayer, setMapLayer] = React.useState(() => isDark ? 'dark' : 'google');
     const [isLayerMenuOpen, setIsLayerMenuOpen] = React.useState(false);
 
     React.useEffect(() => {
         if (!userChangedLayerRef.current) {
-            setMapLayer(isDark ? 'dark' : 'liberty');
+            setMapLayer(isDark ? 'dark' : 'google');
         }
     }, [isDark]);
     const layerMenuRef = React.useRef(null);

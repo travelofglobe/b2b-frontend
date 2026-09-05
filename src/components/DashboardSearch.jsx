@@ -578,76 +578,88 @@ const DashboardSearch = () => {
             <div className="relative w-full max-w-[1024px] bg-white dark:bg-[#202124] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] px-4 pt-2 pb-10 border-none transition-all duration-300">
                 
                 {/* Top Options (Guests) - Google Flights style */}
-                <div className="flex flex-wrap items-center gap-2 mb-3 relative z-[60]">
+                <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-3 relative z-[60]">
                     {/* Elegant Guest Selector */}
                     <div className="relative group/field" ref={guestWrapperRef}>
                         <button
                             type="button"
                             onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                            className="flex items-center gap-1.5 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] px-2.5 py-1.5 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[13px] focus:outline-none cursor-pointer"
+                            className={`flex items-center gap-1.5 px-3 py-1.5 font-medium text-[13.5px] transition-colors cursor-pointer select-none ${
+                                showGuestDropdown
+                                    ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] rounded-t border-b-2 border-[#1a73e8]'
+                                    : 'text-[#3c4043] dark:text-slate-200 hover:text-[#202124] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] rounded border-b-2 border-transparent'
+                            }`}
                         >
-                            <span className="material-symbols-outlined text-[18px] text-[#70757a]">person</span>
-                            <span className="text-[13px] font-normal text-[#3c4043] dark:text-slate-200">{totalAdults + totalChildren}</span>
-                            <span className="material-symbols-outlined text-[18px] text-[#70757a]">arrow_drop_down</span>
+                            <span className={`material-symbols-outlined text-[19px] ${showGuestDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-300'}`}>person</span>
+                            <span>{totalAdults + totalChildren}</span>
+                            <span className={`material-symbols-outlined text-[19px] ${showGuestDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-300'}`}>
+                                {showGuestDropdown ? 'arrow_drop_up' : 'arrow_drop_down'}
+                            </span>
                         </button>
 
                         {/* Guest Dropdown - Google Flights Style */}
                         {showGuestDropdown && (
-                            <div className="absolute top-full left-0 w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[200] animate-in fade-in slide-in-from-top-2 duration-200">
-                                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-3 -mr-3">
+                            <div className="absolute top-full left-0 mt-0 w-80 sm:w-[340px] bg-white dark:bg-[#202124] rounded-b-lg rounded-tr-lg border border-[#dadce0] dark:border-[#3c4043] shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] p-4 sm:p-5 z-[200] animate-in fade-in duration-150">
+                                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-2 -mr-2 space-y-4">
                                     {roomState.map((room, index) => (
-                                        <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 last:mb-0">
+                                        <div key={index} className="pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
                                             {roomState.length > 1 && (
                                                 <div className="flex justify-between items-center mb-3">
-                                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{ls.roomSingle} {index + 1}</span>
-                                                    <button onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded hover:bg-red-50">{ls.remove}</button>
+                                                    <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.roomSingle} {index + 1}</span>
+                                                    <button type="button" onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-[12px] font-medium px-2 py-0.5 rounded hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer">{ls.remove}</button>
                                                 </div>
                                             )}
                                             
                                             <div className="flex flex-col gap-4">
                                                 {/* Adults Row */}
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{ls.adults}</span>
-                                                    <div className="flex items-center gap-1">
+                                                    <div>
+                                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">{ls.adults}</div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
                                                         <button 
+                                                            type="button"
                                                             onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} 
                                                             disabled={room.adults <= 1}
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                            className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
                                                         >
-                                                            <span className="material-symbols-outlined text-[20px]">remove</span>
+                                                            <span className="material-symbols-outlined text-[18px]">remove</span>
                                                         </button>
-                                                        <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.adults}</span>
+                                                        <span className="w-8 text-center text-[13px] font-normal text-[#202124] dark:text-white">{room.adults}</span>
                                                         <button 
+                                                            type="button"
                                                             onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} 
                                                             disabled={room.adults >= 6} 
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                            className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
                                                         >
-                                                            <span className="material-symbols-outlined text-[20px]">add</span>
+                                                            <span className="material-symbols-outlined text-[18px]">add</span>
                                                         </button>
                                                     </div>
                                                 </div>
 
                                                 {/* Children Row */}
                                                 <div className="flex items-center justify-between">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[14px] text-[#3c4043] dark:text-slate-300">{ls.children}</span>
-                                                        <span className="text-[12px] text-slate-500">{ls.childrenAge}</span>
+                                                    <div>
+                                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">{ls.children}</div>
+                                                        <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">{ls.childrenAge}</div>
                                                     </div>
-                                                    <div className="flex items-center gap-1">
+                                                    <div className="flex items-center gap-2">
                                                         <button 
+                                                            type="button"
                                                             onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} 
                                                             disabled={room.children <= 0}
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                            className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
                                                         >
-                                                            <span className="material-symbols-outlined text-[20px]">remove</span>
+                                                            <span className="material-symbols-outlined text-[18px]">remove</span>
                                                         </button>
-                                                        <span className="w-8 text-center text-[15px] font-medium text-[#3c4043] dark:text-white">{room.children}</span>
+                                                        <span className="w-8 text-center text-[13px] font-normal text-[#202124] dark:text-white">{room.children}</span>
                                                         <button 
+                                                            type="button"
                                                             onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} 
                                                             disabled={room.children >= 4} 
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                            className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
                                                         >
-                                                            <span className="material-symbols-outlined text-[20px]">add</span>
+                                                            <span className="material-symbols-outlined text-[18px]">add</span>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -657,11 +669,11 @@ const DashboardSearch = () => {
                                                     <div className="grid grid-cols-2 gap-3 mt-1">
                                                         {room.childAges.map((age, ageIdx) => (
                                                             <div key={ageIdx} className="flex flex-col gap-1">
-                                                                <span className="text-[12px] text-slate-500">{ls.children} {ageIdx + 1} {ls.years}</span>
+                                                                <span className="text-[11px] text-[#70757a] dark:text-slate-400">{ls.children} {ageIdx + 1} {ls.years}</span>
                                                                 <select
                                                                     value={age}
                                                                     onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
-                                                                    className="w-full h-8 bg-white dark:bg-slate-800 rounded border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-0 outline-none text-[#3c4043] dark:text-white"
+                                                                    className="w-full h-8 bg-white dark:bg-[#303134] rounded-[4px] border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-0 outline-none text-[#202124] dark:text-white cursor-pointer"
                                                                 >
                                                                     {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {ls.years}</option>)}
                                                                 </select>
@@ -674,7 +686,7 @@ const DashboardSearch = () => {
                                     ))}
 
                                     {roomState.length < 5 && (
-                                        <button onClick={addRoom} className="mt-4 text-[14px] text-[#1a73e8] font-medium hover:underline flex items-center">
+                                        <button type="button" onClick={addRoom} className="mt-3 text-[13px] text-[#1a73e8] dark:text-[#8ab4f8] font-medium hover:underline flex items-center cursor-pointer">
                                             <span className="material-symbols-outlined text-[18px] mr-1">add</span>
                                             {ls.addRoom}
                                         </button>
@@ -682,11 +694,19 @@ const DashboardSearch = () => {
                                 </div>
 
                                 {/* Google Flights Style Footer */}
-                                <div className="flex items-center justify-end gap-6 mt-6 pt-2">
-                                    <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
+                                <div className="flex items-center justify-end gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800">
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowGuestDropdown(false)} 
+                                        className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] rounded cursor-pointer transition-colors"
+                                    >
                                         {ls.cancel || 'Cancel'}
                                     </button>
-                                    <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowGuestDropdown(false)} 
+                                        className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] rounded cursor-pointer transition-colors"
+                                    >
                                         {ls.done || 'Done'}
                                     </button>
                                 </div>
@@ -700,12 +720,12 @@ const DashboardSearch = () => {
                     
                     {/* Destination Input (Flex-1 fills remaining space) */}
                     <div className="flex-1 min-w-0 relative group/field h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
-                        <div className="flex items-center gap-3 h-full w-full px-4">
-                            <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
+                        <div className="flex items-center gap-3 h-full w-full px-3.5 sm:px-4">
+                            <span className="material-symbols-outlined text-[19px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
                                 {error ? 'error' : 'location_on'}
                             </span>
                             <input
-                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[15px] font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate"
+                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[14px] font-normal text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate"
                                 placeholder={ls.placeholder || "Nereye?"}
                                 type="text"
                                 value={query}
@@ -763,14 +783,14 @@ const DashboardSearch = () => {
                                                     <div
                                                         key={item.id || index}
                                                         onClick={() => handleSelectHistoryItem(item)}
-                                                        className="w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors group cursor-pointer"
+                                                        className="w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors group cursor-pointer"
                                                     >
                                                         <div className="flex items-center min-w-0 flex-1 mr-3">
-                                                            <span className="material-symbols-outlined text-[20px] text-[#70757a] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
+                                                            <span className="material-symbols-outlined text-[19px] text-[#5f6368] dark:text-[#9aa0a6] mr-3.5 shrink-0 select-none">
                                                                 {icon}
                                                             </span>
                                                             <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                <div className="text-[15px] font-medium text-[#3c4043] dark:text-white leading-tight truncate">
+                                                                <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate">
                                                                     {title}
                                                                 </div>
                                                                 {subtitle && (
@@ -781,11 +801,12 @@ const DashboardSearch = () => {
                                                             </div>
                                                         </div>
                                                         <button
+                                                            type="button"
                                                             onClick={(e) => handleDeleteHistoryItem(e, item.id)}
-                                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-[#70757a] hover:text-[#d93025] dark:hover:text-red-400 rounded-full transition-all shrink-0 ml-2"
+                                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-[#70757a] hover:text-[#d93025] dark:hover:text-red-400 rounded-full transition-all shrink-0 ml-2 cursor-pointer"
                                                             title="Sil"
                                                         >
-                                                            <span className="material-symbols-outlined text-[18px] leading-none block">close</span>
+                                                            <span className="material-symbols-outlined text-[17px] leading-none block">close</span>
                                                         </button>
                                                     </div>
                                                 );
@@ -798,7 +819,7 @@ const DashboardSearch = () => {
                                 {results.regions.length > 0 && (
                                     <div className={matchingHistory.length > 0 ? "border-t border-[#f1f3f4] dark:border-[#3c4043] pt-1" : ""}>
                                         <div className="px-4 pt-2 pb-1">
-                                            <span className="text-[11px] font-semibold text-[#70757a] dark:text-slate-300 uppercase tracking-wider">{ls.popularDestinations || 'Popüler Noktalar'}</span>
+                                            <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.popularDestinations || 'Popüler Noktalar'}</span>
                                         </div>
                                         <div>
                                             {results.regions.map((region, index) => {
@@ -831,15 +852,16 @@ const DashboardSearch = () => {
                                                 return (
                                                     <button
                                                         key={region.locationId}
+                                                        type="button"
                                                         onClick={() => handleSelectLocation(region)}
-                                                        className={`w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${activeIndex === index ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                        className={`w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${activeIndex === index ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
                                                     >
                                                         <div className="flex items-center min-w-0 flex-1">
-                                                            <span className="material-symbols-outlined text-[20px] text-[#70757a] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
+                                                            <span className="material-symbols-outlined text-[19px] text-[#5f6368] dark:text-[#9aa0a6] mr-3.5 shrink-0 select-none">
                                                                 {icon}
                                                             </span>
                                                             <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                <div className="text-[15px] font-medium text-[#3c4043] dark:text-white leading-tight truncate">
+                                                                <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate">
                                                                     {title}
                                                                 </div>
                                                                 {subtitle && (
@@ -860,7 +882,7 @@ const DashboardSearch = () => {
                                 {results.hotels.length > 0 && (
                                     <div className={(matchingHistory.length > 0 || results.regions.length > 0) ? "border-t border-[#f1f3f4] dark:border-[#3c4043] pt-1" : ""}>
                                         <div className="px-4 pt-2 pb-1">
-                                            <span className="text-[11px] font-semibold text-[#70757a] dark:text-slate-300 uppercase tracking-wider">{ls.featuredHotels || 'Oteller'}</span>
+                                            <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.featuredHotels || 'Oteller'}</span>
                                         </div>
                                         <div>
                                             {results.hotels.map((hotel, index) => {
@@ -876,15 +898,16 @@ const DashboardSearch = () => {
                                                 return (
                                                     <button
                                                         key={hotel.hotelId}
+                                                        type="button"
                                                         onClick={() => handleSelectHotel(hotel)}
-                                                        className={`w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${activeIndex === (results.regions.length + index) ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                        className={`w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${activeIndex === (results.regions.length + index) ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
                                                     >
                                                         <div className="flex items-center min-w-0 flex-1">
-                                                            <span className="material-symbols-outlined text-[20px] text-[#70757a] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
+                                                            <span className="material-symbols-outlined text-[19px] text-[#5f6368] dark:text-[#9aa0a6] mr-3.5 shrink-0 select-none">
                                                                 hotel
                                                             </span>
                                                             <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                <div className="text-[15px] font-medium text-[#3c4043] dark:text-white leading-tight truncate">
+                                                                <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate">
                                                                     {hotelTitle}
                                                                 </div>
                                                                 {hotelSubtitle && (
@@ -941,17 +964,17 @@ const DashboardSearch = () => {
                                     : 'rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
                             }`}
                         >
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-300 flex-shrink-0">
                                     calendar_today
                                 </span>
-                                <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
+                                <span className="text-[13.5px] font-medium text-[#3c4043] dark:text-white truncate">
                                     {formatGoogleFlightDate(checkInDate) || ls.checkIn || 'Check-in'}
                                 </span>
                             </div>
 
                             {/* Quick 1-day step buttons */}
-                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
+                            <div className="flex items-center text-[#5f6368] dark:text-slate-300 shrink-0 ml-1">
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
@@ -973,7 +996,7 @@ const DashboardSearch = () => {
 
                         {/* Middle Vertical Divider (only visible when neither half is actively focused) */}
                         {!(isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')) && (
-                            <div className="w-[1px] h-7 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
+                            <div className="w-[1px] h-6 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
                         )}
 
                         {/* Check-Out Half */}
@@ -992,13 +1015,13 @@ const DashboardSearch = () => {
                             }`}
                         >
                             <div className="flex items-center min-w-0 flex-1">
-                                <span className="text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
+                                <span className="text-[13.5px] font-medium text-[#3c4043] dark:text-white truncate">
                                     {formatGoogleFlightDate(checkOutDate) || ls.checkOut || 'Check-out'}
                                 </span>
                             </div>
 
                             {/* Quick 1-day step buttons */}
-                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
+                            <div className="flex items-center text-[#5f6368] dark:text-slate-300 shrink-0 ml-1">
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
@@ -1035,13 +1058,14 @@ const DashboardSearch = () => {
                     </div>
                 </div>
 
-                {/* Overlapping Blue Search Button (z-[30] so dropdowns at z-[200+] sit above it) */}
+                {/* Overlapping Blue Search Button */}
                 <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 z-[30]">
                     <button
+                        type="button"
                         onClick={handleSearch}
-                        className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[15px] px-8 py-2.5 flex items-center justify-center gap-2 shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] hover:shadow-lg transition-all active:scale-95"
+                        className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[14px] px-7 py-2.5 flex items-center justify-center gap-2 shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] hover:shadow-lg transition-all active:scale-95 cursor-pointer"
                     >
-                        <span className="material-symbols-outlined text-[20px]">search</span>
+                        <span className="material-symbols-outlined text-[18px]">search</span>
                         <span>{ls.searchBtn}</span>
                     </button>
                 </div>

@@ -4,8 +4,6 @@ import { useTranslation } from 'react-i18next';
 const HolidaySidePanel = ({ holidays, visibleMonth, className = '' }) => {
     const { t, i18n } = useTranslation();
 
-    // visibleMonth is the start date of the first visible month.
-    // We show 2 months: m1 and m1 + 1.
     const m1 = visibleMonth ? visibleMonth.getMonth() : new Date().getMonth();
     const y1 = visibleMonth ? visibleMonth.getFullYear() : new Date().getFullYear();
     const nextMonth = new Date(y1, m1 + 1, 1);
@@ -36,12 +34,11 @@ const HolidaySidePanel = ({ holidays, visibleMonth, className = '' }) => {
         return `${d.getDate()} ${months[d.getMonth()]}`;
     };
 
-    const renderHolidayList = (list, colorType) => {
+    const renderHolidayList = (list) => {
         if (list.length === 0) return null;
         
         const langPrefix = (i18n.language || 'en').substring(0, 2).toLowerCase();
         
-        // Extract unique names
         const uniqueItems = Array.from(new Set(list.map(h => {
             const hCountry = (h.countryCode || '').toLowerCase();
             const isLocalLang = langPrefix === hCountry;
@@ -49,98 +46,89 @@ const HolidaySidePanel = ({ holidays, visibleMonth, className = '' }) => {
             return JSON.stringify({ name, date: h.date || h.holidayDate });
         }))).map(s => JSON.parse(s));
 
-        const isAmber = colorType === 'amber';
-
         return (
-            <ul className="text-[13px] font-roboto flex flex-col gap-1 list-none p-0 m-0">
+            <div className="flex flex-col gap-1.5">
                 {uniqueItems.map((item, i) => (
-                    <li
+                    <div
                         key={i}
-                        className="group flex items-center justify-between gap-2.5 py-1 px-1.5 rounded-md hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-colors"
+                        className="flex items-center justify-between gap-2 py-1.5 px-2.5 rounded-[4px] bg-[#f8f9fa] dark:bg-[#303134]/60 border border-[#dadce0]/70 dark:border-slate-700/70"
                     >
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <span
-                                className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                                    isAmber ? 'bg-amber-400' : 'bg-emerald-500'
-                                }`}
-                            />
-                            <span
-                                className="text-[13px] font-normal text-[#3c4043] dark:text-slate-200 truncate leading-snug"
-                                title={item.name}
-                            >
-                                {item.name}
-                            </span>
-                        </div>
+                        <span
+                            className="text-[12.5px] font-normal text-[#202124] dark:text-slate-100 truncate"
+                            title={item.name}
+                        >
+                            {item.name}
+                        </span>
                         {item.date && (
-                            <span className="text-[11.5px] font-medium text-[#70757a] dark:text-slate-400 shrink-0 tabular-nums">
+                            <span className="text-[11px] font-medium text-[#5f6368] dark:text-slate-300 bg-white dark:bg-[#202124] px-1.5 py-0.5 rounded-[3px] border border-[#dadce0]/50 dark:border-slate-600/50 shrink-0 tabular-nums">
                                 {formatShortDate(item.date)}
                             </span>
                         )}
-                    </li>
+                    </div>
                 ))}
-            </ul>
+            </div>
         );
     };
 
     const baseWrapperClass = className 
         ? className 
-        : "border-l border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] rounded-r-[8px] p-4";
+        : "border-l border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] p-4";
 
     return (
         <div className={`holiday-side-panel min-w-[210px] w-[235px] flex flex-col gap-3.5 overflow-y-auto max-h-[350px] font-roboto ${baseWrapperClass}`}>
             {/* Header */}
             <div className="flex items-center gap-2 pb-2.5 border-b border-[#dadce0] dark:border-slate-700">
                 <span className="material-symbols-outlined text-[18px] text-[#1a73e8]">event</span>
-                <h4 className="text-[14px] font-medium text-[#202124] dark:text-white tracking-normal leading-none">
+                <h4 className="text-[13.5px] font-medium text-[#202124] dark:text-white tracking-normal leading-none">
                     {t('dashboard.holidays.title', 'Tatil Bilgisi')}
                 </h4>
             </div>
             
             {/* Resmi Tatiller Section */}
             <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between px-1">
+                <div className="flex items-center justify-between px-0.5">
                     <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-[2.5px] bg-amber-400 rounded-full"></span>
-                        <span className="text-[12.5px] font-medium text-[#3c4043] dark:text-slate-200">
+                        <span className="w-1.5 h-3.5 rounded-full bg-amber-400 shrink-0"></span>
+                        <span className="text-[13px] font-medium text-[#202124] dark:text-slate-200">
                             {t('dashboard.holidays.publicHolidays', 'Resmi Tatiller')}
                         </span>
                     </div>
                     {publicHolidays.length > 0 && (
-                        <span className="text-[11px] font-normal text-[#70757a] dark:text-slate-400">
+                        <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 bg-[#f1f3f4] dark:bg-slate-700 px-1.5 py-0.2 rounded-[4px]">
                             {publicHolidays.length}
                         </span>
                     )}
                 </div>
                 {publicHolidays.length > 0 ? (
-                    renderHolidayList(publicHolidays, 'amber')
+                    renderHolidayList(publicHolidays)
                 ) : (
-                    <p className="text-[11.5px] font-normal text-[#70757a] dark:text-slate-500 pl-4 italic">
+                    <div className="py-1.5 px-2.5 rounded-[4px] bg-[#f8f9fa] dark:bg-[#303134]/30 border border-dashed border-[#dadce0] dark:border-slate-700 text-[#70757a] dark:text-slate-400 text-[11.5px] font-normal">
                         {t('dashboard.holidays.none', 'Bu dönemde yok')}
-                    </p>
+                    </div>
                 )}
             </div>
 
             {/* Dini Tatiller Section */}
-            <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between px-1">
+            <div className="flex flex-col gap-1.5 mt-1">
+                <div className="flex items-center justify-between px-0.5">
                     <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-[2.5px] bg-emerald-500 rounded-full"></span>
-                        <span className="text-[12.5px] font-medium text-[#3c4043] dark:text-slate-200">
+                        <span className="w-1.5 h-3.5 rounded-full bg-emerald-500 shrink-0"></span>
+                        <span className="text-[13px] font-medium text-[#202124] dark:text-slate-200">
                             {t('dashboard.holidays.religiousHolidays', 'Dini Tatiller')}
                         </span>
                     </div>
                     {religiousHolidays.length > 0 && (
-                        <span className="text-[11px] font-normal text-[#70757a] dark:text-slate-400">
+                        <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 bg-[#f1f3f4] dark:bg-slate-700 px-1.5 py-0.2 rounded-[4px]">
                             {religiousHolidays.length}
                         </span>
                     )}
                 </div>
                 {religiousHolidays.length > 0 ? (
-                    renderHolidayList(religiousHolidays, 'emerald')
+                    renderHolidayList(religiousHolidays)
                 ) : (
-                    <p className="text-[11.5px] font-normal text-[#70757a] dark:text-slate-500 pl-4 italic">
+                    <div className="py-1.5 px-2.5 rounded-[4px] bg-[#f8f9fa] dark:bg-[#303134]/30 border border-dashed border-[#dadce0] dark:border-slate-700 text-[#70757a] dark:text-slate-400 text-[11.5px] font-normal">
                         {t('dashboard.holidays.none', 'Bu dönemde yok')}
-                    </p>
+                    </div>
                 )}
             </div>
         </div>

@@ -189,21 +189,28 @@ const GoogleFlightDatePicker = ({
                 onCheckOutChange(next);
             }
             setActiveField('checkOut');
+            setHoverDate(null);
         } else {
-            // activeField === 'checkOut'
+            // activeField === 'checkOut' or null
             if (checkInDate && isBeforeDay(date, checkInDate)) {
                 // If user clicks a date before checkin, make it the new checkin
                 onCheckInChange(date);
                 const next = new Date(date);
                 next.setDate(next.getDate() + 1);
                 onCheckOutChange(next);
+                setActiveField('checkOut');
+                setHoverDate(null);
             } else if (checkInDate && isSameDay(date, checkInDate)) {
                 // Same day not allowed for checkout, make next day
                 const next = new Date(date);
                 next.setDate(next.getDate() + 1);
                 onCheckOutChange(next);
+                setActiveField(null);
+                setHoverDate(null);
             } else {
                 onCheckOutChange(date);
+                setActiveField(null);
+                setHoverDate(null);
             }
         }
     };
@@ -315,7 +322,7 @@ const GoogleFlightDatePicker = ({
                             <div
                                 key={date.toISOString()}
                                 className={`h-9 flex items-center justify-center relative ${rangeClasses}`}
-                                onMouseEnter={() => !isPast && setHoverDate(date)}
+                                onMouseEnter={() => !isPast && activeField === 'checkOut' && setHoverDate(date)}
                             >
                                 <button
                                     type="button"
@@ -375,7 +382,7 @@ const GoogleFlightDatePicker = ({
     return (
         <div
             ref={popoverRef}
-            className="fixed left-1/2 bottom-3 z-[1000] bg-white dark:bg-[#202124] rounded-[16px] shadow-[0_8px_32px_rgba(0,0,0,0.16),0_1px_3px_rgba(60,64,67,0.25)] border border-[#dadce0] dark:border-slate-700 p-5 sm:p-6 max-w-[96vw] max-h-[calc(100vh-24px)] overflow-y-auto font-roboto transition-all duration-300 ease-out pointer-events-auto"
+            className="fixed left-1/2 bottom-3 z-[1000] bg-white dark:bg-[#202124] rounded-[8px] shadow-[0_8px_32px_rgba(0,0,0,0.16),0_1px_3px_rgba(60,64,67,0.25)] border border-[#dadce0] dark:border-slate-700 p-5 sm:p-6 max-w-[96vw] max-h-[calc(100vh-24px)] overflow-y-auto font-roboto transition-all duration-300 ease-out pointer-events-auto"
             style={{
                 width: 'max-content',
                 transform: isMounted && !isClosing ? 'translate(-50%, 0)' : 'translate(-50%, 48px)',
@@ -487,7 +494,10 @@ const GoogleFlightDatePicker = ({
                     </div>
 
                     {/* --- 2 Months Grid (Left & Right) with Floating Google Chevrons --- */}
-                    <div className="relative flex items-start justify-center gap-6 sm:gap-8 pt-1 px-12 sm:px-14">
+                    <div 
+                        className="relative flex items-start justify-center gap-6 sm:gap-8 pt-1 px-12 sm:px-14"
+                        onMouseLeave={() => setHoverDate(null)}
+                    >
                         {/* Prev Month Floating Button */}
                         {!isBeforeDay(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1), new Date(today.getFullYear(), today.getMonth(), 1)) && (
                             <button
@@ -531,13 +541,13 @@ const GoogleFlightDatePicker = ({
             {/* --- Footer (Legend on left, Bitti button on right) --- */}
             <div className="flex items-center justify-between pt-3.5 mt-3.5 border-t border-[#dadce0] dark:border-slate-700 font-roboto">
                 {/* Legend indicator */}
-                <div className="flex items-center gap-5 text-[12.5px] font-normal text-[#5f6368] dark:text-slate-300">
+                <div className="flex items-center gap-6 text-[12.5px] font-normal text-[#5f6368] dark:text-slate-300">
                     <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                        <span className="w-2.5 h-[3px] rounded-full bg-amber-400"></span>
                         <span className="text-[12.5px] font-normal">{t('dashboard.holidays.publicHolidays', 'Resmi Tatiller')}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span className="w-2.5 h-[3px] rounded-full bg-emerald-500"></span>
                         <span className="text-[12.5px] font-normal">{t('dashboard.holidays.religiousHolidays', 'Dini Tatiller')}</span>
                     </div>
                 </div>

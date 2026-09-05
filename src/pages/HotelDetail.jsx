@@ -2141,6 +2141,7 @@ const HotelDetail = () => {
                                         setNationality(newNat);
                                     }} 
                                     inputStyle={true} 
+                                    rounded="rounded-lg"
                                     onToggle={(isOpen) => {
                                         if (isOpen) {
                                             setShowGuestDropdown(false);

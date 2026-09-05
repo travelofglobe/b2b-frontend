@@ -56,6 +56,7 @@ const GoogleFlightDatePicker = ({
     onCheckOutChange,
     isOpen,
     onClose,
+    onApply,
     activeField = 'checkIn', // 'checkIn' | 'checkOut'
     setActiveField,
     holidays = [],
@@ -89,12 +90,17 @@ const GoogleFlightDatePicker = ({
         }
     }, [isOpen]);
 
-    const handleCloseWithAnimation = () => {
+    const handleCloseWithAnimation = (overrideIn, overrideOut) => {
         setIsClosing(true);
         setTimeout(() => {
             setIsClosing(false);
             setIsMounted(false);
-            onClose?.();
+            const inDate = overrideIn || checkInDate;
+            const outDate = overrideOut || checkOutDate;
+            if (onApply) {
+                onApply(inDate, outDate);
+            }
+            onClose?.(inDate, outDate);
         }, 260);
     };
 
@@ -183,10 +189,11 @@ const GoogleFlightDatePicker = ({
 
         if (activeField === 'checkIn') {
             onCheckInChange(date);
+            let nextOut = checkOutDate;
             if (!checkOutDate || !isAfterDay(checkOutDate, date)) {
-                const next = new Date(date);
-                next.setDate(next.getDate() + 1);
-                onCheckOutChange(next);
+                nextOut = new Date(date);
+                nextOut.setDate(nextOut.getDate() + 1);
+                onCheckOutChange(nextOut);
             }
             setActiveField('checkOut');
             setHoverDate(null);
@@ -200,17 +207,23 @@ const GoogleFlightDatePicker = ({
                 onCheckOutChange(next);
                 setActiveField('checkOut');
                 setHoverDate(null);
-            } else if (checkInDate && isSameDay(date, checkInDate)) {
-                // Same day not allowed for checkout, make next day
-                const next = new Date(date);
-                next.setDate(next.getDate() + 1);
-                onCheckOutChange(next);
-                setActiveField(null);
-                setHoverDate(null);
             } else {
-                onCheckOutChange(date);
+                let finalCheckOut = date;
+                if (checkInDate && isSameDay(date, checkInDate)) {
+                    // Same day not allowed for checkout, make next day
+                    finalCheckOut = new Date(date);
+                    finalCheckOut.setDate(finalCheckOut.getDate() + 1);
+                }
+                onCheckOutChange(finalCheckOut);
                 setActiveField(null);
                 setHoverDate(null);
+
+                // If onApply callback provided, smoothly close and apply new dates
+                if (onApply) {
+                    setTimeout(() => {
+                        handleCloseWithAnimation(checkInDate, finalCheckOut);
+                    }, 160);
+                }
             }
         }
     };

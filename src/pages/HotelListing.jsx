@@ -519,20 +519,59 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
 });
 
 // ═══════════════════════════════════════════════
-// Skeleton loader card
+// Skeleton loader card (mirrors GoogleHotelCard 1:1 in dimensions & layout)
 // ═══════════════════════════════════════════════
 const GoogleCardSkeleton = () => (
-    <div className="flex p-4 border-b border-[#e8eaed] dark:border-slate-700 animate-pulse">
-        <div className="w-[160px] h-[120px] rounded-lg bg-[#f1f3f4] dark:bg-slate-700 shrink-0 mr-4" />
-        <div className="flex-1 space-y-2.5">
-            <div className="h-4 bg-[#f1f3f4] dark:bg-slate-700 rounded-full w-3/4" />
-            <div className="h-3 bg-[#f1f3f4] dark:bg-slate-700 rounded-full w-1/2" />
-            <div className="h-3 bg-[#f1f3f4] dark:bg-slate-700 rounded-full w-2/3" />
-            <div className="grid grid-cols-2 gap-2 mt-2">
-                <div className="h-3 bg-[#f1f3f4] dark:bg-slate-700 rounded-full" />
-                <div className="h-3 bg-[#f1f3f4] dark:bg-slate-700 rounded-full" />
-                <div className="h-3 bg-[#f1f3f4] dark:bg-slate-700 rounded-full" />
-                <div className="h-3 bg-[#f1f3f4] dark:bg-slate-700 rounded-full" />
+    <div className="flex p-4 border-b border-[#e8eaed] dark:border-slate-700 animate-pulse bg-white dark:bg-[#303134]">
+        {/* Image skeleton: mirrors w-[300px] h-[200px] rounded-xl mr-5 */}
+        <div className="relative w-[300px] h-[200px] rounded-xl bg-[#f1f3f4] dark:bg-slate-700/80 shrink-0 mr-5 overflow-hidden">
+            <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/10 dark:bg-black/25" />
+        </div>
+
+        {/* Info skeleton: mirrors flex-1 min-w-0 flex flex-col gap-1 py-1 */}
+        <div className="flex-1 min-w-0 flex flex-col gap-1 py-1 justify-between">
+            <div>
+                {/* Name + Price row */}
+                <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2">
+                        <div className="h-5 bg-[#e8eaed] dark:bg-slate-700 rounded-md w-3/4" />
+                        <div className="h-4 bg-[#f1f3f4] dark:bg-slate-700/60 rounded-md w-1/3" />
+                    </div>
+                    <div className="shrink-0 flex flex-col items-end gap-1 mt-1">
+                        <div className="h-3.5 bg-[#f1f3f4] dark:bg-slate-700/60 rounded w-16" />
+                        <div className="h-6 bg-[#e8eaed] dark:bg-slate-700 rounded-md w-24" />
+                    </div>
+                </div>
+
+                {/* Rating row */}
+                <div className="flex items-center gap-1.5 mt-2">
+                    <div className="h-3.5 w-6 bg-[#e8eaed] dark:bg-slate-700 rounded" />
+                    <div className="flex gap-0.5">
+                        {[...Array(5)].map((_, i) => (
+                            <div key={i} className="w-3 h-3 bg-[#e8eaed] dark:bg-slate-700 rounded-xs" />
+                        ))}
+                    </div>
+                    <div className="h-3 w-16 bg-[#f1f3f4] dark:bg-slate-700/60 rounded ml-1" />
+                </div>
+
+                {/* Amenities grid (3 cols) */}
+                <div className="grid grid-cols-3 gap-x-3 gap-y-2 mt-3">
+                    {[...Array(6)].map((_, i) => (
+                        <div key={i} className="flex items-center gap-1.5">
+                            <div className="w-4 h-4 rounded bg-[#e8eaed] dark:bg-slate-700 shrink-0" />
+                            <div className="h-3 bg-[#f1f3f4] dark:bg-slate-700/70 rounded w-20" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Bottom row: cancellation/board on left + CTA button on right */}
+            <div className="flex items-center justify-between mt-auto pt-4 gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                    <div className="h-3.5 w-24 bg-[#e8eaed] dark:bg-slate-700/70 rounded-full" />
+                    <div className="h-3.5 w-20 bg-[#f1f3f4] dark:bg-slate-700/50 rounded-full" />
+                </div>
+                <div className="shrink-0 h-[31px] w-28 bg-[#e8eaed] dark:bg-slate-700 rounded-full" />
             </div>
         </div>
     </div>

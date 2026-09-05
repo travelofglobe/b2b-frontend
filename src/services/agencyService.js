@@ -2,6 +2,16 @@ import apiClient from '../utils/apiClient';
 
 const API_BASE_URL = 'http://72.62.17.189:8000/b2b-backend/v1';
 
+const getAcceptLang = (lang) => {
+    const l = (lang || 'en').split('-')[0].toLowerCase();
+    const map = {
+        tr: 'tr-TR', en: 'en-US', ar: 'ar-SA', es: 'es-ES', ru: 'ru-RU',
+        zh: 'zh-CN', ja: 'ja-JP', fa: 'fa-IR', fr: 'fr-FR', it: 'it-IT',
+        el: 'el-GR', pt: 'pt-PT'
+    };
+    return map[l] || `${l},en;q=0.8`;
+};
+
 let agencyMePromise = null;
 let agencyMeCacheTime = 0;
 const ME_CACHE_TTL_MS = 60000; // 1 minute in-memory cache
@@ -91,7 +101,7 @@ export const agencyService = {
         const response = await fetch(`${API_BASE_URL}/agency/get-logo`, {
             method: 'GET',
             headers: {
-                'Accept-Language': lang === 'tr' ? 'tr-TR' : 'en-US',
+                'Accept-Language': getAcceptLang(lang),
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             },
             signal
@@ -133,7 +143,7 @@ export const agencyService = {
         const response = await fetch(`${API_BASE_URL}/agency/upload-logo`, {
             method: 'PUT',
             headers: {
-                'Accept-Language': lang === 'tr' ? 'tr-TR' : 'en-US',
+                'Accept-Language': getAcceptLang(lang),
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             },
             body: formData
@@ -156,7 +166,7 @@ export const agencyService = {
         const response = await fetch(`${API_BASE_URL}/agency/delete-logo`, {
             method: 'DELETE',
             headers: {
-                'Accept-Language': lang === 'tr' ? 'tr-TR' : 'en-US',
+                'Accept-Language': getAcceptLang(lang),
                 ...(token ? { 'Authorization': `Bearer ${token}` } : {})
             }
         });

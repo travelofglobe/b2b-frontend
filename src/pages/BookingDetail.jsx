@@ -332,7 +332,7 @@ const BookingDetail = () => {
                         </button>
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="text-xs text-[#5f6368] dark:text-slate-400 hover:text-[#1a73e8] cursor-pointer" onClick={() => navigate('/bookings')}>
-                                {currentLang === 'tr' ? 'Rezervasyonlar' : 'Bookings'}
+                                {L('bookings')}
                             </span>
                             <span className="text-xs text-[#70757a]">/</span>
                             <span className="text-sm font-bold text-[#202124] dark:text-white">
@@ -424,7 +424,7 @@ const BookingDetail = () => {
                                 <span className="text-base font-semibold ml-1.5">{booking.currency || ''}</span>
                             </div>
                             <span className="text-[11px] text-[#70757a] dark:text-slate-400">
-                                {currentLang === 'tr' ? 'Vergiler & harçlar dahil' : 'Taxes and fees included'}
+                                {L('taxesAndFeesIncluded')}
                             </span>
                         </div>
                     </div>
@@ -450,7 +450,7 @@ const BookingDetail = () => {
                                 </div>
                             </div>
                             <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] text-[11px] font-medium text-[#5f6368] dark:text-slate-300">
-                                14:00'ten itibaren
+                                {L('checkInFrom')}
                             </span>
                         </div>
 
@@ -466,10 +466,10 @@ const BookingDetail = () => {
                                 <span className="size-2 rounded-full bg-[#1a73e8]"></span>
                             </div>
                             <span className="text-sm font-bold text-[#1a73e8] dark:text-[#8ab4f8] mt-1">
-                                {nights > 0 ? `${nights} ${currentLang === 'tr' ? 'Gece' : 'Nights'}` : '1 Gece'}
+                                {nights > 0 ? `${nights} ${nights > 1 ? L('nights') : L('night')}` : `1 ${L('night')}`}
                             </span>
                             <span className="text-xs text-[#5f6368] dark:text-slate-400">
-                                {booking.hotel?.rooms?.length || 1} {currentLang === 'tr' ? 'Oda' : 'Room'} • {totalGuests} {currentLang === 'tr' ? 'Misafir' : 'Guests'}
+                                {booking.hotel?.rooms?.length || 1} {L('roomSingular')} • {totalGuests} {L('guestsCount')}
                             </span>
                         </div>
 
@@ -492,7 +492,7 @@ const BookingDetail = () => {
                                 </div>
                             </div>
                             <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] text-[11px] font-medium text-[#5f6368] dark:text-slate-300">
-                                11:00'e kadar
+                                {L('checkOutUntil')}
                             </span>
                         </div>
                     </div>
@@ -501,9 +501,9 @@ const BookingDetail = () => {
                     <div className="flex flex-wrap items-center gap-2.5 pt-2">
                         {booking.voucher && (
                             <button
-                                onClick={() => handleCopy(booking.voucher, 'Voucher Kodu')}
+                                onClick={() => handleCopy(booking.voucher, L('voucherCode'))}
                                 className="group flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#f1f3f4] dark:bg-[#303134] hover:bg-[#e8f0fe] dark:hover:bg-[#1a73e8]/20 border border-transparent hover:border-[#1a73e8]/40 transition-all cursor-pointer text-xs"
-                                title="Kopyalamak için tıkla"
+                                title={L('clickToCopy')}
                             >
                                 <span className="text-[#5f6368] dark:text-slate-400 font-medium">Voucher:</span>
                                 <span className="font-mono font-bold text-[#202124] dark:text-white group-hover:text-[#1a73e8]">{booking.voucher}</span>
@@ -513,9 +513,9 @@ const BookingDetail = () => {
 
                         {booking.clientReferenceId && (
                             <button
-                                onClick={() => handleCopy(booking.clientReferenceId, 'Müşteri Referansı')}
+                                onClick={() => handleCopy(booking.clientReferenceId, L('clientReference'))}
                                 className="group flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#f1f3f4] dark:bg-[#303134] hover:bg-[#e8f0fe] dark:hover:bg-[#1a73e8]/20 border border-transparent hover:border-[#1a73e8]/40 transition-all cursor-pointer text-xs"
-                                title="Kopyalamak için tıkla"
+                                title={L('clickToCopy')}
                             >
                                 <span className="text-[#5f6368] dark:text-slate-400 font-medium">Ref:</span>
                                 <span className="font-mono font-bold text-[#202124] dark:text-white group-hover:text-[#1a73e8]">{booking.clientReferenceId}</span>
@@ -580,7 +580,7 @@ const BookingDetail = () => {
                                             <div className="flex items-center gap-2">
                                                 <span className="material-symbols-outlined text-[20px] text-[#1a73e8]">group</span>
                                                 <h4 className="text-xs font-bold text-[#202124] dark:text-white uppercase tracking-wider">
-                                                    {currentLang === 'tr' ? 'Misafirler' : 'Guests'} ({room.occupancies.length})
+                                                    {L('guestsLabel')} ({room.occupancies.length})
                                                 </h4>
                                             </div>
                                         </div>
@@ -683,7 +683,7 @@ const BookingDetail = () => {
                                             <div className="space-y-2">
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                                        {L('dailyPrices')} ({rate.dailyPrices.length} {currentLang === 'tr' ? 'Gece' : 'Nights'})
+                                                        {L('dailyPrices')} ({rate.dailyPrices.length} {rate.dailyPrices.length > 1 ? L('nights') : L('night')})
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
@@ -810,10 +810,10 @@ const BookingDetail = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-sm font-bold text-[#202124] dark:text-white">
-                                        {currentLang === 'tr' ? 'Fiyat & Ödeme Özeti' : 'Price & Payment Summary'}
+                                        {L('pricePaymentSummary')}
                                     </h3>
                                     <p className="text-xs text-[#5f6368] dark:text-slate-400">
-                                        {currentLang === 'tr' ? 'Resmi sipariş hesabı' : 'Official order receipt'}
+                                        {L('officialOrderReceipt')}
                                     </p>
                                 </div>
                             </div>
@@ -821,7 +821,7 @@ const BookingDetail = () => {
                             {/* Itemized Breakdown */}
                             <div className="space-y-3 text-xs">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[#5f6368] dark:text-slate-400">{currentLang === 'tr' ? 'Oda & Konaklama Ücreti' : 'Room & Stay Rate'}</span>
+                                    <span className="text-[#5f6368] dark:text-slate-400">{L('roomStayRate')}</span>
                                     <span className="font-semibold text-[#202124] dark:text-white">
                                         {booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} {booking.currency}
                                     </span>
@@ -866,14 +866,14 @@ const BookingDetail = () => {
                                 {/* Total Divider */}
                                 <div className="pt-3 border-t border-[#dadce0] dark:border-[#3c4043] flex items-baseline justify-between">
                                     <span className="text-sm font-bold text-[#202124] dark:text-white">
-                                        {currentLang === 'tr' ? 'Toplam Tutar' : 'Total Price'}
+                                        {L('totalPrice')}
                                     </span>
                                     <div className="text-right">
                                         <div className="text-xl font-black text-[#1a73e8] dark:text-[#8ab4f8]">
                                             {booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} {booking.currency}
                                         </div>
                                         <span className="text-[10px] text-[#70757a]">
-                                            {currentLang === 'tr' ? 'Vergiler dahil' : 'Taxes included'}
+                                            {L('taxesIncluded')}
                                         </span>
                                     </div>
                                 </div>

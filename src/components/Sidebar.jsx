@@ -105,7 +105,7 @@ const tFilter = (key, lang = 'tr') => {
     return entry[lang] || entry['en'] || key;
 };
 
-const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
+const Sidebar = ({ filters, locationNames = {}, facilityNames = {}, hideHeader = false }) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const { i18n } = useTranslation();
     const currentLang = i18n.language || localStorage.getItem('language') || 'tr';
@@ -190,45 +190,60 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
         setSelectedFacilities(searchParams.get('facilities') ? searchParams.get('facilities').split(',').map(Number) : []);
     }, [searchParams.get('facilities')]);
 
+    const applyParamDirect = (key, value) => {
+        if (!hideHeader) return;
+        const newParams = new URLSearchParams(searchParams);
+        if (value !== null && value !== undefined && (Array.isArray(value) ? value.length > 0 : String(value).length > 0)) {
+            newParams.set(key, Array.isArray(value) ? value.join(',') : String(value));
+        } else {
+            newParams.delete(key);
+        }
+        setSearchParams(newParams);
+    };
+
     // Toggle 3-state boolean: clicking same value again → deselect (null)
-    const handleBoolToggle = (setter, current, clickedValue) => {
-        setter(current === clickedValue ? null : clickedValue);
+    const handleBoolToggle = (setter, current, clickedValue, paramKey) => {
+        const next = current === clickedValue ? null : clickedValue;
+        setter(next);
+        if (hideHeader && paramKey) {
+            applyParamDirect(paramKey, next);
+        }
     };
 
     const handleStarToggle = (val) => {
-        setSelectedStars(prev =>
-            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
-        );
+        const next = selectedStars.includes(val) ? selectedStars.filter(v => v !== val) : [...selectedStars, val];
+        setSelectedStars(next);
+        if (hideHeader) applyParamDirect('stars', next);
     };
 
     const handleLocationToggle = (val) => {
-        setSelectedLocations(prev =>
-            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
-        );
+        const next = selectedLocations.includes(val) ? selectedLocations.filter(v => v !== val) : [...selectedLocations, val];
+        setSelectedLocations(next);
+        if (hideHeader) applyParamDirect('locations', next);
     };
 
     const handleMaxAdultToggle = (val) => {
-        setSelectedMaxAdult(prev =>
-            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
-        );
+        const next = selectedMaxAdult.includes(val) ? selectedMaxAdult.filter(v => v !== val) : [...selectedMaxAdult, val];
+        setSelectedMaxAdult(next);
+        if (hideHeader) applyParamDirect('roomMaxAdult', next);
     };
 
     const handleMaxChildrenToggle = (val) => {
-        setSelectedMaxChildren(prev =>
-            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
-        );
+        const next = selectedMaxChildren.includes(val) ? selectedMaxChildren.filter(v => v !== val) : [...selectedMaxChildren, val];
+        setSelectedMaxChildren(next);
+        if (hideHeader) applyParamDirect('roomMaxChildren', next);
     };
 
     const handleMaxExtraBedToggle = (val) => {
-        setSelectedMaxExtraBed(prev =>
-            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
-        );
+        const next = selectedMaxExtraBed.includes(val) ? selectedMaxExtraBed.filter(v => v !== val) : [...selectedMaxExtraBed, val];
+        setSelectedMaxExtraBed(next);
+        if (hideHeader) applyParamDirect('roomMaxExtraBed', next);
     };
 
     const handleFacilityToggle = (val) => {
-        setSelectedFacilities(prev =>
-            prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]
-        );
+        const next = selectedFacilities.includes(val) ? selectedFacilities.filter(v => v !== val) : [...selectedFacilities, val];
+        setSelectedFacilities(next);
+        if (hideHeader) applyParamDirect('facilities', next);
     };
 
     const handleApplyFilters = () => {
@@ -320,34 +335,36 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {} }) => {
         <aside className="w-full shrink-0 animate-in slide-in-from-left-4 fade-in duration-500">
             <div className="relative">
                 {/* Sticky Header with Actions */}
-                <div className="sticky top-0 z-50 px-6 py-4 bg-white dark:bg-[#111a22] border-b border-slate-100/50 dark:border-slate-800/50 flex items-center justify-between shadow-lg shadow-black/[0.03] dark:shadow-white/[0.02]">
-                    <h2 className="text-sm font-semibold tracking-tight text-slate-800 dark:text-slate-100" lang={currentLang === 'tr' ? 'tr' : 'en'}>
-                        {tFilter('filters', currentLang)}
-                    </h2>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={handleClearAll}
-                            className="text-[10px] font-medium text-slate-400 hover:text-red-500 uppercase tracking-wider px-2 py-1 transition-colors"
-                            lang={currentLang === 'tr' ? 'tr' : 'en'}
-                        >
-                            {tFilter('reset', currentLang)}
-                        </button>
-                        <button
-                            onClick={handleApplyFilters}
-                            className="group flex items-center gap-2 bg-primary hover:bg-primary-hover text-white text-[10px] font-medium uppercase tracking-wider px-3.5 py-1.5 rounded-xl transition-all shadow-md shadow-primary/20 active:scale-95 whitespace-nowrap relative"
-                            lang={currentLang === 'tr' ? 'tr' : 'en'}
-                        >
-                            {tFilter('apply', currentLang)}
-                            {activeFilterCount > 0 && (
-                                <span className="flex items-center justify-center min-w-[14px] h-[14px] bg-white text-primary text-[9px] font-semibold rounded-full px-1 animate-in zoom-in duration-300">
-                                    {activeFilterCount}
-                                </span>
-                            )}
-                        </button>
+                {!hideHeader && (
+                    <div className="sticky top-0 z-50 px-6 py-4 bg-white dark:bg-[#111a22] border-b border-slate-100/50 dark:border-slate-800/50 flex items-center justify-between shadow-lg shadow-black/[0.03] dark:shadow-white/[0.02]">
+                        <h2 className="text-sm font-semibold tracking-tight text-slate-800 dark:text-slate-100" lang={currentLang === 'tr' ? 'tr' : 'en'}>
+                            {tFilter('filters', currentLang)}
+                        </h2>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleClearAll}
+                                className="text-[10px] font-medium text-slate-400 hover:text-red-500 uppercase tracking-wider px-2 py-1 transition-colors"
+                                lang={currentLang === 'tr' ? 'tr' : 'en'}
+                            >
+                                {tFilter('reset', currentLang)}
+                            </button>
+                            <button
+                                onClick={handleApplyFilters}
+                                className="group flex items-center gap-2 bg-primary hover:bg-primary-hover text-white text-[10px] font-medium uppercase tracking-wider px-3.5 py-1.5 rounded-xl transition-all shadow-md shadow-primary/20 active:scale-95 whitespace-nowrap relative"
+                                lang={currentLang === 'tr' ? 'tr' : 'en'}
+                            >
+                                {tFilter('apply', currentLang)}
+                                {activeFilterCount > 0 && (
+                                    <span className="flex items-center justify-center min-w-[14px] h-[14px] bg-white text-primary text-[9px] font-semibold rounded-full px-1 animate-in zoom-in duration-300">
+                                        {activeFilterCount}
+                                    </span>
+                                )}
+                            </button>
+                        </div>
                     </div>
-                </div>
+                )}
 
-                <div className="px-6 pb-6">
+                <div className={`px-5 pb-6 ${hideHeader ? 'pt-4' : ''}`}>
                 {/* Locations */}
                 <FilterSection title={tFilter('locations', currentLang)} icon="location_on">
                     <div className="space-y-2.5">

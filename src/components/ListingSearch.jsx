@@ -1193,7 +1193,7 @@ const ListingSearch = () => {
                     <div className={`w-full md:w-[330px] lg:w-[350px] flex-shrink-0 relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
                         isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')
                             ? ''
-                            : 'border border-[#dadce0] dark:border-slate-600 rounded-lg hover:border-[#bdc1c6] transition-all'
+                            : 'border border-[#dadce0] dark:border-slate-600 rounded-lg hover:border-[#bdc1c6] transition-all overflow-hidden'
                     }`}>
                         
                         {/* Check-In Half */}
@@ -1205,10 +1205,10 @@ const ListingSearch = () => {
                             }}
                             className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkIn'
-                                    ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                    ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
                                     : isDatePickerOpen && activeDateField === 'checkOut'
-                                    ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
-                                    : 'rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    : 'rounded-l-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
                             }`}
                         >
                             <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -1255,10 +1255,10 @@ const ListingSearch = () => {
                             }}
                             className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkOut'
-                                    ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                    ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
                                     : isDatePickerOpen && activeDateField === 'checkIn'
-                                    ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
-                                    : 'rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    : 'rounded-r-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
                             }`}
                         >
                             <div className="flex items-center min-w-0 flex-1">

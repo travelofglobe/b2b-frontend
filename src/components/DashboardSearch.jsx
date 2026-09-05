@@ -1248,7 +1248,7 @@ const DashboardSearch = () => {
                     <div className={`w-full md:w-[330px] lg:w-[350px] flex-shrink-0 relative h-14 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
                         isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')
                             ? ''
-                            : 'border border-[#dadce0] dark:border-slate-600 rounded-[4px] hover:border-[#bdc1c6] transition-all'
+                            : 'border border-[#dadce0] dark:border-slate-600 rounded-[4px] hover:border-[#bdc1c6] transition-all overflow-hidden'
                     }`}>
                         
                         {/* Check-In Half */}

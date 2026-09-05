@@ -29,7 +29,7 @@ export const OpenFreeMapLayer = ({ style = 'auto' }) => {
     // Resolve the exact style URL based on the mode and props
     let targetStyleUrl;
     if (style === 'auto' || !style) {
-        targetStyleUrl = isDark ? OPENFREEMAP_STYLES.dark : OPENFREEMAP_STYLES.bright;
+        targetStyleUrl = isDark ? OPENFREEMAP_STYLES.dark : OPENFREEMAP_STYLES.liberty;
     } else if (OPENFREEMAP_STYLES[style]) {
         targetStyleUrl = OPENFREEMAP_STYLES[style];
     } else {

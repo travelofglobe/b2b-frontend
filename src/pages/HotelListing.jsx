@@ -10,6 +10,7 @@ import placeholderHotel from '../assets/placeholder-hotel.svg';
 import { useFavorites } from '../context/FavoritesContext';
 import { MapContainer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import OpenFreeMapLayer from '../components/OpenFreeMapLayer';
+import { useDarkMode } from '../hooks/useDarkMode';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -228,61 +229,87 @@ const MapInstanceCapture = ({ setMap }) => {
 // Price Marker - Google Hotels-style price bubble
 // ═══════════════════════════════════════════════
 const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHover, searchParams, currencySymbol, isFav, currentLang }) => {
+    const isDark = useDarkMode();
     const priceDisplay = hotel.price ? Math.round(hotel.price).toLocaleString('tr-TR') : '';
     const active = isSelected || isHovered;
 
     const icon = React.useMemo(() => {
-        let borderStyle, bgStyle, colorStyle, iconHtml, badgeHtml, shadowStyle, arrowBg;
+        let html;
 
-        if (active) {
-            bgStyle = '#1a73e8';
-            colorStyle = 'white';
-            borderStyle = isFav ? '2px solid #174ea6' : '1.5px solid transparent';
-            shadowStyle = '0 3px 12px rgba(26,115,232,0.45)';
-            arrowBg = '#1a73e8';
-            iconHtml = `<span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:white;${isFav ? "font-variation-settings:'FILL' 1;" : ""}">
-                ${isFav ? 'bookmark' : 'hotel'}
-            </span>`;
-        } else if (isFav) {
-            bgStyle = '#ffffff';
-            colorStyle = '#1a73e8';
-            borderStyle = '2px solid #1a73e8';
-            shadowStyle = '0 3px 10px rgba(26,115,232,0.35)';
-            arrowBg = '#1a73e8';
-            iconHtml = `<span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:#1a73e8;font-variation-settings:'FILL' 1;">
-                bookmark
-            </span>`;
+        if (isFav) {
+            // Favorited / Bookmarked Hotel: Bed icon is preserved inside, with an attractive bookmark badge on top-right
+            const pillBg = active ? '#1a73e8' : (isDark ? '#0f172a' : '#ffffff');
+            const pillColor = active ? '#ffffff' : (isDark ? '#93c5fd' : '#1a73e8');
+            const iconColor = active ? '#ffffff' : (isDark ? '#60a5fa' : '#1a73e8');
+            const borderColor = active ? '#1557b0' : (isDark ? '#3b82f6' : '#1a73e8');
+            const arrowBg = active ? '#1a73e8' : (isDark ? '#3b82f6' : '#1a73e8');
+            const badgeBorder = isDark ? '#0f172a' : '#ffffff';
+            const shadowStyle = active
+                ? '0 4px 16px rgba(26, 115, 232, 0.45)'
+                : (isDark ? '0 3px 12px rgba(59, 130, 246, 0.35)' : '0 3px 10px rgba(26, 115, 232, 0.25)');
+
+            // Blue-Turquoise bookmark badge for saved/selected place look
+            const badgeBg = active
+                ? 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0284c7 100%)'
+                : 'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)';
+            const badgeShadow = active
+                ? '0 2px 8px rgba(6, 182, 212, 0.55)'
+                : '0 2px 6px rgba(6, 182, 212, 0.45)';
+
+            html = `
+                <div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;width:max-content;pointer-events:auto;cursor:pointer;transform:${active ? 'scale(1.12)' : 'scale(1.05)'};transition:all 0.15s ease;">
+                    <!-- Price Pill with Bed Icon preserved & Bookmark Badge anchored on top-right -->
+                    <div style="position:relative;display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:800;font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:1.5px solid ${borderColor};background:${pillBg};color:${pillColor};box-shadow:${shadowStyle};letter-spacing:-0.2px;">
+                        <span class="material-symbols-outlined" style="font-size:14px;color:${iconColor};display:flex;align-items:center;">hotel</span>
+                        ${currencySymbol}${priceDisplay}
+
+                        <!-- Bookmark Badge strictly on top-right of the pill -->
+                        <div style="position:absolute;top:-9px;right:-7px;background:${badgeBg};color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:${badgeShadow};border:2px solid ${badgeBorder};z-index:10;">
+                            <span class="material-symbols-outlined" style="font-size:12px;font-variation-settings:'FILL' 1;line-height:1;display:flex;align-items:center;justify-content:center;">bookmark</span>
+                        </div>
+                    </div>
+                    <!-- Downward pointer arrow -->
+                    <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${arrowBg};margin-top:-1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));"></div>
+                </div>
+            `;
+        } else if (active) {
+            // Active standard hotel (Selected or Hovered)
+            html = `
+                <div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;width:max-content;pointer-events:auto;cursor:pointer;transform:scale(1.12);transition:all 0.15s ease;">
+                    <div style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:1.5px solid #1557b0;background:#1a73e8;color:white;box-shadow:0 4px 14px rgba(26,115,232,0.45);display:flex;align-items:center;gap:4px;">
+                        <span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:white;">hotel</span>
+                        ${currencySymbol}${priceDisplay}
+                    </div>
+                    <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #1a73e8;margin-top:-1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));"></div>
+                </div>
+            `;
         } else {
-            bgStyle = 'white';
-            colorStyle = '#3c4043';
-            borderStyle = '1.5px solid rgba(60,64,67,0.2)';
-            shadowStyle = '0 2px 6px rgba(0,0,0,0.15)';
-            arrowBg = 'white';
-            iconHtml = `<span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:#5f6368;">
-                hotel
-            </span>`;
-        }
+            // Inactive standard hotel
+            const bg = isDark ? '#1e293b' : 'white';
+            const color = isDark ? '#f8fafc' : '#3c4043';
+            const border = isDark ? '1.5px solid #334155' : '1.5px solid rgba(60,64,67,0.2)';
+            const iconColor = isDark ? '#94a3b8' : '#5f6368';
+            const arrowColor = bg;
+            const shadow = isDark ? '0 2px 8px rgba(0,0,0,0.35)' : '0 2px 6px rgba(0,0,0,0.15)';
 
-        badgeHtml = isFav ? `
-            <div style="position:absolute;top:-8px;right:-7px;background:#1a73e8;color:white;width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.3);border:2px solid white;z-index:10;">
-                <span class="material-symbols-outlined" style="font-size:12px;font-variation-settings:'FILL' 1;line-height:1;display:flex;align-items:center;justify-content:center;">bookmark</span>
-            </div>
-        ` : '';
+            html = `
+                <div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;width:max-content;pointer-events:auto;cursor:pointer;transition:all 0.15s ease;">
+                    <div style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:${border};background:${bg};color:${color};box-shadow:${shadow};display:flex;align-items:center;gap:4px;">
+                        <span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:${iconColor};">hotel</span>
+                        ${currencySymbol}${priceDisplay}
+                    </div>
+                    <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${arrowColor};margin-top:-1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));"></div>
+                </div>
+            `;
+        }
 
         return L.divIcon({
             className: '',
-            html: `<div style="position:relative;display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer;">
-                ${badgeHtml}
-                <div style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:${isFav ? '800' : '700'};font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:${borderStyle};background:${bgStyle};color:${colorStyle};box-shadow:${shadowStyle};transform:${active ? 'scale(1.1)' : isFav ? 'scale(1.05)' : 'scale(1)'};transition:all 0.15s ease;display:flex;align-items:center;gap:4px;">
-                    ${iconHtml}
-                    ${currencySymbol}${priceDisplay}
-                </div>
-                <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${arrowBg};margin-top:-1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));"></div>
-            </div>`,
+            html,
             iconSize: [0, 0],
             iconAnchor: [0, 0],
         });
-    }, [active, isFav, currencySymbol, priceDisplay]);
+    }, [active, isFav, isDark, currencySymbol, priceDisplay]);
 
     return (
         <Marker
@@ -300,7 +327,7 @@ const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHove
                     <div style={{ position: 'relative' }}>
                         <img src={hotel.image} alt={hotel.name} onError={e => { e.target.src = placeholderHotel; }} style={{ width: '100%', height: '110px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />
                         {isFav && (
-                            <div style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', padding: '3px 8px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '4px', color: '#8ab4f8', fontSize: '11px', fontWeight: 600 }}>
+                            <div style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(15, 23, 42, 0.78)', backdropFilter: 'blur(6px)', padding: '3px 8px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '4px', color: '#38bdf8', fontSize: '11px', fontWeight: 600, border: '1px solid rgba(6, 182, 212, 0.4)', boxShadow: '0 2px 6px rgba(0,0,0,0.3)' }}>
                                 <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>bookmark</span>
                                 <span>{currentLang === 'tr' ? 'Kaydedildi' : currentLang === 'ar' ? 'تم الحفظ' : 'Saved'}</span>
                             </div>
@@ -515,12 +542,12 @@ const GoogleCardSkeleton = () => (
 // OpenFreeMap Styles Configuration
 // ═══════════════════════════════════════════════
 const MAP_LAYERS = {
-    auto: {
-        id: 'auto',
-        label: 'Otomatik (Aydınlık / Koyu)',
-        labelEn: 'Auto (Bright / Dark)',
-        desc: 'Varsayılan Bright, karanlık modda otomatik Dark stile geçer',
-        icon: 'brightness_auto'
+    liberty: {
+        id: 'liberty',
+        label: 'OpenFreeMap Liberty',
+        labelEn: 'OpenFreeMap Liberty',
+        desc: 'Tam detaylı ve zengin vektör harita stili',
+        icon: 'map'
     },
     bright: {
         id: 'bright',
@@ -536,13 +563,6 @@ const MAP_LAYERS = {
         desc: 'Gece ve karanlık tema için optimize edilmiş koyu harita',
         icon: 'dark_mode'
     },
-    liberty: {
-        id: 'liberty',
-        label: 'OpenFreeMap Liberty',
-        labelEn: 'OpenFreeMap Liberty',
-        desc: 'Tam detaylı ve zengin vektör harita stili',
-        icon: 'map'
-    },
     positron: {
         id: 'positron',
         label: 'OpenFreeMap Positron',
@@ -556,6 +576,13 @@ const MAP_LAYERS = {
         labelEn: 'OpenFreeMap Fiord',
         desc: 'Yumuşak mavi ve pastel tonlarında sakin harita',
         icon: 'palette'
+    },
+    auto: {
+        id: 'auto',
+        label: 'Otomatik (Liberty / Koyu)',
+        labelEn: 'Auto (Liberty / Dark)',
+        desc: 'Aydınlık modda Liberty, karanlık modda Dark stile geçer',
+        icon: 'brightness_auto'
     }
 };
 
@@ -1078,8 +1105,16 @@ const HotelListing = () => {
     const [searchOnMapMove, setSearchOnMapMove] = React.useState(false);
     const [mapMoved, setMapMoved] = React.useState(false);
     const [mapInstance, setMapInstance] = React.useState(null);
-    const [mapLayer, setMapLayer] = React.useState('auto');
+    const isDark = useDarkMode();
+    const userChangedLayerRef = React.useRef(false);
+    const [mapLayer, setMapLayer] = React.useState(() => isDark ? 'dark' : 'liberty');
     const [isLayerMenuOpen, setIsLayerMenuOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        if (!userChangedLayerRef.current) {
+            setMapLayer(isDark ? 'dark' : 'liberty');
+        }
+    }, [isDark]);
     const layerMenuRef = React.useRef(null);
     const mapBoundsRef = React.useRef(null); // stores last known bounds for manual search
     const isUserPanRef = React.useRef(false);
@@ -2746,6 +2781,7 @@ const HotelListing = () => {
                                         <button
                                             key={layer.id}
                                             onClick={() => {
+                                                userChangedLayerRef.current = true;
                                                 setMapLayer(layer.id);
                                                 setIsLayerMenuOpen(false);
                                             }}

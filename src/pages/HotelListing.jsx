@@ -744,22 +744,6 @@ const HotelListing = () => {
         };
     }, []);
 
-    // Fallback: If unknown destination and locationId exists, fetch coordinates from API
-    React.useEffect(() => {
-        if (!locationId || hotels.length > 0) return;
-        let isMounted = true;
-        locationService.fetchLocationDetails(locationId)
-            .then(data => {
-                if (!isMounted) return;
-                const coords = data?.geoCoordinate || data?.data?.geoCoordinate;
-                if (coords?.lat && coords?.lon && mapInstance && hotels.length === 0) {
-                    mapInstance.setView([coords.lat, coords.lon], 12);
-                }
-            })
-            .catch(() => {});
-        return () => { isMounted = false; };
-    }, [locationId, mapInstance, hotels.length]);
-
     // Date formatting - Google Hotels style
     const formatDateShort = (dateStr) => {
         if (!dateStr) return '';
@@ -895,6 +879,10 @@ const HotelListing = () => {
 
     // Load hotels from API (optionally using geo bounds for map-area search)
     const loadMoreHotels = React.useCallback(async (isReset = false, geoBounds = null) => {
+        if (geoBounds) {
+            setShouldRefitMap(false);
+            isMapSearchRef.current = true;
+        }
         if (isReset && abortControllerRef.current) {
             abortControllerRef.current.abort();
             setIsLoading(false);
@@ -906,15 +894,15 @@ const HotelListing = () => {
         isFetchingRef.current = true;
         if (isReset) {
             setIsLoading(true);
-            setHotels([]);
+            if (!geoBounds) {
+                setHotels([]);
+                mapBoundsRef.current = null;
+            }
             setTotalProperties(0);
             pageRef.current = 0;
             hasMoreRef.current = true;
             setPage(0);
             setHasMore(true);
-            if (!geoBounds) {
-                mapBoundsRef.current = null;
-            }
         }
         const controller = new AbortController();
         abortControllerRef.current = controller;
@@ -1091,16 +1079,11 @@ const HotelListing = () => {
                     locName = closestHotel.location.split(',')[0].trim();
                 }
 
-                if (locName || crumb?.locationId) {
+                if (locName) {
                     isMapSearchRef.current = true;
                     setSearchParams(prev => {
                         const newParams = new URLSearchParams(prev.toString());
-                        if (crumb?.locationId) {
-                            newParams.set('locationId', String(crumb.locationId));
-                        }
-                        if (locName) {
-                            newParams.set('q', locName);
-                        }
+                        newParams.set('q', locName);
                         return newParams;
                     }, { replace: true });
                 }
@@ -1552,12 +1535,13 @@ const HotelListing = () => {
                             onClick={() => {
                                 isUserPanRef.current = false;
                                 isMapSearchRef.current = true;
+                                setShouldRefitMap(false);
                                 setMapMoved(false);
                                 loadMoreHotels(true, mapBoundsRef.current);
                             }}
                             className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 border border-[#dadce0] dark:border-slate-600 rounded-full px-4 py-2 text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shadow-md transition-colors cursor-pointer"
                         >
-                            <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>refresh</span>
+                            <span className={`material-symbols-outlined text-[#1a73e8] ${isLoading ? 'animate-spin' : ''}`} style={{ fontSize: '18px' }}>refresh</span>
                             {currentLang === 'tr' ? 'Listeyi güncelle' : 'Search this area'}
                         </button>
                     )}
@@ -1621,26 +1605,6 @@ const HotelListing = () => {
                         )}
                     </div>
                 </div>
-
-                {/* Initial map loading overlay */}
-                {isLoading && hotels.length === 0 && (
-                    <div className="absolute inset-0 z-[1002] bg-white/70 dark:bg-[#202124]/75 backdrop-blur-xs flex flex-col items-center justify-center transition-all duration-300 pointer-events-auto">
-                        <div className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 shadow-2xl rounded-2xl px-6 py-5 flex flex-col items-center text-center max-w-[290px] animate-in fade-in zoom-in-95 duration-200">
-                            <div className="relative w-12 h-12 flex items-center justify-center mb-3">
-                                <div className="absolute inset-0 rounded-full border-3 border-[#1a73e8]/20 border-t-[#1a73e8] animate-spin" />
-                                <span className="material-symbols-outlined text-[#1a73e8] text-[22px]">
-                                    location_on
-                                </span>
-                            </div>
-                            <div className="text-[14px] font-semibold text-[#202124] dark:text-white">
-                                {locationName || initialMapState.label || (currentLang === 'tr' ? 'Bölge Haritası' : 'Area Map')}
-                            </div>
-                            <div className="text-[12px] text-gray-500 dark:text-slate-400 mt-1">
-                                {currentLang === 'tr' ? 'Oteller ve fiyatlar haritaya yerleştiriliyor...' : 'Loading hotels and prices onto map...'}
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
 
             {/* Favorites Right Sidebar (Google Style) */}

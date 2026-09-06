@@ -2752,7 +2752,7 @@ const HotelListing = () => {
                         <button
                             type="button"
                             onClick={toggleMapExpand}
-                            className="w-10 h-10 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-xl shadow-md border border-[#dadce0] dark:border-slate-600 flex items-center justify-center transition-all cursor-pointer group"
+                            className="w-10 h-10 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex items-center justify-center transition-all cursor-pointer group"
                             title={isMapExpanded ? tListing('collapseMap', currentLang) : tListing('expandMap', currentLang)}
                         >
                             <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-300 group-hover:text-[#1a73e8] transition-colors">
@@ -2761,12 +2761,12 @@ const HotelListing = () => {
                         </button>
 
                         {/* 4 Category Icons: Transit, Restaurants, Attractions, Shopping */}
-                        <div className="bg-white dark:bg-[#303134] rounded-2xl shadow-md border border-[#dadce0] dark:border-slate-600 flex flex-col items-center py-1.5 px-1 gap-1">
+                        <div className="bg-white dark:bg-[#303134] rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex flex-col items-center py-2 px-1 gap-1">
                             {/* 1. Public Transport */}
                             <button
                                 type="button"
                                 onClick={() => togglePoiCategory('transit')}
-                                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                                     activePoiCategories.transit
                                         ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 ring-2 ring-[#1a73e8]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
@@ -2780,7 +2780,7 @@ const HotelListing = () => {
                             <button
                                 type="button"
                                 onClick={() => togglePoiCategory('restaurants')}
-                                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                                     activePoiCategories.restaurants
                                         ? 'bg-[#fce8e6] dark:bg-red-900/40 text-[#ea4335] dark:text-red-300 ring-2 ring-[#ea4335]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
@@ -2794,7 +2794,7 @@ const HotelListing = () => {
                             <button
                                 type="button"
                                 onClick={() => togglePoiCategory('tourist')}
-                                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                                     activePoiCategories.tourist
                                         ? 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
@@ -2808,7 +2808,7 @@ const HotelListing = () => {
                             <button
                                 type="button"
                                 onClick={() => togglePoiCategory('shopping')}
-                                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                                     activePoiCategories.shopping
                                         ? 'bg-[#fce4ec] dark:bg-pink-900/40 text-[#e91e63] dark:text-pink-300 ring-2 ring-[#e91e63]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
@@ -2821,7 +2821,7 @@ const HotelListing = () => {
                     </div>
 
                     {/* Top-right: Zoom in / Zoom out controls (Google Maps style) */}
-                    <div className="absolute top-3.5 right-3.5 z-[1005] flex flex-col bg-white dark:bg-[#303134] rounded-2xl shadow-md border border-[#dadce0] dark:border-slate-600 overflow-hidden pointer-events-auto">
+                    <div className="absolute top-3.5 right-3.5 z-[1005] flex flex-col bg-white dark:bg-[#303134] rounded-xl shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] overflow-hidden pointer-events-auto">
                         <button
                             type="button"
                             onClick={() => mapInstance?.zoomIn()}
@@ -2845,7 +2845,7 @@ const HotelListing = () => {
                     <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto">
                     {/* Always show the toggle */}
                     {!mapMoved && (
-                        <div className="flex items-center gap-2 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 rounded-full px-3 py-2 shadow-md">
+                        <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
                             <button
                                 onClick={() => setSearchOnMapMove(v => !v)}
                                 className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0 ${
@@ -2876,7 +2876,7 @@ const HotelListing = () => {
                                 setMapMoved(false);
                                 loadMoreHotels(true, mapBoundsRef.current);
                             }}
-                            className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 border border-[#dadce0] dark:border-slate-600 rounded-full px-4 py-2 text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shadow-md transition-colors cursor-pointer"
+                            className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-full px-4 py-2 text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] transition-colors cursor-pointer"
                         >
                             <span className={`material-symbols-outlined text-[#1a73e8] ${isLoading ? 'animate-spin' : ''}`} style={{ fontSize: '18px' }}>refresh</span>
                             {tListing('searchThisArea', currentLang)}
@@ -2889,7 +2889,7 @@ const HotelListing = () => {
                     <div className="relative">
                         <button
                             onClick={() => setIsLayerMenuOpen(v => !v)}
-                            className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 border border-[#dadce0] dark:border-slate-600 rounded-full px-3 py-2 shadow-md transition-all cursor-pointer select-none text-[13px] font-medium"
+                            className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-full px-3 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] transition-all cursor-pointer select-none text-[13px] font-medium"
                             title={tListing('mapLayer', currentLang)}
                         >
                             <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>

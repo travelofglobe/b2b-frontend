@@ -178,16 +178,16 @@ const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHove
             const arrowBg = active ? '#1a73e8' : (isDark ? '#3b82f6' : '#1a73e8');
             const badgeBorder = isDark ? '#0f172a' : '#ffffff';
             const shadowStyle = active
-                ? '0 4px 16px rgba(26, 115, 232, 0.45)'
-                : (isDark ? '0 3px 12px rgba(59, 130, 246, 0.35)' : '0 3px 10px rgba(26, 115, 232, 0.25)');
+                ? '0 1px 4px rgba(26, 115, 232, 0.5)'
+                : (isDark ? '0 1px 4px rgba(59, 130, 246, 0.4)' : '0 1px 4px rgba(26, 115, 232, 0.4)');
 
             // Blue-Turquoise bookmark badge for saved/selected place look
             const badgeBg = active
                 ? 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0284c7 100%)'
                 : 'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)';
             const badgeShadow = active
-                ? '0 2px 8px rgba(6, 182, 212, 0.55)'
-                : '0 2px 6px rgba(6, 182, 212, 0.45)';
+                ? '0 1px 3px rgba(6, 182, 212, 0.6)'
+                : '0 1px 3px rgba(6, 182, 212, 0.5)';
 
             html = `
                 <div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;width:max-content;pointer-events:auto;cursor:pointer;transform:${active ? 'scale(1.12)' : 'scale(1.05)'};transition:all 0.15s ease;">
@@ -209,7 +209,7 @@ const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHove
             // Active standard hotel (Selected or Hovered)
             html = `
                 <div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;width:max-content;pointer-events:auto;cursor:pointer;transform:scale(1.12);transition:all 0.15s ease;">
-                    <div style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:1.5px solid #1557b0;background:#1a73e8;color:white;box-shadow:0 4px 14px rgba(26,115,232,0.45);display:flex;align-items:center;gap:4px;">
+                    <div style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:1.5px solid #1557b0;background:#1a73e8;color:white;box-shadow:0 1px 4px rgba(26,115,232,0.5);display:flex;align-items:center;gap:4px;">
                         <span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:white;">hotel</span>
                         ${currencySymbol}${priceDisplay}
                     </div>
@@ -223,7 +223,7 @@ const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHove
             const border = isDark ? '1.5px solid #334155' : '1.5px solid rgba(60,64,67,0.2)';
             const iconColor = isDark ? '#94a3b8' : '#5f6368';
             const arrowColor = bg;
-            const shadow = isDark ? '0 2px 8px rgba(0,0,0,0.35)' : '0 2px 6px rgba(0,0,0,0.15)';
+            const shadow = isDark ? '0 1px 4px rgba(0,0,0,0.7)' : '0 1px 4px rgba(0,0,0,0.35)';
 
             html = `
                 <div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;width:max-content;pointer-events:auto;cursor:pointer;transition:all 0.15s ease;">

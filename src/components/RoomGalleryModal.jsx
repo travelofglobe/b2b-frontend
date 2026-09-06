@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { FACILITY_ICON_MAP } from '../pages/MapView';
 
@@ -157,7 +158,7 @@ const RoomGalleryModal = ({
         return { label, iconKey };
     });
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[4000] flex flex-col lg:flex-row bg-black/95 backdrop-blur-xl animate-in fade-in duration-300">
             
             {/* Left/Top Area: Photo Gallery */}
@@ -327,7 +328,8 @@ const RoomGalleryModal = ({
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Footer from '../components/Footer';
 import { useTranslation } from 'react-i18next';
@@ -71,7 +72,7 @@ const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex,
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[3000] flex flex-col bg-black/95 backdrop-blur-xl animate-in fade-in duration-300 select-none" onClick={onClose}>
             {/* Top Bar */}
             <div className="absolute top-0 left-0 right-0 p-4 md:p-6 flex justify-between items-center z-40 pointer-events-none">
@@ -161,7 +162,8 @@ const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex,
                     ))}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
@@ -235,7 +237,7 @@ const ShareModal = ({ isOpen, onClose, hotel }) => {
         }
     };
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[5000] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-500" onClick={onClose}></div>
             <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl w-full max-w-lg rounded-[48px] shadow-[0_32px_128px_rgba(0,0,0,0.4)] border border-white/40 dark:border-white/10 overflow-hidden animate-in zoom-in-95 duration-500">
@@ -288,13 +290,14 @@ const ShareModal = ({ isOpen, onClose, hotel }) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
 const BookingConfirmationModal = ({ isOpen, onClose, hotelName }) => {
     if (!isOpen) return null;
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose}></div>
             <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[40px] p-10 shadow-2xl animate-in fade-in zoom-in duration-300 text-center border border-white/20 overflow-hidden">
@@ -322,7 +325,8 @@ const BookingConfirmationModal = ({ isOpen, onClose, hotelName }) => {
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
@@ -375,7 +379,7 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
         iconAnchor: [100, 50],
     });
 
-    return (
+    return createPortal(
         <div className={`fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 md:p-10 transition-opacity duration-300 ${
             isMounted && !isClosing ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}>
@@ -471,7 +475,8 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                     </a>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

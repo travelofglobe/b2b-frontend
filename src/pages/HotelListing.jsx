@@ -343,13 +343,13 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
 
     return (
         <div
-            className={`flex p-4 border-b border-[#e8eaed] dark:border-slate-700 cursor-pointer transition-colors group ${isActive ? 'bg-[#f0f4ff] dark:bg-blue-900/10' : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-800/40'}`}
+            className={`flex py-4 pl-6 pr-4 border-b border-[#e8eaed] dark:border-slate-700 cursor-pointer transition-colors group ${isActive ? 'bg-[#f0f4ff] dark:bg-blue-900/10' : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-800/40'}`}
             onMouseEnter={() => onHover(hotel)}
             onMouseLeave={() => onHover(null)}
             onClick={() => onSelect(isActive ? null : hotel)}
         >
             {/* Image */}
-            <div className={`relative ${isCompact ? "w-[190px] h-[145px] mr-3.5" : "w-[300px] h-[200px] mr-5"} rounded-xl overflow-hidden shrink-0 bg-[#f1f3f4] transition-all duration-300`}>
+            <div className={`relative ${isCompact ? "w-[190px] h-[145px] mr-3.5" : "w-[260px] h-[175px] mr-5"} rounded-lg overflow-hidden shrink-0 bg-[#f1f3f4] transition-all duration-300`}>
                 {isGreatDeal && (
                     <div className="absolute top-2 left-2 z-10 bg-[#e6f4ea] text-[#137333] text-[11px] font-bold px-2 py-1 rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.15)] truncate max-w-[85%] border border-[#137333]/10">
                         {greatDealLabel[currentLang] || greatDealLabel.en}
@@ -395,18 +395,70 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
             </div>
 
             {/* Info */}
-            <div className="flex-1 min-w-0 flex flex-col gap-1 py-1">
-                {/* Name + Price */}
-                <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0 flex gap-4 py-1">
+                {/* Left Column (Details) */}
+                <div className="flex-1 min-w-0 flex flex-col gap-1">
+                    {/* Name */}
                     <Link
                         to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
                         target="_blank"
-                        className="text-[20px] font-normal text-[#202124] dark:text-slate-100 hover:underline leading-[1.3] line-clamp-2 flex-1"
+                        className="text-[20px] font-normal text-[#202124] dark:text-slate-100 hover:underline leading-[1.3] line-clamp-2"
                         onClick={e => e.stopPropagation()}
                     >
                         {hotel.name}
                     </Link>
-                    <div className="shrink-0 text-right mt-1">
+
+                    {/* Rating */}
+                    {ratingNum > 0 && (
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[13px] font-medium text-[#3c4043] dark:text-slate-200">{ratingNum.toFixed(1)}</span>
+                            <div className="flex">
+                                {[...Array(5)].map((_, i) => (
+                                    <span key={i} style={{ fontSize: '12px', color: i < Math.round(ratingNum) ? '#fabb05' : '#dadce0' }}>★</span>
+                                ))}
+                            </div>
+                            <span className="text-[12px] text-[#70757a] dark:text-slate-400">({hotel.ratingLabel})</span>
+                        </div>
+                    )}
+
+                    {/* Amenities grid (3x3 - 9 items) */}
+                    {(() => {
+                        const displayAmenities = [
+                            ...(typeLabel ? [{ icon: 'hotel', label: typeLabel }] : []),
+                            ...(hotel.boardName ? [{ icon: 'local_cafe', label: hotel.boardName }] : []),
+                            ...(hotel.amenities || []).filter(a => {
+                                const lbl = Array.isArray(a.label) ? a.label[0] : a.label;
+                                return lbl && lbl !== typeLabel;
+                            })
+                        ].slice(0, 9);
+
+                        return displayAmenities.length > 0 ? (
+                            <div className="grid grid-cols-3 gap-x-3 gap-y-1 mt-2">
+                                {displayAmenities.map((amenity, i) => (
+                                    <div key={i} className="flex items-center gap-1.5 text-[13px] text-[#5f6368] dark:text-slate-300 min-w-0 font-roboto">
+                                        <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 shrink-0" style={{ fontSize: '18px' }}>{amenity.icon}</span>
+                                        <span className="truncate">
+                                            {Array.isArray(amenity.label) ? amenity.label[0] : amenity.label}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : null;
+                    })()}
+
+                    {/* Bottom row: free cancel + board Name */}
+                    <div className="flex items-center gap-2 min-w-0 mt-auto pt-4">
+                        {hotel.hasFreeCancellation && (
+                            <span className="text-[12px] text-[#0d652d] dark:text-green-400 font-medium truncate font-roboto">
+                                {freeCancelLabel[currentLang] || freeCancelLabel.en}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Right Column (Price & CTA) */}
+                <div className="shrink-0 flex flex-col items-end justify-between min-w-[130px]">
+                    <div className="text-right mt-1">
                         {isGreatDeal ? (
                             <div className="flex flex-col items-end">
                                 <div className="flex items-center gap-1.5 mb-1">
@@ -434,64 +486,12 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                             </>
                         )}
                     </div>
-                </div>
-
-                {/* Rating */}
-                {ratingNum > 0 && (
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-[13px] font-medium text-[#3c4043] dark:text-slate-200">{ratingNum.toFixed(1)}</span>
-                        <div className="flex">
-                            {[...Array(5)].map((_, i) => (
-                                <span key={i} style={{ fontSize: '12px', color: i < Math.round(ratingNum) ? '#fabb05' : '#dadce0' }}>★</span>
-                            ))}
-                        </div>
-                        <span className="text-[12px] text-[#70757a] dark:text-slate-400">({hotel.ratingLabel})</span>
-                    </div>
-                )}
-
-                {/* Amenities grid (3x3 - 9 items) */}
-                {(() => {
-                    const displayAmenities = [
-                        ...(typeLabel ? [{ icon: 'hotel', label: typeLabel }] : []),
-                        ...(hotel.boardName ? [{ icon: 'local_cafe', label: hotel.boardName }] : []),
-                        ...(hotel.hasFreeCancellation ? [{ icon: 'event_available', label: freeCancelLabel[currentLang] || freeCancelLabel.en }] : []),
-                        ...(hotel.amenities || []).filter(a => {
-                            const lbl = Array.isArray(a.label) ? a.label[0] : a.label;
-                            return lbl && lbl !== typeLabel;
-                        })
-                    ].slice(0, 9);
-
-                    return displayAmenities.length > 0 ? (
-                        <div className="grid grid-cols-3 gap-x-3 gap-y-1 mt-1">
-                            {displayAmenities.map((amenity, i) => (
-                                <div key={i} className="flex items-center gap-1.5 text-[13px] text-[#5f6368] dark:text-slate-300 min-w-0 font-roboto">
-                                    <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 shrink-0" style={{ fontSize: '18px' }}>{amenity.icon}</span>
-                                    <span className="truncate">
-                                        {Array.isArray(amenity.label) ? amenity.label[0] : amenity.label}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    ) : null;
-                })()}
-
-                {/* Bottom row: free cancel + CTA */}
-                <div className="flex items-center justify-between mt-auto pt-4 gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                        {hotel.hasFreeCancellation && (
-                            <span className="text-[12px] text-[#0d652d] dark:text-green-400 font-medium truncate font-roboto">
-                                {freeCancelLabel[currentLang] || freeCancelLabel.en}
-                            </span>
-                        )}
-                        {hotel.boardName && (
-                            <span className="text-[12px] text-[#70757a] dark:text-slate-400 truncate font-roboto">· {hotel.boardName}</span>
-                        )}
-                    </div>
+                    
                     <Link
                         to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
                         target="_blank"
                         onClick={e => e.stopPropagation()}
-                        className="shrink-0 inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-[13.5px] font-medium h-[31px] px-4 rounded-full transition-colors whitespace-nowrap font-roboto shadow-[0_1px_2px_rgba(60,64,67,0.3)] hover:shadow-[0_1px_3px_1px_rgba(60,64,67,0.15)]"
+                        className="inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-[13.5px] font-medium h-[31px] px-4 rounded-full transition-colors whitespace-nowrap font-roboto shadow-[0_1px_2px_rgba(60,64,67,0.3)] hover:shadow-[0_1px_3px_1px_rgba(60,64,67,0.15)] mt-4"
                     >
                         {showPricesLabel[currentLang] || showPricesLabel.en}
                     </Link>
@@ -505,9 +505,9 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
 // Skeleton loader card (mirrors GoogleHotelCard 1:1 in dimensions & layout)
 // ═══════════════════════════════════════════════
 const GoogleCardSkeleton = ({ isCompact = false }) => (
-    <div className="flex p-4 border-b border-[#e8eaed] dark:border-slate-700 animate-pulse bg-white dark:bg-[#303134]">
-        {/* Image skeleton: mirrors w-[300px] h-[200px] rounded-xl mr-5 */}
-        <div className={`relative ${isCompact ? "w-[190px] h-[145px] mr-3.5" : "w-[300px] h-[200px] mr-5"} rounded-xl bg-[#f1f3f4] dark:bg-slate-700/80 shrink-0 overflow-hidden transition-all duration-300`}>
+    <div className="flex py-4 pl-6 pr-4 border-b border-[#e8eaed] dark:border-slate-700 animate-pulse bg-white dark:bg-[#303134]">
+        {/* Image skeleton: mirrors w-[260px] h-[175px] rounded-lg mr-5 */}
+        <div className={`relative ${isCompact ? "w-[190px] h-[145px] mr-3.5" : "w-[260px] h-[175px] mr-5"} rounded-lg bg-[#f1f3f4] dark:bg-slate-700/80 shrink-0 overflow-hidden transition-all duration-300`}>
             <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/10 dark:bg-black/25" />
         </div>
 
@@ -2079,13 +2079,13 @@ const HotelListing = () => {
             <div className={`${isMapExpanded ? "w-[44%] min-w-[500px]" : "w-[62%]"} flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[4px_0_16px_rgba(0,0,0,0.12),1px_0_4px_rgba(0,0,0,0.06)] dark:shadow-[5px_0_20px_rgba(0,0,0,0.35)] transition-[width] duration-300 ease-in-out`}>
 
                 {/* Search Context Bar */}
-                <div className="px-4 pt-4 pb-2 shrink-0 bg-white dark:bg-[#303134] flex items-center w-full relative z-50">
+                <div className="pl-6 pr-4 pt-4 pb-2 shrink-0 bg-white dark:bg-[#303134] flex items-center w-full relative z-50">
                     <ListingSearch isCompact={isMapExpanded} />
                 </div>
 
                 {/* Filter Chips Row */}
                 <div className="relative shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] z-10">
-                    <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto scrollbar-hide">
+                    <div className="flex items-center gap-2 pl-6 pr-4 py-2 overflow-x-auto scrollbar-hide">
                         {/* 1. All Filters - Google Outlined Button */}
                         <button
                             type="button"
@@ -2612,7 +2612,7 @@ const HotelListing = () => {
                 </div>
 
                     {/* Results count + Sort row */}
-                    <div className="flex items-center justify-between px-4 py-2.5 shrink-0 bg-white dark:bg-[#303134]">
+                    <div className="flex items-center justify-between pl-6 pr-4 py-2.5 shrink-0 bg-white dark:bg-[#303134]">
                         <p className="text-[15.5px] font-medium text-[#202124] dark:text-slate-100 font-roboto tracking-tight truncate">
                             {resultsText}
                         </p>

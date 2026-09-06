@@ -311,6 +311,31 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
         tr: 'Ücretsiz iptal', en: 'Free cancellation', ar: 'إلغاء مجاني', de: 'Kostenlose Stornierung',
         fr: 'Annulation gratuite', ru: 'Бесплатная отмена', zh: '免费取消', es: 'Cancelación gratuita', it: 'Cancellazione gratuita'
     };
+    const hasPriceDrop = hotel.strikethroughPrice && hotel.strikethroughPrice > hotel.price;
+    const hasMeal = hotel.boardName && !hotel.boardName.toLowerCase().includes('room only') && !hotel.boardName.toLowerCase().includes('sadece oda');
+    const isGreatDeal = hasPriceDrop && hasMeal && hotel.hasFreeCancellation;
+    const discountPercent = hasPriceDrop ? Math.round(((hotel.strikethroughPrice - hotel.price) / hotel.strikethroughPrice) * 100) : 0;
+
+    const greatDealLabel = {
+        tr: 'HARİKA FIRSAT', en: 'GREAT DEAL', ar: 'عرض رائع', de: 'TOLLES ANGEBOT',
+        fr: 'SUPER OFFRE', ru: 'ОТЛИЧНОЕ ПРЕДЛОЖЕНИЕ', zh: '超值特价', es: 'GRAN OFERTA', it: 'OTTIMO AFFARE'
+    };
+    
+    const lessThanUsualLabel = (percent) => {
+        const labels = {
+            tr: `Normalden %${percent} daha az`,
+            en: `${percent}% less than usual`,
+            ar: `أقل بنسبة ${percent}٪ من المعتاد`,
+            de: `${percent}% weniger als üblich`,
+            fr: `${percent}% de moins que d'habitude`,
+            ru: `На ${percent}% дешевле обычного`,
+            zh: `比平时低 ${percent}%`,
+            es: `${percent}% menos de lo habitual`,
+            it: `Il ${percent}% in meno del solito`
+        };
+        return labels[currentLang] || labels.en;
+    };
+
 
     const nextImg = (e) => { e.preventDefault(); e.stopPropagation(); setImgIdx(p => (p + 1) % images.length); };
     const prevImg = (e) => { e.preventDefault(); e.stopPropagation(); setImgIdx(p => (p - 1 + images.length) % images.length); };
@@ -325,6 +350,11 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
         >
             {/* Image */}
             <div className={`relative ${isCompact ? "w-[190px] h-[145px] mr-3.5" : "w-[300px] h-[200px] mr-5"} rounded-xl overflow-hidden shrink-0 bg-[#f1f3f4] transition-all duration-300`}>
+                {isGreatDeal && (
+                    <div className="absolute top-2 left-2 z-10 bg-[#e6f4ea] text-[#137333] text-[11px] font-bold px-2 py-1 rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.15)] truncate max-w-[85%] border border-[#137333]/10">
+                        {greatDealLabel[currentLang] || greatDealLabel.en}
+                    </div>
+                )}
                 <img
                     src={images[imgIdx]}
                     alt={hotel.name}
@@ -377,14 +407,32 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         {hotel.name}
                     </Link>
                     <div className="shrink-0 text-right mt-1">
-                        {hotel.strikethroughPrice && (
-                            <div className="text-[13px] text-[#70757a] dark:text-slate-400 line-through leading-none mb-1 font-roboto">
-                                {currencySymbol}{Math.round(hotel.strikethroughPrice).toLocaleString('tr-TR')}
+                        {isGreatDeal ? (
+                            <div className="flex flex-col items-end">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                    <span className="bg-[#e6f4ea] text-[#137333] text-[10px] font-bold px-1.5 py-0.5 rounded-sm border border-[#137333]/10">
+                                        {greatDealLabel[currentLang] || greatDealLabel.en}
+                                    </span>
+                                    <span className="text-[22px] font-bold text-[#1e8e3e] leading-none font-roboto">
+                                        {currencySymbol}{formattedPrice}
+                                    </span>
+                                </div>
+                                <div className="text-[13px] text-[#3c4043] dark:text-slate-300 font-medium leading-none font-roboto">
+                                    {lessThanUsualLabel(discountPercent)}
+                                </div>
                             </div>
+                        ) : (
+                            <>
+                                {hotel.strikethroughPrice && (
+                                    <div className="text-[13px] text-[#70757a] dark:text-slate-400 line-through leading-none mb-1 font-roboto">
+                                        {currencySymbol}{Math.round(hotel.strikethroughPrice).toLocaleString('tr-TR')}
+                                    </div>
+                                )}
+                                <span className="text-[22px] font-bold text-[#202124] dark:text-slate-100 leading-none font-roboto">
+                                    {currencySymbol}{formattedPrice}
+                                </span>
+                            </>
                         )}
-                        <span className="text-[22px] font-bold text-[#202124] dark:text-slate-100 leading-none font-roboto">
-                            {currencySymbol}{formattedPrice}
-                        </span>
                     </div>
                 </div>
 
@@ -405,6 +453,8 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                 {(() => {
                     const displayAmenities = [
                         ...(typeLabel ? [{ icon: 'hotel', label: typeLabel }] : []),
+                        ...(hotel.boardName ? [{ icon: 'local_cafe', label: hotel.boardName }] : []),
+                        ...(hotel.hasFreeCancellation ? [{ icon: 'event_available', label: freeCancelLabel[currentLang] || freeCancelLabel.en }] : []),
                         ...(hotel.amenities || []).filter(a => {
                             const lbl = Array.isArray(a.label) ? a.label[0] : a.label;
                             return lbl && lbl !== typeLabel;
@@ -1565,9 +1615,9 @@ const HotelListing = () => {
         const priceValue = lowestPrice !== Infinity ? lowestPrice : (ratePrice?.calculatedAmount || ratePrice?.totalPaymentAmount || ratePrice?.markupCalculatedPrice?.holder?.saleAmount || 0);
         const currencyCode = ratePrice?.currency || 'USD';
         const boardName = selectedRoom?.boardName || hubRate?.boardName || selectedRoom?.boardCode || (selectedRoom?.boardType ? selectedRoom.boardType.replace(/_/g, ' ') : null);
-        const isNonRefundable = hubRate?.nonRefundable === true || selectedRoom?.nonRefundable === true;
+        const isNonRefundable = hubRate?.nonRefundable === true || selectedRoom?.nonRefundable === true || hubRate?.refundable === false || selectedRoom?.refundable === false;
         const cancellationPolicies = hubRate?.cancellationPolicies || selectedRoom?.cancellationPolicies;
-        const hasFreeCancellation = (cancellationPolicies && cancellationPolicies.length > 0 && cancellationPolicies.some(cp => cp.amount === 0 || cp.penaltyAmount === 0)) || (!isNonRefundable && cancellationPolicies?.length > 0);
+        const hasFreeCancellation = hubRate?.refundable === true || selectedRoom?.refundable === true || (cancellationPolicies && cancellationPolicies.length > 0 && cancellationPolicies.some(cp => cp.amount === 0 || cp.penaltyAmount === 0)) || (!isNonRefundable && cancellationPolicies?.length > 0);
         const strikethroughPrice = ratePrice?.strikethroughPrice || ratePrice?.originalPrice || (priceValue > 0 ? priceValue * 1.15 : 0);
 
         return {

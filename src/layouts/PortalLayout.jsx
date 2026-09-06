@@ -40,7 +40,7 @@ const PortalLayout = () => {
             <header className={`flex items-center justify-between px-4 h-16 shrink-0 bg-white dark:bg-[#202124] z-[1000] border-b border-slate-200 dark:border-slate-800 transition-all duration-200 ${isScrolled ? 'shadow-md' : ''}`}>
                 {/* Left: Hamburger & Logo */}
                 <div className="flex items-center gap-4">
-                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors focus:outline-none" aria-label="Menü">
+                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors focus:outline-none" aria-label="Menü">
                         <span className="material-symbols-outlined text-xl">menu</span>
                     </button>
                     <div className="flex flex-col cursor-pointer select-none" onClick={() => navigate('/travel/hotels')}>

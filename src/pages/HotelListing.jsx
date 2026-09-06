@@ -1093,7 +1093,7 @@ const HotelListing = () => {
     // Map expansion & POI category states
     const [isMapExpanded, setIsMapExpanded] = React.useState(false);
     const [activePoiCategories, setActivePoiCategories] = React.useState({
-        tourist: true,
+        tourist: false,
         transit: false,
         restaurants: false,
         shopping: false

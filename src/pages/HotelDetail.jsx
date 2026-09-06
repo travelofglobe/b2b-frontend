@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Footer from '../components/Footer';
 import { useTranslation } from 'react-i18next';
@@ -19,7 +20,7 @@ import GoogleFlightDatePicker, { formatGoogleFlightDate } from '../components/Go
 import { getBoardTypeLabel, getBoardTypeDescription, BOARD_TYPES } from '../utils/boardTypeUtils';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 import { useFavorites } from '../context/FavoritesContext';
-import { FACILITY_ICON_MAP } from './MapView';
+import { FACILITY_ICON_MAP } from '../utils/facilityUtils';
 import Tooltip from '../components/Tooltip';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import RoomGalleryModal from '../components/RoomGalleryModal';
@@ -71,7 +72,7 @@ const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex,
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[3000] flex flex-col bg-black/95 backdrop-blur-xl animate-in fade-in duration-300 select-none" onClick={onClose}>
             {/* Top Bar */}
             <div className="absolute top-0 left-0 right-0 p-4 md:p-6 flex justify-between items-center z-40 pointer-events-none">
@@ -161,7 +162,8 @@ const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex,
                     ))}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
@@ -235,7 +237,7 @@ const ShareModal = ({ isOpen, onClose, hotel }) => {
         }
     };
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[5000] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-500" onClick={onClose}></div>
             <div className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl w-full max-w-lg rounded-[48px] shadow-[0_32px_128px_rgba(0,0,0,0.4)] border border-white/40 dark:border-white/10 overflow-hidden animate-in zoom-in-95 duration-500">
@@ -288,13 +290,14 @@ const ShareModal = ({ isOpen, onClose, hotel }) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
 const BookingConfirmationModal = ({ isOpen, onClose, hotelName }) => {
     if (!isOpen) return null;
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose}></div>
             <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-[40px] p-10 shadow-2xl animate-in fade-in zoom-in duration-300 text-center border border-white/20 overflow-hidden">
@@ -322,7 +325,8 @@ const BookingConfirmationModal = ({ isOpen, onClose, hotelName }) => {
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
@@ -360,22 +364,25 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
 
     // Custom Marker Icon
     const customIcon = L.divIcon({
-        className: 'custom-hotel-marker',
+        className: 'custom-hotel-marker bg-transparent border-none',
         html: `
-            <div class="relative flex flex-col items-center">
-                <div class="bg-primary text-white px-3 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-tighter shadow-2xl border-2 border-white flex items-center gap-1.5 whitespace-nowrap group animate-in zoom-in duration-500">
-                    <span class="material-symbols-outlined text-[14px] fill-1">apartment</span>
-                    ${hotel.names?.tr || hotel.names?.en || hotel.name}
+            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center justify-end pb-[2px] w-max group pointer-events-auto">
+                <div class="absolute bottom-1 w-4 h-4 rounded-full bg-[#1a73e8] animate-ping opacity-60"></div>
+                <div class="px-3 py-1.5 rounded-full font-bold text-[12px] bg-[#1a73e8] text-white shadow-xl flex items-center justify-center gap-1.5 whitespace-nowrap z-10 scale-105 -translate-y-1 border-2 border-white">
+                    <span class="material-symbols-outlined text-[14px]">apartment</span>
+                    <span class="tracking-tight">${hotel.names?.tr || hotel.names?.en || hotel.name}</span>
                 </div>
-                <div class="w-0.5 h-3 bg-primary shadow-lg"></div>
-                <div class="size-2 rounded-full bg-primary ring-4 ring-primary/20 shadow-xl"></div>
+                <div class="flex flex-col items-center justify-end z-0 origin-bottom scale-y-125 -translate-y-0.5">
+                    <div class="w-[2px] h-3 bg-[#1a73e8] shadow-sm"></div>
+                    <div class="w-2 h-2 rounded-full bg-[#1a73e8] shadow-sm"></div>
+                </div>
             </div>
         `,
-        iconSize: [200, 50],
-        iconAnchor: [100, 50],
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
     });
 
-    return (
+    return createPortal(
         <div className={`fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 md:p-10 transition-opacity duration-300 ${
             isMounted && !isClosing ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}>
@@ -420,7 +427,7 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                         scrollWheelZoom={true}
                         className="w-full h-full"
                     >
-                        <OpenFreeMapLayer style="auto" />
+                        <OpenFreeMapLayer style="google" />
                         <Marker position={[lat, lng]} icon={customIcon}>
                             <Popup className="custom-hotel-popup">
                                 <div className="p-2 min-w-[200px]">
@@ -471,7 +478,8 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                     </a>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

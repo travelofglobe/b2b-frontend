@@ -20,7 +20,7 @@ import GoogleFlightDatePicker, { formatGoogleFlightDate } from '../components/Go
 import { getBoardTypeLabel, getBoardTypeDescription, BOARD_TYPES } from '../utils/boardTypeUtils';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 import { useFavorites } from '../context/FavoritesContext';
-import { FACILITY_ICON_MAP } from './MapView';
+import { FACILITY_ICON_MAP } from '../utils/facilityUtils';
 import Tooltip from '../components/Tooltip';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import RoomGalleryModal from '../components/RoomGalleryModal';
@@ -364,19 +364,22 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
 
     // Custom Marker Icon
     const customIcon = L.divIcon({
-        className: 'custom-hotel-marker',
+        className: 'custom-hotel-marker bg-transparent border-none',
         html: `
-            <div class="relative flex flex-col items-center">
-                <div class="bg-primary text-white px-3 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-tighter shadow-2xl border-2 border-white flex items-center gap-1.5 whitespace-nowrap group animate-in zoom-in duration-500">
-                    <span class="material-symbols-outlined text-[14px] fill-1">apartment</span>
-                    ${hotel.names?.tr || hotel.names?.en || hotel.name}
+            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center justify-end pb-[2px] w-max group pointer-events-auto">
+                <div class="absolute bottom-1 w-4 h-4 rounded-full bg-[#1a73e8] animate-ping opacity-60"></div>
+                <div class="px-3 py-1.5 rounded-full font-bold text-[12px] bg-[#1a73e8] text-white shadow-xl flex items-center justify-center gap-1.5 whitespace-nowrap z-10 scale-105 -translate-y-1 border-2 border-white">
+                    <span class="material-symbols-outlined text-[14px]">apartment</span>
+                    <span class="tracking-tight">${hotel.names?.tr || hotel.names?.en || hotel.name}</span>
                 </div>
-                <div class="w-0.5 h-3 bg-primary shadow-lg"></div>
-                <div class="size-2 rounded-full bg-primary ring-4 ring-primary/20 shadow-xl"></div>
+                <div class="flex flex-col items-center justify-end z-0 origin-bottom scale-y-125 -translate-y-0.5">
+                    <div class="w-[2px] h-3 bg-[#1a73e8] shadow-sm"></div>
+                    <div class="w-2 h-2 rounded-full bg-[#1a73e8] shadow-sm"></div>
+                </div>
             </div>
         `,
-        iconSize: [200, 50],
-        iconAnchor: [100, 50],
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
     });
 
     return createPortal(
@@ -424,7 +427,7 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                         scrollWheelZoom={true}
                         className="w-full h-full"
                     >
-                        <OpenFreeMapLayer style="auto" />
+                        <OpenFreeMapLayer style="google" />
                         <Marker position={[lat, lng]} icon={customIcon}>
                             <Popup className="custom-hotel-popup">
                                 <div className="p-2 min-w-[200px]">

@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HotelListing from './pages/HotelListing';
 import HotelDetail from './pages/HotelDetail';
-import MapView from './pages/MapView';
+
 import Dashboard from './pages/Dashboard';
 import Flights from './pages/Flights';
 import FlightListing from './pages/FlightListing';
@@ -87,7 +87,7 @@ function App() {
               <Route path="/hotel/checkout/result" element={<CheckoutResult />} />
 
               {/* Map View */}
-              <Route path="/map" element={<MapView />} />
+
 
               {/* Error / Forbidden Pages */}
               <Route path="/forbidden" element={<ForbiddenPage />} />

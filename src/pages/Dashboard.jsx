@@ -102,7 +102,7 @@ const Dashboard = () => {
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
         const todayStr = `${year}-${month}-${day}`;
-        navigate(`/bookings?createDateStart=${todayStr}&createDateEnd=${todayStr}&bookingStatuses=CONFIRMED`);
+        navigate(`/travel/hotels/bookings?createDateStart=${todayStr}&createDateEnd=${todayStr}&bookingStatuses=CONFIRMED`);
     };
 
     const handleErrorRateClick = () => {
@@ -111,7 +111,7 @@ const Dashboard = () => {
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
         const todayStr = `${year}-${month}-${day}`;
-        navigate(`/bookings?createDateStart=${todayStr}&createDateEnd=${todayStr}&bookingStatuses=ERROR`);
+        navigate(`/travel/hotels/bookings?createDateStart=${todayStr}&createDateEnd=${todayStr}&bookingStatuses=ERROR`);
     };
 
     return (
@@ -450,7 +450,7 @@ const Dashboard = () => {
                                     <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">{t('dashboard.recentBookings')}</h2>
                                 </div>
                                 <button
-                                    onClick={() => navigate('/bookings')}
+                                    onClick={() => navigate('/travel/hotels/bookings')}
                                     className="px-3.5 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary hover:text-white transition-all duration-200"
                                 >
                                     {t('dashboard.viewAll')}
@@ -495,7 +495,7 @@ const Dashboard = () => {
                                             bookings.map((booking) => (
                                                 <tr 
                                                     key={booking.bookingId} 
-                                                    onClick={() => navigate(`/bookings/${booking.bookingId}`)}
+                                                    onClick={() => navigate(`/travel/hotels/bookings/${booking.bookingId}`)}
                                                     className="odd:bg-white dark:odd:bg-slate-900/80 even:bg-slate-50/80 dark:even:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-b border-slate-100 dark:border-slate-800/60 cursor-pointer text-[11px] group"
                                                 >
                                                     <td className="px-4 py-2.5 text-[11px] font-semibold text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors whitespace-nowrap">

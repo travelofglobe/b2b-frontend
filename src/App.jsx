@@ -53,8 +53,10 @@ function App() {
               <Route path="/travel/hotels/search/campaign/:campaign" element={<HotelListing />} />
               <Route path="/travel/search" element={<Navigate to="/travel/hotels" replace />} />
               <Route path="/dashboard" element={<Navigate to="/travel/hotels" replace />} />
-              <Route path="/bookings" element={<MyBookings />} />
-              <Route path="/bookings/:bookingId" element={<BookingDetail />} />
+              <Route path="/travel/bookings" element={<MyBookings />} />
+              <Route path="/travel/hotels/bookings" element={<MyBookings />} />
+              <Route path="/travel/hotels/bookings/:bookingId" element={<BookingDetail />} />
+              <Route path="/travel/flights/bookings" element={<UnderConstruction title="Flight Bookings" icon="flight" />} />
               <Route path="/my-office" element={<MyOffice />} />
               <Route path="/definitions/markup" element={<MarkupManagement />} />
               
@@ -94,7 +96,7 @@ function App() {
               <Route path="/403" element={<ForbiddenPage />} />
             </Route>
 
-            <Route path="/bookings/:voucherId/voucher" element={<ProtectedRoute><VoucherPage /></ProtectedRoute>} />
+            <Route path="/travel/hotels/bookings/:voucherId/voucher" element={<ProtectedRoute><VoucherPage /></ProtectedRoute>} />
 
             {/* Redirect root to travel hotels (ProtectedRoute will handle auth check) */}
             <Route path="/" element={<Navigate to="/travel/hotels" replace />} />

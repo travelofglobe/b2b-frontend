@@ -42,7 +42,7 @@ const CheckoutResult = () => {
     const isSuccess = ['NEW', 'CONFIRMED'].includes(bookingResponse?.status);
     const bookingRef = bookingResponse?.voucher || bookingResponse?.clientReferenceId || bookingResponse?.bookingReference || bookingResponse?.bookingId || "TOG-REF-SUCCESS";
     const bookingIdForDetail = bookingResponse?.voucher || bookingResponse?.id || bookingResponse?.bookingId || bookingResponse?.bookingReference;
-    const detailUrl = (isSuccess && bookingIdForDetail) ? `/bookings/${bookingIdForDetail}` : '/bookings';
+    const detailUrl = (isSuccess && bookingIdForDetail) ? `/travel/hotels/bookings/${bookingIdForDetail}` : '/travel/hotels/bookings';
 
     if (!hotel) return (
         <div className="flex-1 bg-white dark:bg-[#202124] flex flex-col justify-between">

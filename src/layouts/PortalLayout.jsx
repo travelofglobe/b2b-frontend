@@ -18,6 +18,7 @@ const PortalLayout = () => {
     const currentLanguage = SUPPORTED_LANGUAGES.find(l => l.code === i18n.language) || SUPPORTED_LANGUAGES[1];
 
     // Menu States
+    const [isBookingsOpen, setIsBookingsOpen] = useState((location.pathname.startsWith('/travel') && location.pathname.includes('/bookings')) || location.pathname === '/travel/bookings');
     const [isMyOfficeOpen, setIsMyOfficeOpen] = useState(location.pathname.startsWith('/my-office'));
     const [isDefinitionsOpen, setIsDefinitionsOpen] = useState(location.pathname.startsWith('/definitions'));
     const [isGSAManagementOpen, setIsGSAManagementOpen] = useState(location.pathname.startsWith('/gsa'));
@@ -129,18 +130,40 @@ const PortalLayout = () => {
                         {/* Divider */}
                         <div className="my-2 border-t border-[#e8eaed] dark:border-slate-800"></div>
 
-                        {/* --- Section 1 --- */}
+                        {/* --- Section 1: Bookings --- */}
                         <div className="space-y-0.5 mb-1">
-                            {/* Nav item helper - active style */}
                             <button
-                                onClick={() => { setIsSidebarOpen(false); navigate('/bookings'); }}
-                                className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group cursor-pointer ${location.pathname.startsWith('/bookings')
+                                onClick={() => handleMenuToggle(setIsBookingsOpen, isBookingsOpen)}
+                                className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group focus:outline-none cursor-pointer ${(location.pathname.startsWith('/travel') && location.pathname.includes('/bookings')) || location.pathname === '/travel/bookings'
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                             >
-                                <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname.startsWith('/bookings') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>book_online</span>
-                                <span className="text-sm font-medium text-left leading-snug">{t('sidebar.myBookings')}</span>
+                                <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${(location.pathname.startsWith('/travel') && location.pathname.includes('/bookings')) || location.pathname === '/travel/bookings' ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>book_online</span>
+                                <span className="text-sm font-medium text-left leading-snug flex-1">Bookings</span>
+                                <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isBookingsOpen ? 'rotate-90' : ''} ${(location.pathname.startsWith('/travel') && location.pathname.includes('/bookings')) || location.pathname === '/travel/bookings' ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
                             </button>
+
+                            {isBookingsOpen && (
+                                <div className="space-y-0.5 animate-in slide-in-from-top-1 duration-200">
+                                    {[
+                                        { path: '/travel/bookings', icon: 'list_alt', label: 'All bookings' },
+                                        { path: '/travel/hotels/bookings', icon: 'bed', label: 'Hotel bookings' },
+                                        { path: '/travel/flights/bookings', icon: 'flight', label: 'Flight bookings' },
+                                    ].map(({ path, icon, label }) => {
+                                        const isActive = location.pathname === path;
+                                        return (
+                                            <button key={path} onClick={() => { setIsSidebarOpen(false); navigate(path); }}
+                                                className={`w-full flex items-center gap-4 -ml-2 pl-14 pr-4 py-2 rounded-r-full transition-colors group cursor-pointer ${isActive
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
+                                                    : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
+                                            >
+                                                <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
+                                                <span className="text-sm font-medium text-left leading-snug">{label}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
 
                         {/* Divider */}
@@ -244,7 +267,7 @@ const PortalLayout = () => {
                             >
                                 <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname.startsWith('/gsa') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>admin_panel_settings</span>
                                 <span className="text-sm font-medium text-left leading-snug flex-1">{t('sidebar.gsaManagement')}</span>
-                                <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isGSAManagementOpen ? 'rotate-180' : ''} ${location.pathname.startsWith('/gsa') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>expand_more</span>
+                                <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isGSAManagementOpen ? 'rotate-90' : ''} ${location.pathname.startsWith('/gsa') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
                             </button>
 
                             {isGSAManagementOpen && (

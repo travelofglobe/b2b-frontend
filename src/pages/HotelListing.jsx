@@ -246,8 +246,8 @@ const PriceMarker = React.memo(({
         const W = Math.max(58, Math.round(4 + 18 + 4 + textWidth + favWidth + 8));
 
         // Colors & styles matching Google Hotels
-        const iconBg = active ? '#1557b0' : '#1a73e8';
-        const borderColor = active ? '#1a73e8' : '#80868b';
+        const iconBg = active ? '#ea437b' : '#ee628e';
+        const borderColor = active ? '#5f6368' : '#80868b';
         const scale = active ? 'scale(1.12)' : 'scale(1)';
         const shadow = active 
             ? 'drop-shadow(0 3px 6px rgba(60,64,67,0.35)) drop-shadow(0 1px 3px rgba(60,64,67,0.2))'

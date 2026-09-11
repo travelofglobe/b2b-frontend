@@ -590,7 +590,7 @@ const DashboardSearch = () => {
                                     : 'text-[#3c4043] dark:text-slate-200 hover:text-[#202124] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] rounded border-b-2 border-transparent'
                             }`}
                         >
-                            <span className={`material-symbols-outlined text-[19px] ${showGuestDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-300'}`}>person</span>
+                            <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-[#8ab4f8]">person</span>
                             <span>{totalAdults + totalChildren}</span>
                             <span className={`material-symbols-outlined text-[19px] ${showGuestDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-300'}`}>
                                 {showGuestDropdown ? 'arrow_drop_up' : 'arrow_drop_down'}
@@ -965,7 +965,7 @@ const DashboardSearch = () => {
                             }`}
                         >
                             <div className="flex items-center gap-2 min-w-0 flex-1">
-                                <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-300 flex-shrink-0">
+                                <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-[#8ab4f8] flex-shrink-0">
                                     calendar_today
                                 </span>
                                 <span className="text-[13.5px] font-medium text-[#3c4043] dark:text-white truncate">

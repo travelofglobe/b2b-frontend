@@ -3105,7 +3105,7 @@ const HotelListing = () => {
                             title={isMapExpanded ? tListing('collapseMap', currentLang) : tListing('expandMap', currentLang)}
                         >
                             <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-300 group-hover:text-[#1a73e8] transition-colors">
-                                {isMapExpanded ? 'close_fullscreen' : 'fullscreen'}
+                                {isMapExpanded ? 'fullscreen_exit' : 'fullscreen'}
                             </span>
                         </button>
 

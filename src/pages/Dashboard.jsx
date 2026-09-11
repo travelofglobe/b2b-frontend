@@ -181,7 +181,7 @@ const Dashboard = () => {
                         {/* Bookings Today Card (Clickable) */}
                         <div
                             onClick={handleBookingsTodayClick}
-                            className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-3 px-3.5 rounded-xl border border-slate-200/70 dark:border-slate-800 shadow-xs flex flex-col justify-between group hover:border-emerald-500/50 hover:bg-emerald-500/[0.03] dark:hover:bg-emerald-500/[0.05] hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                            className="bg-white/80 dark:bg-[#303134] backdrop-blur-xl p-3 px-3.5 rounded-xl border border-slate-200/70 dark:border-[#3c4043] shadow-xs flex flex-col justify-between group hover:border-emerald-500/50 hover:bg-emerald-500/[0.03] dark:hover:bg-emerald-500/[0.05] hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                             title={currentLang === 'tr' ? 'Bugünkü onaylanan rezervasyonları görüntüle' : 'View confirmed bookings today'}
                         >
                             <div className="flex items-center justify-between">
@@ -221,7 +221,7 @@ const Dashboard = () => {
                         {/* Error Rate Card (Clickable) */}
                         <div
                             onClick={handleErrorRateClick}
-                            className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-3 px-3.5 rounded-xl border border-slate-200/70 dark:border-slate-800 shadow-xs flex flex-col justify-between group hover:border-amber-500/50 hover:bg-amber-500/[0.03] dark:hover:bg-amber-500/[0.05] hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                            className="bg-white/80 dark:bg-[#303134] backdrop-blur-xl p-3 px-3.5 rounded-xl border border-slate-200/70 dark:border-[#3c4043] shadow-xs flex flex-col justify-between group hover:border-amber-500/50 hover:bg-amber-500/[0.03] dark:hover:bg-amber-500/[0.05] hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                             title={currentLang === 'tr' ? 'Bugünkü hatalı rezervasyonları görüntüle' : 'View error bookings today'}
                         >
                             <div className="flex items-center justify-between">
@@ -259,7 +259,7 @@ const Dashboard = () => {
                         </div>
 
                         {/* Total Users Card */}
-                        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-3 px-3.5 rounded-xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex flex-col justify-between group hover:border-primary/40 transition-all duration-200">
+                        <div className="bg-white/70 dark:bg-[#303134] backdrop-blur-xl p-3 px-3.5 rounded-xl border border-slate-200/60 dark:border-[#3c4043] shadow-xs flex flex-col justify-between group hover:border-primary/40 transition-all duration-200">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-[9.5px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-0.5">{t('dashboard.totalUsers')}</p>
@@ -269,7 +269,7 @@ const Dashboard = () => {
                                     <span className="material-icons-round text-base">supervised_user_circle</span>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/60">
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-[#3c4043]">
                                 <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">STATUS</span>
                                 <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8.5px] font-semibold uppercase tracking-wider border border-emerald-500/20 flex items-center gap-1">
                                     <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span> Live
@@ -278,7 +278,7 @@ const Dashboard = () => {
                         </div>
 
                         {/* Active Users Card */}
-                        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-3 px-3.5 rounded-xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex flex-col justify-between group hover:border-amber-500/40 transition-all duration-200">
+                        <div className="bg-white/70 dark:bg-[#303134] backdrop-blur-xl p-3 px-3.5 rounded-xl border border-slate-200/60 dark:border-[#3c4043] shadow-xs flex flex-col justify-between group hover:border-amber-500/40 transition-all duration-200">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-[9.5px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-0.5">{t('dashboard.activeUsers')}</p>
@@ -288,7 +288,7 @@ const Dashboard = () => {
                                     <span className="material-icons-round text-base">bolt</span>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/60">
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-[#3c4043]">
                                 <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">STATE</span>
                                 <span className="px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[8.5px] font-semibold uppercase tracking-wider border border-amber-500/20 flex items-center gap-1">
                                     <span className="w-1 h-1 rounded-full bg-amber-500 animate-pulse"></span> Online
@@ -297,7 +297,7 @@ const Dashboard = () => {
                         </div>
 
                         {/* Total Guests Card */}
-                        <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-3 px-3.5 rounded-xl border border-slate-200/60 dark:border-slate-800 shadow-xs flex flex-col justify-between group hover:border-purple-500/40 transition-all duration-200">
+                        <div className="bg-white/70 dark:bg-[#303134] backdrop-blur-xl p-3 px-3.5 rounded-xl border border-slate-200/60 dark:border-[#3c4043] shadow-xs flex flex-col justify-between group hover:border-purple-500/40 transition-all duration-200">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-[9.5px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-none mb-0.5">{t('dashboard.totalGuests')}</p>
@@ -307,7 +307,7 @@ const Dashboard = () => {
                                     <span className="material-icons-round text-base">group</span>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/60">
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-[#3c4043]">
                                 <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">SYSTEM</span>
                                 <span className="px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[8.5px] font-semibold uppercase tracking-wider border border-purple-500/20 flex items-center gap-1">
                                     <span className="material-icons-round text-[9px]">people</span> CRM
@@ -328,19 +328,19 @@ const Dashboard = () => {
                                 </div>
                             </div>
                             <div className="flex gap-2">
-                                <button className="size-9 rounded-xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all flex items-center justify-center text-slate-400 hover:text-primary">
+                                <button className="size-9 rounded-xl bg-white/40 dark:bg-[#28292c] border border-white/60 dark:border-white/10 hover:bg-white/60 dark:hover:bg-[#383a3e] transition-all flex items-center justify-center text-slate-400 hover:text-primary">
                                     <span className="material-icons-round text-lg">chevron_left</span>
                                 </button>
-                                <button className="size-9 rounded-xl bg-white/40 dark:bg-slate-800/40 border border-white/60 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all flex items-center justify-center text-primary">
+                                <button className="size-9 rounded-xl bg-white/40 dark:bg-[#28292c] border border-white/60 dark:border-white/10 hover:bg-white/60 dark:hover:bg-[#383a3e] transition-all flex items-center justify-center text-primary">
                                     <span className="material-icons-round text-lg">chevron_right</span>
                                 </button>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div onClick={() => navigate('/hotels/dubai')} className="group bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-2xl overflow-hidden border border-white/60 dark:border-white/10 cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div onClick={() => navigate('/hotels/dubai')} className="group bg-white/40 dark:bg-[#303134] backdrop-blur-3xl rounded-2xl overflow-hidden border border-white/60 dark:border-white/10 cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                                 <div className="relative h-40 overflow-hidden">
                                     <img alt="Dubai skyline" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA44V5Rw3n0d1IRUftf6z8_vB3HBwcJuZJYvR8YmMatQ44JJKuoVOOMZcc324K7w5t1CEj7rrbmQfvu5_L2C40dYKtEcaBr5ly0T2kK_jkA4AEB8UFmJdh9tBTYpY2-EwDPlKBK-hSxTlvOGKO0anJ6RtGIuOBD2wgcngOYuLJCxcsptvI1yl_q818XSF4LsNWF3KF9TlwuW10-EZRTff2f_RLRbTnjZryGus-MPJEtchv29FeLBwrrvu5twYK6Gksekuw7rc8BfLAE" />
-                                    <div className="absolute top-3 right-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
+                                    <div className="absolute top-3 right-3 bg-white/60 dark:bg-[#303134] backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
                                         <span className="material-icons-round text-primary text-xs">trending_up</span>
                                         <span className="text-[9.5px] font-medium uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
@@ -362,10 +362,10 @@ const Dashboard = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div onClick={() => navigate('/hotels/paris')} className="group bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-2xl overflow-hidden border border-white/60 dark:border-white/10 cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div onClick={() => navigate('/hotels/paris')} className="group bg-white/40 dark:bg-[#303134] backdrop-blur-3xl rounded-2xl overflow-hidden border border-white/60 dark:border-white/10 cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                                 <div className="relative h-40 overflow-hidden">
                                     <img alt="Eiffel Tower Paris" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAKaysBHtmgeqbCgI0hzy0BjMTk-ihUbfPvkwXOo8168DpEmYK3ZwUxnws0XTpi6CmcD9AxZbd3_eEML6dtpH1U4UclGEab2N3lvPHR2NF83mJEoRDl4abqV9dzSRQSgW_hG8DnDAIF2poS3q0EGj7EQwR269k2fBX9DwMIy5gLNy3CNjSgGuy6g3et73S__a185-hjz_rlYOqQXd3J9xxPDU6VuTKmnr7sPPCcfG7YmvzEi-Tg2SmIcvAqYG0Sbd2-iebgBNPsKU_" />
-                                    <div className="absolute top-3 right-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
+                                    <div className="absolute top-3 right-3 bg-white/60 dark:bg-[#303134] backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
                                         <span className="material-icons-round text-primary text-xs">trending_up</span>
                                         <span className="text-[9.5px] font-medium uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
@@ -387,10 +387,10 @@ const Dashboard = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div onClick={() => navigate('/hotels/tokyo')} className="group bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-2xl overflow-hidden border border-white/60 dark:border-white/10 cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div onClick={() => navigate('/hotels/tokyo')} className="group bg-white/40 dark:bg-[#303134] backdrop-blur-3xl rounded-2xl overflow-hidden border border-white/60 dark:border-white/10 cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                                 <div className="relative h-40 overflow-hidden">
                                     <img alt="Tokyo tower" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0NEc0GKKnW3d7mB9bVdbYwFNBEpY_nhmkIekHSBPSWraDNin1ulHT4_q9cfhMIcqrg51KW03dH7sambalU3BYZ7y1HYErTyF-Wv08E5_ZTcGFZrbVQoaAWGSJJ-DT_LoEtPdZ6dZ8UDyuHbzkGiRdIafWF85YxePToZg0rHlnEcE09fDEybxGYm1CEGPO7UT-q-ghVu23XP5EZBmMWGnaKFbxyGO7P11p_zKZAvKsILFOdCL3gMmFS3S-e5qWTr12LhS_aHMTOtlm" />
-                                    <div className="absolute top-3 right-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
+                                    <div className="absolute top-3 right-3 bg-white/60 dark:bg-[#303134] backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
                                         <span className="material-icons-round text-primary text-xs">trending_up</span>
                                         <span className="text-[9.5px] font-medium uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
@@ -412,10 +412,10 @@ const Dashboard = () => {
                                     </div>
                                 </div>
                             </div>
-                            <div onClick={() => navigate('/hotels/new york')} className="group bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-2xl overflow-hidden border border-white/60 dark:border-white/10 cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div onClick={() => navigate('/hotels/new york')} className="group bg-white/40 dark:bg-[#303134] backdrop-blur-3xl rounded-2xl overflow-hidden border border-white/60 dark:border-white/10 cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                                 <div className="relative h-40 overflow-hidden">
                                     <img alt="New York City" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtxEUChP8HguBV_GFxz8TEk3Dssxi8xSCtI9Z9T9odllNiM91Ak0hyIkth1y8h7fVd-SgwSm4HxyJenSQHfxcK0mRSw03MGbXy9awP6fWL9o2E6w2zJuTizyr02IqQyZd6m73Z9CBZkHOiHgr0UxqaQ0otgONM7xlmX8jdsLkvqO6E3iPFxcpO5oCVYD2Oeq35OrYztM-6PMWjIP3b1DOmvxfBWs1CLP1K2ycUZSlNdQ7d-ig6xdBpLeQU4BjENmJ-TBFNTw8OLQXD" />
-                                    <div className="absolute top-3 right-3 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
+                                    <div className="absolute top-3 right-3 bg-white/60 dark:bg-[#303134] backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
                                         <span className="material-icons-round text-primary text-xs">trending_up</span>
                                         <span className="text-[9.5px] font-medium uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
@@ -441,7 +441,7 @@ const Dashboard = () => {
                     </section>
 
                     <section className="mb-10">
-                        <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl rounded-2xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl">
+                        <div className="bg-white/40 dark:bg-[#303134] backdrop-blur-3xl rounded-2xl border border-white/60 dark:border-white/10 overflow-hidden shadow-xl">
                             <div className="p-5 border-b border-white/40 dark:border-white/5 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
@@ -459,7 +459,7 @@ const Dashboard = () => {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left ltr:text-left rtl:text-right border-collapse">
                                     <thead>
-                                        <tr className="bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800">
+                                        <tr className="bg-slate-50/90 dark:bg-[#303134] border-b border-slate-200 dark:border-[#3c4043]">
                                             <th className="px-4 py-2.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider select-none">{t('dashboard.bookingId')}</th>
                                             <th className="px-4 py-2.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider select-none">{t('dashboard.voucher')}</th>
                                             <th className="px-4 py-2.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider select-none">{t('dashboard.agency')}</th>
@@ -496,7 +496,7 @@ const Dashboard = () => {
                                                 <tr 
                                                     key={booking.bookingId} 
                                                     onClick={() => navigate(`/travel/hotels/bookings/${booking.bookingId}`)}
-                                                    className="odd:bg-white dark:odd:bg-slate-900/80 even:bg-slate-50/80 dark:even:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-b border-slate-100 dark:border-slate-800/60 cursor-pointer text-[11px] group"
+                                                    className="odd:bg-white dark:odd:bg-[#303134] even:bg-slate-50/80 dark:even:bg-[#28292c] hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors duration-150 border-b border-slate-100 dark:border-[#3c4043] cursor-pointer text-[11px] group"
                                                 >
                                                     <td className="px-4 py-2.5 text-[11px] font-semibold text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors whitespace-nowrap">
                                                         #{booking.bookingId}
@@ -534,7 +534,7 @@ const Dashboard = () => {
                     </section>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                        <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-[#303134] rounded-2xl border border-slate-100 dark:border-[#3c4043]">
                             <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-primary">
                                 <span className="material-icons-round text-xl">verified_user</span>
                             </div>
@@ -543,7 +543,7 @@ const Dashboard = () => {
                                 <p className="text-[10px] text-slate-400">{t('dashboard.securePaymentSub')}</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-[#303134] rounded-2xl border border-slate-100 dark:border-[#3c4043]">
                             <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-primary">
                                 <span className="material-icons-round text-xl">loyalty</span>
                             </div>
@@ -552,7 +552,7 @@ const Dashboard = () => {
                                 <p className="text-[10px] text-slate-400">{t('dashboard.bestPriceSub')}</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-[#303134] rounded-2xl border border-slate-100 dark:border-[#3c4043]">
                             <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-primary">
                                 <span className="material-icons-round text-xl">support_agent</span>
                             </div>
@@ -561,7 +561,7 @@ const Dashboard = () => {
                                 <p className="text-[10px] text-slate-400">{t('dashboard.support247Sub')}</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-[#303134] rounded-2xl border border-slate-100 dark:border-[#3c4043]">
                             <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-primary">
                                 <span className="material-icons-round text-xl">reviews</span>
                             </div>

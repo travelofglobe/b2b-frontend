@@ -116,7 +116,7 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                     {label}
                 </label>
             )}
-            <div className="relative z-[9999]" ref={dropdownRef}>
+            <div className="relative" ref={dropdownRef}>
                 <div className={`flex items-stretch h-9 bg-white dark:bg-slate-800 border rounded-lg transition-all ${
                     error ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700 focus-within:border-primary'
                 }`}>
@@ -145,7 +145,7 @@ const PhoneInput = ({ value, onChange, label, error }) => {
 
                 {/* Dropdown */}
                 {isOpen && (
-                    <div className={`absolute left-0 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-[100] overflow-hidden animate-in fade-in duration-200 ${
+                    <div className={`absolute left-0 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in duration-200 ${
                         openUpwards ? 'bottom-full mb-2 slide-in-from-bottom-2' : 'top-full mt-2 slide-in-from-top-2'
                     }`}>
                         <div className="p-2 border-b border-slate-100 dark:border-slate-800">

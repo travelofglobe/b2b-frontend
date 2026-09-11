@@ -30,6 +30,31 @@ const HotelQuickLookDrawer = ({
     const [boardTypeFilter, setBoardTypeFilter] = useState('ALL');
     const [cancelFilter, setCancelFilter] = useState('ALL');
     const [expandedRates, setExpandedRates] = useState({});
+    const [selectedRooms, setSelectedRooms] = useState([]);
+    const [isMultiBookingLoading, setIsMultiBookingLoading] = useState(false);
+
+    const parsedRooms = useMemo(() => {
+        const guestsParam = searchParams?.get('guests');
+        if (guestsParam) {
+            try {
+                const parsed = JSON.parse(guestsParam);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed.map(r => ({
+                        adults: r.a || 2,
+                        children: r.c || 0,
+                        childAges: r.ca || []
+                    }));
+                }
+            } catch (e) {}
+        }
+        return [{ adults: 2, children: 0, childAges: [] }];
+    }, [searchParams]);
+
+    const maxAllowedRooms = Math.min(parsedRooms.length || 1, 4);
+
+    const totalSelectedPrice = useMemo(() => {
+        return selectedRooms.reduce((sum, r) => sum + (r.rate || 0), 0);
+    }, [selectedRooms]);
 
     // Keep cached hotel so during exit animation the content remains intact
     useEffect(() => {
@@ -39,6 +64,7 @@ const HotelQuickLookDrawer = ({
             setActiveTab('overview');
             setBoardTypeFilter('ALL');
             setCancelFilter('ALL');
+            setSelectedRooms([]);
         }
     }, [hotel?.id, hotel?.hotelId]);
 
@@ -341,6 +367,146 @@ const HotelQuickLookDrawer = ({
         }
     };
 
+    const handleToggleRoom = (rateItem, roomGroup) => {
+        const rateCode = rateItem?.hubRateModel?.rateCode || rateItem?.rateCode;
+        const roomName = roomGroup?.name || rateItem?.names?.tr || rateItem?.names?.en || 'Standart Oda';
+        const price = rateItem?.hubRateModel?.price?.calculatedAmount 
+            || rateItem?.hubRateModel?.price?.totalPaymentAmount 
+            || rateItem?.price 
+            || currentHotel.price || 0;
+        const currency = rateItem?.hubRateModel?.price?.currency || currentHotel.currency || 'EUR';
+
+        // If single room search, proceed directly to single checkout
+        if (maxAllowedRooms === 1) {
+            handleSelectRateAndCheckout(rateItem, roomGroup);
+            return;
+        }
+
+        // Multi-room search
+        if (selectedRooms.length >= maxAllowedRooms) {
+            if (toastError) {
+                toastError(`Aramanızda ${maxAllowedRooms} oda belirttiniz. En fazla ${maxAllowedRooms} oda seçebilirsiniz. Farklı bir oda seçmek için mevcut seçimlerden birini kaldırabilirsiniz.`);
+            }
+            return;
+        }
+
+        const newRoom = {
+            type: roomName,
+            rate: price,
+            name: roomName,
+            currency: currency,
+            hubRateModel: rateItem?.hubRateModel,
+            rateCode: rateCode,
+            cancellationPolicies: rateItem?.hubRateModel?.price?.cancellationPolicies || [],
+            dailyPrices: rateItem?.hubRateModel?.price?.dailyPrices || []
+        };
+
+        setSelectedRooms(prev => [...prev, newRoom]);
+    };
+
+    const handleRemoveRoom = (rateCode) => {
+        setSelectedRooms(prev => {
+            const index = prev.findIndex(r => (r.hubRateModel?.rateCode || r.rateCode) === rateCode);
+            if (index > -1) {
+                const next = [...prev];
+                next.splice(index, 1);
+                return next;
+            }
+            return prev;
+        });
+    };
+
+    const handleRemoveRoomByIndex = (index) => {
+        setSelectedRooms(prev => {
+            const next = [...prev];
+            next.splice(index, 1);
+            return next;
+        });
+    };
+
+    const handleMultiRoomCheckout = async () => {
+        if (selectedRooms.length === 0 || isMultiBookingLoading) return;
+        if (selectedRooms.length < maxAllowedRooms) {
+            if (toastError) {
+                toastError(`Lütfen ${maxAllowedRooms} oda seçiminizi tamamlayın (${selectedRooms.length}/${maxAllowedRooms} seçildi).`);
+            }
+            return;
+        }
+
+        setIsMultiBookingLoading(true);
+
+        try {
+            const checkRatesRequest = {
+                rooms: selectedRooms.map(room => ({
+                    rateCode: room.hubRateModel?.rateCode || room.rateCode || ''
+                }))
+            };
+
+            const response = await hotelService.checkRates(checkRatesRequest);
+            console.log('Multi-room check rates response:', response);
+
+            const checkRatesList = Array.isArray(response) ? response : (response?.data ? (Array.isArray(response.data) ? response.data : [response.data]) : []);
+            const firstHotel = checkRatesList[0] || {};
+            const rateSearchUuid = response?.rateSearchUuid || firstHotel?.rateSearchUuid || '';
+
+            const concatRateCodes = (selectedRooms || [])
+                .map(r => r.hubRateModel?.rateCode || r.rateCode || '')
+                .sort()
+                .join('_');
+
+            let sid = '';
+            if (window.crypto && window.crypto.subtle) {
+                try {
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(concatRateCodes);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    sid = hashHex.substring(0, 16);
+                } catch (e) {}
+            }
+            if (!sid) {
+                let hash = 0;
+                for (let i = 0; i < concatRateCodes.length; i++) {
+                    const char = concatRateCodes.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                sid = Math.abs(hash).toString(16).padEnd(16, 'a');
+            }
+
+            const parsedCheckIn = checkin ? new Date(checkin) : new Date();
+            const parsedCheckOut = checkout ? new Date(checkout) : new Date(Date.now() + 86400000);
+            const isoCheckIn = parsedCheckIn.toISOString();
+            const isoCheckOut = parsedCheckOut.toISOString();
+            const diffDays = Math.max(1, Math.ceil(Math.abs(parsedCheckOut - parsedCheckIn) / (1000 * 60 * 60 * 24)));
+
+            const sessionData = {
+                selectedRooms,
+                hotel: currentHotel,
+                roomState: parsedRooms,
+                checkInDate: isoCheckIn,
+                checkOutDate: isoCheckOut,
+                totalPrice: totalSelectedPrice,
+                nights: diffDays,
+                rateSearchUuid: rateSearchUuid,
+                checkRatesData: firstHotel,
+                originalSearch: searchParams ? `?${searchParams.toString()}` : '',
+                hotelSlug: String(currentHotel.hotelId || currentHotel.id)
+            };
+
+            await hotelService.saveCheckoutSession(sid, sessionData);
+            navigate(`/travel/hotels/checkout/guests?sessionId=${sid}`);
+        } catch (err) {
+            console.error('Multi room check rates error:', err);
+            if (toastError) {
+                toastError('Fiyat kontrolü sırasında bir hata oluştu veya odalardan biri artık müsait değil.');
+            }
+        } finally {
+            setIsMultiBookingLoading(false);
+        }
+    };
+
     return (
         <div
             className={`absolute inset-0 z-[2100] bg-white dark:bg-[#202124] flex flex-col overflow-hidden transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
@@ -459,8 +625,9 @@ const HotelQuickLookDrawer = ({
 
                             {/* Blue Price Badge */}
                             <div className="bg-[#1a73e8] text-white rounded-xl px-4 py-2.5 text-right shrink-0 shadow-md min-w-[105px]">
-                                <div className="text-[18px] font-bold leading-tight">
-                                    {currencySymbol}{formattedPrice}
+                                <div className="text-[18px] font-bold leading-tight flex items-baseline justify-end">
+                                    <span className="mr-1">{currencySymbol}</span>
+                                    <span>{formattedPrice}</span>
                                 </div>
                                 <div className="text-[11px] font-normal opacity-90 leading-tight mt-0.5">
                                     {dateRangeLabel}
@@ -621,12 +788,20 @@ const HotelQuickLookDrawer = ({
                                                 </div>
 
                                                 <div className="flex items-center gap-3 shrink-0">
-                                                    <span className="text-[16px] font-bold text-[#202124] dark:text-slate-100">
-                                                        {currencySymbol}{Math.round(price).toLocaleString('tr-TR')}
+                                                    <span className="text-[16px] font-bold text-[#202124] dark:text-slate-100 flex items-baseline">
+                                                        <span className="mr-1">{currencySymbol}</span>
+                                                        <span>{Math.round(price).toLocaleString('tr-TR')}</span>
                                                     </span>
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleSelectRateAndCheckout(bestRate, roomGroup)}
+                                                        onClick={() => {
+                                                            if (maxAllowedRooms > 1) {
+                                                                handleToggleRoom(bestRate, roomGroup);
+                                                                setActiveTab('prices');
+                                                            } else {
+                                                                handleSelectRateAndCheckout(bestRate, roomGroup);
+                                                            }
+                                                        }}
                                                         disabled={!!bookingRateCode}
                                                         className="px-4 py-1.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-[12.5px] font-medium rounded-full transition-colors cursor-pointer disabled:opacity-60 flex items-center gap-1.5 shadow-sm"
                                                     >
@@ -655,8 +830,9 @@ const HotelQuickLookDrawer = ({
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-[16px] font-bold text-[#202124] dark:text-slate-100">
-                                            {currencySymbol}{formattedPrice}
+                                        <span className="text-[16px] font-bold text-[#202124] dark:text-slate-100 flex items-baseline">
+                                            <span className="mr-1">{currencySymbol}</span>
+                                            <span>{formattedPrice}</span>
                                         </span>
                                         <button
                                             type="button"
@@ -880,11 +1056,18 @@ const HotelQuickLookDrawer = ({
                                                         || cancelPolicy?.amount === 0 
                                                         || rateItem.hasFreeCancellation;
                                                     const cancelDueDate = cancelPolicy?.dueDate ? formatDateBadge(cancelPolicy.dueDate) : null;
+                                                    const rateCode = rateItem.hubRateModel?.rateCode || rateItem.rateCode;
+                                                    const selectedCount = (selectedRooms || []).filter(r => (r.hubRateModel?.rateCode || r.rateCode) === rateCode).length;
+                                                    const isSelected = selectedCount > 0;
 
                                                     return (
                                                         <div 
                                                             key={rIdx}
-                                                            className="p-3 sm:p-3.5 rounded-xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#1a73e8] transition-all"
+                                                            className={`p-3 sm:p-3.5 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                                                                isSelected 
+                                                                    ? 'border-[#1a73e8] bg-[#f8fafd] dark:bg-blue-950/20 shadow-xs ring-1 ring-[#1a73e8]/30' 
+                                                                    : 'border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] hover:border-[#1a73e8]'
+                                                            }`}
                                                         >
                                                             <div className="space-y-1 flex-1 min-w-0">
                                                                 <div className="flex items-center gap-2">
@@ -938,29 +1121,71 @@ const HotelQuickLookDrawer = ({
 
                                                             <div className="flex items-center gap-3 justify-between sm:justify-end border-t sm:border-t-0 sm:border-l border-[#dadce0] dark:border-slate-700 pt-2.5 sm:pt-0 sm:pl-4 shrink-0">
                                                                 <div className="text-right">
-                                                                    <div className="text-[17px] font-bold text-[#1a73e8] dark:text-blue-400 leading-none">
-                                                                        {currencySymbol}{Math.round(price).toLocaleString('tr-TR')}
+                                                                    <div className="text-[17px] font-bold text-[#1a73e8] dark:text-blue-400 leading-none flex items-baseline justify-end">
+                                                                        <span className="mr-1">{currencySymbol}</span>
+                                                                        <span>{Math.round(price).toLocaleString('tr-TR')}</span>
                                                                     </div>
                                                                     <p className="text-[10.5px] text-[#5f6368] dark:text-slate-400 font-normal mt-0.5">
                                                                         Toplam Net Tutar
                                                                     </p>
                                                                 </div>
 
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleSelectRateAndCheckout(rateItem, group)}
-                                                                    disabled={!!bookingRateCode}
-                                                                    className="px-4 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-[12.5px] font-medium rounded-full transition-colors shadow-sm cursor-pointer disabled:opacity-60 flex items-center gap-1.5"
-                                                                >
-                                                                    {bookingRateCode === (rateItem.hubRateModel?.rateCode || rateItem.rateCode) ? (
-                                                                        <>
-                                                                            <span className="size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                                                                            <span>Seçiliyor...</span>
-                                                                        </>
+                                                                {maxAllowedRooms > 1 ? (
+                                                                    isSelected ? (
+                                                                        <div className="flex items-center gap-1.5 bg-[#e8f0fe] dark:bg-blue-900/40 p-1 rounded-full border border-blue-200 dark:border-blue-800">
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleRemoveRoom(rateCode)}
+                                                                                className="w-7 h-7 flex items-center justify-center rounded-full bg-white dark:bg-[#202124] text-[#1a73e8] hover:bg-slate-100 dark:hover:bg-slate-800 shadow-xs cursor-pointer transition-colors"
+                                                                                title="1 oda çıkar"
+                                                                            >
+                                                                                <span className="material-symbols-outlined text-[16px]">remove</span>
+                                                                            </button>
+                                                                            <span className="text-[12.5px] font-bold text-[#1a73e8] px-1.5 whitespace-nowrap">
+                                                                                {selectedCount} Seçildi
+                                                                            </span>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleToggleRoom(rateItem, group)}
+                                                                                disabled={selectedRooms.length >= maxAllowedRooms}
+                                                                                className="w-7 h-7 flex items-center justify-center rounded-full bg-[#1a73e8] text-white hover:bg-[#1557b0] disabled:opacity-40 disabled:hover:bg-[#1a73e8] shadow-xs cursor-pointer transition-colors"
+                                                                                title={selectedRooms.length >= maxAllowedRooms ? `Maksimum ${maxAllowedRooms} oda seçildi` : '1 oda daha ekle'}
+                                                                            >
+                                                                                <span className="material-symbols-outlined text-[16px]">add</span>
+                                                                            </button>
+                                                                        </div>
                                                                     ) : (
-                                                                        <span>Odayı Seç</span>
-                                                                    )}
-                                                                </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleToggleRoom(rateItem, group)}
+                                                                            disabled={selectedRooms.length >= maxAllowedRooms}
+                                                                            className={`px-4 py-2 text-[12.5px] font-medium rounded-full transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer ${
+                                                                                selectedRooms.length >= maxAllowedRooms
+                                                                                    ? 'bg-[#dadce0] dark:bg-slate-700 text-[#70757a] dark:text-slate-400 cursor-not-allowed opacity-60'
+                                                                                    : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white'
+                                                                            }`}
+                                                                        >
+                                                                            <span className="material-symbols-outlined text-[16px]">add</span>
+                                                                            <span>Odayı Seç</span>
+                                                                        </button>
+                                                                    )
+                                                                ) : (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleSelectRateAndCheckout(rateItem, group)}
+                                                                        disabled={!!bookingRateCode}
+                                                                        className="px-4 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-[12.5px] font-medium rounded-full transition-colors shadow-sm cursor-pointer disabled:opacity-60 flex items-center gap-1.5"
+                                                                    >
+                                                                        {bookingRateCode === rateCode ? (
+                                                                            <>
+                                                                                <span className="size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                                                                <span>Seçiliyor...</span>
+                                                                            </>
+                                                                        ) : (
+                                                                            <span>Odayı Seç</span>
+                                                                        )}
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     );
@@ -983,7 +1208,7 @@ const HotelQuickLookDrawer = ({
                             <div className="p-8 text-center border border-[#dadce0] dark:border-slate-700 rounded-xl space-y-3">
                                 <span className="material-symbols-outlined text-[40px] text-[#70757a]">hotel</span>
                                 <h3 className="text-[16px] font-medium text-[#202124] dark:text-slate-100">
-                                    Başlangıç Fiyatı: {currencySymbol}{formattedPrice}
+                                    Başlangıç Fiyatı: <span className="font-semibold"><span className="mr-1">{currencySymbol}</span>{formattedPrice}</span>
                                 </h3>
                                 <p className="text-[13px] text-[#5f6368] dark:text-slate-400 max-w-md mx-auto">
                                     Seçilen tarihler için tüm oda seçeneklerini ve detaylı iptal koşullarını tam otel detay sayfasından inceleyebilirsiniz.
@@ -1202,6 +1427,99 @@ const HotelQuickLookDrawer = ({
                     </div>
                 )}
             </div>
+
+            {/* ══════════════════════════════════════════
+                STICKY MULTI-ROOM SELECTION FOOTER BAR
+            ══════════════════════════════════════════ */}
+            {maxAllowedRooms > 1 && (
+                <div className="shrink-0 border-t border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] px-6 py-3.5 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-30">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-xl bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] flex items-center justify-center shrink-0">
+                                <span className="material-symbols-outlined text-[22px]">hotel</span>
+                            </div>
+                            <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[14px] font-semibold text-[#202124] dark:text-white">
+                                        {selectedRooms.length} / {maxAllowedRooms} Oda Seçildi
+                                    </span>
+                                    {selectedRooms.length > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedRooms([])}
+                                            className="text-[11.5px] text-[#d93025] hover:underline cursor-pointer font-medium"
+                                        >
+                                            Seçimleri Temizle
+                                        </button>
+                                    )}
+                                </div>
+                                <p className="text-[12px] text-[#5f6368] dark:text-slate-400 truncate">
+                                    {selectedRooms.length === maxAllowedRooms 
+                                        ? 'Tüm odalar seçildi, rezervasyona devam edebilirsiniz.'
+                                        : `İlerlemeniz için ${maxAllowedRooms - selectedRooms.length} oda daha seçmelisiniz.`}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
+                            {selectedRooms.length > 0 && (
+                                <div className="text-right">
+                                    <div className="text-[18px] font-bold text-[#1a73e8] dark:text-blue-400 leading-tight flex items-baseline justify-end">
+                                        <span className="mr-1">{currencySymbol}</span>
+                                        <span>{Math.round(totalSelectedPrice).toLocaleString('tr-TR')}</span>
+                                    </div>
+                                    <p className="text-[10.5px] text-[#5f6368] dark:text-slate-400">
+                                        Toplam Seçilen Fiyat
+                                    </p>
+                                </div>
+                            )}
+
+                            <button
+                                type="button"
+                                onClick={handleMultiRoomCheckout}
+                                disabled={selectedRooms.length !== maxAllowedRooms || isMultiBookingLoading}
+                                className="px-5 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-[13px] font-medium rounded-full transition-all shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {isMultiBookingLoading ? (
+                                    <>
+                                        <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                        <span>Hazırlanıyor...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Rezervasyona Devam Et ({selectedRooms.length}/{maxAllowedRooms})</span>
+                                        <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Selected rooms pill preview tag list */}
+                    {selectedRooms.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-2.5 mt-2 border-t border-[#f1f3f4] dark:border-slate-800">
+                            {selectedRooms.map((room, idx) => (
+                                <span 
+                                    key={idx} 
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f1f3f4] dark:bg-slate-800 text-[11.5px] text-[#3c4043] dark:text-slate-200 border border-[#dadce0] dark:border-slate-700"
+                                >
+                                    <span className="font-semibold text-[#1a73e8]">#{idx + 1}</span>
+                                    <span className="truncate max-w-[150px]">{room.name}</span>
+                                    <span className="text-[#5f6368] font-medium">({currencySymbol}{Math.round(room.rate)})</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveRoomByIndex(idx)}
+                                        className="hover:text-[#d93025] ml-0.5 cursor-pointer flex items-center"
+                                        title="Odayı kaldır"
+                                    >
+                                        <span className="material-symbols-outlined text-[14px]">close</span>
+                                    </button>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* ══════════════════════════════════════════
                 4. PHOTO LIGHTBOX MODAL

@@ -15,22 +15,22 @@ const loadingLocales = {
     pt: "Protegendo seu portal..."
 };
 
-const PlaneLoading = () => {
+const PlaneLoading = ({ topClass = "top-16" }) => {
     const currentLang = localStorage.getItem('language') || 'tr';
     const localizedText = loadingLocales[currentLang] || loadingLocales['tr'];
 
     return (
-        <div className="fixed top-0 left-0 right-0 z-[9999] h-12 animate-in fade-in duration-500 pointer-events-none">
-            {/* Background Bar (Glassmorphic Track) - Shifted down to avoid clipping */}
-            <div className="absolute inset-x-0 top-6 h-1 bg-white/5 backdrop-blur-sm border-b border-white/10" />
+        <div className={`fixed left-0 right-0 z-[1050] h-12 animate-in fade-in duration-500 pointer-events-none ${topClass}`}>
+            {/* Background Bar (Track) - Placed exactly at the top border */}
+            <div className="absolute inset-x-0 top-0 h-1 bg-white/10 backdrop-blur-sm border-b border-white/20" />
 
             {/* Progress Container */}
             <div className="relative w-full h-full">
                 {/* Glowing Progress Fill */}
-                <div className="absolute top-6 left-0 h-1 bg-gradient-to-r from-transparent via-primary to-blue-400 shadow-[0_0_20px_rgba(19,127,236,0.8)] animate-progress-fill" />
+                <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-transparent via-primary to-blue-400 shadow-[0_0_20px_rgba(19,127,236,0.8)] animate-progress-fill" />
 
-                {/* The Plane */}
-                <div className="absolute top-6 -ml-4 -translate-y-1/2 flex items-center justify-center animate-plane-travel">
+                {/* The Plane - Centers on the line, overlays header border */}
+                <div className="absolute top-0 -ml-4 -translate-y-1/2 flex items-center justify-center animate-plane-travel z-20">
                     <div className="relative flex items-center">
                         <span className="material-symbols-outlined text-[24px] text-white rotate-90 fill-1 [text-shadow:0_0_15px_rgba(255,255,255,0.9)]">
                             flight
@@ -42,8 +42,8 @@ const PlaneLoading = () => {
             </div>
 
             {/* Subtle "Authenticating" text underneath */}
-            <div className="absolute top-10 left-1/2 -translate-x-1/2 w-full text-center">
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/80 animate-pulse whitespace-nowrap">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full text-center">
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/90 drop-shadow animate-pulse whitespace-nowrap">
                     {localizedText}
                 </p>
             </div>
@@ -71,3 +71,4 @@ const PlaneLoading = () => {
 };
 
 export default PlaneLoading;
+

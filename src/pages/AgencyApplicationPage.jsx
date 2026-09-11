@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { locationService } from '../services/locationService';
 import { agencyApplicationService } from '../services/agencyApplicationService';
 import PlaneLoading from '../components/PlaneLoading';
-import LanguageSwitcher from '../components/LanguageSwitcher';
+import PublicHeader from '../components/PublicHeader';
 import { useTranslation } from 'react-i18next';
 import { countryCodes } from '../utils/countryCodes';
 import { getAgencyAppLocale } from '../utils/agencyAppLocales';
@@ -305,13 +305,12 @@ const AgencyApplicationPage = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center relative overflow-y-auto bg-slate-50 font-sans py-12">
-            {isLoading && <PlaneLoading />}
+        <div className="min-h-screen w-full flex items-center justify-center relative overflow-y-auto bg-slate-50 dark:bg-slate-900 font-sans pt-20 pb-12">
+            {/* Modern Public Header */}
+            <PublicHeader />
 
-            {/* Floating Language Switcher */}
-            <div className="absolute top-6 right-6 z-30">
-                <LanguageSwitcher />
-            </div>
+            {/* Plane Loading bar positioned right underneath the header line */}
+            {isLoading && <PlaneLoading topClass="top-16" />}
 
 
             {/* Main Application Box */}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import PlaneLoading from '../components/PlaneLoading';
+import PublicHeader from '../components/PublicHeader';
 
 const ResetPasswordPage = () => {
     const location = useLocation();
@@ -65,8 +66,9 @@ const ResetPasswordPage = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-6 py-12 relative overflow-hidden font-sans">
-            {isLoading && <PlaneLoading />}
+        <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-6 pt-20 pb-12 relative overflow-hidden font-sans">
+            <PublicHeader />
+            {isLoading && <PlaneLoading topClass="top-16" />}
 
             {/* Immersive background decoration */}
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0 overflow-hidden">

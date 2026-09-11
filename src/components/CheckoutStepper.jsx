@@ -82,81 +82,77 @@ const CheckoutStepper = ({ currentStep, onStepClick }) => {
     const ls = stepperLocales[currentLang] || stepperLocales['tr'];
 
     const steps = [
-        { id: 1, label: ls.roomSelection, icon: 'hotel', desc: `${ls.step} 1` },
-        { id: 2, label: ls.guestDetails, icon: 'group', desc: `${ls.step} 2` },
-        { id: 3, label: ls.payment, icon: 'payments', desc: `${ls.step} 3` }
+        { id: 1, label: ls.roomSelection, icon: 'hotel' },
+        { id: 2, label: ls.guestDetails, icon: 'group' },
+        { id: 3, label: ls.payment, icon: 'payments' },
     ];
 
     return (
-        <div className="w-full py-1 font-roboto">
-            <div className="w-full">
-                <div className="relative flex items-stretch gap-2 p-1.5 bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-slate-700 shadow-xs">
-                    
-                    {/* Animated Sliding Highlight */}
-                    <div 
-                        className="absolute top-1.5 bottom-1.5 bg-[#e8f0fe] dark:bg-blue-950/40 rounded-lg transition-all duration-500 ease-out z-0 border border-[#d2e3fc] dark:border-blue-900/60"
-                        style={{ 
-                            left: `calc(1.5px + ${(currentStep - 1) * (100 / steps.length)}%)`,
-                            width: `calc(${100 / steps.length}% - 3px)`
-                        }}
-                    />
+        <div className="w-full font-roboto">
+            <div className="flex items-center w-full">
+                {steps.map((step, index) => {
+                    const isActive = step.id === currentStep;
+                    const isCompleted = step.id < currentStep;
+                    const isClickable = onStepClick && (step.id < currentStep || step.id === currentStep + 1);
+                    const isLast = index === steps.length - 1;
 
-                    {steps.map((step) => {
-                        const isClickable = onStepClick && (step.id < currentStep || step.id === currentStep + 1);
-                        const isActive = step.id === currentStep;
-                        const isCompleted = step.id < currentStep;
-                        
-                        return (
-                            <div 
-                                key={step.id}
+                    return (
+                        <React.Fragment key={step.id}>
+                            {/* Step node */}
+                            <div
                                 onClick={() => isClickable && onStepClick(step.id)}
-                                className={`relative flex-1 flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all z-10 ${
-                                    isClickable ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40' : 'cursor-default'
-                                }`}
+                                className={`flex flex-col items-center gap-1.5 shrink-0 ${isClickable ? 'cursor-pointer group' : 'cursor-default'}`}
                             >
-                                {/* Icon with background */}
-                                <div className={`size-7 rounded-full flex items-center justify-center transition-all ${
-                                    isActive 
-                                        ? 'bg-[#1a73e8] text-white shadow-xs' 
-                                        : isCompleted 
-                                            ? 'bg-[#e6f4ea] text-[#137333] dark:bg-emerald-950/40 dark:text-emerald-400' 
-                                            : 'bg-[#f1f3f4] dark:bg-slate-800 text-[#70757a]'
+                                {/* Circle */}
+                                <div className={`relative flex items-center justify-center w-9 h-9 rounded-full border-2 transition-all duration-300 ${
+                                    isActive
+                                        ? 'bg-[#1a73e8] border-[#1a73e8] shadow-[0_0_0_4px_rgba(26,115,232,0.15)]'
+                                        : isCompleted
+                                            ? 'bg-[#e6f4ea] border-[#34a853] text-[#34a853] dark:bg-emerald-950/50 dark:border-emerald-500 dark:text-emerald-400'
+                                            : 'bg-white dark:bg-[#303134] border-[#dadce0] dark:border-slate-600 text-[#9aa0a6]'
                                 }`}>
-                                    <span className="material-symbols-outlined text-[15px]">
-                                        {isCompleted ? 'check' : step.icon}
-                                    </span>
+                                    {isCompleted ? (
+                                        <span className="material-symbols-outlined text-[18px] text-[#34a853] dark:text-emerald-400" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                            check_circle
+                                        </span>
+                                    ) : (
+                                        <span className={`material-symbols-outlined text-[18px] transition-colors duration-300 ${
+                                            isActive ? 'text-white' : 'text-[#9aa0a6] dark:text-slate-500'
+                                        }`}>
+                                            {step.icon}
+                                        </span>
+                                    )}
+
+                                    {/* Pulse ring for active */}
+                                    {isActive && (
+                                        <span className="absolute inset-0 rounded-full bg-[#1a73e8]/20 animate-ping" />
+                                    )}
                                 </div>
 
-                                {/* Text Info */}
-                                <div className="flex flex-col min-w-0">
-                                    <span className={`text-[10px] font-medium uppercase tracking-wider transition-colors ${
-                                        isActive ? 'text-[#1a73e8]' : isCompleted ? 'text-[#137333] dark:text-emerald-400' : 'text-[#70757a]'
-                                    }`}>
-                                        {step.desc}
-                                    </span>
-                                    <span className={`text-xs font-medium transition-colors truncate ${
-                                        isActive ? 'text-[#202124] dark:text-white font-semibold' : 'text-[#5f6368] dark:text-slate-400'
-                                    }`}>
-                                        {step.label}
-                                    </span>
-                                </div>
-
-                                {/* Active indicator dot */}
-                                {isActive && (
-                                    <div className="ml-auto mr-1 size-1.5 bg-[#1a73e8] rounded-full"></div>
-                                )}
+                                {/* Label */}
+                                <span className={`text-[10px] font-semibold uppercase tracking-wide transition-colors duration-300 whitespace-nowrap ${
+                                    isActive
+                                        ? 'text-[#1a73e8]'
+                                        : isCompleted
+                                            ? 'text-[#34a853] dark:text-emerald-400'
+                                            : 'text-[#9aa0a6] dark:text-slate-500'
+                                }`}>
+                                    {step.label}
+                                </span>
                             </div>
-                        );
-                    })}
-                </div>
 
-                {/* Progress bar */}
-                <div className="mt-2 h-1 w-full bg-[#e8eaed] dark:bg-slate-800 rounded-full overflow-hidden">
-                    <div 
-                        className="h-full bg-[#1a73e8] rounded-full transition-all duration-700 ease-out"
-                        style={{ width: `${(currentStep / steps.length) * 100}%` }}
-                    ></div>
-                </div>
+                            {/* Connector line */}
+                            {!isLast && (
+                                <div className="flex-1 h-px mx-2 mb-5 relative overflow-hidden rounded-full bg-[#e8eaed] dark:bg-slate-700">
+                                    <div
+                                        className="absolute inset-y-0 left-0 bg-[#34a853] transition-all duration-500 ease-out rounded-full"
+                                        style={{ width: step.id < currentStep ? '100%' : '0%' }}
+                                    />
+                                </div>
+                            )}
+                        </React.Fragment>
+                    );
+                })}
             </div>
         </div>
     );

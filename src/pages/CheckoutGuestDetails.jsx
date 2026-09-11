@@ -1897,7 +1897,6 @@ const CheckoutGuestDetails = () => {
                 </div>
             </main>
             <Footer />
-            <Footer />
             <style jsx="true">{`
                 .html-content ul {
                     list-style-type: disc;

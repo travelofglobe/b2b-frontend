@@ -309,6 +309,18 @@ const PriceMarker = React.memo(({
         ar: 'عرض الأسعار'
     }[currentLang] || 'Fiyatları göster';
 
+    const quickLookText = {
+        tr: 'Hızlı Bakış',
+        en: 'Quick look',
+        de: 'Schnellansicht',
+        fr: 'Aperçu rapide',
+        ru: 'Быстрый просмотр',
+        ar: 'نظرة سريعة',
+        es: 'Vista rápida',
+        it: 'Visualizzazione rapida',
+        zh: '快捷查看'
+    }[currentLang] || 'Hızlı Bakış';
+
     return (
         <Marker
             ref={markerRef}
@@ -430,36 +442,76 @@ const PriceMarker = React.memo(({
                             <span style={{ color: '#fbbc04', fontSize: '11px' }}>★</span>
                             <span style={{ color: '#1a73e8', textDecoration: 'none' }}>({reviewCount.toLocaleString('tr-TR')})</span>
                         </div>
-                        <Link 
-                            to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`} 
-                            target="_blank" 
-                            onClick={e => e.stopPropagation()} 
-                            style={{ 
-                                display: 'block', 
-                                width: '100%', 
-                                border: '1px solid #dadce0', 
-                                borderRadius: '18px', 
-                                padding: '6px 0', 
-                                textAlign: 'center', 
-                                color: '#1a73e8', 
-                                fontSize: '13px', 
-                                fontWeight: 500, 
-                                textDecoration: 'none', 
-                                transition: 'all 0.15s ease', 
-                                backgroundColor: 'transparent',
-                                boxSizing: 'border-box'
-                            }} 
-                            onMouseOver={e => {
-                                e.currentTarget.style.backgroundColor = '#f8fafd';
-                                e.currentTarget.style.borderColor = '#d2e3fc';
-                            }} 
-                            onMouseOut={e => {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                                e.currentTarget.style.borderColor = '#dadce0';
-                            }}
-                        >
-                            {showPricesText}
-                        </Link>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onSelect(hotel);
+                                }}
+                                style={{
+                                    flex: 1,
+                                    border: '1px solid #dadce0',
+                                    borderRadius: '18px',
+                                    padding: '6px 4px',
+                                    textAlign: 'center',
+                                    color: '#1a73e8',
+                                    fontSize: '12px',
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    backgroundColor: '#ffffff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '3px',
+                                    transition: 'all 0.15s ease',
+                                    boxSizing: 'border-box'
+                                }}
+                                onMouseOver={e => {
+                                    e.currentTarget.style.backgroundColor = '#f8fafd';
+                                    e.currentTarget.style.borderColor = '#1a73e8';
+                                }}
+                                onMouseOut={e => {
+                                    e.currentTarget.style.backgroundColor = '#ffffff';
+                                    e.currentTarget.style.borderColor = '#dadce0';
+                                }}
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
+                                <span>{quickLookText}</span>
+                            </button>
+                            <Link 
+                                to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`} 
+                                target="_blank" 
+                                onClick={e => e.stopPropagation()} 
+                                style={{ 
+                                    flex: 1,
+                                    border: '1px solid #1a73e8', 
+                                    borderRadius: '18px', 
+                                    padding: '6px 4px', 
+                                    textAlign: 'center', 
+                                    color: '#ffffff', 
+                                    fontSize: '12px', 
+                                    fontWeight: 500, 
+                                    textDecoration: 'none', 
+                                    transition: 'all 0.15s ease', 
+                                    backgroundColor: '#1a73e8',
+                                    boxSizing: 'border-box',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }} 
+                                onMouseOver={e => {
+                                    e.currentTarget.style.backgroundColor = '#1557b0';
+                                    e.currentTarget.style.borderColor = '#1557b0';
+                                }} 
+                                onMouseOut={e => {
+                                    e.currentTarget.style.backgroundColor = '#1a73e8';
+                                    e.currentTarget.style.borderColor = '#1a73e8';
+                                }}
+                            >
+                                {showPricesText}
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </Popup>
@@ -494,6 +546,10 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
     const showPricesLabel = {
         tr: 'Fiyatları göster', en: 'Show prices', ar: 'عرض الأسعار', de: 'Preise anzeigen',
         fr: 'Voir les prix', ru: 'Показать цены', zh: '查看价格', es: 'Ver precios', it: 'Mostra prezzi', ja: '料金を見る', fa: 'نمایش قیمت'
+    };
+    const quickLookLabel = {
+        tr: 'Hızlı Bakış', en: 'Quick look', ar: 'نظرة سريعة', de: 'Schnellansicht',
+        fr: 'Aperçu rapide', ru: 'Быстрый просмотр', zh: '快捷查看', es: 'Vista rápida', it: 'Visualizzazione rapida', ja: 'クイックビュー', fa: 'نمای سریع'
     };
     const freeCancelLabel = {
         tr: 'Ücretsiz iptal', en: 'Free cancellation', ar: 'إلغاء مجاني', de: 'Kostenlose Stornierung',
@@ -534,7 +590,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
             className={`flex py-4 pl-6 pr-4 border-b border-[#e8eaed] dark:border-slate-700 cursor-pointer transition-colors group ${isActive ? 'bg-[#f0f4ff] dark:bg-blue-900/10' : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-800/40'}`}
             onMouseEnter={() => onHover(hotel)}
             onMouseLeave={() => onHover(null)}
-            onClick={() => onSelect(isActive ? null : hotel)}
+            onClick={() => onSelect(hotel)}
         >
             {/* Image */}
             <div className={`relative ${isCompact ? "w-[190px] h-[145px] mr-3.5" : "w-[260px] h-[175px] mr-5"} rounded-lg overflow-hidden shrink-0 bg-[#f1f3f4] transition-all duration-300`}>
@@ -675,14 +731,29 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         )}
                     </div>
                     
-                    <Link
-                        to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
-                        target="_blank"
-                        onClick={e => e.stopPropagation()}
-                        className="inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-[13.5px] font-medium h-[31px] px-4 rounded-full transition-colors whitespace-nowrap font-roboto shadow-[0_1px_2px_rgba(60,64,67,0.3)] hover:shadow-[0_1px_3px_1px_rgba(60,64,67,0.15)] mt-4"
-                    >
-                        {showPricesLabel[currentLang] || showPricesLabel.en}
-                    </Link>
+                    <div className="flex items-center gap-2 mt-4 flex-wrap sm:flex-nowrap justify-end">
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onSelect(hotel);
+                            }}
+                            className="inline-flex items-center justify-center gap-1.5 border border-[#dadce0] dark:border-slate-600 hover:border-[#1a73e8] dark:hover:border-blue-400 bg-white dark:bg-[#303134] hover:bg-[#f8fafd] dark:hover:bg-blue-900/20 text-[#1a73e8] dark:text-blue-400 text-[13px] font-medium h-[31px] px-3 rounded-full transition-all whitespace-nowrap font-roboto cursor-pointer shadow-xs active:scale-[0.98]"
+                            title={quickLookLabel[currentLang] || quickLookLabel.en}
+                        >
+                            <span className="material-symbols-outlined text-[17px]">visibility</span>
+                            <span>{quickLookLabel[currentLang] || quickLookLabel.en}</span>
+                        </button>
+
+                        <Link
+                            to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
+                            target="_blank"
+                            onClick={e => e.stopPropagation()}
+                            className="inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-[13.5px] font-medium h-[31px] px-3.5 rounded-full transition-colors whitespace-nowrap font-roboto shadow-[0_1px_2px_rgba(60,64,67,0.3)] hover:shadow-[0_1px_3px_1px_rgba(60,64,67,0.15)] active:scale-[0.98]"
+                        >
+                            {showPricesLabel[currentLang] || showPricesLabel.en}
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
@@ -742,7 +813,10 @@ const GoogleCardSkeleton = ({ isCompact = false }) => (
                     <div className="h-3.5 w-24 bg-[#e8eaed] dark:bg-slate-700/70 rounded-full" />
                     <div className="h-3.5 w-20 bg-[#f1f3f4] dark:bg-slate-700/50 rounded-full" />
                 </div>
-                <div className="shrink-0 h-[31px] w-28 bg-[#e8eaed] dark:bg-slate-700 rounded-full" />
+                <div className="shrink-0 flex items-center gap-2">
+                    <div className="h-[31px] w-24 bg-[#e8eaed] dark:bg-slate-700/60 rounded-full" />
+                    <div className="h-[31px] w-28 bg-[#e8eaed] dark:bg-slate-700 rounded-full" />
+                </div>
             </div>
         </div>
     </div>

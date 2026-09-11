@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import ReactDOM from 'react-dom';
 import { Link, useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Sidebar from '../components/Sidebar';
@@ -636,6 +637,18 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         <span className="material-symbols-outlined text-white" style={{ fontSize: '16px' }}>bookmark_border</span>
                     )}
                 </button>
+                {/* Recommended Badge */}
+                {hotel.isRecommended && !isGreatDeal && (
+                    <div className="absolute bottom-0 left-0 right-0 z-10">
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <div className="relative flex items-center gap-1 px-2.5 pb-2 pt-4">
+                            <span className="material-symbols-outlined text-amber-400" style={{ fontSize: '13px', fontVariationSettings: "'FILL' 1" }}>thumb_up</span>
+                            <span className="text-white text-[11px] font-semibold tracking-wide drop-shadow-sm">
+                                {currentLang === 'tr' ? 'Öneriliyor' : currentLang === 'ar' ? 'موصى به' : currentLang === 'de' ? 'Empfohlen' : currentLang === 'fr' ? 'Recommandé' : currentLang === 'ru' ? 'Рекомендуется' : 'Recommended'}
+                            </span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Info */}
@@ -1548,15 +1561,14 @@ const HotelListing = () => {
     const updateStarPosition = React.useCallback(() => {
         if (starBtnRef.current) {
             const rect = starBtnRef.current.getBoundingClientRect();
-            const container = starBtnRef.current.closest('.relative.shrink-0');
-            const containerRect = container ? container.getBoundingClientRect() : rect;
             const popupWidth = 340;
-            let relativeLeft = rect.left - containerRect.left;
-            if (containerRect.left + relativeLeft + popupWidth > window.innerWidth - 16) {
-                relativeLeft = window.innerWidth - 16 - popupWidth - containerRect.left;
+            let left = rect.left;
+            if (left + popupWidth > window.innerWidth - 16) {
+                left = window.innerWidth - 16 - popupWidth;
             }
             setStarPosition({
-                left: Math.round(Math.max(0, relativeLeft))
+                top: rect.bottom + 4,
+                left: Math.round(Math.max(8, left))
             });
         }
     }, []);
@@ -1564,15 +1576,14 @@ const HotelListing = () => {
     const updatePricePosition = React.useCallback(() => {
         if (priceBtnRef.current) {
             const rect = priceBtnRef.current.getBoundingClientRect();
-            const container = priceBtnRef.current.closest('.relative.shrink-0');
-            const containerRect = container ? container.getBoundingClientRect() : rect;
             const popupWidth = 340;
-            let relativeLeft = rect.left - containerRect.left;
-            if (containerRect.left + relativeLeft + popupWidth > window.innerWidth - 16) {
-                relativeLeft = window.innerWidth - 16 - popupWidth - containerRect.left;
+            let left = rect.left;
+            if (left + popupWidth > window.innerWidth - 16) {
+                left = window.innerWidth - 16 - popupWidth;
             }
             setPricePosition({
-                left: Math.round(Math.max(0, relativeLeft))
+                top: rect.bottom + 4,
+                left: Math.round(Math.max(8, left))
             });
         }
     }, []);
@@ -2543,15 +2554,18 @@ const HotelListing = () => {
                     {/* ════════════════════════════════════════════
                         POPUP 1: Otel Sınıfı (Hotel Stars) Dropdown Overlay
                     ════════════════════════════════════════════ */}
-                    {isStarOpen && (
+                    {isStarOpen && ReactDOM.createPortal(
                         <>
-                            <div className="fixed inset-0 z-[2400] bg-transparent" onClick={() => setIsStarOpen(false)} />
+                            <div className="fixed inset-0 z-[9998] bg-transparent" onClick={() => setIsStarOpen(false)} />
                             <div
                                 ref={starDropdownRef}
                                 style={{
-                                    left: `${starPosition.left}px`
+                                    position: 'fixed',
+                                    top: `${starPosition.top}px`,
+                                    left: `${starPosition.left}px`,
+                                    zIndex: 9999
                                 }}
-                                className="absolute top-full mt-0 z-[2500] w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-b-lg shadow-[0_4px_8px_3px_rgba(60,64,67,0.15)] border border-t-0 border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in slide-in-from-top-1 duration-150"
+                                className="w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
                             >
                                 {/* Header */}
                                 <div className="flex items-center justify-between pt-3.5 px-5 pb-1 shrink-0">
@@ -2570,77 +2584,31 @@ const HotelListing = () => {
                                 {/* 2x2 Grid */}
                                 <div className="px-5 py-2">
                                     <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-lg overflow-hidden">
-                                        {/* 2 Yıldızlı */}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleStarChipToggle(2)}
-                                            className={`py-3 px-2 text-center flex flex-col items-center justify-center border-r border-b border-[#dadce0] dark:border-slate-700 cursor-pointer transition-colors select-none ${
-                                                urlStars.includes(2)
-                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
-                                                    : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
-                                            }`}
-                                        >
-                                            <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(2) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
-                                                2 {tListing('starSingle', currentLang)}
-                                            </span>
-                                            <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(2) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                {tListing('star2Desc', currentLang)}
-                                            </span>
-                                        </button>
-
-                                        {/* 3 Yıldızlı */}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleStarChipToggle(3)}
-                                            className={`py-3 px-2 text-center flex flex-col items-center justify-center border-b border-[#dadce0] dark:border-slate-700 cursor-pointer transition-colors select-none ${
-                                                urlStars.includes(3)
-                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
-                                                    : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
-                                            }`}
-                                        >
-                                            <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(3) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
-                                                3 {tListing('starSingle', currentLang)}
-                                            </span>
-                                            <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(3) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                {tListing('star3Desc', currentLang)}
-                                            </span>
-                                        </button>
-
-                                        {/* 4 Yıldızlı */}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleStarChipToggle(4)}
-                                            className={`py-3 px-2 text-center flex flex-col items-center justify-center border-r border-[#dadce0] dark:border-slate-700 cursor-pointer transition-colors select-none ${
-                                                urlStars.includes(4)
-                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
-                                                    : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
-                                            }`}
-                                        >
-                                            <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(4) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
-                                                4 {tListing('starSingle', currentLang)}
-                                            </span>
-                                            <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(4) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                {tListing('star4Desc', currentLang)}
-                                            </span>
-                                        </button>
-
-                                        {/* 5 Yıldızlı */}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleStarChipToggle(5)}
-                                            className={`py-3 px-2 text-center flex flex-col items-center justify-center cursor-pointer transition-colors select-none ${
-                                                urlStars.includes(5)
-                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
-                                                    : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
-                                            }`}
-                                        >
-                                            <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(5) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
-                                                5 {tListing('starSingle', currentLang)}
-                                            </span>
-                                            <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(5) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                {tListing('star5Desc', currentLang)}
-                                            </span>
-                                        </button>
+                                        {[2, 3, 4, 5].map((star, index, arr) => {
+                                            const isSelected = urlStars.includes(star);
+                                            let desc = '';
+                                            if (star === 2) desc = tListing('star2Desc', currentLang);
+                                            else if (star === 3) desc = tListing('star3Desc', currentLang);
+                                            else if (star === 4) desc = tListing('star4Desc', currentLang);
+                                            else if (star === 5) desc = tListing('star5Desc', currentLang);
+                                            const isLeftCol = index % 2 === 0;
+                                            const isLastRow = index >= arr.length - 2;
+                                            return (
+                                                <button
+                                                    key={star}
+                                                    type="button"
+                                                    onClick={() => handleStarChipToggle(star)}
+                                                    className={`py-3 px-2 text-center flex flex-col items-center justify-center cursor-pointer transition-colors select-none ${isLeftCol ? 'border-r border-[#dadce0] dark:border-slate-700' : ''} ${!isLastRow ? 'border-b border-[#dadce0] dark:border-slate-700' : ''} ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30' : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'}`}
+                                                >
+                                                    <span className={`text-[13.5px] font-medium font-roboto ${isSelected ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
+                                                        {star} {tListing('starSingle', currentLang)}
+                                                    </span>
+                                                    <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                                        {desc}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
@@ -2660,21 +2628,25 @@ const HotelListing = () => {
                                     </button>
                                 </div>
                             </div>
-                        </>
+                        </>,
+                        document.body
                     )}
 
                     {/* ════════════════════════════════════════════
                         POPUP 2: Fiyat (Price) Dropdown Overlay
                     ════════════════════════════════════════════ */}
-                    {isPriceOpen && (
+                    {isPriceOpen && ReactDOM.createPortal(
                         <>
-                            <div className="fixed inset-0 z-[2400] bg-transparent" onClick={() => setIsPriceOpen(false)} />
+                            <div className="fixed inset-0 z-[9998] bg-transparent" onClick={() => setIsPriceOpen(false)} />
                             <div
                                 ref={priceDropdownRef}
                                 style={{
-                                    left: `${pricePosition.left}px`
+                                    position: 'fixed',
+                                    top: `${pricePosition.top}px`,
+                                    left: `${pricePosition.left}px`,
+                                    zIndex: 9999
                                 }}
-                                className="absolute top-full mt-0 z-[2500] w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-b-lg shadow-[0_4px_8px_3px_rgba(60,64,67,0.15)] border border-t-0 border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in slide-in-from-top-1 duration-150"
+                                className="w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
                             >
                                 {/* Header */}
                                 <div className="flex items-center justify-between pt-3.5 px-5 pb-1 shrink-0">
@@ -2811,7 +2783,8 @@ const HotelListing = () => {
                                     </button>
                                 </div>
                             </div>
-                        </>
+                        </>,
+                        document.body
                     )}
 
                     {/* ════════════════════════════════════════════

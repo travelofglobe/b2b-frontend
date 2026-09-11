@@ -456,89 +456,71 @@ const Sidebar = ({ filters, locationNames = {}, facilityNames = {}, hideHeader =
                     </FilterSection>
                 )}
 
-                {/* Star Rating Checklist */}
-                <FilterSection title={currentLang === 'tr' ? 'Otel sınıfı' : tFilter('starRating', currentLang)} icon={hideHeader ? null : "star"} isFlat={hideHeader}>
-                    <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-lg overflow-hidden">
-                        {filters?.hotelStarCategoryId ? (
-                            [...filters.hotelStarCategoryId]
-                                .filter(s => s.value > 0 && s.value <= 5 && s.value >= 2)
-                                .sort((a, b) => a.value - b.value)
-                                .map((starFilter, index, arr) => {
-                                    const isSelected = selectedStars.includes(starFilter.value);
-                                    let subtitle = "";
-                                    if (starFilter.value === 5) subtitle = tListing('star5Desc', currentLang);
-                                    else if (starFilter.value === 4) subtitle = tListing('star4Desc', currentLang);
-                                    else if (starFilter.value === 3) subtitle = tListing('star3Desc', currentLang);
-                                    else if (starFilter.value === 2) subtitle = tListing('star2Desc', currentLang);
+                {/* Star Rating / Otel Sınıfı */}
+                {(() => {
+                    const rawStars = filters?.hotelStarCategoryId;
+                    const starValues = (rawStars && rawStars.length > 0)
+                        ? [...rawStars].filter(s => s.value >= 2 && s.value <= 5).sort((a, b) => a.value - b.value).map(s => s.value)
+                        : [2, 3, 4, 5];
 
-                                    const isLeftCol = index % 2 === 0;
-                                    const totalRows = Math.ceil(arr.length / 2);
-                                    const currentRow = Math.floor(index / 2);
-                                    const isLastRow = currentRow === totalRows - 1;
-                                    const borderClasses = `${isLeftCol ? 'border-r border-[#dadce0] dark:border-slate-700' : ''} ${!isLastRow ? 'border-b border-[#dadce0] dark:border-slate-700' : ''}`;
-
-                                    return (
-                                        <button 
-                                            key={starFilter.value}
-                                            type="button"
-                                            onClick={() => handleStarToggle(starFilter.value)}
-                                            className={`py-3 px-2 text-center flex flex-col items-center justify-center cursor-pointer transition-colors select-none ${borderClasses} ${
-                                                isSelected
-                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
-                                                    : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
-                                            }`}
-                                        >
-                                            <span className={`text-[13.5px] font-medium font-roboto ${isSelected ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
-                                                {starFilter.value} {tListing('starSingle', currentLang)}
-                                            </span>
-                                            {subtitle && (
-                                                <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                    {subtitle}
-                                                </span>
-                                            )}
-                                        </button>
-                                    );
-                                })
-                        ) : (
-                            [2, 3, 4, 5].map((star, index, arr) => {
+                    const starGrid = (
+                        <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-lg overflow-hidden">
+                            {starValues.map((star, index, arr) => {
                                 const isSelected = selectedStars.includes(star);
-                                let subtitle = "";
+                                let subtitle = '';
                                 if (star === 5) subtitle = tListing('star5Desc', currentLang);
                                 else if (star === 4) subtitle = tListing('star4Desc', currentLang);
                                 else if (star === 3) subtitle = tListing('star3Desc', currentLang);
                                 else if (star === 2) subtitle = tListing('star2Desc', currentLang);
-
                                 const isLeftCol = index % 2 === 0;
                                 const totalRows = Math.ceil(arr.length / 2);
                                 const currentRow = Math.floor(index / 2);
                                 const isLastRow = currentRow === totalRows - 1;
-                                const borderClasses = `${isLeftCol ? 'border-r border-[#dadce0] dark:border-slate-700' : ''} ${!isLastRow ? 'border-b border-[#dadce0] dark:border-slate-700' : ''}`;
-
                                 return (
-                                    <button 
+                                    <button
                                         key={star}
                                         type="button"
                                         onClick={() => handleStarToggle(star)}
-                                        className={`py-3 px-2 text-center flex flex-col items-center justify-center cursor-pointer transition-colors select-none ${borderClasses} ${
-                                            isSelected
+                                        className={`py-4 px-2 text-center flex flex-col items-center justify-center cursor-pointer transition-colors select-none
+                                            ${isLeftCol ? 'border-r border-[#dadce0] dark:border-slate-700' : ''}
+                                            ${!isLastRow ? 'border-b border-[#dadce0] dark:border-slate-700' : ''}
+                                            ${isSelected
                                                 ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
                                                 : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
-                                        }`}
+                                            }`}
                                     >
-                                        <span className={`text-[13.5px] font-medium font-roboto ${isSelected ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
+                                        <span className={`text-[14px] font-semibold font-roboto ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#202124] dark:text-slate-100'}`}>
                                             {star} {tListing('starSingle', currentLang)}
                                         </span>
                                         {subtitle && (
-                                            <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                            <span className={`text-[12px] mt-0.5 font-roboto leading-snug ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
                                                 {subtitle}
                                             </span>
                                         )}
                                     </button>
                                 );
-                            })
-                        )}
-                    </div>
-                </FilterSection>
+                            })}
+                        </div>
+                    );
+
+                    if (hideHeader) {
+                        return (
+                            <div className="py-5 px-5 border-b border-[#e8eaed] dark:border-slate-700/50">
+                                <h3 className="text-[15px] font-medium text-[#202124] dark:text-slate-200 mb-4 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-slate-400 text-lg">hotel_class</span>
+                                    {currentLang === 'tr' ? 'Otel sınıfı' : tFilter('starRating', currentLang)}
+                                </h3>
+                                {starGrid}
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <FilterSection title={currentLang === 'tr' ? 'Otel sınıfı' : tFilter('starRating', currentLang)} icon="hotel_class">
+                            {starGrid}
+                        </FilterSection>
+                    );
+                })()}
 
                 {/* Free Cancellation */}
                 <FilterSection title={tFilter('freeCancellation', currentLang)} icon="event_available">

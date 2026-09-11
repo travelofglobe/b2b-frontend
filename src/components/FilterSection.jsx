@@ -15,31 +15,50 @@ const soonLocales = {
     pt: "Em breve"
 };
 
-const FilterSection = ({ title, icon, defaultOpen = true, disabled = false, children }) => {
+const FilterSection = ({ title, icon, defaultOpen = true, disabled = false, isFlat = false, children }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     const currentLang = localStorage.getItem('language') || 'tr';
     const localizedSoon = soonLocales[currentLang] || soonLocales['tr'];
 
     // Keep it synced if the requirement changes externally
     useEffect(() => {
-        setIsOpen(defaultOpen);
-    }, [defaultOpen]);
+        if (!isFlat) {
+            setIsOpen(defaultOpen);
+        }
+    }, [defaultOpen, isFlat]);
+
+    if (isFlat) {
+        return (
+            <div className={`py-5 px-5 border-b border-[#e8eaed] dark:border-slate-700/50 last:border-0 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
+                <h3 className="text-[15px] font-medium text-[#202124] dark:text-slate-200 mb-4 flex items-center gap-2">
+                    {icon && <span className="material-symbols-outlined text-slate-400 text-lg">{icon}</span>}
+                    {title}
+                    {disabled && (
+                        <span className="text-[9px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded ml-1">{localizedSoon}</span>
+                    )}
+                </h3>
+                <div>
+                    {children}
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className={`border-b border-slate-100 dark:border-slate-800/50 py-3 last:border-0 ${disabled ? 'opacity-50' : ''}`}>
+        <div className={`border-b border-[#e8eaed] dark:border-slate-800/50 py-5 px-5 last:border-0 ${disabled ? 'opacity-50' : ''}`}>
             <button
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 className={`w-full flex items-center justify-between group ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
             >
-                <h3 className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 group-hover:text-primary transition-colors">
-                    {icon && <span className="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-base">{icon}</span>}
+                <h3 className="text-[15px] font-medium text-[#202124] dark:text-slate-200 flex items-center gap-2 group-hover:text-primary transition-colors">
+                    {icon && <span className="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-[20px]">{icon}</span>}
                     {title}
                     {disabled && (
                         <span className="text-[9px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded ml-1">{localizedSoon}</span>
                     )}
                 </h3>
                 {!disabled && (
-                    <span className="material-symbols-outlined text-slate-400 group-hover:text-primary text-base transition-transform duration-300" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>
+                    <span className="material-symbols-outlined text-slate-400 group-hover:text-primary text-[20px] transition-transform duration-300" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>
                         expand_more
                     </span>
                 )}

@@ -1411,6 +1411,31 @@ const HotelDetail = () => {
         });
     };
 
+    // Counts for filters
+    const boardCounts = React.useMemo(() => {
+        if (!hotel?.rooms) return {};
+        return hotel.rooms.reduce((acc, r) => {
+            const code = r.hubRateModel?.boardCode || r.boardCode;
+            if (code) {
+                acc[code] = (acc[code] || 0) + 1;
+            }
+            return acc;
+        }, {});
+    }, [hotel?.rooms]);
+
+    const policyCounts = React.useMemo(() => {
+        if (!hotel?.rooms) return { FREE: 0, NON_REFUNDABLE: 0 };
+        return hotel.rooms.reduce((acc, r) => {
+            const cancelAmount = r.hubRateModel?.price?.cancellationPolicies?.[0]?.amount;
+            if (r.hubRateModel?.refundable === true || cancelAmount === 0 || r.hasFreeCancellation) {
+                acc.FREE++;
+            } else if (r.hubRateModel?.refundable === false || (cancelAmount !== undefined && cancelAmount > 0)) {
+                acc.NON_REFUNDABLE++;
+            }
+            return acc;
+        }, { FREE: 0, NON_REFUNDABLE: 0 });
+    }, [hotel?.rooms]);
+
     // Grouping rooms by name/type
     const groupedRooms = React.useMemo(() => {
         if (!hotel.rooms) return [];
@@ -2264,12 +2289,14 @@ const HotelDetail = () => {
                                                 value={boardTypeFilter}
                                                 onChange={setBoardTypeFilter}
                                                 options={[
-                                                    { value: 'ALL', label: tLocal('allBoards'), icon: 'check_circle' },
-                                                    ...Object.keys(BOARD_TYPES).map(code => ({
-                                                        value: code,
-                                                        label: getBoardTypeLabel(code, currentLang),
-                                                        icon: 'restaurant'
-                                                    }))
+                                                    { value: 'ALL', label: `${tLocal('allBoards')} (${hotel?.rooms?.length || 0})`, icon: 'check_circle' },
+                                                    ...Object.keys(BOARD_TYPES)
+                                                        .filter(code => boardCounts[code] > 0)
+                                                        .map(code => ({
+                                                            value: code,
+                                                            label: `${getBoardTypeLabel(code, currentLang)} (${boardCounts[code]})`,
+                                                            icon: 'restaurant'
+                                                        }))
                                                 ]}
                                                 defaultValue="ALL"
                                                 placeholder={tLocal('allBoards')}
@@ -2283,9 +2310,9 @@ const HotelDetail = () => {
                                                 value={cancelFilter}
                                                 onChange={setCancelFilter}
                                                 options={[
-                                                    { value: 'ALL', label: tLocal('allPolicies'), icon: 'rule' },
-                                                    { value: 'FREE', label: tLocal('freeCancellation'), icon: 'verified' },
-                                                    { value: 'NON_REFUNDABLE', label: tLocal('nonRefundable'), icon: 'cancel' }
+                                                    { value: 'ALL', label: `${tLocal('allPolicies')} (${hotel?.rooms?.length || 0})`, icon: 'rule' },
+                                                    { value: 'FREE', label: `${tLocal('freeCancellation')} (${policyCounts.FREE})`, icon: 'verified' },
+                                                    { value: 'NON_REFUNDABLE', label: `${tLocal('nonRefundable')} (${policyCounts.NON_REFUNDABLE})`, icon: 'cancel' }
                                                 ]}
                                                 defaultValue="ALL"
                                                 placeholder={tLocal('allPolicies')}

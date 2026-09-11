@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import ReactDOM from 'react-dom';
 import { Link, useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Sidebar from '../components/Sidebar';
@@ -636,6 +637,18 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         <span className="material-symbols-outlined text-white" style={{ fontSize: '16px' }}>bookmark_border</span>
                     )}
                 </button>
+                {/* Recommended Badge */}
+                {hotel.isRecommended && !isGreatDeal && (
+                    <div className="absolute bottom-0 left-0 right-0 z-10">
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <div className="relative flex items-center gap-1 px-2.5 pb-2 pt-4">
+                            <span className="material-symbols-outlined text-amber-400" style={{ fontSize: '13px', fontVariationSettings: "'FILL' 1" }}>thumb_up</span>
+                            <span className="text-white text-[11px] font-semibold tracking-wide drop-shadow-sm">
+                                {currentLang === 'tr' ? 'Öneriliyor' : currentLang === 'ar' ? 'موصى به' : currentLang === 'de' ? 'Empfohlen' : currentLang === 'fr' ? 'Recommandé' : currentLang === 'ru' ? 'Рекомендуется' : 'Recommended'}
+                            </span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Info */}
@@ -1548,15 +1561,17 @@ const HotelListing = () => {
     const updateStarPosition = React.useCallback(() => {
         if (starBtnRef.current) {
             const rect = starBtnRef.current.getBoundingClientRect();
-            const popupWidth = 350;
-            const screenWidth = window.innerWidth;
+            // Use the chip row container's bottom border for precise alignment
+            const rowEl = starBtnRef.current.closest('[class*="border-b"]');
+            const rowBottom = rowEl ? rowEl.getBoundingClientRect().bottom : rect.bottom;
+            const popupWidth = 340;
             let left = rect.left;
-            if (left + popupWidth > screenWidth - 16) {
-                left = Math.max(16, screenWidth - popupWidth - 16);
+            if (left + popupWidth > window.innerWidth - 16) {
+                left = window.innerWidth - 16 - popupWidth;
             }
             setStarPosition({
-                top: Math.round(rect.bottom + 4),
-                left: Math.round(left)
+                top: rowBottom,
+                left: Math.round(Math.max(8, left))
             });
         }
     }, []);
@@ -1564,15 +1579,17 @@ const HotelListing = () => {
     const updatePricePosition = React.useCallback(() => {
         if (priceBtnRef.current) {
             const rect = priceBtnRef.current.getBoundingClientRect();
-            const popupWidth = 350;
-            const screenWidth = window.innerWidth;
+            // Use the chip row container's bottom border for precise alignment
+            const rowEl = priceBtnRef.current.closest('[class*="border-b"]');
+            const rowBottom = rowEl ? rowEl.getBoundingClientRect().bottom : rect.bottom;
+            const popupWidth = 340;
             let left = rect.left;
-            if (left + popupWidth > screenWidth - 16) {
-                left = Math.max(16, screenWidth - popupWidth - 16);
+            if (left + popupWidth > window.innerWidth - 16) {
+                left = window.innerWidth - 16 - popupWidth;
             }
             setPricePosition({
-                top: Math.round(rect.bottom + 4),
-                left: Math.round(left)
+                top: rowBottom,
+                left: Math.round(Math.max(8, left))
             });
         }
     }, []);
@@ -1658,15 +1675,15 @@ const HotelListing = () => {
     const updateAmenitiesPosition = React.useCallback(() => {
         if (amenitiesBtnRef.current) {
             const rect = amenitiesBtnRef.current.getBoundingClientRect();
+            const container = amenitiesBtnRef.current.closest('.relative.shrink-0');
+            const containerRect = container ? container.getBoundingClientRect() : rect;
             const popupWidth = 360;
-            const screenWidth = window.innerWidth;
-            let left = rect.left;
-            if (left + popupWidth > screenWidth - 16) {
-                left = Math.max(16, screenWidth - popupWidth - 16);
+            let relativeLeft = rect.left - containerRect.left;
+            if (containerRect.left + relativeLeft + popupWidth > window.innerWidth - 16) {
+                relativeLeft = window.innerWidth - 16 - popupWidth - containerRect.left;
             }
             setAmenitiesPosition({
-                top: Math.round(rect.bottom + 4),
-                left: Math.round(left)
+                left: Math.round(Math.max(0, relativeLeft))
             });
         }
     }, []);
@@ -1795,6 +1812,11 @@ const HotelListing = () => {
     // Filtered hotels based on selected quick amenities & price range
     const displayedHotels = React.useMemo(() => {
         let filtered = hotels;
+
+        if (searchParams.get('recommended') === 'true') {
+            filtered = filtered.filter(hotel => hotel.isRecommended === true);
+        }
+
         if (selectedAmenities.length > 0) {
             filtered = filtered.filter(hotel => {
                 return selectedAmenities.every(amenityId => {
@@ -2314,6 +2336,14 @@ const HotelListing = () => {
         setSearchParams(newParams);
     };
 
+    const handleRecommendedChip = () => {
+        const current = searchParams.get('recommended');
+        const newParams = new URLSearchParams(searchParams);
+        if (current === 'true') newParams.delete('recommended');
+        else newParams.set('recommended', 'true');
+        setSearchParams(newParams);
+    };
+
     // Scroll-based infinite loading
     const handleListScroll = React.useCallback((e) => {
         const { scrollTop, scrollHeight, clientHeight } = e.target;
@@ -2382,13 +2412,13 @@ const HotelListing = () => {
                 </div>
 
                 {/* Filter Chips Row */}
-                <div className="relative shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] z-10">
+                <div className="relative shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] z-[40]">
                     <div className="flex items-center gap-2 pl-6 pr-4 py-2 overflow-x-auto scrollbar-hide">
                         {/* 1. All Filters - Google Outlined Button */}
                         <button
                             type="button"
                             onClick={() => setIsFilterDrawerOpen(true)}
-                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3.5 h-9 text-[#1a73e8] dark:text-blue-400 font-medium text-[13.5px] bg-white dark:bg-[#303134] hover:bg-blue-50/50 dark:hover:bg-blue-950/30 shrink-0 transition-colors select-none font-roboto"
+                            className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 rounded-lg px-3 h-8 text-[#1a73e8] dark:text-blue-400 font-medium text-[13px] bg-white dark:bg-[#303134] hover:bg-blue-50/50 dark:hover:bg-blue-950/30 shrink-0 transition-colors select-none font-roboto"
                         >
                             <span className="material-symbols-outlined text-[18px] text-[#1a73e8] dark:text-blue-400">tune</span>
                             <span>{tListing('allFilters', currentLang)}</span>
@@ -2404,7 +2434,7 @@ const HotelListing = () => {
                             ref={priceBtnRef}
                             type="button"
                             onClick={handleTogglePrice}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3.5 h-9 text-[13.5px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
                                 isPriceActive
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                     : isPriceOpen
@@ -2421,11 +2451,27 @@ const HotelListing = () => {
                             </span>
                         </button>
 
-                        {/* 3. Offers / Deals (Teklifler) */}
+                        {/* 3. Recommended (Önerilenler) */}
+                        <button
+                            type="button"
+                            onClick={handleRecommendedChip}
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
+                                searchParams.get('recommended') === 'true'
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                            }`}
+                        >
+                            <span className={`material-symbols-outlined text-[18px] ${searchParams.get('recommended') === 'true' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
+                                thumb_up
+                            </span>
+                            <span>{tListing('recommended', currentLang)}</span>
+                        </button>
+
+                        {/* 4. Offers / Deals (Teklifler) */}
                         <button
                             type="button"
                             onClick={handleFreeCancelChip}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3.5 h-9 text-[13.5px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
                                 searchParams.get('freeCancellation') === 'true'
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                     : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
@@ -2445,7 +2491,7 @@ const HotelListing = () => {
                             ref={starBtnRef}
                             type="button"
                             onClick={handleToggleStar}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3.5 h-9 text-[13.5px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
                                 urlStars.length > 0
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                     : isStarOpen
@@ -2467,7 +2513,7 @@ const HotelListing = () => {
                             ref={amenitiesBtnRef}
                             type="button"
                             onClick={handleToggleAmenities}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3.5 h-9 text-[13.5px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
                                 selectedAmenities.length > 0
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                     : isAmenitiesOpen
@@ -2514,16 +2560,18 @@ const HotelListing = () => {
                     {/* ════════════════════════════════════════════
                         POPUP 1: Otel Sınıfı (Hotel Stars) Dropdown Overlay
                     ════════════════════════════════════════════ */}
-                    {isStarOpen && (
+                    {isStarOpen && ReactDOM.createPortal(
                         <>
-                            <div className="fixed inset-0 z-[2400] bg-transparent" onClick={() => setIsStarOpen(false)} />
+                            <div className="fixed inset-0 z-[9998] bg-transparent" onClick={() => setIsStarOpen(false)} />
                             <div
                                 ref={starDropdownRef}
                                 style={{
+                                    position: 'fixed',
                                     top: `${starPosition.top}px`,
-                                    left: `${starPosition.left}px`
+                                    left: `${starPosition.left}px`,
+                                    zIndex: 9999
                                 }}
-                                className="fixed z-[2500] w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
+                                className="w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
                             >
                                 {/* Header */}
                                 <div className="flex items-center justify-between pt-3.5 px-5 pb-1 shrink-0">
@@ -2542,77 +2590,31 @@ const HotelListing = () => {
                                 {/* 2x2 Grid */}
                                 <div className="px-5 py-2">
                                     <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-lg overflow-hidden">
-                                        {/* 2 Yıldızlı */}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleStarChipToggle(2)}
-                                            className={`py-3 px-2 text-center flex flex-col items-center justify-center border-r border-b border-[#dadce0] dark:border-slate-700 cursor-pointer transition-colors select-none ${
-                                                urlStars.includes(2)
-                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
-                                                    : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
-                                            }`}
-                                        >
-                                            <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(2) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
-                                                2 {tListing('starSingle', currentLang)}
-                                            </span>
-                                            <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(2) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                {tListing('star2Desc', currentLang)}
-                                            </span>
-                                        </button>
-
-                                        {/* 3 Yıldızlı */}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleStarChipToggle(3)}
-                                            className={`py-3 px-2 text-center flex flex-col items-center justify-center border-b border-[#dadce0] dark:border-slate-700 cursor-pointer transition-colors select-none ${
-                                                urlStars.includes(3)
-                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
-                                                    : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
-                                            }`}
-                                        >
-                                            <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(3) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
-                                                3 {tListing('starSingle', currentLang)}
-                                            </span>
-                                            <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(3) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                {tListing('star3Desc', currentLang)}
-                                            </span>
-                                        </button>
-
-                                        {/* 4 Yıldızlı */}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleStarChipToggle(4)}
-                                            className={`py-3 px-2 text-center flex flex-col items-center justify-center border-r border-[#dadce0] dark:border-slate-700 cursor-pointer transition-colors select-none ${
-                                                urlStars.includes(4)
-                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
-                                                    : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
-                                            }`}
-                                        >
-                                            <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(4) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
-                                                4 {tListing('starSingle', currentLang)}
-                                            </span>
-                                            <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(4) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                {tListing('star4Desc', currentLang)}
-                                            </span>
-                                        </button>
-
-                                        {/* 5 Yıldızlı */}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleStarChipToggle(5)}
-                                            className={`py-3 px-2 text-center flex flex-col items-center justify-center cursor-pointer transition-colors select-none ${
-                                                urlStars.includes(5)
-                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30'
-                                                    : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'
-                                            }`}
-                                        >
-                                            <span className={`text-[13.5px] font-medium font-roboto ${urlStars.includes(5) ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
-                                                5 {tListing('starSingle', currentLang)}
-                                            </span>
-                                            <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${urlStars.includes(5) ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                {tListing('star5Desc', currentLang)}
-                                            </span>
-                                        </button>
+                                        {[2, 3, 4, 5].map((star, index, arr) => {
+                                            const isSelected = urlStars.includes(star);
+                                            let desc = '';
+                                            if (star === 2) desc = tListing('star2Desc', currentLang);
+                                            else if (star === 3) desc = tListing('star3Desc', currentLang);
+                                            else if (star === 4) desc = tListing('star4Desc', currentLang);
+                                            else if (star === 5) desc = tListing('star5Desc', currentLang);
+                                            const isLeftCol = index % 2 === 0;
+                                            const isLastRow = index >= arr.length - 2;
+                                            return (
+                                                <button
+                                                    key={star}
+                                                    type="button"
+                                                    onClick={() => handleStarChipToggle(star)}
+                                                    className={`py-3 px-2 text-center flex flex-col items-center justify-center cursor-pointer transition-colors select-none ${isLeftCol ? 'border-r border-[#dadce0] dark:border-slate-700' : ''} ${!isLastRow ? 'border-b border-[#dadce0] dark:border-slate-700' : ''} ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30' : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50'}`}
+                                                >
+                                                    <span className={`text-[13.5px] font-medium font-roboto ${isSelected ? 'text-[#1a73e8] dark:text-blue-300 font-semibold' : 'text-[#202124] dark:text-slate-100'}`}>
+                                                        {star} {tListing('starSingle', currentLang)}
+                                                    </span>
+                                                    <span className={`text-[11.5px] mt-0.5 font-roboto leading-snug ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                                        {desc}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
@@ -2632,22 +2634,25 @@ const HotelListing = () => {
                                     </button>
                                 </div>
                             </div>
-                        </>
+                        </>,
+                        document.body
                     )}
 
                     {/* ════════════════════════════════════════════
                         POPUP 2: Fiyat (Price) Dropdown Overlay
                     ════════════════════════════════════════════ */}
-                    {isPriceOpen && (
+                    {isPriceOpen && ReactDOM.createPortal(
                         <>
-                            <div className="fixed inset-0 z-[2400] bg-transparent" onClick={() => setIsPriceOpen(false)} />
+                            <div className="fixed inset-0 z-[9998] bg-transparent" onClick={() => setIsPriceOpen(false)} />
                             <div
                                 ref={priceDropdownRef}
                                 style={{
+                                    position: 'fixed',
                                     top: `${pricePosition.top}px`,
-                                    left: `${pricePosition.left}px`
+                                    left: `${pricePosition.left}px`,
+                                    zIndex: 9999
                                 }}
-                                className="fixed z-[2500] w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
+                                className="w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
                             >
                                 {/* Header */}
                                 <div className="flex items-center justify-between pt-3.5 px-5 pb-1 shrink-0">
@@ -2666,7 +2671,7 @@ const HotelListing = () => {
                                 {/* Slider and Histogram Content */}
                                 <div className="px-10 pt-8 pb-3 flex flex-col">
                                     {/* Histogram Bars */}
-                                    <div className="flex items-end gap-[2px] h-[34px] px-1 mb-0 relative z-0 pointer-events-none select-none">
+                                    <div className="flex items-center gap-[2px] h-[34px] px-1 mb-0 relative z-0 pointer-events-none select-none">
                                         {priceHistogram.map((item, idx) => (
                                             <div
                                                 key={idx}
@@ -2784,7 +2789,8 @@ const HotelListing = () => {
                                     </button>
                                 </div>
                             </div>
-                        </>
+                        </>,
+                        document.body
                     )}
 
                     {/* ════════════════════════════════════════════
@@ -2883,24 +2889,38 @@ const HotelListing = () => {
                     {isFilterDrawerOpen && (
                         <>
                             <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsFilterDrawerOpen(false)} />
-                            <div className="absolute top-full left-4 mt-0 w-[360px] max-w-[90vw] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2" style={{ maxHeight: 'calc(100vh - 200px)' }}>
-                                <div className="flex items-center justify-between px-5 py-4 border-b border-[#e8eaed] dark:border-slate-700 shrink-0">
-                                    <h2 className="text-[15px] font-medium text-[#3c4043] dark:text-slate-100">
+                            <div className="absolute top-full left-6 mt-0 w-[360px] max-w-[90vw] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+                                <div className="flex items-center justify-center relative px-5 py-4 border-b border-[#e8eaed] dark:border-slate-700 shrink-0">
+                                    <h2 className="text-[16px] font-medium text-[#202124] dark:text-slate-100">
                                         {tListing('filters', currentLang)}
                                     </h2>
-                                    <button onClick={() => setIsFilterDrawerOpen(false)} className="text-[#70757a] hover:text-[#3c4043] dark:hover:text-white transition-colors">
-                                        <span className="material-symbols-outlined text-xl">close</span>
+                                    <button onClick={() => setIsFilterDrawerOpen(false)} className="absolute right-4 text-[#5f6368] hover:text-[#202124] dark:hover:text-white transition-colors p-1 rounded-full hover:bg-[#f1f3f4] dark:hover:bg-slate-700">
+                                        <span className="material-symbols-outlined text-xl leading-none">close</span>
                                     </button>
                                 </div>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                    <Sidebar filters={dynamicFilters} locationNames={locationNames} facilityNames={facilityNames} hideHeader={true} />
+                                    <Sidebar 
+                                        filters={dynamicFilters} 
+                                        locationNames={locationNames} 
+                                        facilityNames={facilityNames} 
+                                        hideHeader={true} 
+                                        sortOptions={sortOptions}
+                                        currentSortValue={currentSortValue}
+                                        onSortChange={handleSortSelect}
+                                        priceRange={priceRange}
+                                        setPriceRange={setPriceRange}
+                                        maxHotelPrice={maxHotelPrice}
+                                        priceHistogram={priceHistogram}
+                                        currentCurrencySymbol={currentCurrencySymbol}
+                                        setIsPriceCustomized={setIsPriceCustomized}
+                                    />
                                 </div>
-                                <div className="px-5 py-3 border-t border-[#e8eaed] dark:border-slate-700 flex justify-between items-center bg-[#f8f9fa] dark:bg-slate-800 shrink-0">
-                                    <span className="text-[13px] text-[#70757a]">{hotels.length} {tListing('results', currentLang)}</span>
+                                <div className="px-5 py-4 border-t border-[#e8eaed] dark:border-slate-700 flex justify-between items-center bg-white dark:bg-[#303134] shrink-0">
+                                    <span className="text-[14px] font-medium text-[#5f6368] dark:text-slate-400">{hotels.length} {tListing('results', currentLang)}</span>
                                     <button onClick={() => {
                                         setSearchParams(new URLSearchParams());
                                         setIsFilterDrawerOpen(false);
-                                    }} className="text-[#1a73e8] text-[13px] font-medium hover:underline">
+                                    }} className="text-[#5f6368] dark:text-slate-400 text-[14px] font-medium hover:text-[#202124] dark:hover:text-white transition-colors">
                                         {tListing('clearAll', currentLang)}
                                     </button>
                                 </div>

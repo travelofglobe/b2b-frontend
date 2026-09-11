@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { BOOKING_STATUS_CONFIG } from '../utils/bookingStatusUtils';
+import { BOOKING_STATUS_CONFIG, getBookingStatusConfig } from '../utils/bookingStatusUtils';
 
 const StatusMultiSelect = ({ selectedValues = [], onChange }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -7,7 +7,7 @@ const StatusMultiSelect = ({ selectedValues = [], onChange }) => {
 
     const options = Object.entries(BOOKING_STATUS_CONFIG).map(([key, config]) => ({
         value: key,
-        label: config.label,
+        label: getBookingStatusConfig(key).label,
         icon: config.icon,
         colorClass: config.colorClass
     })).filter(opt => !['ACTIVE', 'PARTIALLY_CANCELLED'].includes(opt.value));

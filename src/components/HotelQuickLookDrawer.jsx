@@ -811,6 +811,30 @@ const HotelQuickLookDrawer = ({
         ? `https://www.google.com/maps/dir/?api=1&destination=${currentHotel.lat},${currentHotel.lng}`
         : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentHotel.name || '')}`;
 
+    const boardCounts = useMemo(() => {
+        if (!rooms || rooms.length === 0) return {};
+        return rooms.reduce((acc, r) => {
+            const code = r.hubRateModel?.boardCode || r.boardCode;
+            if (code) {
+                acc[code] = (acc[code] || 0) + 1;
+            }
+            return acc;
+        }, {});
+    }, [rooms]);
+
+    const policyCounts = useMemo(() => {
+        if (!rooms || rooms.length === 0) return { FREE: 0, NON_REFUNDABLE: 0 };
+        return rooms.reduce((acc, r) => {
+            const cancelAmount = r.hubRateModel?.price?.cancellationPolicies?.[0]?.amount;
+            if (r.hubRateModel?.refundable === true || cancelAmount === 0 || r.hasFreeCancellation) {
+                acc.FREE++;
+            } else if (r.hubRateModel?.refundable === false || (cancelAmount !== undefined && cancelAmount > 0)) {
+                acc.NON_REFUNDABLE++;
+            }
+            return acc;
+        }, { FREE: 0, NON_REFUNDABLE: 0 });
+    }, [rooms]);
+
     // Group rooms by name, filter by board & policy, sort by price
     const groupedRooms = useMemo(() => {
         if (!rooms || rooms.length === 0) return [];
@@ -1527,12 +1551,14 @@ const HotelQuickLookDrawer = ({
                                     value={boardTypeFilter}
                                     onChange={setBoardTypeFilter}
                                     options={[
-                                        { value: 'ALL', label: t('allBoards'), icon: 'check_circle' },
-                                        ...Object.keys(BOARD_TYPES).map(code => ({
-                                            value: code,
-                                            label: getBoardTypeLabel(code, currentLang),
-                                            icon: 'restaurant'
-                                        }))
+                                        { value: 'ALL', label: `${t('allBoards')} (${rooms?.length || 0})`, icon: 'check_circle' },
+                                        ...Object.keys(BOARD_TYPES)
+                                            .filter(code => boardCounts[code] > 0)
+                                            .map(code => ({
+                                                value: code,
+                                                label: `${getBoardTypeLabel(code, currentLang)} (${boardCounts[code]})`,
+                                                icon: 'restaurant'
+                                            }))
                                     ]}
                                     defaultValue="ALL"
                                     placeholder={t('allBoards')}
@@ -1546,9 +1572,9 @@ const HotelQuickLookDrawer = ({
                                     value={cancelFilter}
                                     onChange={setCancelFilter}
                                     options={[
-                                        { value: 'ALL', label: t('allPolicies'), icon: 'rule' },
-                                        { value: 'FREE', label: t('freeCancellation'), icon: 'verified' },
-                                        { value: 'NON_REFUNDABLE', label: t('nonRefundable'), icon: 'cancel' }
+                                        { value: 'ALL', label: `${t('allPolicies')} (${rooms?.length || 0})`, icon: 'rule' },
+                                        { value: 'FREE', label: `${t('freeCancellation')} (${policyCounts.FREE})`, icon: 'verified' },
+                                        { value: 'NON_REFUNDABLE', label: `${t('nonRefundable')} (${policyCounts.NON_REFUNDABLE})`, icon: 'cancel' }
                                     ]}
                                     defaultValue="ALL"
                                     placeholder={t('allPolicies')}

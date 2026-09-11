@@ -640,7 +640,7 @@ const ListingSearch = ({ isCompact = false }) => {
 
     return (
         <section className="relative group/search w-full">
-            <div className="w-full flex items-center gap-2 relative z-50">
+            <div className="w-full flex flex-wrap items-center gap-2 relative z-50">
                 <div className="flex-1 min-w-[110px] relative group/field h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
                         <div className={`flex items-center ${isCompact ? "gap-2 px-2.5" : "gap-3 px-4"} h-full w-full`}>
                             <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">

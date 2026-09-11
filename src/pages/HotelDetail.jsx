@@ -1601,6 +1601,28 @@ const HotelDetail = () => {
         }]);
     };
 
+    // Auto-select room rate if rateCode is provided in URL params
+    useEffect(() => {
+        const targetRateCode = searchParams.get('rateCode');
+        if (!targetRateCode || !groupedRooms || groupedRooms.length === 0) return;
+
+        // If already selected, skip
+        if (selectedRooms.some(r => r.hubRateModel?.rateCode === targetRateCode || r.rateCode === targetRateCode)) return;
+
+        for (const group of groupedRooms) {
+            const matchingRate = group.rates.find(r => 
+                (r.hubRateModel?.rateCode === targetRateCode || r.rateCode === targetRateCode)
+            );
+            if (matchingRate) {
+                const ratePrice = matchingRate.hubRateModel?.price?.calculatedAmount 
+                    || matchingRate.hubRateModel?.price?.totalPaymentAmount 
+                    || matchingRate.price || 0;
+                toggleRoomSelection(group.name, ratePrice, group.name, matchingRate);
+                break;
+            }
+        }
+    }, [groupedRooms, searchParams]);
+
     // -- Handlers --
     useEffect(() => {
         const handleClickOutside = (event) => {

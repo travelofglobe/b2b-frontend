@@ -27,6 +27,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 import { LISTING_LOCALES, AMENITY_LOCALES, getAmenityText, getLayerLabel, tListing } from '../utils/hotelListingLocales';
 import { MAP_POIS } from '../data/mapPoiData';
 import PoiMarker from '../components/PoiMarker';
+import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
 
 // ═══════════════════════════════════════════════
 // ═══════════════════════════════════════════════
@@ -315,7 +316,7 @@ const PriceMarker = React.memo(({
             icon={icon}
             zIndexOffset={active ? 1000 : isFav ? 500 : 0}
             eventHandlers={{
-                click: () => onSelect(active ? null : hotel),
+                click: () => onSelect(hotel),
                 mouseover: handleMouseEnter,
                 mouseout: handleMouseLeave,
             }}
@@ -1315,6 +1316,29 @@ const HotelListing = () => {
 
     // UI state
     const [selectedHotel, setSelectedHotel] = React.useState(null);
+    const [isQuickLookOpen, setIsQuickLookOpen] = React.useState(false);
+    const closeTimeoutRef = React.useRef(null);
+
+    const handleSelectHotel = React.useCallback((hotel) => {
+        if (closeTimeoutRef.current) {
+            clearTimeout(closeTimeoutRef.current);
+            closeTimeoutRef.current = null;
+        }
+        if (hotel) {
+            setSelectedHotel(hotel);
+            setIsQuickLookOpen(true);
+        } else {
+            setIsQuickLookOpen(false);
+            closeTimeoutRef.current = setTimeout(() => {
+                setSelectedHotel(null);
+                closeTimeoutRef.current = null;
+            }, 320);
+        }
+    }, []);
+
+    const handleCloseQuickLook = React.useCallback(() => {
+        handleSelectHotel(null);
+    }, [handleSelectHotel]);
     const [hoveredHotel, setHoveredHotel] = React.useState(null);
     const [shouldRefitMap, setShouldRefitMap] = React.useState(true);
     const [isSortOpen, setIsSortOpen] = React.useState(false);
@@ -2128,6 +2152,7 @@ const HotelListing = () => {
         setPage(0);
         setHasMore(true);
         setSelectedHotel(null);
+        setIsQuickLookOpen(false);
         setShouldRefitMap(true);
         mapBoundsRef.current = null;
         setMapMoved(false);
@@ -2264,6 +2289,18 @@ const HotelListing = () => {
                 LEFT PANEL: Hotel List
             ════════════════════════════════════════════ */}
             <div className={`${isMapExpanded ? "w-[44%] min-w-[500px]" : "w-[62%]"} flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[1px_0_4px_rgba(0,0,0,0.35)] dark:shadow-[1px_0_4px_rgba(0,0,0,0.7)] transition-[width] duration-300 ease-in-out`}>
+
+                {/* Slide-in Hotel Detail Quick Look Drawer */}
+                <HotelQuickLookDrawer
+                    hotel={selectedHotel}
+                    isOpen={isQuickLookOpen}
+                    onClose={handleCloseQuickLook}
+                    searchParams={searchParams}
+                    currencySymbol={selectedHotel ? getCurrencySymbol(selectedHotel.currency) : '$'}
+                    isFav={selectedHotel ? isFavorite(String(selectedHotel.hotelId || selectedHotel.id)) : false}
+                    onToggleFav={() => selectedHotel && toggleFavorite(selectedHotel)}
+                    currentLang={currentLang}
+                />
 
                 {/* Search Context Bar */}
                 <div className="pl-6 pr-4 pt-4 pb-2 shrink-0 bg-white dark:bg-[#303134] flex items-center w-full relative z-50">
@@ -2861,7 +2898,7 @@ const HotelListing = () => {
                             isSelected={selectedHotel?.id === hotel.id}
                             isHovered={hoveredHotel?.id === hotel.id}
                             onHover={setHoveredHotel}
-                            onSelect={setSelectedHotel}
+                            onSelect={handleSelectHotel}
                             currentLang={currentLang}
                             isFav={isFavorite(String(hotel.hotelId || hotel.id))}
                             onToggleFav={() => toggleFavorite(hotel)}
@@ -2956,7 +2993,7 @@ const HotelListing = () => {
                                     hotel={hotel}
                                     isSelected={selectedHotel?.id === hotel.id}
                                     isHovered={hoveredHotel?.id === hotel.id}
-                                    onSelect={setSelectedHotel}
+                                    onSelect={handleSelectHotel}
                                     onHover={setHoveredHotel}
                                     searchParams={searchParams}
                                     currencySymbol={getCurrencySymbol(hotel.currency)}

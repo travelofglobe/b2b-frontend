@@ -1561,13 +1561,16 @@ const HotelListing = () => {
     const updateStarPosition = React.useCallback(() => {
         if (starBtnRef.current) {
             const rect = starBtnRef.current.getBoundingClientRect();
+            // Use the chip row container's bottom border for precise alignment
+            const rowEl = starBtnRef.current.closest('[class*="border-b"]');
+            const rowBottom = rowEl ? rowEl.getBoundingClientRect().bottom : rect.bottom;
             const popupWidth = 340;
             let left = rect.left;
             if (left + popupWidth > window.innerWidth - 16) {
                 left = window.innerWidth - 16 - popupWidth;
             }
             setStarPosition({
-                top: rect.bottom + 4,
+                top: rowBottom,
                 left: Math.round(Math.max(8, left))
             });
         }
@@ -1576,13 +1579,16 @@ const HotelListing = () => {
     const updatePricePosition = React.useCallback(() => {
         if (priceBtnRef.current) {
             const rect = priceBtnRef.current.getBoundingClientRect();
+            // Use the chip row container's bottom border for precise alignment
+            const rowEl = priceBtnRef.current.closest('[class*="border-b"]');
+            const rowBottom = rowEl ? rowEl.getBoundingClientRect().bottom : rect.bottom;
             const popupWidth = 340;
             let left = rect.left;
             if (left + popupWidth > window.innerWidth - 16) {
                 left = window.innerWidth - 16 - popupWidth;
             }
             setPricePosition({
-                top: rect.bottom + 4,
+                top: rowBottom,
                 left: Math.round(Math.max(8, left))
             });
         }

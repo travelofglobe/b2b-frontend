@@ -27,6 +27,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 import { LISTING_LOCALES, AMENITY_LOCALES, getAmenityText, getLayerLabel, tListing } from '../utils/hotelListingLocales';
 import { MAP_POIS } from '../data/mapPoiData';
 import PoiMarker from '../components/PoiMarker';
+import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
 
 // ═══════════════════════════════════════════════
 // ═══════════════════════════════════════════════
@@ -159,119 +160,358 @@ const MapInstanceCapture = ({ setMap }) => {
 };
 
 // ═══════════════════════════════════════════════
-// Price Marker - Google Hotels-style price bubble
+// Google Hotels Style Price Marker & Hover Popup
 // ═══════════════════════════════════════════════
-const PriceMarker = React.memo(({ hotel, isSelected, isHovered, onSelect, onHover, searchParams, currencySymbol, isFav, currentLang }) => {
-    const isDark = useDarkMode();
-    const priceDisplay = hotel.price ? Math.round(hotel.price).toLocaleString('tr-TR') : '';
+let _measureCanvas = null;
+let _measureCtx = null;
+const measurePriceText = (text) => {
+    if (typeof document === 'undefined') return 36;
+    if (!_measureCanvas) {
+        _measureCanvas = document.createElement('canvas');
+        _measureCtx = _measureCanvas.getContext('2d');
+    }
+    if (_measureCtx) {
+        _measureCtx.font = '600 12px "Google Sans", Roboto, -apple-system, BlinkMacSystemFont, Arial, sans-serif';
+        return _measureCtx.measureText(text).width;
+    }
+    return 36;
+};
+
+const PriceMarker = React.memo(({ 
+    hotel, 
+    isSelected, 
+    isHovered, 
+    onSelect, 
+    onHover, 
+    searchParams, 
+    currencySymbol, 
+    isFav, 
+    onToggleFav, 
+    currentLang 
+}) => {
+    const map = useMap();
     const active = isSelected || isHovered;
+    const markerRef = React.useRef(null);
+    const leaveTimerRef = React.useRef(null);
+
+    const priceDisplay = hotel.price ? Math.round(hotel.price).toLocaleString('tr-TR') : '';
+
+    // Smart placement: check if marker is near the top of the map container (threshold 340px)
+    let isNearTop = false;
+    if (map && hotel.lat && hotel.lng) {
+        try {
+            const point = map.latLngToContainerPoint([parseFloat(hotel.lat), parseFloat(hotel.lng)]);
+            isNearTop = point.y < 340;
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    // Automatically open/close popup on hover or selection
+    React.useEffect(() => {
+        if (markerRef.current) {
+            if (active) {
+                markerRef.current.openPopup();
+            } else {
+                markerRef.current.closePopup();
+            }
+        }
+    }, [active]);
+
+    const handleMouseEnter = () => {
+        if (leaveTimerRef.current) {
+            clearTimeout(leaveTimerRef.current);
+            leaveTimerRef.current = null;
+        }
+        onHover(hotel);
+    };
+
+    const handleMouseLeave = () => {
+        if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+        leaveTimerRef.current = setTimeout(() => {
+            onHover(null);
+        }, 180);
+    };
 
     const icon = React.useMemo(() => {
-        let html;
+        // Measure text width for perfect bubble sizing
+        const textWidth = measurePriceText(`${currencySymbol} ${priceDisplay}`);
 
-        if (isFav) {
-            // Favorited / Bookmarked Hotel: Bed icon is preserved inside, with an attractive bookmark badge on top-right
-            const pillBg = active ? '#1a73e8' : (isDark ? '#0f172a' : '#ffffff');
-            const pillColor = active ? '#ffffff' : (isDark ? '#93c5fd' : '#1a73e8');
-            const iconColor = active ? '#ffffff' : (isDark ? '#60a5fa' : '#1a73e8');
-            const borderColor = active ? '#1557b0' : (isDark ? '#3b82f6' : '#1a73e8');
-            const arrowBg = active ? '#1a73e8' : (isDark ? '#3b82f6' : '#1a73e8');
-            const badgeBorder = isDark ? '#0f172a' : '#ffffff';
-            const shadowStyle = active
-                ? '0 1px 4px rgba(26, 115, 232, 0.5)'
-                : (isDark ? '0 1px 4px rgba(59, 130, 246, 0.4)' : '0 1px 4px rgba(26, 115, 232, 0.4)');
+        // Compact bubble geometry
+        const H = 26; // Pill height
+        const R = 13; // Pill corner radius
+        const tailTipX = 33; // Pointer tail tip X coordinate
+        const favWidth = isFav ? 14 : 0;
+        const W = Math.max(58, Math.round(4 + 18 + 4 + textWidth + favWidth + 8));
 
-            // Blue-Turquoise bookmark badge for saved/selected place look
-            const badgeBg = active
-                ? 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0284c7 100%)'
-                : 'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)';
-            const badgeShadow = active
-                ? '0 1px 3px rgba(6, 182, 212, 0.6)'
-                : '0 1px 3px rgba(6, 182, 212, 0.5)';
+        // Colors & styles matching Google Hotels
+        const iconBg = active ? '#ea437b' : '#ee628e';
+        const borderColor = active ? '#5f6368' : '#80868b';
+        const scale = active ? 'scale(1.12)' : 'scale(1)';
+        const shadow = active 
+            ? 'drop-shadow(0 3px 6px rgba(60,64,67,0.35)) drop-shadow(0 1px 3px rgba(60,64,67,0.2))'
+            : 'drop-shadow(0 1.5px 3px rgba(60,64,67,0.3)) drop-shadow(0 1px 2px rgba(60,64,67,0.15))';
 
-            html = `
-                <div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;width:max-content;pointer-events:auto;cursor:pointer;transform:${active ? 'scale(1.12)' : 'scale(1.05)'};transition:all 0.15s ease;">
-                    <!-- Price Pill with Bed Icon preserved & Bookmark Badge anchored on top-right -->
-                    <div style="position:relative;display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:800;font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:1.5px solid ${borderColor};background:${pillBg};color:${pillColor};box-shadow:${shadowStyle};letter-spacing:-0.2px;">
-                        <span class="material-symbols-outlined" style="font-size:14px;color:${iconColor};display:flex;align-items:center;">hotel</span>
-                        ${currencySymbol}${priceDisplay}
+        // Unified SVG path: compact rounded pill with smooth, curved concave downward pointer tail
+        const path = `
+            M ${R} 0
+            L ${W - R} 0
+            A ${R} ${R} 0 0 1 ${W} ${R}
+            A ${R} ${R} 0 0 1 ${W - R} ${H}
+            L 40 ${H}
+            C 38 ${H}, 36 27.8, 34.8 30.2
+            C 34.2 31.5, 32.8 31.5, 32.2 30.2
+            C 31 27.8, 29 ${H}, 26 ${H}
+            L ${R} ${H}
+            A ${R} ${R} 0 0 1 0 ${R}
+            A ${R} ${R} 0 0 1 ${R} 0
+            Z
+        `;
 
-                        <!-- Bookmark Badge strictly on top-right of the pill -->
-                        <div style="position:absolute;top:-9px;right:-7px;background:${badgeBg};color:white;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:${badgeShadow};border:2px solid ${badgeBorder};z-index:10;">
-                            <span class="material-symbols-outlined" style="font-size:12px;font-variation-settings:'FILL' 1;line-height:1;display:flex;align-items:center;justify-content:center;">bookmark</span>
-                        </div>
-                    </div>
-                    <!-- Downward pointer arrow -->
-                    <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${arrowBg};margin-top:-1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));"></div>
-                </div>
-            `;
-        } else if (active) {
-            // Active standard hotel (Selected or Hovered)
-            html = `
-                <div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;width:max-content;pointer-events:auto;cursor:pointer;transform:scale(1.12);transition:all 0.15s ease;">
-                    <div style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:1.5px solid #1557b0;background:#1a73e8;color:white;box-shadow:0 1px 4px rgba(26,115,232,0.5);display:flex;align-items:center;gap:4px;">
-                        <span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:white;">hotel</span>
-                        ${currencySymbol}${priceDisplay}
-                    </div>
-                    <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #1a73e8;margin-top:-1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));"></div>
-                </div>
-            `;
-        } else {
-            // Inactive standard hotel
-            const bg = isDark ? '#1e293b' : 'white';
-            const color = isDark ? '#f8fafc' : '#3c4043';
-            const border = isDark ? '1.5px solid #334155' : '1.5px solid rgba(60,64,67,0.2)';
-            const iconColor = isDark ? '#94a3b8' : '#5f6368';
-            const arrowColor = bg;
-            const shadow = isDark ? '0 1px 4px rgba(0,0,0,0.7)' : '0 1px 4px rgba(0,0,0,0.35)';
+        const favSvg = isFav ? `
+            <g transform="translate(${W - 17}, 6.5) scale(0.52)">
+                <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" fill="#1e8e3e"/>
+            </g>
+        ` : '';
 
-            html = `
-                <div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;width:max-content;pointer-events:auto;cursor:pointer;transition:all 0.15s ease;">
-                    <div style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;font-family:Google Sans,Roboto,Arial,sans-serif;white-space:nowrap;border:${border};background:${bg};color:${color};box-shadow:${shadow};display:flex;align-items:center;gap:4px;">
-                        <span class="material-symbols-outlined" style="font-size:14px;margin-right:-2px;color:${iconColor};">hotel</span>
-                        ${currencySymbol}${priceDisplay}
-                    </div>
-                    <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${arrowColor};margin-top:-1px;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));"></div>
-                </div>
-            `;
-        }
+        const html = `
+            <div style="cursor:pointer;user-select:none;transform-origin:${tailTipX}px 32px;transform:${scale};transition:transform 0.18s cubic-bezier(0.2, 0, 0, 1);z-index:${active ? 1000 : isFav ? 500 : 1};">
+                <svg width="${W}" height="34" viewBox="0 0 ${W} 34" style="overflow:visible;filter:${shadow};display:block;">
+                    <path d="${path}" fill="#ffffff" stroke="${borderColor}" stroke-width="1.15" stroke-linejoin="round"/>
+                    <circle cx="13" cy="13" r="9" fill="${iconBg}" style="transition:fill 0.2s ease;"/>
+                    <g transform="translate(7.75, 7.75) scale(0.44)">
+                        <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" fill="#ffffff"/>
+                    </g>
+                    <text x="26" y="13" dominant-baseline="central" font-family="'Google Sans', Roboto, -apple-system, BlinkMacSystemFont, Arial, sans-serif" font-size="12" font-weight="600" fill="#202124" letter-spacing="-0.1px">${currencySymbol}<tspan dx="2">${priceDisplay}</tspan></text>
+                    ${favSvg}
+                </svg>
+            </div>
+        `;
 
         return L.divIcon({
-            className: '',
+            className: 'google-hotel-map-marker',
             html,
-            iconSize: [0, 0],
-            iconAnchor: [0, 0],
+            iconSize: [W, 34],
+            iconAnchor: [tailTipX, 32],
         });
-    }, [active, isFav, isDark, currencySymbol, priceDisplay]);
+    }, [active, isFav, currencySymbol, priceDisplay]);
+
+    const formattedRating = (parseFloat(hotel.rating) || 4.2).toFixed(1).replace('.', ',');
+    const reviewCount = hotel.reviewCount || (hotel.stars ? hotel.stars * 115 + 42 : 432);
+    const imageUrl = (hotel.images && hotel.images.length > 0) ? hotel.images[0] : (hotel.image || placeholderHotel);
+
+    const showPricesText = {
+        tr: 'Fiyatları göster',
+        en: 'Show prices',
+        de: 'Preise anzeigen',
+        fr: 'Voir les prix',
+        ru: 'Показать цены',
+        ar: 'عرض الأسعار'
+    }[currentLang] || 'Fiyatları göster';
+
+    const quickLookText = {
+        tr: 'Hızlı Bakış',
+        en: 'Quick look',
+        de: 'Schnellansicht',
+        fr: 'Aperçu rapide',
+        ru: 'Быстрый просмотр',
+        ar: 'نظرة سريعة',
+        es: 'Vista rápida',
+        it: 'Visualizzazione rapida',
+        zh: '快捷查看'
+    }[currentLang] || 'Hızlı Bakış';
 
     return (
         <Marker
+            ref={markerRef}
             position={[parseFloat(hotel.lat), parseFloat(hotel.lng)]}
             icon={icon}
             zIndexOffset={active ? 1000 : isFav ? 500 : 0}
             eventHandlers={{
                 click: () => onSelect(hotel),
-                mouseover: () => onHover(hotel),
-                mouseout: () => onHover(null),
+                mouseover: handleMouseEnter,
+                mouseout: handleMouseLeave,
             }}
         >
-            <Popup className="hotel-price-popup" minWidth={220} autoPan={false} closeButton={false}>
-                <div style={{ fontFamily: 'Google Sans,Roboto,Arial,sans-serif', padding: '4px' }}>
-                    <div style={{ position: 'relative' }}>
-                        <img src={hotel.image} alt={hotel.name} onError={e => { e.target.src = placeholderHotel; }} style={{ width: '100%', height: '110px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} />
-                        {isFav && (
-                            <div style={{ position: 'absolute', top: '6px', right: '6px', background: 'rgba(15, 23, 42, 0.78)', backdropFilter: 'blur(6px)', padding: '3px 8px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '4px', color: '#38bdf8', fontSize: '11px', fontWeight: 600, border: '1px solid rgba(6, 182, 212, 0.4)', boxShadow: '0 2px 6px rgba(0,0,0,0.3)' }}>
-                                <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>bookmark</span>
-                                <span>{tListing('saved', currentLang)}</span>
-                            </div>
-                        )}
+            <Popup 
+                className={`hotel-price-popup ${isNearTop ? 'popup-downwards' : ''}`}
+                minWidth={220} 
+                maxWidth={220} 
+                autoPan={false} 
+                closeButton={false} 
+                offset={isNearTop ? [0, 8] : [0, -34]}
+            >
+                <style>{`
+                    .hotel-price-popup .leaflet-popup-content-wrapper { 
+                        padding: 0 !important; 
+                        border-radius: 10px !important; 
+                        overflow: hidden !important; 
+                        box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important; 
+                        border: none !important;
+                        background: transparent !important;
+                    }
+                    .hotel-price-popup.popup-downwards {
+                        bottom: auto !important;
+                        top: 8px !important;
+                        margin-bottom: 0 !important;
+                    }
+                    .hotel-price-popup .leaflet-popup-content { 
+                        margin: 0 !important; 
+                        width: 220px !important; 
+                        line-height: normal !important; 
+                    }
+                    .hotel-price-popup .leaflet-popup-tip-container { 
+                        display: none !important; 
+                    }
+                    .hotel-price-popup a.leaflet-popup-close-button { 
+                        display: none !important; 
+                    }
+                `}</style>
+                <div 
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                    style={{ 
+                        width: '220px', 
+                        fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif",
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        background: '#ffffff',
+                    }}
+                >
+                    <div style={{ position: 'relative', width: '100%', height: '118px', backgroundColor: '#f1f3f4' }}>
+                        <img 
+                            src={imageUrl} 
+                            alt={hotel.name} 
+                            onError={e => { e.target.src = placeholderHotel; e.target.onerror = null; }} 
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+                        />
+                        <div 
+                            style={{ 
+                                position: 'absolute', 
+                                top: '8px', 
+                                right: '8px', 
+                                width: '28px', 
+                                height: '28px', 
+                                background: 'rgba(32,33,36,0.55)', 
+                                borderRadius: '50%', 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                cursor: 'pointer', 
+                                backdropFilter: 'blur(2px)',
+                                transition: 'background 0.2s' 
+                            }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (onToggleFav) onToggleFav();
+                            }}
+                            onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(32,33,36,0.8)'}
+                            onMouseOut={e => e.currentTarget.style.backgroundColor = 'rgba(32,33,36,0.55)'}
+                        >
+                            <span 
+                                className="material-symbols-outlined" 
+                                style={{ 
+                                    color: 'white', 
+                                    fontSize: '16px', 
+                                    fontVariationSettings: isFav ? "'FILL' 1" : "'FILL' 0",
+                                    lineHeight: 1
+                                }}
+                            >
+                                bookmark
+                            </span>
+                        </div>
                     </div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#3c4043', lineHeight: '1.3', marginBottom: '6px' }}>{hotel.name}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '15px', fontWeight: 700, color: '#3c4043' }}>{currencySymbol}{priceDisplay}</span>
-                        <Link to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`} target="_blank" onClick={e => e.stopPropagation()} style={{ background: '#1a73e8', color: 'white', fontSize: '12px', fontWeight: 600, padding: '5px 12px', borderRadius: '20px', textDecoration: 'none' }}>
-                            {tListing('view', currentLang)}
-                        </Link>
+                    <div style={{ padding: '10px 12px 12px 12px' }}>
+                        <div 
+                            style={{ 
+                                fontSize: '14px', 
+                                fontWeight: 500, 
+                                color: '#202124', 
+                                lineHeight: '1.25', 
+                                marginBottom: '3px', 
+                                whiteSpace: 'nowrap', 
+                                overflow: 'hidden', 
+                                textOverflow: 'ellipsis' 
+                            }}
+                            title={hotel.name}
+                        >
+                            {hotel.name}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '10px', fontSize: '12px' }}>
+                            <span style={{ color: '#5f6368', fontWeight: 500 }}>{formattedRating}</span>
+                            <span style={{ color: '#fbbc04', fontSize: '11px' }}>★</span>
+                            <span style={{ color: '#1a73e8', textDecoration: 'none' }}>({reviewCount.toLocaleString('tr-TR')})</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onSelect(hotel);
+                                }}
+                                style={{
+                                    flex: 1,
+                                    border: '1px solid #dadce0',
+                                    borderRadius: '18px',
+                                    padding: '6px 4px',
+                                    textAlign: 'center',
+                                    color: '#1a73e8',
+                                    fontSize: '12px',
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    backgroundColor: '#ffffff',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '3px',
+                                    transition: 'all 0.15s ease',
+                                    boxSizing: 'border-box'
+                                }}
+                                onMouseOver={e => {
+                                    e.currentTarget.style.backgroundColor = '#f8fafd';
+                                    e.currentTarget.style.borderColor = '#1a73e8';
+                                }}
+                                onMouseOut={e => {
+                                    e.currentTarget.style.backgroundColor = '#ffffff';
+                                    e.currentTarget.style.borderColor = '#dadce0';
+                                }}
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
+                                <span>{quickLookText}</span>
+                            </button>
+                            <Link 
+                                to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`} 
+                                target="_blank" 
+                                onClick={e => e.stopPropagation()} 
+                                style={{ 
+                                    flex: 1,
+                                    border: '1px solid #1a73e8', 
+                                    borderRadius: '18px', 
+                                    padding: '6px 4px', 
+                                    textAlign: 'center', 
+                                    color: '#ffffff', 
+                                    fontSize: '12px', 
+                                    fontWeight: 500, 
+                                    textDecoration: 'none', 
+                                    transition: 'all 0.15s ease', 
+                                    backgroundColor: '#1a73e8',
+                                    boxSizing: 'border-box',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }} 
+                                onMouseOver={e => {
+                                    e.currentTarget.style.backgroundColor = '#1557b0';
+                                    e.currentTarget.style.borderColor = '#1557b0';
+                                }} 
+                                onMouseOut={e => {
+                                    e.currentTarget.style.backgroundColor = '#1a73e8';
+                                    e.currentTarget.style.borderColor = '#1a73e8';
+                                }}
+                            >
+                                {showPricesText}
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </Popup>
@@ -306,6 +546,10 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
     const showPricesLabel = {
         tr: 'Fiyatları göster', en: 'Show prices', ar: 'عرض الأسعار', de: 'Preise anzeigen',
         fr: 'Voir les prix', ru: 'Показать цены', zh: '查看价格', es: 'Ver precios', it: 'Mostra prezzi', ja: '料金を見る', fa: 'نمایش قیمت'
+    };
+    const quickLookLabel = {
+        tr: 'Hızlı Bakış', en: 'Quick look', ar: 'نظرة سريعة', de: 'Schnellansicht',
+        fr: 'Aperçu rapide', ru: 'Быстрый просмотр', zh: '快捷查看', es: 'Vista rápida', it: 'Visualizzazione rapida', ja: 'クイックビュー', fa: 'نمای سریع'
     };
     const freeCancelLabel = {
         tr: 'Ücretsiz iptal', en: 'Free cancellation', ar: 'إلغاء مجاني', de: 'Kostenlose Stornierung',
@@ -346,7 +590,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
             className={`flex py-4 pl-6 pr-4 border-b border-[#e8eaed] dark:border-slate-700 cursor-pointer transition-colors group ${isActive ? 'bg-[#f0f4ff] dark:bg-blue-900/10' : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-800/40'}`}
             onMouseEnter={() => onHover(hotel)}
             onMouseLeave={() => onHover(null)}
-            onClick={() => onSelect(isActive ? null : hotel)}
+            onClick={() => onSelect(hotel)}
         >
             {/* Image */}
             <div className={`relative ${isCompact ? "w-[190px] h-[145px] mr-3.5" : "w-[260px] h-[175px] mr-5"} rounded-lg overflow-hidden shrink-0 bg-[#f1f3f4] transition-all duration-300`}>
@@ -487,14 +731,29 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         )}
                     </div>
                     
-                    <Link
-                        to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
-                        target="_blank"
-                        onClick={e => e.stopPropagation()}
-                        className="inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-[13.5px] font-medium h-[31px] px-4 rounded-full transition-colors whitespace-nowrap font-roboto shadow-[0_1px_2px_rgba(60,64,67,0.3)] hover:shadow-[0_1px_3px_1px_rgba(60,64,67,0.15)] mt-4"
-                    >
-                        {showPricesLabel[currentLang] || showPricesLabel.en}
-                    </Link>
+                    <div className="flex items-center gap-2 mt-4 flex-wrap sm:flex-nowrap justify-end">
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onSelect(hotel);
+                            }}
+                            className="inline-flex items-center justify-center gap-1.5 border border-[#dadce0] dark:border-slate-600 hover:border-[#1a73e8] dark:hover:border-blue-400 bg-white dark:bg-[#303134] hover:bg-[#f8fafd] dark:hover:bg-blue-900/20 text-[#1a73e8] dark:text-blue-400 text-[13px] font-medium h-[31px] px-3 rounded-full transition-all whitespace-nowrap font-roboto cursor-pointer shadow-xs active:scale-[0.98]"
+                            title={quickLookLabel[currentLang] || quickLookLabel.en}
+                        >
+                            <span className="material-symbols-outlined text-[17px]">visibility</span>
+                            <span>{quickLookLabel[currentLang] || quickLookLabel.en}</span>
+                        </button>
+
+                        <Link
+                            to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
+                            target="_blank"
+                            onClick={e => e.stopPropagation()}
+                            className="inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-[13.5px] font-medium h-[31px] px-3.5 rounded-full transition-colors whitespace-nowrap font-roboto shadow-[0_1px_2px_rgba(60,64,67,0.3)] hover:shadow-[0_1px_3px_1px_rgba(60,64,67,0.15)] active:scale-[0.98]"
+                        >
+                            {showPricesLabel[currentLang] || showPricesLabel.en}
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
@@ -554,7 +813,10 @@ const GoogleCardSkeleton = ({ isCompact = false }) => (
                     <div className="h-3.5 w-24 bg-[#e8eaed] dark:bg-slate-700/70 rounded-full" />
                     <div className="h-3.5 w-20 bg-[#f1f3f4] dark:bg-slate-700/50 rounded-full" />
                 </div>
-                <div className="shrink-0 h-[31px] w-28 bg-[#e8eaed] dark:bg-slate-700 rounded-full" />
+                <div className="shrink-0 flex items-center gap-2">
+                    <div className="h-[31px] w-24 bg-[#e8eaed] dark:bg-slate-700/60 rounded-full" />
+                    <div className="h-[31px] w-28 bg-[#e8eaed] dark:bg-slate-700 rounded-full" />
+                </div>
             </div>
         </div>
     </div>
@@ -1128,6 +1390,29 @@ const HotelListing = () => {
 
     // UI state
     const [selectedHotel, setSelectedHotel] = React.useState(null);
+    const [isQuickLookOpen, setIsQuickLookOpen] = React.useState(false);
+    const closeTimeoutRef = React.useRef(null);
+
+    const handleSelectHotel = React.useCallback((hotel) => {
+        if (closeTimeoutRef.current) {
+            clearTimeout(closeTimeoutRef.current);
+            closeTimeoutRef.current = null;
+        }
+        if (hotel) {
+            setSelectedHotel(hotel);
+            setIsQuickLookOpen(true);
+        } else {
+            setIsQuickLookOpen(false);
+            closeTimeoutRef.current = setTimeout(() => {
+                setSelectedHotel(null);
+                closeTimeoutRef.current = null;
+            }, 320);
+        }
+    }, []);
+
+    const handleCloseQuickLook = React.useCallback(() => {
+        handleSelectHotel(null);
+    }, [handleSelectHotel]);
     const [hoveredHotel, setHoveredHotel] = React.useState(null);
     const [shouldRefitMap, setShouldRefitMap] = React.useState(true);
     const [isSortOpen, setIsSortOpen] = React.useState(false);
@@ -1941,6 +2226,7 @@ const HotelListing = () => {
         setPage(0);
         setHasMore(true);
         setSelectedHotel(null);
+        setIsQuickLookOpen(false);
         setShouldRefitMap(true);
         mapBoundsRef.current = null;
         setMapMoved(false);
@@ -2077,6 +2363,18 @@ const HotelListing = () => {
                 LEFT PANEL: Hotel List
             ════════════════════════════════════════════ */}
             <div className={`${isMapExpanded ? "w-[44%] min-w-[500px]" : "w-[62%]"} flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[1px_0_4px_rgba(0,0,0,0.35)] dark:shadow-[1px_0_4px_rgba(0,0,0,0.7)] transition-[width] duration-300 ease-in-out`}>
+
+                {/* Slide-in Hotel Detail Quick Look Drawer */}
+                <HotelQuickLookDrawer
+                    hotel={selectedHotel}
+                    isOpen={isQuickLookOpen}
+                    onClose={handleCloseQuickLook}
+                    searchParams={searchParams}
+                    currencySymbol={selectedHotel ? getCurrencySymbol(selectedHotel.currency) : '$'}
+                    isFav={selectedHotel ? isFavorite(String(selectedHotel.hotelId || selectedHotel.id)) : false}
+                    onToggleFav={() => selectedHotel && toggleFavorite(selectedHotel)}
+                    currentLang={currentLang}
+                />
 
                 {/* Search Context Bar */}
                 <div className="pl-6 pr-4 pt-4 pb-2 shrink-0 bg-white dark:bg-[#303134] flex items-center w-full relative z-50">
@@ -2674,7 +2972,7 @@ const HotelListing = () => {
                             isSelected={selectedHotel?.id === hotel.id}
                             isHovered={hoveredHotel?.id === hotel.id}
                             onHover={setHoveredHotel}
-                            onSelect={setSelectedHotel}
+                            onSelect={handleSelectHotel}
                             currentLang={currentLang}
                             isFav={isFavorite(String(hotel.hotelId || hotel.id))}
                             onToggleFav={() => toggleFavorite(hotel)}
@@ -2769,11 +3067,12 @@ const HotelListing = () => {
                                     hotel={hotel}
                                     isSelected={selectedHotel?.id === hotel.id}
                                     isHovered={hoveredHotel?.id === hotel.id}
-                                    onSelect={setSelectedHotel}
+                                    onSelect={handleSelectHotel}
                                     onHover={setHoveredHotel}
                                     searchParams={searchParams}
                                     currencySymbol={getCurrencySymbol(hotel.currency)}
                                     isFav={isFavorite(String(hotel.hotelId || hotel.id))}
+                                    onToggleFav={() => toggleFavorite(hotel)}
                                     currentLang={currentLang}
                                 />
                             ))

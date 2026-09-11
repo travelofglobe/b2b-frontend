@@ -18,7 +18,8 @@ export const LISTING_LOCALES = {
         expandMap: "Expand map", collapseMap: "Collapse map",
         publicTransport: "Public transport", restaurants: "Restaurant areas",
         touristAttractions: "Touristic places", shoppingAreas: "Shopping areas",
-        zoomIn: "Zoom in", zoomOut: "Zoom out"
+        zoomIn: "Zoom in", zoomOut: "Zoom out",
+        quickLook: "Quick look"
     },
     tr: {
         room: "Oda", rooms: "Oda", guest: "Misafir", guests: "Misafir",
@@ -39,7 +40,8 @@ export const LISTING_LOCALES = {
         expandMap: "Haritayı genişlet", collapseMap: "Haritayı daralt",
         publicTransport: "Toplu taşıma", restaurants: "Restoran bölgeleri",
         touristAttractions: "Turistik yerler", shoppingAreas: "Alışveriş bölgeleri",
-        zoomIn: "Yakınlaştır", zoomOut: "Uzaklaştır"
+        zoomIn: "Yakınlaştır", zoomOut: "Uzaklaştır",
+        quickLook: "Hızlı Bakış"
     },
     ar: {
         room: "غرفة", rooms: "غرف", guest: "نزيل", guests: "نزلاء",
@@ -56,7 +58,8 @@ export const LISTING_LOCALES = {
         searchMapMoves: "البحث مع تحريك الخريطة", searchThisArea: "البحث في هذه المنطقة", mapLayer: "طبقة الخريطة", mapStyle: "نمط الخريطة",
         savedPlans: "خطط سفرك", savedHotels: "فنادق محفوظة", savedPlansTitle: "خطط السفر المحفوظة",
         nothingHereYet: "لا يوجد شيء هنا بعد", nothingHereYetDesc: "احفظ الفنادق هنا بالنقر على أيقونة الإشارة المرجعية",
-        removeFromSaved: "إزالة من المحفوظات"
+        removeFromSaved: "إزالة من المحفوظات",
+        quickLook: "نظرة سريعة"
     },
     es: {
         room: "Habitación", rooms: "Habitaciones", guest: "Huésped", guests: "Huéspedes",
@@ -73,7 +76,8 @@ export const LISTING_LOCALES = {
         searchMapMoves: "Buscar al mover el mapa", searchThisArea: "Buscar en esta zona", mapLayer: "Capa del mapa", mapStyle: "Estilo del mapa",
         savedPlans: "Tus planes de viaje", savedHotels: "hoteles guardados", savedPlansTitle: "Planes de viaje guardados",
         nothingHereYet: "No hay nada aquí todavía", nothingHereYetDesc: "Guarda hoteles haciendo clic en el icono de marcador",
-        removeFromSaved: "Eliminar de guardados"
+        removeFromSaved: "Eliminar de guardados",
+        quickLook: "Vista rápida"
     },
     ru: {
         room: "Номер", rooms: "Номера", guest: "Гость", guests: "Гости",
@@ -90,7 +94,8 @@ export const LISTING_LOCALES = {
         searchMapMoves: "Искать при перемещении карты", searchThisArea: "Искать в этой области", mapLayer: "Слой карты", mapStyle: "Стиль карты",
         savedPlans: "Ваши планы поездок", savedHotels: "сохраненных отелей", savedPlansTitle: "Сохраненные планы поездок",
         nothingHereYet: "Здесь пока ничего нет", nothingHereYetDesc: "Сохраняйте отели, нажимая на значок закладки",
-        removeFromSaved: "Удалить из сохраненных"
+        removeFromSaved: "Удалить из сохраненных",
+        quickLook: "Быстрый просмотр"
     },
     zh: {
         room: "间客房", rooms: "间客房", guest: "位旅客", guests: "位旅客",
@@ -107,7 +112,8 @@ export const LISTING_LOCALES = {
         searchMapMoves: "移动地图时搜索", searchThisArea: "在此区域搜索", mapLayer: "地图图层", mapStyle: "地图样式",
         savedPlans: "您的旅行计划", savedHotels: "家已存酒店", savedPlansTitle: "已保存的旅行计划",
         nothingHereYet: "暂无内容", nothingHereYetDesc: "点击喜欢的酒店上的书签图标将其保存至此处",
-        removeFromSaved: "从已保存中移除"
+        removeFromSaved: "从已保存中移除",
+        quickLook: "快捷查看"
     },
     ja: {
         room: "室", rooms: "室", guest: "名", guests: "名",

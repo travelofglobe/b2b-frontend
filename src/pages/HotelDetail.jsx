@@ -24,6 +24,7 @@ import { FACILITY_ICON_MAP } from '../utils/facilityUtils';
 import Tooltip from '../components/Tooltip';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import RoomGalleryModal from '../components/RoomGalleryModal';
+import GoogleFilterDropdown from '../components/GoogleFilterDropdown';
 import { MapContainer, Marker, Popup } from 'react-leaflet';
 import OpenFreeMapLayer from '../components/OpenFreeMapLayer';
 import L from 'leaflet';
@@ -1601,6 +1602,28 @@ const HotelDetail = () => {
         }]);
     };
 
+    // Auto-select room rate if rateCode is provided in URL params
+    useEffect(() => {
+        const targetRateCode = searchParams.get('rateCode');
+        if (!targetRateCode || !groupedRooms || groupedRooms.length === 0) return;
+
+        // If already selected, skip
+        if (selectedRooms.some(r => r.hubRateModel?.rateCode === targetRateCode || r.rateCode === targetRateCode)) return;
+
+        for (const group of groupedRooms) {
+            const matchingRate = group.rates.find(r => 
+                (r.hubRateModel?.rateCode === targetRateCode || r.rateCode === targetRateCode)
+            );
+            if (matchingRate) {
+                const ratePrice = matchingRate.hubRateModel?.price?.calculatedAmount 
+                    || matchingRate.hubRateModel?.price?.totalPaymentAmount 
+                    || matchingRate.price || 0;
+                toggleRoomSelection(group.name, ratePrice, group.name, matchingRate);
+                break;
+            }
+        }
+    }, [groupedRooms, searchParams]);
+
     // -- Handlers --
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -2235,34 +2258,39 @@ const HotelDetail = () => {
                                     <div className="relative space-y-4">
                                         {/* Filters Bar - Google Chips Style */}
                                         <div className="flex flex-wrap items-center gap-3 mb-6 p-3 bg-white dark:bg-[#303134] rounded-xl border border-[#dadce0] dark:border-slate-700">
-                                            <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[18px] text-[#5f6368]">restaurant</span>
-                                                <span className="text-xs font-medium text-[#5f6368] dark:text-slate-400">{tLocal('boardType')}</span>
-                                                <select
-                                                    value={boardTypeFilter}
-                                                    onChange={(e) => setBoardTypeFilter(e.target.value)}
-                                                    className="bg-transparent border border-[#dadce0] dark:border-slate-600 rounded-md text-xs font-normal text-[#202124] dark:text-white px-2 py-1 focus:border-[#1a73e8] outline-none cursor-pointer"
-                                                >
-                                                    <option value="ALL">{tLocal('allBoards')}</option>
-                                                    {Object.keys(BOARD_TYPES).map(code => (
-                                                        <option key={code} value={code}>{getBoardTypeLabel(code, currentLang)}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <div className="w-px h-4 bg-[#dadce0] dark:bg-slate-700 hidden md:block"></div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[18px] text-[#5f6368]">event_busy</span>
-                                                <span className="text-xs font-medium text-[#5f6368] dark:text-slate-400">{tLocal('policyLabel')}</span>
-                                                <select
-                                                    value={cancelFilter}
-                                                    onChange={(e) => setCancelFilter(e.target.value)}
-                                                    className="bg-transparent border border-[#dadce0] dark:border-slate-600 rounded-md text-xs font-normal text-[#202124] dark:text-white px-2 py-1 focus:border-[#1a73e8] outline-none cursor-pointer"
-                                                >
-                                                    <option value="ALL">{tLocal('allPolicies')}</option>
-                                                    <option value="FREE">{tLocal('freeCancellation')}</option>
-                                                    <option value="NON_REFUNDABLE">{tLocal('nonRefundable')}</option>
-                                                </select>
-                                            </div>
+                                            <GoogleFilterDropdown
+                                                icon="restaurant"
+                                                prefixLabel={tLocal('boardType')}
+                                                value={boardTypeFilter}
+                                                onChange={setBoardTypeFilter}
+                                                options={[
+                                                    { value: 'ALL', label: tLocal('allBoards'), icon: 'check_circle' },
+                                                    ...Object.keys(BOARD_TYPES).map(code => ({
+                                                        value: code,
+                                                        label: getBoardTypeLabel(code, currentLang),
+                                                        icon: 'restaurant'
+                                                    }))
+                                                ]}
+                                                defaultValue="ALL"
+                                                placeholder={tLocal('allBoards')}
+                                            />
+
+                                            <div className="w-px h-5 bg-[#dadce0] dark:bg-slate-700 hidden md:block"></div>
+
+                                            <GoogleFilterDropdown
+                                                icon="event_busy"
+                                                prefixLabel={tLocal('policyLabel')}
+                                                value={cancelFilter}
+                                                onChange={setCancelFilter}
+                                                options={[
+                                                    { value: 'ALL', label: tLocal('allPolicies'), icon: 'rule' },
+                                                    { value: 'FREE', label: tLocal('freeCancellation'), icon: 'verified' },
+                                                    { value: 'NON_REFUNDABLE', label: tLocal('nonRefundable'), icon: 'cancel' }
+                                                ]}
+                                                defaultValue="ALL"
+                                                placeholder={tLocal('allPolicies')}
+                                            />
+
                                             <div className="ml-auto text-xs font-normal text-[#5f6368] dark:text-slate-400">
                                                 {groupedRooms.length} {tLocal('roomTypesFound')}
                                             </div>

@@ -593,6 +593,18 @@ const DRAWER_LOCALES = {
     }
 };
 
+const decodeHTMLEntities = (text) => {
+    if (!text || typeof text !== 'string') return text || '';
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = text;
+    let decoded = textArea.value;
+    if (decoded.includes('&amp;') || decoded.includes('&lt;') || decoded.includes('&gt;') || decoded.includes('&quot;') || decoded.includes('&#39;')) {
+        textArea.innerHTML = decoded;
+        decoded = textArea.value;
+    }
+    return decoded;
+};
+
 const HotelQuickLookDrawer = ({
     hotel,
     isOpen,
@@ -1224,7 +1236,7 @@ const HotelQuickLookDrawer = ({
                             className="text-[19px] sm:text-[21px] font-medium text-[#202124] dark:text-slate-100 font-roboto truncate"
                             title={currentHotel.name}
                         >
-                            {currentHotel.names?.tr || currentHotel.names?.en || currentHotel.name}
+                            {decodeHTMLEntities(currentHotel.names?.tr || currentHotel.names?.en || currentHotel.name)}
                         </h1>
                         <div className="flex text-[#fbbc04] shrink-0">
                             {[...Array(Math.min(starsCount, 5))].map((_, i) => (
@@ -1592,7 +1604,7 @@ const HotelQuickLookDrawer = ({
                                 <p 
                                     className="text-[13px] text-[#5f6368] dark:text-slate-400 line-clamp-3 leading-relaxed"
                                     dangerouslySetInnerHTML={{ 
-                                        __html: currentHotel.descriptions?.[0]?.text || currentHotel.description || '' 
+                                        __html: decodeHTMLEntities(currentHotel.descriptions?.[0]?.text || currentHotel.description || '') 
                                     }}
                                 />
                                 <button
@@ -2023,12 +2035,12 @@ const HotelQuickLookDrawer = ({
                                     <div key={idx} className="space-y-1">
                                         {desc.type && (
                                             <h4 className="text-[11px] font-semibold uppercase text-[#1a73e8] tracking-wider">
-                                                {desc.type}
+                                                {decodeHTMLEntities(desc.type)}
                                             </h4>
                                         )}
                                         <p 
                                             className="text-[13.5px] text-[#3c4043] dark:text-slate-300 leading-relaxed"
-                                            dangerouslySetInnerHTML={{ __html: desc.text }}
+                                            dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(desc.text) }}
                                         />
                                     </div>
                                 ))
@@ -2036,7 +2048,7 @@ const HotelQuickLookDrawer = ({
                                 <p 
                                     className="text-[13.5px] text-[#3c4043] dark:text-slate-300 leading-relaxed"
                                     dangerouslySetInnerHTML={{ 
-                                        __html: currentHotel.description || "Travel of Globe garantili tesisimizde konforlu ve eşsiz bir konaklama deneyimi sizleri bekliyor." 
+                                        __html: decodeHTMLEntities(currentHotel.description || "Travel of Globe garantili tesisimizde konforlu ve eşsiz bir konaklama deneyimi sizleri bekliyor.") 
                                     }}
                                 />
                             )}

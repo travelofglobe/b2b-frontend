@@ -41,6 +41,18 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
+const decodeHTMLEntities = (text) => {
+    if (!text || typeof text !== 'string') return text || '';
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = text;
+    let decoded = textArea.value;
+    if (decoded.includes('&amp;') || decoded.includes('&lt;') || decoded.includes('&gt;') || decoded.includes('&quot;') || decoded.includes('&#39;')) {
+        textArea.innerHTML = decoded;
+        decoded = textArea.value;
+    }
+    return decoded;
+};
+
 const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex, description }) => {
     const handlePrevious = useCallback((e) => {
         e?.stopPropagation();

@@ -1435,7 +1435,7 @@ const HotelListing = () => {
     const [mapInstance, setMapInstance] = React.useState(null);
     const isDark = useDarkMode();
     const userChangedLayerRef = React.useRef(false);
-    const [mapLayer, setMapLayer] = React.useState(() => isDark ? 'dark' : 'google');
+    const [mapLayer, setMapLayer] = React.useState('google');
     const [isLayerMenuOpen, setIsLayerMenuOpen] = React.useState(false);
 
     // Map expansion & POI category states
@@ -1470,7 +1470,7 @@ const HotelListing = () => {
 
     React.useEffect(() => {
         if (!userChangedLayerRef.current) {
-            setMapLayer(isDark ? 'dark' : 'google');
+            setMapLayer('google');
         }
     }, [isDark]);
     const layerMenuRef = React.useRef(null);

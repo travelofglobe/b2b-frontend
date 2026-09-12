@@ -247,7 +247,7 @@ const BookingDetail = () => {
                     <div className="max-w-[1440px] mx-auto flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={() => navigate('/bookings')}
+                                onClick={() => navigate('/travel/hotels/bookings')}
                                 className="size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] flex items-center justify-center text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors cursor-pointer"
                             >
                                 <span className="material-symbols-outlined text-[20px]">arrow_back</span>
@@ -288,7 +288,7 @@ const BookingDetail = () => {
                                 <h3 className="text-base font-bold text-[#202124] dark:text-white mb-2">{L('unavailable')}</h3>
                                 <p className="text-xs text-[#5f6368] dark:text-slate-400 mb-6">{error}</p>
                                 <button
-                                    onClick={() => navigate('/bookings')}
+                                    onClick={() => navigate('/travel/hotels/bookings')}
                                     className="px-5 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-xs transition-all shadow-xs active:scale-95 cursor-pointer"
                                 >
                                     {L('backToBookings')}
@@ -324,14 +324,14 @@ const BookingDetail = () => {
                     {/* Left: Breadcrumbs & Status Pills */}
                     <div className="flex items-center gap-3">
                         <button
-                            onClick={() => navigate('/bookings')}
+                            onClick={() => navigate('/travel/hotels/bookings')}
                             className="size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] flex items-center justify-center text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors cursor-pointer shadow-2xs shrink-0"
                             title={L('backToBookings')}
                         >
                             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
                         </button>
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-xs text-[#5f6368] dark:text-slate-400 hover:text-[#1a73e8] cursor-pointer" onClick={() => navigate('/bookings')}>
+                            <span className="text-xs text-[#5f6368] dark:text-slate-400 hover:text-[#1a73e8] cursor-pointer" onClick={() => navigate('/travel/hotels/bookings')}>
                                 {L('bookings')}
                             </span>
                             <span className="text-xs text-[#70757a]">/</span>
@@ -350,7 +350,7 @@ const BookingDetail = () => {
                     <div className="flex items-center gap-2 self-end sm:self-auto">
                         {booking.voucher && (
                             <button
-                                onClick={() => window.open(`/bookings/${booking.voucher}/voucher`, '_blank')}
+                                onClick={() => window.open(`/travel/hotels/bookings/${booking.voucher}/voucher`, '_blank')}
                                 disabled={booking.status === 'FAILED' || booking.status === 'ERROR' || booking.hotel?.bookingStatus === 'FAILED' || booking.hotel?.bookingStatus === 'ERROR'}
                                 className="h-9 px-4 rounded-full flex items-center gap-1.5 font-semibold text-xs transition-all bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs active:scale-95 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                             >

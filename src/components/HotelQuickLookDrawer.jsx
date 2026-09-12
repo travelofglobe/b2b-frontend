@@ -593,6 +593,37 @@ const DRAWER_LOCALES = {
     }
 };
 
+const decodeHTMLEntities = (text) => {
+    if (!text || typeof text !== 'string') return text || '';
+    let decoded = text
+        .replace(/&amp;quot;/g, '&quot;')
+        .replace(/&amp;amp;/g, '&amp;')
+        .replace(/&amp;lt;/g, '&lt;')
+        .replace(/&amp;gt;/g, '&gt;')
+        .replace(/&amp;#39;/g, '&#39;')
+        .replace(/&amp;#039;/g, '&#039;');
+
+    decoded = decoded
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'")
+        .replace(/&#39;/g, "'")
+        .replace(/&#039;/g, "'")
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&ndash;/g, '–')
+        .replace(/&mdash;/g, '—')
+        .replace(/&rsquo;/g, "'")
+        .replace(/&lsquo;/g, "'")
+        .replace(/&rdquo;/g, '"')
+        .replace(/&ldquo;/g, '"')
+        .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec))
+        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+
+    decoded = decoded.replace(/&amp;/g, '&');
+    return decoded;
+};
+
 const HotelQuickLookDrawer = ({
     hotel,
     isOpen,
@@ -618,6 +649,25 @@ const HotelQuickLookDrawer = ({
     const [expandedRates, setExpandedRates] = useState({});
     const [selectedRooms, setSelectedRooms] = useState([]);
     const [isMultiBookingLoading, setIsMultiBookingLoading] = useState(false);
+    const [visiblePhotosCount, setVisiblePhotosCount] = useState(24);
+
+    const scrollContainerRef = useRef(null);
+    const tabScrollPosRef = useRef({});
+
+    const handleTabChange = (newTab) => {
+        if (scrollContainerRef.current) {
+            tabScrollPosRef.current[activeTab] = scrollContainerRef.current.scrollTop;
+            const targetScroll = (newTab === activeTab) ? 0 : (tabScrollPosRef.current[newTab] ?? 0);
+            setActiveTab(newTab);
+            requestAnimationFrame(() => {
+                if (scrollContainerRef.current) {
+                    scrollContainerRef.current.scrollTop = targetScroll;
+                }
+            });
+        } else {
+            setActiveTab(newTab);
+        }
+    };
 
     const parsedRooms = useMemo(() => {
         const guestsParam = searchParams?.get('guests');
@@ -642,17 +692,35 @@ const HotelQuickLookDrawer = ({
         return selectedRooms.reduce((sum, r) => sum + (r.rate || 0), 0);
     }, [selectedRooms]);
 
+    const currentHotelId = hotel ? (hotel.id || hotel.hotelId) : null;
+    const [prevHotelId, setPrevHotelId] = useState(currentHotelId);
+
+    // Synchronously update state during render when hotel prop changes to prevent stale data flashing
+    if (currentHotelId && currentHotelId !== prevHotelId) {
+        setPrevHotelId(currentHotelId);
+        setCachedHotel(hotel);
+        setDetailData(null);
+        setRooms([]);
+        setActiveTab('overview');
+        setBoardTypeFilter('ALL');
+        setCancelFilter('ALL');
+        setSelectedRooms([]);
+        setVisiblePhotosCount(24);
+        tabScrollPosRef.current = {};
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop = 0;
+        }
+    }
+
     // Keep cached hotel so during exit animation the content remains intact
     useEffect(() => {
         if (hotel) {
             setCachedHotel(hotel);
-            setDetailData(null);
-            setActiveTab('overview');
-            setBoardTypeFilter('ALL');
-            setCancelFilter('ALL');
-            setSelectedRooms([]);
+            if (scrollContainerRef.current) {
+                scrollContainerRef.current.scrollTop = 0;
+            }
         }
-    }, [hotel?.id, hotel?.hotelId]);
+    }, [hotel?.id, hotel?.hotelId, isOpen]);
 
     const t = (key, ...args) => {
         const langDict = DRAWER_LOCALES[currentLang] || DRAWER_LOCALES.en || DRAWER_LOCALES.tr;
@@ -764,12 +832,38 @@ const HotelQuickLookDrawer = ({
     const starsCount = currentHotel.stars || currentHotel.hotelStar?.star || 4;
 
     const images = useMemo(() => {
-        if (currentHotel.images && currentHotel.images.length > 0) {
-            return currentHotel.images.map(img => (typeof img === 'object' ? (img.url || img.originalUrl) : img)).filter(Boolean);
+        let rawList = [];
+        const initialImages = cachedHotel?.images || [];
+        const detailImages = detailData?.images || [];
+
+        if (initialImages.length > 0) {
+            rawList = initialImages.map(img => (typeof img === 'object' ? (img.url || img.originalUrl) : img)).filter(Boolean);
+            if (detailImages.length > 0) {
+                const extraList = detailImages.map(img => (typeof img === 'object' ? (img.url || img.originalUrl) : img)).filter(Boolean);
+                rawList = [...rawList, ...extraList];
+            }
+        } else if (detailImages.length > 0) {
+            rawList = detailImages.map(img => (typeof img === 'object' ? (img.url || img.originalUrl) : img)).filter(Boolean);
+        } else if (currentHotel.image) {
+            rawList = [currentHotel.image];
         }
-        if (currentHotel.image) return [currentHotel.image];
-        return [placeholderHotel, placeholderHotel, placeholderHotel];
-    }, [currentHotel.images, currentHotel.image]);
+
+        const unique = [];
+        const seen = new Set();
+        for (const url of rawList) {
+            if (!url || typeof url !== 'string') continue;
+            const norm = url.split('?')[0].split('#')[0].replace(/\/+$/, '').toLowerCase();
+            if (!seen.has(norm)) {
+                seen.add(norm);
+                unique.push(url);
+            }
+        }
+
+        if (unique.length === 0) {
+            return [placeholderHotel, placeholderHotel, placeholderHotel];
+        }
+        return unique;
+    }, [cachedHotel?.images, detailData?.images, currentHotel.image]);
 
     const detailUrl = `/travel/hotels/detail/${currentHotel.hotelId || currentHotel.id}?${searchParams ? searchParams.toString() : ''}`;
 
@@ -1161,7 +1255,7 @@ const HotelQuickLookDrawer = ({
                             className="text-[19px] sm:text-[21px] font-medium text-[#202124] dark:text-slate-100 font-roboto truncate"
                             title={currentHotel.name}
                         >
-                            {currentHotel.names?.tr || currentHotel.names?.en || currentHotel.name}
+                            {decodeHTMLEntities(currentHotel.names?.tr || currentHotel.names?.en || currentHotel.name)}
                         </h1>
                         <div className="flex text-[#fbbc04] shrink-0">
                             {[...Array(Math.min(starsCount, 5))].map((_, i) => (
@@ -1206,7 +1300,7 @@ const HotelQuickLookDrawer = ({
                     return (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
+                            onClick={() => handleTabChange(tab.id)}
                             className={`py-3 font-medium transition-colors relative cursor-pointer ${
                                 isActive 
                                     ? 'text-[#1a73e8] dark:text-blue-400 border-b-2 border-[#1a73e8] dark:border-blue-400' 
@@ -1222,7 +1316,7 @@ const HotelQuickLookDrawer = ({
             {/* ══════════════════════════════════════════
                 3. SCROLLABLE TAB CONTENTS
             ══════════════════════════════════════════ */}
-            <div className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
+            <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
 
                 {/* ──────────────────────────────────────
                     TAB 1: GENEL BAKIŞ (OVERVIEW)
@@ -1318,7 +1412,7 @@ const HotelQuickLookDrawer = ({
                             </button>
 
                             <button
-                                onClick={() => setActiveTab('prices')}
+                                onClick={() => handleTabChange('prices')}
                                 className="ml-auto flex items-center justify-center px-5 py-1.5 bg-[#1a73e8] text-white rounded-full text-[13px] font-medium hover:bg-[#1557b0] transition-colors shadow-sm cursor-pointer"
                             >
                                 {t('bookRoom')}
@@ -1328,43 +1422,49 @@ const HotelQuickLookDrawer = ({
                         {/* 3 Photos Strip - Google Style */}
                         <div className="grid grid-cols-12 gap-2 h-[175px] rounded-xl overflow-hidden shadow-sm">
                             <div 
-                                onClick={() => setActiveTab('photos')}
+                                onClick={() => handleTabChange('photos')}
                                 className="col-span-6 relative h-full overflow-hidden group cursor-pointer"
                             >
                                 <img 
                                     src={images[0] || placeholderHotel} 
                                     alt={currentHotel.name}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     onError={e => { e.target.src = placeholderHotel; }}
                                 />
                             </div>
 
                             <div 
-                                onClick={() => setActiveTab('photos')}
+                                onClick={() => handleTabChange('photos')}
                                 className="col-span-3 relative h-full overflow-hidden group cursor-pointer"
                             >
                                 <img 
-                                    src={images[1] || images[0] || placeholderHotel} 
+                                    src={images[1] || placeholderHotel} 
                                     alt={currentHotel.name}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     onError={e => { e.target.src = placeholderHotel; }}
                                 />
                             </div>
 
                             <div 
-                                onClick={() => setActiveTab('photos')}
+                                onClick={() => handleTabChange('photos')}
                                 className="col-span-3 relative h-full overflow-hidden group cursor-pointer"
                             >
                                 <img 
-                                    src={images[2] || images[0] || placeholderHotel} 
+                                    src={images[2] || placeholderHotel} 
                                     alt={currentHotel.name}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     onError={e => { e.target.src = placeholderHotel; }}
                                 />
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        setActiveTab('photos');
+                                        handleTabChange('photos');
                                     }}
                                     className="absolute bottom-2.5 right-2.5 bg-black/65 hover:bg-black/85 backdrop-blur-md text-white text-[11.5px] font-medium px-2.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-md transition-colors cursor-pointer"
                                 >
@@ -1381,7 +1481,7 @@ const HotelQuickLookDrawer = ({
                                     {t('featuredRates')}
                                 </h3>
                                 <button
-                                    onClick={() => setActiveTab('prices')}
+                                    onClick={() => handleTabChange('prices')}
                                     className="text-[13px] font-medium text-[#1a73e8] dark:text-blue-400 hover:underline cursor-pointer"
                                 >
                                     {t('viewAllRoomsCta', groupedRooms.length > 0 ? groupedRooms.reduce((sum, g) => sum + g.rates.length, 0) : 0)}
@@ -1432,7 +1532,7 @@ const HotelQuickLookDrawer = ({
                                                         onClick={() => {
                                                             if (maxAllowedRooms > 1) {
                                                                 handleToggleRoom(bestRate, roomGroup);
-                                                                setActiveTab('prices');
+                                                                handleTabChange('prices');
                                                             } else {
                                                                 handleSelectRateAndCheckout(bestRate, roomGroup);
                                                             }
@@ -1523,11 +1623,11 @@ const HotelQuickLookDrawer = ({
                                 <p 
                                     className="text-[13px] text-[#5f6368] dark:text-slate-400 line-clamp-3 leading-relaxed"
                                     dangerouslySetInnerHTML={{ 
-                                        __html: currentHotel.descriptions?.[0]?.text || currentHotel.description || '' 
+                                        __html: decodeHTMLEntities(currentHotel.descriptions?.[0]?.text || currentHotel.description || '') 
                                     }}
                                 />
                                 <button
-                                    onClick={() => setActiveTab('about')}
+                                    onClick={() => handleTabChange('about')}
                                     className="text-[13px] font-medium text-[#1a73e8] dark:text-blue-400 hover:underline cursor-pointer pt-1"
                                 >
                                     {t('readMoreInAbout')}
@@ -1623,6 +1723,8 @@ const HotelQuickLookDrawer = ({
                                                     <img 
                                                         src={group.images?.[0]?.url || images[gIdx % images.length]} 
                                                         alt={group.name}
+                                                        loading="lazy"
+                                                        decoding="async"
                                                         className="w-full h-full object-cover transition-transform duration-500 group-hover/room:scale-105"
                                                         onError={e => { e.target.src = placeholderHotel; }}
                                                     />
@@ -1899,7 +2001,7 @@ const HotelQuickLookDrawer = ({
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            {images.map((img, idx) => (
+                            {images.slice(0, visiblePhotosCount).map((img, idx) => (
                                 <div
                                     key={idx}
                                     onClick={() => setLightboxIndex(idx)}
@@ -1908,6 +2010,8 @@ const HotelQuickLookDrawer = ({
                                     <img
                                         src={img}
                                         alt={`${currentHotel.name} - ${idx + 1}`}
+                                        loading="lazy"
+                                        decoding="async"
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                         onError={e => { e.target.src = placeholderHotel; }}
                                     />
@@ -1920,6 +2024,18 @@ const HotelQuickLookDrawer = ({
                                 </div>
                             ))}
                         </div>
+
+                        {images.length > visiblePhotosCount && (
+                            <div className="pt-3 pb-1 text-center">
+                                <button
+                                    type="button"
+                                    onClick={() => setVisiblePhotosCount(prev => prev + 24)}
+                                    className="px-6 py-2.5 bg-[#f1f3f4] dark:bg-slate-700 hover:bg-[#e8eaed] dark:hover:bg-slate-600 text-[#1a73e8] dark:text-blue-400 text-xs font-semibold rounded-full transition-colors cursor-pointer shadow-xs"
+                                >
+                                    + {images.length - visiblePhotosCount} Daha Fazla Fotoğraf Yükle
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -1938,12 +2054,12 @@ const HotelQuickLookDrawer = ({
                                     <div key={idx} className="space-y-1">
                                         {desc.type && (
                                             <h4 className="text-[11px] font-semibold uppercase text-[#1a73e8] tracking-wider">
-                                                {desc.type}
+                                                {decodeHTMLEntities(desc.type)}
                                             </h4>
                                         )}
                                         <p 
                                             className="text-[13.5px] text-[#3c4043] dark:text-slate-300 leading-relaxed"
-                                            dangerouslySetInnerHTML={{ __html: desc.text }}
+                                            dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(desc.text) }}
                                         />
                                     </div>
                                 ))
@@ -1951,7 +2067,7 @@ const HotelQuickLookDrawer = ({
                                 <p 
                                     className="text-[13.5px] text-[#3c4043] dark:text-slate-300 leading-relaxed"
                                     dangerouslySetInnerHTML={{ 
-                                        __html: currentHotel.description || "Travel of Globe garantili tesisimizde konforlu ve eşsiz bir konaklama deneyimi sizleri bekliyor." 
+                                        __html: decodeHTMLEntities(currentHotel.description || "Travel of Globe garantili tesisimizde konforlu ve eşsiz bir konaklama deneyimi sizleri bekliyor.") 
                                     }}
                                 />
                             )}

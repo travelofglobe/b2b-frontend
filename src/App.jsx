@@ -56,6 +56,8 @@ function App() {
               <Route path="/travel/bookings" element={<MyBookings />} />
               <Route path="/travel/hotels/bookings" element={<MyBookings />} />
               <Route path="/travel/hotels/bookings/:bookingId" element={<BookingDetail />} />
+              <Route path="/bookings" element={<Navigate to="/travel/hotels/bookings" replace />} />
+              <Route path="/bookings/:bookingId" element={<Navigate to="/travel/hotels/bookings/:bookingId" replace />} />
               <Route path="/travel/flights/bookings" element={<UnderConstruction title="Flight Bookings" icon="flight" />} />
               <Route path="/my-office" element={<MyOffice />} />
               <Route path="/definitions/markup" element={<MarkupManagement />} />
@@ -97,6 +99,7 @@ function App() {
             </Route>
 
             <Route path="/travel/hotels/bookings/:voucherId/voucher" element={<ProtectedRoute><VoucherPage /></ProtectedRoute>} />
+            <Route path="/bookings/:voucherId/voucher" element={<ProtectedRoute><VoucherPage /></ProtectedRoute>} />
 
             {/* Redirect root to travel hotels (ProtectedRoute will handle auth check) */}
             <Route path="/" element={<Navigate to="/travel/hotels" replace />} />

@@ -41,6 +41,37 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
+const decodeHTMLEntities = (text) => {
+    if (!text || typeof text !== 'string') return text || '';
+    let decoded = text
+        .replace(/&amp;quot;/g, '&quot;')
+        .replace(/&amp;amp;/g, '&amp;')
+        .replace(/&amp;lt;/g, '&lt;')
+        .replace(/&amp;gt;/g, '&gt;')
+        .replace(/&amp;#39;/g, '&#39;')
+        .replace(/&amp;#039;/g, '&#039;');
+
+    decoded = decoded
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'")
+        .replace(/&#39;/g, "'")
+        .replace(/&#039;/g, "'")
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&ndash;/g, '–')
+        .replace(/&mdash;/g, '—')
+        .replace(/&rsquo;/g, "'")
+        .replace(/&lsquo;/g, "'")
+        .replace(/&rdquo;/g, '"')
+        .replace(/&ldquo;/g, '"')
+        .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec))
+        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+
+    decoded = decoded.replace(/&amp;/g, '&');
+    return decoded;
+};
+
 const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex, description }) => {
     const handlePrevious = useCallback((e) => {
         e?.stopPropagation();
@@ -172,7 +203,7 @@ const ShareModal = ({ isOpen, onClose, hotel }) => {
     if (!isOpen) return null;
 
     const shareUrl = window.location.href;
-    const hotelName = hotel.names?.tr || hotel.names?.en || hotel.name;
+    const hotelName = decodeHTMLEntities(hotel.names?.tr || hotel.names?.en || hotel.name);
     const hotelLocation = hotel.address ? `${hotel.address.cityName}, ${hotel.address.countryName || ''}` : '';
 
     // Fix image path: handle both array of objects and simple string array
@@ -371,7 +402,7 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                 <div class="absolute bottom-1 w-4 h-4 rounded-full bg-[#1a73e8] animate-ping opacity-60"></div>
                 <div class="px-3 py-1.5 rounded-full font-bold text-[12px] bg-[#1a73e8] text-white shadow-xl flex items-center justify-center gap-1.5 whitespace-nowrap z-10 scale-105 -translate-y-1 border-2 border-white">
                     <span class="material-symbols-outlined text-[14px]">apartment</span>
-                    <span class="tracking-tight">${hotel.names?.tr || hotel.names?.en || hotel.name}</span>
+                    <span class="tracking-tight">${decodeHTMLEntities(hotel.names?.tr || hotel.names?.en || hotel.name)}</span>
                 </div>
                 <div class="flex flex-col items-center justify-end z-0 origin-bottom scale-y-125 -translate-y-0.5">
                     <div class="w-[2px] h-3 bg-[#1a73e8] shadow-sm"></div>
@@ -408,7 +439,7 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                             </h3>
                             <p className="text-xs text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
                                 <span className="size-1.5 rounded-full bg-primary animate-pulse"></span>
-                                {hotel.names?.tr || hotel.names?.en || hotel.name}
+                                {decodeHTMLEntities(hotel.names?.tr || hotel.names?.en || hotel.name)}
                             </p>
                         </div>
                     </div>
@@ -443,10 +474,10 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                                         </div>
                                     </div>
                                     <h4 className="font-black text-sm uppercase tracking-tight text-slate-900 mb-1">
-                                        {hotel.names?.tr || hotel.names?.en || hotel.name}
+                                        {decodeHTMLEntities(hotel.names?.tr || hotel.names?.en || hotel.name)}
                                     </h4>
                                     <p className="text-[10px] text-slate-500 font-bold leading-tight">
-                                        {hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location}
+                                        {decodeHTMLEntities(hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location)}
                                     </p>
                                 </div>
                             </Popup>
@@ -1878,7 +1909,7 @@ const HotelDetail = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4 pb-4 border-b border-[#dadce0] dark:border-slate-700">
                     <div>
                         <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
-                            <h1 className="text-2xl sm:text-3xl font-medium text-[#202124] dark:text-white tracking-normal">{hotel.names?.tr || hotel.names?.en || hotel.name}</h1>
+                            <h1 className="text-2xl sm:text-3xl font-medium text-[#202124] dark:text-white tracking-normal">{decodeHTMLEntities(hotel.names?.tr || hotel.names?.en || hotel.name)}</h1>
                             <div className="flex text-[#fbbc04]">
                                 {[...Array(hotel.hotelStar?.star || 5)].map((_, i) => (
                                     <span key={i} className="material-symbols-outlined fill-1 text-[18px]">star</span>
@@ -1894,7 +1925,7 @@ const HotelDetail = () => {
                         <div className="flex flex-wrap items-center gap-3 text-sm text-[#5f6368] dark:text-slate-400">
                             <div className="flex items-center gap-1">
                                 <span className="material-symbols-outlined text-[18px] text-[#5f6368]">location_on</span>
-                                <span>{hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location}</span>
+                                <span>{decodeHTMLEntities(hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location)}</span>
                             </div>
                             <span>•</span>
                             <button
@@ -1948,7 +1979,7 @@ const HotelDetail = () => {
 
                 {/* Quick Info Badges - Google Chips */}
                 <div className="flex flex-wrap gap-2 mb-6">
-                    {(hotel.facilities?.slice(0, 6).map(f => f.names?.tr || f.names?.en) || ['Free WiFi', 'Free Parking', 'Breakfast Available']).map((item, i) => (
+                    {(hotel.facilities?.slice(0, 6).map(f => decodeHTMLEntities(f.names?.tr || f.names?.en || f.name)) || ['Free WiFi', 'Free Parking', 'Breakfast Available']).map((item, i) => (
                         <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#303134] text-[#3c4043] dark:text-slate-200 rounded-full text-xs font-normal border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors cursor-default">
                             <span className="material-symbols-outlined text-[16px] text-[#1a73e8]">check</span> {item}
                         </span>
@@ -2356,7 +2387,7 @@ const HotelDetail = () => {
                                             </div>
                                         ) : (
                                             <>{(groupedRooms || []).map((roomGroup, roomIndex) => {
-                                                const roomName = roomGroup.name;
+                                                const roomName = decodeHTMLEntities(roomGroup.name);
                                                 const isGroupExpanded = expandedRates[roomName];
                                                 const ratesToShow = isGroupExpanded ? roomGroup.rates : roomGroup.rates.slice(0, 4);
                                                 const hasMoreRates = roomGroup.rates.length > 4;
@@ -2610,17 +2641,17 @@ const HotelDetail = () => {
                                             {hotel.descriptions?.length > 0 ? (
                                                 hotel.descriptions.map((desc, idx) => (
                                                     <div key={idx} className="space-y-1">
-                                                        <h4 className="text-xs font-semibold uppercase text-[#1a73e8] tracking-wider">{desc.type}</h4>
+                                                        <h4 className="text-xs font-semibold uppercase text-[#1a73e8] tracking-wider">{decodeHTMLEntities(desc.type)}</h4>
                                                         <p
                                                             className="text-sm text-[#3c4043] dark:text-slate-300 leading-relaxed"
-                                                            dangerouslySetInnerHTML={{ __html: desc.text }}
+                                                            dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(desc.text) }}
                                                         />
                                                     </div>
                                                 ))
                                             ) : (
                                                 <p
                                                     className="text-sm text-[#3c4043] dark:text-slate-300 leading-relaxed"
-                                                    dangerouslySetInnerHTML={{ __html: hotel.description || "Experience the ultimate luxury at our TOG-certified property." }}
+                                                    dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(hotel.description || "Experience the ultimate luxury at our TOG-certified property.") }}
                                                 />
                                             )}
                                         </div>
@@ -2728,7 +2759,7 @@ const HotelDetail = () => {
                                                         </span>
                                                     </div>
                                                     <span className="text-xs text-[#3c4043] dark:text-slate-200">
-                                                        {amenity.names?.tr || amenity.names?.en || amenity.label || (match ? match.label : 'Amenity')}
+                                                        {decodeHTMLEntities(amenity.names?.tr || amenity.names?.en || amenity.label || (match ? match.label : 'Amenity'))}
                                                     </span>
                                                 </div>
                                             );

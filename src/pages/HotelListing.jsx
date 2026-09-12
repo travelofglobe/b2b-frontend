@@ -1435,7 +1435,7 @@ const HotelListing = () => {
     const [mapInstance, setMapInstance] = React.useState(null);
     const isDark = useDarkMode();
     const userChangedLayerRef = React.useRef(false);
-    const [mapLayer, setMapLayer] = React.useState(() => isDark ? 'dark' : 'google');
+    const [mapLayer, setMapLayer] = React.useState('google');
     const [isLayerMenuOpen, setIsLayerMenuOpen] = React.useState(false);
 
     // Map expansion & POI category states
@@ -1470,7 +1470,7 @@ const HotelListing = () => {
 
     React.useEffect(() => {
         if (!userChangedLayerRef.current) {
-            setMapLayer(isDark ? 'dark' : 'google');
+            setMapLayer('google');
         }
     }, [isDark]);
     const layerMenuRef = React.useRef(null);
@@ -1900,11 +1900,35 @@ const HotelListing = () => {
         if (amenities.length === 0) amenities = [{ icon: 'info', label: ['Details'] }];
 
         let imagesToMap = [];
+        const seen = new Set();
+
+        const addImage = (url) => {
+            if (!url || typeof url !== 'string') return;
+            const norm = url.split('?')[0].split('#')[0].replace(/\/+$/, '').toLowerCase();
+            if (!seen.has(norm)) {
+                seen.add(norm);
+                imagesToMap.push(url);
+            }
+        };
+
         if (apiHotel.images && apiHotel.images.length > 0) {
-            const sorted = [...apiHotel.images].sort((a, b) => (b.isThumbnail ? 1 : 0) - (a.isThumbnail ? 1 : 0));
-            const filtered = sorted.filter(img => img.isThumbnail || (img.category && img.category.toLowerCase() === 'hotel'));
-            imagesToMap = [...new Set(filtered.map(img => img.url))].filter(url => !!url);
+            apiHotel.images.forEach(img => {
+                const u = typeof img === 'object' ? (img.url || img.originalUrl) : img;
+                addImage(u);
+            });
         }
+
+        if (apiHotel.rooms && apiHotel.rooms.length > 0) {
+            apiHotel.rooms.forEach(r => {
+                if (r.images && Array.isArray(r.images)) {
+                    r.images.forEach(img => {
+                        const u = typeof img === 'object' ? (img.url || img.originalUrl) : img;
+                        addImage(u);
+                    });
+                }
+            });
+        }
+
         if (imagesToMap.length === 0) imagesToMap = [placeholderHotel];
 
         let lowestRoom = null;

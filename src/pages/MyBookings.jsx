@@ -577,7 +577,7 @@ const MyBookings = () => {
     };
 
     const handleClearFilters = () => {
-        navigate('/bookings', { replace: true });
+        navigate('/travel/hotels/bookings', { replace: true });
         setQuickSearch('');
         setFilters({
             id: '',
@@ -1336,7 +1336,7 @@ const MyBookings = () => {
                                     bookings.map((booking) => (
                                         <tr 
                                             key={booking.bookingId ?? booking.id} 
-                                            onClick={() => window.open(`/bookings/${booking.bookingId ?? booking.id}`, '_blank')}
+                                            onClick={() => window.open(`/travel/hotels/bookings/${booking.bookingId ?? booking.id}`, '_blank')}
                                             className="border-b border-[#dadce0]/60 dark:border-[#3c4043]/60 last:border-0 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]/50 even:bg-[#f8f9fa]/50 dark:even:bg-[#202124]/30 transition-colors cursor-pointer group"
                                         >
                                             {columns.map(col => {

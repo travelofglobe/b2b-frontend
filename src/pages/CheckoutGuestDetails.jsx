@@ -1079,10 +1079,33 @@ const CheckoutGuestDetails = () => {
     };
 
     const decodeHTMLEntities = (text) => {
-        if (!text) return '';
-        const textArea = document.createElement('textarea');
-        textArea.innerHTML = text;
-        return textArea.value;
+        if (!text || typeof text !== 'string') return text || '';
+        let decoded = text
+            .replace(/&amp;quot;/g, '&quot;')
+            .replace(/&amp;amp;/g, '&amp;')
+            .replace(/&amp;lt;/g, '&lt;')
+            .replace(/&amp;gt;/g, '&gt;')
+            .replace(/&amp;#39;/g, '&#39;')
+            .replace(/&amp;#039;/g, '&#039;');
+
+        decoded = decoded
+            .replace(/&quot;/g, '"')
+            .replace(/&apos;/g, "'")
+            .replace(/&#39;/g, "'")
+            .replace(/&#039;/g, "'")
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&ndash;/g, '–')
+            .replace(/&mdash;/g, '—')
+            .replace(/&rsquo;/g, "'")
+            .replace(/&lsquo;/g, "'")
+            .replace(/&rdquo;/g, '"')
+            .replace(/&ldquo;/g, '"')
+            .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec))
+            .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+
+        return decoded.replace(/&amp;/g, '&');
     };
 
     // Birth date validation: must be a valid date, not in the future, year must be 4 digits

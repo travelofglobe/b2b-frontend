@@ -103,7 +103,7 @@ const VoucherPage = () => {
     };
 
     const handleBack = () => {
-        navigate(`/bookings/${voucherId}`);
+        navigate(`/travel/hotels/bookings/${voucherId}`);
     };
 
     if (loading) {
@@ -124,7 +124,7 @@ const VoucherPage = () => {
                     <h3 className="text-xl font-black text-slate-900 mb-2 tracking-tight">Voucher Unavailable</h3>
                     <p className="text-sm text-slate-600 mb-6 font-medium">{error || 'Booking details not available'}</p>
                     <button
-                        onClick={() => navigate('/bookings')}
+                        onClick={() => navigate('/travel/hotels/bookings')}
                         className="w-full py-3.5 bg-slate-900 text-white hover:bg-slate-800 rounded-2xl font-black text-xs transition active:scale-95 shadow-xl shadow-slate-900/10"
                     >
                         Go back to Bookings

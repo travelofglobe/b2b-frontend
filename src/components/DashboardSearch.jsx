@@ -385,10 +385,13 @@ const DashboardSearch = () => {
                 slug = reversed.slice(1).join('/');
             }
 
-            // Retrieve locationId from localStorage if it exists
+            // Retrieve locationId & coordinates from localStorage if they exist
             const savedLocationId = localStorage.getItem('dashboard_last_locationId');
+            const savedLat = localStorage.getItem('dashboard_last_lat');
+            const savedLng = localStorage.getItem('dashboard_last_lng');
             const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
-            const searchParamsString = getUrlParams() + locationParam;
+            const geoParam = (savedLat && savedLng) ? `&lat=${savedLat}&lng=${savedLng}` : '';
+            const searchParamsString = getUrlParams() + locationParam + geoParam;
 
             localStorage.setItem('last_hotel_search_slug', slug);
             localStorage.setItem('last_hotel_search_params', searchParamsString);
@@ -417,6 +420,14 @@ const DashboardSearch = () => {
             localStorage.setItem('dashboard_last_locationId', location.locationId);
         }
 
+        if (location.geoCoordinate && location.geoCoordinate.lat && location.geoCoordinate.lon) {
+            localStorage.setItem('dashboard_last_lat', location.geoCoordinate.lat);
+            localStorage.setItem('dashboard_last_lng', location.geoCoordinate.lon);
+        } else {
+            localStorage.removeItem('dashboard_last_lat');
+            localStorage.removeItem('dashboard_last_lng');
+        }
+
         const countryCode = location.countryCode || (location.locationBreadcrumbs?.find(b => b.locationType === 'COUNTRY')?.countryCode);
         if (countryCode) {
             setDestinationCountryCode(countryCode);
@@ -432,8 +443,11 @@ const DashboardSearch = () => {
 
         setQuery(fullName);
         
-        const locationParam = `&locationId=${location.locationId}`;
-        const searchParamsString = getUrlParams(fullName) + locationParam;
+        const locationParam = location.locationId ? `&locationId=${location.locationId}` : '';
+        const geoParam = (location.geoCoordinate?.lat && location.geoCoordinate?.lon) 
+            ? `&lat=${location.geoCoordinate.lat}&lng=${location.geoCoordinate.lon}`
+            : '';
+        const searchParamsString = getUrlParams(fullName) + locationParam + geoParam;
 
         localStorage.setItem('last_hotel_search_slug', slug);
         localStorage.setItem('last_hotel_search_params', searchParamsString);

@@ -451,14 +451,17 @@ const ListingSearch = ({ isCompact = false }) => {
                 slug = reversed.slice(1).join('/');
             }
 
-            // Retrieve locationId from overrides, then current URL searchParams, then localStorage
+            // Retrieve locationId & coordinates from overrides, then current URL searchParams, then localStorage
             const currentUrlLocationId = searchParams.get('locationId');
             const isSameQuery = (activeQuery === (currentQ || query));
             const savedLocationId = opts.locationId !== undefined
                 ? opts.locationId
                 : (isSameQuery ? (currentUrlLocationId || localStorage.getItem('dashboard_last_locationId')) : null);
+            const savedLat = localStorage.getItem('dashboard_last_lat');
+            const savedLng = localStorage.getItem('dashboard_last_lng');
             const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
-            const searchParamsString = getUrlParams(opts) + locationParam;
+            const geoParam = (savedLat && savedLng) ? `&lat=${savedLat}&lng=${savedLng}` : '';
+            const searchParamsString = getUrlParams(opts) + locationParam + geoParam;
 
             localStorage.setItem('last_hotel_search_slug', slug);
             localStorage.setItem('last_hotel_search_params', searchParamsString);
@@ -487,6 +490,14 @@ const ListingSearch = ({ isCompact = false }) => {
             localStorage.setItem('dashboard_last_locationId', location.locationId);
         }
 
+        if (location.geoCoordinate && location.geoCoordinate.lat && location.geoCoordinate.lon) {
+            localStorage.setItem('dashboard_last_lat', location.geoCoordinate.lat);
+            localStorage.setItem('dashboard_last_lng', location.geoCoordinate.lon);
+        } else {
+            localStorage.removeItem('dashboard_last_lat');
+            localStorage.removeItem('dashboard_last_lng');
+        }
+
         const countryCode = location.countryCode || (location.locationBreadcrumbs?.find(b => b.locationType === 'COUNTRY')?.countryCode);
         if (countryCode) {
             setDestinationCountryCode(countryCode);
@@ -503,7 +514,10 @@ const ListingSearch = ({ isCompact = false }) => {
         setQuery(fullName);
         
         const locationParam = location.locationId ? `&locationId=${location.locationId}` : '';
-        const searchParamsString = getUrlParams({ query: fullName }) + locationParam;
+        const geoParam = (location.geoCoordinate?.lat && location.geoCoordinate?.lon)
+            ? `&lat=${location.geoCoordinate.lat}&lng=${location.geoCoordinate.lon}`
+            : '';
+        const searchParamsString = getUrlParams({ query: fullName }) + locationParam + geoParam;
 
         localStorage.setItem('last_hotel_search_slug', slug);
         localStorage.setItem('last_hotel_search_params', searchParamsString);

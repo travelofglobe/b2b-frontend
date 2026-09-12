@@ -183,10 +183,20 @@ const ListingSearch = ({ isCompact = false }) => {
         }
     };
 
-    // Reset active index when results change
+    // Reset active index when results, query or dropdown visibility change
     useEffect(() => {
         setActiveIndex(-1);
-    }, [results]);
+    }, [results, query, showDropdown]);
+
+    // Scroll active keyboard item into view smoothly
+    useEffect(() => {
+        if (activeIndex >= 0) {
+            const activeEl = document.querySelector('[data-autocomplete-active="true"]');
+            if (activeEl) {
+                activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }
+    }, [activeIndex]);
 
     // Initialize & sanitize search dates (guarantees checkIn is not in the past and checkOut > checkIn)
     const [checkInDate, setCheckInDate] = useState(() => {
@@ -559,16 +569,22 @@ const ListingSearch = ({ isCompact = false }) => {
     };
 
     const handleKeyDown = (e) => {
-        const hasHistoryOnly = (results.regions.length === 0 && results.hotels.length === 0 && matchingHistory.length > 0);
+        const historyCount = matchingHistory.length;
+        const regionCount = results.regions.length;
+        const hotelCount = results.hotels.length;
+        const totalItems = historyCount + regionCount + hotelCount;
+
         // Allow Enter key to trigger search actions regardless of dropdown state
         if (e.key === 'Enter') {
             e.preventDefault();
             // If dropdown is open and we have an active item, select it
-            if (showDropdown && activeIndex >= 0) {
-                if (activeIndex < results.regions.length) {
-                    handleSelectLocation(results.regions[activeIndex]);
+            if (showDropdown && activeIndex >= 0 && activeIndex < totalItems) {
+                if (activeIndex < historyCount) {
+                    handleSelectHistoryItem(matchingHistory[activeIndex]);
+                } else if (activeIndex < historyCount + regionCount) {
+                    handleSelectLocation(results.regions[activeIndex - historyCount]);
                 } else {
-                    handleSelectHotel(results.hotels[activeIndex - results.regions.length]);
+                    handleSelectHotel(results.hotels[activeIndex - historyCount - regionCount]);
                 }
             } else {
                 // Otherwise, trigger the main search
@@ -577,17 +593,15 @@ const ListingSearch = ({ isCompact = false }) => {
             return;
         }
 
-        // For navigation keys, we need the dropdown to be open and have results
-        if (!showDropdown || (results.regions.length === 0 && results.hotels.length === 0)) return;
-
-        const totalItems = results.regions.length + results.hotels.length;
+        // For navigation keys (ArrowDown / ArrowUp), we need the dropdown to be open and have items
+        if (!showDropdown || totalItems === 0) return;
 
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            setActiveIndex((prev) => (prev < totalItems - 1 ? prev + 1 : prev));
+            setActiveIndex((prev) => (prev < totalItems - 1 ? prev + 1 : 0));
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            setActiveIndex((prev) => (prev > 0 ? prev - 1 : -1));
+            setActiveIndex((prev) => (prev > 0 ? prev - 1 : totalItems - 1));
         }
     };
 
@@ -701,11 +715,14 @@ const ListingSearch = ({ isCompact = false }) => {
                                                     }
                                                 }
 
+                                                const isActive = activeIndex === index;
+
                                                 return (
                                                     <div
                                                         key={item.id || index}
+                                                        data-autocomplete-active={isActive}
                                                         onClick={() => handleSelectHistoryItem(item)}
-                                                        className="w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors group cursor-pointer"
+                                                        className={`w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors group cursor-pointer ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
                                                     >
                                                         <div className="flex items-center min-w-0 flex-1 mr-3">
                                                             <span className="material-symbols-outlined text-[20px] text-[#70757a] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
@@ -770,11 +787,15 @@ const ListingSearch = ({ isCompact = false }) => {
                                                     icon = 'train';
                                                 }
 
+                                                const itemIndex = matchingHistory.length + index;
+                                                const isActive = activeIndex === itemIndex;
+
                                                 return (
                                                     <button
                                                         key={region.locationId}
+                                                        data-autocomplete-active={isActive}
                                                         onClick={() => handleSelectLocation(region)}
-                                                        className={`w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${activeIndex === index ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                        className={`w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
                                                     >
                                                         <div className="flex items-center min-w-0 flex-1">
                                                             <span className="material-symbols-outlined text-[20px] text-[#70757a] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
@@ -815,11 +836,15 @@ const ListingSearch = ({ isCompact = false }) => {
                                                     hotelSubtitle = hotelSubtitle.slice(hotelTitle.length + 2);
                                                 }
 
+                                                const itemIndex = matchingHistory.length + results.regions.length + index;
+                                                const isActive = activeIndex === itemIndex;
+
                                                 return (
                                                     <button
                                                         key={hotel.hotelId}
+                                                        data-autocomplete-active={isActive}
                                                         onClick={() => handleSelectHotel(hotel)}
-                                                        className={`w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${activeIndex === (results.regions.length + index) ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                        className={`w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
                                                     >
                                                         <div className="flex items-center min-w-0 flex-1">
                                                             <span className="material-symbols-outlined text-[20px] text-[#70757a] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">

@@ -644,6 +644,8 @@ const HotelQuickLookDrawer = ({
     const [isRoomsLoading, setIsRoomsLoading] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(null);
+    const [lightboxImages, setLightboxImages] = useState([]);
+    const [lightboxTitle, setLightboxTitle] = useState('');
     const [boardTypeFilter, setBoardTypeFilter] = useState('ALL');
     const [cancelFilter, setCancelFilter] = useState('ALL');
     const [expandedRates, setExpandedRates] = useState({});
@@ -865,6 +867,15 @@ const HotelQuickLookDrawer = ({
         return unique;
     }, [cachedHotel?.images, detailData?.images, currentHotel.image]);
 
+    const openLightbox = React.useCallback((index, contextImages = null, title = '') => {
+        const list = (contextImages && contextImages.length > 0)
+            ? contextImages.map(img => typeof img === 'string' ? img : (img.url || img.src))
+            : (images && images.length > 0 ? images : [placeholderHotel]);
+        setLightboxImages(list);
+        setLightboxTitle(title || '');
+        setLightboxIndex(index >= 0 && index < list.length ? index : 0);
+    }, [images]);
+
     const detailUrl = `/travel/hotels/detail/${currentHotel.hotelId || currentHotel.id}?${searchParams ? searchParams.toString() : ''}`;
 
     const handleShare = async () => {
@@ -888,18 +899,20 @@ const HotelQuickLookDrawer = ({
     // Keyboard navigation for lightbox
     useEffect(() => {
         if (lightboxIndex === null) return;
+        const activeList = lightboxImages.length > 0 ? lightboxImages : images;
+        const count = activeList.length || 1;
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') {
                 setLightboxIndex(null);
             } else if (e.key === 'ArrowLeft') {
-                setLightboxIndex(prev => (prev - 1 + images.length) % images.length);
+                setLightboxIndex(prev => (prev - 1 + count) % count);
             } else if (e.key === 'ArrowRight') {
-                setLightboxIndex(prev => (prev + 1) % images.length);
+                setLightboxIndex(prev => (prev + 1) % count);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [lightboxIndex, images.length]);
+    }, [lightboxIndex, lightboxImages, images]);
 
     const directionsUrl = (currentHotel.lat && currentHotel.lng)
         ? `https://www.google.com/maps/dir/?api=1&destination=${currentHotel.lat},${currentHotel.lng}`
@@ -1715,9 +1728,10 @@ const HotelQuickLookDrawer = ({
                                                 <div 
                                                     className="w-full sm:w-48 h-40 sm:h-32 rounded-lg overflow-hidden shrink-0 cursor-pointer group/room bg-[#f1f3f4] dark:bg-slate-800 relative"
                                                     onClick={() => {
-                                                        const roomImg = group.images?.[0]?.url || images[gIdx % images.length];
-                                                        const foundIdx = images.indexOf(roomImg);
-                                                        setLightboxIndex(foundIdx >= 0 ? foundIdx : 0);
+                                                        const roomImgs = (group.images && group.images.length > 0)
+                                                            ? group.images
+                                                            : [group.images?.[0]?.url || images[gIdx % images.length]];
+                                                        openLightbox(0, roomImgs, group.name);
                                                     }}
                                                 >
                                                     <img 
@@ -2004,7 +2018,7 @@ const HotelQuickLookDrawer = ({
                             {images.slice(0, visiblePhotosCount).map((img, idx) => (
                                 <div
                                     key={idx}
-                                    onClick={() => setLightboxIndex(idx)}
+                                    onClick={() => openLightbox(idx, images, currentHotel.name)}
                                     className="relative aspect-[4/3] rounded-xl overflow-hidden group cursor-pointer bg-slate-100 dark:bg-slate-800 border border-[#dadce0] dark:border-slate-700"
                                 >
                                     <img
@@ -2295,66 +2309,85 @@ const HotelQuickLookDrawer = ({
             {/* ══════════════════════════════════════════
                 4. PHOTO LIGHTBOX MODAL
             ══════════════════════════════════════════ */}
-            {lightboxIndex !== null && (
-                <div 
-                    className="absolute inset-0 z-[9999] bg-black flex flex-col justify-between p-4 sm:p-5 select-none"
-                    onClick={() => setLightboxIndex(null)}
-                >
-                    {/* Top Bar: Close Button */}
-                    <div className="flex items-center justify-end shrink-0 z-20">
-                        <button
-                            onClick={() => setLightboxIndex(null)}
-                            className="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center cursor-pointer transition-colors shadow-sm"
-                            title={t('close')}
-                        >
-                            <span className="material-symbols-outlined text-[24px]">close</span>
-                        </button>
-                    </div>
+            {lightboxIndex !== null && (() => {
+                const activeList = lightboxImages.length > 0 ? lightboxImages : images;
+                const count = activeList.length || 1;
+                const safeIndex = Math.min(Math.max(0, lightboxIndex), count - 1);
+                const currentImg = activeList[safeIndex] || placeholderHotel;
 
-                    {/* Middle: Left Arrow, Photo, Right Arrow */}
-                    <div className="relative flex-1 flex items-center justify-center min-h-0 py-2">
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setLightboxIndex((lightboxIndex - 1 + images.length) % images.length);
-                            }}
-                            className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition-colors z-20 shadow-lg active:scale-95"
-                            title={t('previous')}
-                        >
-                            <span className="material-symbols-outlined text-[28px]">chevron_left</span>
-                        </button>
-
-                        <div 
-                            className="max-w-full max-h-full flex items-center justify-center rounded-2xl" 
-                            onClick={e => e.stopPropagation()}
-                        >
-                            <img 
-                                src={images[lightboxIndex]} 
-                                alt={`${currentHotel.name} - ${lightboxIndex + 1}`}
-                                className="max-w-full max-h-[70vh] sm:max-h-[74vh] object-contain rounded-xl shadow-2xl"
-                            />
+                return (
+                    <div 
+                        className="absolute inset-0 z-[9999] bg-black/95 flex flex-col justify-between p-4 sm:p-5 select-none animate-in fade-in duration-200"
+                        onClick={() => setLightboxIndex(null)}
+                    >
+                        {/* Top Bar: Title & Close Button */}
+                        <div className="flex items-center justify-between shrink-0 z-20">
+                            <div className="min-w-0 flex-1 mr-3">
+                                {lightboxTitle && (
+                                    <span className="text-white text-xs sm:text-sm font-semibold bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full truncate inline-block max-w-xs sm:max-w-md">
+                                        {lightboxTitle}
+                                    </span>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => setLightboxIndex(null)}
+                                className="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center cursor-pointer transition-colors shadow-sm shrink-0"
+                                title={t('close')}
+                            >
+                                <span className="material-symbols-outlined text-[24px]">close</span>
+                            </button>
                         </div>
 
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setLightboxIndex((lightboxIndex + 1) % images.length);
-                            }}
-                            className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition-colors z-20 shadow-lg active:scale-95"
-                            title={t('next')}
-                        >
-                            <span className="material-symbols-outlined text-[28px]">chevron_right</span>
-                        </button>
-                    </div>
+                        {/* Middle: Left Arrow, Photo, Right Arrow */}
+                        <div className="relative flex-1 flex items-center justify-center min-h-0 py-2">
+                            {count > 1 && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setLightboxIndex((safeIndex - 1 + count) % count);
+                                    }}
+                                    className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition-colors z-20 shadow-lg active:scale-95"
+                                    title={t('previous')}
+                                >
+                                    <span className="material-symbols-outlined text-[28px]">chevron_left</span>
+                                </button>
+                            )}
 
-                    {/* Bottom Bar: Clear Counter Pill */}
-                    <div className="flex justify-center shrink-0 z-20 pt-1 pb-1">
-                        <div className="text-center text-white/95 text-[13px] font-medium px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/15 shadow-md">
-                            {lightboxIndex + 1} / {images.length}
+                            <div 
+                                className="max-w-full max-h-full flex items-center justify-center rounded-2xl" 
+                                onClick={e => e.stopPropagation()}
+                            >
+                                <img 
+                                    src={currentImg} 
+                                    alt={`${lightboxTitle || currentHotel.name} - ${safeIndex + 1}`}
+                                    className="max-w-full max-h-[70vh] sm:max-h-[74vh] object-contain rounded-xl shadow-2xl"
+                                    onError={e => { e.target.src = placeholderHotel; }}
+                                />
+                            </div>
+
+                            {count > 1 && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setLightboxIndex((safeIndex + 1) % count);
+                                    }}
+                                    className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center cursor-pointer transition-colors z-20 shadow-lg active:scale-95"
+                                    title={t('next')}
+                                >
+                                    <span className="material-symbols-outlined text-[28px]">chevron_right</span>
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Bottom Bar: Clear Counter Pill */}
+                        <div className="flex justify-center shrink-0 z-20 pt-1 pb-1">
+                            <div className="text-center text-white/95 text-[13px] font-medium px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/15 shadow-md">
+                                {safeIndex + 1} / {count}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                );
+            })()}
         </div>
     );
 };

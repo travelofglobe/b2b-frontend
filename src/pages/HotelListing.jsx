@@ -32,7 +32,40 @@ import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
 
 // ═══════════════════════════════════════════════
 // ═══════════════════════════════════════════════
-// Map Fit Control - auto-fits map to hotel bounds
+// Map Location Watcher - smoothly flies to new search region when autocomplete/query changes
+// ═══════════════════════════════════════════════
+const MapLocationWatcher = ({ slug, q, searchParams, isProgrammaticMoveRef }) => {
+    const map = useMap();
+    const prevLocationKeyRef = React.useRef('');
+
+    React.useEffect(() => {
+        const target = resolveInitialLocation(slug, q, searchParams);
+        if (!target || !target.center) return;
+
+        const locationKey = `${target.center[0].toFixed(3)}_${target.center[1].toFixed(3)}_${target.zoom}`;
+
+        if (prevLocationKeyRef.current && prevLocationKeyRef.current !== locationKey) {
+            if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+
+            map.flyTo(target.center, target.zoom || 11, {
+                duration: 1.6,
+                easeLinearity: 0.25,
+            });
+
+            map.once('moveend', () => {
+                setTimeout(() => {
+                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                }, 300);
+            });
+        }
+        prevLocationKeyRef.current = locationKey;
+    }, [slug, q, searchParams, map, isProgrammaticMoveRef]);
+
+    return null;
+};
+
+// ═══════════════════════════════════════════════
+// Map Fit Control - auto-fits map to hotel bounds with smooth flight animation
 // ═══════════════════════════════════════════════
 const MapFitControl = ({ hotels, shouldRefit, onRefitDone, isProgrammaticMoveRef }) => {
     const map = useMap();
@@ -52,13 +85,13 @@ const MapFitControl = ({ hotels, shouldRefit, onRefitDone, isProgrammaticMoveRef
                     }, 300);
                 });
 
-                map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14, animate: true, duration: 0.8 });
+                map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 14, duration: 1.5, easeLinearity: 0.25 });
                 onRefitDone();
 
                 // Fallback timeout in case moveend doesn't fire
                 const timer = setTimeout(() => {
                     if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
-                }, 1500);
+                }, 2000);
                 return () => clearTimeout(timer);
             }
         } catch (_e) {
@@ -151,12 +184,19 @@ const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved, isProgramm
 };
 
 // Capture map instance
-const MapInstanceCapture = ({ setMap }) => {
+const MapInstanceCapture = ({ setMap, setIsMapReady }) => {
     const map = useMap();
     React.useEffect(() => {
-        if (map) { setMap(map); map.invalidateSize(); }
-        return () => setMap(null);
-    }, [map, setMap]);
+        if (map) { 
+            setMap(map); 
+            map.invalidateSize(); 
+            if (setIsMapReady) setIsMapReady(true);
+        }
+        return () => {
+            setMap(null);
+            if (setIsMapReady) setIsMapReady(false);
+        };
+    }, [map, setMap, setIsMapReady]);
     return null;
 };
 
@@ -901,21 +941,28 @@ const KNOWN_DESTINATIONS = {
     bodrum: { center: [37.0344, 27.4305], zoom: 12, label: 'Bodrum' },
     mugla: { center: [37.0344, 27.4305], zoom: 10, label: 'Muğla' },
     fethiye: { center: [36.6217, 29.1164], zoom: 12, label: 'Fethiye' },
+    oludeniz: { center: [36.5489, 29.1245], zoom: 13, label: 'Ölüdeniz' },
+    gocek: { center: [36.7533, 28.9392], zoom: 13, label: 'Göcek' },
+    dalaman: { center: [36.7667, 28.8028], zoom: 12, label: 'Dalaman' },
     marmaris: { center: [36.8550, 28.2742], zoom: 12, label: 'Marmaris' },
     cesme: { center: [38.3236, 26.3040], zoom: 12, label: 'Çeşme' },
+    alacati: { center: [38.2819, 26.3742], zoom: 13, label: 'Alaçatı' },
     alanya: { center: [36.5438, 31.9998], zoom: 12, label: 'Alanya' },
     kemer: { center: [36.6025, 30.5600], zoom: 12, label: 'Kemer' },
     side: { center: [36.7667, 31.3889], zoom: 12, label: 'Side' },
     belek: { center: [36.8625, 31.0556], zoom: 12, label: 'Belek' },
     kusadasi: { center: [37.8579, 27.2610], zoom: 12, label: 'Kuşadası' },
-    kas: { center: [36.2000, 29.6389, 13], zoom: 13, label: 'Kaş' },
+    kas: { center: [36.2000, 29.6389], zoom: 13, label: 'Kaş' },
     kalkan: { center: [36.2644, 29.4144], zoom: 13, label: 'Kalkan' },
     ayvalik: { center: [39.3193, 26.6965], zoom: 12, label: 'Ayvalık' },
+    cunda: { center: [39.3333, 26.6600], zoom: 13, label: 'Cunda' },
+    bozcaada: { center: [39.8333, 26.0667], zoom: 12, label: 'Bozcaada' },
     didim: { center: [37.3734, 27.2564], zoom: 12, label: 'Didim' },
     datca: { center: [36.7262, 27.6860], zoom: 12, label: 'Datça' },
     trabzon: { center: [41.0027, 39.7168], zoom: 11, label: 'Trabzon' },
     rize: { center: [41.0201, 40.5234], zoom: 11, label: 'Rize' },
     bursa: { center: [40.1885, 29.0610], zoom: 11, label: 'Bursa' },
+    uludag: { center: [40.1264, 29.1306], zoom: 12, label: 'Uludağ' },
     kapadokya: { center: [38.6431, 34.8289], zoom: 11, label: 'Kapadokya' },
     cappadocia: { center: [38.6431, 34.8289], zoom: 11, label: 'Kapadokya' },
     goreme: { center: [38.6431, 34.8289], zoom: 12, label: 'Göreme' },
@@ -931,6 +978,8 @@ const KNOWN_DESTINATIONS = {
     sapanca: { center: [40.6931, 30.2644], zoom: 12, label: 'Sapanca' },
     yalova: { center: [40.6549, 29.2842], zoom: 11, label: 'Yalova' },
     canakkale: { center: [40.1553, 26.4142], zoom: 11, label: 'Çanakkale' },
+    girne: { center: [35.3333, 33.3167], zoom: 12, label: 'Girne' },
+    kibris: { center: [35.1667, 33.3667], zoom: 10, label: 'Kıbrıs' },
     dubai: { center: [25.2048, 55.2708], zoom: 11, label: 'Dubai' },
     london: { center: [51.5074, -0.1278], zoom: 11, label: 'London' },
     paris: { center: [48.8566, 2.3522], zoom: 11, label: 'Paris' },
@@ -947,7 +996,10 @@ const KNOWN_DESTINATIONS = {
     newyork: { center: [40.7128, -74.0060], zoom: 11, label: 'New York' },
     tokyo: { center: [35.6762, 139.6503], zoom: 11, label: 'Tokyo' },
     doha: { center: [25.2854, 51.5310], zoom: 11, label: 'Doha' },
-    riyadh: { center: [24.7136, 46.6753], zoom: 11, label: 'Riyadh' }
+    riyadh: { center: [24.7136, 46.6753], zoom: 11, label: 'Riyadh' },
+    jeddah: { center: [21.5433, 39.1728], zoom: 11, label: 'Jeddah' },
+    makkah: { center: [21.3891, 39.8579], zoom: 11, label: 'Makkah' },
+    madinah: { center: [24.5247, 39.5692], zoom: 11, label: 'Madinah' }
 };
 
 const normalizeLoc = (str) => {
@@ -1433,6 +1485,7 @@ const HotelListing = () => {
     const [searchOnMapMove, setSearchOnMapMove] = React.useState(false);
     const [mapMoved, setMapMoved] = React.useState(false);
     const [mapInstance, setMapInstance] = React.useState(null);
+    const [isMapReady, setIsMapReady] = React.useState(false);
     const isDark = useDarkMode();
     const userChangedLayerRef = React.useRef(false);
     const [mapLayer, setMapLayer] = React.useState('google');
@@ -2579,6 +2632,18 @@ const HotelListing = () => {
                             opacity: 0;
                             border: none;
                         }
+                        .leaflet-container {
+                            transition: opacity 0.6s ease-out, filter 0.5s ease;
+                        }
+                        .leaflet-zoom-animated {
+                            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important;
+                        }
+                        .maplibregl-canvas {
+                            transition: opacity 0.5s ease-out;
+                        }
+                        .leaflet-marker-icon {
+                            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease-out !important;
+                        }
                     `}</style>
 
                     {/* ════════════════════════════════════════════
@@ -3083,61 +3148,71 @@ const HotelListing = () => {
                     {/* Top inner shadow - Soft realistic inset shadow inside the top of the map */}
                     <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[inset_0_1px_4px_rgba(0,0,0,0.7)]" />
 
-                    <MapContainer
-                        center={initialMapState.center}
-                        zoom={initialMapState.zoom}
-                        style={{ height: '100%', width: '100%' }}
-                        zoomControl={false}
-                        attributionControl={true}
-                    >
-                        <OpenFreeMapLayer style={mapLayer} />
-                        {/* Capture map instance */}
-                        <MapInstanceCapture setMap={setMapInstance} />
+                    <div className={`w-full h-full transition-opacity duration-700 ease-out ${isMapReady ? 'opacity-100' : 'opacity-0'}`}>
+                        <MapContainer
+                            center={initialMapState.center}
+                            zoom={initialMapState.zoom}
+                            style={{ height: '100%', width: '100%' }}
+                            zoomControl={false}
+                            attributionControl={true}
+                        >
+                            <OpenFreeMapLayer style={mapLayer} />
+                            {/* Capture map instance */}
+                            <MapInstanceCapture setMap={setMapInstance} setIsMapReady={setIsMapReady} />
 
-                        {/* Points of interest for selected categories */}
-                        {MAP_POIS
-                            .filter(poi => activePoiCategories[poi.category])
-                            .map(poi => (
-                                <PoiMarker key={poi.id} poi={poi} currentLang={currentLang} />
-                            ))
-                        }
+                            {/* Instantly fly to newly selected region in autocomplete */}
+                            <MapLocationWatcher
+                                slug={slug}
+                                q={searchParams.get('q')}
+                                searchParams={searchParams}
+                                isProgrammaticMoveRef={isProgrammaticMoveRef}
+                            />
 
-                        {/* Price markers for hotels with coordinates */}
-                        {displayedHotels
-                            .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)))
-                            .map(hotel => (
-                                <PriceMarker
-                                    key={hotel.id}
-                                    hotel={hotel}
-                                    isSelected={selectedHotel?.id === hotel.id}
-                                    isHovered={hoveredHotel?.id === hotel.id}
-                                    onSelect={handleSelectHotel}
-                                    onHover={setHoveredHotel}
-                                    searchParams={searchParams}
-                                    currencySymbol={getCurrencySymbol(hotel.currency)}
-                                    isFav={isFavorite(String(hotel.hotelId || hotel.id))}
-                                    onToggleFav={() => toggleFavorite(hotel)}
-                                    currentLang={currentLang}
-                                />
-                            ))
-                        }
+                            {/* Points of interest for selected categories */}
+                            {MAP_POIS
+                                .filter(poi => activePoiCategories[poi.category])
+                                .map(poi => (
+                                    <PoiMarker key={poi.id} poi={poi} currentLang={currentLang} />
+                                ))
+                            }
 
-                        {/* Auto-fit to hotel bounds */}
-                        <MapFitControl
-                            hotels={displayedHotels}
-                            shouldRefit={shouldRefitMap}
-                            onRefitDone={React.useCallback(() => setShouldRefitMap(false), [])}
-                            isProgrammaticMoveRef={isProgrammaticMoveRef}
-                        />
+                            {/* Price markers for hotels with coordinates */}
+                            {displayedHotels
+                                .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)))
+                                .map(hotel => (
+                                    <PriceMarker
+                                        key={hotel.id}
+                                        hotel={hotel}
+                                        isSelected={selectedHotel?.id === hotel.id}
+                                        isHovered={hoveredHotel?.id === hotel.id}
+                                        onSelect={handleSelectHotel}
+                                        onHover={setHoveredHotel}
+                                        searchParams={searchParams}
+                                        currencySymbol={getCurrencySymbol(hotel.currency)}
+                                        isFav={isFavorite(String(hotel.hotelId || hotel.id))}
+                                        onToggleFav={() => toggleFavorite(hotel)}
+                                        currentLang={currentLang}
+                                    />
+                                ))
+                            }
 
-                        {/* Map move detector */}
-                        <MapBoundsWatcher
-                            searchOnMove={searchOnMapMove}
-                            onBoundsChange={handleMapBoundsChange}
-                            onMapMoved={handleMapMoved}
-                            isProgrammaticMoveRef={isProgrammaticMoveRef}
-                        />
-                    </MapContainer>
+                            {/* Auto-fit to hotel bounds */}
+                            <MapFitControl
+                                hotels={displayedHotels}
+                                shouldRefit={shouldRefitMap}
+                                onRefitDone={React.useCallback(() => setShouldRefitMap(false), [])}
+                                isProgrammaticMoveRef={isProgrammaticMoveRef}
+                            />
+
+                            {/* Map move detector */}
+                            <MapBoundsWatcher
+                                searchOnMove={searchOnMapMove}
+                                onBoundsChange={handleMapBoundsChange}
+                                onMapMoved={handleMapMoved}
+                                isProgrammaticMoveRef={isProgrammaticMoveRef}
+                            />
+                        </MapContainer>
+                    </div>
 
                     {/* Top-left: Expand Button + 4 Category Icons (Google Maps style) */}
                     <div className="absolute top-3.5 left-3.5 z-[1005] flex flex-col gap-2.5 pointer-events-auto">

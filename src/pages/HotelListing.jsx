@@ -1017,7 +1017,7 @@ const normalizeLoc = (str) => {
 
 const resolveInitialLocation = (slug, q, searchParams) => {
     const lat = parseFloat(searchParams?.get('lat'));
-    const lng = parseFloat(searchParams?.get('lng'));
+    const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
     if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
         return { center: [lat, lng], zoom: 12, label: q || '' };
     }

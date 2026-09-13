@@ -61,12 +61,17 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, shouldRefit, onRefi
             const locKey = `geo_${locationId || ''}_${lat.toFixed(4)}_${lng.toFixed(4)}`;
             if (prevLocationKeyRef.current !== locKey) {
                 prevLocationKeyRef.current = locKey;
-                if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
-                map.flyTo([lat, lng], 13, { duration: 1.2 });
-                if (onRefitDone) onRefitDone();
-                setTimeout(() => {
-                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
-                }, 1200);
+                const currentCenter = map.getCenter();
+                const dist = map.distance(currentCenter, [lat, lng]);
+                // Only trigger flyTo if map is not already near the target location (> 500m)
+                if (dist > 500) {
+                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+                    map.flyTo([lat, lng], 13, { duration: 1.2 });
+                    if (onRefitDone) onRefitDone();
+                    setTimeout(() => {
+                        if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                    }, 1200);
+                }
             }
             return;
         }
@@ -77,12 +82,16 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, shouldRefit, onRefi
             const locKey = `loc_${locationId || ''}_${slug || ''}_${target.center[0].toFixed(4)}_${target.center[1].toFixed(4)}`;
             if (prevLocationKeyRef.current !== locKey) {
                 prevLocationKeyRef.current = locKey;
-                if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
-                map.flyTo(target.center, target.zoom || 12, { duration: 1.2 });
-                if (onRefitDone) onRefitDone();
-                setTimeout(() => {
-                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
-                }, 1200);
+                const currentCenter = map.getCenter();
+                const dist = map.distance(currentCenter, target.center);
+                if (dist > 500) {
+                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+                    map.flyTo(target.center, target.zoom || 12, { duration: 1.2 });
+                    if (onRefitDone) onRefitDone();
+                    setTimeout(() => {
+                        if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                    }, 1200);
+                }
                 return;
             }
         }
@@ -2412,6 +2421,20 @@ const HotelListing = () => {
                     const targetLocId = crumb?.locationId ? String(crumb.locationId) : null;
                     if (targetLocId) {
                         localStorage.setItem('dashboard_last_locationId', targetLocId);
+                    }
+                    if (searchParams.get('q') !== locName) {
+                        isSyncingQRef.current = true;
+                        const center = mapInstance.getCenter();
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.set('q', locName);
+                        if (center && center.lat && center.lng) {
+                            newParams.set('lat', center.lat.toFixed(4));
+                            newParams.set('lng', center.lng.toFixed(4));
+                        }
+                        if (targetLocId) {
+                            newParams.set('locationId', targetLocId);
+                        }
+                        setSearchParams(newParams, { replace: true });
                     }
                 }
             } catch (err) {

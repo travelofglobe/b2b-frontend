@@ -84,6 +84,9 @@ export const OpenFreeMapLayer = ({ style = 'auto', colorOverrides }) => {
         try {
             const glLayer = L.maplibreGL({
                 style: targetStyle,
+                fadeDuration: 150,
+                maxTileCacheSize: 300,
+                updateInterval: 16,
                 attribution: '<a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> &copy; <a href="https://www.openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
             });
 

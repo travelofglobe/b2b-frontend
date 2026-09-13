@@ -8,7 +8,7 @@ import HolidaySidePanel from "./HolidaySidePanel";
 import 'react-datepicker/dist/react-datepicker.css';
 import "../datepicker-custom.css";
 import { useHolidays } from '../utils/useHolidays';
-import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates } from '../utils/searchParamsUtils';
+import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, resolveKnownCoordinates } from '../utils/searchParamsUtils';
 import { useTranslation } from 'react-i18next';
 
 import { getUserCountryCode } from '../utils/geoUtils';
@@ -136,7 +136,7 @@ const DashboardSearch = () => {
         }
     };
 
-    const handleSelectHistoryItem = (item) => {
+    const handleSelectHistoryItem = async (item) => {
         const itemType = item.type || item.searchType || 'SEARCH';
         setQuery(item.query);
         setResults({ hotels: [], regions: [] });
@@ -146,6 +146,32 @@ const DashboardSearch = () => {
 
         localStorage.setItem('dashboard_last_search', item.query);
         localStorage.setItem('dashboard_last_type', itemType);
+
+        let knownCoords = resolveKnownCoordinates(item.query) || resolveKnownCoordinates(item.subtitle);
+
+        if (!knownCoords && itemType !== 'HOTEL') {
+            try {
+                const res = await autocompleteService.search({ query: item.query, page: 0, size: 5 });
+                const content = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : []);
+                const match = content?.find(c => c.geoCoordinate?.lat && (c.geoCoordinate?.lon || c.geoCoordinate?.lng));
+                if (match) {
+                    const lat = match.geoCoordinate.lat;
+                    const lng = match.geoCoordinate.lon || match.geoCoordinate.lng;
+                    knownCoords = { lat, lng };
+                }
+            } catch (err) {
+                console.error("Error fetching coordinates for history item:", err);
+            }
+        }
+
+        if (knownCoords) {
+            localStorage.setItem('dashboard_last_lat', knownCoords.lat);
+            localStorage.setItem('dashboard_last_lng', knownCoords.lng);
+        } else {
+            localStorage.removeItem('dashboard_last_lat');
+            localStorage.removeItem('dashboard_last_lng');
+        }
+
         if (item.targetId) {
             if (itemType === 'LOCATION') {
                 localStorage.setItem('dashboard_last_locationId', item.targetId);
@@ -420,9 +446,20 @@ const DashboardSearch = () => {
             localStorage.setItem('dashboard_last_locationId', location.locationId);
         }
 
-        if (location.geoCoordinate && location.geoCoordinate.lat && location.geoCoordinate.lon) {
-            localStorage.setItem('dashboard_last_lat', location.geoCoordinate.lat);
-            localStorage.setItem('dashboard_last_lng', location.geoCoordinate.lon);
+        let latVal = location.geoCoordinate?.lat || location.geoCoordinate?.latitude || location.lat || location.latitude;
+        let lngVal = location.geoCoordinate?.lon || location.geoCoordinate?.lng || location.geoCoordinate?.longitude || location.lng || location.lon || location.longitude;
+
+        if (!latVal || !lngVal) {
+            const fallbackCoords = resolveKnownCoordinates(fullName) || resolveKnownCoordinates(name) || resolveKnownCoordinates(location.locationPath);
+            if (fallbackCoords) {
+                latVal = fallbackCoords.lat;
+                lngVal = fallbackCoords.lng;
+            }
+        }
+
+        if (latVal && lngVal) {
+            localStorage.setItem('dashboard_last_lat', latVal);
+            localStorage.setItem('dashboard_last_lng', lngVal);
         } else {
             localStorage.removeItem('dashboard_last_lat');
             localStorage.removeItem('dashboard_last_lng');
@@ -444,9 +481,7 @@ const DashboardSearch = () => {
         setQuery(fullName);
         
         const locationParam = location.locationId ? `&locationId=${location.locationId}` : '';
-        const geoParam = (location.geoCoordinate?.lat && location.geoCoordinate?.lon) 
-            ? `&lat=${location.geoCoordinate.lat}&lng=${location.geoCoordinate.lon}`
-            : '';
+        const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
         const searchParamsString = getUrlParams(fullName) + locationParam + geoParam;
 
         localStorage.setItem('last_hotel_search_slug', slug);

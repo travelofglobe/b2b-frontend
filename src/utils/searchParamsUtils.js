@@ -164,3 +164,82 @@ export const formatDateForUrl = (date) => {
     return `${year}-${month}-${day}`;
 };
 
+export const KNOWN_DESTINATIONS = {
+    istanbul: { lat: 41.0082, lng: 28.9784 },
+    antalya: { lat: 36.8969, lng: 30.7133 },
+    ankara: { lat: 39.9334, lng: 32.8597 },
+    izmir: { lat: 38.4237, lng: 27.1428 },
+    bodrum: { lat: 37.0344, lng: 27.4305 },
+    mugla: { lat: 37.0344, lng: 27.4305 },
+    fethiye: { lat: 36.6217, lng: 29.1164 },
+    oludeniz: { lat: 36.5489, lng: 29.1245 },
+    gocek: { lat: 36.7533, lng: 28.9392 },
+    dalaman: { lat: 36.7667, lng: 28.8028 },
+    marmaris: { lat: 36.8550, lng: 28.2742 },
+    cesme: { lat: 38.3236, lng: 26.3040 },
+    alacati: { lat: 38.2819, lng: 26.3742 },
+    alanya: { lat: 36.5438, lng: 31.9998 },
+    kemer: { lat: 36.6025, lng: 30.5600 },
+    side: { lat: 36.7667, lng: 31.3889 },
+    belek: { lat: 36.8625, lng: 31.0556 },
+    kusadasi: { lat: 37.8579, lng: 27.2610 },
+    kas: { lat: 36.2000, lng: 29.6389 },
+    kalkan: { lat: 36.2644, lng: 29.4144 },
+    ayvalik: { lat: 39.3193, lng: 26.6965 },
+    cunda: { lat: 39.3333, lng: 26.6600 },
+    bozcaada: { lat: 39.8333, lng: 26.0667 },
+    didim: { lat: 37.3734, lng: 27.2564 },
+    datca: { lat: 36.7262, lng: 27.6860 },
+    trabzon: { lat: 41.0027, lng: 39.7168 },
+    rize: { lat: 41.0201, lng: 40.5234 },
+    bursa: { lat: 40.1885, lng: 29.0610 },
+    uludag: { lat: 40.1264, lng: 29.1306 },
+    kapadokya: { lat: 38.6431, lng: 34.8289 },
+    cappadocia: { lat: 38.6431, lng: 34.8289 },
+    goreme: { lat: 38.6431, lng: 34.8289 },
+    urgup: { lat: 38.6319, lng: 34.9125 },
+    nevsehir: { lat: 38.6244, lng: 34.7144 },
+    eskisehir: { lat: 39.7667, lng: 30.5256 },
+    adana: { lat: 37.0000, lng: 35.3213 },
+    gaziantep: { lat: 37.0662, lng: 37.3833 },
+    konya: { lat: 37.8714, lng: 32.4846 },
+    denizli: { lat: 37.7765, lng: 29.0864 },
+    pamukkale: { lat: 37.9137, lng: 29.1187 },
+    bolu: { lat: 40.7358, lng: 31.6061 },
+    sapanca: { lat: 40.6931, lng: 30.2644 },
+    yalova: { lat: 40.6549, lng: 29.2842 },
+    canakkale: { lat: 40.1553, lng: 26.4142 },
+    girne: { lat: 35.3333, lng: 33.3167 },
+    kibris: { lat: 35.1667, lng: 33.3667 },
+    dubai: { lat: 25.2048, lng: 55.2708 },
+    london: { lat: 51.5074, lng: -0.1278 },
+    paris: { lat: 48.8566, lng: 2.3522 },
+    rome: { lat: 41.9028, lng: 12.4964 },
+    milan: { lat: 45.4642, lng: 9.1900 },
+    barcelona: { lat: 41.3851, lng: 2.1734 },
+    madrid: { lat: 40.4168, lng: -3.7038 },
+    berlin: { lat: 52.5200, lng: 13.4050 },
+    munich: { lat: 48.1351, lng: 11.5820 },
+    amsterdam: { lat: 52.3676, lng: 4.9041 },
+    vienna: { lat: 48.2082, lng: 16.3738 },
+    prague: { lat: 50.0755, lng: 14.4378 },
+    athens: { lat: 37.9838, lng: 23.7275 },
+    newyork: { lat: 40.7128, lng: -74.0060 },
+    tokyo: { lat: 35.6762, lng: 139.6503 }
+};
+
+export const resolveKnownCoordinates = (str) => {
+    if (!str) return null;
+    const clean = str.toLowerCase()
+        .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+        .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
+        .replace(/[^a-z0-9]/g, '');
+    if (!clean) return null;
+    for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
+        if (clean.includes(key) || key.includes(clean)) {
+            return val;
+        }
+    }
+    return null;
+};
+

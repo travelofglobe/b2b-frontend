@@ -32,72 +32,89 @@ import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
 
 // ═══════════════════════════════════════════════
 // ═══════════════════════════════════════════════
-// Map Location Watcher - smoothly flies to new search region when autocomplete/query changes
 // ═══════════════════════════════════════════════
-const MapLocationWatcher = ({ slug, q, searchParams, isProgrammaticMoveRef }) => {
+// Map Location Watcher - single unified controller for map center & bounds fitting
+// ═══════════════════════════════════════════════
+const MapLocationWatcher = ({ slug, q, searchParams, hotels, shouldRefit, onRefitDone, isProgrammaticMoveRef }) => {
     const map = useMap();
     const prevLocationKeyRef = React.useRef('');
+    const prevSlugRef = React.useRef(slug);
+    const prevLocIdRef = React.useRef(searchParams?.get('locationId'));
+    const prevQRef = React.useRef(searchParams?.get('q') || q);
 
     React.useEffect(() => {
-        const target = resolveInitialLocation(slug, q, searchParams);
-        if (!target || !target.center) return;
+        const lat = parseFloat(searchParams?.get('lat'));
+        const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
+        const locationId = searchParams?.get('locationId');
+        const currentQ = searchParams?.get('q') || q;
 
-        const locationKey = `${target.center[0].toFixed(3)}_${target.center[1].toFixed(3)}_${target.zoom}`;
-
-        if (prevLocationKeyRef.current && prevLocationKeyRef.current !== locationKey) {
-            if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
-
-            map.flyTo(target.center, target.zoom || 11, {
-                duration: 1.6,
-                easeLinearity: 0.25,
-            });
-
-            map.once('moveend', () => {
-                setTimeout(() => {
-                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
-                }, 300);
-            });
+        // Reset key ref if locationId, slug, or query changed so new search location always triggers movement
+        if (prevSlugRef.current !== slug || prevLocIdRef.current !== locationId || prevQRef.current !== currentQ) {
+            prevSlugRef.current = slug;
+            prevLocIdRef.current = locationId;
+            prevQRef.current = currentQ;
+            prevLocationKeyRef.current = '';
         }
-        prevLocationKeyRef.current = locationKey;
-    }, [slug, q, searchParams, map, isProgrammaticMoveRef]);
 
-    return null;
-};
-
-// ═══════════════════════════════════════════════
-// Map Fit Control - auto-fits map to hotel bounds with smooth flight animation
-// ═══════════════════════════════════════════════
-const MapFitControl = ({ hotels, shouldRefit, onRefitDone, isProgrammaticMoveRef }) => {
-    const map = useMap();
-    React.useEffect(() => {
-        if (!shouldRefit || hotels.length === 0) return;
-        const valid = hotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
-        if (valid.length === 0) return;
-        try {
-            const bounds = L.latLngBounds(valid.map(h => [parseFloat(h.lat), parseFloat(h.lng)]));
-            if (bounds.isValid()) {
-                if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
-
-                // Clear the programmatic flag after the fit animation and any resulting events have settled
-                map.once('moveend', () => {
+        // 1. Explicit lat & lng in searchParams (highest priority, smooth animated flyTo)
+        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+            const locKey = `geo_${locationId || ''}_${lat.toFixed(4)}_${lng.toFixed(4)}`;
+            if (prevLocationKeyRef.current !== locKey) {
+                prevLocationKeyRef.current = locKey;
+                const currentCenter = map.getCenter();
+                const dist = map.distance(currentCenter, [lat, lng]);
+                // Only trigger flyTo if map is not already near the target location (> 500m)
+                if (dist > 500) {
+                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+                    map.flyTo([lat, lng], 13, { duration: 1.2 });
+                    if (onRefitDone) onRefitDone();
                     setTimeout(() => {
                         if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
-                    }, 300);
-                });
-
-                map.flyToBounds(bounds, { padding: [60, 60], maxZoom: 14, duration: 1.5, easeLinearity: 0.25 });
-                onRefitDone();
-
-                // Fallback timeout in case moveend doesn't fire
-                const timer = setTimeout(() => {
-                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
-                }, 2000);
-                return () => clearTimeout(timer);
+                    }, 1200);
+                }
             }
-        } catch (_e) {
-            if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+            return;
         }
-    }, [shouldRefit, hotels, map, onRefitDone, isProgrammaticMoveRef]);
+
+        // 2. Slug / query location resolution
+        const target = resolveInitialLocation(slug, q, searchParams);
+        if (target && target.center) {
+            const locKey = `loc_${locationId || ''}_${slug || ''}_${target.center[0].toFixed(4)}_${target.center[1].toFixed(4)}`;
+            if (prevLocationKeyRef.current !== locKey) {
+                prevLocationKeyRef.current = locKey;
+                const currentCenter = map.getCenter();
+                const dist = map.distance(currentCenter, target.center);
+                if (dist > 500) {
+                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+                    map.flyTo(target.center, target.zoom || 12, { duration: 1.2 });
+                    if (onRefitDone) onRefitDone();
+                    setTimeout(() => {
+                        if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                    }, 1200);
+                }
+                return;
+            }
+        }
+
+        // 3. Fallback: auto-fit hotel bounds with smooth flyToBounds when shouldRefit is true
+        if (shouldRefit && hotels && hotels.length > 0) {
+            const valid = hotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
+            if (valid.length > 0) {
+                try {
+                    const bounds = L.latLngBounds(valid.map(h => [parseFloat(h.lat), parseFloat(h.lng)]));
+                    if (bounds.isValid()) {
+                        if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+                        map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 14, duration: 1.2 });
+                        if (onRefitDone) onRefitDone();
+                        setTimeout(() => {
+                            if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                        }, 1200);
+                    }
+                } catch (_e) {}
+            }
+        }
+    }, [slug, q, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('locationId'), shouldRefit, hotels, map, onRefitDone, isProgrammaticMoveRef]);
+
     return null;
 };
 
@@ -166,9 +183,6 @@ const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved, isProgramm
         },
         moveend: (e) => {
             handleUpdate(e.target);
-        },
-        zoomend: (e) => {
-            handleUpdate(e.target);
         }
     });
 
@@ -233,20 +247,28 @@ const PriceMarker = React.memo(({
     const map = useMap();
     const active = isSelected || isHovered;
     const markerRef = React.useRef(null);
+    const enterTimerRef = React.useRef(null);
     const leaveTimerRef = React.useRef(null);
+
+    React.useEffect(() => {
+        return () => {
+            if (enterTimerRef.current) clearTimeout(enterTimerRef.current);
+            if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+        };
+    }, []);
 
     const priceDisplay = hotel.price ? Math.round(hotel.price).toLocaleString('tr-TR') : '';
 
-    // Smart placement: check if marker is near the top of the map container (threshold 340px)
-    let isNearTop = false;
-    if (map && hotel.lat && hotel.lng) {
+    // Smart placement: check if marker is near top ONLY when popup is active to avoid recalculations during map zoom
+    const isNearTop = React.useMemo(() => {
+        if (!active || !map || !hotel.lat || !hotel.lng) return false;
         try {
             const point = map.latLngToContainerPoint([parseFloat(hotel.lat), parseFloat(hotel.lng)]);
-            isNearTop = point.y < 340;
+            return point.y < 250;
         } catch (e) {
-            // ignore
+            return false;
         }
-    }
+    }, [active, map, hotel.lat, hotel.lng]);
 
     // Automatically open/close popup on hover or selection
     React.useEffect(() => {
@@ -264,14 +286,34 @@ const PriceMarker = React.memo(({
             clearTimeout(leaveTimerRef.current);
             leaveTimerRef.current = null;
         }
-        onHover(hotel);
+        if (!enterTimerRef.current) {
+            enterTimerRef.current = setTimeout(() => {
+                onHover(hotel);
+                enterTimerRef.current = null;
+            }, 180);
+        }
     };
 
     const handleMouseLeave = () => {
-        if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current);
+        if (enterTimerRef.current) {
+            clearTimeout(enterTimerRef.current);
+            enterTimerRef.current = null;
+        }
+        if (leaveTimerRef.current) {
+            clearTimeout(leaveTimerRef.current);
+        }
         leaveTimerRef.current = setTimeout(() => {
             onHover(null);
+            leaveTimerRef.current = null;
         }, 180);
+    };
+
+    const handleClick = () => {
+        if (enterTimerRef.current) {
+            clearTimeout(enterTimerRef.current);
+            enterTimerRef.current = null;
+        }
+        onSelect(hotel);
     };
 
     const icon = React.useMemo(() => {
@@ -316,8 +358,8 @@ const PriceMarker = React.memo(({
         ` : '';
 
         const html = `
-            <div style="cursor:pointer;user-select:none;transform-origin:${tailTipX}px 32px;transform:${scale};transition:transform 0.18s cubic-bezier(0.2, 0, 0, 1);z-index:${active ? 1000 : isFav ? 500 : 1};">
-                <svg width="${W}" height="34" viewBox="0 0 ${W} 34" style="overflow:visible;filter:${shadow};display:block;">
+            <div style="cursor:pointer;user-select:none;z-index:${active ? 1000 : isFav ? 500 : 1};">
+                <svg width="${W}" height="34" viewBox="0 0 ${W} 34" style="overflow:visible;filter:${shadow};display:block;transform-origin:${tailTipX}px 32px;transform:${scale};transition:transform 0.15s ease;">
                     <path d="${path}" fill="#ffffff" stroke="${borderColor}" stroke-width="1.15" stroke-linejoin="round"/>
                     <circle cx="13" cy="13" r="9" fill="${iconBg}" style="transition:fill 0.2s ease;"/>
                     <g transform="translate(7.75, 7.75) scale(0.44)">
@@ -369,12 +411,13 @@ const PriceMarker = React.memo(({
             icon={icon}
             zIndexOffset={active ? 1000 : isFav ? 500 : 0}
             eventHandlers={{
-                click: () => onSelect(hotel),
+                click: handleClick,
                 mouseover: handleMouseEnter,
                 mouseout: handleMouseLeave,
             }}
         >
-            <Popup 
+            {active && (
+                <Popup 
                 className={`hotel-price-popup ${isNearTop ? 'popup-downwards' : ''}`}
                 minWidth={220} 
                 maxWidth={220} 
@@ -383,18 +426,29 @@ const PriceMarker = React.memo(({
                 offset={isNearTop ? [0, 8] : [0, -34]}
             >
                 <style>{`
+                    .leaflet-popup.hotel-price-popup {
+                        transition: none !important;
+                        -webkit-transition: none !important;
+                    }
                     .hotel-price-popup .leaflet-popup-content-wrapper { 
                         padding: 0 !important; 
                         border-radius: 10px !important; 
                         overflow: hidden !important; 
-                        box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important; 
+                        box-shadow: 0 6px 20px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.12) !important; 
                         border: none !important;
                         background: transparent !important;
+                        transition: none !important;
                     }
                     .hotel-price-popup.popup-downwards {
                         bottom: auto !important;
                         top: 8px !important;
                         margin-bottom: 0 !important;
+                    }
+                    .hotel-price-popup.popup-downwards .leaflet-popup-content-wrapper {
+                        transform-origin: top center !important;
+                    }
+                    .hotel-price-popup:not(.popup-downwards) .leaflet-popup-content-wrapper {
+                        transform-origin: bottom center !important;
                     }
                     .hotel-price-popup .leaflet-popup-content { 
                         margin: 0 !important; 
@@ -556,6 +610,7 @@ const PriceMarker = React.memo(({
                     </div>
                 </div>
             </Popup>
+            )}
         </Marker>
     );
 });
@@ -1889,6 +1944,134 @@ const HotelListing = () => {
         return filtered;
     }, [hotels, selectedAmenities, isPriceActive, priceRange, maxHotelPrice]);
 
+    // Active POIs to render on the map (combines static curated MAP_POIS + dynamic POIs for any region)
+    const activePois = React.useMemo(() => {
+        const enabledCategories = Object.keys(activePoiCategories).filter(cat => activePoiCategories[cat]);
+        if (enabledCategories.length === 0) return [];
+
+        const staticMatches = MAP_POIS.filter(poi => activePoiCategories[poi.category]);
+
+        // Calculate center of current hotels or map
+        const validHotels = displayedHotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
+        let centerLat = null;
+        let centerLng = null;
+
+        if (validHotels.length > 0) {
+            centerLat = validHotels.reduce((acc, h) => acc + parseFloat(h.lat), 0) / validHotels.length;
+            centerLng = validHotels.reduce((acc, h) => acc + parseFloat(h.lng), 0) / validHotels.length;
+        } else if (mapInstance) {
+            try {
+                const c = mapInstance.getCenter();
+                centerLat = c.lat;
+                centerLng = c.lng;
+            } catch (_) {}
+        }
+
+        if (centerLat === null || centerLng === null) return staticMatches;
+
+        // Check if any static POI is within ~50km of center
+        const nearbyStatic = staticMatches.filter(poi => {
+            const dLat = poi.lat - centerLat;
+            const dLng = poi.lng - centerLng;
+            return (dLat * dLat + dLng * dLng) < 0.25;
+        });
+
+        if (nearbyStatic.length > 0) {
+            return nearbyStatic;
+        }
+
+        // Dynamic Fallback POI Generator for regions without static MAP_POIS entries:
+        const dynamicPois = [];
+        const locationName = hotels[0]?.location?.split(',')[0] || 'Bölge';
+
+        enabledCategories.forEach((cat) => {
+            if (cat === 'transit') {
+                dynamicPois.push({
+                    id: `dyn-transit-1`,
+                    name: `${locationName} Ulaşım & Transfer Merkezi`,
+                    category: 'transit',
+                    lat: centerLat + 0.008,
+                    lng: centerLng + 0.012,
+                    icon: 'directions_transit',
+                    color: '#1a73e8',
+                    labelColor: '#1558d6',
+                    description: `${locationName} bölgesel ulaşım ve otobüs/metro transfer noktası.`
+                });
+                dynamicPois.push({
+                    id: `dyn-transit-2`,
+                    name: `${locationName} Ana İstasyonu`,
+                    category: 'transit',
+                    lat: centerLat - 0.011,
+                    lng: centerLng - 0.009,
+                    icon: 'subway',
+                    color: '#1a73e8',
+                    labelColor: '#1558d6',
+                    description: `Toplu taşıma ve şehir bağlantı durağı.`
+                });
+            } else if (cat === 'restaurants') {
+                dynamicPois.push({
+                    id: `dyn-rest-1`,
+                    name: `${locationName} Gurme Restoranlar Bölgesi`,
+                    category: 'restaurants',
+                    lat: centerLat + 0.005,
+                    lng: centerLng - 0.007,
+                    icon: 'restaurant',
+                    color: '#ea4335',
+                    labelColor: '#c5221f',
+                    description: `${locationName} popüler yemek ve lezzet mekanları.`
+                });
+                dynamicPois.push({
+                    id: `dyn-rest-2`,
+                    name: `${locationName} Sahil & Çarşı Kafeleri`,
+                    category: 'restaurants',
+                    lat: centerLat - 0.006,
+                    lng: centerLng + 0.008,
+                    icon: 'restaurant',
+                    color: '#ea4335',
+                    labelColor: '#c5221f',
+                    description: `Açık hava kafeleri ve yerel lezzet alanları.`
+                });
+            } else if (cat === 'tourist') {
+                dynamicPois.push({
+                    id: `dyn-tourist-1`,
+                    name: `${locationName} Tarihi Şehir Merkezi`,
+                    category: 'tourist',
+                    lat: centerLat - 0.004,
+                    lng: centerLng + 0.005,
+                    icon: 'attractions',
+                    color: '#9333ea',
+                    labelColor: '#7e22ce',
+                    description: `${locationName} öne çıkan tarihi ve gezilecek alanı.`
+                });
+                dynamicPois.push({
+                    id: `dyn-tourist-2`,
+                    name: `${locationName} Manzara & Gezi Terası`,
+                    category: 'tourist',
+                    lat: centerLat + 0.010,
+                    lng: centerLng - 0.004,
+                    icon: 'park',
+                    color: '#0f9d58',
+                    labelColor: '#137333',
+                    description: `Panoramik gezi ve doğa noktası.`
+                });
+            } else if (cat === 'shopping') {
+                dynamicPois.push({
+                    id: `dyn-shop-1`,
+                    name: `${locationName} Alışveriş & Çarşı Caddesi`,
+                    category: 'shopping',
+                    lat: centerLat + 0.003,
+                    lng: centerLng + 0.009,
+                    icon: 'shopping_bag',
+                    color: '#e91e63',
+                    labelColor: '#ad1457',
+                    description: `${locationName} mağazalar ve butik alışveriş caddesi.`
+                });
+            }
+        });
+
+        return [...nearbyStatic, ...dynamicPois];
+    }, [activePoiCategories, displayedHotels, mapInstance, hotels]);
+
     // Results count text
     const resultsText = useMemo(() => {
         if (isLoading && totalProperties === 0) return tListing('searching', currentLang);
@@ -2234,28 +2417,24 @@ const HotelListing = () => {
                 }
 
                 if (locName) {
-                    const currentQ = searchParams.get('q');
-                    const currentLocId = searchParams.get('locationId');
+                    localStorage.setItem('dashboard_last_search', locName);
                     const targetLocId = crumb?.locationId ? String(crumb.locationId) : null;
-                    if (currentQ !== locName || currentLocId !== targetLocId) {
+                    if (targetLocId) {
+                        localStorage.setItem('dashboard_last_locationId', targetLocId);
+                    }
+                    if (searchParams.get('q') !== locName) {
                         isSyncingQRef.current = true;
-                        setSearchParams(prev => {
-                            const newParams = new URLSearchParams(prev.toString());
-                            newParams.set('q', locName);
-                            if (targetLocId) {
-                                newParams.set('locationId', targetLocId);
-                            } else {
-                                newParams.delete('locationId');
-                            }
-                            return newParams;
-                        }, { replace: true });
-
-                        localStorage.setItem('dashboard_last_search', locName);
-                        if (targetLocId) {
-                            localStorage.setItem('dashboard_last_locationId', targetLocId);
-                        } else {
-                            localStorage.removeItem('dashboard_last_locationId');
+                        const center = mapInstance.getCenter();
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.set('q', locName);
+                        if (center && center.lat && center.lng) {
+                            newParams.set('lat', center.lat.toFixed(4));
+                            newParams.set('lng', center.lng.toFixed(4));
                         }
+                        if (targetLocId) {
+                            newParams.set('locationId', targetLocId);
+                        }
+                        setSearchParams(newParams, { replace: true });
                     }
                 }
             } catch (err) {
@@ -2635,14 +2814,8 @@ const HotelListing = () => {
                         .leaflet-container {
                             transition: opacity 0.6s ease-out, filter 0.5s ease;
                         }
-                        .leaflet-zoom-animated {
-                            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important;
-                        }
                         .maplibregl-canvas {
                             transition: opacity 0.5s ease-out;
-                        }
-                        .leaflet-marker-icon {
-                            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease-out !important;
                         }
                     `}</style>
 
@@ -3155,26 +3328,33 @@ const HotelListing = () => {
                             style={{ height: '100%', width: '100%' }}
                             zoomControl={false}
                             attributionControl={true}
+                            zoomAnimation={true}
+                            markerZoomAnimation={true}
+                            fadeAnimation={true}
+                            zoomSnap={0.5}
+                            zoomDelta={0.5}
+                            wheelDebounceTime={40}
+                            wheelPxPerZoomLevel={160}
                         >
                             <OpenFreeMapLayer style={mapLayer} />
                             {/* Capture map instance */}
                             <MapInstanceCapture setMap={setMapInstance} setIsMapReady={setIsMapReady} />
 
-                            {/* Instantly fly to newly selected region in autocomplete */}
+                            {/* Single unified map center & bounds controller */}
                             <MapLocationWatcher
                                 slug={slug}
                                 q={searchParams.get('q')}
                                 searchParams={searchParams}
+                                hotels={displayedHotels}
+                                shouldRefit={shouldRefitMap}
+                                onRefitDone={React.useCallback(() => setShouldRefitMap(false), [])}
                                 isProgrammaticMoveRef={isProgrammaticMoveRef}
                             />
 
                             {/* Points of interest for selected categories */}
-                            {MAP_POIS
-                                .filter(poi => activePoiCategories[poi.category])
-                                .map(poi => (
-                                    <PoiMarker key={poi.id} poi={poi} currentLang={currentLang} />
-                                ))
-                            }
+                            {activePois.map(poi => (
+                                <PoiMarker key={poi.id} poi={poi} currentLang={currentLang} />
+                            ))}
 
                             {/* Price markers for hotels with coordinates */}
                             {displayedHotels
@@ -3195,14 +3375,6 @@ const HotelListing = () => {
                                     />
                                 ))
                             }
-
-                            {/* Auto-fit to hotel bounds */}
-                            <MapFitControl
-                                hotels={displayedHotels}
-                                shouldRefit={shouldRefitMap}
-                                onRefitDone={React.useCallback(() => setShouldRefitMap(false), [])}
-                                isProgrammaticMoveRef={isProgrammaticMoveRef}
-                            />
 
                             {/* Map move detector */}
                             <MapBoundsWatcher

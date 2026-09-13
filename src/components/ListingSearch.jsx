@@ -156,6 +156,16 @@ const ListingSearch = ({ isCompact = false }) => {
 
         localStorage.setItem('dashboard_last_search', item.query);
         localStorage.setItem('dashboard_last_type', itemType);
+
+        const knownCoords = resolveKnownCoordinates(item.query);
+        if (knownCoords) {
+            localStorage.setItem('dashboard_last_lat', knownCoords.lat);
+            localStorage.setItem('dashboard_last_lng', knownCoords.lng);
+        } else {
+            localStorage.removeItem('dashboard_last_lat');
+            localStorage.removeItem('dashboard_last_lng');
+        }
+
         if (item.targetId) {
             if (itemType === 'LOCATION') {
                 localStorage.setItem('dashboard_last_locationId', item.targetId);
@@ -168,7 +178,7 @@ const ListingSearch = ({ isCompact = false }) => {
             const searchParamsString = getUrlParams({ query: item.query });
             navigate(`/travel/hotels/detail/${item.targetId}?${searchParamsString}`);
         } else {
-            handleSearch({ query: item.query, locationId: item.targetId || null });
+            handleSearch({ query: item.query, locationId: item.targetId || null, lat: knownCoords?.lat, lng: knownCoords?.lng });
         }
     };
 
@@ -457,10 +467,25 @@ const ListingSearch = ({ isCompact = false }) => {
             const savedLocationId = opts.locationId !== undefined
                 ? opts.locationId
                 : (isSameQuery ? (currentUrlLocationId || localStorage.getItem('dashboard_last_locationId')) : null);
-            const savedLat = localStorage.getItem('dashboard_last_lat');
-            const savedLng = localStorage.getItem('dashboard_last_lng');
+
+            let latVal = opts.lat || (isSameQuery ? localStorage.getItem('dashboard_last_lat') : null);
+            let lngVal = opts.lng || (isSameQuery ? localStorage.getItem('dashboard_last_lng') : null);
+
+            if (!latVal || !lngVal) {
+                const known = resolveKnownCoordinates(activeQuery);
+                if (known) {
+                    latVal = known.lat;
+                    lngVal = known.lng;
+                    localStorage.setItem('dashboard_last_lat', known.lat);
+                    localStorage.setItem('dashboard_last_lng', known.lng);
+                } else if (!isSameQuery) {
+                    localStorage.removeItem('dashboard_last_lat');
+                    localStorage.removeItem('dashboard_last_lng');
+                }
+            }
+
             const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
-            const geoParam = (savedLat && savedLng) ? `&lat=${savedLat}&lng=${savedLng}` : '';
+            const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
             const searchParamsString = getUrlParams(opts) + locationParam + geoParam;
 
             localStorage.setItem('last_hotel_search_slug', slug);
@@ -490,9 +515,20 @@ const ListingSearch = ({ isCompact = false }) => {
             localStorage.setItem('dashboard_last_locationId', location.locationId);
         }
 
-        if (location.geoCoordinate && location.geoCoordinate.lat && location.geoCoordinate.lon) {
-            localStorage.setItem('dashboard_last_lat', location.geoCoordinate.lat);
-            localStorage.setItem('dashboard_last_lng', location.geoCoordinate.lon);
+        let latVal = location.geoCoordinate?.lat || location.geoCoordinate?.latitude || location.lat || location.latitude;
+        let lngVal = location.geoCoordinate?.lon || location.geoCoordinate?.lng || location.geoCoordinate?.longitude || location.lng || location.lon || location.longitude;
+
+        if (!latVal || !lngVal) {
+            const fallbackCoords = resolveKnownCoordinates(fullName) || resolveKnownCoordinates(name) || resolveKnownCoordinates(location.locationPath);
+            if (fallbackCoords) {
+                latVal = fallbackCoords.lat;
+                lngVal = fallbackCoords.lng;
+            }
+        }
+
+        if (latVal && lngVal) {
+            localStorage.setItem('dashboard_last_lat', latVal);
+            localStorage.setItem('dashboard_last_lng', lngVal);
         } else {
             localStorage.removeItem('dashboard_last_lat');
             localStorage.removeItem('dashboard_last_lng');
@@ -514,9 +550,7 @@ const ListingSearch = ({ isCompact = false }) => {
         setQuery(fullName);
         
         const locationParam = location.locationId ? `&locationId=${location.locationId}` : '';
-        const geoParam = (location.geoCoordinate?.lat && location.geoCoordinate?.lon)
-            ? `&lat=${location.geoCoordinate.lat}&lng=${location.geoCoordinate.lon}`
-            : '';
+        const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
         const searchParamsString = getUrlParams({ query: fullName }) + locationParam + geoParam;
 
         localStorage.setItem('last_hotel_search_slug', slug);

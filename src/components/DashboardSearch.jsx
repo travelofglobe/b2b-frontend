@@ -146,6 +146,16 @@ const DashboardSearch = () => {
 
         localStorage.setItem('dashboard_last_search', item.query);
         localStorage.setItem('dashboard_last_type', itemType);
+
+        const knownCoords = resolveKnownCoordinates(item.query);
+        if (knownCoords) {
+            localStorage.setItem('dashboard_last_lat', knownCoords.lat);
+            localStorage.setItem('dashboard_last_lng', knownCoords.lng);
+        } else {
+            localStorage.removeItem('dashboard_last_lat');
+            localStorage.removeItem('dashboard_last_lng');
+        }
+
         if (item.targetId) {
             if (itemType === 'LOCATION') {
                 localStorage.setItem('dashboard_last_locationId', item.targetId);
@@ -420,9 +430,20 @@ const DashboardSearch = () => {
             localStorage.setItem('dashboard_last_locationId', location.locationId);
         }
 
-        if (location.geoCoordinate && location.geoCoordinate.lat && location.geoCoordinate.lon) {
-            localStorage.setItem('dashboard_last_lat', location.geoCoordinate.lat);
-            localStorage.setItem('dashboard_last_lng', location.geoCoordinate.lon);
+        let latVal = location.geoCoordinate?.lat || location.geoCoordinate?.latitude || location.lat || location.latitude;
+        let lngVal = location.geoCoordinate?.lon || location.geoCoordinate?.lng || location.geoCoordinate?.longitude || location.lng || location.lon || location.longitude;
+
+        if (!latVal || !lngVal) {
+            const fallbackCoords = resolveKnownCoordinates(fullName) || resolveKnownCoordinates(name) || resolveKnownCoordinates(location.locationPath);
+            if (fallbackCoords) {
+                latVal = fallbackCoords.lat;
+                lngVal = fallbackCoords.lng;
+            }
+        }
+
+        if (latVal && lngVal) {
+            localStorage.setItem('dashboard_last_lat', latVal);
+            localStorage.setItem('dashboard_last_lng', lngVal);
         } else {
             localStorage.removeItem('dashboard_last_lat');
             localStorage.removeItem('dashboard_last_lng');
@@ -444,9 +465,7 @@ const DashboardSearch = () => {
         setQuery(fullName);
         
         const locationParam = location.locationId ? `&locationId=${location.locationId}` : '';
-        const geoParam = (location.geoCoordinate?.lat && location.geoCoordinate?.lon) 
-            ? `&lat=${location.geoCoordinate.lat}&lng=${location.geoCoordinate.lon}`
-            : '';
+        const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
         const searchParamsString = getUrlParams(fullName) + locationParam + geoParam;
 
         localStorage.setItem('last_hotel_search_slug', slug);

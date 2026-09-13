@@ -38,11 +38,20 @@ import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
 const MapLocationWatcher = ({ slug, q, searchParams, hotels, shouldRefit, onRefitDone, isProgrammaticMoveRef }) => {
     const map = useMap();
     const prevLocationKeyRef = React.useRef('');
+    const prevSlugRef = React.useRef(slug);
+    const prevLocIdRef = React.useRef(searchParams?.get('locationId'));
 
     React.useEffect(() => {
         const lat = parseFloat(searchParams?.get('lat'));
         const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
         const locationId = searchParams?.get('locationId');
+
+        // Reset key ref if locationId or slug changed so new search location always triggers movement
+        if (prevSlugRef.current !== slug || prevLocIdRef.current !== locationId) {
+            prevSlugRef.current = slug;
+            prevLocIdRef.current = locationId;
+            prevLocationKeyRef.current = '';
+        }
 
         // 1. Explicit lat & lng in searchParams (highest priority, smooth animated flyTo)
         if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
@@ -92,7 +101,7 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, shouldRefit, onRefi
                 } catch (_e) {}
             }
         }
-    }, [slug, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('locationId'), shouldRefit, hotels, map, onRefitDone, isProgrammaticMoveRef]);
+    }, [slug, q, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('locationId'), shouldRefit, hotels, map, onRefitDone, isProgrammaticMoveRef]);
 
     return null;
 };

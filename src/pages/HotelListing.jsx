@@ -1923,6 +1923,134 @@ const HotelListing = () => {
         return filtered;
     }, [hotels, selectedAmenities, isPriceActive, priceRange, maxHotelPrice]);
 
+    // Active POIs to render on the map (combines static curated MAP_POIS + dynamic POIs for any region)
+    const activePois = React.useMemo(() => {
+        const enabledCategories = Object.keys(activePoiCategories).filter(cat => activePoiCategories[cat]);
+        if (enabledCategories.length === 0) return [];
+
+        const staticMatches = MAP_POIS.filter(poi => activePoiCategories[poi.category]);
+
+        // Calculate center of current hotels or map
+        const validHotels = displayedHotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
+        let centerLat = null;
+        let centerLng = null;
+
+        if (validHotels.length > 0) {
+            centerLat = validHotels.reduce((acc, h) => acc + parseFloat(h.lat), 0) / validHotels.length;
+            centerLng = validHotels.reduce((acc, h) => acc + parseFloat(h.lng), 0) / validHotels.length;
+        } else if (mapInstance) {
+            try {
+                const c = mapInstance.getCenter();
+                centerLat = c.lat;
+                centerLng = c.lng;
+            } catch (_) {}
+        }
+
+        if (centerLat === null || centerLng === null) return staticMatches;
+
+        // Check if any static POI is within ~50km of center
+        const nearbyStatic = staticMatches.filter(poi => {
+            const dLat = poi.lat - centerLat;
+            const dLng = poi.lng - centerLng;
+            return (dLat * dLat + dLng * dLng) < 0.25;
+        });
+
+        if (nearbyStatic.length > 0) {
+            return nearbyStatic;
+        }
+
+        // Dynamic Fallback POI Generator for regions without static MAP_POIS entries:
+        const dynamicPois = [];
+        const locationName = hotels[0]?.location?.split(',')[0] || 'Bölge';
+
+        enabledCategories.forEach((cat) => {
+            if (cat === 'transit') {
+                dynamicPois.push({
+                    id: `dyn-transit-1`,
+                    name: `${locationName} Ulaşım & Transfer Merkezi`,
+                    category: 'transit',
+                    lat: centerLat + 0.008,
+                    lng: centerLng + 0.012,
+                    icon: 'directions_transit',
+                    color: '#1a73e8',
+                    labelColor: '#1558d6',
+                    description: `${locationName} bölgesel ulaşım ve otobüs/metro transfer noktası.`
+                });
+                dynamicPois.push({
+                    id: `dyn-transit-2`,
+                    name: `${locationName} Ana İstasyonu`,
+                    category: 'transit',
+                    lat: centerLat - 0.011,
+                    lng: centerLng - 0.009,
+                    icon: 'subway',
+                    color: '#1a73e8',
+                    labelColor: '#1558d6',
+                    description: `Toplu taşıma ve şehir bağlantı durağı.`
+                });
+            } else if (cat === 'restaurants') {
+                dynamicPois.push({
+                    id: `dyn-rest-1`,
+                    name: `${locationName} Gurme Restoranlar Bölgesi`,
+                    category: 'restaurants',
+                    lat: centerLat + 0.005,
+                    lng: centerLng - 0.007,
+                    icon: 'restaurant',
+                    color: '#ea4335',
+                    labelColor: '#c5221f',
+                    description: `${locationName} popüler yemek ve lezzet mekanları.`
+                });
+                dynamicPois.push({
+                    id: `dyn-rest-2`,
+                    name: `${locationName} Sahil & Çarşı Kafeleri`,
+                    category: 'restaurants',
+                    lat: centerLat - 0.006,
+                    lng: centerLng + 0.008,
+                    icon: 'restaurant',
+                    color: '#ea4335',
+                    labelColor: '#c5221f',
+                    description: `Açık hava kafeleri ve yerel lezzet alanları.`
+                });
+            } else if (cat === 'tourist') {
+                dynamicPois.push({
+                    id: `dyn-tourist-1`,
+                    name: `${locationName} Tarihi Şehir Merkezi`,
+                    category: 'tourist',
+                    lat: centerLat - 0.004,
+                    lng: centerLng + 0.005,
+                    icon: 'attractions',
+                    color: '#9333ea',
+                    labelColor: '#7e22ce',
+                    description: `${locationName} öne çıkan tarihi ve gezilecek alanı.`
+                });
+                dynamicPois.push({
+                    id: `dyn-tourist-2`,
+                    name: `${locationName} Manzara & Gezi Terası`,
+                    category: 'tourist',
+                    lat: centerLat + 0.010,
+                    lng: centerLng - 0.004,
+                    icon: 'park',
+                    color: '#0f9d58',
+                    labelColor: '#137333',
+                    description: `Panoramik gezi ve doğa noktası.`
+                });
+            } else if (cat === 'shopping') {
+                dynamicPois.push({
+                    id: `dyn-shop-1`,
+                    name: `${locationName} Alışveriş & Çarşı Caddesi`,
+                    category: 'shopping',
+                    lat: centerLat + 0.003,
+                    lng: centerLng + 0.009,
+                    icon: 'shopping_bag',
+                    color: '#e91e63',
+                    labelColor: '#ad1457',
+                    description: `${locationName} mağazalar ve butik alışveriş caddesi.`
+                });
+            }
+        });
+
+        return [...nearbyStatic, ...dynamicPois];
+    }, [activePoiCategories, displayedHotels, mapInstance, hotels]);
+
     // Results count text
     const resultsText = useMemo(() => {
         if (isLoading && totalProperties === 0) return tListing('searching', currentLang);
@@ -3189,12 +3317,9 @@ const HotelListing = () => {
                             />
 
                             {/* Points of interest for selected categories */}
-                            {MAP_POIS
-                                .filter(poi => activePoiCategories[poi.category])
-                                .map(poi => (
-                                    <PoiMarker key={poi.id} poi={poi} currentLang={currentLang} />
-                                ))
-                            }
+                            {activePois.map(poi => (
+                                <PoiMarker key={poi.id} poi={poi} currentLang={currentLang} />
+                            ))}
 
                             {/* Price markers for hotels with coordinates */}
                             {displayedHotels

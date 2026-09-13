@@ -3168,8 +3168,10 @@ const HotelListing = () => {
                             zoomAnimation={true}
                             markerZoomAnimation={true}
                             fadeAnimation={true}
-                            wheelDebounceTime={60}
-                            wheelPxPerZoomLevel={120}
+                            zoomSnap={0.5}
+                            zoomDelta={0.5}
+                            wheelDebounceTime={40}
+                            wheelPxPerZoomLevel={160}
                         >
                             <OpenFreeMapLayer style={mapLayer} />
                             {/* Capture map instance */}

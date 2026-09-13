@@ -788,7 +788,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                     )}
                 </button>
                 {/* Recommended Badge */}
-                {hotel.isRecommended && !isGreatDeal && (
+                {hotel.isRecommended && (
                     <div className="absolute bottom-0 left-0 right-0 z-10">
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                         <div className="relative flex items-center gap-1 px-2.5 pb-2 pt-4">
@@ -1898,6 +1898,7 @@ const HotelListing = () => {
         const roomMaxChildrenParam = searchParams.get('roomMaxChildren');
         const roomMaxExtraBedParam = searchParams.get('roomMaxExtraBed');
         const facilitiesParam = searchParams.get('facilities');
+        const recommendedParam = searchParams.get('recommended');
         return {
             stars: starsParam ? starsParam.split(',').map(Number) : [],
             freeCancellation: freeCancellationParam === 'true' ? true : freeCancellationParam === 'false' ? false : null,
@@ -1907,7 +1908,8 @@ const HotelListing = () => {
             roomMaxAdult: roomMaxAdultParam ? roomMaxAdultParam.split(',').map(Number) : null,
             roomMaxChildren: roomMaxChildrenParam ? roomMaxChildrenParam.split(',').map(Number) : null,
             roomMaxExtraBed: roomMaxExtraBedParam ? roomMaxExtraBedParam.split(',').map(Number) : null,
-            facilities: facilitiesParam ? facilitiesParam.split(',').map(Number) : []
+            facilities: facilitiesParam ? facilitiesParam.split(',').map(Number) : [],
+            recommended: recommendedParam === 'true' ? true : null
         };
     };
 
@@ -2260,7 +2262,7 @@ const HotelListing = () => {
             boardName, isNonRefundable, hasFreeCancellation,
             strikethroughPrice: strikethroughPrice > priceValue ? strikethroughPrice : null,
             availableRoomsCount: apiHotel.rooms?.length || 0,
-            isRecommended: apiHotel.isRecommended === true || apiHotel.preferred === true,
+            isRecommended: Boolean(apiHotel.isRecommended || apiHotel.preferred || apiHotel.is_recommended || apiHotel.recommended || apiHotel.isPreferred),
             locationBreadcrumbs: apiHotel.locationBreadcrumbs,
             facilityIds: (rawFacs && Array.isArray(rawFacs))
                 ? rawFacs.map(f => typeof f === 'object' ? (f.facilityId || f.id || f.value) : f).map(Number).filter(Boolean)
@@ -2328,7 +2330,9 @@ const HotelListing = () => {
                     roomMaxAdult: filters.roomMaxAdult,
                     roomMaxChildren: filters.roomMaxChildren,
                     roomMaxExtraBed: filters.roomMaxExtraBed,
-                    facilities: filters.facilities
+                    facilities: filters.facilities,
+                    isRecommended: filters.recommended,
+                    preferred: filters.recommended
                 },
                 searchCriteria: (() => {
                     const sanitized = validateAndSanitizeDates(searchParams.get('checkin'), searchParams.get('checkout'));

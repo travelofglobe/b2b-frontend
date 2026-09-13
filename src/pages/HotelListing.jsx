@@ -634,7 +634,20 @@ const PriceMarker = React.memo(({
 // ═══════════════════════════════════════════════
 const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered, onHover, onSelect, currentLang, isFav, onToggleFav, isCompact = false }) => {
     const [imgIdx, setImgIdx] = React.useState(0);
-    const images = hotel.images?.length > 0 ? hotel.images : [placeholderHotel];
+    const images = React.useMemo(() => {
+        const raw = hotel.images?.length > 0 ? hotel.images : (hotel.image ? [hotel.image] : []);
+        const clean = raw.map(img => {
+            if (!img) return null;
+            let u = typeof img === 'object' ? (img.url || img.originalUrl || img.path || img.src || img.href) : String(img);
+            if (!u || typeof u !== 'string') return null;
+            u = u.trim();
+            if (u.startsWith('http://')) u = 'https://' + u.slice(7);
+            else if (u.startsWith('//')) u = 'https:' + u;
+            return u;
+        }).filter(Boolean);
+
+        return clean.length > 0 ? clean : [placeholderHotel];
+    }, [hotel.images, hotel.image]);
 
     const getCurrencySymbol = (code) => {
         const sym = { USD: '$', EUR: '€', GBP: '£', TRY: '₺', AED: 'د.إ', SAR: 'ر.س', JPY: '¥', CNY: '¥', RUB: '₽' };
@@ -775,7 +788,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                     )}
                 </button>
                 {/* Recommended Badge */}
-                {hotel.isRecommended && !isGreatDeal && (
+                {hotel.isRecommended && (
                     <div className="absolute bottom-0 left-0 right-0 z-10">
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                         <div className="relative flex items-center gap-1 px-2.5 pb-2 pt-4">
@@ -1885,6 +1898,7 @@ const HotelListing = () => {
         const roomMaxChildrenParam = searchParams.get('roomMaxChildren');
         const roomMaxExtraBedParam = searchParams.get('roomMaxExtraBed');
         const facilitiesParam = searchParams.get('facilities');
+        const recommendedParam = searchParams.get('recommended');
         return {
             stars: starsParam ? starsParam.split(',').map(Number) : [],
             freeCancellation: freeCancellationParam === 'true' ? true : freeCancellationParam === 'false' ? false : null,
@@ -1894,7 +1908,8 @@ const HotelListing = () => {
             roomMaxAdult: roomMaxAdultParam ? roomMaxAdultParam.split(',').map(Number) : null,
             roomMaxChildren: roomMaxChildrenParam ? roomMaxChildrenParam.split(',').map(Number) : null,
             roomMaxExtraBed: roomMaxExtraBedParam ? roomMaxExtraBedParam.split(',').map(Number) : null,
-            facilities: facilitiesParam ? facilitiesParam.split(',').map(Number) : []
+            facilities: facilitiesParam ? facilitiesParam.split(',').map(Number) : [],
+            recommended: recommendedParam === 'true' ? true : null
         };
     };
 
@@ -2180,8 +2195,16 @@ const HotelListing = () => {
         let imagesToMap = [];
         const seen = new Set();
 
-        const addImage = (url) => {
+        const addImage = (rawUrl) => {
+            if (!rawUrl) return;
+            let url = typeof rawUrl === 'object' ? (rawUrl.url || rawUrl.originalUrl || rawUrl.path || rawUrl.src || rawUrl.href || '') : String(rawUrl);
             if (!url || typeof url !== 'string') return;
+            url = url.trim();
+            if (url.startsWith('http://')) {
+                url = 'https://' + url.slice(7);
+            } else if (url.startsWith('//')) {
+                url = 'https:' + url;
+            }
             const norm = url.split('?')[0].split('#')[0].replace(/\/+$/, '').toLowerCase();
             if (!seen.has(norm)) {
                 seen.add(norm);
@@ -2189,20 +2212,19 @@ const HotelListing = () => {
             }
         };
 
+        if (apiHotel.image) addImage(apiHotel.image);
+        if (apiHotel.mainImage) addImage(apiHotel.mainImage);
+        if (apiHotel.thumbnail) addImage(apiHotel.thumbnail);
+        if (apiHotel.heroImage) addImage(apiHotel.heroImage);
+
         if (apiHotel.images && apiHotel.images.length > 0) {
-            apiHotel.images.forEach(img => {
-                const u = typeof img === 'object' ? (img.url || img.originalUrl) : img;
-                addImage(u);
-            });
+            apiHotel.images.forEach(img => addImage(img));
         }
 
         if (apiHotel.rooms && apiHotel.rooms.length > 0) {
             apiHotel.rooms.forEach(r => {
                 if (r.images && Array.isArray(r.images)) {
-                    r.images.forEach(img => {
-                        const u = typeof img === 'object' ? (img.url || img.originalUrl) : img;
-                        addImage(u);
-                    });
+                    r.images.forEach(img => addImage(img));
                 }
             });
         }
@@ -2240,7 +2262,7 @@ const HotelListing = () => {
             boardName, isNonRefundable, hasFreeCancellation,
             strikethroughPrice: strikethroughPrice > priceValue ? strikethroughPrice : null,
             availableRoomsCount: apiHotel.rooms?.length || 0,
-            isRecommended: apiHotel.isRecommended === true || apiHotel.preferred === true,
+            isRecommended: Boolean(apiHotel.isRecommended || apiHotel.preferred || apiHotel.is_recommended || apiHotel.recommended || apiHotel.isPreferred),
             locationBreadcrumbs: apiHotel.locationBreadcrumbs,
             facilityIds: (rawFacs && Array.isArray(rawFacs))
                 ? rawFacs.map(f => typeof f === 'object' ? (f.facilityId || f.id || f.value) : f).map(Number).filter(Boolean)
@@ -2308,7 +2330,9 @@ const HotelListing = () => {
                     roomMaxAdult: filters.roomMaxAdult,
                     roomMaxChildren: filters.roomMaxChildren,
                     roomMaxExtraBed: filters.roomMaxExtraBed,
-                    facilities: filters.facilities
+                    facilities: filters.facilities,
+                    isRecommended: filters.recommended,
+                    preferred: filters.recommended
                 },
                 searchCriteria: (() => {
                     const sanitized = validateAndSanitizeDates(searchParams.get('checkin'), searchParams.get('checkout'));

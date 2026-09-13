@@ -187,8 +187,20 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
     const [currentImg, setCurrentImg] = React.useState(0);
     const [isHovered, setIsHovered] = React.useState(false);
     const [showAllTransports, setShowAllTransports] = React.useState(false);
-    const [searchParams] = useSearchParams();
-    const images = hotel.images || [hotel.image];
+    const images = React.useMemo(() => {
+        const raw = hotel.images?.length > 0 ? hotel.images : (hotel.image ? [hotel.image] : []);
+        const clean = raw.map(img => {
+            if (!img) return null;
+            let u = typeof img === 'object' ? (img.url || img.originalUrl || img.path || img.src || img.href) : String(img);
+            if (!u || typeof u !== 'string') return null;
+            u = u.trim();
+            if (u.startsWith('http://')) u = 'https://' + u.slice(7);
+            else if (u.startsWith('//')) u = 'https:' + u;
+            return u;
+        }).filter(Boolean);
+
+        return clean.length > 0 ? clean : [placeholderHotel];
+    }, [hotel.images, hotel.image]);
 
     const nextImg = (e) => {
         e.preventDefault();

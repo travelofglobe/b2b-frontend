@@ -634,7 +634,20 @@ const PriceMarker = React.memo(({
 // ═══════════════════════════════════════════════
 const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered, onHover, onSelect, currentLang, isFav, onToggleFav, isCompact = false }) => {
     const [imgIdx, setImgIdx] = React.useState(0);
-    const images = hotel.images?.length > 0 ? hotel.images : [placeholderHotel];
+    const images = React.useMemo(() => {
+        const raw = hotel.images?.length > 0 ? hotel.images : (hotel.image ? [hotel.image] : []);
+        const clean = raw.map(img => {
+            if (!img) return null;
+            let u = typeof img === 'object' ? (img.url || img.originalUrl || img.path || img.src || img.href) : String(img);
+            if (!u || typeof u !== 'string') return null;
+            u = u.trim();
+            if (u.startsWith('http://')) u = 'https://' + u.slice(7);
+            else if (u.startsWith('//')) u = 'https:' + u;
+            return u;
+        }).filter(Boolean);
+
+        return clean.length > 0 ? clean : [placeholderHotel];
+    }, [hotel.images, hotel.image]);
 
     const getCurrencySymbol = (code) => {
         const sym = { USD: '$', EUR: '€', GBP: '£', TRY: '₺', AED: 'د.إ', SAR: 'ر.س', JPY: '¥', CNY: '¥', RUB: '₽' };
@@ -2180,8 +2193,16 @@ const HotelListing = () => {
         let imagesToMap = [];
         const seen = new Set();
 
-        const addImage = (url) => {
+        const addImage = (rawUrl) => {
+            if (!rawUrl) return;
+            let url = typeof rawUrl === 'object' ? (rawUrl.url || rawUrl.originalUrl || rawUrl.path || rawUrl.src || rawUrl.href || '') : String(rawUrl);
             if (!url || typeof url !== 'string') return;
+            url = url.trim();
+            if (url.startsWith('http://')) {
+                url = 'https://' + url.slice(7);
+            } else if (url.startsWith('//')) {
+                url = 'https:' + url;
+            }
             const norm = url.split('?')[0].split('#')[0].replace(/\/+$/, '').toLowerCase();
             if (!seen.has(norm)) {
                 seen.add(norm);
@@ -2189,20 +2210,19 @@ const HotelListing = () => {
             }
         };
 
+        if (apiHotel.image) addImage(apiHotel.image);
+        if (apiHotel.mainImage) addImage(apiHotel.mainImage);
+        if (apiHotel.thumbnail) addImage(apiHotel.thumbnail);
+        if (apiHotel.heroImage) addImage(apiHotel.heroImage);
+
         if (apiHotel.images && apiHotel.images.length > 0) {
-            apiHotel.images.forEach(img => {
-                const u = typeof img === 'object' ? (img.url || img.originalUrl) : img;
-                addImage(u);
-            });
+            apiHotel.images.forEach(img => addImage(img));
         }
 
         if (apiHotel.rooms && apiHotel.rooms.length > 0) {
             apiHotel.rooms.forEach(r => {
                 if (r.images && Array.isArray(r.images)) {
-                    r.images.forEach(img => {
-                        const u = typeof img === 'object' ? (img.url || img.originalUrl) : img;
-                        addImage(u);
-                    });
+                    r.images.forEach(img => addImage(img));
                 }
             });
         }

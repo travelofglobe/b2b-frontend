@@ -252,25 +252,25 @@ const PriceMarker = React.memo(({
 
     // Smart placement: check if marker is near top ONLY when popup is active to avoid recalculations during map zoom
     const isNearTop = React.useMemo(() => {
-        if (!active || !map || !hotel.lat || !hotel.lng) return false;
+        if (!isHovered || !map || !hotel.lat || !hotel.lng) return false;
         try {
             const point = map.latLngToContainerPoint([parseFloat(hotel.lat), parseFloat(hotel.lng)]);
             return point.y < 250;
         } catch (e) {
             return false;
         }
-    }, [active, map, hotel.lat, hotel.lng]);
+    }, [isHovered, map, hotel.lat, hotel.lng]);
 
-    // Automatically open/close popup on hover or selection
+    // Automatically open/close popup on hover
     React.useEffect(() => {
         if (markerRef.current) {
-            if (active) {
+            if (isHovered) {
                 markerRef.current.openPopup();
             } else {
                 markerRef.current.closePopup();
             }
         }
-    }, [active]);
+    }, [isHovered]);
 
     const handleMouseEnter = () => {
         if (leaveTimerRef.current) {
@@ -304,6 +304,14 @@ const PriceMarker = React.memo(({
             clearTimeout(enterTimerRef.current);
             enterTimerRef.current = null;
         }
+        if (leaveTimerRef.current) {
+            clearTimeout(leaveTimerRef.current);
+            leaveTimerRef.current = null;
+        }
+        if (markerRef.current) {
+            markerRef.current.closePopup();
+        }
+        onHover(null);
         onSelect(hotel);
     };
 
@@ -319,12 +327,16 @@ const PriceMarker = React.memo(({
         const W = Math.max(58, Math.round(4 + 18 + 4 + textWidth + favWidth + 8));
 
         // Colors & styles matching Google Hotels
-        const iconBg = active ? '#ea437b' : '#ee628e';
-        const borderColor = active ? '#5f6368' : '#80868b';
-        const scale = active ? 'scale(1.12)' : 'scale(1)';
-        const shadow = active 
-            ? 'drop-shadow(0 3px 6px rgba(60,64,67,0.35)) drop-shadow(0 1px 3px rgba(60,64,67,0.2))'
-            : 'drop-shadow(0 1.5px 3px rgba(60,64,67,0.3)) drop-shadow(0 1px 2px rgba(60,64,67,0.15))';
+        const bgFill = isSelected ? '#ea437b' : '#ffffff';
+        const borderColor = isSelected ? '#d81b60' : (isHovered ? '#5f6368' : '#80868b');
+        const textColor = isSelected ? '#ffffff' : '#202124';
+        const textWeight = isSelected ? '700' : '600';
+        const scale = isSelected ? 'scale(1.22)' : (isHovered ? 'scale(1.12)' : 'scale(1)');
+        const shadow = isSelected 
+            ? 'drop-shadow(0 4px 10px rgba(234,67,123,0.45)) drop-shadow(0 2px 4px rgba(0,0,0,0.25))'
+            : (isHovered 
+                ? 'drop-shadow(0 3px 6px rgba(60,64,67,0.35)) drop-shadow(0 1px 3px rgba(60,64,67,0.2))'
+                : 'drop-shadow(0 1.5px 3px rgba(60,64,67,0.3)) drop-shadow(0 1px 2px rgba(60,64,67,0.15))');
 
         // Unified SVG path: compact rounded pill with smooth, curved concave downward pointer tail
         const path = `
@@ -342,33 +354,44 @@ const PriceMarker = React.memo(({
             Z
         `;
 
+        const favColor = isSelected ? '#ffffff' : '#1e8e3e';
         const favSvg = isFav ? `
             <g transform="translate(${W - 17}, 6.5) scale(0.52)">
-                <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" fill="#1e8e3e"/>
+                <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" fill="${favColor}"/>
             </g>
         ` : '';
 
+        const iconGroup = isSelected ? `
+            <g transform="translate(7.75, 7.75) scale(0.44)">
+                <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" fill="#ffffff"/>
+            </g>
+        ` : `
+            <circle cx="13" cy="13" r="9" fill="${isHovered ? '#ea437b' : '#ee628e'}" style="transition:fill 0.2s ease;"/>
+            <g transform="translate(7.75, 7.75) scale(0.44)">
+                <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" fill="#ffffff"/>
+            </g>
+        `;
+
+        const zIndex = isSelected ? 2000 : (isHovered ? 1500 : (isFav ? 500 : 1));
+
         const html = `
-            <div style="cursor:pointer;user-select:none;z-index:${active ? 1000 : isFav ? 500 : 1};">
-                <svg width="${W}" height="34" viewBox="0 0 ${W} 34" style="overflow:visible;filter:${shadow};display:block;transform-origin:${tailTipX}px 32px;transform:${scale};transition:transform 0.15s ease;">
-                    <path d="${path}" fill="#ffffff" stroke="${borderColor}" stroke-width="1.15" stroke-linejoin="round"/>
-                    <circle cx="13" cy="13" r="9" fill="${iconBg}" style="transition:fill 0.2s ease;"/>
-                    <g transform="translate(7.75, 7.75) scale(0.44)">
-                        <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" fill="#ffffff"/>
-                    </g>
-                    <text x="26" y="13" dominant-baseline="central" font-family="'Google Sans', Roboto, -apple-system, BlinkMacSystemFont, Arial, sans-serif" font-size="12" font-weight="600" fill="#202124" letter-spacing="-0.1px">${currencySymbol}<tspan dx="2">${priceDisplay}</tspan></text>
+            <div style="cursor:pointer;user-select:none;z-index:${zIndex};">
+                <svg width="${W}" height="34" viewBox="0 0 ${W} 34" style="overflow:visible;filter:${shadow};display:block;transform-origin:${tailTipX}px 32px;transform:${scale};transition:transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                    <path d="${path}" fill="${bgFill}" stroke="${borderColor}" stroke-width="${isSelected ? 1.25 : 1.15}" stroke-linejoin="round"/>
+                    ${iconGroup}
+                    <text x="26" y="13" dominant-baseline="central" font-family="'Google Sans', Roboto, -apple-system, BlinkMacSystemFont, Arial, sans-serif" font-size="12" font-weight="${textWeight}" fill="${textColor}" letter-spacing="-0.1px">${currencySymbol}<tspan dx="2">${priceDisplay}</tspan></text>
                     ${favSvg}
                 </svg>
             </div>
         `;
 
         return L.divIcon({
-            className: 'google-hotel-map-marker',
+            className: `google-hotel-map-marker ${isSelected ? 'marker-selected' : ''}`,
             html,
             iconSize: [W, 34],
             iconAnchor: [tailTipX, 32],
         });
-    }, [active, isFav, currencySymbol, priceDisplay]);
+    }, [isSelected, isHovered, isFav, currencySymbol, priceDisplay]);
 
     const formattedRating = (parseFloat(hotel.rating) || 4.2).toFixed(1).replace('.', ',');
     const reviewCount = hotel.reviewCount || (hotel.stars ? hotel.stars * 115 + 42 : 432);
@@ -400,14 +423,14 @@ const PriceMarker = React.memo(({
             ref={markerRef}
             position={[parseFloat(hotel.lat), parseFloat(hotel.lng)]}
             icon={icon}
-            zIndexOffset={active ? 1000 : isFav ? 500 : 0}
+            zIndexOffset={isSelected ? 2000 : (isHovered ? 1500 : (isFav ? 500 : 0))}
             eventHandlers={{
                 click: handleClick,
                 mouseover: handleMouseEnter,
                 mouseout: handleMouseLeave,
             }}
         >
-            {active && (
+            {isHovered && (
                 <Popup 
                 className={`hotel-price-popup ${isNearTop ? 'popup-downwards' : ''}`}
                 minWidth={220} 
@@ -668,15 +691,31 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
     };
 
 
+    const [isLocalHovered, setIsLocalHovered] = React.useState(false);
+    const isCardHovered = isHovered || isLocalHovered;
+
+    // Auto-slide effect on hover with smooth zoom-in
+    React.useEffect(() => {
+        let intervalId;
+        if (isCardHovered && images.length > 1) {
+            intervalId = setInterval(() => {
+                setImgIdx((prev) => (prev + 1) % images.length);
+            }, 3500);
+        }
+        return () => {
+            if (intervalId) clearInterval(intervalId);
+        };
+    }, [isCardHovered, images.length]);
+
     const nextImg = (e) => { e.preventDefault(); e.stopPropagation(); setImgIdx(p => (p + 1) % images.length); };
     const prevImg = (e) => { e.preventDefault(); e.stopPropagation(); setImgIdx(p => (p - 1 + images.length) % images.length); };
-    const isActive = isSelected || isHovered;
+    const isActive = isSelected || isCardHovered;
 
     return (
         <div
             className={`flex py-4 pl-6 pr-4 border-b border-[#e8eaed] dark:border-slate-700 cursor-pointer transition-colors group ${isActive ? 'bg-[#f0f4ff] dark:bg-blue-900/10' : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-800/40'}`}
-            onMouseEnter={() => onHover(hotel)}
-            onMouseLeave={() => onHover(null)}
+            onMouseEnter={() => { setIsLocalHovered(true); onHover(hotel); }}
+            onMouseLeave={() => { setIsLocalHovered(false); onHover(null); }}
             onClick={() => onSelect(hotel)}
         >
             {/* Image */}
@@ -686,27 +725,39 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         {greatDealLabel[currentLang] || greatDealLabel.en}
                     </div>
                 )}
-                <img
-                    src={images[imgIdx]}
-                    alt={hotel.name}
-                    className="w-full h-full object-cover"
-                    onError={e => { e.target.src = placeholderHotel; e.target.onerror = null; }}
-                />
+                
+                {/* Images with Ken Burns Zoom & Auto-slide */}
+                <div className="w-full h-full relative overflow-hidden">
+                    {images.map((img, i) => (
+                        <img
+                            key={i}
+                            src={img}
+                            alt={hotel.name}
+                            onError={e => { e.target.src = placeholderHotel; e.target.onerror = null; }}
+                            className={`absolute inset-0 w-full h-full object-cover transition-all duration-[1200ms] ease-in-out will-change-[transform,opacity] ${
+                                i === imgIdx 
+                                    ? `opacity-100 ${isCardHovered ? 'scale-[1.08] duration-[3500ms] ease-out' : 'scale-100'}` 
+                                    : 'opacity-0 scale-100'
+                            }`}
+                        />
+                    ))}
+                </div>
+
                 {images.length > 1 && (
                     <>
                         <button 
                             onClick={prevImg} 
-                            className="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/80 hover:bg-white text-[#202124] shadow-[0_1px_4px_rgba(0,0,0,0.25)] backdrop-blur-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-95 cursor-pointer"
+                            className="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/80 hover:bg-white text-[#202124] shadow-[0_1px_4px_rgba(0,0,0,0.25)] backdrop-blur-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-95 cursor-pointer z-10"
                         >
                             <span className="material-symbols-outlined text-[#202124]" style={{ fontSize: '18px' }}>chevron_left</span>
                         </button>
                         <button 
                             onClick={nextImg} 
-                            className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/80 hover:bg-white text-[#202124] shadow-[0_1px_4px_rgba(0,0,0,0.25)] backdrop-blur-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-95 cursor-pointer"
+                            className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/80 hover:bg-white text-[#202124] shadow-[0_1px_4px_rgba(0,0,0,0.25)] backdrop-blur-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-95 cursor-pointer z-10"
                         >
                             <span className="material-symbols-outlined text-[#202124]" style={{ fontSize: '18px' }}>chevron_right</span>
                         </button>
-                        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-0.5">
+                        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-0.5 z-10">
                             {images.slice(0, 5).map((_, i) => (
                                 <div key={i} className={`rounded-full transition-all ${i === imgIdx ? 'w-3 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/60'}`} />
                             ))}
@@ -714,7 +765,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                     </>
                 )}
                 <button
-                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm flex items-center justify-center transition-colors"
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm flex items-center justify-center transition-colors z-10"
                     onClick={e => { e.preventDefault(); e.stopPropagation(); onToggleFav?.(); }}
                 >
                     {isFav ? (
@@ -3242,7 +3293,7 @@ const HotelListing = () => {
                             key={hotel.id}
                             hotel={hotel}
                             searchParams={searchParams}
-                            isSelected={selectedHotel?.id === hotel.id}
+                            isSelected={Boolean(selectedHotel && (selectedHotel.id === hotel.id || (selectedHotel.hotelId && hotel.hotelId && selectedHotel.hotelId === hotel.hotelId)))}
                             isHovered={hoveredHotel?.id === hotel.id}
                             onHover={setHoveredHotel}
                             onSelect={handleSelectHotel}
@@ -3355,7 +3406,7 @@ const HotelListing = () => {
                                     <PriceMarker
                                         key={hotel.id}
                                         hotel={hotel}
-                                        isSelected={selectedHotel?.id === hotel.id}
+                                        isSelected={Boolean(selectedHotel && (selectedHotel.id === hotel.id || (selectedHotel.hotelId && hotel.hotelId && selectedHotel.hotelId === hotel.hotelId)))}
                                         isHovered={hoveredHotel?.id === hotel.id}
                                         onSelect={handleSelectHotel}
                                         onHover={setHoveredHotel}

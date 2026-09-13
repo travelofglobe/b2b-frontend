@@ -208,7 +208,7 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
         if (isHovered && images.length > 1) {
             intervalId = setInterval(() => {
                 setCurrentImg((prev) => (prev + 1) % images.length);
-            }, 2500); // Rotate every 2.5 seconds
+            }, 3500); // Rotate every 3.5 seconds
         }
         return () => {
             if (intervalId) clearInterval(intervalId);
@@ -256,14 +256,18 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                 style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)' }}
             >
                 {/* Image Slider */}
-                <div className="w-full h-full relative">
+                <div className="w-full h-full relative overflow-hidden">
                     {images.map((img, idx) => (
                         <img
                             key={idx}
                             src={img}
                             alt={`${hotel.name} ${idx + 1}`}
                             onError={handleImageError}
-                            className={`absolute inset-0 w-full h-full object-cover transition-all duration-[1200ms] ease-in-out will-change-[transform,opacity] ${idx === currentImg ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}
+                            className={`absolute inset-0 w-full h-full object-cover transition-all duration-[1200ms] ease-in-out will-change-[transform,opacity] ${
+                                idx === currentImg 
+                                    ? `opacity-100 ${isHovered ? 'scale-[1.08] duration-[3500ms] ease-out' : 'scale-100'}` 
+                                    : 'opacity-0 scale-100'
+                            }`}
                         />
                     ))}
 

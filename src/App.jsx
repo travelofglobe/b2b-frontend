@@ -24,7 +24,6 @@ import PortalLayout from './layouts/PortalLayout';
 import VoucherPage from './pages/VoucherPage';
 import { AuthProvider } from './context/AuthContext';
 import { FavoritesProvider } from './context/FavoritesContext';
-import SessionExpiryWarning from './components/SessionExpiryWarning';
 import ForbiddenPage from './pages/ForbiddenPage';
 import './index.css';
 
@@ -33,7 +32,6 @@ function App() {
     <Router>
       <AuthProvider>
         <FavoritesProvider>
-          <SessionExpiryWarning />
           <div className="bg-background-light dark:bg-background-dark min-h-screen transition-colors duration-200">
           <Routes>
             <Route path="/login" element={<LoginPage />} />

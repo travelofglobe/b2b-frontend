@@ -40,16 +40,19 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, shouldRefit, onRefi
     const prevLocationKeyRef = React.useRef('');
     const prevSlugRef = React.useRef(slug);
     const prevLocIdRef = React.useRef(searchParams?.get('locationId'));
+    const prevQRef = React.useRef(searchParams?.get('q') || q);
 
     React.useEffect(() => {
         const lat = parseFloat(searchParams?.get('lat'));
         const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
         const locationId = searchParams?.get('locationId');
+        const currentQ = searchParams?.get('q') || q;
 
-        // Reset key ref if locationId or slug changed so new search location always triggers movement
-        if (prevSlugRef.current !== slug || prevLocIdRef.current !== locationId) {
+        // Reset key ref if locationId, slug, or query changed so new search location always triggers movement
+        if (prevSlugRef.current !== slug || prevLocIdRef.current !== locationId || prevQRef.current !== currentQ) {
             prevSlugRef.current = slug;
             prevLocIdRef.current = locationId;
+            prevQRef.current = currentQ;
             prevLocationKeyRef.current = '';
         }
 

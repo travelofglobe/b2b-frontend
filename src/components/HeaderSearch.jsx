@@ -8,7 +8,7 @@ import HolidaySidePanel from "./HolidaySidePanel";
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
 import { useHolidays } from '../utils/useHolidays';
-import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, formatDateForUrl } from '../utils/searchParamsUtils';
+import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, formatDateForUrl, resolveKnownCoordinates } from '../utils/searchParamsUtils';
 import NationalitySelect from './NationalitySelect';
 import { getUserCountryCode } from '../utils/geoUtils';
 import { useTranslation } from 'react-i18next';
@@ -205,7 +205,7 @@ const HeaderSearch = () => {
         }
     };
 
-    const handleSelectHistoryItem = (item) => {
+    const handleSelectHistoryItem = async (item) => {
         const itemType = item.type || item.searchType || 'SEARCH';
         setQuery(item.query);
         setResults({ hotels: [], regions: [] });
@@ -215,6 +215,32 @@ const HeaderSearch = () => {
 
         localStorage.setItem('dashboard_last_search', item.query);
         localStorage.setItem('dashboard_last_type', itemType);
+
+        let knownCoords = resolveKnownCoordinates(item.query) || resolveKnownCoordinates(item.subtitle);
+
+        if (!knownCoords && itemType !== 'HOTEL') {
+            try {
+                const res = await autocompleteService.search({ query: item.query, page: 0, size: 5 });
+                const content = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : []);
+                const match = content?.find(c => c.geoCoordinate?.lat && (c.geoCoordinate?.lon || c.geoCoordinate?.lng));
+                if (match) {
+                    const lat = match.geoCoordinate.lat;
+                    const lng = match.geoCoordinate.lon || match.geoCoordinate.lng;
+                    knownCoords = { lat, lng };
+                }
+            } catch (err) {
+                console.error("Error fetching coordinates for history item:", err);
+            }
+        }
+
+        if (knownCoords) {
+            localStorage.setItem('dashboard_last_lat', knownCoords.lat);
+            localStorage.setItem('dashboard_last_lng', knownCoords.lng);
+        } else {
+            localStorage.removeItem('dashboard_last_lat');
+            localStorage.removeItem('dashboard_last_lng');
+        }
+
         if (item.targetId) {
             if (itemType === 'LOCATION') {
                 localStorage.setItem('dashboard_last_locationId', item.targetId);

@@ -35,7 +35,7 @@ import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
 // ═══════════════════════════════════════════════
 // Map Location Watcher - single unified controller for map center & bounds fitting
 // ═══════════════════════════════════════════════
-const MapLocationWatcher = ({ slug, q, searchParams, hotels, shouldRefit, onRefitDone, isProgrammaticMoveRef }) => {
+const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRefit, onRefitDone, isProgrammaticMoveRef }) => {
     const map = useMap();
     const prevLocationKeyRef = React.useRef('');
     const prevSlugRef = React.useRef(slug);
@@ -43,6 +43,11 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, shouldRefit, onRefi
     const prevQRef = React.useRef(searchParams?.get('q') || q);
 
     React.useEffect(() => {
+        // Wait for hotel search to finish before executing map animation to prevent double movement
+        if (isLoading && shouldRefit) {
+            return;
+        }
+
         const lat = parseFloat(searchParams?.get('lat'));
         const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
         const locationId = searchParams?.get('locationId');
@@ -56,64 +61,50 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, shouldRefit, onRefi
             prevLocationKeyRef.current = '';
         }
 
-        // 1. Explicit lat & lng in searchParams (highest priority, smooth animated flyTo)
-        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-            const locKey = `geo_${locationId || ''}_${lat.toFixed(4)}_${lng.toFixed(4)}`;
-            if (prevLocationKeyRef.current !== locKey) {
-                prevLocationKeyRef.current = locKey;
-                const currentCenter = map.getCenter();
-                const dist = map.distance(currentCenter, [lat, lng]);
-                // Only trigger flyTo if map is not already near the target location (> 500m)
-                if (dist > 500) {
-                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
-                    map.flyTo([lat, lng], 13, { duration: 1.2 });
-                    if (onRefitDone) onRefitDone();
-                    setTimeout(() => {
-                        if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
-                    }, 1200);
+        // 1. Primary: auto-fit map bounds to cover all returned hotels when shouldRefit is true
+        if (shouldRefit) {
+            if (hotels && hotels.length > 0) {
+                const valid = hotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
+                if (valid.length > 0) {
+                    try {
+                        const bounds = L.latLngBounds(valid.map(h => [parseFloat(h.lat), parseFloat(h.lng)]));
+                        if (bounds.isValid()) {
+                            const boundsKey = `bounds_${locationId || ''}_${slug || ''}_${valid.length}_${bounds.getNorthEast().lat.toFixed(3)}_${bounds.getSouthWest().lng.toFixed(3)}`;
+                            if (prevLocationKeyRef.current !== boundsKey) {
+                                prevLocationKeyRef.current = boundsKey;
+                                if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+                                map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 14, duration: 1.2 });
+                                if (onRefitDone) onRefitDone();
+                                setTimeout(() => {
+                                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                                }, 1200);
+                                return;
+                            }
+                        }
+                    } catch (_e) {}
                 }
             }
-            return;
-        }
 
-        // 2. Slug / query location resolution
-        const target = resolveInitialLocation(slug, q, searchParams);
-        if (target && target.center) {
-            const locKey = `loc_${locationId || ''}_${slug || ''}_${target.center[0].toFixed(4)}_${target.center[1].toFixed(4)}`;
-            if (prevLocationKeyRef.current !== locKey) {
-                prevLocationKeyRef.current = locKey;
-                const currentCenter = map.getCenter();
-                const dist = map.distance(currentCenter, target.center);
-                if (dist > 500) {
-                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
-                    map.flyTo(target.center, target.zoom || 12, { duration: 1.2 });
-                    if (onRefitDone) onRefitDone();
-                    setTimeout(() => {
-                        if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
-                    }, 1200);
-                }
-                return;
-            }
-        }
-
-        // 3. Fallback: auto-fit hotel bounds with smooth flyToBounds when shouldRefit is true
-        if (shouldRefit && hotels && hotels.length > 0) {
-            const valid = hotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
-            if (valid.length > 0) {
-                try {
-                    const bounds = L.latLngBounds(valid.map(h => [parseFloat(h.lat), parseFloat(h.lng)]));
-                    if (bounds.isValid()) {
+            // Fallback when shouldRefit is true but 0 hotels returned for search
+            if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                const locKey = `geo_${locationId || ''}_${lat.toFixed(4)}_${lng.toFixed(4)}`;
+                if (prevLocationKeyRef.current !== locKey) {
+                    prevLocationKeyRef.current = locKey;
+                    const currentCenter = map.getCenter();
+                    const dist = map.distance(currentCenter, [lat, lng]);
+                    if (dist > 500) {
                         if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
-                        map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 14, duration: 1.2 });
+                        map.flyTo([lat, lng], 11, { duration: 1.2 });
                         if (onRefitDone) onRefitDone();
                         setTimeout(() => {
                             if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
                         }, 1200);
                     }
-                } catch (_e) {}
+                }
+                return;
             }
         }
-    }, [slug, q, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('locationId'), shouldRefit, hotels, map, onRefitDone, isProgrammaticMoveRef]);
+    }, [slug, q, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('locationId'), shouldRefit, hotels, isLoading, map, onRefitDone, isProgrammaticMoveRef]);
 
     return null;
 };
@@ -3346,6 +3337,7 @@ const HotelListing = () => {
                                 q={searchParams.get('q')}
                                 searchParams={searchParams}
                                 hotels={displayedHotels}
+                                isLoading={isLoading}
                                 shouldRefit={shouldRefitMap}
                                 onRefitDone={React.useCallback(() => setShouldRefitMap(false), [])}
                                 isProgrammaticMoveRef={isProgrammaticMoveRef}

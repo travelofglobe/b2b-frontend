@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
+import React, { createContext, useState, useContext, useEffect, useMemo, useCallback, useRef } from 'react';
 import { authService } from '../services/authService';
 import { agencyService } from '../services/agencyService';
 import { currencyService } from '../services/currencyService';
@@ -16,6 +16,8 @@ export const AuthProvider = ({ children }) => {
     const [agencyCurrency, setAgencyCurrency] = useState(null);
     // Map of currency code -> symbol fetched from backend
     const [currencySymbolMap, setCurrencySymbolMap] = useState({});
+
+    const isAutoRenewingRef = useRef(false);
 
     // Initial auth check - runs only once on mount
     useEffect(() => {
@@ -88,9 +90,9 @@ export const AuthProvider = ({ children }) => {
         return () => controller.abort();
     }, [user]);
 
-    // Session tracking - runs on mount
+    // Session tracking & silent auto-renew token when near expiration
     useEffect(() => {
-        const updateTimer = () => {
+        const updateTimer = async () => {
             const token = authService.getToken();
             if (!token) {
                 setRemainingSeconds(null);
@@ -101,6 +103,19 @@ export const AuthProvider = ({ children }) => {
             if (expiration) {
                 const seconds = Math.floor((expiration.getTime() - Date.now()) / 1000);
                 setRemainingSeconds(seconds > 0 ? seconds : 0);
+
+                // Auto refresh token silently when 5 minutes (300s) or less remain, if refresh token exists
+                if (seconds <= 300 && localStorage.getItem('refreshToken') && !isAutoRenewingRef.current) {
+                    isAutoRenewingRef.current = true;
+                    try {
+                        await authService.refreshToken();
+                        setUser(authService.getUser());
+                    } catch (err) {
+                        console.error('Silent token auto-refresh failed:', err);
+                    } finally {
+                        isAutoRenewingRef.current = false;
+                    }
+                }
             } else {
                 setRemainingSeconds(null);
             }

@@ -1620,11 +1620,18 @@ const HotelListing = () => {
 
     React.useEffect(() => {
         if (!mapInstance) return;
-        const t1 = setTimeout(() => mapInstance.invalidateSize(), 80);
-        const t2 = setTimeout(() => mapInstance.invalidateSize(), 320);
+
+        isProgrammaticMoveRef.current = true;
+
+        const timer = setTimeout(() => {
+            mapInstance.invalidateSize({ pan: false });
+            setTimeout(() => {
+                isProgrammaticMoveRef.current = false;
+            }, 100);
+        }, 510);
+
         return () => {
-            clearTimeout(t1);
-            clearTimeout(t2);
+            clearTimeout(timer);
         };
     }, [isMapExpanded, mapInstance]);
 
@@ -2711,7 +2718,7 @@ const HotelListing = () => {
             {/* ════════════════════════════════════════════
                 LEFT PANEL: Hotel List
             ════════════════════════════════════════════ */}
-            <div className={`${isMapExpanded ? "w-[44%] min-w-[500px]" : "w-[62%]"} flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[1px_0_4px_rgba(0,0,0,0.35)] dark:shadow-[1px_0_4px_rgba(0,0,0,0.7)] transition-[width] duration-300 ease-in-out`}>
+            <div className={`${isMapExpanded ? "w-[44%] min-w-[500px]" : "w-[62%]"} flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[1px_0_4px_rgba(0,0,0,0.35)] dark:shadow-[1px_0_4px_rgba(0,0,0,0.7)] transition-[width] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[width]`}>
 
                 {/* Slide-in Hotel Detail Quick Look Drawer */}
                 <HotelQuickLookDrawer
@@ -3466,10 +3473,10 @@ const HotelListing = () => {
                         <button
                             type="button"
                             onClick={toggleMapExpand}
-                            className="w-10 h-10 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex items-center justify-center transition-all cursor-pointer group"
+                            className="w-10 h-10 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex items-center justify-center transition-all duration-300 cursor-pointer group active:scale-95"
                             title={isMapExpanded ? tListing('collapseMap', currentLang) : tListing('expandMap', currentLang)}
                         >
-                            <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-300 group-hover:text-[#1a73e8] transition-colors">
+                            <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-300 group-hover:text-[#1a73e8] transition-all duration-300">
                                 {isMapExpanded ? 'fullscreen_exit' : 'fullscreen'}
                             </span>
                         </button>

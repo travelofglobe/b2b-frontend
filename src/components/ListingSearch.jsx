@@ -88,29 +88,6 @@ const ListingSearch = ({ isCompact = false }) => {
             const items = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
             if (Array.isArray(items)) {
                 setSearchHistory(items);
-                
-                if (items.length > 0) {
-                    setQuery(prev => {
-                        if (!prev) {
-                            const mostRecent = items[0];
-                            const queryToSet = mostRecent.query || mostRecent.name || '';
-                            
-                            const itemType = mostRecent.type || mostRecent.searchType || 'SEARCH';
-                            localStorage.setItem('dashboard_last_search', queryToSet);
-                            localStorage.setItem('dashboard_last_type', itemType);
-                            
-                            if (mostRecent.targetId) {
-                                if (itemType === 'LOCATION') {
-                                    localStorage.setItem('dashboard_last_locationId', mostRecent.targetId);
-                                } else if (itemType === 'HOTEL') {
-                                    localStorage.setItem('dashboard_last_hotelId', mostRecent.targetId);
-                                }
-                            }
-                            return queryToSet;
-                        }
-                        return prev;
-                    });
-                }
             }
         } catch (err) {
             console.error("Error fetching search history:", err);
@@ -292,6 +269,7 @@ const ListingSearch = ({ isCompact = false }) => {
     const searchWrapperRef = useRef(null);
     const guestWrapperRef = useRef(null);
     const datePickerRef = useRef(null);
+    const inputRef = useRef(null);
 
     const [error, setError] = useState(false);
 
@@ -721,10 +699,11 @@ const ListingSearch = ({ isCompact = false }) => {
             <div className="w-full flex flex-wrap items-center gap-2 relative z-50">
                 <div className="flex-1 min-w-[110px] relative group/field h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
                         <div className={`flex items-center ${isCompact ? "gap-2 px-2.5" : "gap-3 px-4"} h-full w-full`}>
-                            <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
-                                {error ? 'error' : 'location_on'}
+                            <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400 flex-shrink-0">
+                                {error ? 'error' : 'search'}
                             </span>
                             <input
+                                ref={inputRef}
                                 className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[14.5px] font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate"
                                 placeholder={ls.placeholder || "Nereye?"}
                                 type="text"
@@ -746,6 +725,25 @@ const ListingSearch = ({ isCompact = false }) => {
                                 onKeyDown={handleKeyDown}
                             />
                             {loading && <div className="size-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>}
+                            {query && !loading && (
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        isUserInteraction.current = true;
+                                        setQuery('');
+                                        setResults({ hotels: [], regions: [] });
+                                        fetchSearchHistory();
+                                        setShowDropdown(true);
+                                        inputRef.current?.focus();
+                                    }}
+                                    className="w-8 h-8 rounded-full text-[#5f6368] dark:text-slate-400 hover:text-[#202124] dark:hover:text-white hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors flex items-center justify-center flex-shrink-0 -mr-1"
+                                    title="Temizle"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">close</span>
+                                </button>
+                            )}
                         </div>
 
                         {/* Autocomplete Dropdown - Google Style */}

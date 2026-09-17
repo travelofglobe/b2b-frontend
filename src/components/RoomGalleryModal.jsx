@@ -223,7 +223,7 @@ const RoomGalleryModal = ({
                                     onClick={() => setCurrentIndex(idx)}
                                     className={`relative size-16 lg:size-20 shrink-0 rounded-xl overflow-hidden transition-all duration-300 snap-center border-2 ${idx === currentIndex ? 'border-primary ring-2 ring-primary/30 scale-105' : 'border-transparent opacity-50 hover:opacity-100 hover:scale-95'}`}
                                 >
-                                    <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx + 1}`} onError={(e) => { e.target.src = PLACEHOLDER_IMG; }} />
+                                    <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx + 1}`} loading="lazy" decoding="async" onError={(e) => { e.target.src = PLACEHOLDER_IMG; }} />
                                     {idx === currentIndex && (
                                         <div className="absolute inset-0 bg-primary/20"></div>
                                     )}

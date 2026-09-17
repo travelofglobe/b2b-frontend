@@ -17,76 +17,63 @@ export const FavoritesProvider = ({ children }) => {
         return `b2b_favorites_${userId}`;
     }, [user, userId]);
 
+    const isLoadingRef = React.useRef(false);
+
     // Load active favorited hotel IDs from backend (lightweight call)
     const loadActiveHotelIds = useCallback(async () => {
+        if (isLoadingRef.current) return;
+        isLoadingRef.current = true;
         try {
-            // Also fetch the full list of favorite hotels to populate the context
+            // 1. Fetch active favorite hotel IDs (lightweight ID set for instant heart icons)
+            const ids = await favoriteService.getActiveHotelIds();
+            if (Array.isArray(ids)) {
+                const idSet = new Set(ids.map(id => String(id)));
+                setActiveHotelIds(idSet);
+                localStorage.setItem(userStorageKey, JSON.stringify(Array.from(idSet)));
+            }
+
+            // 2. Fetch basic favorite items without triggering heavy hotel room pricing search
             try {
                 const favData = await favoriteService.getFavorites(0, 50, '', '');
                 let favItems = favData?.content || favData?.favoriteHotels || favData?.items || [];
                 if (!favItems.length && Array.isArray(favData)) favItems = favData;
 
                 if (favItems.length > 0) {
-                    const hotelIdsToFetch = favItems.map(f => f.hotelId);
-                    try {
-                        const enrichedResponse = await hotelService.searchHotels({
-                            filters: { hotelIds: hotelIdsToFetch },
-                            page: 0,
-                            size: hotelIdsToFetch.length
-                        });
-                        
-                        const enrichedHotels = enrichedResponse?.content || enrichedResponse?.hotels || enrichedResponse?.items || [];
-                        
-                        const merged = favItems.map(fav => {
-                            const enriched = enrichedHotels.find(eh => eh.hotelId === fav.hotelId);
-                            if (enriched) {
-                                return { 
-                                    ...fav, 
-                                    ...enriched, 
-                                    name: enriched.name || fav.hotelName || fav.name, 
-                                    image: enriched.images?.[0]?.url || enriched.image || fav.image 
-                                };
-                            }
-                            return { ...fav, name: fav.hotelName || fav.name };
-                        });
-                        setFavorites(merged);
-                    } catch (enrichErr) {
-                        console.error("Failed to enrich favorites:", enrichErr);
-                        setFavorites(favItems.map(f => ({ ...f, name: f.hotelName || f.name })));
-                    }
+                    setFavorites(favItems.map(f => ({
+                        ...f,
+                        id: f.id || f.hotelId,
+                        hotelId: f.hotelId || f.id,
+                        name: f.hotelName || f.name || `Hotel #${f.hotelId || f.id}`,
+                        image: f.hotelImage || f.image || f.images?.[0]?.url || '',
+                        stars: f.starRating || f.stars || 0,
+                        location: f.hotelAddress || f.location || ''
+                    })));
                 } else {
                     setFavorites([]);
                 }
             } catch (err) {
-                console.error("Failed to load full favorites list in context:", err);
-            }
-
-            const ids = await favoriteService.getActiveHotelIds();
-            if (Array.isArray(ids)) {
-                const idSet = new Set(ids.map(id => String(id)));
-                setActiveHotelIds(idSet);
-                localStorage.setItem(userStorageKey, JSON.stringify(Array.from(idSet)));
-                return;
+                console.warn("Failed to load favorite items in context:", err);
             }
         } catch (e) {
             console.warn('Backend activeHotelIds unavailable, loading from localStorage:', e);
-        }
-
-        // Fallback to localStorage
-        try {
-            const stored = localStorage.getItem(userStorageKey);
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                if (Array.isArray(parsed)) {
-                    const idSet = new Set(parsed.map(item => String(typeof item === 'object' ? (item.hotelId || item.id) : item)));
-                    setActiveHotelIds(idSet);
-                    return;
+            // Fallback to localStorage
+            try {
+                const stored = localStorage.getItem(userStorageKey);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed)) {
+                        const idSet = new Set(parsed.map(item => String(typeof item === 'object' ? (item.hotelId || item.id) : item)));
+                        setActiveHotelIds(idSet);
+                        return;
+                    }
                 }
+            } catch (storageErr) {
+                console.error('Failed to parse favorites from localStorage:', storageErr);
             }
-        } catch (e) {
-            console.error('Failed to parse favorites from localStorage:', e);
+            setActiveHotelIds(new Set());
+        } finally {
+            isLoadingRef.current = false;
         }
-        setActiveHotelIds(new Set());
     }, [userStorageKey]);
 
     useEffect(() => {

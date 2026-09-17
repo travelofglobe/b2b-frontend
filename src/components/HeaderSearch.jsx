@@ -147,29 +147,6 @@ const HeaderSearch = () => {
             const items = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
             if (Array.isArray(items)) {
                 setSearchHistory(items);
-                
-                if (items.length > 0) {
-                    setQuery(prev => {
-                        if (!prev) {
-                            const mostRecent = items[0];
-                            const queryToSet = mostRecent.query || mostRecent.name || '';
-                            
-                            const itemType = mostRecent.type || mostRecent.searchType || 'SEARCH';
-                            localStorage.setItem('dashboard_last_search', queryToSet);
-                            localStorage.setItem('dashboard_last_type', itemType);
-                            
-                            if (mostRecent.targetId) {
-                                if (itemType === 'LOCATION') {
-                                    localStorage.setItem('dashboard_last_locationId', mostRecent.targetId);
-                                } else if (itemType === 'HOTEL') {
-                                    localStorage.setItem('dashboard_last_hotelId', mostRecent.targetId);
-                                }
-                            }
-                            return queryToSet;
-                        }
-                        return prev;
-                    });
-                }
             }
         } catch (err) {
             console.error("Error fetching search history in HeaderSearch:", err);
@@ -264,6 +241,7 @@ const HeaderSearch = () => {
     const searchWrapperRef = useRef(null);
     const guestWrapperRef = useRef(null);
     const datePickerRef = useRef(null);
+    const inputRef = useRef(null);
     const isUserInteraction = useRef(false);
 
     // -- Effects --
@@ -573,6 +551,7 @@ const HeaderSearch = () => {
             <div className="flex items-center px-4 border-r border-slate-300 dark:border-slate-600 relative h-full group/dest" ref={searchWrapperRef}>
                 <span className="material-symbols-outlined text-slate-400 text-xl mr-3 group-hover/dest:text-primary transition-colors">location_on</span>
                 <input
+                    ref={inputRef}
                     className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 focus:border-none text-xs w-[180px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 p-0"
                     placeholder={ls.headerPlaceholder}
                     type="text"
@@ -592,6 +571,25 @@ const HeaderSearch = () => {
                     }}
                     onKeyDown={handleKeyDown}
                 />
+                {query && !loading && (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            isUserInteraction.current = true;
+                            setQuery('');
+                            setResults({ hotels: [], regions: [] });
+                            fetchSearchHistory();
+                            setShowDropdown(true);
+                            inputRef.current?.focus();
+                        }}
+                        className="w-7 h-7 rounded-full text-[#5f6368] dark:text-slate-400 hover:text-[#202124] dark:hover:text-white hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors flex items-center justify-center flex-shrink-0 ml-1"
+                        title="Temizle"
+                    >
+                        <span className="material-symbols-outlined text-[16px]">close</span>
+                    </button>
+                )}
 
                 {/* Autocomplete Dropdown - Google Style */}
                 {showDropdown && hasAnyResults && (

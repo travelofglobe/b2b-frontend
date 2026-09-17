@@ -25,8 +25,12 @@ import Tooltip from '../components/Tooltip';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import RoomGalleryModal from '../components/RoomGalleryModal';
 import GoogleFilterDropdown from '../components/GoogleFilterDropdown';
-import { MapContainer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, Marker, Popup, useMap } from 'react-leaflet';
 import OpenFreeMapLayer from '../components/OpenFreeMapLayer';
+import SmoothWheelZoom from '../components/SmoothWheelZoom';
+import PoiMarker from '../components/PoiMarker';
+import { MAP_POIS } from '../data/mapPoiData';
+import { tListing } from '../utils/hotelListingLocales';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -189,7 +193,7 @@ const ImageLightbox = ({ images, currentIndex, isOpen, onClose, setCurrentIndex,
                             onClick={() => setCurrentIndex(idx)}
                             className={`size-16 md:size-20 shrink-0 rounded-xl overflow-hidden transition-all duration-300 border-2 ${idx === currentIndex ? 'border-primary scale-110 shadow-[0_0_20px_rgba(255,59,92,0.4)]' : 'border-transparent opacity-40 hover:opacity-100'}`}
                         >
-                            <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx + 1}`} />
+                            <img src={img} className="w-full h-full object-cover" alt={`Thumb ${idx + 1}`} loading="lazy" decoding="async" />
                         </button>
                     ))}
                 </div>
@@ -363,9 +367,83 @@ const BookingConfirmationModal = ({ isOpen, onClose, hotelName }) => {
 };
 
 
+// ─────────────────────────────────────────────────────────
+// HotelDetail Map Layers (HotelListing ile birebir aynı)
+// ─────────────────────────────────────────────────────────
+const DETAIL_MAP_LAYERS = {
+    google: {
+        id: 'google',
+        label: 'Google Maps Stili',
+        labelEn: 'Google Maps Style',
+        desc: "Google Maps renk paletiyle modern vektör harita",
+        icon: 'map',
+    },
+    liberty: {
+        id: 'liberty',
+        label: 'OpenFreeMap Liberty',
+        labelEn: 'OpenFreeMap Liberty',
+        desc: 'Tam detaylı ve zengin vektör harita stili',
+        icon: 'explore',
+    },
+    bright: {
+        id: 'bright',
+        label: 'OpenFreeMap Bright',
+        labelEn: 'OpenFreeMap Bright',
+        desc: 'Canlı, renkli ve yüksek kontrastlı harita',
+        icon: 'light_mode',
+    },
+    dark: {
+        id: 'dark',
+        label: 'Karanlık Mod',
+        labelEn: 'Dark Mode',
+        desc: 'Gece ve karanlık tema için koyu harita',
+        icon: 'dark_mode',
+    },
+};
+
+// MapInstanceCapture for HotelDetail
+const DetailMapCapture = ({ setMap }) => {
+    const map = useMap();
+    React.useEffect(() => {
+        if (map) { setMap(map); map.invalidateSize(); }
+        return () => setMap(null);
+    }, [map, setMap]);
+    return null;
+};
+
 const MapModal = ({ isOpen, onClose, hotel }) => {
+    const { i18n } = useTranslation();
+    const currentLang = i18n?.language || 'tr';
     const [isMounted, setIsMounted] = React.useState(false);
     const [isClosing, setIsClosing] = React.useState(false);
+    const [mapLayer, setMapLayer] = React.useState('google');
+    const [isLayerMenuOpen, setIsLayerMenuOpen] = React.useState(false);
+    const [mapInstance, setMapInstance] = React.useState(null);
+    const [isMapExpanded, setIsMapExpanded] = React.useState(false);
+    const [activePoiCategories, setActivePoiCategories] = React.useState({
+        tourist: false,
+        transit: false,
+        restaurants: false,
+        shopping: false
+    });
+    const layerMenuRef = React.useRef(null);
+
+    const togglePoiCategory = React.useCallback((categoryKey) => {
+        setActivePoiCategories(prev => ({
+            ...prev,
+            [categoryKey]: !prev[categoryKey]
+        }));
+    }, []);
+
+    React.useEffect(() => {
+        if (!mapInstance) return;
+        const t1 = setTimeout(() => mapInstance.invalidateSize(), 80);
+        const t2 = setTimeout(() => mapInstance.invalidateSize(), 320);
+        return () => {
+            clearTimeout(t1);
+            clearTimeout(t2);
+        };
+    }, [isMapExpanded, mapInstance]);
 
     React.useEffect(() => {
         if (isOpen) {
@@ -374,140 +452,427 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
         } else {
             setIsMounted(false);
             setIsClosing(false);
+            setIsMapExpanded(false);
         }
     }, [isOpen]);
+
+    // Layer menüsü dışına tıklayınca kapat
+    React.useEffect(() => {
+        if (!isLayerMenuOpen) return;
+        const handleOutside = (e) => {
+            if (layerMenuRef.current && !layerMenuRef.current.contains(e.target)) {
+                setIsLayerMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleOutside);
+        return () => document.removeEventListener('mousedown', handleOutside);
+    }, [isLayerMenuOpen]);
 
     const handleClose = () => {
         setIsClosing(true);
         setTimeout(() => {
             setIsClosing(false);
             setIsMounted(false);
+            setIsMapExpanded(false);
             onClose?.();
         }, 300);
     };
 
+    const lat = hotel?.coordinates?.lat || hotel?.lat;
+    const lng = hotel?.coordinates?.lon || hotel?.lng || hotel?.lon;
+    const hotelName = decodeHTMLEntities(hotel?.names?.tr || hotel?.names?.en || hotel?.name || '');
+
+    // Active POIs to render on the map (combines static curated MAP_POIS + dynamic POIs for hotel location)
+    const activePois = React.useMemo(() => {
+        if (!isOpen && !isClosing) return [];
+        const enabledCategories = Object.keys(activePoiCategories).filter(cat => activePoiCategories[cat]);
+        if (enabledCategories.length === 0) return [];
+
+        const staticMatches = MAP_POIS.filter(poi => activePoiCategories[poi.category]);
+        const centerLat = parseFloat(lat);
+        const centerLng = parseFloat(lng);
+
+        if (isNaN(centerLat) || isNaN(centerLng)) return [];
+
+        // Check if any static POI is within ~50km of center
+        const nearbyStatic = staticMatches.filter(poi => {
+            const dLat = poi.lat - centerLat;
+            const dLng = poi.lng - centerLng;
+            return (dLat * dLat + dLng * dLng) < 0.25;
+        });
+
+        if (nearbyStatic.length > 0) {
+            return nearbyStatic;
+        }
+
+        // Dynamic Fallback POI Generator for regions without static MAP_POIS entries:
+        const dynamicPois = [];
+        const locationName = hotel?.address?.cityName || hotel?.location?.split(',')?.[0] || 'Bölge';
+
+        enabledCategories.forEach((cat) => {
+            if (cat === 'transit') {
+                dynamicPois.push({
+                    id: `dyn-transit-1`,
+                    name: `${locationName} Ulaşım & Transfer Merkezi`,
+                    category: 'transit',
+                    lat: centerLat + 0.008,
+                    lng: centerLng + 0.012,
+                    icon: 'directions_transit',
+                    color: '#1a73e8',
+                    labelColor: '#1558d6',
+                    description: `${locationName} bölgesel ulaşım ve otobüs/metro transfer noktası.`
+                });
+                dynamicPois.push({
+                    id: `dyn-transit-2`,
+                    name: `${locationName} Ana İstasyonu`,
+                    category: 'transit',
+                    lat: centerLat - 0.011,
+                    lng: centerLng - 0.009,
+                    icon: 'subway',
+                    color: '#1a73e8',
+                    labelColor: '#1558d6',
+                    description: `Toplu taşıma ve şehir bağlantı durağı.`
+                });
+            } else if (cat === 'restaurants') {
+                dynamicPois.push({
+                    id: `dyn-rest-1`,
+                    name: `${locationName} Gurme Restoranlar Bölgesi`,
+                    category: 'restaurants',
+                    lat: centerLat + 0.005,
+                    lng: centerLng - 0.007,
+                    icon: 'restaurant',
+                    color: '#ea4335',
+                    labelColor: '#c5221f',
+                    description: `${locationName} popüler yemek ve lezzet mekanları.`
+                });
+                dynamicPois.push({
+                    id: `dyn-rest-2`,
+                    name: `${locationName} Sahil & Çarşı Kafeleri`,
+                    category: 'restaurants',
+                    lat: centerLat - 0.006,
+                    lng: centerLng + 0.008,
+                    icon: 'restaurant',
+                    color: '#ea4335',
+                    labelColor: '#c5221f',
+                    description: `Açık hava kafeleri ve yerel lezzet alanları.`
+                });
+            } else if (cat === 'tourist') {
+                dynamicPois.push({
+                    id: `dyn-tourist-1`,
+                    name: `${locationName} Tarihi Şehir Merkezi`,
+                    category: 'tourist',
+                    lat: centerLat - 0.004,
+                    lng: centerLng + 0.005,
+                    icon: 'attractions',
+                    color: '#9333ea',
+                    labelColor: '#7e22ce',
+                    description: `${locationName} öne çıkan tarihi ve gezilecek alanı.`
+                });
+                dynamicPois.push({
+                    id: `dyn-tourist-2`,
+                    name: `${locationName} Manzara & Gezi Terası`,
+                    category: 'tourist',
+                    lat: centerLat + 0.010,
+                    lng: centerLng - 0.004,
+                    icon: 'park',
+                    color: '#0f9d58',
+                    labelColor: '#137333',
+                    description: `Panoramik gezi ve doğa noktası.`
+                });
+            } else if (cat === 'shopping') {
+                dynamicPois.push({
+                    id: `dyn-shop-1`,
+                    name: `${locationName} Alışveriş & Çarşı Caddesi`,
+                    category: 'shopping',
+                    lat: centerLat + 0.003,
+                    lng: centerLng + 0.009,
+                    icon: 'shopping_bag',
+                    color: '#e91e63',
+                    labelColor: '#ad1457',
+                    description: `${locationName} mağazalar ve butik alışveriş caddesi.`
+                });
+            }
+        });
+
+        return [...nearbyStatic, ...dynamicPois];
+    }, [activePoiCategories, lat, lng, hotel, isOpen, isClosing]);
+
+    // HotelListing ile aynı custom marker stili
+    const customIcon = React.useMemo(() => {
+        return L.divIcon({
+            className: 'custom-hotel-marker bg-transparent border-none',
+            html: `
+                <div style="position:relative;display:flex;flex-direction:column;align-items:center;pointer-events:auto;">
+                    <div style="position:absolute;bottom:8px;width:16px;height:16px;border-radius:50%;background:#F75270;animation:ping 1s cubic-bezier(0,0,0.2,1) infinite;opacity:0.6;"></div>
+                    <div style="display:flex;align-items:center;gap:6px;background:#F75270;color:white;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 4px 12px rgba(247,82,112,0.4),0 2px 4px rgba(0,0,0,0.2);border:2px solid white;z-index:10;font-family:'Google Sans',Roboto,sans-serif;">
+                        <span class="material-symbols-outlined" style="font-size:14px;">apartment</span>
+                        <span>${hotelName}</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:center;z-index:0;margin-top:-2px;">
+                        <div style="width:2px;height:12px;background:#F75270;"></div>
+                        <div style="width:8px;height:8px;border-radius:50%;background:#F75270;"></div>
+                    </div>
+                </div>
+            `,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
+        });
+    }, [hotelName]);
+
     if (!isOpen && !isClosing) return null;
     if (!hotel) return null;
-
-    const lat = hotel.coordinates?.lat || hotel.lat;
-    const lng = hotel.coordinates?.lon || hotel.lng || hotel.lon;
-
     if (!lat || !lng) return null;
 
-    // Custom Marker Icon
-    const customIcon = L.divIcon({
-        className: 'custom-hotel-marker bg-transparent border-none',
-        html: `
-            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center justify-end pb-[2px] w-max group pointer-events-auto">
-                <div class="absolute bottom-1 w-4 h-4 rounded-full bg-[#1a73e8] animate-ping opacity-60"></div>
-                <div class="px-3 py-1.5 rounded-full font-bold text-[12px] bg-[#1a73e8] text-white shadow-xl flex items-center justify-center gap-1.5 whitespace-nowrap z-10 scale-105 -translate-y-1 border-2 border-white">
-                    <span class="material-symbols-outlined text-[14px]">apartment</span>
-                    <span class="tracking-tight">${decodeHTMLEntities(hotel.names?.tr || hotel.names?.en || hotel.name)}</span>
-                </div>
-                <div class="flex flex-col items-center justify-end z-0 origin-bottom scale-y-125 -translate-y-0.5">
-                    <div class="w-[2px] h-3 bg-[#1a73e8] shadow-sm"></div>
-                    <div class="w-2 h-2 rounded-full bg-[#1a73e8] shadow-sm"></div>
-                </div>
-            </div>
-        `,
-        iconSize: [0, 0],
-        iconAnchor: [0, 0],
-    });
-
     return createPortal(
-        <div className={`fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 md:p-10 transition-opacity duration-300 ${
+        <div className={`fixed inset-0 z-[10000] flex items-center justify-center transition-all duration-300 ${
+            isMapExpanded ? 'p-0' : 'p-4 sm:p-6 md:p-10'
+        } ${
             isMounted && !isClosing ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}>
-            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300" onClick={handleClose}></div>
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={handleClose} />
 
             <div
-                className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-[32px] overflow-hidden shadow-2xl flex flex-col h-[70vh] sm:h-[80vh] border border-white/20 transition-all duration-300 ease-out"
+                className={`relative w-full bg-white dark:bg-[#202124] overflow-hidden shadow-2xl flex flex-col border border-[#dadce0] dark:border-slate-700 transition-all duration-300 ease-out ${
+                    isMapExpanded ? 'max-w-none h-full rounded-none border-none' : 'max-w-5xl rounded-2xl'
+                }`}
                 style={{
-                    transform: isMounted && !isClosing ? 'translateY(0)' : 'translateY(80px)',
+                    height: isMapExpanded ? '100vh' : 'min(80vh, 720px)',
+                    transform: isMounted && !isClosing ? 'translateY(0) scale(1)' : 'translateY(40px) scale(0.97)',
                     opacity: isMounted && !isClosing ? 1 : 0
                 }}
             >
-                {/* Header */}
-                <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
-                    <div className="flex items-center gap-4">
-                        <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm border border-primary/10">
-                            <span className="material-symbols-outlined text-2xl fill-1">map</span>
+                {/* ── Header (Google Maps stili) ── */}
+                <div className="px-5 py-3.5 border-b border-[#e8eaed] dark:border-slate-700 flex items-center justify-between shrink-0 bg-white dark:bg-[#202124]">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-[#fce8e6] flex items-center justify-center">
+                            <span className="material-symbols-outlined text-[#F75270] text-[18px]">hotel</span>
                         </div>
                         <div>
-                            <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-1.5">
-                                Explore Location
-                            </h3>
-                            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
-                                <span className="size-1.5 rounded-full bg-primary animate-pulse"></span>
-                                {decodeHTMLEntities(hotel.names?.tr || hotel.names?.en || hotel.name)}
+                            <h3 className="text-[15px] font-medium text-[#202124] dark:text-white leading-tight">{hotelName}</h3>
+                            <p className="text-[12px] text-[#70757a] dark:text-slate-400">
+                                {hotel.address?.cityName || hotel.location || 'Konum'}
                             </p>
                         </div>
                     </div>
-                    <button
-                        onClick={handleClose}
-                        className="size-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-red-500 hover:text-white transition-all duration-500 shadow-sm border border-transparent hover:border-red-400 group"
-                    >
-                        <span className="material-symbols-outlined text-2xl group-hover:rotate-90 transition-transform duration-500">close</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#e8f0fe] dark:hover:bg-blue-900/30 transition-colors"
+                        >
+                            <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                            Google Maps
+                        </a>
+                        <button
+                            onClick={handleClose}
+                            className="w-9 h-9 rounded-full flex items-center justify-center text-[#5f6368] dark:text-slate-400 hover:bg-[#f1f3f4] dark:hover:bg-slate-700 transition-colors"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">close</span>
+                        </button>
+                    </div>
                 </div>
 
-                {/* Map Body */}
-                <div className="flex-1 relative z-0">
+                {/* ── Map Body ── */}
+                <div className="flex-1 relative z-0 overflow-hidden">
                     <MapContainer
                         center={[lat, lng]}
                         zoom={15}
-                        scrollWheelZoom={true}
+                        scrollWheelZoom={false}
+                        zoomSnap={0}
+                        zoomDelta={0.5}
+                        zoomControl={false}
                         className="w-full h-full"
                     >
-                        <OpenFreeMapLayer style="google" />
+                        <OpenFreeMapLayer style={mapLayer} />
+                        <SmoothWheelZoom sensitivity={1} />
+                        <DetailMapCapture setMap={setMapInstance} />
+
+                        {/* POI Markers */}
+                        {activePois.map(poi => (
+                            <PoiMarker key={poi.id} poi={poi} currentLang={currentLang} />
+                        ))}
+
                         <Marker position={[lat, lng]} icon={customIcon}>
-                            <Popup className="custom-hotel-popup">
-                                <div className="p-2 min-w-[200px]">
-                                    <div className="relative h-24 mb-3 rounded-lg overflow-hidden">
+                            <Popup
+                                autoPan={false}
+                                closeButton={false}
+                                offset={[0, -36]}
+                                className="detail-map-popup"
+                            >
+                                <style>{`
+                                    .detail-map-popup .leaflet-popup-content-wrapper {
+                                        padding: 0 !important;
+                                        border-radius: 6px !important;
+                                        overflow: hidden !important;
+                                        box-shadow: 0 6px 20px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.12) !important;
+                                        border: none !important;
+                                    }
+                                    .detail-map-popup .leaflet-popup-content { margin: 0 !important; }
+                                    .detail-map-popup .leaflet-popup-tip-container { display: none !important; }
+                                    .detail-map-popup a.leaflet-popup-close-button { display: none !important; }
+                                `}</style>
+                                <div style={{ width: '220px', fontFamily: "'Roboto',sans-serif", borderRadius: '6px', overflow: 'hidden' }}>
+                                    <div style={{ position: 'relative', height: '110px', background: '#f1f3f4' }}>
                                         <img
                                             src={hotel.images?.[0]?.url || hotel.image}
-                                            className="w-full h-full object-cover"
-                                            alt={hotel.name}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                                            alt={hotelName}
+                                            loading="lazy"
+                                            decoding="async"
                                         />
-                                        <div className="absolute top-2 right-2 bg-primary text-white text-[8px] font-black px-2 py-1 rounded-md shadow-lg">
-                                            {hotel.rating || '8.5'} / 10
+                                    </div>
+                                    <div style={{ padding: '10px 12px 12px' }}>
+                                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#202124', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{hotelName}</div>
+                                        <div style={{ fontSize: '11px', color: '#70757a' }}>
+                                            {hotel.address ? `${hotel.address.street || ''}, ${hotel.address.cityName || ''}`.trim().replace(/^,|,$/g, '') : hotel.location}
                                         </div>
                                     </div>
-                                    <h4 className="font-black text-sm uppercase tracking-tight text-slate-900 mb-1">
-                                        {decodeHTMLEntities(hotel.names?.tr || hotel.names?.en || hotel.name)}
-                                    </h4>
-                                    <p className="text-[10px] text-slate-500 font-bold leading-tight">
-                                        {decodeHTMLEntities(hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location)}
-                                    </p>
                                 </div>
                             </Popup>
                         </Marker>
                     </MapContainer>
-                </div>
 
-                {/* Footer / Instructions */}
-                <div className="px-8 py-4 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-slate-400 text-lg">mouse</span>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scroll to zoom</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-slate-400 text-lg">info</span>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Click marker for details</span>
+                    {/* ── Sol üst: Expand Butonu + 4 Kategori İkonu (HotelListing ile birebir aynı) ── */}
+                    <div className="absolute top-3.5 left-3.5 z-[1005] flex flex-col gap-2.5 pointer-events-auto">
+                        {/* Map Expansion Toggle */}
+                        <button
+                            type="button"
+                            onClick={() => setIsMapExpanded(prev => !prev)}
+                            className="w-10 h-10 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex items-center justify-center transition-all cursor-pointer group"
+                            title={isMapExpanded ? tListing('collapseMap', currentLang) : tListing('expandMap', currentLang)}
+                        >
+                            <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-300 group-hover:text-[#1a73e8] transition-colors">
+                                {isMapExpanded ? 'fullscreen_exit' : 'fullscreen'}
+                            </span>
+                        </button>
+
+                        {/* 4 Category Icons: Transit, Restaurants, Attractions, Shopping */}
+                        <div className="bg-white dark:bg-[#303134] rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex flex-col items-center py-2 px-1 gap-1">
+                            {/* 1. Public Transport */}
+                            <button
+                                type="button"
+                                onClick={() => togglePoiCategory('transit')}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.transit
+                                        ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 ring-2 ring-[#1a73e8]/30 shadow-xs'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                    }`}
+                                title={tListing('publicTransport', currentLang)}
+                            >
+                                <span className="material-symbols-outlined text-[19px]">directions_transit</span>
+                            </button>
+
+                            {/* 2. Restaurants */}
+                            <button
+                                type="button"
+                                onClick={() => togglePoiCategory('restaurants')}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.restaurants
+                                        ? 'bg-[#fce8e6] dark:bg-red-900/40 text-[#ea4335] dark:text-red-300 ring-2 ring-[#ea4335]/30 shadow-xs'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                    }`}
+                                title={tListing('restaurants', currentLang)}
+                            >
+                                <span className="material-symbols-outlined text-[19px]">restaurant</span>
+                            </button>
+
+                            {/* 3. Touristic places / Attractions */}
+                            <button
+                                type="button"
+                                onClick={() => togglePoiCategory('tourist')}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.tourist
+                                        ? 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                    }`}
+                                title={tListing('touristAttractions', currentLang)}
+                            >
+                                <span className="material-symbols-outlined text-[19px]">photo_camera</span>
+                            </button>
+
+                            {/* 4. Shopping areas */}
+                            <button
+                                type="button"
+                                onClick={() => togglePoiCategory('shopping')}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.shopping
+                                        ? 'bg-[#fce4ec] dark:bg-pink-900/40 text-[#e91e63] dark:text-pink-300 ring-2 ring-[#e91e63]/30 shadow-xs'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                    }`}
+                                title={tListing('shoppingAreas', currentLang)}
+                            >
+                                <span className="material-symbols-outlined text-[19px]">shopping_bag</span>
+                            </button>
                         </div>
                     </div>
-                    <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 bg-white dark:bg-slate-800 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all group"
-                    >
-                        <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest group-hover:text-primary transition-colors">
-                            Google Maps
-                        </span>
-                        <span className="material-symbols-outlined text-primary text-lg">directions</span>
-                    </a>
+
+                    {/* ── Sağ üst: Zoom butonları (HotelListing ile aynı) ── */}
+                    <div className="absolute top-3.5 right-3.5 z-[1005] flex flex-col bg-white dark:bg-[#303134] rounded-xl shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] overflow-hidden pointer-events-auto">
+                        <button
+                            type="button"
+                            onClick={() => mapInstance?.zoomIn()}
+                            className="w-10 h-10 flex items-center justify-center text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                            title={tListing('zoomIn', currentLang)}
+                        >
+                            <span className="material-symbols-outlined text-[20px]">add</span>
+                        </button>
+                        <div className="w-6 h-[1px] bg-[#e8eaed] dark:bg-slate-600 mx-auto" />
+                        <button
+                            type="button"
+                            onClick={() => mapInstance?.zoomOut()}
+                            className="w-10 h-10 flex items-center justify-center text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                            title={tListing('zoomOut', currentLang)}
+                        >
+                            <span className="material-symbols-outlined text-[20px]">remove</span>
+                        </button>
+                    </div>
+
+                    {/* ── Sol alt: Katman değiştirici (HotelListing ile aynı) ── */}
+                    <div className="absolute bottom-5 left-4 z-[1005] pointer-events-auto" ref={layerMenuRef}>
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsLayerMenuOpen(v => !v)}
+                                className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-full px-3 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] transition-all cursor-pointer select-none text-[13px] font-medium"
+                            >
+                                <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>layers</span>
+                                <span>{DETAIL_MAP_LAYERS[mapLayer]?.label || 'Harita'}</span>
+                                <span className="material-symbols-outlined text-[16px] text-gray-500">
+                                    {isLayerMenuOpen ? 'expand_more' : 'expand_less'}
+                                </span>
+                            </button>
+
+                            {isLayerMenuOpen && (
+                                <div className="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl shadow-xl p-2 flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-150">
+                                    <div className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Harita Stili</div>
+                                    {Object.values(DETAIL_MAP_LAYERS).map(layer => {
+                                        const isSelected = mapLayer === layer.id;
+                                        return (
+                                            <button
+                                                key={layer.id}
+                                                onClick={() => { setMapLayer(layer.id); setIsLayerMenuOpen(false); }}
+                                                className={`w-full flex items-start gap-2.5 p-2 rounded-lg text-left transition-colors cursor-pointer ${
+                                                    isSelected
+                                                        ? 'bg-blue-50 dark:bg-blue-900/30 text-[#1a73e8] dark:text-[#8ab4f8]'
+                                                        : 'hover:bg-[#f8f9fa] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200'
+                                                }`}
+                                            >
+                                                <span className={`material-symbols-outlined text-[20px] mt-0.5 ${isSelected ? 'text-[#1a73e8]' : 'text-gray-400'}`}>
+                                                    {layer.icon || 'public'}
+                                                </span>
+                                                <div className="flex-1">
+                                                    <div className="text-[13px] font-medium leading-tight flex items-center justify-between">
+                                                        {layer.label}
+                                                        {isSelected && <span className="material-symbols-outlined text-[16px] text-[#1a73e8]">check</span>}
+                                                    </div>
+                                                    <div className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">{layer.desc}</div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* ── İnset gölge (HotelListing ile aynı) ── */}
+                    <div className="absolute inset-0 pointer-events-none shadow-[inset_0_1px_4px_rgba(0,0,0,0.2)]" />
                 </div>
             </div>
         </div>,
@@ -1944,12 +2309,12 @@ const HotelDetail = () => {
                                 title={isLiked ? (tLocal('removeFromFavorites') || 'Kaydedilenlerden Çıkar') : (tLocal('saveToFavorites') || 'Kaydet')}
                                 className={`size-10 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
                                     isLiked 
-                                        ? 'bg-blue-50 dark:bg-blue-950/30 text-[#1a73e8] dark:text-[#8ab4f8] border-blue-200 dark:border-blue-800' 
+                                        ? 'bg-orange-50 dark:bg-orange-950/30 text-[#f97316] dark:text-[#fb923c] border-orange-200 dark:border-orange-800/60' 
                                         : 'border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-slate-700 text-[#5f6368] dark:text-slate-300'
                                 }`}
                             >
                                 <span 
-                                    className={`material-symbols-outlined text-[20px] ${isLiked ? 'fill-1 text-[#1a73e8] dark:text-[#8ab4f8]' : ''}`}
+                                    className={`material-symbols-outlined text-[20px] ${isLiked ? 'fill-1 text-[#f97316] dark:text-[#fb923c]' : ''}`}
                                     style={isLiked ? { fontVariationSettings: "'FILL' 1" } : undefined}
                                 >
                                     {isLiked ? 'bookmark' : 'bookmark_border'}
@@ -1989,22 +2354,22 @@ const HotelDetail = () => {
                 {/* Gallery Grid - Google Travel Style */}
                 <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-2 h-[420px] mb-8 overflow-hidden rounded-xl border border-[#dadce0] dark:border-slate-700 relative group/gallery bg-slate-100 dark:bg-slate-800">
                     <div className="md:col-span-2 md:row-span-2 relative overflow-hidden cursor-pointer" onClick={() => openLightbox(0, images)}>
-                        <img className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src={images[0]} alt={hotel.name} />
+                        <img className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src={images[0]} alt={hotel.name} fetchPriority="high" loading="eager" decoding="async" />
                         <div className="absolute bottom-3 left-3 bg-white/95 dark:bg-[#202124]/90 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-medium text-[#202124] dark:text-white shadow-md border border-[#dadce0] dark:border-slate-700">
                             1 / {images.length} {tLocal('photos')}
                         </div>
                     </div>
                     <div className="hidden md:block relative overflow-hidden cursor-pointer" onClick={() => openLightbox(1, images)}>
-                        <img className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src={images[1] || images[0]} alt="" />
+                        <img className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src={images[1] || images[0]} alt="" loading="lazy" decoding="async" />
                     </div>
                     <div className="hidden md:block relative overflow-hidden cursor-pointer" onClick={() => openLightbox(2, images)}>
-                        <img className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src={images[2] || images[0]} alt="" />
+                        <img className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src={images[2] || images[0]} alt="" loading="lazy" decoding="async" />
                     </div>
                     <div className="hidden md:block relative overflow-hidden cursor-pointer" onClick={() => openLightbox(3, images)}>
-                        <img className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src={images[3] || images[0]} alt="" />
+                        <img className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src={images[3] || images[0]} alt="" loading="lazy" decoding="async" />
                     </div>
                     <div className="hidden md:block relative overflow-hidden cursor-pointer group/viewall" onClick={() => openLightbox(0, images)}>
-                        <img className="w-full h-full object-cover group-hover/viewall:scale-105 blur-[1px] transition-transform duration-500" src={images[4] || images[0]} alt="" />
+                        <img className="w-full h-full object-cover group-hover/viewall:scale-105 blur-[1px] transition-transform duration-500" src={images[4] || images[0]} alt="" loading="lazy" decoding="async" />
                         <div className="absolute inset-0 bg-black/40 backdrop-blur-xs flex flex-col items-center justify-center text-white text-center p-4">
                             <span className="material-symbols-outlined text-3xl mb-1">photo_library</span>
                             <span className="text-xs font-medium tracking-wide">{tLocal('showAllPhotos')}</span>
@@ -2405,7 +2770,7 @@ const HotelDetail = () => {
                                                                         setIsRoomGalleryOpen(true);
                                                                     }}
                                                                 >
-                                                                    <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={roomGroup.images?.[0]?.url || images[roomIndex % images.length]} alt="" />
+                                                                    <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={roomGroup.images?.[0]?.url || images[roomIndex % images.length]} alt="" loading="lazy" decoding="async" />
                                                                     {roomGroup.images?.length > 0 && (
                                                                         <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md text-white text-[11px] font-medium px-2.5 py-1 rounded-md flex items-center gap-1.5">
                                                                             <span className="material-symbols-outlined text-[14px]">photo_library</span> {roomGroup.images.length} {tLocal('photos')}
@@ -2883,6 +3248,8 @@ const HotelDetail = () => {
                                             src={hotel.images?.[0]?.url || hotel.images?.[0] || images?.[0] || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80'}
                                             alt={hotel.name}
                                             className="w-full h-full object-cover"
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
                                         <div className="absolute bottom-2 left-3 right-3">

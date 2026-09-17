@@ -326,14 +326,14 @@ const PriceMarker = React.memo(({
         const favWidth = isFav ? 14 : 0;
         const W = Math.max(58, Math.round(4 + 18 + 4 + textWidth + favWidth + 8));
 
-        // Colors & styles matching Google Hotels
-        const bgFill = isSelected ? '#ea437b' : '#ffffff';
-        const borderColor = isSelected ? '#d81b60' : (isHovered ? '#5f6368' : '#80868b');
+        // Colors & styles matching Google Hotels / TravelOfGlobe Brand Blue
+        const bgFill = isSelected ? '#1a73e8' : '#ffffff';
+        const borderColor = isSelected ? '#1557bf' : (isHovered ? '#5f6368' : '#80868b');
         const textColor = isSelected ? '#ffffff' : '#202124';
         const textWeight = isSelected ? '700' : '600';
         const scale = isSelected ? 'scale(1.22)' : (isHovered ? 'scale(1.12)' : 'scale(1)');
         const shadow = isSelected 
-            ? 'drop-shadow(0 4px 10px rgba(234,67,123,0.45)) drop-shadow(0 2px 4px rgba(0,0,0,0.25))'
+            ? 'drop-shadow(0 4px 10px rgba(26,115,232,0.45)) drop-shadow(0 2px 4px rgba(0,0,0,0.25))'
             : (isHovered 
                 ? 'drop-shadow(0 3px 6px rgba(60,64,67,0.35)) drop-shadow(0 1px 3px rgba(60,64,67,0.2))'
                 : 'drop-shadow(0 1.5px 3px rgba(60,64,67,0.3)) drop-shadow(0 1px 2px rgba(60,64,67,0.15))');
@@ -366,7 +366,7 @@ const PriceMarker = React.memo(({
                 <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" fill="#ffffff"/>
             </g>
         ` : `
-            <circle cx="13" cy="13" r="9" fill="${isHovered ? '#ea437b' : '#ee628e'}" style="transition:fill 0.2s ease;"/>
+            <circle cx="13" cy="13" r="9" fill="${isHovered ? '#1557bf' : '#1a73e8'}" style="transition:fill 0.2s ease;"/>
             <g transform="translate(7.75, 7.75) scale(0.44)">
                 <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" fill="#ffffff"/>
             </g>

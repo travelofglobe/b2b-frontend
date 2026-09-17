@@ -329,7 +329,10 @@ const FlightListing = () => {
     const qRet = searchParams.get('ret');
     const qType = searchParams.get('type') || 'round_trip';
     const qCabin = searchParams.get('cabin') || 'economy';
-    const qAdults = parseInt(searchParams.get('adults') || '2', 10);
+    const qAdults = parseInt(searchParams.get('adults') || '1', 10);
+    const qChildren = parseInt(searchParams.get('children') || '0', 10);
+    const qInfantsSeat = parseInt(searchParams.get('infants_seat') || '0', 10);
+    const qInfantsLap = parseInt(searchParams.get('infants_lap') || searchParams.get('infants') || '0', 10);
 
     // Search bar state
     const [origin, setOrigin] = useState(qOrigin);
@@ -370,8 +373,23 @@ const FlightListing = () => {
     const cabinClass = useMemo(() => CABIN_CLASSES.find(c => c.id === cabinClassId) || CABIN_CLASSES[0], [CABIN_CLASSES, cabinClassId]);
     const [showCabinDropdown, setShowCabinDropdown] = useState(false);
 
-    const [passengers, setPassengers] = useState({ adults: qAdults, children: 0, infantsInSeat: 0, infantsOnLap: 0 });
-    const [draftPassengers, setDraftPassengers] = useState({ adults: qAdults, children: 0, infantsInSeat: 0, infantsOnLap: 0 });
+    const initialAdults = isNaN(qAdults) ? 1 : Math.max(1, qAdults);
+    const initialChildren = isNaN(qChildren) ? 0 : Math.max(0, qChildren);
+    const initialInfantsSeat = isNaN(qInfantsSeat) ? 0 : Math.max(0, qInfantsSeat);
+    const initialInfantsLap = isNaN(qInfantsLap) ? 0 : Math.max(0, qInfantsLap);
+
+    const [passengers, setPassengers] = useState({
+        adults: initialAdults,
+        children: initialChildren,
+        infantsInSeat: initialInfantsSeat,
+        infantsOnLap: initialInfantsLap
+    });
+    const [draftPassengers, setDraftPassengers] = useState({
+        adults: initialAdults,
+        children: initialChildren,
+        infantsInSeat: initialInfantsSeat,
+        infantsOnLap: initialInfantsLap
+    });
     const [showPassengerDropdown, setShowPassengerDropdown] = useState(false);
 
     const tripTypeRef = useRef(null);
@@ -393,6 +411,7 @@ const FlightListing = () => {
     const [selectedFlightForBooking, setSelectedFlightForBooking] = useState(null);
 
     const totalPassengers = passengers.adults + passengers.children + passengers.infantsInSeat + passengers.infantsOnLap;
+
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -567,14 +586,22 @@ const FlightListing = () => {
 
                             {showPassengerDropdown && (
                                 <div className="absolute top-full left-0 mt-0 w-80 sm:w-[340px] bg-white dark:bg-[#202124] rounded-b-lg rounded-tr-lg border border-[#dadce0] dark:border-[#3c4043] shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] p-4 sm:p-5 z-[200] animate-in fade-in duration-150 space-y-4">
+                                    {/* 1. Yetişkin */}
                                     <div className="flex items-center justify-between">
-                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">{fl.adults}</div>
+                                        <div>
+                                            <div className="text-[13px] font-normal text-[#202124] dark:text-white">{fl.adults}</div>
+                                            <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">{fl.adultsSub}</div>
+                                        </div>
                                         <div className="flex items-center gap-2">
                                             <button
                                                 type="button"
                                                 disabled={draftPassengers.adults <= 1}
-                                                onClick={() => setDraftPassengers(p => ({ ...p, adults: Math.max(1, p.adults - 1) }))}
-                                                className="size-8 rounded-[4px] flex items-center justify-center bg-[#e8f0fe] text-[#1a73e8] disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 cursor-pointer"
+                                                onClick={() => setDraftPassengers(p => ({
+                                                    ...p,
+                                                    adults: Math.max(1, p.adults - 1),
+                                                    infantsOnLap: Math.min(p.infantsOnLap, Math.max(1, p.adults - 1))
+                                                }))}
+                                                className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
                                             >
                                                 <span className="material-symbols-outlined text-[18px]">remove</span>
                                             </button>
@@ -583,17 +610,100 @@ const FlightListing = () => {
                                                 type="button"
                                                 disabled={draftPassengers.adults >= 9}
                                                 onClick={() => setDraftPassengers(p => ({ ...p, adults: p.adults + 1 }))}
-                                                className="size-8 rounded-[4px] flex items-center justify-center bg-[#e8f0fe] text-[#1a73e8] cursor-pointer"
+                                                className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
                                             >
                                                 <span className="material-symbols-outlined text-[18px]">add</span>
                                             </button>
                                         </div>
                                     </div>
+
+                                    {/* 2. Çocuk Sayısı (2-11 Yaş Arası) */}
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="text-[13px] font-normal text-[#202124] dark:text-white">{fl.children}</div>
+                                            <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">{fl.childrenSub}</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                disabled={draftPassengers.children <= 0}
+                                                onClick={() => setDraftPassengers(p => ({ ...p, children: Math.max(0, p.children - 1) }))}
+                                                className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                            >
+                                                <span className="material-symbols-outlined text-[18px]">remove</span>
+                                            </button>
+                                            <span className="w-8 text-center text-[13px] font-normal text-[#202124] dark:text-white">{draftPassengers.children}</span>
+                                            <button
+                                                type="button"
+                                                disabled={draftPassengers.children >= 9}
+                                                onClick={() => setDraftPassengers(p => ({ ...p, children: p.children + 1 }))}
+                                                className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                            >
+                                                <span className="material-symbols-outlined text-[18px]">add</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* 3. Koltukta Yolculuk Edecek Bebek Sayısı */}
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="text-[13px] font-normal text-[#202124] dark:text-white">{fl.infantsSeat}</div>
+                                            <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">{fl.infantsSeatSub}</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                disabled={draftPassengers.infantsInSeat <= 0}
+                                                onClick={() => setDraftPassengers(p => ({ ...p, infantsInSeat: Math.max(0, p.infantsInSeat - 1) }))}
+                                                className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                            >
+                                                <span className="material-symbols-outlined text-[18px]">remove</span>
+                                            </button>
+                                            <span className="w-8 text-center text-[13px] font-normal text-[#202124] dark:text-white">{draftPassengers.infantsInSeat}</span>
+                                            <button
+                                                type="button"
+                                                disabled={draftPassengers.infantsInSeat >= 9}
+                                                onClick={() => setDraftPassengers(p => ({ ...p, infantsInSeat: p.infantsInSeat + 1 }))}
+                                                className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                            >
+                                                <span className="material-symbols-outlined text-[18px]">add</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* 4. Kucakta yolculuk yapacak bebek sayısı */}
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="text-[13px] font-normal text-[#202124] dark:text-white">{fl.infantsLap}</div>
+                                            <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">{fl.infantsLapSub}</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                disabled={draftPassengers.infantsOnLap <= 0}
+                                                onClick={() => setDraftPassengers(p => ({ ...p, infantsOnLap: Math.max(0, p.infantsOnLap - 1) }))}
+                                                className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                            >
+                                                <span className="material-symbols-outlined text-[18px]">remove</span>
+                                            </button>
+                                            <span className="w-8 text-center text-[13px] font-normal text-[#202124] dark:text-white">{draftPassengers.infantsOnLap}</span>
+                                            <button
+                                                type="button"
+                                                disabled={draftPassengers.infantsOnLap >= draftPassengers.adults}
+                                                onClick={() => setDraftPassengers(p => ({ ...p, infantsOnLap: p.infantsOnLap + 1 }))}
+                                                className="size-8 rounded-[4px] flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                            >
+                                                <span className="material-symbols-outlined text-[18px]">add</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Footer: İptal / Bitti */}
                                     <div className="flex items-center justify-end gap-2 pt-2">
                                         <button
                                             type="button"
                                             onClick={() => setShowPassengerDropdown(false)}
-                                            className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] rounded cursor-pointer"
+                                            className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] rounded cursor-pointer transition-colors"
                                         >
                                             {fl.cancel}
                                         </button>
@@ -602,8 +712,23 @@ const FlightListing = () => {
                                             onClick={() => {
                                                 setPassengers({ ...draftPassengers });
                                                 setShowPassengerDropdown(false);
+                                                const newParams = new URLSearchParams(searchParams);
+                                                newParams.set('adults', draftPassengers.adults);
+                                                newParams.set('children', draftPassengers.children);
+                                                newParams.set('infants', draftPassengers.infantsInSeat + draftPassengers.infantsOnLap);
+                                                if (draftPassengers.infantsInSeat > 0) {
+                                                    newParams.set('infants_seat', draftPassengers.infantsInSeat);
+                                                } else {
+                                                    newParams.delete('infants_seat');
+                                                }
+                                                if (draftPassengers.infantsOnLap > 0) {
+                                                    newParams.set('infants_lap', draftPassengers.infantsOnLap);
+                                                } else {
+                                                    newParams.delete('infants_lap');
+                                                }
+                                                setSearchParams(newParams);
                                             }}
-                                            className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] rounded cursor-pointer"
+                                            className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] rounded cursor-pointer transition-colors"
                                         >
                                             {fl.done}
                                         </button>

@@ -11,6 +11,7 @@ import placeholderHotel from '../assets/placeholder-hotel.svg';
 import { useFavorites } from '../context/FavoritesContext';
 import { MapContainer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import OpenFreeMapLayer from '../components/OpenFreeMapLayer';
+import SmoothWheelZoom from '../components/SmoothWheelZoom';
 import { useDarkMode } from '../hooks/useDarkMode';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -3397,12 +3398,13 @@ const HotelListing = () => {
                             zoomAnimation={true}
                             markerZoomAnimation={true}
                             fadeAnimation={true}
-                            zoomSnap={0.5}
+                            zoomSnap={0}
                             zoomDelta={0.5}
-                            wheelDebounceTime={40}
-                            wheelPxPerZoomLevel={160}
+                            scrollWheelZoom={false}
                         >
                             <OpenFreeMapLayer style={mapLayer} />
+                            {/* Orantılı zoom: yavaş çevirince az, hızlı çevirince çok */}
+                            <SmoothWheelZoom sensitivity={1} />
                             {/* Capture map instance */}
                             <MapInstanceCapture setMap={setMapInstance} setIsMapReady={setIsMapReady} />
 

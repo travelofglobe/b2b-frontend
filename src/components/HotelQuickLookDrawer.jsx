@@ -1403,10 +1403,14 @@ const HotelQuickLookDrawer = ({
 
                             <button
                                 onClick={onToggleFav}
-                                className="flex items-center gap-1.5 px-3.5 py-1.5 border border-[#dadce0] dark:border-slate-600 rounded-full text-[13px] font-medium text-[#1a73e8] dark:text-blue-400 hover:bg-[#f8fafd] dark:hover:bg-blue-900/20 transition-colors cursor-pointer"
+                                className={`flex items-center gap-1.5 px-3.5 py-1.5 border rounded-full text-[13px] font-medium transition-colors cursor-pointer ${
+                                    isFav
+                                        ? 'border-orange-200 dark:border-orange-800/60 bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 hover:bg-orange-100/60'
+                                        : 'border-[#dadce0] dark:border-slate-600 text-[#5f6368] dark:text-slate-300 hover:bg-[#f8fafd] dark:hover:bg-slate-800'
+                                }`}
                             >
                                 <span 
-                                    className="material-symbols-outlined text-[17px]"
+                                    className={`material-symbols-outlined text-[17px] ${isFav ? 'text-[#f97316] dark:text-[#fb923c]' : ''}`}
                                     style={{ fontVariationSettings: isFav ? "'FILL' 1" : "'FILL' 0" }}
                                 >
                                     bookmark

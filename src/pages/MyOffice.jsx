@@ -2029,7 +2029,7 @@ const MyOffice = () => {
                                                             className="p-2.5 hover:bg-[#f1f3f4] dark:hover:bg-[#202124] rounded-xl transition-colors flex items-center justify-between group cursor-pointer"
                                                         >
                                                             <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                                                                <div className={`size-8 rounded-full ${isFav ? 'bg-[#e6f4ea] text-[#137333] dark:bg-[#137333]/20 dark:text-[#81c995]' : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]'} flex items-center justify-center font-medium text-xs shrink-0`}>
+                                                                <div className={`size-8 rounded-full ${isFav ? 'bg-orange-50 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400' : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]'} flex items-center justify-center font-medium text-xs shrink-0`}>
                                                                     <span className="material-symbols-outlined text-[18px]">{isFav ? 'bookmark' : 'hotel'}</span>
                                                                 </div>
                                                                 <div className="min-w-0">

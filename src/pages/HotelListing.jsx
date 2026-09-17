@@ -81,7 +81,7 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
                                 return;
                             }
                         }
-                    } catch (_e) {}
+                    } catch (_e) { }
                 }
             }
 
@@ -192,9 +192,9 @@ const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved, isProgramm
 const MapInstanceCapture = ({ setMap, setIsMapReady }) => {
     const map = useMap();
     React.useEffect(() => {
-        if (map) { 
-            setMap(map); 
-            map.invalidateSize(); 
+        if (map) {
+            setMap(map);
+            map.invalidateSize();
             if (setIsMapReady) setIsMapReady(true);
         }
         return () => {
@@ -223,17 +223,17 @@ const measurePriceText = (text) => {
     return 36;
 };
 
-const PriceMarker = React.memo(({ 
-    hotel, 
-    isSelected, 
-    isHovered, 
-    onSelect, 
-    onHover, 
-    searchParams, 
-    currencySymbol, 
-    isFav, 
-    onToggleFav, 
-    currentLang 
+const PriceMarker = React.memo(({
+    hotel,
+    isSelected,
+    isHovered,
+    onSelect,
+    onHover,
+    searchParams,
+    currencySymbol,
+    isFav,
+    onToggleFav,
+    currentLang
 }) => {
     const map = useMap();
     const active = isSelected || isHovered;
@@ -261,9 +261,17 @@ const PriceMarker = React.memo(({
         }
     }, [isHovered, map, hotel.lat, hotel.lng]);
 
-    // Automatically open/close popup on hover
+    // Automatically open/close popup on hover and toggle hover class without recreating DOM
     React.useEffect(() => {
         if (markerRef.current) {
+            const el = markerRef.current.getElement ? markerRef.current.getElement() : null;
+            if (el) {
+                if (isHovered) {
+                    el.classList.add('marker-hovered');
+                } else {
+                    el.classList.remove('marker-hovered');
+                }
+            }
             if (isHovered) {
                 markerRef.current.openPopup();
             } else {
@@ -272,38 +280,26 @@ const PriceMarker = React.memo(({
         }
     }, [isHovered]);
 
-    const handleMouseEnter = () => {
+    const handleMouseEnter = React.useCallback(() => {
         if (leaveTimerRef.current) {
             clearTimeout(leaveTimerRef.current);
             leaveTimerRef.current = null;
         }
-        if (!enterTimerRef.current) {
-            enterTimerRef.current = setTimeout(() => {
-                onHover(hotel);
-                enterTimerRef.current = null;
-            }, 180);
-        }
-    };
+        if (isHovered) return;
+        onHover(hotel);
+    }, [isHovered, onHover, hotel]);
 
-    const handleMouseLeave = () => {
-        if (enterTimerRef.current) {
-            clearTimeout(enterTimerRef.current);
-            enterTimerRef.current = null;
-        }
+    const handleMouseLeave = React.useCallback(() => {
         if (leaveTimerRef.current) {
             clearTimeout(leaveTimerRef.current);
         }
         leaveTimerRef.current = setTimeout(() => {
             onHover(null);
             leaveTimerRef.current = null;
-        }, 180);
-    };
+        }, 200);
+    }, [onHover]);
 
-    const handleClick = () => {
-        if (enterTimerRef.current) {
-            clearTimeout(enterTimerRef.current);
-            enterTimerRef.current = null;
-        }
+    const handleClick = React.useCallback(() => {
         if (leaveTimerRef.current) {
             clearTimeout(leaveTimerRef.current);
             leaveTimerRef.current = null;
@@ -313,7 +309,7 @@ const PriceMarker = React.memo(({
         }
         onHover(null);
         onSelect(hotel);
-    };
+    }, [hotel, onHover, onSelect]);
 
     const icon = React.useMemo(() => {
         // Measure text width for perfect bubble sizing
@@ -321,24 +317,22 @@ const PriceMarker = React.memo(({
 
         // Compact bubble geometry
         const H = 26; // Pill height
-        const R = 13; // Pill corner radius
+        const R = 13; // Fully rounded capsule radius (no sharp corners)
         const tailTipX = 33; // Pointer tail tip X coordinate
         const favWidth = isFav ? 14 : 0;
         const W = Math.max(58, Math.round(4 + 18 + 4 + textWidth + favWidth + 8));
 
-        // Colors & styles matching Google Hotels / TravelOfGlobe Brand Blue
-        const bgFill = isSelected ? '#1a73e8' : '#ffffff';
-        const borderColor = isSelected ? '#1557bf' : (isHovered ? '#5f6368' : '#80868b');
+        // Colors & styles matching Rose/Raspberry #F75270 theme
+        const bgFill = isSelected ? '#F75270' : '#ffffff';
+        const borderColor = isSelected ? '#df3d5a' : '#dadce0';
         const textColor = isSelected ? '#ffffff' : '#202124';
         const textWeight = isSelected ? '700' : '600';
-        const scale = isSelected ? 'scale(1.22)' : (isHovered ? 'scale(1.12)' : 'scale(1)');
+        const scale = isSelected ? 'scale(1.22)' : 'scale(1)';
         const shadow = isSelected 
-            ? 'drop-shadow(0 4px 10px rgba(26,115,232,0.45)) drop-shadow(0 2px 4px rgba(0,0,0,0.25))'
-            : (isHovered 
-                ? 'drop-shadow(0 3px 6px rgba(60,64,67,0.35)) drop-shadow(0 1px 3px rgba(60,64,67,0.2))'
-                : 'drop-shadow(0 1.5px 3px rgba(60,64,67,0.3)) drop-shadow(0 1px 2px rgba(60,64,67,0.15))');
+            ? 'drop-shadow(0 4px 12px rgba(247,82,112,0.45)) drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+            : 'drop-shadow(0 1.5px 3px rgba(0,0,0,0.1)) drop-shadow(0 0.5px 1.5px rgba(0,0,0,0.06))';
 
-        // Unified SVG path: compact rounded pill with smooth, curved concave downward pointer tail
+        // Unified SVG path: fully rounded pill / capsule with smooth curved tail
         const path = `
             M ${R} 0
             L ${W - R} 0
@@ -354,7 +348,7 @@ const PriceMarker = React.memo(({
             Z
         `;
 
-        const favColor = isSelected ? '#ffffff' : '#1e8e3e';
+        const favColor = isSelected ? '#ffffff' : '#f97316';
         const favSvg = isFav ? `
             <g transform="translate(${W - 17}, 6.5) scale(0.52)">
                 <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" fill="${favColor}"/>
@@ -366,18 +360,16 @@ const PriceMarker = React.memo(({
                 <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" fill="#ffffff"/>
             </g>
         ` : `
-            <circle cx="13" cy="13" r="9" fill="${isHovered ? '#1557bf' : '#1a73e8'}" style="transition:fill 0.2s ease;"/>
+            <circle class="marker-circle" cx="13" cy="13" r="9" fill="#F75270" style="transition:fill 0.35s ease;"/>
             <g transform="translate(7.75, 7.75) scale(0.44)">
                 <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" fill="#ffffff"/>
             </g>
         `;
 
-        const zIndex = isSelected ? 2000 : (isHovered ? 1500 : (isFav ? 500 : 1));
-
         const html = `
-            <div style="cursor:pointer;user-select:none;z-index:${zIndex};">
-                <svg width="${W}" height="34" viewBox="0 0 ${W} 34" style="overflow:visible;filter:${shadow};display:block;transform-origin:${tailTipX}px 32px;transform:${scale};transition:transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);">
-                    <path d="${path}" fill="${bgFill}" stroke="${borderColor}" stroke-width="${isSelected ? 1.25 : 1.15}" stroke-linejoin="round"/>
+            <div style="cursor:pointer;user-select:none;">
+                <svg width="${W}" height="34" viewBox="0 0 ${W} 34" style="overflow:visible;filter:${shadow};display:block;transform-origin:${tailTipX}px 32px;transform:${scale};">
+                    <path class="marker-bubble-path" d="${path}" fill="${bgFill}" stroke="${borderColor}" stroke-width="${isSelected ? 1.0 : 0.75}" stroke-linejoin="round" style="transition:stroke 0.35s ease, fill 0.35s ease;"/>
                     ${iconGroup}
                     <text x="26" y="13" dominant-baseline="central" font-family="'Google Sans', Roboto, -apple-system, BlinkMacSystemFont, Arial, sans-serif" font-size="12" font-weight="${textWeight}" fill="${textColor}" letter-spacing="-0.1px">${currencySymbol}<tspan dx="2">${priceDisplay}</tspan></text>
                     ${favSvg}
@@ -391,7 +383,7 @@ const PriceMarker = React.memo(({
             iconSize: [W, 34],
             iconAnchor: [tailTipX, 32],
         });
-    }, [isSelected, isHovered, isFav, currencySymbol, priceDisplay]);
+    }, [isSelected, isFav, currencySymbol, priceDisplay]);
 
     const formattedRating = (parseFloat(hotel.rating) || 4.2).toFixed(1).replace('.', ',');
     const reviewCount = hotel.reviewCount || (hotel.stars ? hotel.stars * 115 + 42 : 432);
@@ -423,7 +415,7 @@ const PriceMarker = React.memo(({
             ref={markerRef}
             position={[parseFloat(hotel.lat), parseFloat(hotel.lng)]}
             icon={icon}
-            zIndexOffset={isSelected ? 2000 : (isHovered ? 1500 : (isFav ? 500 : 0))}
+            zIndexOffset={isSelected ? 3000 : (isHovered ? 2500 : (isFav ? 500 : 0))}
             eventHandlers={{
                 click: handleClick,
                 mouseover: handleMouseEnter,
@@ -431,15 +423,15 @@ const PriceMarker = React.memo(({
             }}
         >
             {isHovered && (
-                <Popup 
-                className={`hotel-price-popup ${isNearTop ? 'popup-downwards' : ''}`}
-                minWidth={220} 
-                maxWidth={220} 
-                autoPan={false} 
-                closeButton={false} 
-                offset={isNearTop ? [0, 8] : [0, -34]}
-            >
-                <style>{`
+                <Popup
+                    className={`hotel-price-popup ${isNearTop ? 'popup-downwards' : ''}`}
+                    minWidth={220}
+                    maxWidth={220}
+                    autoPan={false}
+                    closeButton={false}
+                    offset={isNearTop ? [0, 8] : [0, -34]}
+                >
+                    <style>{`
                     .leaflet-popup.hotel-price-popup {
                         transition: none !important;
                         -webkit-transition: none !important;
@@ -476,154 +468,154 @@ const PriceMarker = React.memo(({
                         display: none !important; 
                     }
                 `}</style>
-                <div 
-                    onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}
-                    style={{ 
-                        width: '220px', 
-                        fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif",
-                        borderRadius: '10px',
-                        overflow: 'hidden',
-                        background: '#ffffff',
-                    }}
-                >
-                    <div style={{ position: 'relative', width: '100%', height: '118px', backgroundColor: '#f1f3f4' }}>
-                        <img 
-                            src={imageUrl} 
-                            alt={hotel.name} 
-                            onError={e => { e.target.src = placeholderHotel; e.target.onerror = null; }} 
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
-                        />
-                        <div 
-                            style={{ 
-                                position: 'absolute', 
-                                top: '8px', 
-                                right: '8px', 
-                                width: '28px', 
-                                height: '28px', 
-                                background: 'rgba(32,33,36,0.55)', 
-                                borderRadius: '50%', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
-                                cursor: 'pointer', 
-                                backdropFilter: 'blur(2px)',
-                                transition: 'background 0.2s' 
-                            }}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (onToggleFav) onToggleFav();
-                            }}
-                            onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(32,33,36,0.8)'}
-                            onMouseOut={e => e.currentTarget.style.backgroundColor = 'rgba(32,33,36,0.55)'}
-                        >
-                            <span 
-                                className="material-symbols-outlined" 
-                                style={{ 
-                                    color: 'white', 
-                                    fontSize: '16px', 
-                                    fontVariationSettings: isFav ? "'FILL' 1" : "'FILL' 0",
-                                    lineHeight: 1
-                                }}
-                            >
-                                bookmark
-                            </span>
-                        </div>
-                    </div>
-                    <div style={{ padding: '10px 12px 12px 12px' }}>
-                        <div 
-                            style={{ 
-                                fontSize: '14px', 
-                                fontWeight: 500, 
-                                color: '#202124', 
-                                lineHeight: '1.25', 
-                                marginBottom: '3px', 
-                                whiteSpace: 'nowrap', 
-                                overflow: 'hidden', 
-                                textOverflow: 'ellipsis' 
-                            }}
-                            title={hotel.name}
-                        >
-                            {hotel.name}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '10px', fontSize: '12px' }}>
-                            <span style={{ color: '#5f6368', fontWeight: 500 }}>{formattedRating}</span>
-                            <span style={{ color: '#fbbc04', fontSize: '11px' }}>★</span>
-                            <span style={{ color: '#1a73e8', textDecoration: 'none' }}>({reviewCount.toLocaleString('tr-TR')})</span>
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onSelect(hotel);
-                                }}
+                    <div
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                        style={{
+                            width: '220px',
+                            fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif",
+                            borderRadius: '10px',
+                            overflow: 'hidden',
+                            background: '#ffffff',
+                        }}
+                    >
+                        <div style={{ position: 'relative', width: '100%', height: '118px', backgroundColor: '#f1f3f4' }}>
+                            <img
+                                src={imageUrl}
+                                alt={hotel.name}
+                                onError={e => { e.target.src = placeholderHotel; e.target.onerror = null; }}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            />
+                            <div
                                 style={{
-                                    flex: 1,
-                                    border: '1px solid #dadce0',
-                                    borderRadius: '18px',
-                                    padding: '6px 4px',
-                                    textAlign: 'center',
-                                    color: '#1a73e8',
-                                    fontSize: '12px',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                    backgroundColor: '#ffffff',
+                                    position: 'absolute',
+                                    top: '8px',
+                                    right: '8px',
+                                    width: '28px',
+                                    height: '28px',
+                                    background: 'rgba(32,33,36,0.55)',
+                                    borderRadius: '50%',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    gap: '3px',
-                                    transition: 'all 0.15s ease',
-                                    boxSizing: 'border-box'
+                                    cursor: 'pointer',
+                                    backdropFilter: 'blur(2px)',
+                                    transition: 'background 0.2s'
                                 }}
-                                onMouseOver={e => {
-                                    e.currentTarget.style.backgroundColor = '#f8fafd';
-                                    e.currentTarget.style.borderColor = '#1a73e8';
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onToggleFav) onToggleFav();
                                 }}
-                                onMouseOut={e => {
-                                    e.currentTarget.style.backgroundColor = '#ffffff';
-                                    e.currentTarget.style.borderColor = '#dadce0';
-                                }}
+                                onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(32,33,36,0.8)'}
+                                onMouseOut={e => e.currentTarget.style.backgroundColor = 'rgba(32,33,36,0.55)'}
                             >
-                                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
-                                <span>{quickLookText}</span>
-                            </button>
-                            <Link 
-                                to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`} 
-                                target="_blank" 
-                                onClick={e => e.stopPropagation()} 
-                                style={{ 
-                                    flex: 1,
-                                    border: '1px solid #1a73e8', 
-                                    borderRadius: '18px', 
-                                    padding: '6px 4px', 
-                                    textAlign: 'center', 
-                                    color: '#ffffff', 
-                                    fontSize: '12px', 
-                                    fontWeight: 500, 
-                                    textDecoration: 'none', 
-                                    transition: 'all 0.15s ease', 
-                                    backgroundColor: '#1a73e8',
-                                    boxSizing: 'border-box',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }} 
-                                onMouseOver={e => {
-                                    e.currentTarget.style.backgroundColor = '#1557b0';
-                                    e.currentTarget.style.borderColor = '#1557b0';
-                                }} 
-                                onMouseOut={e => {
-                                    e.currentTarget.style.backgroundColor = '#1a73e8';
-                                    e.currentTarget.style.borderColor = '#1a73e8';
+                                <span
+                                    className="material-symbols-outlined"
+                                    style={{
+                                        color: isFav ? '#fb923c' : 'white',
+                                        fontSize: '16px',
+                                        fontVariationSettings: isFav ? "'FILL' 1" : "'FILL' 0",
+                                        lineHeight: 1
+                                    }}
+                                >
+                                    bookmark
+                                </span>
+                            </div>
+                        </div>
+                        <div style={{ padding: '10px 12px 12px 12px' }}>
+                            <div
+                                style={{
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    color: '#202124',
+                                    lineHeight: '1.25',
+                                    marginBottom: '3px',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
                                 }}
+                                title={hotel.name}
                             >
-                                {showPricesText}
-                            </Link>
+                                {hotel.name}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '10px', fontSize: '12px' }}>
+                                <span style={{ color: '#5f6368', fontWeight: 500 }}>{formattedRating}</span>
+                                <span style={{ color: '#fbbc04', fontSize: '11px' }}>★</span>
+                                <span style={{ color: '#1a73e8', textDecoration: 'none' }}>({reviewCount.toLocaleString('tr-TR')})</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onSelect(hotel);
+                                    }}
+                                    style={{
+                                        flex: 1,
+                                        border: '1px solid #dadce0',
+                                        borderRadius: '18px',
+                                        padding: '6px 4px',
+                                        textAlign: 'center',
+                                        color: '#1a73e8',
+                                        fontSize: '12px',
+                                        fontWeight: 500,
+                                        cursor: 'pointer',
+                                        backgroundColor: '#ffffff',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '3px',
+                                        transition: 'all 0.15s ease',
+                                        boxSizing: 'border-box'
+                                    }}
+                                    onMouseOver={e => {
+                                        e.currentTarget.style.backgroundColor = '#f8fafd';
+                                        e.currentTarget.style.borderColor = '#1a73e8';
+                                    }}
+                                    onMouseOut={e => {
+                                        e.currentTarget.style.backgroundColor = '#ffffff';
+                                        e.currentTarget.style.borderColor = '#dadce0';
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
+                                    <span>{quickLookText}</span>
+                                </button>
+                                <Link
+                                    to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
+                                    target="_blank"
+                                    onClick={e => e.stopPropagation()}
+                                    style={{
+                                        flex: 1,
+                                        border: '1px solid #1a73e8',
+                                        borderRadius: '18px',
+                                        padding: '6px 4px',
+                                        textAlign: 'center',
+                                        color: '#ffffff',
+                                        fontSize: '12px',
+                                        fontWeight: 500,
+                                        textDecoration: 'none',
+                                        transition: 'all 0.15s ease',
+                                        backgroundColor: '#1a73e8',
+                                        boxSizing: 'border-box',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                    onMouseOver={e => {
+                                        e.currentTarget.style.backgroundColor = '#1557b0';
+                                        e.currentTarget.style.borderColor = '#1557b0';
+                                    }}
+                                    onMouseOut={e => {
+                                        e.currentTarget.style.backgroundColor = '#1a73e8';
+                                        e.currentTarget.style.borderColor = '#1a73e8';
+                                    }}
+                                >
+                                    {showPricesText}
+                                </Link>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </Popup>
+                </Popup>
             )}
         </Marker>
     );
@@ -687,7 +679,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
         tr: 'HARİKA FIRSAT', en: 'GREAT DEAL', ar: 'عرض رائع', de: 'TOLLES ANGEBOT',
         fr: 'SUPER OFFRE', ru: 'ОТЛИЧНОЕ ПРЕДЛОЖЕНИЕ', zh: '超值特价', es: 'GRAN OFERTA', it: 'OTTIMO AFFARE'
     };
-    
+
     const lessThanUsualLabel = (percent) => {
         const labels = {
             tr: `Normalden %${percent} daha az`,
@@ -738,7 +730,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         {greatDealLabel[currentLang] || greatDealLabel.en}
                     </div>
                 )}
-                
+
                 {/* Images with Ken Burns Zoom & Auto-slide */}
                 <div className="w-full h-full relative overflow-hidden">
                     {images.map((img, i) => (
@@ -747,25 +739,24 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                             src={img}
                             alt={hotel.name}
                             onError={e => { e.target.src = placeholderHotel; e.target.onerror = null; }}
-                            className={`absolute inset-0 w-full h-full object-cover transition-all duration-[1200ms] ease-in-out will-change-[transform,opacity] ${
-                                i === imgIdx 
-                                    ? `opacity-100 ${isCardHovered ? 'scale-[1.08] duration-[3500ms] ease-out' : 'scale-100'}` 
+                            className={`absolute inset-0 w-full h-full object-cover transition-all duration-[1200ms] ease-in-out will-change-[transform,opacity] ${i === imgIdx
+                                    ? `opacity-100 ${isCardHovered ? 'scale-[1.08] duration-[3500ms] ease-out' : 'scale-100'}`
                                     : 'opacity-0 scale-100'
-                            }`}
+                                }`}
                         />
                     ))}
                 </div>
 
                 {images.length > 1 && (
                     <>
-                        <button 
-                            onClick={prevImg} 
+                        <button
+                            onClick={prevImg}
                             className="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/80 hover:bg-white text-[#202124] shadow-[0_1px_4px_rgba(0,0,0,0.25)] backdrop-blur-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-95 cursor-pointer z-10"
                         >
                             <span className="material-symbols-outlined text-[#202124]" style={{ fontSize: '18px' }}>chevron_left</span>
                         </button>
-                        <button 
-                            onClick={nextImg} 
+                        <button
+                            onClick={nextImg}
                             className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/80 hover:bg-white text-[#202124] shadow-[0_1px_4px_rgba(0,0,0,0.25)] backdrop-blur-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all active:scale-95 cursor-pointer z-10"
                         >
                             <span className="material-symbols-outlined text-[#202124]" style={{ fontSize: '18px' }}>chevron_right</span>
@@ -782,7 +773,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                     onClick={e => { e.preventDefault(); e.stopPropagation(); onToggleFav?.(); }}
                 >
                     {isFav ? (
-                        <span className="material-symbols-outlined text-[#8ab4f8] dark:text-[#8ab4f8]" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>bookmark</span>
+                        <span className="material-symbols-outlined text-[#f97316] dark:text-[#fb923c]" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>bookmark</span>
                     ) : (
                         <span className="material-symbols-outlined text-white" style={{ fontSize: '16px' }}>bookmark_border</span>
                     )}
@@ -893,7 +884,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                             </>
                         )}
                     </div>
-                    
+
                     <div className="flex items-center gap-2 mt-4 flex-wrap sm:flex-nowrap justify-end">
                         <button
                             type="button"
@@ -2021,7 +2012,7 @@ const HotelListing = () => {
                 const c = mapInstance.getCenter();
                 centerLat = c.lat;
                 centerLng = c.lng;
-            } catch (_) {}
+            } catch (_) { }
         }
 
         if (centerLat === null || centerLng === null) return staticMatches;
@@ -2455,9 +2446,9 @@ const HotelListing = () => {
                         locName = typeof crumb.name === 'string'
                             ? crumb.name
                             : (crumb.name?.translations?.[currentLang] ||
-                               crumb.name?.translations?.en ||
-                               crumb.name?.translations?.tr ||
-                               crumb.name?.defaultName || '');
+                                crumb.name?.translations?.en ||
+                                crumb.name?.translations?.tr ||
+                                crumb.name?.defaultName || '');
                     }
                 }
 
@@ -2510,7 +2501,7 @@ const HotelListing = () => {
 
         const timer = setTimeout(syncAutocompleteWithCenter, 400);
         return () => clearTimeout(timer);
-    // Only re-run when hotels list changes after a geo search (mapBoundsRef tracks this)
+        // Only re-run when hotels list changes after a geo search (mapBoundsRef tracks this)
     }, [hotels, mapInstance, currentLang, setSearchParams]);
 
     // Fetch missing location names
@@ -2692,7 +2683,7 @@ const HotelListing = () => {
         if (urlStars.length === 1) {
             return `${urlStars[0]} ${tListing('starSingle', currentLang)}`;
         }
-        return `${urlStars.slice().sort((a,b) => a-b).join(', ')} ${tListing('starPlural', currentLang)}`;
+        return `${urlStars.slice().sort((a, b) => a - b).join(', ')} ${tListing('starPlural', currentLang)}`;
     }, [urlStars, currentLang]);
 
     const priceChipLabel = React.useMemo(() => {
@@ -2756,13 +2747,12 @@ const HotelListing = () => {
                             ref={priceBtnRef}
                             type="button"
                             onClick={handleTogglePrice}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
-                                isPriceActive
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${isPriceActive
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                     : isPriceOpen
-                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
-                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
-                            }`}
+                                        ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
+                                        : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                                }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${isPriceActive ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
                                 payments
@@ -2777,11 +2767,10 @@ const HotelListing = () => {
                         <button
                             type="button"
                             onClick={handleRecommendedChip}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
-                                searchParams.get('recommended') === 'true'
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${searchParams.get('recommended') === 'true'
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                     : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
-                            }`}
+                                }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${searchParams.get('recommended') === 'true' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
                                 thumb_up
@@ -2793,11 +2782,10 @@ const HotelListing = () => {
                         <button
                             type="button"
                             onClick={handleFreeCancelChip}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
-                                searchParams.get('freeCancellation') === 'true'
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${searchParams.get('freeCancellation') === 'true'
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                     : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
-                            }`}
+                                }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${searchParams.get('freeCancellation') === 'true' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
                                 sell
@@ -2813,13 +2801,12 @@ const HotelListing = () => {
                             ref={starBtnRef}
                             type="button"
                             onClick={handleToggleStar}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
-                                urlStars.length > 0
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${urlStars.length > 0
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                     : isStarOpen
-                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
-                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
-                            }`}
+                                        ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
+                                        : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                                }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${urlStars.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
                                 stars
@@ -2835,13 +2822,12 @@ const HotelListing = () => {
                             ref={amenitiesBtnRef}
                             type="button"
                             onClick={handleToggleAmenities}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${
-                                selectedAmenities.length > 0
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${selectedAmenities.length > 0
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                     : isAmenitiesOpen
-                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
-                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
-                            }`}
+                                        ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
+                                        : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                                }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${selectedAmenities.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
                                 room_service
@@ -2882,6 +2868,27 @@ const HotelListing = () => {
                         }
                         .maplibregl-canvas {
                             transition: opacity 0.5s ease-out;
+                        }
+                        .google-hotel-map-marker svg {
+                            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease !important;
+                            transform-origin: 33px 32px;
+                            will-change: transform;
+                        }
+                        .google-hotel-map-marker:hover svg,
+                        .google-hotel-map-marker.marker-hovered svg {
+                            transform: scale(1.14) !important;
+                            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.15)) drop-shadow(0 1px 2px rgba(0,0,0,0.08)) !important;
+                        }
+                        .google-hotel-map-marker:hover .marker-circle,
+                        .google-hotel-map-marker.marker-hovered .marker-circle {
+                            fill: #df3d5a !important;
+                        }
+                        .google-hotel-map-marker:hover .marker-bubble-path,
+                        .google-hotel-map-marker.marker-hovered .marker-bubble-path {
+                            stroke: #bdc1c6 !important;
+                        }
+                        .google-hotel-map-marker.marker-selected svg {
+                            transform: scale(1.22) !important;
                         }
                     `}</style>
 
@@ -2952,11 +2959,10 @@ const HotelListing = () => {
                                         type="button"
                                         onClick={handleClearStars}
                                         disabled={urlStars.length === 0}
-                                        className={`text-[13px] font-medium font-roboto transition-colors select-none ${
-                                            urlStars.length > 0
+                                        className={`text-[13px] font-medium font-roboto transition-colors select-none ${urlStars.length > 0
                                                 ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded px-2 py-0.5 cursor-pointer'
                                                 : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
-                                        }`}
+                                            }`}
                                     >
                                         {tListing('clear', currentLang)}
                                     </button>
@@ -3107,11 +3113,10 @@ const HotelListing = () => {
                                         type="button"
                                         onClick={handleClearPrice}
                                         disabled={!isPriceActive}
-                                        className={`text-[13px] font-medium font-roboto transition-colors select-none ${
-                                            isPriceActive
+                                        className={`text-[13px] font-medium font-roboto transition-colors select-none ${isPriceActive
                                                 ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded px-2 py-0.5 cursor-pointer'
                                                 : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
-                                        }`}
+                                            }`}
                                     >
                                         {tListing('clear', currentLang)}
                                     </button>
@@ -3165,20 +3170,16 @@ const HotelListing = () => {
                                                     key={amenity.id}
                                                     type="button"
                                                     onClick={() => handleToggleAmenity(amenity.id)}
-                                                    className={`flex flex-col items-center justify-center py-3 px-2 text-center cursor-pointer transition-colors select-none ${
-                                                        isLeftCol ? 'border-r border-[#dadce0] dark:border-slate-700' : ''
-                                                    } ${
-                                                        !isLastRow ? 'border-b border-[#dadce0] dark:border-slate-700' : ''
-                                                    } ${
-                                                        isSelected
+                                                    className={`flex flex-col items-center justify-center py-3 px-2 text-center cursor-pointer transition-colors select-none ${isLeftCol ? 'border-r border-[#dadce0] dark:border-slate-700' : ''
+                                                        } ${!isLastRow ? 'border-b border-[#dadce0] dark:border-slate-700' : ''
+                                                        } ${isSelected
                                                             ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                                             : 'bg-white dark:bg-[#303134] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700/60'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <span
-                                                        className={`material-symbols-outlined text-[22px] mb-1 transition-colors ${
-                                                            isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'
-                                                        }`}
+                                                        className={`material-symbols-outlined text-[22px] mb-1 transition-colors ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'
+                                                            }`}
                                                     >
                                                         {amenity.icon}
                                                     </span>
@@ -3200,11 +3201,10 @@ const HotelListing = () => {
                                         type="button"
                                         onClick={handleClearAmenities}
                                         disabled={selectedAmenities.length === 0}
-                                        className={`text-[13px] font-medium font-roboto transition-colors select-none ${
-                                            selectedAmenities.length > 0
+                                        className={`text-[13px] font-medium font-roboto transition-colors select-none ${selectedAmenities.length > 0
                                                 ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded px-2 py-0.5 cursor-pointer'
                                                 : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
-                                        }`}
+                                            }`}
                                     >
                                         {tListing('clear', currentLang)}
                                     </button>
@@ -3227,11 +3227,11 @@ const HotelListing = () => {
                                     </button>
                                 </div>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                    <Sidebar 
-                                        filters={dynamicFilters} 
-                                        locationNames={locationNames} 
-                                        facilityNames={facilityNames} 
-                                        hideHeader={true} 
+                                    <Sidebar
+                                        filters={dynamicFilters}
+                                        locationNames={locationNames}
+                                        facilityNames={facilityNames}
+                                        hideHeader={true}
                                         sortOptions={sortOptions}
                                         currentSortValue={currentSortValue}
                                         onSortChange={handleSortSelect}
@@ -3257,49 +3257,49 @@ const HotelListing = () => {
                     )}
                 </div>
 
-                    {/* Results count + Sort row */}
-                    <div className="flex items-center justify-between pl-6 pr-4 py-2.5 shrink-0 bg-white dark:bg-[#303134]">
-                        <p className="text-[15.5px] font-medium text-[#202124] dark:text-slate-100 font-roboto tracking-tight truncate">
-                            {resultsText}
-                        </p>
-                        <div className="flex items-center gap-2 shrink-0">
-                            {/* Sort dropdown */}
-                            <div className="relative shrink-0" ref={sortDropdownRef}>
-                                <button
-                                    onClick={() => setIsSortOpen(!isSortOpen)}
-                                    className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 py-1.5 transition-colors"
-                                >
-                                    <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
-                                    <span className="hidden sm:inline text-[13px] font-medium">{currentSortOption.label}</span>
-                                    <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
-                                </button>
-                                {isSortOpen && (
-                                    <div className="absolute right-0 top-full mt-1 w-[240px] bg-white dark:bg-[#303134] rounded-2xl border border-[#e8eaed] dark:border-slate-700 shadow-xl z-[200] py-1.5 animate-in fade-in zoom-in-95 duration-150">
-                                        {sortOptions.map(opt => {
-                                            const isSelected = opt.value === currentSortValue;
-                                            return (
-                                                <button
-                                                    key={opt.value}
-                                                    onClick={() => handleSortSelect(opt.value)}
-                                                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-left transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] font-medium' : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
-                                                >
-                                                    <span className={`material-symbols-outlined ${isSelected ? 'text-[#1a73e8]' : 'text-[#70757a]'}`} style={{ fontSize: '18px' }}>{opt.icon}</span>
-                                                    <span className="flex-1">{opt.label}</span>
-                                                    {isSelected && <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>check</span>}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                            <span 
-                                className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 hover:text-[#202124] dark:hover:text-white cursor-pointer select-none"
-                                title="Sonuç bilgisi"
+                {/* Results count + Sort row */}
+                <div className="flex items-center justify-between pl-6 pr-4 py-2.5 shrink-0 bg-white dark:bg-[#303134]">
+                    <p className="text-[15.5px] font-medium text-[#202124] dark:text-slate-100 font-roboto tracking-tight truncate">
+                        {resultsText}
+                    </p>
+                    <div className="flex items-center gap-2 shrink-0">
+                        {/* Sort dropdown */}
+                        <div className="relative shrink-0" ref={sortDropdownRef}>
+                            <button
+                                onClick={() => setIsSortOpen(!isSortOpen)}
+                                className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 py-1.5 transition-colors"
                             >
-                                info
-                            </span>
+                                <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
+                                <span className="hidden sm:inline text-[13px] font-medium">{currentSortOption.label}</span>
+                                <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
+                            </button>
+                            {isSortOpen && (
+                                <div className="absolute right-0 top-full mt-1 w-[240px] bg-white dark:bg-[#303134] rounded-2xl border border-[#e8eaed] dark:border-slate-700 shadow-xl z-[200] py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                                    {sortOptions.map(opt => {
+                                        const isSelected = opt.value === currentSortValue;
+                                        return (
+                                            <button
+                                                key={opt.value}
+                                                onClick={() => handleSortSelect(opt.value)}
+                                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-left transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] font-medium' : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                                            >
+                                                <span className={`material-symbols-outlined ${isSelected ? 'text-[#1a73e8]' : 'text-[#70757a]'}`} style={{ fontSize: '18px' }}>{opt.icon}</span>
+                                                <span className="flex-1">{opt.label}</span>
+                                                {isSelected && <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>check</span>}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
+                        <span
+                            className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 hover:text-[#202124] dark:hover:text-white cursor-pointer select-none"
+                            title="Sonuç bilgisi"
+                        >
+                            info
+                        </span>
                     </div>
+                </div>
                 {/* ── Scrollable Hotel List ── */}
                 <div
                     ref={listScrollRef}
@@ -3473,11 +3473,10 @@ const HotelListing = () => {
                             <button
                                 type="button"
                                 onClick={() => togglePoiCategory('transit')}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                                    activePoiCategories.transit
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.transit
                                         ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 ring-2 ring-[#1a73e8]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
-                                }`}
+                                    }`}
                                 title={tListing('publicTransport', currentLang)}
                             >
                                 <span className="material-symbols-outlined text-[19px]">directions_transit</span>
@@ -3487,11 +3486,10 @@ const HotelListing = () => {
                             <button
                                 type="button"
                                 onClick={() => togglePoiCategory('restaurants')}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                                    activePoiCategories.restaurants
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.restaurants
                                         ? 'bg-[#fce8e6] dark:bg-red-900/40 text-[#ea4335] dark:text-red-300 ring-2 ring-[#ea4335]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
-                                }`}
+                                    }`}
                                 title={tListing('restaurants', currentLang)}
                             >
                                 <span className="material-symbols-outlined text-[19px]">restaurant</span>
@@ -3501,11 +3499,10 @@ const HotelListing = () => {
                             <button
                                 type="button"
                                 onClick={() => togglePoiCategory('tourist')}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                                    activePoiCategories.tourist
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.tourist
                                         ? 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
-                                }`}
+                                    }`}
                                 title={tListing('touristAttractions', currentLang)}
                             >
                                 <span className="material-symbols-outlined text-[19px]">photo_camera</span>
@@ -3515,11 +3512,10 @@ const HotelListing = () => {
                             <button
                                 type="button"
                                 onClick={() => togglePoiCategory('shopping')}
-                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                                    activePoiCategories.shopping
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.shopping
                                         ? 'bg-[#fce4ec] dark:bg-pink-900/40 text-[#e91e63] dark:text-pink-300 ring-2 ring-[#e91e63]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
-                                }`}
+                                    }`}
                                 title={tListing('shoppingAreas', currentLang)}
                             >
                                 <span className="material-symbols-outlined text-[19px]">shopping_bag</span>
@@ -3550,224 +3546,221 @@ const HotelListing = () => {
 
                     {/* Top center: Search-on-move toggle OR "Listeyi güncelle" button */}
                     <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto">
-                    {/* Always show the toggle */}
-                    {!mapMoved && (
-                        <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
-                            <button
-                                onClick={() => setSearchOnMapMove(v => !v)}
-                                className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0 ${
-                                    searchOnMapMove
-                                        ? 'bg-[#1a73e8] border-[#1a73e8]'
-                                        : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
-                                }`}
-                            >
-                                {searchOnMapMove && (
-                                    <span className="material-symbols-outlined text-white" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>check</span>
-                                )}
-                            </button>
-                            <span
-                                onClick={() => setSearchOnMapMove(v => !v)}
-                                className="text-[13px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
-                            >
-                                {tListing('searchMapMoves', currentLang)}
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Show manual update button when map moved but searchOnMove is off */}
-                    {mapMoved && !searchOnMapMove && (
-                        <button
-                            onClick={() => {
-                                isUserPanRef.current = false;
-                                setShouldRefitMap(false);
-                                setMapMoved(false);
-                                loadMoreHotels(true, mapBoundsRef.current);
-                            }}
-                            className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-full px-4 py-2 text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] transition-colors cursor-pointer"
-                        >
-                            <span className={`material-symbols-outlined text-[#1a73e8] ${isLoading ? 'animate-spin' : ''}`} style={{ fontSize: '18px' }}>refresh</span>
-                            {tListing('searchThisArea', currentLang)}
-                        </button>
-                    )}
-                </div>
-
-                {/* Bottom-left: Map layer switcher (Google Maps style) */}
-                <div className="absolute bottom-5 left-4 z-[1005] pointer-events-auto" ref={layerMenuRef}>
-                    <div className="relative">
-                        <button
-                            onClick={() => setIsLayerMenuOpen(v => !v)}
-                            className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-full px-3 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] transition-all cursor-pointer select-none text-[13px] font-medium"
-                            title={tListing('mapLayer', currentLang)}
-                        >
-                            <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>
-                                layers
-                            </span>
-                            <span>{getLayerLabel(MAP_LAYERS[mapLayer], currentLang)}</span>
-                            <span className="material-symbols-outlined text-[16px] text-gray-500">
-                                {isLayerMenuOpen ? 'expand_more' : 'expand_less'}
-                            </span>
-                        </button>
-
-                        {isLayerMenuOpen && (
-                            <div className="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl shadow-xl p-2 flex flex-col gap-1 text-left animate-in fade-in zoom-in-95 duration-150">
-                                <div className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                                    {tListing('mapStyle', currentLang)}
-                                </div>
-                                {Object.values(MAP_LAYERS).map(layer => {
-                                    const isSelected = mapLayer === layer.id;
-                                    return (
-                                        <button
-                                            key={layer.id}
-                                            onClick={() => {
-                                                userChangedLayerRef.current = true;
-                                                setMapLayer(layer.id);
-                                                setIsLayerMenuOpen(false);
-                                            }}
-                                            className={`w-full flex items-start gap-2.5 p-2 rounded-lg text-left transition-colors cursor-pointer ${
-                                                isSelected 
-                                                    ? 'bg-blue-50 dark:bg-blue-900/30 text-[#1a73e8] dark:text-[#8ab4f8]' 
-                                                    : 'hover:bg-[#f8f9fa] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200'
-                                            }`}
-                                        >
-                                            <span className={`material-symbols-outlined text-[20px] mt-0.5 ${isSelected ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-gray-400'}`}>
-                                                {layer.icon || 'public'}
-                                            </span>
-                                            <div className="flex-1">
-                                                <div className="text-[13px] font-medium leading-tight flex items-center justify-between">
-                                                    {getLayerLabel(layer, currentLang)}
-                                                    {isSelected && (
-                                                        <span className="material-symbols-outlined text-[16px] text-[#1a73e8] dark:text-[#8ab4f8]">check</span>
-                                                    )}
-                                                </div>
-                                                <div className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
-                                                    {layer.desc}
-                                                </div>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-
-            </div>
-
-            {/* Favorites Right Sidebar Dock (Google Style - Fixed width) */}
-            <div 
-                className="w-[58px] shrink-0 relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 flex flex-col z-[2000]"
-                onMouseEnter={handleFavMouseEnter}
-                onMouseLeave={handleFavMouseLeave}
-            >
-                <div className="flex flex-col items-center w-full bg-white dark:bg-[#202124]">
-                    {/* Top bookmark button block matching screenshot */}
-                    <button 
-                        onClick={handleFavButtonClick}
-                        title={tListing('savedPlansTitle', currentLang)}
-                        className="w-full h-[56px] bg-white dark:bg-[#202124] flex items-center justify-center border-b border-[#dadce0] dark:border-slate-700 shadow-[0_2px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] hover:bg-[#f8f9fa] dark:hover:bg-slate-800 transition-colors cursor-pointer relative z-10 group"
-                    >
-                        <span 
-                            className="material-symbols-outlined text-[25px] text-[#3c4043] dark:text-slate-200 group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors"
-                            style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}
-                        >
-                            bookmarks
-                        </span>
-                        {favorites.length > 0 && (
-                            <span className="absolute top-1.5 right-1.5 bg-[#1a73e8] text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] px-0.5 flex items-center justify-center shadow-xs">
-                                {favorites.length}
-                            </span>
-                        )}
-                    </button>
-
-                    {/* Circular thumbnails underneath */}
-                    <div className="flex flex-col gap-3 py-3.5 items-center w-full">
-                        {favorites.slice(0, 6).map(fav => (
-                            <div 
-                                key={fav.hotelId || fav.id} 
-                                onClick={handleFavButtonClick}
-                                title={fav.name || fav.hotelName || fav.names?.en || 'Otel'}
-                                className="w-9 h-9 rounded-full overflow-hidden cursor-pointer hover:scale-105 transition-transform"
-                            >
-                                <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Favorites Overlay Drawer (Floats over the map without changing map dimensions) */}
-            <div 
-                className={`absolute top-0 right-0 h-full w-[380px] bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 shadow-[-8px_0_24px_rgba(0,0,0,0.16),-2px_0_6px_rgba(0,0,0,0.08)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.6)] flex flex-col z-[2010] transform transition-transform duration-300 ease-in-out ${
-                    isFavOpen 
-                        ? 'translate-x-0 pointer-events-auto' 
-                        : 'translate-x-full pointer-events-none'
-                }`}
-                onMouseEnter={handleFavMouseEnter}
-                onMouseLeave={handleFavMouseLeave}
-            >
-                <div className="flex items-center justify-between p-4 pb-3 border-b border-[#f1f3f4] dark:border-slate-700/60">
-                    <div>
-                        <h2 className="text-[17px] font-medium text-[#202124] dark:text-white">{tListing('savedPlans', currentLang)}</h2>
-                        <p className="text-[12px] text-[#70757a] dark:text-slate-400">{favorites.length} {tListing('savedHotels', currentLang)}</p>
-                    </div>
-                    <button 
-                        onClick={handleCloseFav} 
-                        className="w-9 h-9 rounded-full hover:bg-[#f1f3f4] dark:hover:bg-slate-700 flex items-center justify-center text-[#5f6368] dark:text-slate-400 transition-colors cursor-pointer"
-                    >
-                        <span className="material-symbols-outlined text-[20px]">close</span>
-                    </button>
-                </div>
-                <div className="flex-1 overflow-y-auto bg-white dark:bg-[#202124]">
-                    {favorites.length === 0 ? (
-                        <div className="text-center mt-12 px-6">
-                            <div className="w-14 h-14 mx-auto rounded-full bg-[#f1f3f4] dark:bg-slate-700/60 flex items-center justify-center mb-3">
-                                <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 text-3xl">bookmark_border</span>
-                            </div>
-                            <h3 className="text-[15px] font-medium text-[#202124] dark:text-white mb-2">{tListing('nothingHereYet', currentLang)}</h3>
-                            <p className="text-[13px] text-[#70757a] dark:text-slate-400 leading-relaxed">{tListing('nothingHereYetDesc', currentLang)}</p>
-                        </div>
-                    ) : (
-                        <div className="p-4 flex flex-col gap-3">
-                            {favorites.map(fav => (
-                                <div 
-                                    key={fav.hotelId || fav.id} 
-                                    className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-slate-700 p-3 flex gap-3 cursor-pointer hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50 hover:shadow-sm transition-all"
-                                    onClick={() => window.open(`/travel/hotels/detail/${fav.hotelId || fav.id}`, '_blank')}
+                        {/* Always show the toggle */}
+                        {!mapMoved && (
+                            <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+                                <button
+                                    onClick={() => setSearchOnMapMove(v => !v)}
+                                    className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0 ${searchOnMapMove
+                                            ? 'bg-[#1a73e8] border-[#1a73e8]'
+                                            : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
+                                        }`}
                                 >
-                                    <div className="shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-[#f1f3f4] dark:bg-slate-800">
-                                        <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
+                                    {searchOnMapMove && (
+                                        <span className="material-symbols-outlined text-white" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>check</span>
+                                    )}
+                                </button>
+                                <span
+                                    onClick={() => setSearchOnMapMove(v => !v)}
+                                    className="text-[13px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
+                                >
+                                    {tListing('searchMapMoves', currentLang)}
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Show manual update button when map moved but searchOnMove is off */}
+                        {mapMoved && !searchOnMapMove && (
+                            <button
+                                onClick={() => {
+                                    isUserPanRef.current = false;
+                                    setShouldRefitMap(false);
+                                    setMapMoved(false);
+                                    loadMoreHotels(true, mapBoundsRef.current);
+                                }}
+                                className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-full px-4 py-2 text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] transition-colors cursor-pointer"
+                            >
+                                <span className={`material-symbols-outlined text-[#1a73e8] ${isLoading ? 'animate-spin' : ''}`} style={{ fontSize: '18px' }}>refresh</span>
+                                {tListing('searchThisArea', currentLang)}
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Bottom-left: Map layer switcher (Google Maps style) */}
+                    <div className="absolute bottom-5 left-4 z-[1005] pointer-events-auto" ref={layerMenuRef}>
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsLayerMenuOpen(v => !v)}
+                                className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-full px-3 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] transition-all cursor-pointer select-none text-[13px] font-medium"
+                                title={tListing('mapLayer', currentLang)}
+                            >
+                                <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>
+                                    layers
+                                </span>
+                                <span>{getLayerLabel(MAP_LAYERS[mapLayer], currentLang)}</span>
+                                <span className="material-symbols-outlined text-[16px] text-gray-500">
+                                    {isLayerMenuOpen ? 'expand_more' : 'expand_less'}
+                                </span>
+                            </button>
+
+                            {isLayerMenuOpen && (
+                                <div className="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl shadow-xl p-2 flex flex-col gap-1 text-left animate-in fade-in zoom-in-95 duration-150">
+                                    <div className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                                        {tListing('mapStyle', currentLang)}
                                     </div>
-                                    <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
-                                        <h4 className="text-[14px] font-semibold text-[#3c4043] dark:text-white leading-[1.25] line-clamp-2">{fav.name || fav.hotelName || fav.names?.en || 'Otel'}</h4>
-                                        <div className="flex items-center gap-1 mt-1 text-[12px] text-[#70757a] dark:text-slate-400">
-                                            {fav.rating && (
-                                                <>
-                                                    <span className="font-semibold text-[#3c4043] dark:text-slate-200">{fav.rating}</span>
-                                                    <span className="material-symbols-outlined text-[#fbbc04] text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                                                    <span>({fav.reviewCount || 100})</span>
-                                                </>
-                                            )}
-                                        </div>
-                                        <div className="text-[12px] text-[#70757a] dark:text-slate-400 mt-0.5 truncate">
-                                            {fav.stars ? `${fav.stars} ${tListing('starSingle', currentLang)}` : ''}
-                                        </div>
-                                    </div>
-                                    <div className="shrink-0 flex items-center justify-center">
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }} 
-                                            title={tListing('removeFromSaved', currentLang)}
-                                            className="w-9 h-9 rounded-full border border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 hover:border-red-200 flex items-center justify-center transition-colors shadow-xs"
-                                        >
-                                            <span className="material-symbols-outlined text-[#1a73e8] dark:text-[#8ab4f8] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>
-                                        </button>
-                                    </div>
+                                    {Object.values(MAP_LAYERS).map(layer => {
+                                        const isSelected = mapLayer === layer.id;
+                                        return (
+                                            <button
+                                                key={layer.id}
+                                                onClick={() => {
+                                                    userChangedLayerRef.current = true;
+                                                    setMapLayer(layer.id);
+                                                    setIsLayerMenuOpen(false);
+                                                }}
+                                                className={`w-full flex items-start gap-2.5 p-2 rounded-lg text-left transition-colors cursor-pointer ${isSelected
+                                                        ? 'bg-blue-50 dark:bg-blue-900/30 text-[#1a73e8] dark:text-[#8ab4f8]'
+                                                        : 'hover:bg-[#f8f9fa] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200'
+                                                    }`}
+                                            >
+                                                <span className={`material-symbols-outlined text-[20px] mt-0.5 ${isSelected ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-gray-400'}`}>
+                                                    {layer.icon || 'public'}
+                                                </span>
+                                                <div className="flex-1">
+                                                    <div className="text-[13px] font-medium leading-tight flex items-center justify-between">
+                                                        {getLayerLabel(layer, currentLang)}
+                                                        {isSelected && (
+                                                            <span className="material-symbols-outlined text-[16px] text-[#1a73e8] dark:text-[#8ab4f8]">check</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">
+                                                        {layer.desc}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+
+                </div>
+
+                {/* Favorites Right Sidebar Dock (Google Style - Fixed width) */}
+                <div
+                    className="w-[58px] shrink-0 relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 flex flex-col z-[2000]"
+                    onMouseEnter={handleFavMouseEnter}
+                    onMouseLeave={handleFavMouseLeave}
+                >
+                    <div className="flex flex-col items-center w-full bg-white dark:bg-[#202124]">
+                        {/* Top bookmark button block matching screenshot */}
+                        <button
+                            onClick={handleFavButtonClick}
+                            title={tListing('savedPlansTitle', currentLang)}
+                            className="w-full h-[56px] bg-white dark:bg-[#202124] flex items-center justify-center border-b border-[#dadce0] dark:border-slate-700 shadow-[0_2px_4px_rgba(0,0,0,0.12),0_1px_2px_rgba(0,0,0,0.06)] hover:bg-[#f8f9fa] dark:hover:bg-slate-800 transition-colors cursor-pointer relative z-10 group"
+                        >
+                            <span
+                                className="material-symbols-outlined text-[25px] text-[#3c4043] dark:text-slate-200 group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors"
+                                style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}
+                            >
+                                bookmarks
+                            </span>
+                            {favorites.length > 0 && (
+                                <span className="absolute top-1.5 right-1.5 bg-[#1a73e8] text-white text-[10px] font-bold rounded-full min-w-[16px] h-[16px] px-0.5 flex items-center justify-center shadow-xs">
+                                    {favorites.length}
+                                </span>
+                            )}
+                        </button>
+
+                        {/* Circular thumbnails underneath */}
+                        <div className="flex flex-col gap-3 py-3.5 items-center w-full">
+                            {favorites.slice(0, 6).map(fav => (
+                                <div
+                                    key={fav.hotelId || fav.id}
+                                    onClick={handleFavButtonClick}
+                                    title={fav.name || fav.hotelName || fav.names?.en || 'Otel'}
+                                    className="w-9 h-9 rounded-full overflow-hidden cursor-pointer hover:scale-105 transition-transform"
+                                >
+                                    <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
                                 </div>
                             ))}
                         </div>
-                    )}
+                    </div>
                 </div>
-            </div>
+
+                {/* Favorites Overlay Drawer (Floats over the map without changing map dimensions) */}
+                <div
+                    className={`absolute top-0 right-0 h-full w-[380px] bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 shadow-[-8px_0_24px_rgba(0,0,0,0.16),-2px_0_6px_rgba(0,0,0,0.08)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.6)] flex flex-col z-[2010] transform transition-transform duration-300 ease-in-out ${isFavOpen
+                            ? 'translate-x-0 pointer-events-auto'
+                            : 'translate-x-full pointer-events-none'
+                        }`}
+                    onMouseEnter={handleFavMouseEnter}
+                    onMouseLeave={handleFavMouseLeave}
+                >
+                    <div className="flex items-center justify-between p-4 pb-3 border-b border-[#f1f3f4] dark:border-slate-700/60">
+                        <div>
+                            <h2 className="text-[17px] font-medium text-[#202124] dark:text-white">{tListing('savedPlans', currentLang)}</h2>
+                            <p className="text-[12px] text-[#70757a] dark:text-slate-400">{favorites.length} {tListing('savedHotels', currentLang)}</p>
+                        </div>
+                        <button
+                            onClick={handleCloseFav}
+                            className="w-9 h-9 rounded-full hover:bg-[#f1f3f4] dark:hover:bg-slate-700 flex items-center justify-center text-[#5f6368] dark:text-slate-400 transition-colors cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">close</span>
+                        </button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto bg-white dark:bg-[#202124]">
+                        {favorites.length === 0 ? (
+                            <div className="text-center mt-12 px-6">
+                                <div className="w-14 h-14 mx-auto rounded-full bg-[#f1f3f4] dark:bg-slate-700/60 flex items-center justify-center mb-3">
+                                    <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 text-3xl">bookmark_border</span>
+                                </div>
+                                <h3 className="text-[15px] font-medium text-[#202124] dark:text-white mb-2">{tListing('nothingHereYet', currentLang)}</h3>
+                                <p className="text-[13px] text-[#70757a] dark:text-slate-400 leading-relaxed">{tListing('nothingHereYetDesc', currentLang)}</p>
+                            </div>
+                        ) : (
+                            <div className="p-4 flex flex-col gap-3">
+                                {favorites.map(fav => (
+                                    <div
+                                        key={fav.hotelId || fav.id}
+                                        className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-slate-700 p-3 flex gap-3 cursor-pointer hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50 hover:shadow-sm transition-all"
+                                        onClick={() => window.open(`/travel/hotels/detail/${fav.hotelId || fav.id}`, '_blank')}
+                                    >
+                                        <div className="shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-[#f1f3f4] dark:bg-slate-800">
+                                            <img src={fav.image || fav.images?.[0]?.url || placeholderHotel} className="w-full h-full object-cover" alt="" />
+                                        </div>
+                                        <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
+                                            <h4 className="text-[14px] font-semibold text-[#3c4043] dark:text-white leading-[1.25] line-clamp-2">{fav.name || fav.hotelName || fav.names?.en || 'Otel'}</h4>
+                                            <div className="flex items-center gap-1 mt-1 text-[12px] text-[#70757a] dark:text-slate-400">
+                                                {fav.rating && (
+                                                    <>
+                                                        <span className="font-semibold text-[#3c4043] dark:text-slate-200">{fav.rating}</span>
+                                                        <span className="material-symbols-outlined text-[#fbbc04] text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                                                        <span>({fav.reviewCount || 100})</span>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <div className="text-[12px] text-[#70757a] dark:text-slate-400 mt-0.5 truncate">
+                                                {fav.stars ? `${fav.stars} ${tListing('starSingle', currentLang)}` : ''}
+                                            </div>
+                                        </div>
+                                        <div className="shrink-0 flex items-center justify-center">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); toggleFavorite(fav); }}
+                                                title={tListing('removeFromSaved', currentLang)}
+                                                className="w-9 h-9 rounded-full border border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 hover:border-red-200 flex items-center justify-center transition-colors shadow-xs"
+                                            >
+                                                <span className="material-symbols-outlined text-[#f97316] dark:text-[#fb923c] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>bookmark</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );

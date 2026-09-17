@@ -1944,12 +1944,12 @@ const HotelDetail = () => {
                                 title={isLiked ? (tLocal('removeFromFavorites') || 'Kaydedilenlerden Çıkar') : (tLocal('saveToFavorites') || 'Kaydet')}
                                 className={`size-10 rounded-full border flex items-center justify-center transition-colors cursor-pointer ${
                                     isLiked 
-                                        ? 'bg-blue-50 dark:bg-blue-950/30 text-[#1a73e8] dark:text-[#8ab4f8] border-blue-200 dark:border-blue-800' 
+                                        ? 'bg-orange-50 dark:bg-orange-950/30 text-[#f97316] dark:text-[#fb923c] border-orange-200 dark:border-orange-800/60' 
                                         : 'border-[#dadce0] dark:border-slate-600 hover:bg-[#f1f3f4] dark:hover:bg-slate-700 text-[#5f6368] dark:text-slate-300'
                                 }`}
                             >
                                 <span 
-                                    className={`material-symbols-outlined text-[20px] ${isLiked ? 'fill-1 text-[#1a73e8] dark:text-[#8ab4f8]' : ''}`}
+                                    className={`material-symbols-outlined text-[20px] ${isLiked ? 'fill-1 text-[#f97316] dark:text-[#fb923c]' : ''}`}
                                     style={isLiked ? { fontVariationSettings: "'FILL' 1" } : undefined}
                                 >
                                     {isLiked ? 'bookmark' : 'bookmark_border'}

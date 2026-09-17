@@ -2425,18 +2425,24 @@ const HotelListing = () => {
     }, []);
 
     // Sync autocomplete (q + locationId) with map center after a geo-bounds search
-    // Same logic as MapView.jsx syncBreadcrumbWithCenter
     React.useEffect(() => {
         if (!mapInstance || hotels.length === 0 || !mapBoundsRef.current) return;
 
         const syncAutocompleteWithCenter = () => {
             try {
                 const center = mapInstance.getCenter();
+                if (!center) return;
+
+                const currentZoom = typeof mapInstance.getZoom === 'function' ? mapInstance.getZoom() : 11;
+                const currentLocationId = searchParams.get('locationId');
+                const currentQ = searchParams.get('q');
+
+                // Find closest hotel that has locationBreadcrumbs
                 let closestHotel = null;
                 let minDistance = Infinity;
 
                 hotels.forEach(hotel => {
-                    if (hotel.lat && hotel.lng) {
+                    if (hotel.lat && hotel.lng && Array.isArray(hotel.locationBreadcrumbs) && hotel.locationBreadcrumbs.length > 0) {
                         const dist = mapInstance.distance(center, [hotel.lat, hotel.lng]);
                         if (dist < minDistance) {
                             minDistance = dist;
@@ -2445,64 +2451,134 @@ const HotelListing = () => {
                     }
                 });
 
-                let crumb = null;
-                let locName = '';
-
-                if (closestHotel?.locationBreadcrumbs?.length > 0) {
-                    const breadcrumbs = closestHotel.locationBreadcrumbs;
-                    // Pick the most specific non-country crumb
-                    crumb = [...breadcrumbs]
-                        .reverse()
-                        .find(c => c.locationType !== 'COUNTRY') || breadcrumbs[breadcrumbs.length - 1];
-
-                    if (crumb) {
-                        locName = typeof crumb.name === 'string'
-                            ? crumb.name
-                            : (crumb.name?.translations?.[currentLang] ||
-                                crumb.name?.translations?.en ||
-                                crumb.name?.translations?.tr ||
-                                crumb.name?.defaultName || '');
-                    }
+                // Fallback to any hotel with breadcrumbs if coordinates are missing on all
+                if (!closestHotel) {
+                    closestHotel = hotels.find(h => Array.isArray(h.locationBreadcrumbs) && h.locationBreadcrumbs.length > 0);
                 }
 
-                // Fallback: If closestHotel has no locationBreadcrumbs, find from any hotel in results
-                if (!locName) {
-                    for (const h of hotels) {
-                        if (h.locationBreadcrumbs?.length > 0) {
-                            const b = [...h.locationBreadcrumbs].reverse().find(c => c.locationType !== 'COUNTRY') || h.locationBreadcrumbs[h.locationBreadcrumbs.length - 1];
-                            if (b) {
-                                crumb = b;
-                                locName = typeof b.name === 'string'
-                                    ? b.name
-                                    : (b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.translations?.tr || b.name?.defaultName || '');
-                                if (locName) break;
+                if (!closestHotel || !Array.isArray(closestHotel.locationBreadcrumbs) || closestHotel.locationBreadcrumbs.length === 0) {
+                    return;
+                }
+
+                const breadcrumbs = closestHotel.locationBreadcrumbs.filter(Boolean);
+
+                // Analyze visible districts and cities across all loaded hotels
+                const distinctDistricts = new Set();
+                const distinctCities = new Set();
+                hotels.forEach(h => {
+                    if (Array.isArray(h.locationBreadcrumbs)) {
+                        h.locationBreadcrumbs.forEach(b => {
+                            const bId = b.locationId ?? b.id;
+                            if (b.locationType === 'DISTRICT' && bId) distinctDistricts.add(String(bId));
+                            if (b.locationType === 'CITY' && bId) distinctCities.add(String(bId));
+                        });
+                    }
+                });
+
+                // Helper to extract localized name from name object or string
+                const getLocalizedCrumbName = (nameObj) => {
+                    if (!nameObj) return '';
+                    if (typeof nameObj === 'string') return nameObj;
+                    return (
+                        nameObj.translations?.[currentLang] ||
+                        nameObj.translations?.en ||
+                        nameObj.translations?.tr ||
+                        nameObj.defaultName ||
+                        Object.values(nameObj.translations || {})[0] ||
+                        ''
+                    );
+                };
+
+                // Find available crumb types from closest hotel
+                const countryCrumb = breadcrumbs.find(b => b.locationType === 'COUNTRY');
+                const cityCrumb = breadcrumbs.find(b => b.locationType === 'CITY');
+                const districtCrumb = breadcrumbs.find(b => b.locationType === 'DISTRICT');
+                const townCrumb = breadcrumbs.find(b => b.locationType === 'TOWN');
+
+                // Determine appropriate target level according to zoom level & geographic span
+                let targetCrumb = null;
+                if (currentZoom < 7 && countryCrumb) {
+                    targetCrumb = countryCrumb;
+                } else if (distinctDistricts.size > 1 && cityCrumb) {
+                    // Multiple districts are visible across the map -> View is at CITY level
+                    targetCrumb = cityCrumb;
+                } else if (currentZoom < 13) {
+                    // Metropolitan / City zoom (typically 7 <= zoom < 13)
+                    targetCrumb = cityCrumb || breadcrumbs.find(b => b.locationType !== 'COUNTRY') || breadcrumbs[breadcrumbs.length - 1];
+                } else if (currentZoom >= 15) {
+                    // Deep neighborhood / town zoom
+                    targetCrumb = townCrumb || districtCrumb || cityCrumb || breadcrumbs[breadcrumbs.length - 1];
+                } else {
+                    // District zoom (13 <= zoom < 15) when focused on a single district
+                    targetCrumb = districtCrumb || cityCrumb || breadcrumbs[breadcrumbs.length - 1];
+                }
+
+                if (!targetCrumb) return;
+
+                const targetLocId = String(targetCrumb.locationId ?? targetCrumb.id ?? '');
+
+                // Check if current search location already covers the current view
+                if (currentLocationId) {
+                    const currentCrumb = breadcrumbs.find(b => String(b.locationId ?? b.id ?? '') === String(currentLocationId));
+                    if (currentCrumb) {
+                        if (currentCrumb.locationType === 'CITY') {
+                            // Current search is City: retain it unless user explicitly zoomed into a single district
+                            if (currentZoom < 13 || distinctDistricts.size > 1) {
+                                return;
                             }
+                        } else if (currentCrumb.locationType === 'COUNTRY') {
+                            // Current search is Country: retain it if still at country zoom
+                            if (currentZoom < 7) {
+                                return;
+                            }
+                        } else if (currentCrumb.locationType === 'DISTRICT') {
+                            // Current search is District: retain it if target is the same district
+                            if (targetLocId === String(currentLocationId)) {
+                                return;
+                            }
+                        }
+                    }
+
+                    // If targetCrumb matches current locationId, keep current state intact
+                    if (targetLocId && targetLocId === String(currentLocationId)) {
+                        return;
+                    }
+                } else if (currentQ && !isGenericAreaText(currentQ)) {
+                    // If no locationId in URL but q is set (e.g., 'Istanbul, Republic of Türkiye')
+                    const targetName = getLocalizedCrumbName(targetCrumb.name);
+                    if (targetName && currentQ.toLowerCase().includes(targetName.toLowerCase())) {
+                        if (currentZoom < 13 || distinctDistricts.size > 1) {
+                            return;
                         }
                     }
                 }
 
-                // Fallback 2: closestHotel.location
-                if (!locName && closestHotel?.location && closestHotel.location !== 'Unknown Location') {
-                    locName = closestHotel.location.split(',')[0].trim();
-                }
+                // Construct hierarchical full name (e.g., "District, City, Country" or "City, Country")
+                const targetIdx = breadcrumbs.findIndex(b => String(b.locationId ?? b.id ?? '') === targetLocId);
+                const slice = targetIdx !== -1 ? breadcrumbs.slice(0, targetIdx + 1) : [targetCrumb];
+                const fullName = slice
+                    .map(b => getLocalizedCrumbName(b.name))
+                    .filter(Boolean)
+                    .reverse()
+                    .join(', ');
 
-                if (locName) {
-                    localStorage.setItem('dashboard_last_search', locName);
-                    const targetLocId = crumb?.locationId ? String(crumb.locationId) : null;
+                if (fullName) {
+                    localStorage.setItem('dashboard_last_search', fullName);
                     if (targetLocId) {
                         localStorage.setItem('dashboard_last_locationId', targetLocId);
                     }
-                    if (searchParams.get('q') !== locName) {
+                    if (searchParams.get('q') !== fullName || (targetLocId && searchParams.get('locationId') !== targetLocId)) {
                         isSyncingQRef.current = true;
-                        const center = mapInstance.getCenter();
                         const newParams = new URLSearchParams(searchParams);
-                        newParams.set('q', locName);
+                        newParams.set('q', fullName);
                         if (center && center.lat && center.lng) {
                             newParams.set('lat', center.lat.toFixed(4));
                             newParams.set('lng', center.lng.toFixed(4));
                         }
                         if (targetLocId) {
                             newParams.set('locationId', targetLocId);
+                        } else {
+                            newParams.delete('locationId');
                         }
                         setSearchParams(newParams, { replace: true });
                     }
@@ -2514,8 +2590,7 @@ const HotelListing = () => {
 
         const timer = setTimeout(syncAutocompleteWithCenter, 400);
         return () => clearTimeout(timer);
-        // Only re-run when hotels list changes after a geo search (mapBoundsRef tracks this)
-    }, [hotels, mapInstance, currentLang, setSearchParams]);
+    }, [hotels, mapInstance, currentLang, searchParams, setSearchParams]);
 
     // Fetch missing location names
     React.useEffect(() => {

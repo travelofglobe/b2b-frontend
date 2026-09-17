@@ -309,8 +309,13 @@ const PriceMarker = React.memo(({
             markerRef.current.closePopup();
         }
         onHover(null);
-        onSelect(hotel);
-    }, [hotel, onHover, onSelect]);
+        // Zaten seçiliyse deselect et (quick view kapat)
+        if (isSelected) {
+            onSelect(null);
+        } else {
+            onSelect(hotel);
+        }
+    }, [hotel, isSelected, onHover, onSelect]);
 
     const icon = React.useMemo(() => {
         // Measure text width for perfect bubble sizing
@@ -439,7 +444,7 @@ const PriceMarker = React.memo(({
                     }
                     .hotel-price-popup .leaflet-popup-content-wrapper { 
                         padding: 0 !important; 
-                        border-radius: 10px !important; 
+                        border-radius: 6px !important; 
                         overflow: hidden !important; 
                         box-shadow: 0 6px 20px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.12) !important; 
                         border: none !important;
@@ -475,7 +480,7 @@ const PriceMarker = React.memo(({
                         style={{
                             width: '220px',
                             fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif",
-                            borderRadius: '10px',
+                            borderRadius: '6px',
                             overflow: 'hidden',
                             background: '#ffffff',
                         }}

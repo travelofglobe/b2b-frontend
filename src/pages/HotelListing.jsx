@@ -737,20 +737,32 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                     </div>
                 )}
 
-                {/* Images with Ken Burns Zoom & Auto-slide */}
-                <div className="w-full h-full relative overflow-hidden">
-                    {images.map((img, i) => (
-                        <img
-                            key={i}
-                            src={img}
-                            alt={hotel.name}
-                            onError={e => { e.target.src = placeholderHotel; e.target.onerror = null; }}
-                            className={`absolute inset-0 w-full h-full object-cover transition-all duration-[1200ms] ease-in-out will-change-[transform,opacity] ${i === imgIdx
-                                    ? `opacity-100 ${isCardHovered ? 'scale-[1.08] duration-[3500ms] ease-out' : 'scale-100'}`
-                                    : 'opacity-0 scale-100'
-                                }`}
-                        />
-                    ))}
+                {/* Image Slider */}
+                <div className="w-full h-full relative overflow-hidden bg-[#f1f3f4] dark:bg-slate-800">
+                    <div
+                        className="flex w-full h-full transition-transform duration-400 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                        style={{ transform: `translateX(-${imgIdx * 100}%)` }}
+                    >
+                        {images.map((img, i) => (
+                            <div key={i} className="w-full h-full shrink-0 relative overflow-hidden">
+                                <img
+                                    src={img || placeholderHotel}
+                                    alt={hotel.name}
+                                    onError={e => {
+                                        if (e.target.src !== placeholderHotel) {
+                                            e.target.src = placeholderHotel;
+                                        }
+                                        e.target.onerror = null;
+                                    }}
+                                    className={`w-full h-full object-cover select-none will-change-transform ${
+                                        isCardHovered && i === imgIdx ? 'animate-kenburns' : 'scale-100'
+                                    }`}
+                                    loading={i === 0 ? 'eager' : 'lazy'}
+                                    decoding="async"
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {images.length > 1 && (

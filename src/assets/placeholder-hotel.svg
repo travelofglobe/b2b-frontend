@@ -1,11 +1,94 @@
 <svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="800" height="600" fill="#F8FAFC"/>
-  <path d="M300 450V180H500V450H450V350H350V450H300Z" fill="#CBD5E1"/>
-  <path d="M280 180H520L400 120L280 180Z" fill="#94A3B8"/>
-  <rect x="330" y="210" width="30" height="30" rx="4" fill="#F1F5F9"/>
-  <rect x="385" y="210" width="30" height="30" rx="4" fill="#F1F5F9"/>
-  <rect x="440" y="210" width="30" height="30" rx="4" fill="#F1F5F9"/>
-  <rect x="330" y="260" width="30" height="30" rx="4" fill="#F1F5F9"/>
-  <rect x="385" y="260" width="30" height="30" rx="4" fill="#F1F5F9"/>
-  <rect x="440" y="260" width="30" height="30" rx="4" fill="#F1F5F9"/>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F8FAFC"/>
+      <stop offset="100%" stop-color="#F1F5F9"/>
+    </linearGradient>
+    <linearGradient id="mainWall" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#CBD5E1"/>
+      <stop offset="100%" stop-color="#94A3B8"/>
+    </linearGradient>
+    <linearGradient id="sideWall" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E2E8F0"/>
+      <stop offset="100%" stop-color="#CBD5E1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="600" fill="url(#bg)"/>
+
+  <!-- Subtle ambient halo -->
+  <circle cx="400" cy="300" r="240" fill="#FFFFFF" fill-opacity="0.6"/>
+
+  <!-- Base Ground Line -->
+  <rect x="180" y="470" width="440" height="8" rx="4" fill="#94A3B8"/>
+
+  <!-- Left Wing -->
+  <rect x="230" y="270" width="85" height="200" rx="3" fill="url(#sideWall)"/>
+  <rect x="225" y="262" width="95" height="8" rx="2" fill="#94A3B8"/>
+  <!-- Left Wing Windows (4 rows x 2 cols) -->
+  <rect x="245" y="285" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="278" y="285" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="245" y="325" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="278" y="325" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="245" y="365" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="278" y="365" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="245" y="405" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="278" y="405" width="22" height="26" rx="3" fill="#F8FAFC"/>
+
+  <!-- Right Wing -->
+  <rect x="485" y="270" width="85" height="200" rx="3" fill="url(#sideWall)"/>
+  <rect x="480" y="262" width="95" height="8" rx="2" fill="#94A3B8"/>
+  <!-- Right Wing Windows (4 rows x 2 cols) -->
+  <rect x="500" y="285" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="533" y="285" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="500" y="325" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="533" y="325" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="500" y="365" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="533" y="365" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="500" y="405" width="22" height="26" rx="3" fill="#F8FAFC"/>
+  <rect x="533" y="405" width="22" height="26" rx="3" fill="#F8FAFC"/>
+
+  <!-- Main Center Tower -->
+  <rect x="305" y="180" width="190" height="290" rx="4" fill="url(#mainWall)"/>
+
+  <!-- Classical Triangular Pediment Roof (Like original) -->
+  <polygon points="295,180 505,180 400,120" fill="#64748B"/>
+  <rect x="290" y="176" width="220" height="8" rx="2" fill="#475569"/>
+
+  <!-- Small Pediment Circular Window / Ornament -->
+  <circle cx="400" cy="155" r="10" fill="#F8FAFC" fill-opacity="0.9"/>
+
+  <!-- Center Tower Windows (4 rows x 3 cols) -->
+  <!-- Row 1 -->
+  <rect x="330" y="205" width="30" height="34" rx="4" fill="#F8FAFC"/>
+  <rect x="385" y="205" width="30" height="34" rx="4" fill="#F8FAFC"/>
+  <rect x="440" y="205" width="30" height="34" rx="4" fill="#F8FAFC"/>
+
+  <!-- Row 2 -->
+  <rect x="330" y="255" width="30" height="34" rx="4" fill="#F8FAFC"/>
+  <rect x="385" y="255" width="30" height="34" rx="4" fill="#F8FAFC"/>
+  <rect x="440" y="255" width="30" height="34" rx="4" fill="#F8FAFC"/>
+
+  <!-- Row 3 -->
+  <rect x="330" y="305" width="30" height="34" rx="4" fill="#F8FAFC"/>
+  <rect x="385" y="305" width="30" height="34" rx="4" fill="#F8FAFC"/>
+  <rect x="440" y="305" width="30" height="34" rx="4" fill="#F8FAFC"/>
+
+  <!-- Row 4 -->
+  <rect x="330" y="355" width="30" height="34" rx="4" fill="#F8FAFC"/>
+  <rect x="385" y="355" width="30" height="34" rx="4" fill="#F8FAFC"/>
+  <rect x="440" y="355" width="30" height="34" rx="4" fill="#F8FAFC"/>
+
+  <!-- Grand Entrance Awning / Canopy -->
+  <polygon points="340,420 460,420 450,408 350,408" fill="#475569"/>
+  <rect x="335" y="420" width="130" height="6" rx="2" fill="#334155"/>
+
+  <!-- Entrance Doorway & Glass Pillars -->
+  <rect x="365" y="426" width="70" height="44" rx="2" fill="#475569"/>
+  <rect x="375" y="432" width="22" height="38" rx="2" fill="#F8FAFC"/>
+  <rect x="403" y="432" width="22" height="38" rx="2" fill="#F8FAFC"/>
+
+  <!-- Steps -->
+  <rect x="350" y="468" width="100" height="4" rx="1" fill="#64748B"/>
 </svg>

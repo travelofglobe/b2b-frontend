@@ -385,9 +385,10 @@ const PriceMarker = React.memo(({
         // Compact bubble geometry
         const H = 26; // Pill height
         const R = 13; // Fully rounded capsule radius (no sharp corners)
-        const tailTipX = 33; // Pointer tail tip X coordinate
         const favWidth = isFav ? 14 : 0;
-        const W = Math.max(58, Math.round(4 + 18 + 4 + textWidth + favWidth + 8));
+        const W = Math.max(64, Math.round(26 + textWidth + favWidth + 10));
+        const centerX = Math.round(W / 2);
+        const tailTipX = centerX; // Pointer tail tip X coordinate exactly centered
 
         // Colors & styles matching Rose/Raspberry #F75270 theme
         const bgFill = isSelected ? '#F75270' : '#ffffff';
@@ -399,16 +400,18 @@ const PriceMarker = React.memo(({
             ? 'drop-shadow(0 4px 12px rgba(247,82,112,0.45)) drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
             : 'drop-shadow(0 1.5px 3px rgba(0,0,0,0.1)) drop-shadow(0 0.5px 1.5px rgba(0,0,0,0.06))';
 
-        // Unified SVG path: fully rounded pill / capsule with smooth curved tail
+        // Unified SVG path: fully rounded pill / capsule with smooth centered curved tail
+        const tR = centerX + 7;
+        const tL = centerX - 7;
         const path = `
             M ${R} 0
             L ${W - R} 0
             A ${R} ${R} 0 0 1 ${W} ${R}
             A ${R} ${R} 0 0 1 ${W - R} ${H}
-            L 40 ${H}
-            C 38 ${H}, 36 27.8, 34.8 30.2
-            C 34.2 31.5, 32.8 31.5, 32.2 30.2
-            C 31 27.8, 29 ${H}, 26 ${H}
+            L ${tR} ${H}
+            C ${centerX + 5} ${H}, ${centerX + 3} 27.8, ${centerX + 1.8} 30.2
+            C ${centerX + 1.2} 31.5, ${centerX - 0.2} 31.5, ${centerX - 0.8} 30.2
+            C ${centerX - 2} 27.8, ${centerX - 4} ${H}, ${tL} ${H}
             L ${R} ${H}
             A ${R} ${R} 0 0 1 0 ${R}
             A ${R} ${R} 0 0 1 ${R} 0

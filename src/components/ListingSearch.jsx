@@ -268,6 +268,7 @@ const ListingSearch = ({ isCompact = false }) => {
 
     const searchWrapperRef = useRef(null);
     const guestWrapperRef = useRef(null);
+    const initialGuestStateRef = useRef(null);
     const datePickerRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -319,13 +320,22 @@ const ListingSearch = ({ isCompact = false }) => {
                 setShowDropdown(false);
             }
             if (guestWrapperRef.current && !guestWrapperRef.current.contains(event.target)) {
-                setShowGuestDropdown(false);
+                setShowGuestDropdown(prev => {
+                    if (prev) {
+                        const currentGuestParam = searchParams.get('guests') || initialGuestStateRef.current;
+                        const newGuestParam = serializeGuestsParam(roomState);
+                        if (currentGuestParam && newGuestParam && currentGuestParam !== newGuestParam) {
+                            handleSearch({ roomState });
+                        }
+                    }
+                    return false;
+                });
             }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [roomState, searchParams]);
 
     // Save state to localStorage whenever it changes
     useEffect(() => {
@@ -481,6 +491,18 @@ const ListingSearch = ({ isCompact = false }) => {
             const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
             const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
             const searchParamsString = getUrlParams(opts) + locationParam + geoParam;
+
+            // Guard: If we are already on the exact same search URL and nothing changed, don't re-navigate!
+            const currentUrlSlug = decodeURIComponent(window.location.pathname.replace('/travel/hotels/search/', '').split('?')[0]);
+            if (window.location.pathname.startsWith('/travel/hotels/search/') && currentUrlSlug.toLowerCase() === slug.toLowerCase()) {
+                const currentParams = new URLSearchParams(window.location.search);
+                const targetParams = new URLSearchParams(searchParamsString);
+                const keysToCheck = ['checkin', 'checkout', 'guests', 'nationality', 'q', 'locationId', 'lat', 'lng'];
+                const isIdentical = keysToCheck.every(key => (currentParams.get(key) || '') === (targetParams.get(key) || ''));
+                if (isIdentical) {
+                    return;
+                }
+            }
 
             localStorage.setItem('last_hotel_search_slug', slug);
             localStorage.setItem('last_hotel_search_params', searchParamsString);
@@ -938,8 +960,11 @@ const ListingSearch = ({ isCompact = false }) => {
                         <NationalitySelect 
                             value={nationality} 
                             onChange={(newNat) => {
-                                setNationality(newNat);
-                                handleSearch({ nationality: newNat });
+                                const currentNat = searchParams.get('nationality') || nationality;
+                                if (newNat && newNat !== currentNat) {
+                                    setNationality(newNat);
+                                    handleSearch({ nationality: newNat });
+                                }
                             }} 
                             inputStyle={true} 
                             compact={isCompact}
@@ -948,6 +973,7 @@ const ListingSearch = ({ isCompact = false }) => {
                                 if (isOpen) {
                                     setShowDropdown(false);
                                     setIsDatePickerOpen(false);
+                                    setShowGuestDropdown(false);
                                 }
                             }}
                         />
@@ -1059,21 +1085,25 @@ const ListingSearch = ({ isCompact = false }) => {
                         {/* Google Flights 2-Month Datepicker Popover */}
                         <GoogleFlightDatePicker
                             isOpen={isDatePickerOpen}
-                            onClose={(inDate, outDate) => {
+                            onClose={() => {
                                 setIsDatePickerOpen(false);
-                                const finalIn = inDate || checkInDate;
-                                const finalOut = outDate || checkOutDate;
-                                if (finalIn) setCheckInDate(finalIn);
-                                if (finalOut) setCheckOutDate(finalOut);
-                                handleSearch({ checkInDate: finalIn, checkOutDate: finalOut });
                             }}
                             onApply={(inDate, outDate) => {
                                 setIsDatePickerOpen(false);
                                 const finalIn = inDate || checkInDate;
                                 const finalOut = outDate || checkOutDate;
+                                
+                                const currentInStr = searchParams.get('checkin') || formatDateForUrl(checkInDate);
+                                const currentOutStr = searchParams.get('checkout') || formatDateForUrl(checkOutDate);
+                                const newInStr = formatDateForUrl(finalIn);
+                                const newOutStr = formatDateForUrl(finalOut);
+                                
                                 if (finalIn) setCheckInDate(finalIn);
                                 if (finalOut) setCheckOutDate(finalOut);
-                                handleSearch({ checkInDate: finalIn, checkOutDate: finalOut });
+                                
+                                if (currentInStr !== newInStr || currentOutStr !== newOutStr) {
+                                    handleSearch({ checkInDate: finalIn, checkOutDate: finalOut });
+                                }
                             }}
                             checkInDate={checkInDate}
                             checkOutDate={checkOutDate}
@@ -1089,7 +1119,12 @@ const ListingSearch = ({ isCompact = false }) => {
                     <div className="relative group/field flex-shrink-0" ref={guestWrapperRef}>
                         <button
                             type="button"
-                            onClick={() => setShowGuestDropdown(!showGuestDropdown)}
+                            onClick={() => {
+                                if (!showGuestDropdown) {
+                                    initialGuestStateRef.current = serializeGuestsParam(roomState);
+                                }
+                                setShowGuestDropdown(!showGuestDropdown);
+                            }}
                             className={`flex items-center ${isCompact ? "gap-1 px-2.5" : "gap-1.5 px-3.5"} border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-[#303134] h-12 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer`}
                         >
                             <span className="material-symbols-outlined text-[18px] text-[#70757a]">person</span>
@@ -1162,7 +1197,7 @@ const ListingSearch = ({ isCompact = false }) => {
                                                 {room.children > 0 && (
                                                     <div className="grid grid-cols-2 gap-3 mt-1">
                                                         {room.childAges.map((age, ageIdx) => (
-                                                            <div key={ageIdx} className="flex flex-col gap-1">
+                                                             <div key={ageIdx} className="flex flex-col gap-1">
                                                                 <span className="text-[12px] text-slate-500">{ls.children} {ageIdx + 1} {ls.years}</span>
                                                                 <select
                                                                     value={age}
@@ -1189,13 +1224,30 @@ const ListingSearch = ({ isCompact = false }) => {
 
                                 {/* Google Flights Style Footer */}
                                 <div className="flex items-center justify-end gap-6 mt-6 pt-2">
-                                    <button onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
+                                    <button 
+                                        type="button"
+                                        onClick={() => {
+                                            if (initialGuestStateRef.current) {
+                                                setRoomState(parseGuestsParam(initialGuestStateRef.current));
+                                            }
+                                            setShowGuestDropdown(false);
+                                        }} 
+                                        className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors cursor-pointer"
+                                    >
                                         İptal
                                     </button>
-                                    <button onClick={() => {
-                                        setShowGuestDropdown(false);
-                                        handleSearch();
-                                    }} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors">
+                                    <button 
+                                        type="button"
+                                        onClick={() => {
+                                            setShowGuestDropdown(false);
+                                            const currentGuestParam = searchParams.get('guests') || initialGuestStateRef.current;
+                                            const newGuestParam = serializeGuestsParam(roomState);
+                                            if (currentGuestParam !== newGuestParam) {
+                                                handleSearch({ roomState });
+                                            }
+                                        }} 
+                                        className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 px-3 py-1.5 rounded transition-colors cursor-pointer"
+                                    >
                                         Bitti
                                     </button>
                                 </div>

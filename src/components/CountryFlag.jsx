@@ -1,8 +1,20 @@
 import React, { useState } from 'react';
 
 /**
- * High-quality Country Flag component using FlagCDN with fallback.
- * Renders crisp, standardized vector/raster flags with subtle borders.
+ * Converts 2-letter ISO country code to Google Noto Emoji hex pair (e.g. TR -> 1f1f9_1f1f7)
+ */
+const codeToGoogleEmojiHex = (code) => {
+    if (!code || typeof code !== 'string') return null;
+    const clean = code.trim().toUpperCase();
+    if (clean.length !== 2) return null;
+    const c1 = (127397 + clean.charCodeAt(0)).toString(16);
+    const c2 = (127397 + clean.charCodeAt(1)).toString(16);
+    return `${c1}_${c2}`;
+};
+
+/**
+ * High-quality Google Noto Color Emoji Country Flag component with fallback.
+ * Renders Google's official vector flag icon set.
  */
 const CountryFlag = ({ 
     code, 
@@ -12,6 +24,7 @@ const CountryFlag = ({
     variant = 'rounded', // 'rounded' | 'circle' | 'flat'
     className = '' 
 }) => {
+    const [useFallback, setUseFallback] = useState(false);
     const [hasError, setHasError] = useState(false);
 
     if (!code) {
@@ -19,6 +32,7 @@ const CountryFlag = ({
     }
 
     const cleanCode = code.toLowerCase().trim();
+    const googleHex = codeToGoogleEmojiHex(code);
 
     // Size presets
     const sizeClasses = {
@@ -31,10 +45,10 @@ const CountryFlag = ({
 
     // Variant shape
     const shapeClasses = {
-        rounded: 'rounded-[3px] shadow-[0_1px_2px_rgba(0,0,0,0.12)] border border-black/15 dark:border-white/15',
+        rounded: 'rounded-[3px] shadow-[0_1px_2px_rgba(0,0,0,0.12)] border border-black/10 dark:border-white/10',
         circle: 'w-5 h-5 rounded-full object-cover shadow-xs border border-black/10',
         flat: 'rounded-none'
-    }[variant] || 'rounded-[3px] shadow-[0_1px_2px_rgba(0,0,0,0.12)] border border-black/15 dark:border-white/15';
+    }[variant] || 'rounded-[3px] shadow-[0_1px_2px_rgba(0,0,0,0.12)] border border-black/10 dark:border-white/10';
 
     if (hasError) {
         if (fallbackEmoji) {
@@ -47,15 +61,25 @@ const CountryFlag = ({
         );
     }
 
+    // Google's official Noto Emoji vector flag SVG
+    const flagSrc = (!useFallback && googleHex)
+        ? `https://fonts.gstatic.com/s/e/notoemoji/latest/${googleHex}/emoji.svg`
+        : `https://flagcdn.com/w40/${cleanCode}.png`;
+
     return (
         <img
-            src={`https://flagcdn.com/w40/${cleanCode}.png`}
-            srcSet={`https://flagcdn.com/w80/${cleanCode}.png 2x`}
+            src={flagSrc}
             alt={name || code}
             loading="lazy"
             decoding="async"
-            onError={() => setHasError(true)}
-            className={`inline-block shrink-0 object-cover ${sizeClasses} ${shapeClasses} ${className}`}
+            onError={() => {
+                if (!useFallback && googleHex) {
+                    setUseFallback(true);
+                } else {
+                    setHasError(true);
+                }
+            }}
+            className={`inline-block shrink-0 object-contain ${sizeClasses} ${shapeClasses} ${className}`}
         />
     );
 };

@@ -2404,7 +2404,7 @@ const HotelDetail = () => {
                                     }`}
                                 >
                                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                        <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 flex-shrink-0">
+                                        <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 500, 'opsz' 20" }}>
                                             calendar_today
                                         </span>
                                         <span className="text-[14px] sm:text-[15px] font-normal text-[#3c4043] dark:text-white truncate">
@@ -2507,8 +2507,8 @@ const HotelDetail = () => {
                                     }}
                                     className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-[#303134] px-4 h-12 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer"
                                 >
-                                    <span className="material-symbols-outlined text-[18px] text-[#70757a]">person</span>
-                                    <span className="text-[13px] font-normal text-[#3c4043] dark:text-slate-200">
+                                    <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 500, 'opsz' 20" }}>person</span>
+                                    <span className="text-[13.5px] font-normal text-[#3c4043] dark:text-slate-200">
                                         {totalAdults + totalChildren}
                                     </span>
                                     <span className="material-symbols-outlined text-[18px] text-[#70757a]">arrow_drop_down</span>

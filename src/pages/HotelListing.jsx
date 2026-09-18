@@ -293,11 +293,21 @@ const PriceMarker = React.memo(({
             clearTimeout(leaveTimerRef.current);
             leaveTimerRef.current = null;
         }
-        setIsMarkerDirectHovered(true);
-        onHover(hotel);
+        if (enterTimerRef.current) {
+            clearTimeout(enterTimerRef.current);
+        }
+        enterTimerRef.current = setTimeout(() => {
+            setIsMarkerDirectHovered(true);
+            onHover(hotel);
+            enterTimerRef.current = null;
+        }, 450);
     }, [onHover, hotel]);
 
     const handleMouseLeave = React.useCallback(() => {
+        if (enterTimerRef.current) {
+            clearTimeout(enterTimerRef.current);
+            enterTimerRef.current = null;
+        }
         if (leaveTimerRef.current) {
             clearTimeout(leaveTimerRef.current);
         }
@@ -309,6 +319,10 @@ const PriceMarker = React.memo(({
     }, [onHover]);
 
     const handleClick = React.useCallback(() => {
+        if (enterTimerRef.current) {
+            clearTimeout(enterTimerRef.current);
+            enterTimerRef.current = null;
+        }
         if (leaveTimerRef.current) {
             clearTimeout(leaveTimerRef.current);
             leaveTimerRef.current = null;
@@ -437,20 +451,21 @@ const PriceMarker = React.memo(({
                 mouseout: handleMouseLeave,
             }}
         >
-            {isMarkerDirectHovered && (
-                <Popup
-                    className={`hotel-price-popup ${isNearTop ? 'popup-downwards' : ''}`}
-                    minWidth={220}
-                    maxWidth={220}
-                    autoPan={false}
-                    closeButton={false}
-                    offset={isNearTop ? [0, 8] : [0, -34]}
-                >
-                    <style>{`
-                    .leaflet-popup.hotel-price-popup {
-                        transition: none !important;
-                        -webkit-transition: none !important;
-                    }
+            <Popup
+                className={`hotel-price-popup ${isNearTop ? 'popup-downwards' : ''}`}
+                minWidth={220}
+                maxWidth={220}
+                autoPan={false}
+                closeButton={false}
+                offset={isNearTop ? [0, 8] : [0, -34]}
+            >
+                <style>{`
+                .leaflet-popup.hotel-price-popup,
+                .leaflet-fade-anim .leaflet-popup.hotel-price-popup {
+                    transition: none !important;
+                    -webkit-transition: none !important;
+                    animation: none !important;
+                }
                     .hotel-price-popup .leaflet-popup-content-wrapper { 
                         padding: 0 !important; 
                         border-radius: 6px !important; 
@@ -631,7 +646,6 @@ const PriceMarker = React.memo(({
                         </div>
                     </div>
                 </Popup>
-            )}
         </Marker>
     );
 });

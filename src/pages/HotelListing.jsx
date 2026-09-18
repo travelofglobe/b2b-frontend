@@ -241,6 +241,7 @@ const PriceMarker = React.memo(({
     const markerRef = React.useRef(null);
     const enterTimerRef = React.useRef(null);
     const leaveTimerRef = React.useRef(null);
+    const [isMarkerDirectHovered, setIsMarkerDirectHovered] = React.useState(false);
 
     React.useEffect(() => {
         return () => {
@@ -253,16 +254,16 @@ const PriceMarker = React.memo(({
 
     // Smart placement: check if marker is near top ONLY when popup is active to avoid recalculations during map zoom
     const isNearTop = React.useMemo(() => {
-        if (!isHovered || !map || !hotel.lat || !hotel.lng) return false;
+        if (!isMarkerDirectHovered || !map || !hotel.lat || !hotel.lng) return false;
         try {
             const point = map.latLngToContainerPoint([parseFloat(hotel.lat), parseFloat(hotel.lng)]);
             return point.y < 250;
         } catch (e) {
             return false;
         }
-    }, [isHovered, map, hotel.lat, hotel.lng]);
+    }, [isMarkerDirectHovered, map, hotel.lat, hotel.lng]);
 
-    // Automatically open/close popup on hover and toggle hover class without recreating DOM
+    // Automatically open/close popup on direct marker hover and toggle marker-hovered class on any hover
     React.useEffect(() => {
         if (markerRef.current) {
             const el = markerRef.current.getElement ? markerRef.current.getElement() : null;
@@ -273,11 +274,17 @@ const PriceMarker = React.memo(({
                     el.classList.remove('marker-hovered');
                 }
             }
-            if (isHovered) {
+            if (isMarkerDirectHovered) {
                 markerRef.current.openPopup();
             } else {
                 markerRef.current.closePopup();
             }
+        }
+    }, [isHovered, isMarkerDirectHovered]);
+
+    React.useEffect(() => {
+        if (!isHovered) {
+            setIsMarkerDirectHovered(false);
         }
     }, [isHovered]);
 
@@ -286,14 +293,15 @@ const PriceMarker = React.memo(({
             clearTimeout(leaveTimerRef.current);
             leaveTimerRef.current = null;
         }
-        if (isHovered) return;
+        setIsMarkerDirectHovered(true);
         onHover(hotel);
-    }, [isHovered, onHover, hotel]);
+    }, [onHover, hotel]);
 
     const handleMouseLeave = React.useCallback(() => {
         if (leaveTimerRef.current) {
             clearTimeout(leaveTimerRef.current);
         }
+        setIsMarkerDirectHovered(false);
         leaveTimerRef.current = setTimeout(() => {
             onHover(null);
             leaveTimerRef.current = null;
@@ -305,6 +313,7 @@ const PriceMarker = React.memo(({
             clearTimeout(leaveTimerRef.current);
             leaveTimerRef.current = null;
         }
+        setIsMarkerDirectHovered(false);
         if (markerRef.current) {
             markerRef.current.closePopup();
         }
@@ -428,7 +437,7 @@ const PriceMarker = React.memo(({
                 mouseout: handleMouseLeave,
             }}
         >
-            {isHovered && (
+            {isMarkerDirectHovered && (
                 <Popup
                     className={`hotel-price-popup ${isNearTop ? 'popup-downwards' : ''}`}
                     minWidth={220}

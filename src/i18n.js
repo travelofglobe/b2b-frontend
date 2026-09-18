@@ -4,18 +4,18 @@ import { resources } from './utils/locales';
 
 // Supported languages list
 export const SUPPORTED_LANGUAGES = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
-  { code: 'ar', name: 'العربية', flag: '🇸🇦', isRtl: true },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-  { code: 'zh', name: '中文', flag: '🇨🇳' },
-  { code: 'ja', name: '日本語', flag: '🇯🇵' },
-  { code: 'fa', name: 'فارسی', flag: '🇮🇷', isRtl: true },
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-  { code: 'el', name: 'Ελληνικά', flag: '🇬🇷' },
-  { code: 'pt', name: 'Português', flag: '🇵🇹' }
+  { code: 'en', countryCode: 'US', name: 'English', flag: '🇺🇸' },
+  { code: 'tr', countryCode: 'TR', name: 'Türkçe', flag: '🇹🇷' },
+  { code: 'ar', countryCode: 'SA', name: 'العربية', flag: '🇸🇦', isRtl: true },
+  { code: 'es', countryCode: 'ES', name: 'Español', flag: '🇪🇸' },
+  { code: 'ru', countryCode: 'RU', name: 'Русский', flag: '🇷🇺' },
+  { code: 'zh', countryCode: 'CN', name: '中文', flag: '🇨🇳' },
+  { code: 'ja', countryCode: 'JP', name: '日本語', flag: '🇯🇵' },
+  { code: 'fa', countryCode: 'IR', name: 'فارسی', flag: '🇮🇷', isRtl: true },
+  { code: 'fr', countryCode: 'FR', name: 'Français', flag: '🇫🇷' },
+  { code: 'it', countryCode: 'IT', name: 'Italiano', flag: '🇮🇹' },
+  { code: 'el', countryCode: 'GR', name: 'Ελληνικά', flag: '🇬🇷' },
+  { code: 'pt', countryCode: 'PT', name: 'Português', flag: '🇵🇹' }
 ];
 
 const getInitialLanguage = () => {

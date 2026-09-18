@@ -241,6 +241,7 @@ const PriceMarker = React.memo(({
     const markerRef = React.useRef(null);
     const enterTimerRef = React.useRef(null);
     const leaveTimerRef = React.useRef(null);
+    const [isMarkerDirectHovered, setIsMarkerDirectHovered] = React.useState(false);
 
     React.useEffect(() => {
         return () => {
@@ -253,16 +254,16 @@ const PriceMarker = React.memo(({
 
     // Smart placement: check if marker is near top ONLY when popup is active to avoid recalculations during map zoom
     const isNearTop = React.useMemo(() => {
-        if (!isHovered || !map || !hotel.lat || !hotel.lng) return false;
+        if (!isMarkerDirectHovered || !map || !hotel.lat || !hotel.lng) return false;
         try {
             const point = map.latLngToContainerPoint([parseFloat(hotel.lat), parseFloat(hotel.lng)]);
             return point.y < 250;
         } catch (e) {
             return false;
         }
-    }, [isHovered, map, hotel.lat, hotel.lng]);
+    }, [isMarkerDirectHovered, map, hotel.lat, hotel.lng]);
 
-    // Automatically open/close popup on hover and toggle hover class without recreating DOM
+    // Automatically open/close popup on direct marker hover and toggle marker-hovered class on any hover
     React.useEffect(() => {
         if (markerRef.current) {
             const el = markerRef.current.getElement ? markerRef.current.getElement() : null;
@@ -273,11 +274,17 @@ const PriceMarker = React.memo(({
                     el.classList.remove('marker-hovered');
                 }
             }
-            if (isHovered) {
+            if (isMarkerDirectHovered) {
                 markerRef.current.openPopup();
             } else {
                 markerRef.current.closePopup();
             }
+        }
+    }, [isHovered, isMarkerDirectHovered]);
+
+    React.useEffect(() => {
+        if (!isHovered) {
+            setIsMarkerDirectHovered(false);
         }
     }, [isHovered]);
 
@@ -286,14 +293,25 @@ const PriceMarker = React.memo(({
             clearTimeout(leaveTimerRef.current);
             leaveTimerRef.current = null;
         }
-        if (isHovered) return;
-        onHover(hotel);
-    }, [isHovered, onHover, hotel]);
+        if (enterTimerRef.current) {
+            clearTimeout(enterTimerRef.current);
+        }
+        enterTimerRef.current = setTimeout(() => {
+            setIsMarkerDirectHovered(true);
+            onHover(hotel);
+            enterTimerRef.current = null;
+        }, 450);
+    }, [onHover, hotel]);
 
     const handleMouseLeave = React.useCallback(() => {
+        if (enterTimerRef.current) {
+            clearTimeout(enterTimerRef.current);
+            enterTimerRef.current = null;
+        }
         if (leaveTimerRef.current) {
             clearTimeout(leaveTimerRef.current);
         }
+        setIsMarkerDirectHovered(false);
         leaveTimerRef.current = setTimeout(() => {
             onHover(null);
             leaveTimerRef.current = null;
@@ -301,10 +319,15 @@ const PriceMarker = React.memo(({
     }, [onHover]);
 
     const handleClick = React.useCallback(() => {
+        if (enterTimerRef.current) {
+            clearTimeout(enterTimerRef.current);
+            enterTimerRef.current = null;
+        }
         if (leaveTimerRef.current) {
             clearTimeout(leaveTimerRef.current);
             leaveTimerRef.current = null;
         }
+        setIsMarkerDirectHovered(false);
         if (markerRef.current) {
             markerRef.current.closePopup();
         }
@@ -428,20 +451,21 @@ const PriceMarker = React.memo(({
                 mouseout: handleMouseLeave,
             }}
         >
-            {isHovered && (
-                <Popup
-                    className={`hotel-price-popup ${isNearTop ? 'popup-downwards' : ''}`}
-                    minWidth={220}
-                    maxWidth={220}
-                    autoPan={false}
-                    closeButton={false}
-                    offset={isNearTop ? [0, 8] : [0, -34]}
-                >
-                    <style>{`
-                    .leaflet-popup.hotel-price-popup {
-                        transition: none !important;
-                        -webkit-transition: none !important;
-                    }
+            <Popup
+                className={`hotel-price-popup ${isNearTop ? 'popup-downwards' : ''}`}
+                minWidth={220}
+                maxWidth={220}
+                autoPan={false}
+                closeButton={false}
+                offset={isNearTop ? [0, 8] : [0, -34]}
+            >
+                <style>{`
+                .leaflet-popup.hotel-price-popup,
+                .leaflet-fade-anim .leaflet-popup.hotel-price-popup {
+                    transition: none !important;
+                    -webkit-transition: none !important;
+                    animation: none !important;
+                }
                     .hotel-price-popup .leaflet-popup-content-wrapper { 
                         padding: 0 !important; 
                         border-radius: 6px !important; 
@@ -622,7 +646,6 @@ const PriceMarker = React.memo(({
                         </div>
                     </div>
                 </Popup>
-            )}
         </Marker>
     );
 });
@@ -737,20 +760,32 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                     </div>
                 )}
 
-                {/* Images with Ken Burns Zoom & Auto-slide */}
-                <div className="w-full h-full relative overflow-hidden">
-                    {images.map((img, i) => (
-                        <img
-                            key={i}
-                            src={img}
-                            alt={hotel.name}
-                            onError={e => { e.target.src = placeholderHotel; e.target.onerror = null; }}
-                            className={`absolute inset-0 w-full h-full object-cover transition-all duration-[1200ms] ease-in-out will-change-[transform,opacity] ${i === imgIdx
-                                    ? `opacity-100 ${isCardHovered ? 'scale-[1.08] duration-[3500ms] ease-out' : 'scale-100'}`
-                                    : 'opacity-0 scale-100'
-                                }`}
-                        />
-                    ))}
+                {/* Image Slider */}
+                <div className="w-full h-full relative overflow-hidden bg-[#f1f3f4] dark:bg-slate-800">
+                    <div
+                        className="flex w-full h-full transition-transform duration-400 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                        style={{ transform: `translateX(-${imgIdx * 100}%)` }}
+                    >
+                        {images.map((img, i) => (
+                            <div key={i} className="w-full h-full shrink-0 relative overflow-hidden">
+                                <img
+                                    src={img || placeholderHotel}
+                                    alt={hotel.name}
+                                    onError={e => {
+                                        if (e.target.src !== placeholderHotel) {
+                                            e.target.src = placeholderHotel;
+                                        }
+                                        e.target.onerror = null;
+                                    }}
+                                    className={`w-full h-full object-cover select-none will-change-transform ${
+                                        isCardHovered && i === imgIdx ? 'animate-kenburns' : 'scale-100'
+                                    }`}
+                                    loading={i === 0 ? 'eager' : 'lazy'}
+                                    decoding="async"
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {images.length > 1 && (
@@ -2425,18 +2460,24 @@ const HotelListing = () => {
     }, []);
 
     // Sync autocomplete (q + locationId) with map center after a geo-bounds search
-    // Same logic as MapView.jsx syncBreadcrumbWithCenter
     React.useEffect(() => {
         if (!mapInstance || hotels.length === 0 || !mapBoundsRef.current) return;
 
         const syncAutocompleteWithCenter = () => {
             try {
                 const center = mapInstance.getCenter();
+                if (!center) return;
+
+                const currentZoom = typeof mapInstance.getZoom === 'function' ? mapInstance.getZoom() : 11;
+                const currentLocationId = searchParams.get('locationId');
+                const currentQ = searchParams.get('q');
+
+                // Find closest hotel that has locationBreadcrumbs
                 let closestHotel = null;
                 let minDistance = Infinity;
 
                 hotels.forEach(hotel => {
-                    if (hotel.lat && hotel.lng) {
+                    if (hotel.lat && hotel.lng && Array.isArray(hotel.locationBreadcrumbs) && hotel.locationBreadcrumbs.length > 0) {
                         const dist = mapInstance.distance(center, [hotel.lat, hotel.lng]);
                         if (dist < minDistance) {
                             minDistance = dist;
@@ -2445,64 +2486,134 @@ const HotelListing = () => {
                     }
                 });
 
-                let crumb = null;
-                let locName = '';
-
-                if (closestHotel?.locationBreadcrumbs?.length > 0) {
-                    const breadcrumbs = closestHotel.locationBreadcrumbs;
-                    // Pick the most specific non-country crumb
-                    crumb = [...breadcrumbs]
-                        .reverse()
-                        .find(c => c.locationType !== 'COUNTRY') || breadcrumbs[breadcrumbs.length - 1];
-
-                    if (crumb) {
-                        locName = typeof crumb.name === 'string'
-                            ? crumb.name
-                            : (crumb.name?.translations?.[currentLang] ||
-                                crumb.name?.translations?.en ||
-                                crumb.name?.translations?.tr ||
-                                crumb.name?.defaultName || '');
-                    }
+                // Fallback to any hotel with breadcrumbs if coordinates are missing on all
+                if (!closestHotel) {
+                    closestHotel = hotels.find(h => Array.isArray(h.locationBreadcrumbs) && h.locationBreadcrumbs.length > 0);
                 }
 
-                // Fallback: If closestHotel has no locationBreadcrumbs, find from any hotel in results
-                if (!locName) {
-                    for (const h of hotels) {
-                        if (h.locationBreadcrumbs?.length > 0) {
-                            const b = [...h.locationBreadcrumbs].reverse().find(c => c.locationType !== 'COUNTRY') || h.locationBreadcrumbs[h.locationBreadcrumbs.length - 1];
-                            if (b) {
-                                crumb = b;
-                                locName = typeof b.name === 'string'
-                                    ? b.name
-                                    : (b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.translations?.tr || b.name?.defaultName || '');
-                                if (locName) break;
+                if (!closestHotel || !Array.isArray(closestHotel.locationBreadcrumbs) || closestHotel.locationBreadcrumbs.length === 0) {
+                    return;
+                }
+
+                const breadcrumbs = closestHotel.locationBreadcrumbs.filter(Boolean);
+
+                // Analyze visible districts and cities across all loaded hotels
+                const distinctDistricts = new Set();
+                const distinctCities = new Set();
+                hotels.forEach(h => {
+                    if (Array.isArray(h.locationBreadcrumbs)) {
+                        h.locationBreadcrumbs.forEach(b => {
+                            const bId = b.locationId ?? b.id;
+                            if (b.locationType === 'DISTRICT' && bId) distinctDistricts.add(String(bId));
+                            if (b.locationType === 'CITY' && bId) distinctCities.add(String(bId));
+                        });
+                    }
+                });
+
+                // Helper to extract localized name from name object or string
+                const getLocalizedCrumbName = (nameObj) => {
+                    if (!nameObj) return '';
+                    if (typeof nameObj === 'string') return nameObj;
+                    return (
+                        nameObj.translations?.[currentLang] ||
+                        nameObj.translations?.en ||
+                        nameObj.translations?.tr ||
+                        nameObj.defaultName ||
+                        Object.values(nameObj.translations || {})[0] ||
+                        ''
+                    );
+                };
+
+                // Find available crumb types from closest hotel
+                const countryCrumb = breadcrumbs.find(b => b.locationType === 'COUNTRY');
+                const cityCrumb = breadcrumbs.find(b => b.locationType === 'CITY');
+                const districtCrumb = breadcrumbs.find(b => b.locationType === 'DISTRICT');
+                const townCrumb = breadcrumbs.find(b => b.locationType === 'TOWN');
+
+                // Determine appropriate target level according to zoom level & geographic span
+                let targetCrumb = null;
+                if (currentZoom < 7 && countryCrumb) {
+                    targetCrumb = countryCrumb;
+                } else if (distinctDistricts.size > 1 && cityCrumb) {
+                    // Multiple districts are visible across the map -> View is at CITY level
+                    targetCrumb = cityCrumb;
+                } else if (currentZoom < 13) {
+                    // Metropolitan / City zoom (typically 7 <= zoom < 13)
+                    targetCrumb = cityCrumb || breadcrumbs.find(b => b.locationType !== 'COUNTRY') || breadcrumbs[breadcrumbs.length - 1];
+                } else if (currentZoom >= 15) {
+                    // Deep neighborhood / town zoom
+                    targetCrumb = townCrumb || districtCrumb || cityCrumb || breadcrumbs[breadcrumbs.length - 1];
+                } else {
+                    // District zoom (13 <= zoom < 15) when focused on a single district
+                    targetCrumb = districtCrumb || cityCrumb || breadcrumbs[breadcrumbs.length - 1];
+                }
+
+                if (!targetCrumb) return;
+
+                const targetLocId = String(targetCrumb.locationId ?? targetCrumb.id ?? '');
+
+                // Check if current search location already covers the current view
+                if (currentLocationId) {
+                    const currentCrumb = breadcrumbs.find(b => String(b.locationId ?? b.id ?? '') === String(currentLocationId));
+                    if (currentCrumb) {
+                        if (currentCrumb.locationType === 'CITY') {
+                            // Current search is City: retain it unless user explicitly zoomed into a single district
+                            if (currentZoom < 13 || distinctDistricts.size > 1) {
+                                return;
                             }
+                        } else if (currentCrumb.locationType === 'COUNTRY') {
+                            // Current search is Country: retain it if still at country zoom
+                            if (currentZoom < 7) {
+                                return;
+                            }
+                        } else if (currentCrumb.locationType === 'DISTRICT') {
+                            // Current search is District: retain it if target is the same district
+                            if (targetLocId === String(currentLocationId)) {
+                                return;
+                            }
+                        }
+                    }
+
+                    // If targetCrumb matches current locationId, keep current state intact
+                    if (targetLocId && targetLocId === String(currentLocationId)) {
+                        return;
+                    }
+                } else if (currentQ && !isGenericAreaText(currentQ)) {
+                    // If no locationId in URL but q is set (e.g., 'Istanbul, Republic of Türkiye')
+                    const targetName = getLocalizedCrumbName(targetCrumb.name);
+                    if (targetName && currentQ.toLowerCase().includes(targetName.toLowerCase())) {
+                        if (currentZoom < 13 || distinctDistricts.size > 1) {
+                            return;
                         }
                     }
                 }
 
-                // Fallback 2: closestHotel.location
-                if (!locName && closestHotel?.location && closestHotel.location !== 'Unknown Location') {
-                    locName = closestHotel.location.split(',')[0].trim();
-                }
+                // Construct hierarchical full name (e.g., "District, City, Country" or "City, Country")
+                const targetIdx = breadcrumbs.findIndex(b => String(b.locationId ?? b.id ?? '') === targetLocId);
+                const slice = targetIdx !== -1 ? breadcrumbs.slice(0, targetIdx + 1) : [targetCrumb];
+                const fullName = slice
+                    .map(b => getLocalizedCrumbName(b.name))
+                    .filter(Boolean)
+                    .reverse()
+                    .join(', ');
 
-                if (locName) {
-                    localStorage.setItem('dashboard_last_search', locName);
-                    const targetLocId = crumb?.locationId ? String(crumb.locationId) : null;
+                if (fullName) {
+                    localStorage.setItem('dashboard_last_search', fullName);
                     if (targetLocId) {
                         localStorage.setItem('dashboard_last_locationId', targetLocId);
                     }
-                    if (searchParams.get('q') !== locName) {
+                    if (searchParams.get('q') !== fullName || (targetLocId && searchParams.get('locationId') !== targetLocId)) {
                         isSyncingQRef.current = true;
-                        const center = mapInstance.getCenter();
                         const newParams = new URLSearchParams(searchParams);
-                        newParams.set('q', locName);
+                        newParams.set('q', fullName);
                         if (center && center.lat && center.lng) {
                             newParams.set('lat', center.lat.toFixed(4));
                             newParams.set('lng', center.lng.toFixed(4));
                         }
                         if (targetLocId) {
                             newParams.set('locationId', targetLocId);
+                        } else {
+                            newParams.delete('locationId');
                         }
                         setSearchParams(newParams, { replace: true });
                     }
@@ -2514,8 +2625,7 @@ const HotelListing = () => {
 
         const timer = setTimeout(syncAutocompleteWithCenter, 400);
         return () => clearTimeout(timer);
-        // Only re-run when hotels list changes after a geo search (mapBoundsRef tracks this)
-    }, [hotels, mapInstance, currentLang, setSearchParams]);
+    }, [hotels, mapInstance, currentLang, searchParams, setSearchParams]);
 
     // Fetch missing location names
     React.useEffect(() => {

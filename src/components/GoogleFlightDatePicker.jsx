@@ -76,17 +76,18 @@ const GoogleFlightDatePicker = ({
         }
     }, [isOpen]);
 
-    const handleCloseWithAnimation = (overrideIn, overrideOut) => {
+    const handleCloseWithAnimation = (overrideIn, overrideOut, isApply = false) => {
         setIsClosing(true);
         setTimeout(() => {
             setIsClosing(false);
             setIsMounted(false);
             const inDate = overrideIn || checkInDate;
             const outDate = overrideOut || checkOutDate;
-            if (onApply) {
+            if (isApply && onApply) {
                 onApply(inDate, outDate);
+            } else {
+                onClose?.(inDate, outDate);
             }
-            onClose?.(inDate, outDate);
         }, 260);
     };
 
@@ -94,12 +95,12 @@ const GoogleFlightDatePicker = ({
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape' && isOpen && !isClosing) {
-                handleCloseWithAnimation();
+                handleCloseWithAnimation(checkInDate, checkOutDate, false);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, isClosing]);
+    }, [isOpen, isClosing, checkInDate, checkOutDate]);
 
     // Sync viewDate when checkInDate changes and popover opens
     useEffect(() => {
@@ -114,14 +115,14 @@ const GoogleFlightDatePicker = ({
             if (popoverRef.current && !popoverRef.current.contains(e.target)) {
                 // If target is inside datepicker trigger container, don't close here
                 if (e.target.closest('.google-flight-date-trigger')) return;
-                handleCloseWithAnimation();
+                handleCloseWithAnimation(checkInDate, checkOutDate, false);
             }
         };
         if (isOpen && !isClosing) {
             document.addEventListener('mousedown', handleClickOutside);
         }
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isOpen, isClosing]);
+    }, [isOpen, isClosing, checkInDate, checkOutDate]);
 
     // Next / Prev month
     const handlePrevMonth = () => {
@@ -207,7 +208,7 @@ const GoogleFlightDatePicker = ({
                 // If onApply callback provided, smoothly close and apply new dates
                 if (onApply) {
                     setTimeout(() => {
-                        handleCloseWithAnimation(checkInDate, finalCheckOut);
+                        handleCloseWithAnimation(checkInDate, finalCheckOut, true);
                     }, 160);
                 }
             }
@@ -571,7 +572,7 @@ const GoogleFlightDatePicker = ({
 
                 <button
                     type="button"
-                    onClick={handleCloseWithAnimation}
+                    onClick={() => handleCloseWithAnimation(checkInDate, checkOutDate, true)}
                     className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[14px] px-7 py-2 transition-all shadow-none hover:shadow active:scale-95 cursor-pointer"
                 >
                     {t('common.done', 'Bitti')}

@@ -2242,7 +2242,7 @@ const HotelDetail = () => {
 
     return (
         <div className="relative flex min-h-full flex-col bg-white dark:bg-[#202124] text-[#202124] dark:text-white transition-colors duration-200 font-roboto">
-            <div className="flex-1 max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-12 py-6">
+            <div className="flex-1 max-w-[1320px] mx-auto w-full px-6 sm:px-10 lg:px-16 xl:px-20 py-6">
                 {/* Top Navigation & Breadcrumbs */}
                 <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2 overflow-x-auto overflow-y-hidden scrollbar-hide py-1">

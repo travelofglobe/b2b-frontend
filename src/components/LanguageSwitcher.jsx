@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGUAGES } from '../i18n';
+import CountryFlag from './CountryFlag';
 
 const LanguageSwitcher = ({ mode }) => {
     const { i18n } = useTranslation();
@@ -46,8 +47,8 @@ const LanguageSwitcher = ({ mode }) => {
                         <span className="material-symbols-outlined text-[18px]">language</span>
                         <span>Dil</span>
                     </span>
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-sm leading-none">{currentLanguage.flag}</span>
+                    <div className="flex items-center gap-2">
+                        <CountryFlag code={currentLanguage.countryCode || currentLanguage.code} name={currentLanguage.name} fallbackEmoji={currentLanguage.flag} size="sm" />
                         <span className="text-[13px] font-normal text-[#3c4043] dark:text-slate-200">{currentLanguage.name}</span>
                         <span className={`material-symbols-outlined text-[18px] text-[#70757a] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
                             arrow_drop_down
@@ -70,8 +71,8 @@ const LanguageSwitcher = ({ mode }) => {
                                             : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'
                                     }`}
                                 >
-                                    <span className="flex items-center gap-2">
-                                        <span className="text-base leading-none">{lang.flag}</span>
+                                    <span className="flex items-center gap-2.5">
+                                        <CountryFlag code={lang.countryCode || lang.code} name={lang.name} fallbackEmoji={lang.flag} size="sm" />
                                         <span>{lang.name}</span>
                                     </span>
                                     {isSelected && (
@@ -92,11 +93,11 @@ const LanguageSwitcher = ({ mode }) => {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] text-[#3c4043] dark:text-slate-200 transition-all text-[13px] font-normal cursor-pointer shadow-xs"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] text-[#3c4043] dark:text-slate-200 transition-all text-[13px] font-normal cursor-pointer shadow-xs"
                 aria-expanded={isOpen}
                 aria-haspopup="true"
             >
-                <span className="text-base leading-none">{currentLanguage.flag}</span>
+                <CountryFlag code={currentLanguage.countryCode || currentLanguage.code} name={currentLanguage.name} fallbackEmoji={currentLanguage.flag} size="sm" />
                 <span className="hidden sm:inline">{currentLanguage.name}</span>
                 <span className={`material-symbols-outlined text-[18px] text-[#70757a] dark:text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
                     arrow_drop_down
@@ -118,14 +119,14 @@ const LanguageSwitcher = ({ mode }) => {
                                             : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#303134]'
                                     }`}
                                 >
-                                    <div className="w-5 flex items-center justify-start shrink-0">
+                                    <div className="w-4 flex items-center justify-start shrink-0">
                                         {isSelected && (
                                             <span className="material-symbols-outlined text-[18px] text-[#3c4043] dark:text-slate-200">
                                                 check
                                             </span>
                                         )}
                                     </div>
-                                    <span className="text-base leading-none">{lang.flag}</span>
+                                    <CountryFlag code={lang.countryCode || lang.code} name={lang.name} fallbackEmoji={lang.flag} size="sm" />
                                     <span className="flex-1 truncate">{lang.name}</span>
                                 </button>
                             );

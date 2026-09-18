@@ -265,23 +265,29 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
         >
             <div 
                 className={`relative overflow-hidden isolate z-0 transform-gpu ${isList ? 'rounded-t-xl md:rounded-l-xl md:rounded-tr-none h-52 md:h-auto md:w-[330px] lg:w-[350px] shrink-0' : 'rounded-t-xl h-52'}`}
-                style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)' }}
             >
                 {/* Image Slider */}
-                <div className="w-full h-full relative overflow-hidden">
-                    {images.map((img, idx) => (
-                        <img
-                            key={idx}
-                            src={img}
-                            alt={`${hotel.name} ${idx + 1}`}
-                            onError={handleImageError}
-                            className={`absolute inset-0 w-full h-full object-cover transition-all duration-[1200ms] ease-in-out will-change-[transform,opacity] ${
-                                idx === currentImg 
-                                    ? `opacity-100 ${isHovered ? 'scale-[1.08] duration-[3500ms] ease-out' : 'scale-100'}` 
-                                    : 'opacity-0 scale-100'
-                            }`}
-                        />
-                    ))}
+                <div className="w-full h-full relative overflow-hidden bg-slate-100 dark:bg-slate-800">
+                    <div
+                        className="flex w-full h-full transition-transform duration-400 ease-[cubic-bezier(0.25,1,0.5,1)]"
+                        style={{ transform: `translateX(-${currentImg * 100}%)` }}
+                    >
+                        {images.map((img, idx) => (
+                            <div key={idx} className="w-full h-full shrink-0 relative overflow-hidden">
+                                <img
+                                    src={img || placeholderHotel}
+                                    alt={`${hotel.name} ${idx + 1}`}
+                                    onError={handleImageError}
+                                    className={`w-full h-full object-cover select-none will-change-transform ${
+                                        isHovered && idx === currentImg ? 'animate-kenburns' : 'scale-100'
+                                    }`}
+                                    loading={idx === 0 ? 'eager' : 'lazy'}
+                                    decoding="async"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
 
                     {/* Navigation Arrows */}
                     {images.length > 1 && (

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import CountryFlag from './CountryFlag';
 
 const countries = [
     { name: 'Türkiye', code: '+90', flag: '🇹🇷', id: 'TR' },
@@ -63,29 +64,24 @@ const PhoneInput = ({ value, onChange, label, error }) => {
     const dropdownRef = useRef(null);
     const buttonRef = useRef(null);
     
-    // Parse initial value
     const initialCountry = countries.find(c => value?.startsWith(c.code)) || countries[0];
     const [selectedCountry, setSelectedCountry] = useState(initialCountry);
-    const phoneNumber = value?.replace(selectedCountry.code, '').trim() || '';
+    const [phoneNumber, setPhoneNumber] = useState(() => {
+        if (!value) return '';
+        const matching = countries.find(c => value.startsWith(c.code));
+        return matching ? value.replace(matching.code, '').trim() : value;
+    });
 
     const filteredCountries = countries.filter(c => 
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        c.code.includes(searchTerm)
+        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.code.includes(searchTerm) ||
+        (c.id && c.id.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-        setActiveIndex(0);
-    };
-
     const toggleOpen = () => {
-        if (!isOpen && buttonRef.current) {
-            const rect = buttonRef.current.getBoundingClientRect();
-            const spaceBelow = window.innerHeight - rect.bottom;
-            setOpenUpwards(spaceBelow < 300);
-            setActiveIndex(0);
-        }
         setIsOpen(!isOpen);
+        setSearchTerm('');
+        setActiveIndex(-1);
     };
 
     useEffect(() => {
@@ -100,13 +96,14 @@ const PhoneInput = ({ value, onChange, label, error }) => {
 
     const handlePhoneChange = (e) => {
         const val = e.target.value.replace(/\D/g, ''); // Only digits
-        onChange(`${selectedCountry.code} ${val}`);
+        setPhoneNumber(val);
+        onChange(`${selectedCountry.code || selectedCountry.dial_code} ${val}`);
     };
 
     const handleCountrySelect = (country) => {
         setSelectedCountry(country);
         setIsOpen(false);
-        onChange(`${country.code} ${phoneNumber}`);
+        onChange(`${country.code || country.dial_code} ${phoneNumber}`);
     };
 
     return (
@@ -124,9 +121,9 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                         type="button"
                         ref={buttonRef}
                         onClick={toggleOpen}
-                        className="flex items-center gap-1 px-2.5 border-r border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors rounded-l-lg shrink-0"
+                        className="flex items-center gap-1.5 px-2.5 border-r border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors rounded-l-lg shrink-0 cursor-pointer"
                     >
-                        <span className="text-base leading-none">{selectedCountry.flag}</span>
+                        <CountryFlag code={selectedCountry.code || selectedCountry.id} name={selectedCountry.name} fallbackEmoji={selectedCountry.flag || selectedCountry.emoji} size="sm" />
                         <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{selectedCountry.code}</span>
                         <span className={`material-symbols-outlined text-xs text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
                             expand_more
@@ -145,9 +142,7 @@ const PhoneInput = ({ value, onChange, label, error }) => {
 
                 {/* Dropdown */}
                 {isOpen && (
-                    <div className={`absolute left-0 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in duration-200 ${
-                        openUpwards ? 'bottom-full mb-2 slide-in-from-bottom-2' : 'top-full mt-2 slide-in-from-top-2'
-                    }`}>
+                    <div className={`absolute left-0 mt-1 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200`}>
                         <div className="p-2 border-b border-slate-100 dark:border-slate-800">
                             <div className="relative">
                                 <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
@@ -155,7 +150,7 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                                     type="text"
                                     placeholder="Search country..."
                                     value={searchTerm}
-                                    onChange={handleSearchChange}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
                                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 pl-8 pr-3 py-1.5 rounded-lg text-xs focus:outline-none focus:border-primary"
                                     autoFocus
                                 />
@@ -164,19 +159,19 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                         <div className="max-h-56 overflow-y-auto custom-scrollbar py-1">
                             {filteredCountries.map((country, index) => (
                                 <button
-                                    key={country.id}
+                                    key={country.code || country.id}
                                     type="button"
                                     onClick={() => handleCountrySelect(country)}
-                                    className={`w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs ${
-                                        selectedCountry.id === country.id ? 'bg-primary/5 dark:bg-primary/10' : ''
+                                    className={`w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs cursor-pointer ${
+                                        (selectedCountry.code === country.code) ? 'bg-primary/5 dark:bg-primary/10' : ''
                                     } ${activeIndex === index ? 'bg-slate-100 dark:bg-slate-800' : ''}`}
                                 >
                                     <div className="flex items-center gap-2">
-                                        <span className="text-sm leading-none">{country.flag}</span>
-                                        <span className="font-semibold text-slate-700 dark:text-slate-300">{country.code}</span>
+                                        <CountryFlag code={country.code || country.id} name={country.name} fallbackEmoji={country.flag || country.emoji} size="sm" />
+                                        <span className="font-semibold text-slate-700 dark:text-slate-300">{country.dial_code || country.code}</span>
                                         <span className="font-medium text-slate-500 dark:text-slate-400">{country.name}</span>
                                     </div>
-                                    {selectedCountry.id === country.id && (
+                                    {selectedCountry.code === country.code && (
                                         <span className="material-symbols-outlined text-primary text-sm">check</span>
                                     )}
                                 </button>

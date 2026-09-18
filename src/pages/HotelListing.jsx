@@ -252,16 +252,26 @@ const PriceMarker = React.memo(({
 
     const priceDisplay = hotel.price ? Math.round(hotel.price).toLocaleString('tr-TR') : '';
 
-    // Smart placement: check if marker is near top ONLY when popup is active to avoid recalculations during map zoom
-    const isNearTop = React.useMemo(() => {
-        if (!isMarkerDirectHovered || !map || !hotel.lat || !hotel.lng) return false;
+    const checkIsNearTop = React.useCallback(() => {
+        if (!map || !hotel.lat || !hotel.lng) return false;
         try {
             const point = map.latLngToContainerPoint([parseFloat(hotel.lat), parseFloat(hotel.lng)]);
-            return point.y < 250;
+            const mapHeight = map.getSize ? map.getSize().y : 700;
+            // If the marker point is in the upper half of the map or within 380px of top, open downwards
+            return point.y < Math.max(380, mapHeight * 0.48);
         } catch (e) {
             return false;
         }
-    }, [isMarkerDirectHovered, map, hotel.lat, hotel.lng]);
+    }, [map, hotel.lat, hotel.lng]);
+
+    const [isNearTop, setIsNearTop] = React.useState(false);
+
+    // Update position whenever hover happens or when marker moves
+    React.useEffect(() => {
+        if (isMarkerDirectHovered) {
+            setIsNearTop(checkIsNearTop());
+        }
+    }, [isMarkerDirectHovered, checkIsNearTop]);
 
     // Automatically open/close popup on direct marker hover and toggle marker-hovered class on any hover
     React.useEffect(() => {
@@ -280,7 +290,7 @@ const PriceMarker = React.memo(({
                 markerRef.current.closePopup();
             }
         }
-    }, [isHovered, isMarkerDirectHovered]);
+    }, [isHovered, isMarkerDirectHovered, isNearTop]);
 
     React.useEffect(() => {
         if (!isHovered) {
@@ -293,15 +303,18 @@ const PriceMarker = React.memo(({
             clearTimeout(leaveTimerRef.current);
             leaveTimerRef.current = null;
         }
+        if (isMarkerDirectHovered) return;
         if (enterTimerRef.current) {
             clearTimeout(enterTimerRef.current);
         }
+        setIsNearTop(checkIsNearTop());
         enterTimerRef.current = setTimeout(() => {
+            setIsNearTop(checkIsNearTop());
             setIsMarkerDirectHovered(true);
             onHover(hotel);
             enterTimerRef.current = null;
-        }, 450);
-    }, [onHover, hotel]);
+        }, 400);
+    }, [isMarkerDirectHovered, onHover, hotel, checkIsNearTop]);
 
     const handleMouseLeave = React.useCallback(() => {
         if (enterTimerRef.current) {
@@ -311,11 +324,36 @@ const PriceMarker = React.memo(({
         if (leaveTimerRef.current) {
             clearTimeout(leaveTimerRef.current);
         }
-        setIsMarkerDirectHovered(false);
         leaveTimerRef.current = setTimeout(() => {
+            setIsMarkerDirectHovered(false);
             onHover(null);
             leaveTimerRef.current = null;
-        }, 200);
+        }, 300);
+    }, [onHover]);
+
+    const handlePopupMouseEnter = React.useCallback(() => {
+        if (leaveTimerRef.current) {
+            clearTimeout(leaveTimerRef.current);
+            leaveTimerRef.current = null;
+        }
+        if (enterTimerRef.current) {
+            clearTimeout(enterTimerRef.current);
+            enterTimerRef.current = null;
+        }
+        setIsNearTop(checkIsNearTop());
+        setIsMarkerDirectHovered(true);
+        onHover(hotel);
+    }, [onHover, hotel, checkIsNearTop]);
+
+    const handlePopupMouseLeave = React.useCallback(() => {
+        if (leaveTimerRef.current) {
+            clearTimeout(leaveTimerRef.current);
+        }
+        leaveTimerRef.current = setTimeout(() => {
+            setIsMarkerDirectHovered(false);
+            onHover(null);
+            leaveTimerRef.current = null;
+        }, 300);
     }, [onHover]);
 
     const handleClick = React.useCallback(() => {
@@ -347,9 +385,10 @@ const PriceMarker = React.memo(({
         // Compact bubble geometry
         const H = 26; // Pill height
         const R = 13; // Fully rounded capsule radius (no sharp corners)
-        const tailTipX = 33; // Pointer tail tip X coordinate
         const favWidth = isFav ? 14 : 0;
-        const W = Math.max(58, Math.round(4 + 18 + 4 + textWidth + favWidth + 8));
+        const W = Math.max(64, Math.round(26 + textWidth + favWidth + 10));
+        const centerX = Math.round(W / 2);
+        const tailTipX = centerX; // Pointer tail tip X coordinate exactly centered
 
         // Colors & styles matching Rose/Raspberry #F75270 theme
         const bgFill = isSelected ? '#F75270' : '#ffffff';
@@ -361,16 +400,18 @@ const PriceMarker = React.memo(({
             ? 'drop-shadow(0 4px 12px rgba(247,82,112,0.45)) drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
             : 'drop-shadow(0 1.5px 3px rgba(0,0,0,0.1)) drop-shadow(0 0.5px 1.5px rgba(0,0,0,0.06))';
 
-        // Unified SVG path: fully rounded pill / capsule with smooth curved tail
+        // Unified SVG path: fully rounded pill / capsule with smooth centered curved tail
+        const tR = centerX + 7;
+        const tL = centerX - 7;
         const path = `
             M ${R} 0
             L ${W - R} 0
             A ${R} ${R} 0 0 1 ${W} ${R}
             A ${R} ${R} 0 0 1 ${W - R} ${H}
-            L 40 ${H}
-            C 38 ${H}, 36 27.8, 34.8 30.2
-            C 34.2 31.5, 32.8 31.5, 32.2 30.2
-            C 31 27.8, 29 ${H}, 26 ${H}
+            L ${tR} ${H}
+            C ${centerX + 5} ${H}, ${centerX + 3} 27.8, ${centerX + 1.8} 30.2
+            C ${centerX + 1.2} 31.5, ${centerX - 0.2} 31.5, ${centerX - 0.8} 30.2
+            C ${centerX - 2} 27.8, ${centerX - 4} ${H}, ${tL} ${H}
             L ${R} ${H}
             A ${R} ${R} 0 0 1 0 ${R}
             A ${R} ${R} 0 0 1 ${R} 0
@@ -452,12 +493,13 @@ const PriceMarker = React.memo(({
             }}
         >
             <Popup
+                key={isNearTop ? 'down' : 'up'}
                 className={`hotel-price-popup ${isNearTop ? 'popup-downwards' : ''}`}
                 minWidth={220}
                 maxWidth={220}
                 autoPan={false}
                 closeButton={false}
-                offset={isNearTop ? [0, 8] : [0, -34]}
+                offset={isNearTop ? [0, 4] : [0, -38]}
             >
                 <style>{`
                 .leaflet-popup.hotel-price-popup,
@@ -465,26 +507,36 @@ const PriceMarker = React.memo(({
                     transition: none !important;
                     -webkit-transition: none !important;
                     animation: none !important;
+                    pointer-events: auto !important;
                 }
                     .hotel-price-popup .leaflet-popup-content-wrapper { 
                         padding: 0 !important; 
                         border-radius: 6px !important; 
                         overflow: hidden !important; 
-                        box-shadow: 0 6px 20px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.12) !important; 
+                        box-shadow: 0 1px 4px rgba(0,0,0,0.35) !important; 
                         border: none !important;
-                        background: transparent !important;
+                        background: #ffffff !important;
                         transition: none !important;
+                    }
+                    .dark .hotel-price-popup .leaflet-popup-content-wrapper {
+                        box-shadow: 0 1px 4px rgba(0,0,0,0.7) !important;
                     }
                     .hotel-price-popup.popup-downwards {
                         bottom: auto !important;
-                        top: 8px !important;
+                        top: 0px !important;
+                        margin-top: 0 !important;
                         margin-bottom: 0 !important;
                     }
                     .hotel-price-popup.popup-downwards .leaflet-popup-content-wrapper {
                         transform-origin: top center !important;
+                        margin-top: 0 !important;
+                    }
+                    .hotel-price-popup:not(.popup-downwards) {
+                        margin-bottom: 0 !important;
                     }
                     .hotel-price-popup:not(.popup-downwards) .leaflet-popup-content-wrapper {
                         transform-origin: bottom center !important;
+                        margin-bottom: 0 !important;
                     }
                     .hotel-price-popup .leaflet-popup-content { 
                         margin: 0 !important; 
@@ -499,8 +551,8 @@ const PriceMarker = React.memo(({
                     }
                 `}</style>
                     <div
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
+                        onMouseEnter={handlePopupMouseEnter}
+                        onMouseLeave={handlePopupMouseLeave}
                         style={{
                             width: '220px',
                             fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif",

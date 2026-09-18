@@ -118,22 +118,22 @@ const LoginPage = () => {
                 {/* Right Side: Login Card */}
                 <div className="lg:col-span-1"></div> { /* Spacer */}
                 <div className="lg:col-span-4 w-full">
-                    {/* Premium White Frosted Glass Card */}
-                    <div className="bg-white/15 backdrop-blur-2xl rounded-[32px] border border-white/30 shadow-[0_32px_96px_-16px_rgba(0,0,0,0.4)] overflow-hidden animate-in fade-in zoom-in duration-700 relative">
+                    {/* Premium Glass Card */}
+                    <div className="bg-slate-950/50 backdrop-blur-2xl rounded-2xl border border-white/[0.12] shadow-[0_24px_64px_-12px_rgba(0,0,0,0.6)] ring-1 ring-white/5 overflow-hidden animate-in fade-in zoom-in duration-700 relative">
                         
                         {!isResetMode ? (
                             <>
                                 {/* Card Header */}
                                 <div className="p-8 pb-0 text-center">
-                                    <h2 className="text-2xl font-black text-white mb-2 tracking-tight drop-shadow-md">{t('common.signIn')}</h2>
-                                    <p className="text-white/90 text-sm font-semibold drop-shadow-xs">{t('login.subtitle')}</p>
+                                    <h2 className="text-2xl font-black text-white mb-2 tracking-tight drop-shadow-xs">{t('common.signIn')}</h2>
+                                    <p className="text-slate-300 text-sm font-medium">{t('login.subtitle')}</p>
                                 </div>
 
                                 {/* Login Form */}
                                 <form onSubmit={handleSubmit} className="p-8 space-y-5 relative">
                                     <div className="space-y-4">
                                         <div className="group relative transition-all">
-                                            <div className="absolute left-4 top-3.5 text-white/80 group-focus-within:text-white transition-colors z-10">
+                                            <div className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-sky-400 transition-colors z-10">
                                                 <span className="material-symbols-outlined text-[20px]">mail</span>
                                             </div>
                                             <input
@@ -142,12 +142,12 @@ const LoginPage = () => {
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 placeholder={t('login.email')}
-                                                className="w-full bg-white/20 border border-white/30 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-white/70 font-semibold focus:outline-none focus:bg-white/30 focus:border-white transition-all text-sm shadow-sm backdrop-blur-md"
+                                                className="w-full bg-slate-950/40 border border-white/[0.12] rounded-xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-400/80 font-medium focus:outline-none focus:bg-slate-950/60 focus:border-sky-500/80 focus:ring-2 focus:ring-sky-500/20 transition-all text-sm shadow-inner backdrop-blur-md"
                                             />
                                         </div>
 
                                         <div className="group relative transition-all">
-                                            <div className="absolute left-4 top-3.5 text-white/80 group-focus-within:text-white transition-colors z-10">
+                                            <div className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-sky-400 transition-colors z-10">
                                                 <span className="material-symbols-outlined text-[20px]">lock_open</span>
                                             </div>
                                             <input
@@ -156,12 +156,12 @@ const LoginPage = () => {
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
                                                 placeholder={t('login.password')}
-                                                className="w-full bg-white/20 border border-white/30 rounded-2xl py-3.5 pl-12 pr-12 text-white placeholder:text-white/70 font-semibold focus:outline-none focus:bg-white/30 focus:border-white transition-all text-sm shadow-sm backdrop-blur-md"
+                                                className="w-full bg-slate-950/40 border border-white/[0.12] rounded-xl py-3.5 pl-12 pr-12 text-white placeholder:text-slate-400/80 font-medium focus:outline-none focus:bg-slate-950/60 focus:border-sky-500/80 focus:ring-2 focus:ring-sky-500/20 transition-all text-sm shadow-inner backdrop-blur-md"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-4 top-3.5 text-white/80 hover:text-white transition-colors z-10 flex items-center justify-center"
+                                                className="absolute right-4 top-3.5 text-slate-400 hover:text-white transition-colors z-10 flex items-center justify-center"
                                             >
                                                 <span className="material-symbols-outlined text-[20px]">
                                                     {showPassword ? "visibility_off" : "visibility"}
@@ -172,11 +172,11 @@ const LoginPage = () => {
 
                                     <div className="flex items-center justify-between px-1">
                                         <label className="flex items-center gap-2.5 cursor-pointer group">
-                                            <div className="w-4 h-4 rounded border border-white/40 bg-white/10 flex items-center justify-center group-hover:border-white transition-colors backdrop-blur-xs">
+                                            <div className="w-4 h-4 rounded border border-white/25 bg-white/5 flex items-center justify-center group-hover:border-white/50 transition-colors">
                                                 <input type="checkbox" className="appearance-none peer" />
-                                                <div className="hidden peer-checked:block w-2.5 h-2.5 bg-primary rounded-[2px]"></div>
+                                                <div className="hidden peer-checked:block w-2.5 h-2.5 bg-sky-500 rounded-[2px]"></div>
                                             </div>
-                                            <span className="text-xs font-bold text-white/90 group-hover:text-white transition-colors drop-shadow-xs">{t('login.keepMeSignedIn', 'Keep me signed in')}</span>
+                                            <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">{t('login.keepMeSignedIn', 'Keep me signed in')}</span>
                                         </label>
                                         <button 
                                             type="button"
@@ -184,25 +184,25 @@ const LoginPage = () => {
                                                 setIsResetMode(true);
                                                 setError('');
                                             }}
-                                            className="text-xs font-extrabold text-sky-300 hover:text-white transition-colors drop-shadow-xs"
+                                            className="text-xs font-semibold text-sky-400 hover:text-sky-300 transition-colors"
                                         >
                                             {t('login.forgotPassword')}
                                         </button>
                                     </div>
 
                                     {error && (
-                                        <div className="p-3 rounded-xl bg-red-500/30 backdrop-blur-md border border-red-400/40 flex items-center gap-3 text-white animate-in fade-in slide-in-from-top-2 shadow-sm">
-                                            <span className="material-symbols-outlined text-sm text-red-200">warning</span>
-                                            <span className="text-xs font-bold">{error}</span>
+                                        <div className="p-3 rounded-xl bg-red-500/20 backdrop-blur-md border border-red-400/30 flex items-center gap-3 text-red-200 animate-in fade-in slide-in-from-top-2 shadow-sm">
+                                            <span className="material-symbols-outlined text-sm text-red-400">warning</span>
+                                            <span className="text-xs font-semibold">{error}</span>
                                         </div>
                                     )}
 
                                     <button
                                         type="submit"
                                         disabled={isLoading}
-                                        className="w-full relative overflow-hidden bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white p-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.01] active:scale-[0.98] transition-all disabled:opacity-70 group"
+                                        className="w-full relative overflow-hidden bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:via-blue-500 hover:to-indigo-500 text-white p-3.5 rounded-xl font-bold uppercase text-xs tracking-wider shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-70 group cursor-pointer"
                                     >
-                                        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                                        <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                                         <span className="relative flex items-center justify-center gap-2">
                                             {isLoading ? t('login.loggingIn') : t('login.signInButton')}
                                             {!isLoading && <span className="material-symbols-outlined text-sm">arrow_forward</span>}
@@ -214,20 +214,20 @@ const LoginPage = () => {
                             <>
                                 {/* Recovery Header */}
                                 <div className="p-8 pb-0 text-center">
-                                    <h2 className="text-2xl font-black text-white mb-2 drop-shadow-md">Password Recovery</h2>
-                                    <p className="text-white/90 text-sm font-semibold drop-shadow-xs">Enter your email to receive instructions</p>
+                                    <h2 className="text-2xl font-black text-white mb-2 drop-shadow-xs">Password Recovery</h2>
+                                    <p className="text-slate-300 text-sm font-medium">Enter your email to receive instructions</p>
                                 </div>
 
                                 {resetSuccess ? (
                                     <div className="p-8 text-center space-y-6">
-                                        <div className="size-20 bg-emerald-500/30 backdrop-blur-md rounded-full flex items-center justify-center text-white mx-auto border border-emerald-400/40 shadow-lg">
-                                            <span className="material-symbols-outlined text-4xl animate-in zoom-in duration-500">mark_email_read</span>
+                                        <div className="size-16 bg-emerald-500/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-emerald-400 mx-auto border border-emerald-500/30 shadow-lg">
+                                            <span className="material-symbols-outlined text-3xl animate-in zoom-in duration-500">mark_email_read</span>
                                         </div>
                                         <div className="space-y-2">
-                                            <h3 className="text-white font-black text-lg drop-shadow-md">Instructions Sent!</h3>
-                                            <p className="text-white/90 text-sm leading-relaxed drop-shadow-xs">
+                                            <h3 className="text-white font-bold text-lg">Instructions Sent!</h3>
+                                            <p className="text-slate-300 text-sm leading-relaxed">
                                                 We've sent password reset instructions to <br/>
-                                                <span className="text-white font-bold">{resetEmail}</span>
+                                                <span className="text-white font-semibold">{resetEmail}</span>
                                             </p>
                                         </div>
                                         <button
@@ -236,7 +236,7 @@ const LoginPage = () => {
                                                 setResetSuccess(false);
                                                 setResetEmail('');
                                             }}
-                                            className="w-full bg-white/20 border border-white/30 text-white p-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-white/30 backdrop-blur-md transition-all shadow-md"
+                                            className="w-full bg-white/10 hover:bg-white/15 border border-white/[0.12] text-white p-3.5 rounded-xl font-bold uppercase text-xs tracking-wider backdrop-blur-md transition-all shadow-sm cursor-pointer"
                                         >
                                             Back to Login
                                         </button>
@@ -244,7 +244,7 @@ const LoginPage = () => {
                                 ) : (
                                     <form onSubmit={handleResetPassword} className="p-8 space-y-5">
                                         <div className="group relative transition-all">
-                                            <div className="absolute left-4 top-3.5 text-white/80 group-focus-within:text-white transition-colors z-10">
+                                            <div className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-sky-400 transition-colors z-10">
                                                 <span className="material-symbols-outlined text-[20px]">mail</span>
                                             </div>
                                             <input
@@ -253,21 +253,21 @@ const LoginPage = () => {
                                                 value={resetEmail}
                                                 onChange={(e) => setResetEmail(e.target.value)}
                                                 placeholder="Enter registered email"
-                                                className="w-full bg-white/20 border border-white/30 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-white/70 font-semibold focus:outline-none focus:bg-white/30 focus:border-white transition-all text-sm shadow-sm backdrop-blur-md"
+                                                className="w-full bg-slate-950/40 border border-white/[0.12] rounded-xl py-3.5 pl-12 pr-4 text-white placeholder:text-slate-400/80 font-medium focus:outline-none focus:bg-slate-950/60 focus:border-sky-500/80 focus:ring-2 focus:ring-sky-500/20 transition-all text-sm shadow-inner backdrop-blur-md"
                                             />
                                         </div>
 
                                         {error && (
-                                            <div className="p-3 rounded-xl bg-red-500/30 backdrop-blur-md border border-red-400/40 flex items-center gap-3 text-white">
-                                                <span className="material-symbols-outlined text-sm text-red-200">warning</span>
-                                                <span className="text-xs font-bold">{error}</span>
+                                            <div className="p-3 rounded-xl bg-red-500/20 backdrop-blur-md border border-red-400/30 flex items-center gap-3 text-red-200">
+                                                <span className="material-symbols-outlined text-sm text-red-400">warning</span>
+                                                <span className="text-xs font-semibold">{error}</span>
                                             </div>
                                         )}
 
                                         <button
                                             type="submit"
                                             disabled={isLoading || !resetEmail}
-                                            className="w-full relative overflow-hidden bg-primary text-white p-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-primary/30 hover:shadow-primary/50 active:scale-[0.98] transition-all disabled:opacity-50"
+                                            className="w-full relative overflow-hidden bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:via-blue-500 hover:to-indigo-500 text-white p-3.5 rounded-xl font-bold uppercase text-xs tracking-wider shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 active:scale-[0.99] transition-all disabled:opacity-50 cursor-pointer"
                                         >
                                             Send Reset Link
                                         </button>
@@ -278,7 +278,7 @@ const LoginPage = () => {
                                                 setIsResetMode(false);
                                                 setError('');
                                             }}
-                                            className="w-full text-xs font-bold text-white/90 hover:text-white transition-colors drop-shadow-xs"
+                                            className="w-full text-xs font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
                                         >
                                             I remember my password
                                         </button>
@@ -289,9 +289,12 @@ const LoginPage = () => {
                     </div>
 
                     <div className="text-center mt-6">
-                        <p className="text-[10px] font-bold text-white/90 uppercase tracking-[0.3em] bg-white/10 px-4 py-1.5 rounded-full border border-white/20 backdrop-blur-md inline-block shadow-md">
-                            Secure Connection • 256-bit SSL
-                        </p>
+                        <div className="inline-flex items-center gap-2 bg-slate-950/40 px-3.5 py-1.5 rounded-full border border-white/[0.08] backdrop-blur-md shadow-xs">
+                            <span className="material-symbols-outlined text-[14px] text-emerald-400">verified_user</span>
+                            <span className="text-[11px] font-medium text-slate-300 tracking-wider uppercase">
+                                Secure Connection • 256-bit SSL
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>

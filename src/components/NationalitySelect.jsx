@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { countries } from '../data/countries';
 import { getUserCountryCode } from '../utils/geoUtils';
+import CountryFlag from './CountryFlag';
 
 const PRIORITY_COUNTRY_CODES = ['GB', 'FR', 'DE', 'RU', 'US', 'CN', 'ES', 'NL', 'AT', 'JP'];
 
@@ -233,12 +234,14 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                                             : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200 font-normal'
                                     }`}
                                 >
-                                    <span className="w-6 flex items-center justify-start shrink-0">
+                                    <span className="w-5 flex items-center justify-start shrink-0 mr-1">
                                         {isSelected && (
-                                            <span className="material-symbols-outlined text-[#1a73e8] dark:text-blue-400 text-[19px]">check</span>
+                                            <span className="material-symbols-outlined text-[#1a73e8] dark:text-blue-400 text-[18px]">check</span>
                                         )}
                                     </span>
-                                    <span className="text-xl shrink-0 mr-3 leading-none">{country.flag}</span>
+                                    <span className="mr-3 flex items-center shrink-0">
+                                        <CountryFlag code={country.code} name={country.name} fallbackEmoji={country.flag} size="md" />
+                                    </span>
                                     <span className="text-[14px] truncate flex-1">{country.name}</span>
                                     <span className={`text-[12px] font-mono ml-2 shrink-0 ${isSelected ? 'text-[#1a73e8] dark:text-blue-300 font-medium' : 'text-[#70757a] dark:text-slate-400'}`}>
                                         {country.code}
@@ -265,12 +268,14 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                                             : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200 font-normal'
                                     }`}
                                 >
-                                    <span className="w-6 flex items-center justify-start shrink-0">
+                                    <span className="w-5 flex items-center justify-start shrink-0 mr-1">
                                         {isSelected && (
-                                            <span className="material-symbols-outlined text-[#1a73e8] dark:text-blue-400 text-[19px]">check</span>
+                                            <span className="material-symbols-outlined text-[#1a73e8] dark:text-blue-400 text-[18px]">check</span>
                                         )}
                                     </span>
-                                    <span className="text-xl shrink-0 mr-3 leading-none">{country.flag}</span>
+                                    <span className="mr-3 flex items-center shrink-0">
+                                        <CountryFlag code={country.code} name={country.name} fallbackEmoji={country.flag} size="md" />
+                                    </span>
                                     <span className="text-[14px] truncate flex-1">{country.name}</span>
                                     <span className={`text-[12px] font-mono ml-2 shrink-0 ${isSelected ? 'text-[#1a73e8] dark:text-blue-300 font-medium' : 'text-[#70757a] dark:text-slate-400'}`}>
                                         {country.code}
@@ -294,12 +299,14 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                                             : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200 font-normal'
                                     }`}
                                 >
-                                    <span className="w-6 flex items-center justify-start shrink-0">
+                                    <span className="w-5 flex items-center justify-start shrink-0 mr-1">
                                         {isSelected && (
-                                            <span className="material-symbols-outlined text-[#1a73e8] dark:text-blue-400 text-[19px]">check</span>
+                                            <span className="material-symbols-outlined text-[#1a73e8] dark:text-blue-400 text-[18px]">check</span>
                                         )}
                                     </span>
-                                    <span className="text-xl shrink-0 mr-3 leading-none">{country.flag}</span>
+                                    <span className="mr-3 flex items-center shrink-0">
+                                        <CountryFlag code={country.code} name={country.name} fallbackEmoji={country.flag} size="md" />
+                                    </span>
                                     <span className="text-[14px] truncate flex-1">{country.name}</span>
                                     <span className={`text-[12px] font-mono ml-2 shrink-0 ${isSelected ? 'text-[#1a73e8] dark:text-blue-300 font-medium' : 'text-[#70757a] dark:text-slate-400'}`}>
                                         {country.code}
@@ -318,7 +325,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
             {/* --- Footer Bar --- */}
             <div className="flex items-center justify-between pt-3 mt-3 border-t border-[#dadce0] dark:border-slate-700">
                 <div className="flex items-center gap-2 text-[13px] text-[#5f6368] dark:text-slate-300 min-w-0">
-                    <span className="text-base shrink-0">{selectedCountry?.flag}</span>
+                    <CountryFlag code={selectedCountry?.code} name={selectedCountry?.name} fallbackEmoji={selectedCountry?.flag} size="sm" />
                     <span className="truncate font-normal">
                         {selectedCountry?.name || selectedCountry?.code}
                     </span>
@@ -349,7 +356,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                     title={t('common.nationality', 'Vatandaşlık')}
                 >
                     <div className={`flex items-center ${compact ? 'gap-1.5' : 'gap-2.5 sm:gap-3'} min-w-0 flex-1`}>
-                        <span className="text-lg flex-shrink-0 leading-none">{selectedCountry?.flag}</span>
+                        <CountryFlag code={selectedCountry?.code} name={selectedCountry?.name} fallbackEmoji={selectedCountry?.flag} size="md" />
                         {!compact && (
                             <span className="text-[14px] font-normal text-[#202124] dark:text-white truncate">
                                 {selectedCountry?.name || selectedCountry?.code || 'Türkiye'}
@@ -371,7 +378,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                     type="button"
                     onClick={toggleOpen}
                     className={`nationality-trigger ${googleStyle 
-                        ? `flex items-center gap-1.5 px-3 py-1.5 rounded transition-colors font-normal text-[13px] focus:outline-none cursor-pointer ${
+                        ? `flex items-center gap-2 px-3 py-1.5 rounded transition-colors font-normal text-[13px] focus:outline-none cursor-pointer ${
                             isOpen 
                                 ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300' 
                                 : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-700/50 text-[#3c4043] dark:text-slate-300'
@@ -379,7 +386,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                         : `w-full flex items-center gap-2 bg-transparent border-none p-0 focus:ring-0 ${compact ? 'justify-center' : ''}`
                     }`}
                 >
-                    <span className={`${compact ? 'text-lg' : 'text-base'} flex-shrink-0`}>{selectedCountry?.flag}</span>
+                    <CountryFlag code={selectedCountry?.code} name={selectedCountry?.name} fallbackEmoji={selectedCountry?.flag} size={compact ? "sm" : "md"} />
                     <span className={`${compact ? 'text-[11px]' : 'text-[13px]'} font-normal truncate`}>
                         {compact || googleStyle ? selectedCountry?.code : selectedCountry?.name}
                     </span>

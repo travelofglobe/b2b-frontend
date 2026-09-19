@@ -160,14 +160,24 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
     const showPopover = (isOpen || isClosing) && canUseDOM;
 
     const popoverContent = (
-        <div
-            ref={popoverRef}
-            className="fixed left-1/2 bottom-3 sm:bottom-4 z-[1000] bg-white dark:bg-[#202124] rounded-[8px] shadow-[0_8px_32px_rgba(0,0,0,0.16),0_1px_3px_rgba(60,64,67,0.25)] border border-[#dadce0] dark:border-slate-700 p-4 sm:p-5 w-[94vw] max-w-[420px] max-h-[calc(100vh-24px)] flex flex-col font-roboto transition-all duration-300 ease-out pointer-events-auto"
-            style={{
-                transform: isMounted && !isClosing ? 'translate(-50%, 0)' : 'translate(-50%, 48px)',
-                opacity: isMounted && !isClosing ? 1 : 0
-            }}
-        >
+        <>
+            {/* Spotlight Backdrop Dimming Overlay */}
+            <div
+                onClick={() => handleCloseWithAnimation()}
+                className="fixed inset-0 z-[999] bg-black/10 transition-opacity duration-300 pointer-events-auto"
+                style={{
+                    opacity: isMounted && !isClosing ? 1 : 0
+                }}
+            />
+
+            <div
+                ref={popoverRef}
+                className="fixed left-1/2 bottom-3 sm:bottom-4 z-[1000] bg-white dark:bg-[#202124] rounded-[4px] shadow-[0_6px_24px_rgba(0,0,0,0.09),0_1px_3px_rgba(60,64,67,0.1)] border border-[#dadce0] dark:border-slate-700 p-4 sm:p-5 w-[94vw] max-w-[420px] max-h-[calc(100vh-24px)] flex flex-col font-roboto transition-all duration-300 ease-out pointer-events-auto"
+                style={{
+                    transform: isMounted && !isClosing ? 'translate(-50%, 0)' : 'translate(-50%, 48px)',
+                    opacity: isMounted && !isClosing ? 1 : 0
+                }}
+            >
             {/* --- Top Header Bar --- */}
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#dadce0] dark:border-slate-700">
                 <div className="flex items-center gap-2">
@@ -339,6 +349,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                 </button>
             </div>
         </div>
+        </>
     );
 
     return (

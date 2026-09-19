@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import HolidaySidePanel from './HolidaySidePanel';
 
@@ -50,6 +51,7 @@ const GoogleFlightDatePicker = ({
     align = 'left' // 'left' | 'right'
 }) => {
     const { t, i18n } = useTranslation();
+    const currentLang = (i18n?.language || 'en').split('-')[0].toLowerCase();
     const popoverRef = useRef(null);
 
     // Visible base month (left month)
@@ -261,7 +263,7 @@ const GoogleFlightDatePicker = ({
         return headers;
     }, [i18n.language]);
 
-    if (!isOpen) return null;
+    if (!isOpen && !isClosing) return null;
 
     // Render single calendar month
     const renderCalendarMonth = (monthDate, days) => {
@@ -397,189 +399,205 @@ const GoogleFlightDatePicker = ({
 
     if (!isOpen && !isClosing) return null;
 
-    return (
-        <div
-            ref={popoverRef}
-            className="fixed left-1/2 bottom-3 z-[1000] bg-white dark:bg-[#202124] rounded-[8px] shadow-[0_8px_32px_rgba(0,0,0,0.16),0_1px_3px_rgba(60,64,67,0.25)] border border-[#dadce0] dark:border-slate-700 p-5 sm:p-6 max-w-[96vw] max-h-[calc(100vh-24px)] overflow-y-auto font-roboto transition-all duration-300 ease-out pointer-events-auto"
-            style={{
-                width: 'max-content',
-                transform: isMounted && !isClosing ? 'translate(-50%, 0)' : 'translate(-50%, 48px)',
-                opacity: isMounted && !isClosing ? 1 : 0
-            }}
-        >
-            <div className="flex flex-col md:flex-row gap-6">
-                {/* Calendars Container */}
-                <div className="flex-1">
-                    {/* --- Top Bar (Sıfırla on left, Twin Date boxes on right) --- */}
-                    <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#dadce0] dark:border-slate-700">
-                        {/* Reset button */}
-                        <button
-                            type="button"
-                            onClick={handleReset}
-                            className="text-[14px] text-[#1a73e8] hover:text-[#1557b0] font-medium px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors cursor-pointer"
-                        >
-                            {t('common.reset', 'Sıfırla')}
-                        </button>
+    const modalContent = (
+        <>
+            {/* Spotlight Backdrop Dimming Overlay */}
+            <div
+                onClick={() => handleCloseWithAnimation(checkInDate, checkOutDate, false)}
+                className="fixed inset-0 z-[999] bg-black/25 backdrop-blur-[1px] transition-opacity duration-300 pointer-events-auto"
+                style={{
+                    opacity: isMounted && !isClosing ? 1 : 0
+                }}
+            />
 
-                        {/* Twin Date Inputs in Popover Header (matching Google Flights) */}
-                        <div className={`relative flex items-center h-10 bg-white dark:bg-[#303134] font-roboto ${
-                            activeField === 'checkIn' || activeField === 'checkOut'
-                                ? ''
-                                : 'border border-[#dadce0] dark:border-slate-600 rounded-[4px]'
-                        }`}>
-                            {/* Check-In Cell */}
-                            <div
-                                onClick={() => setActiveField('checkIn')}
-                                className={`relative flex items-center gap-1.5 px-3 h-full cursor-pointer transition-colors ${
-                                    activeField === 'checkIn'
-                                        ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
-                                        : activeField === 'checkOut'
-                                        ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-[4px] hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
-                                        : 'rounded-l-[4px] hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
-                                }`}
+            {/* Datepicker Popover */}
+            <div
+                ref={popoverRef}
+                className="fixed left-1/2 bottom-3 z-[1000] bg-white dark:bg-[#202124] rounded-[4px] shadow-[0_8px_32px_rgba(0,0,0,0.16),0_1px_3px_rgba(60,64,67,0.25)] border border-[#dadce0] dark:border-slate-700 p-5 sm:p-6 max-w-[96vw] max-h-[calc(100vh-24px)] overflow-y-auto font-roboto transition-all duration-300 ease-out pointer-events-auto"
+                style={{
+                    width: 'max-content',
+                    transform: isMounted && !isClosing ? 'translate(-50%, 0)' : 'translate(-50%, 48px)',
+                    opacity: isMounted && !isClosing ? 1 : 0
+                }}
+            >
+                <div className="flex flex-col md:flex-row gap-6">
+                    {/* Calendars Container */}
+                    <div className="flex-1">
+                        {/* --- Top Bar (Sıfırla on left, Twin Date boxes on right) --- */}
+                        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#dadce0] dark:border-slate-700">
+                            {/* Reset button */}
+                            <button
+                                type="button"
+                                onClick={handleReset}
+                                className="text-[14px] text-[#1a73e8] hover:text-[#1557b0] font-medium px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors cursor-pointer"
                             >
-                                <span className="material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400">
-                                    calendar_today
-                                </span>
-                                <span className={`text-[14px] font-normal text-[#202124] dark:text-white whitespace-nowrap min-w-[70px] ${
-                                    activeField === 'checkIn' ? 'bg-[#d2e3fc] dark:bg-blue-900/60 px-1 rounded-[2px]' : ''
-                                }`}>
-                                    {formatGoogleFlightDate(checkInDate, i18n.language) || t('common.selectDate', 'Tarih seçin')}
-                                </span>
-                                {/* Quick increment/decrement arrows */}
-                                <div className="flex items-center text-[#5f6368] dark:text-slate-400 ml-1">
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
-                                        className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded cursor-pointer"
-                                        title={t('common.prevDay', '1 gün geri')}
-                                    >
-                                        <span className="material-symbols-outlined text-[14px]">chevron_left</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); stepCheckIn(1); }}
-                                        className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded cursor-pointer"
-                                        title={t('common.nextDay', '1 gün ileri')}
-                                    >
-                                        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                                    </button>
+                                {t('common.reset', 'Sıfırla')}
+                            </button>
+
+                            {/* Twin Date Inputs in Popover Header (matching Google Flights) */}
+                            <div className={`relative flex items-center h-10 bg-white dark:bg-[#303134] font-roboto ${
+                                activeField === 'checkIn' || activeField === 'checkOut'
+                                    ? ''
+                                    : 'border border-[#dadce0] dark:border-slate-600 rounded-[4px]'
+                            }`}>
+                                {/* Check-In Cell */}
+                                <div
+                                    onClick={() => setActiveField('checkIn')}
+                                    className={`relative flex items-center gap-2 px-3 h-full cursor-pointer transition-colors ${
+                                        activeField === 'checkIn'
+                                            ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                            : activeField === 'checkOut'
+                                            ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-[4px] hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                            : 'rounded-l-[4px] hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined text-[18px] text-[#1a73e8] dark:text-[#8ab4f8] flex-shrink-0">
+                                        calendar_today
+                                    </span>
+                                    <span className={`text-[13.5px] font-medium text-[#3c4043] dark:text-white truncate ${
+                                        activeField === 'checkIn' ? 'bg-[#d2e3fc] dark:bg-blue-900/60 px-1 rounded-[2px]' : ''
+                                    }`}>
+                                        {formatGoogleFlightDate(checkInDate, currentLang) || t('dashboard.checkIn', 'Giriş')}
+                                    </span>
+
+                                    {/* Quick 1-day step buttons */}
+                                    <div className="flex items-center text-[#5f6368] dark:text-slate-300 shrink-0 ml-0.5">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
+                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                            title="1 gün geri"
+                                        >
+                                            <span className="material-symbols-outlined text-[13px]">chevron_left</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); stepCheckIn(1); }}
+                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                            title="1 gün ileri"
+                                        >
+                                            <span className="material-symbols-outlined text-[13px]">chevron_right</span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Divider (only visible when neither cell is actively focused) */}
-                            {activeField !== 'checkIn' && activeField !== 'checkOut' && (
-                                <div className="w-[1px] h-5 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
-                            )}
+                                {/* Middle Divider */}
+                                {!(activeField === 'checkIn' || activeField === 'checkOut') && (
+                                    <div className="w-[1px] h-5 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
+                                )}
 
-                            {/* Check-Out Cell */}
-                            <div
-                                onClick={() => setActiveField('checkOut')}
-                                className={`relative flex items-center gap-1.5 px-3 h-full cursor-pointer transition-colors ${
-                                    activeField === 'checkOut'
-                                        ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
-                                        : activeField === 'checkIn'
-                                        ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-[4px] hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
-                                        : 'rounded-r-[4px] hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
-                                }`}
-                            >
-                                <span className={`text-[14px] font-normal text-[#202124] dark:text-white whitespace-nowrap min-w-[70px] ${
-                                    activeField === 'checkOut' ? 'bg-[#d2e3fc] dark:bg-blue-900/60 px-1 rounded-[2px]' : ''
-                                }`}>
-                                    {formatGoogleFlightDate(checkOutDate, i18n.language) || t('common.selectDate', 'Tarih seçin')}
-                                </span>
-                                {/* Quick increment/decrement arrows */}
-                                <div className="flex items-center text-[#5f6368] dark:text-slate-400 ml-1">
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
-                                        className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded cursor-pointer"
-                                        title={t('common.prevDay', '1 gün geri')}
-                                    >
-                                        <span className="material-symbols-outlined text-[14px]">chevron_left</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); stepCheckOut(1); }}
-                                        className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded cursor-pointer"
-                                        title={t('common.nextDay', '1 gün ileri')}
-                                    >
-                                        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                                    </button>
+                                {/* Check-Out Cell */}
+                                <div
+                                    onClick={() => setActiveField('checkOut')}
+                                    className={`relative flex items-center gap-2 px-3 h-full cursor-pointer transition-colors ${
+                                        activeField === 'checkOut'
+                                            ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                            : activeField === 'checkIn'
+                                            ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-[4px] hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                            : 'rounded-r-[4px] hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                    }`}
+                                >
+                                    <span className={`text-[13.5px] font-medium text-[#3c4043] dark:text-white truncate ${
+                                        activeField === 'checkOut' ? 'bg-[#d2e3fc] dark:bg-blue-900/60 px-1 rounded-[2px]' : ''
+                                    }`}>
+                                        {formatGoogleFlightDate(checkOutDate, currentLang) || t('dashboard.checkOut', 'Çıkış')}
+                                    </span>
+
+                                    {/* Quick 1-day step buttons */}
+                                    <div className="flex items-center text-[#5f6368] dark:text-slate-300 shrink-0 ml-0.5">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
+                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                            title="1 gün geri"
+                                        >
+                                            <span className="material-symbols-outlined text-[13px]">chevron_left</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); stepCheckOut(1); }}
+                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                            title="1 gün ileri"
+                                        >
+                                            <span className="material-symbols-outlined text-[13px]">chevron_right</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* --- 2 Months Grid (Left & Right) with Floating Google Chevrons --- */}
-                    <div 
-                        className="relative flex items-start justify-center gap-6 sm:gap-8 pt-1 px-12 sm:px-14"
-                        onMouseLeave={() => setHoverDate(null)}
-                    >
-                        {/* Prev Month Floating Button */}
-                        {!isBeforeDay(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1), new Date(today.getFullYear(), today.getMonth(), 1)) && (
+                        {/* --- 2-Month Calendar Row --- */}
+                        <div className="relative">
+                            {/* Prev Month Button */}
                             <button
                                 type="button"
                                 onClick={handlePrevMonth}
                                 className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md hover:shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 active:scale-95 cursor-pointer"
-                                title={t('common.prevMonth', 'Önceki ay')}
+                                aria-label="Previous Month"
                             >
-                                <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                                <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                             </button>
-                        )}
 
-                        {/* Left Month */}
-                        {renderCalendarMonth(leftMonth, leftDays)}
+                            {/* Two Month Grids */}
+                            <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 justify-center px-6 sm:px-8">
+                                {renderCalendarMonth(leftMonth, leftDays)}
+                                <div className="hidden sm:block">
+                                    {renderCalendarMonth(rightMonth, rightDays)}
+                                </div>
+                            </div>
 
-                        {/* Right Month */}
-                        {renderCalendarMonth(rightMonth, rightDays)}
+                            {/* Next Month Button */}
+                            <button
+                                type="button"
+                                onClick={handleNextMonth}
+                                className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md hover:shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 active:scale-95 cursor-pointer"
+                                aria-label="Next Month"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                            </button>
+                        </div>
+                    </div>
 
-                        {/* Next Month Floating Button */}
-                        <button
-                            type="button"
-                            onClick={handleNextMonth}
-                            className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md hover:shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 active:scale-95 cursor-pointer"
-                            title={t('common.nextMonth', 'Sonraki ay')}
-                        >
-                            <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                        </button>
+                    {/* --- Right Holiday Side Panel (Desktop only) --- */}
+                    <div className="hidden md:flex border-l border-[#dadce0] dark:border-slate-700 pl-5 overflow-visible">
+                        <HolidaySidePanel
+                            holidays={holidays}
+                            visibleMonth={leftMonth}
+                            className="bg-transparent dark:bg-transparent border-none p-0 overflow-visible"
+                        />
                     </div>
                 </div>
 
-                {/* --- Right: Holiday Side Panel --- */}
-                <div className="hidden md:flex border-l border-[#dadce0] dark:border-slate-700 pl-5 overflow-visible">
-                    <HolidaySidePanel
-                        holidays={holidays}
-                        visibleMonth={leftMonth}
-                        className="bg-transparent dark:bg-transparent border-none p-0 overflow-visible"
-                    />
+                {/* --- Footer (Legend on left, Bitti button on right) --- */}
+                <div className="flex items-center justify-between pt-3.5 mt-3.5 border-t border-[#dadce0] dark:border-slate-700 font-roboto">
+                    {/* Legend indicator */}
+                    <div className="flex items-center gap-6 text-[12.5px] font-normal text-[#5f6368] dark:text-slate-300">
+                        <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-[3px] rounded-full bg-amber-400"></span>
+                            <span className="text-[12.5px] font-normal">{t('dashboard.holidays.publicHolidays', 'Resmi Tatiller')}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-[3px] rounded-full bg-emerald-500"></span>
+                            <span className="text-[12.5px] font-normal">{t('dashboard.holidays.religiousHolidays', 'Dini Tatiller')}</span>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => handleCloseWithAnimation(checkInDate, checkOutDate, true)}
+                        className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[14px] px-7 py-2 transition-all shadow-none hover:shadow active:scale-95 cursor-pointer"
+                    >
+                        {t('common.done', 'Bitti')}
+                    </button>
                 </div>
             </div>
-
-            {/* --- Footer (Legend on left, Bitti button on right) --- */}
-            <div className="flex items-center justify-between pt-3.5 mt-3.5 border-t border-[#dadce0] dark:border-slate-700 font-roboto">
-                {/* Legend indicator */}
-                <div className="flex items-center gap-6 text-[12.5px] font-normal text-[#5f6368] dark:text-slate-300">
-                    <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-[3px] rounded-full bg-amber-400"></span>
-                        <span className="text-[12.5px] font-normal">{t('dashboard.holidays.publicHolidays', 'Resmi Tatiller')}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-[3px] rounded-full bg-emerald-500"></span>
-                        <span className="text-[12.5px] font-normal">{t('dashboard.holidays.religiousHolidays', 'Dini Tatiller')}</span>
-                    </div>
-                </div>
-
-                <button
-                    type="button"
-                    onClick={() => handleCloseWithAnimation(checkInDate, checkOutDate, true)}
-                    className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[14px] px-7 py-2 transition-all shadow-none hover:shadow active:scale-95 cursor-pointer"
-                >
-                    {t('common.done', 'Bitti')}
-                </button>
-            </div>
-        </div>
+        </>
     );
+
+    if (typeof document !== 'undefined') {
+        return createPortal(modalContent, document.body);
+    }
+    return modalContent;
 };
 
 export default GoogleFlightDatePicker;

@@ -404,7 +404,7 @@ const GoogleFlightDatePicker = ({
             {/* Spotlight Backdrop Dimming Overlay */}
             <div
                 onClick={() => handleCloseWithAnimation(checkInDate, checkOutDate, false)}
-                className="fixed inset-0 z-[999] bg-black/25 backdrop-blur-[1px] transition-opacity duration-300 pointer-events-auto"
+                className="fixed inset-0 z-[999] bg-black/10 transition-opacity duration-300 pointer-events-auto"
                 style={{
                     opacity: isMounted && !isClosing ? 1 : 0
                 }}
@@ -413,7 +413,7 @@ const GoogleFlightDatePicker = ({
             {/* Datepicker Popover */}
             <div
                 ref={popoverRef}
-                className="fixed left-1/2 bottom-3 z-[1000] bg-white dark:bg-[#202124] rounded-[4px] shadow-[0_8px_32px_rgba(0,0,0,0.16),0_1px_3px_rgba(60,64,67,0.25)] border border-[#dadce0] dark:border-slate-700 p-5 sm:p-6 max-w-[96vw] max-h-[calc(100vh-24px)] overflow-y-auto font-roboto transition-all duration-300 ease-out pointer-events-auto"
+                className="fixed left-1/2 bottom-3 z-[1000] bg-white dark:bg-[#202124] rounded-[4px] shadow-[0_6px_24px_rgba(0,0,0,0.09),0_1px_3px_rgba(60,64,67,0.1)] border border-[#dadce0] dark:border-slate-700 p-5 sm:p-6 max-w-[96vw] max-h-[calc(100vh-24px)] overflow-y-auto font-roboto transition-all duration-300 ease-out pointer-events-auto"
                 style={{
                     width: 'max-content',
                     transform: isMounted && !isClosing ? 'translate(-50%, 0)' : 'translate(-50%, 48px)',

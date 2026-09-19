@@ -773,12 +773,12 @@ const ListingSearch = ({ isCompact = false }) => {
                     <div
                         className={`w-full transition-all ${
                             showDropdown && hasAnyResults
-                                ? 'absolute top-0 left-0 w-full min-w-[320px] bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-[#3c4043] shadow-[0_4px_24px_rgba(0,0,0,0.18),0_1px_4px_rgba(0,0,0,0.06)] z-[300] overflow-hidden'
-                                : 'h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8]'
+                                ? 'absolute top-0 left-0 w-full min-w-[320px] bg-white dark:bg-[#202124] rounded-[4px] border border-[#dadce0] dark:border-[#3c4043] shadow-[0_4px_24px_rgba(0,0,0,0.18),0_1px_4px_rgba(0,0,0,0.06)] z-[300] overflow-hidden'
+                                : 'h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8]'
                         }`}
                     >
                         <div className={`flex items-center ${isCompact && !(showDropdown && hasAnyResults) ? "gap-2 px-2.5" : "gap-3 px-4"} h-12 w-full ${showDropdown && hasAnyResults ? 'border-b border-[#dadce0] dark:border-[#3c4043]' : ''}`}>
-                            <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 500, 'opsz' 20" }}>
+                            <span className="material-symbols-outlined text-[22px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 600, 'opsz' 22" }}>
                                 {error ? 'error' : 'search'}
                             </span>
                             <input
@@ -829,182 +829,218 @@ const ListingSearch = ({ isCompact = false }) => {
                         {showDropdown && hasAnyResults && (
                             <div className="max-h-[460px] overflow-y-auto py-1 scrollbar-thin">
                                 {/* 1. Search History Items */}
-                                {matchingHistory.map((item, index) => {
-                                    let title = item.query || '';
-                                    let subtitle = item.subtitle || '';
-
-                                    if (!subtitle || subtitle === title) {
-                                        if (title.includes(',')) {
-                                            const parts = title.split(',').map(s => s.trim());
-                                            title = parts[0];
-                                            subtitle = parts.slice(1).join(', ');
-                                        }
-                                    }
-
-                                    const itemType = item.type || item.searchType || 'SEARCH';
-                                    let icon = 'history';
-                                    if (itemType === 'LOCATION') icon = 'location_on';
-                                    else if (itemType === 'HOTEL') icon = 'hotel';
-                                    else if (itemType === 'AIRPORT') icon = 'flight';
-
-                                    const isActive = activeIndex === index;
-                                    const thumbnail = item.thumbnailUrl || item.imageUrl || item.image || item.photo || null;
-
-                                    return (
-                                        <div
-                                            key={item.id || `hist-${index}`}
-                                            data-autocomplete-active={isActive}
-                                            onClick={() => handleSelectHistoryItem(item)}
-                                            className={`w-full text-left px-4 py-2.5 min-h-[48px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors group cursor-pointer ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
-                                        >
-                                            <div className="flex items-center min-w-0 flex-1 mr-2">
-                                                <span className="material-symbols-outlined text-[22px] text-[#5f6368] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
-                                                    {icon}
-                                                </span>
-                                                <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                    <div className="text-[14.5px] leading-snug truncate">
-                                                        {renderHighlightedText(title, query)}
-                                                    </div>
-                                                    {subtitle && (
-                                                        <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
-                                                            {subtitle}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {thumbnail ? (
-                                                <img
-                                                    src={thumbnail}
-                                                    alt={title}
-                                                    className="w-10 h-10 rounded-lg object-cover shadow-xs shrink-0 ml-2 border border-black/5"
-                                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                                />
-                                            ) : (
+                                {matchingHistory.length > 0 && (
+                                    <div>
+                                        <div className="flex items-center justify-between px-4 py-2 border-b border-[#f1f3f4] dark:border-[#3c4043] mb-1">
+                                            <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">Son Aramalar</span>
+                                            {!query.trim() && (
                                                 <button
                                                     type="button"
-                                                    onClick={(e) => handleDeleteHistoryItem(e, item.id)}
-                                                    className="opacity-0 group-hover:opacity-100 p-1 text-[#70757a] hover:text-[#202124] dark:hover:text-white rounded-full transition-all shrink-0 ml-2"
-                                                    title="Sil"
+                                                    onClick={handleClearHistory}
+                                                    className="text-[11px] font-medium text-[#1a73e8] hover:underline transition-colors cursor-pointer"
                                                 >
-                                                    <span className="material-symbols-outlined text-[18px] leading-none block">close</span>
+                                                    Temizle
                                                 </button>
                                             )}
                                         </div>
-                                    );
-                                })}
+                                        <div>
+                                            {matchingHistory.map((item, index) => {
+                                                let title = item.query || '';
+                                                let subtitle = item.subtitle || '';
+
+                                                if (!subtitle || subtitle === title) {
+                                                    if (title.includes(',')) {
+                                                        const parts = title.split(',').map(s => s.trim());
+                                                        title = parts[0];
+                                                        subtitle = parts.slice(1).join(', ');
+                                                    }
+                                                }
+
+                                                const itemType = item.type || item.searchType || 'SEARCH';
+                                                let icon = 'history';
+                                                if (itemType === 'LOCATION') icon = 'location_on';
+                                                else if (itemType === 'HOTEL') icon = 'hotel';
+                                                else if (itemType === 'AIRPORT') icon = 'flight';
+
+                                                const isActive = activeIndex === index;
+                                                const thumbnail = item.thumbnailUrl || item.imageUrl || item.image || item.photo || null;
+
+                                                return (
+                                                    <div
+                                                        key={item.id || `hist-${index}`}
+                                                        data-autocomplete-active={isActive}
+                                                        onClick={() => handleSelectHistoryItem(item)}
+                                                        className={`w-full text-left px-4 py-2.5 min-h-[48px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors group cursor-pointer ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                    >
+                                                        <div className="flex items-center min-w-0 flex-1 mr-2">
+                                                            <span className="material-symbols-outlined text-[22px] text-[#5f6368] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
+                                                                {icon}
+                                                            </span>
+                                                            <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                                                <div className="text-[14.5px] leading-snug truncate">
+                                                                    {renderHighlightedText(title, query)}
+                                                                </div>
+                                                                {subtitle && (
+                                                                    <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
+                                                                        {subtitle}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        {thumbnail ? (
+                                                            <img
+                                                                src={thumbnail}
+                                                                alt={title}
+                                                                className="w-10 h-10 rounded-lg object-cover shadow-xs shrink-0 ml-2 border border-black/5"
+                                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                            />
+                                                        ) : (
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleDeleteHistoryItem(e, item.id)}
+                                                                className="opacity-0 group-hover:opacity-100 p-1 text-[#70757a] hover:text-[#202124] dark:hover:text-white rounded-full transition-all shrink-0 ml-2"
+                                                                title="Sil"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[18px] leading-none block">close</span>
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* 2. Locations / Regions */}
-                                {results.regions.map((region, index) => {
-                                    const rawName = region.name?.translations?.[currentLang] || region.name?.translations?.en || region.name?.defaultName || '';
-                                    const rawSub = getRegionName(region);
-
-                                    let title = rawName;
-                                    let subtitle = rawSub;
-
-                                    if (rawSub === rawName) {
-                                        if (rawName.includes(',')) {
-                                            const parts = rawName.split(',').map(s => s.trim());
-                                            title = parts[0];
-                                            subtitle = parts.slice(1).join(', ');
-                                        } else {
-                                            subtitle = region.countryCode ? `${region.countryCode}` : (ls.cityRegion || 'City / Region');
-                                        }
-                                    } else if (rawSub.startsWith(rawName + ', ')) {
-                                        subtitle = rawSub.slice(rawName.length + 2);
-                                    }
-
-                                    const lower = (rawName + ' ' + rawSub).toLowerCase();
-                                    let locationIcon = 'location_on';
-                                    if (lower.includes('airport') || lower.includes('havalimanı') || lower.includes('havaalanı')) {
-                                        locationIcon = 'flight';
-                                    } else if (lower.includes('tren') || lower.includes('train') || lower.includes('istasyon') || lower.includes('station')) {
-                                        locationIcon = 'train';
-                                    }
-
-                                    const itemIndex = matchingHistory.length + index;
-                                    const isActive = activeIndex === itemIndex;
-
-                                    return (
-                                        <div
-                                            key={region.locationId || `reg-${index}`}
-                                            data-autocomplete-active={isActive}
-                                            onClick={() => handleSelectLocation(region)}
-                                            className={`w-full text-left px-4 py-2.5 min-h-[48px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
-                                        >
-                                            <div className="flex items-center min-w-0 flex-1 mr-2">
-                                                <span className="material-symbols-outlined text-[22px] text-[#5f6368] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
-                                                    {locationIcon}
-                                                </span>
-                                                <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                    <div className="text-[14.5px] leading-snug truncate">
-                                                        {renderHighlightedText(title, query)}
-                                                    </div>
-                                                    {subtitle && (
-                                                        <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
-                                                            {subtitle}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
+                                {results.regions.length > 0 && (
+                                    <div className={matchingHistory.length > 0 ? "border-t border-[#f1f3f4] dark:border-[#3c4043] pt-1" : ""}>
+                                        <div className="px-4 pt-2 pb-1">
+                                            <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.popularDestinations || 'Popüler Noktalar'}</span>
                                         </div>
-                                    );
-                                })}
+                                        <div>
+                                            {results.regions.map((region, index) => {
+                                                const rawName = region.name?.translations?.[currentLang] || region.name?.translations?.en || region.name?.defaultName || '';
+                                                const rawSub = getRegionName(region);
+
+                                                let title = rawName;
+                                                let subtitle = rawSub;
+
+                                                if (rawSub === rawName) {
+                                                    if (rawName.includes(',')) {
+                                                        const parts = rawName.split(',').map(s => s.trim());
+                                                        title = parts[0];
+                                                        subtitle = parts.slice(1).join(', ');
+                                                    } else {
+                                                        subtitle = region.countryCode ? `${region.countryCode}` : (ls.cityRegion || 'City / Region');
+                                                    }
+                                                } else if (rawSub.startsWith(rawName + ', ')) {
+                                                    subtitle = rawSub.slice(rawName.length + 2);
+                                                }
+
+                                                const lower = (rawName + ' ' + rawSub).toLowerCase();
+                                                let locationIcon = 'location_on';
+                                                if (lower.includes('airport') || lower.includes('havalimanı') || lower.includes('havaalanı')) {
+                                                    locationIcon = 'flight';
+                                                } else if (lower.includes('tren') || lower.includes('train') || lower.includes('istasyon') || lower.includes('station')) {
+                                                    locationIcon = 'train';
+                                                }
+
+                                                const itemIndex = matchingHistory.length + index;
+                                                const isActive = activeIndex === itemIndex;
+
+                                                return (
+                                                    <div
+                                                        key={region.locationId || `reg-${index}`}
+                                                        data-autocomplete-active={isActive}
+                                                        onClick={() => handleSelectLocation(region)}
+                                                        className={`w-full text-left px-4 py-2.5 min-h-[48px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                    >
+                                                        <div className="flex items-center min-w-0 flex-1 mr-2">
+                                                            <span className="material-symbols-outlined text-[22px] text-[#5f6368] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
+                                                                {locationIcon}
+                                                            </span>
+                                                            <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                                                <div className="text-[14.5px] leading-snug truncate">
+                                                                    {renderHighlightedText(title, query)}
+                                                                </div>
+                                                                {subtitle && (
+                                                                    <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
+                                                                        {subtitle}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* 3. Hotels */}
-                                {results.hotels.map((hotel, index) => {
-                                    const hotelTitle = getHotelName(hotel);
-                                    let hotelSubtitle = hotel.locationBreadcrumbs 
-                                        ? hotel.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName).reverse().join(', ') 
-                                        : (hotel.countryCode || '');
-
-                                    if (hotelSubtitle.startsWith(hotelTitle + ', ')) {
-                                        hotelSubtitle = hotelSubtitle.slice(hotelTitle.length + 2);
-                                    }
-
-                                    const itemIndex = matchingHistory.length + results.regions.length + index;
-                                    const isActive = activeIndex === itemIndex;
-                                    const thumbnail = hotel.imageUrl || hotel.thumbnailUrl || hotel.image || hotel.heroImage || hotel.photos?.[0] || hotel.images?.[0] || null;
-
-                                    return (
-                                        <div
-                                            key={hotel.hotelId || `hot-${index}`}
-                                            data-autocomplete-active={isActive}
-                                            onClick={() => handleSelectHotel(hotel)}
-                                            className={`w-full text-left px-4 py-2.5 min-h-[48px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
-                                        >
-                                            <div className="flex items-center min-w-0 flex-1 mr-2">
-                                                <span className="material-symbols-outlined text-[22px] text-[#5f6368] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
-                                                    hotel
-                                                </span>
-                                                <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                    <div className="text-[14.5px] leading-snug truncate">
-                                                        {renderHighlightedText(hotelTitle, query)}
-                                                    </div>
-                                                    {hotelSubtitle && (
-                                                        <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
-                                                            {hotelSubtitle}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {thumbnail && (
-                                                <img
-                                                    src={thumbnail}
-                                                    alt={hotelTitle}
-                                                    className="w-10 h-10 rounded-lg object-cover shadow-xs shrink-0 ml-2 border border-black/5"
-                                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                                />
-                                            )}
+                                {results.hotels.length > 0 && (
+                                    <div className={(matchingHistory.length > 0 || results.regions.length > 0) ? "border-t border-[#f1f3f4] dark:border-[#3c4043] pt-1" : ""}>
+                                        <div className="px-4 pt-2 pb-1">
+                                            <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.featuredHotels || 'Oteller'}</span>
                                         </div>
-                                    );
-                                })}
+                                        <div>
+                                            {results.hotels.map((hotel, index) => {
+                                                const hotelTitle = getHotelName(hotel);
+                                                let hotelSubtitle = hotel.locationBreadcrumbs 
+                                                    ? hotel.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName).reverse().join(', ') 
+                                                    : (hotel.countryCode || '');
+
+                                                if (hotelSubtitle.startsWith(hotelTitle + ', ')) {
+                                                    hotelSubtitle = hotelSubtitle.slice(hotelTitle.length + 2);
+                                                }
+
+                                                const itemIndex = matchingHistory.length + results.regions.length + index;
+                                                const isActive = activeIndex === itemIndex;
+                                                const thumbnail = hotel.imageUrl || hotel.thumbnailUrl || hotel.image || hotel.heroImage || hotel.photos?.[0] || hotel.images?.[0] || null;
+
+                                                return (
+                                                    <div
+                                                        key={hotel.hotelId || `hot-${index}`}
+                                                        data-autocomplete-active={isActive}
+                                                        onClick={() => handleSelectHotel(hotel)}
+                                                        className={`w-full text-left px-4 py-2.5 min-h-[48px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                    >
+                                                        <div className="flex items-center min-w-0 flex-1 mr-2">
+                                                            <span className="material-symbols-outlined text-[22px] text-[#5f6368] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
+                                                                hotel
+                                                            </span>
+                                                            <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                                                <div className="text-[14.5px] leading-snug truncate">
+                                                                    {renderHighlightedText(hotelTitle, query)}
+                                                                </div>
+                                                                {hotelSubtitle && (
+                                                                    <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
+                                                                        {hotelSubtitle}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        {thumbnail && (
+                                                            <img
+                                                                src={thumbnail}
+                                                                alt={hotelTitle}
+                                                                className="w-10 h-10 rounded-lg object-cover shadow-xs shrink-0 ml-2 border border-black/5"
+                                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
                 </div>
 
                 {/* Twin Datepicker Container */}
-                    <div className={`${isCompact ? "w-[220px]" : "w-full md:w-[330px] lg:w-[350px]"} flex-shrink-0 relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto transition-all duration-300 rounded-lg overflow-hidden ${
+                    <div className={`${isCompact ? "w-[220px]" : "w-full md:w-[330px] lg:w-[350px]"} flex-shrink-0 relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto transition-all duration-300 rounded-[4px] overflow-hidden ${
                         isDatePickerOpen
                             ? 'border-2 border-[#1a73e8]'
                             : 'border border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
@@ -1145,7 +1181,7 @@ const ListingSearch = ({ isCompact = false }) => {
                                 }
                                 setShowGuestDropdown(!showGuestDropdown);
                             }}
-                            className={`flex items-center ${isCompact ? "gap-1 px-2.5" : "gap-1.5 px-3.5"} border h-12 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer bg-white dark:bg-[#303134] ${
+                            className={`flex items-center ${isCompact ? "gap-1 px-2.5" : "gap-1.5 px-3.5"} border h-12 rounded-[4px] transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer bg-white dark:bg-[#303134] ${
                                 showGuestDropdown
                                     ? 'border-[#1a73e8]'
                                     : 'border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
@@ -1159,7 +1195,7 @@ const ListingSearch = ({ isCompact = false }) => {
 
                         {/* Guest Dropdown - Google Flights Style */}
                         {showGuestDropdown && (
-                            <div className="absolute top-full right-0 w-[320px] sm:w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="absolute top-full right-0 w-[320px] sm:w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-[4px] border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
                                 <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-3 -mr-3">
                                     {roomState.map((room, index) => (
                                         <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 last:mb-0">
@@ -1293,7 +1329,7 @@ const ListingSearch = ({ isCompact = false }) => {
                             }} 
                             inputStyle={true} 
                             compact={true}
-                            rounded="rounded-lg"
+                            rounded="rounded-[4px]"
                             onToggle={(isOpen) => {
                                 if (isOpen) {
                                     setShowDropdown(false);

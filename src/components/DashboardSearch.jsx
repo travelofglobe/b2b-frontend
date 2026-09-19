@@ -746,9 +746,16 @@ const DashboardSearch = () => {
                 <div className={`w-full flex flex-col md:flex-row items-stretch gap-2.5 sm:gap-3 relative ${isDatePickerOpen ? 'z-[100]' : 'z-50'}`}>
                     
                     {/* Destination Input (Flex-1 fills remaining space) */}
-                    <div className="flex-1 min-w-0 relative group/field h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
-                        <div className="flex items-center gap-3 h-full w-full px-3.5 sm:px-4">
-                            <span className="material-symbols-outlined text-[19px] text-[#1a73e8] dark:text-blue-400 flex-shrink-0">
+                    <div className="flex-1 min-w-0 relative font-roboto h-14" ref={searchWrapperRef}>
+                        <div
+                            className={`w-full transition-all ${
+                                showDropdown && hasAnyResults
+                                    ? 'absolute top-0 left-0 w-full min-w-[320px] bg-white dark:bg-[#202124] rounded-[4px] border border-[#dadce0] dark:border-[#3c4043] shadow-[0_4px_24px_rgba(0,0,0,0.18),0_1px_4px_rgba(0,0,0,0.06)] z-[300] overflow-hidden'
+                                    : 'h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8]'
+                            }`}
+                        >
+                        <div className={`flex items-center gap-3 px-3.5 sm:px-4 h-14 w-full ${showDropdown && hasAnyResults ? 'border-b border-[#dadce0] dark:border-[#3c4043]' : ''}`}>
+                            <span className="material-symbols-outlined text-[22px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 600, 'opsz' 22" }}>
                                 {error ? 'error' : 'search'}
                             </span>
                             <input
@@ -795,9 +802,9 @@ const DashboardSearch = () => {
                             )}
                         </div>
 
-                        {/* Autocomplete Dropdown - Google Style */}
+                        {/* Autocomplete Dropdown - Google Travel Style */}
                         {showDropdown && hasAnyResults && (
-                            <div className="absolute top-[calc(100%+6px)] left-0 w-full lg:w-[480px] bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-[#3c4043] shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] max-h-[440px] overflow-y-auto z-[300] py-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                            <div className="max-h-[460px] overflow-y-auto py-1 scrollbar-thin">
                                 {/* 1. Past Searches Section */}
                                 {matchingHistory.length > 0 && (
                                     <div>
@@ -972,22 +979,9 @@ const DashboardSearch = () => {
                                 )}
                             </div>
                         )}
+                        </div>
                     </div>
 
-                    {/* Nationality Selector Input (Fixed clean width, matches autocomplete box style) */}
-                    <div className="w-full md:w-[190px] lg:w-[210px] flex-shrink-0 relative h-14">
-                        <NationalitySelect 
-                            value={nationality} 
-                            onChange={setNationality} 
-                            inputStyle={true} 
-                            onToggle={(isOpen) => {
-                                if (isOpen) {
-                                    setShowDropdown(false);
-                                    setIsDatePickerOpen(false);
-                                }
-                            }}
-                        />
-                    </div>
 
                     {/* Twin Datepicker Container (Fixed clean width, guaranteed single line) */}
                     <div className={`w-full md:w-[330px] lg:w-[350px] flex-shrink-0 relative h-14 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
@@ -1101,6 +1095,26 @@ const DashboardSearch = () => {
                             holidays={holidays}
                             countryCode={holidayCountryCode}
                             align="right"
+                        />
+                    </div>
+
+                    {/* Compact Nationality Selector (Far Right) */}
+                    <div className="flex-shrink-0 relative h-14 w-[76px] sm:w-[82px] transition-all duration-300">
+                        <NationalitySelect 
+                            value={nationality} 
+                            onChange={(newNat) => {
+                                setNationality(newNat);
+                            }} 
+                            inputStyle={true} 
+                            compact={true}
+                            rounded="rounded-[4px]"
+                            onToggle={(isOpen) => {
+                                if (isOpen) {
+                                    setShowDropdown(false);
+                                    setIsDatePickerOpen(false);
+                                    setShowGuestDropdown(false);
+                                }
+                            }}
                         />
                     </div>
                 </div>

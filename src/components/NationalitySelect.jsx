@@ -348,11 +348,12 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                     ref={triggerRef}
                     type="button"
                     onClick={toggleOpen}
-                    className={`nationality-trigger w-full h-full flex items-center ${compact ? 'justify-center px-2' : 'justify-between px-3.5 sm:px-4'} border ${rounded} bg-white dark:bg-[#303134] transition-all text-left focus:outline-none font-roboto cursor-pointer ${
+                    className={`nationality-trigger w-full h-full flex items-center ${compact ? 'justify-center px-2' : 'justify-between px-3.5 sm:px-4'} border ${rounded} bg-white dark:bg-[#303134] transition-colors text-left focus:outline-none font-roboto cursor-pointer ${
                         isOpen 
-                            ? 'border-[#1a73e8] ring-1 ring-[#1a73e8]' 
+                            ? 'border-[#1a73e8]' 
                             : 'border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
                     }`}
+                    style={isOpen ? { boxShadow: '0 0 0 1px #1a73e8' } : { boxShadow: 'none' }}
                     title={t('common.nationality', 'Vatandaşlık')}
                 >
                     <div className={`flex items-center ${compact ? 'gap-1.5' : 'gap-2.5 sm:gap-3'} min-w-0 flex-1`}>

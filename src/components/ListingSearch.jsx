@@ -633,6 +633,12 @@ const ListingSearch = ({ isCompact = false }) => {
     };
 
     const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+            setShowDropdown(false);
+            inputRef.current?.blur();
+            return;
+        }
+
         const historyCount = matchingHistory.length;
         const regionCount = results.regions.length;
         const hotelCount = results.hotels.length;
@@ -716,17 +722,68 @@ const ListingSearch = ({ isCompact = false }) => {
 
     const hasAnyResults = matchingHistory.length > 0 || results.regions.length > 0 || results.hotels.length > 0 || loading;
 
+    const renderHighlightedText = (text, currentQuery) => {
+        if (!text) return null;
+        if (!currentQuery || !currentQuery.trim()) {
+            return <span className="font-normal text-[#202124] dark:text-white">{text}</span>;
+        }
+
+        const trimmedQuery = currentQuery.trim().toLowerCase();
+        const lowerText = text.toLowerCase();
+
+        // If text starts with query: query part is normal, remainder is bold
+        if (lowerText.startsWith(trimmedQuery)) {
+            const matched = text.slice(0, trimmedQuery.length);
+            const remainder = text.slice(trimmedQuery.length);
+            return (
+                <span className="text-[#202124] dark:text-white">
+                    <span className="font-normal">{matched}</span>
+                    <span className="font-bold">{remainder}</span>
+                </span>
+            );
+        }
+
+        // Split words in query and bold words not in query
+        const queryTokens = trimmedQuery.split(/\s+/).filter(Boolean);
+        if (queryTokens.length > 0) {
+            const escapedTokens = queryTokens.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            const regex = new RegExp(`(${escapedTokens.join('|')})`, 'gi');
+            const parts = text.split(regex);
+            return (
+                <span className="text-[#202124] dark:text-white">
+                    {parts.map((part, i) => {
+                        const isToken = queryTokens.some(t => t.toLowerCase() === part.toLowerCase());
+                        return isToken ? (
+                            <span key={i} className="font-normal">{part}</span>
+                        ) : (
+                            <span key={i} className="font-bold">{part}</span>
+                        );
+                    })}
+                </span>
+            );
+        }
+
+        return <span className="font-medium text-[#202124] dark:text-white">{text}</span>;
+    };
+
     return (
         <section className="relative group/search w-full">
             <div className="w-full flex flex-wrap items-center gap-2 relative z-50">
-                <div className="flex-1 min-w-[110px] relative group/field h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] transition-all font-roboto" ref={searchWrapperRef}>
-                        <div className={`flex items-center ${isCompact ? "gap-2 px-2.5" : "gap-3 px-4"} h-full w-full`}>
-                            <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 500, 'opsz' 20" }}>
+                <div className="flex-1 min-w-[110px] relative h-12 font-roboto" ref={searchWrapperRef}>
+                    <div
+                        className={`w-full transition-all ${
+                            showDropdown && hasAnyResults
+                                ? 'absolute top-0 left-0 w-full min-w-[320px] bg-white dark:bg-[#202124] rounded-[4px] border border-[#dadce0] dark:border-[#3c4043] shadow-[0_4px_24px_rgba(0,0,0,0.18),0_1px_4px_rgba(0,0,0,0.06)] z-[300] overflow-hidden'
+                                : 'h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8]'
+                        }`}
+                    >
+                        <div className={`flex items-center ${isCompact && !(showDropdown && hasAnyResults) ? "gap-2 px-2.5" : "gap-3 px-4"} h-12 w-full ${showDropdown && hasAnyResults ? 'border-b border-[#dadce0] dark:border-[#3c4043]' : ''}`}>
+                            <span className="material-symbols-outlined text-[22px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 600, 'opsz' 22" }}>
                                 {error ? 'error' : 'search'}
                             </span>
                             <input
                                 ref={inputRef}
-                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[14.5px] font-normal text-[#3c4043] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate"
+                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[14.5px] font-normal text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate"
                                 placeholder={ls.placeholder || "Nereye?"}
                                 type="text"
                                 value={query}
@@ -768,26 +825,26 @@ const ListingSearch = ({ isCompact = false }) => {
                             )}
                         </div>
 
-                        {/* Autocomplete Dropdown - Google Style */}
+                        {/* Autocomplete Dropdown - Google Travel Style */}
                         {showDropdown && hasAnyResults && (
-                            <div className="absolute top-[calc(100%+6px)] left-0 w-full lg:w-[480px] bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-[#3c4043] shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] max-h-[440px] overflow-y-auto z-[300] py-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
-                                {/* 1. Past Searches Section */}
+                            <div className="max-h-[460px] overflow-y-auto py-1 scrollbar-thin">
+                                {/* 1. Search History Items */}
                                 {matchingHistory.length > 0 && (
                                     <div>
                                         <div className="flex items-center justify-between px-4 py-2 border-b border-[#f1f3f4] dark:border-[#3c4043] mb-1">
                                             <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">Son Aramalar</span>
                                             {!query.trim() && (
-                                                <button onClick={handleClearHistory} className="text-[11px] font-medium text-[#1a73e8] hover:underline transition-colors">Temizle</button>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleClearHistory}
+                                                    className="text-[11px] font-medium text-[#1a73e8] hover:underline transition-colors cursor-pointer"
+                                                >
+                                                    Temizle
+                                                </button>
                                             )}
                                         </div>
                                         <div>
                                             {matchingHistory.map((item, index) => {
-                                                const itemType = item.type || item.searchType || 'SEARCH';
-                                                let icon = 'history';
-                                                if (itemType === 'LOCATION') icon = 'location_on';
-                                                else if (itemType === 'HOTEL') icon = 'hotel';
-                                                else if (itemType === 'AIRPORT') icon = 'flight';
-
                                                 let title = item.query || '';
                                                 let subtitle = item.subtitle || '';
 
@@ -799,22 +856,29 @@ const ListingSearch = ({ isCompact = false }) => {
                                                     }
                                                 }
 
+                                                const itemType = item.type || item.searchType || 'SEARCH';
+                                                let icon = 'history';
+                                                if (itemType === 'LOCATION') icon = 'location_on';
+                                                else if (itemType === 'HOTEL') icon = 'hotel';
+                                                else if (itemType === 'AIRPORT') icon = 'flight';
+
                                                 const isActive = activeIndex === index;
+                                                const thumbnail = item.thumbnailUrl || item.imageUrl || item.image || item.photo || null;
 
                                                 return (
                                                     <div
-                                                        key={item.id || index}
+                                                        key={item.id || `hist-${index}`}
                                                         data-autocomplete-active={isActive}
                                                         onClick={() => handleSelectHistoryItem(item)}
-                                                        className={`w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors group cursor-pointer ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                        className={`w-full text-left px-4 py-2.5 min-h-[48px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors group cursor-pointer ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
                                                     >
-                                                        <div className="flex items-center min-w-0 flex-1 mr-3">
-                                                            <span className="material-symbols-outlined text-[20px] text-[#70757a] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
+                                                        <div className="flex items-center min-w-0 flex-1 mr-2">
+                                                            <span className="material-symbols-outlined text-[22px] text-[#5f6368] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
                                                                 {icon}
                                                             </span>
                                                             <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                <div className="text-[15px] font-medium text-[#3c4043] dark:text-white leading-tight truncate">
-                                                                    {title}
+                                                                <div className="text-[14.5px] leading-snug truncate">
+                                                                    {renderHighlightedText(title, query)}
                                                                 </div>
                                                                 {subtitle && (
                                                                     <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
@@ -823,13 +887,23 @@ const ListingSearch = ({ isCompact = false }) => {
                                                                 )}
                                                             </div>
                                                         </div>
-                                                        <button
-                                                            onClick={(e) => handleDeleteHistoryItem(e, item.id)}
-                                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-[#70757a] hover:text-[#d93025] dark:hover:text-red-400 rounded-full transition-all shrink-0 ml-2"
-                                                            title="Sil"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[18px] leading-none block">close</span>
-                                                        </button>
+                                                        {thumbnail ? (
+                                                            <img
+                                                                src={thumbnail}
+                                                                alt={title}
+                                                                className="w-10 h-10 rounded-lg object-cover shadow-xs shrink-0 ml-2 border border-black/5"
+                                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                            />
+                                                        ) : (
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleDeleteHistoryItem(e, item.id)}
+                                                                className="opacity-0 group-hover:opacity-100 p-1 text-[#70757a] hover:text-[#202124] dark:hover:text-white rounded-full transition-all shrink-0 ml-2"
+                                                                title="Sil"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[18px] leading-none block">close</span>
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 );
                                             })}
@@ -837,11 +911,11 @@ const ListingSearch = ({ isCompact = false }) => {
                                     </div>
                                 )}
 
-                                {/* 2. Locations Section */}
+                                {/* 2. Locations / Regions */}
                                 {results.regions.length > 0 && (
                                     <div className={matchingHistory.length > 0 ? "border-t border-[#f1f3f4] dark:border-[#3c4043] pt-1" : ""}>
                                         <div className="px-4 pt-2 pb-1">
-                                            <span className="text-[11px] font-semibold text-[#70757a] dark:text-slate-300 uppercase tracking-wider">{ls.popularDestinations || 'Popüler Noktalar'}</span>
+                                            <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.popularDestinations || 'Popüler Noktalar'}</span>
                                         </div>
                                         <div>
                                             {results.regions.map((region, index) => {
@@ -863,31 +937,31 @@ const ListingSearch = ({ isCompact = false }) => {
                                                     subtitle = rawSub.slice(rawName.length + 2);
                                                 }
 
-                                                const lowerTitle = title.toLowerCase();
-                                                let icon = 'location_on';
-                                                if (lowerTitle.includes('airport') || lowerTitle.includes('havalimanı') || lowerTitle.includes('havaalanı')) {
-                                                    icon = 'flight';
-                                                } else if (lowerTitle.includes('tren') || lowerTitle.includes('train') || lowerTitle.includes('istasyon') || lowerTitle.includes('station')) {
-                                                    icon = 'train';
+                                                const lower = (rawName + ' ' + rawSub).toLowerCase();
+                                                let locationIcon = 'location_on';
+                                                if (lower.includes('airport') || lower.includes('havalimanı') || lower.includes('havaalanı')) {
+                                                    locationIcon = 'flight';
+                                                } else if (lower.includes('tren') || lower.includes('train') || lower.includes('istasyon') || lower.includes('station')) {
+                                                    locationIcon = 'train';
                                                 }
 
                                                 const itemIndex = matchingHistory.length + index;
                                                 const isActive = activeIndex === itemIndex;
 
                                                 return (
-                                                    <button
-                                                        key={region.locationId}
+                                                    <div
+                                                        key={region.locationId || `reg-${index}`}
                                                         data-autocomplete-active={isActive}
                                                         onClick={() => handleSelectLocation(region)}
-                                                        className={`w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                        className={`w-full text-left px-4 py-2.5 min-h-[48px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
                                                     >
-                                                        <div className="flex items-center min-w-0 flex-1">
-                                                            <span className="material-symbols-outlined text-[20px] text-[#70757a] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
-                                                                {icon}
+                                                        <div className="flex items-center min-w-0 flex-1 mr-2">
+                                                            <span className="material-symbols-outlined text-[22px] text-[#5f6368] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
+                                                                {locationIcon}
                                                             </span>
                                                             <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                <div className="text-[15px] font-medium text-[#3c4043] dark:text-white leading-tight truncate">
-                                                                    {title}
+                                                                <div className="text-[14.5px] leading-snug truncate">
+                                                                    {renderHighlightedText(title, query)}
                                                                 </div>
                                                                 {subtitle && (
                                                                     <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
@@ -896,18 +970,18 @@ const ListingSearch = ({ isCompact = false }) => {
                                                                 )}
                                                             </div>
                                                         </div>
-                                                    </button>
+                                                    </div>
                                                 );
                                             })}
                                         </div>
                                     </div>
                                 )}
 
-                                {/* 3. Hotels Section */}
+                                {/* 3. Hotels */}
                                 {results.hotels.length > 0 && (
                                     <div className={(matchingHistory.length > 0 || results.regions.length > 0) ? "border-t border-[#f1f3f4] dark:border-[#3c4043] pt-1" : ""}>
                                         <div className="px-4 pt-2 pb-1">
-                                            <span className="text-[11px] font-semibold text-[#70757a] dark:text-slate-300 uppercase tracking-wider">{ls.featuredHotels || 'Oteller'}</span>
+                                            <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.featuredHotels || 'Oteller'}</span>
                                         </div>
                                         <div>
                                             {results.hotels.map((hotel, index) => {
@@ -922,21 +996,22 @@ const ListingSearch = ({ isCompact = false }) => {
 
                                                 const itemIndex = matchingHistory.length + results.regions.length + index;
                                                 const isActive = activeIndex === itemIndex;
+                                                const thumbnail = hotel.imageUrl || hotel.thumbnailUrl || hotel.image || hotel.heroImage || hotel.photos?.[0] || hotel.images?.[0] || null;
 
                                                 return (
-                                                    <button
-                                                        key={hotel.hotelId}
+                                                    <div
+                                                        key={hotel.hotelId || `hot-${index}`}
                                                         data-autocomplete-active={isActive}
                                                         onClick={() => handleSelectHotel(hotel)}
-                                                        className={`w-full text-left px-4 py-3 min-h-[56px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                        className={`w-full text-left px-4 py-2.5 min-h-[48px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
                                                     >
-                                                        <div className="flex items-center min-w-0 flex-1">
-                                                            <span className="material-symbols-outlined text-[20px] text-[#70757a] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
+                                                        <div className="flex items-center min-w-0 flex-1 mr-2">
+                                                            <span className="material-symbols-outlined text-[22px] text-[#5f6368] dark:text-[#9aa0a6] mr-4 shrink-0 select-none">
                                                                 hotel
                                                             </span>
                                                             <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                <div className="text-[15px] font-medium text-[#3c4043] dark:text-white leading-tight truncate">
-                                                                    {hotelTitle}
+                                                                <div className="text-[14.5px] leading-snug truncate">
+                                                                    {renderHighlightedText(hotelTitle, query)}
                                                                 </div>
                                                                 {hotelSubtitle && (
                                                                     <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
@@ -945,7 +1020,15 @@ const ListingSearch = ({ isCompact = false }) => {
                                                                 )}
                                                             </div>
                                                         </div>
-                                                    </button>
+                                                        {thumbnail && (
+                                                            <img
+                                                                src={thumbnail}
+                                                                alt={hotelTitle}
+                                                                className="w-10 h-10 rounded-lg object-cover shadow-xs shrink-0 ml-2 border border-black/5"
+                                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                            />
+                                                        )}
+                                                    </div>
                                                 );
                                             })}
                                         </div>
@@ -954,36 +1037,13 @@ const ListingSearch = ({ isCompact = false }) => {
                             </div>
                         )}
                     </div>
+                </div>
 
-                    {/* Nationality Selector Input */}
-                    <div className={`${isCompact ? "w-[76px]" : "w-full md:w-[150px] lg:w-[170px]"} flex-shrink-0 relative h-12 transition-all duration-300`}>
-                        <NationalitySelect 
-                            value={nationality} 
-                            onChange={(newNat) => {
-                                const currentNat = searchParams.get('nationality') || nationality;
-                                if (newNat && newNat !== currentNat) {
-                                    setNationality(newNat);
-                                    handleSearch({ nationality: newNat });
-                                }
-                            }} 
-                            inputStyle={true} 
-                            compact={isCompact}
-                            rounded="rounded-lg"
-                            onToggle={(isOpen) => {
-                                if (isOpen) {
-                                    setShowDropdown(false);
-                                    setIsDatePickerOpen(false);
-                                    setShowGuestDropdown(false);
-                                }
-                            }}
-                        />
-                    </div>
-
-                    {/* Twin Datepicker Container */}
-                    <div className={`${isCompact ? "w-[220px]" : "w-full md:w-[330px] lg:w-[350px]"} flex-shrink-0 relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto transition-all duration-300 ${
-                        isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')
-                            ? ''
-                            : 'border border-[#dadce0] dark:border-slate-600 rounded-lg hover:border-[#bdc1c6] transition-all overflow-hidden'
+                {/* Twin Datepicker Container */}
+                    <div className={`${isCompact ? "w-[220px]" : "w-full md:w-[330px] lg:w-[350px]"} flex-shrink-0 relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto transition-all duration-300 rounded-[4px] overflow-hidden ${
+                        isDatePickerOpen
+                            ? 'border-2 border-[#1a73e8]'
+                            : 'border border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
                     }`}>
                         
                         {/* Check-In Half */}
@@ -992,13 +1052,12 @@ const ListingSearch = ({ isCompact = false }) => {
                                 setActiveDateField('checkIn');
                                 setIsDatePickerOpen(true);
                                 setShowDropdown(false);
+                                setShowGuestDropdown(false);
                             }}
                             className={`relative flex-1 h-full flex items-center justify-between ${isCompact ? "px-2" : "px-3 sm:px-3.5"} cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkIn'
-                                    ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
-                                    : isDatePickerOpen && activeDateField === 'checkOut'
-                                    ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
-                                    : 'rounded-l-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    ? 'bg-blue-50/70 dark:bg-blue-950/40 text-[#1a73e8] dark:text-blue-400 font-medium'
+                                    : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
                             }`}
                         >
                             <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
@@ -1033,10 +1092,8 @@ const ListingSearch = ({ isCompact = false }) => {
                             )}
                         </div>
 
-                        {/* Middle Vertical Divider (only visible when neither half is actively focused) */}
-                        {!(isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')) && (
-                            <div className="w-[1px] h-7 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
-                        )}
+                        {/* Middle Vertical Divider */}
+                        <div className="w-[1px] h-7 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
 
                         {/* Check-Out Half */}
                         <div
@@ -1044,13 +1101,12 @@ const ListingSearch = ({ isCompact = false }) => {
                                 setActiveDateField('checkOut');
                                 setIsDatePickerOpen(true);
                                 setShowDropdown(false);
+                                setShowGuestDropdown(false);
                             }}
                             className={`relative flex-1 h-full flex items-center justify-between ${isCompact ? "px-2" : "px-3 sm:px-3.5"} cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkOut'
-                                    ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
-                                    : isDatePickerOpen && activeDateField === 'checkIn'
-                                    ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
-                                    : 'rounded-r-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                    ? 'bg-blue-50/70 dark:bg-blue-950/40 text-[#1a73e8] dark:text-blue-400 font-medium'
+                                    : 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
                             }`}
                         >
                             <div className="flex items-center min-w-0 flex-1">
@@ -1125,7 +1181,12 @@ const ListingSearch = ({ isCompact = false }) => {
                                 }
                                 setShowGuestDropdown(!showGuestDropdown);
                             }}
-                            className={`flex items-center ${isCompact ? "gap-1 px-2.5" : "gap-1.5 px-3.5"} border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-[#303134] h-12 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer`}
+                            className={`flex items-center ${isCompact ? "gap-1 px-2.5" : "gap-1.5 px-3.5"} border h-12 rounded-[4px] transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer bg-white dark:bg-[#303134] ${
+                                showGuestDropdown
+                                    ? 'border-[#1a73e8]'
+                                    : 'border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
+                            }`}
+                            style={showGuestDropdown ? { boxShadow: '0 0 0 1px #1a73e8' } : { boxShadow: 'none' }}
                         >
                             <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 500, 'opsz' 20" }}>person</span>
                             <span className="text-[13.5px] font-normal text-[#3c4043] dark:text-slate-200">{totalAdults + totalChildren}</span>
@@ -1134,7 +1195,7 @@ const ListingSearch = ({ isCompact = false }) => {
 
                         {/* Guest Dropdown - Google Flights Style */}
                         {showGuestDropdown && (
-                            <div className="absolute top-full right-0 w-[320px] sm:w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="absolute top-full right-0 w-[320px] sm:w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-[4px] border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
                                 <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-3 -mr-3">
                                     {roomState.map((room, index) => (
                                         <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 last:mb-0">
@@ -1253,6 +1314,30 @@ const ListingSearch = ({ isCompact = false }) => {
                                 </div>
                             </div>
                         )}
+                    </div>
+
+                    {/* Compact Nationality Selector (Grouped with Guests) */}
+                    <div className="flex-shrink-0 relative h-12 w-[76px] sm:w-[82px] transition-all duration-300">
+                        <NationalitySelect 
+                            value={nationality} 
+                            onChange={(newNat) => {
+                                const currentNat = searchParams.get('nationality') || nationality;
+                                if (newNat && newNat !== currentNat) {
+                                    setNationality(newNat);
+                                    handleSearch({ nationality: newNat });
+                                }
+                            }} 
+                            inputStyle={true} 
+                            compact={true}
+                            rounded="rounded-[4px]"
+                            onToggle={(isOpen) => {
+                                if (isOpen) {
+                                    setShowDropdown(false);
+                                    setIsDatePickerOpen(false);
+                                    setShowGuestDropdown(false);
+                                }
+                            }}
+                        />
                     </div>
             </div>
         </section>

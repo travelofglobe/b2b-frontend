@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import HeaderActions from '../components/HeaderActions';
@@ -9,6 +9,7 @@ const PortalLayout = () => {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
+    const mainRef = useRef(null);
     
     // Layout State
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -22,6 +23,14 @@ const PortalLayout = () => {
     const [isMyOfficeOpen, setIsMyOfficeOpen] = useState(location.pathname.startsWith('/my-office'));
     const [isDefinitionsOpen, setIsDefinitionsOpen] = useState(location.pathname.startsWith('/definitions'));
     const [isGSAManagementOpen, setIsGSAManagementOpen] = useState(location.pathname.startsWith('/gsa'));
+
+    // Automatically scroll main container to top on route change
+    useEffect(() => {
+        if (mainRef.current) {
+            mainRef.current.scrollTop = 0;
+        }
+        window.scrollTo(0, 0);
+    }, [location.pathname, location.search]);
 
     const handleMenuToggle = (setter, currentState) => {
         setter(!currentState);
@@ -223,7 +232,7 @@ const PortalLayout = () => {
                                             ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
                                             : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                                     >
-                                        <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname === '/definitions/markup' ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>percent</span>
+                                        <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname === '/definitions/markup' ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>trending_up</span>
                                         <span className="text-sm font-medium text-left leading-snug">{t('sidebar.markupManagement')}</span>
                                     </button>
                                 </div>
@@ -319,7 +328,7 @@ const PortalLayout = () => {
                 </aside>
 
                 <div className="flex flex-1 overflow-hidden relative z-0">
-                    <main className="flex-1 flex flex-col h-full overflow-y-auto relative" onScroll={handleScroll}>
+                    <main ref={mainRef} className="flex-1 flex flex-col h-full overflow-y-auto relative" onScroll={handleScroll}>
                         <Outlet />
                     </main>
                 </div>

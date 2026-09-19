@@ -154,9 +154,10 @@ const SubAgencyMarkups = () => {
     };
 
     return (
-        <div className="flex-1 flex flex-col p-4 md:p-6 space-y-4 min-h-0 bg-[#f8f9fa] dark:bg-[#202124]">
-            {/* Header - Google Standard */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+        <div className="flex-1 flex flex-col px-4 sm:px-8 py-6 min-h-0 bg-[#f8f9fa] dark:bg-[#202124] w-full">
+            <div className="max-w-7xl mx-auto w-full flex flex-col h-full min-h-0 space-y-4">
+                {/* Header - Google Standard */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
                         <span className="material-symbols-outlined text-[24px]">percent</span>
@@ -309,15 +310,12 @@ const SubAgencyMarkups = () => {
                                         <span className="font-bold text-slate-900 dark:text-white text-xs">{m.value}%</span>
                                     </td>
                                     <td className="px-4 py-2.5">
-                                        <div className="flex flex-col items-center gap-0.5">
+                                        <div className="flex items-center justify-center">
                                             <AppleSwitch
                                                 checked={m.status === 'ACTIVE'}
                                                 onChange={() => handleToggleStatus(m)}
                                                 size="sm"
                                             />
-                                            <span className={`text-[9px] font-semibold uppercase tracking-wider ${m.status === 'ACTIVE' ? 'text-emerald-500' : 'text-slate-400'}`}>
-                                                {m.status === 'ACTIVE' ? L('active') : L('passive')}
-                                            </span>
                                         </div>
                                     </td>
                                     <td className="px-4 py-2.5 text-right">
@@ -417,6 +415,7 @@ const SubAgencyMarkups = () => {
                     fetchMarkups();
                 }}
             />
+            </div>
         </div>
     );
 };

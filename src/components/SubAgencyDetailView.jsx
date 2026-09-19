@@ -277,17 +277,12 @@ const SubAgencyDetailView = ({ onBack, agency }) => {
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4">
-                                                            <div className="flex flex-col items-center gap-1 group/status">
+                                                            <div className="flex items-center justify-center">
                                                                 <AppleSwitch
                                                                     checked={user.status === 'ACTIVE'}
                                                                     onChange={() => handleStatusToggle(user)}
                                                                     size="sm"
                                                                 />
-                                                                <span className={`text-[10px] font-semibold uppercase tracking-wider transition-colors duration-300 ${
-                                                                    user.status === 'ACTIVE' ? 'text-emerald-500' : 'text-slate-400'
-                                                                }`}>
-                                                                    {user.status === 'ACTIVE' ? 'Active' : 'Passive'}
-                                                                </span>
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4 text-right">

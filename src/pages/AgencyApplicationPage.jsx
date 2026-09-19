@@ -4,6 +4,7 @@ import { locationService } from '../services/locationService';
 import { agencyApplicationService } from '../services/agencyApplicationService';
 import PlaneLoading from '../components/PlaneLoading';
 import PublicHeader from '../components/PublicHeader';
+import AppleSwitch from '../components/AppleSwitch';
 import { useTranslation } from 'react-i18next';
 import { countryCodes } from '../utils/countryCodes';
 import { getAgencyAppLocale } from '../utils/agencyAppLocales';
@@ -832,16 +833,11 @@ const AgencyApplicationPage = () => {
                                             <p className="text-sm font-semibold text-slate-900">{loc.apiIntegration}</p>
                                             <p className="text-xs text-slate-500">{loc.apiIntegrationSub}</p>
                                         </div>
-                                        <label className="relative inline-flex items-center cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                name="apiIntegrationNeeded"
-                                                checked={formData.apiIntegrationNeeded}
-                                                onChange={handleInputChange}
-                                                className="sr-only peer"
-                                            />
-                                            <div className="w-11 h-6 bg-slate-800 rounded-full transition-all duration-300 peer peer-checked:bg-primary peer-checked:after:translate-x-5 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:duration-300"></div>
-                                        </label>
+                                        <AppleSwitch
+                                            checked={formData.apiIntegrationNeeded}
+                                            onChange={(checked) => setFormData(prev => ({ ...prev, apiIntegrationNeeded: checked }))}
+                                            size="md"
+                                        />
                                     </div>
 
                                     <div className="grid grid-cols-1 gap-3">

@@ -32,6 +32,10 @@ const CheckoutResult = () => {
     
     useEffect(() => {
         window.scrollTo(0, 0);
+        const mainContainer = document.querySelector('main');
+        if (mainContainer) {
+            mainContainer.scrollTop = 0;
+        }
         const handler = (lng) => setCurrentLang((lng || 'en').split('-')[0].toLowerCase());
         i18n.on('languageChanged', handler);
         return () => i18n.off('languageChanged', handler);

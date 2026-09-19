@@ -935,6 +935,10 @@ const CheckoutGuestDetails = () => {
     // Auto-scroll to top on mount
     useLayoutEffect(() => {
         window.scrollTo(0, 0);
+        const mainContainer = document.querySelector('main');
+        if (mainContainer) {
+            mainContainer.scrollTop = 0;
+        }
     }, []);
 
     useEffect(() => {

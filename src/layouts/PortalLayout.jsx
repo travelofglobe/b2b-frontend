@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import HeaderActions from '../components/HeaderActions';
@@ -9,6 +9,7 @@ const PortalLayout = () => {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
+    const mainRef = useRef(null);
     
     // Layout State
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -22,6 +23,14 @@ const PortalLayout = () => {
     const [isMyOfficeOpen, setIsMyOfficeOpen] = useState(location.pathname.startsWith('/my-office'));
     const [isDefinitionsOpen, setIsDefinitionsOpen] = useState(location.pathname.startsWith('/definitions'));
     const [isGSAManagementOpen, setIsGSAManagementOpen] = useState(location.pathname.startsWith('/gsa'));
+
+    // Automatically scroll main container to top on route change
+    useEffect(() => {
+        if (mainRef.current) {
+            mainRef.current.scrollTop = 0;
+        }
+        window.scrollTo(0, 0);
+    }, [location.pathname, location.search]);
 
     const handleMenuToggle = (setter, currentState) => {
         setter(!currentState);
@@ -319,7 +328,7 @@ const PortalLayout = () => {
                 </aside>
 
                 <div className="flex flex-1 overflow-hidden relative z-0">
-                    <main className="flex-1 flex flex-col h-full overflow-y-auto relative" onScroll={handleScroll}>
+                    <main ref={mainRef} className="flex-1 flex flex-col h-full overflow-y-auto relative" onScroll={handleScroll}>
                         <Outlet />
                     </main>
                 </div>

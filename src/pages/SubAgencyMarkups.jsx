@@ -154,7 +154,7 @@ const SubAgencyMarkups = () => {
     };
 
     return (
-        <div className="flex-1 flex flex-col p-4 md:p-6 space-y-4 min-h-0 bg-[#f8f9fa] dark:bg-[#202124]">
+        <div className="flex-1 flex flex-col px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-6 space-y-4 min-h-0 bg-[#f8f9fa] dark:bg-[#202124] w-full max-w-[1680px] mx-auto">
             {/* Header - Google Standard */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
                 <div className="flex items-center gap-3">
@@ -309,15 +309,12 @@ const SubAgencyMarkups = () => {
                                         <span className="font-bold text-slate-900 dark:text-white text-xs">{m.value}%</span>
                                     </td>
                                     <td className="px-4 py-2.5">
-                                        <div className="flex flex-col items-center gap-0.5">
+                                        <div className="flex items-center justify-center">
                                             <AppleSwitch
                                                 checked={m.status === 'ACTIVE'}
                                                 onChange={() => handleToggleStatus(m)}
                                                 size="sm"
                                             />
-                                            <span className={`text-[9px] font-semibold uppercase tracking-wider ${m.status === 'ACTIVE' ? 'text-emerald-500' : 'text-slate-400'}`}>
-                                                {m.status === 'ACTIVE' ? L('active') : L('passive')}
-                                            </span>
                                         </div>
                                     </td>
                                     <td className="px-4 py-2.5 text-right">

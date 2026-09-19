@@ -232,7 +232,7 @@ const PortalLayout = () => {
                                             ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
                                             : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                                     >
-                                        <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname === '/definitions/markup' ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>percent</span>
+                                        <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname === '/definitions/markup' ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>trending_up</span>
                                         <span className="text-sm font-medium text-left leading-snug">{t('sidebar.markupManagement')}</span>
                                     </button>
                                 </div>

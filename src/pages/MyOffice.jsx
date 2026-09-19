@@ -23,6 +23,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import PhoneInput from '../components/PhoneInput';
 import Pagination from '../components/Pagination';
+import AppleSwitch from '../components/AppleSwitch';
 import '../datepicker-custom.css';
 
 // Fix Leaflet marker icon issue in React
@@ -1756,20 +1757,12 @@ const MyOffice = () => {
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3">
-                                                            <div className="flex items-center gap-2">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleToggleUserStatus(u)}
-                                                                    className={`relative inline-flex h-[20px] w-[36px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${u.status === 'ACTIVE' ? 'bg-[#1a73e8]' : 'bg-[#dadce0] dark:bg-[#5f6368]'
-                                                                        }`}
-                                                                    title={u.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}
-                                                                >
-                                                                    <span className={`pointer-events-none inline-block size-[16px] transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${u.status === 'ACTIVE' ? 'translate-x-[16px]' : 'translate-x-0'
-                                                                        }`} />
-                                                                </button>
-                                                                <span className={`text-xs font-medium ${u.status === 'ACTIVE' ? 'text-[#137333] dark:text-[#81c995]' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>
-                                                                    {u.status === 'ACTIVE' ? 'Active' : 'Passive'}
-                                                                </span>
+                                                            <div className="flex items-center">
+                                                                <AppleSwitch
+                                                                    checked={u.status === 'ACTIVE'}
+                                                                    onChange={() => handleToggleUserStatus(u)}
+                                                                    size="sm"
+                                                                />
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3 text-right">
@@ -1958,20 +1951,12 @@ const MyOffice = () => {
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3">
-                                                            <div className="flex items-center gap-2">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleToggleGuestStatus(g)}
-                                                                    className={`relative inline-flex h-[20px] w-[36px] shrink-0 cursor-pointer rounded-full p-[2px] transition-colors duration-200 ease-in-out focus:outline-none ${g.status === 'ACTIVE' ? 'bg-[#1a73e8]' : 'bg-[#dadce0] dark:bg-[#5f6368]'
-                                                                        }`}
-                                                                    title={g.status === 'ACTIVE' ? 'Set Passive' : 'Set Active'}
-                                                                >
-                                                                    <span className={`pointer-events-none inline-block size-[16px] transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${g.status === 'ACTIVE' ? 'translate-x-[16px]' : 'translate-x-0'
-                                                                        }`} />
-                                                                </button>
-                                                                <span className={`text-xs font-medium ${g.status === 'ACTIVE' ? 'text-[#137333] dark:text-[#81c995]' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>
-                                                                    {g.status === 'ACTIVE' ? 'Active' : 'Passive'}
-                                                                </span>
+                                                            <div className="flex items-center">
+                                                                <AppleSwitch
+                                                                    checked={g.status === 'ACTIVE'}
+                                                                    onChange={() => handleToggleGuestStatus(g)}
+                                                                    size="sm"
+                                                                />
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3 text-right">

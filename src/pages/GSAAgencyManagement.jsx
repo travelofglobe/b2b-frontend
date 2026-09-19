@@ -317,12 +317,13 @@ const GSAAgencyManagement = () => {
     };
 
     return (
-        <div className="flex-1 flex flex-col px-4 sm:px-8 md:px-12 lg:px-16 xl:px-20 py-6 space-y-4 min-h-0 bg-[#f8f9fa] dark:bg-[#202124] w-full max-w-[1680px] mx-auto">
-            {detailModal.isOpen ? (
-                <SubAgencyDetailView
-                    agency={detailModal.agency}
-                    onBack={() => setDetailModal({ isOpen: false, agency: null })}
-                />
+        <div className="flex-1 flex flex-col px-4 sm:px-8 py-6 min-h-0 bg-[#f8f9fa] dark:bg-[#202124] w-full">
+            <div className="max-w-7xl mx-auto w-full flex flex-col h-full min-h-0 space-y-4">
+                {detailModal.isOpen ? (
+                    <SubAgencyDetailView
+                        agency={detailModal.agency}
+                        onBack={() => setDetailModal({ isOpen: false, agency: null })}
+                    />
             ) : (
                 <>
                     {/* Header - Google Standard */}
@@ -689,6 +690,7 @@ const GSAAgencyManagement = () => {
                     />
                 </>
             )}
+            </div>
         </div>
     );
 };

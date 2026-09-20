@@ -1453,10 +1453,10 @@ const CheckoutGuestDetails = () => {
                 />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    <div className="lg:col-span-7">
-                        <div className="flex flex-col sm:flex-row items-start gap-4">
-                            {/* Left Vertical Room Navigation Rail (Room 1, Room 2... stacked vertically) */}
-                            <div className="flex sm:flex-col gap-4 w-full sm:w-36 md:w-40 shrink-0 sm:sticky sm:top-4 overflow-x-auto no-scrollbar pb-1 sm:pb-0" lang={currentLang}>
+                    <div className="lg:col-span-7 space-y-4">
+                        {/* Multiple Rooms Tab Navigation (Only shown when there are 2+ rooms) */}
+                        {roomsData.length > 1 && (
+                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5" lang={currentLang}>
                                 {roomsData.map((room, idx) => {
                                     const isCurrent = idx === activeRoomIdx;
                                     const isDone = idx < activeRoomIdx;
@@ -1468,66 +1468,47 @@ const CheckoutGuestDetails = () => {
                                             key={idx}
                                             type="button"
                                             onClick={() => isDone && setActiveRoomIdx(idx)}
-                                            className={`px-3.5 py-2.5 h-[58px] min-h-[58px] rounded-xl border text-left transition-all duration-200 w-full flex items-center justify-between gap-2.5 ${
+                                            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                                                 isCurrent
                                                     ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-xs cursor-default'
                                                     : isDone
-                                                        ? 'bg-[#e6f4ea] border-[#ceead6] text-[#137333] dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800 hover:bg-[#ceead6]/70 cursor-pointer'
+                                                        ? 'bg-[#e6f4ea] border-[#ceead6] text-[#137333] dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800 hover:bg-[#ceead6]/70'
                                                         : 'bg-white dark:bg-[#202124] border-[#dadce0] dark:border-slate-700 text-[#70757a] dark:text-slate-400 cursor-not-allowed opacity-60'
                                             }`}
                                         >
-                                            <div className="flex items-center gap-2.5 min-w-0">
-                                                <div className={`size-8 rounded-lg flex items-center justify-center shrink-0 ${
-                                                    isCurrent
-                                                        ? 'bg-white/20 text-white'
-                                                        : isDone
-                                                            ? 'bg-emerald-100 dark:bg-emerald-900/60 text-[#137333] dark:text-emerald-300'
-                                                            : 'bg-gray-100 dark:bg-slate-800 text-[#70757a]'
-                                                }`}>
-                                                    <span className="material-symbols-outlined text-[18px]">
-                                                        {isDone ? 'check_circle' : 'bed'}
-                                                    </span>
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <span className="text-xs font-semibold block leading-tight truncate">
-                                                        {tSummary('room', currentLang)} {idx + 1}
-                                                    </span>
-                                                    <span className={`text-[10px] block leading-tight mt-0.5 ${
-                                                        isCurrent ? 'text-white/80' : 'text-[#70757a] dark:text-slate-400'
-                                                    }`}>
-                                                        {adultCount} {tSummary('adult', currentLang)}
-                                                        {childCount > 0 ? `, ${childCount} ${tSummary('child', currentLang)}` : ''}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {isDone && (
-                                                <span className="material-symbols-outlined text-sm hidden sm:block ml-auto text-emerald-600 dark:text-emerald-400">
-                                                    edit
-                                                </span>
-                                            )}
+                                            <span className="material-symbols-outlined text-[16px]">
+                                                {isDone ? 'check_circle' : 'bed'}
+                                            </span>
+                                            <span>{tSummary('room', currentLang)} {idx + 1}</span>
+                                            <span className={`text-[10px] font-normal px-1.5 py-0.5 rounded ${
+                                                isCurrent ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-slate-800 text-current'
+                                            }`}>
+                                                {adultCount} {tSummary('adult', currentLang)}
+                                                {childCount > 0 ? `, ${childCount} ${tSummary('child', currentLang)}` : ''}
+                                            </span>
                                         </button>
                                     );
                                 })}
                             </div>
+                        )}
 
-                            {/* Right: Guest Information Form Cards */}
-                            <div className="flex-1 min-w-0 space-y-4 w-full" key={activeRoomIdx}>
-                                {/* Room Title Header */}
-                                <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl px-4 py-2.5 h-[58px] min-h-[58px] shadow-xs flex items-center justify-between gap-3" lang={currentLang}>
-                                    <div className="min-w-0 flex items-center gap-2.5">
-                                        <span className="size-8 rounded-lg bg-[#e8f0fe] dark:bg-slate-800 text-[#1a73e8] dark:text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">
-                                            {activeRoomIdx + 1}
-                                        </span>
-                                        <h2 className="text-xs sm:text-sm font-semibold text-[#202124] dark:text-white truncate">
-                                            {currentRoom.roomName}
-                                        </h2>
-                                    </div>
-                                    <span className="px-2.5 py-1 rounded-md bg-[#e8f0fe] dark:bg-slate-800 text-[#1a73e8] dark:text-blue-400 border border-[#d2e3fc] dark:border-slate-700 text-xs font-medium shrink-0">
-                                        {currentRoom.guests.filter(g => g.type === 'Adult').length} {tSummary('adult', currentLang)}
-                                        {currentRoom.guests.filter(g => g.type === 'Child').length > 0 && `, ${currentRoom.guests.filter(g => g.type === 'Child').length} ${tSummary('child', currentLang)}`}
-                                    </span>
-                                </div>
+                        {/* Room Title Header */}
+                        <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl px-4 py-2.5 h-[58px] min-h-[58px] shadow-xs flex items-center justify-between gap-3" lang={currentLang}>
+                            <div className="min-w-0 flex items-center gap-2.5">
+                                <span className="size-8 rounded-lg bg-[#e8f0fe] dark:bg-slate-800 text-[#1a73e8] dark:text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">
+                                    {activeRoomIdx + 1}
+                                </span>
+                                <h2 className="text-xs sm:text-sm font-semibold text-[#202124] dark:text-white truncate">
+                                    {currentRoom.roomName}
+                                </h2>
+                            </div>
+                            <span className="px-2.5 py-1 rounded-md bg-[#e8f0fe] dark:bg-slate-800 text-[#1a73e8] dark:text-blue-400 border border-[#d2e3fc] dark:border-slate-700 text-xs font-medium shrink-0">
+                                {currentRoom.guests.filter(g => g.type === 'Adult').length} {tSummary('adult', currentLang)}
+                                {currentRoom.guests.filter(g => g.type === 'Child').length > 0 && `, ${currentRoom.guests.filter(g => g.type === 'Child').length} ${tSummary('child', currentLang)}`}
+                            </span>
+                        </div>
+
+                        <div className="space-y-4" key={activeRoomIdx}>
                             {currentRoom.guests.map((guest, gIdx) => (
                                 <div key={gIdx} className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-xs" lang={currentLang}>
                                     <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#dadce0] dark:border-slate-700">
@@ -1745,7 +1726,6 @@ const CheckoutGuestDetails = () => {
                             </div>
                         </div>
                     </div>
-                </div>
 
                     {/* Google Travel Sticky Reservation Summary Sidebar */}
                     <div className="lg:col-span-5 lg:sticky lg:top-4 space-y-4">

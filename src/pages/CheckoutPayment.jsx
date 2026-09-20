@@ -1140,266 +1140,266 @@ const CheckoutPayment = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     <div className="lg:col-span-7 space-y-6">
-                        {/* Google Style Payment Method Selection */}
-                        <div className="bg-white dark:bg-[#303134] rounded-xl border border-[#dadce0] dark:border-slate-700 p-4 shadow-xs">
-                            <h2 className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-3">
-                                {tSummary('paymentMethod', currentLang)}
-                            </h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <button
-                                    onClick={() => setPaymentMethod('deposit')}
-                                    className={`relative p-3.5 rounded-xl transition-all duration-200 text-left border flex items-center justify-between ${
-                                        paymentMethod === 'deposit' 
-                                            ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 border-[#1a73e8] shadow-xs' 
-                                            : 'bg-white dark:bg-[#303134] border-[#dadce0] dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className={`size-9 rounded-lg flex items-center justify-center transition-colors ${
+                        {/* Unified Clean Payment Card */}
+                        <div className="bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-slate-700 shadow-xs overflow-hidden" lang={currentLang}>
+                            {/* Payment Method Selector Header */}
+                            <div className="p-4 sm:p-5 border-b border-[#dadce0] dark:border-slate-700 bg-[#f8f9fa] dark:bg-[#303134]/50">
+                                <h2 className="text-[10px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-3">
+                                    {tSummary('paymentMethod', currentLang)}
+                                </h2>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {/* B2B Deposit Tab */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setPaymentMethod('deposit')}
+                                        className={`relative p-3 rounded-xl transition-all duration-200 text-left flex items-center justify-between cursor-pointer ${
                                             paymentMethod === 'deposit' 
-                                                ? 'bg-[#1a73e8] text-white' 
-                                                : 'bg-gray-100 dark:bg-slate-700 text-[#5f6368] dark:text-slate-400'
-                                        }`}>
-                                            <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
+                                                ? 'bg-white dark:bg-[#202124] text-[#1a73e8] shadow-xs border-2 border-[#1a73e8]' 
+                                                : 'bg-white/60 dark:bg-slate-800/60 border border-[#dadce0] dark:border-slate-700 text-[#5f6368] hover:bg-white'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className={`size-8 rounded-lg flex items-center justify-center transition-colors ${
+                                                paymentMethod === 'deposit' 
+                                                    ? 'bg-[#e8f0fe] dark:bg-slate-800 text-[#1a73e8]' 
+                                                    : 'bg-gray-100 dark:bg-slate-700 text-[#5f6368] dark:text-slate-400'
+                                            }`}>
+                                                <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
+                                            </div>
+                                            <div>
+                                                <h3 className={`text-xs font-semibold ${paymentMethod === 'deposit' ? 'text-[#1a73e8] dark:text-blue-400' : 'text-[#202124] dark:text-white'}`}>
+                                                    B2B Deposit
+                                                </h3>
+                                                <p className="text-[10px] text-[#5f6368] dark:text-slate-400">
+                                                    {tSummary('instantSettlement', currentLang)}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className={`text-xs font-medium ${paymentMethod === 'deposit' ? 'text-[#1a73e8] dark:text-blue-400' : 'text-[#202124] dark:text-white'}`}>
-                                                B2B Deposit
-                                            </h3>
-                                            <p className="text-[11px] text-[#5f6368] dark:text-slate-400">
-                                                {tSummary('instantSettlement', currentLang)}
-                                            </p>
-                                        </div>
-                                    </div>
 
-                                    {paymentMethod === 'deposit' && (
-                                        <div className="size-5 bg-[#1a73e8] text-white rounded-full flex items-center justify-center shadow-xs">
-                                            <span className="material-symbols-outlined text-xs font-bold">check</span>
-                                        </div>
-                                    )}
-                                </button>
+                                        {paymentMethod === 'deposit' && (
+                                            <div className="size-5 bg-[#1a73e8] text-white rounded-full flex items-center justify-center shadow-xs">
+                                                <span className="material-symbols-outlined text-xs font-bold">check</span>
+                                            </div>
+                                        )}
+                                    </button>
 
-                                <div className="relative p-3.5 rounded-xl text-left border bg-gray-50/70 dark:bg-slate-800/50 border-[#dadce0]/70 dark:border-slate-700/60 opacity-60 cursor-not-allowed select-none flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="size-9 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-slate-700 text-gray-400">
-                                            <span className="material-symbols-outlined text-lg">credit_card</span>
+                                    {/* Credit Card Tab */}
+                                    <div className="relative p-3 rounded-xl text-left border border-dashed border-[#dadce0] dark:border-slate-700 bg-gray-100/50 dark:bg-slate-800/30 opacity-60 cursor-not-allowed select-none flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="size-8 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-slate-700 text-gray-400">
+                                                <span className="material-symbols-outlined text-lg">credit_card</span>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xs font-medium text-gray-500 dark:text-slate-400">
+                                                    {tSummary('creditCard', currentLang)}
+                                                </h3>
+                                                <p className="text-[10px] text-gray-400">
+                                                    {tSummary('comingSoon', currentLang)}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="text-xs font-medium text-gray-500 dark:text-slate-400">
-                                                {tSummary('creditCard', currentLang)}
-                                            </h3>
-                                            <p className="text-[11px] text-gray-400">
-                                                {tSummary('comingSoon', currentLang)}
-                                            </p>
-                                        </div>
+                                        <span className="bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-300 text-[9px] font-medium px-2 py-0.5 rounded-md">
+                                            {tSummary('soon', currentLang)}
+                                        </span>
                                     </div>
-                                    <span className="bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-300 text-[10px] font-medium px-2 py-0.5 rounded-md">
-                                        {tSummary('soon', currentLang)}
-                                    </span>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Card Visual & Form */}
-                        {paymentMethod === 'credit_card' ? (
-                            <div className="space-y-6 animate-in fade-in duration-300">
-                                {/* Credit Card Visual */}
-                                <div className="relative h-56 w-full max-w-[400px] mx-auto perspective-1000">
-                                    <div className={`relative w-full h-full transition-all duration-700 preserve-3d ${cardDetails.cvvFocused ? 'rotate-y-180' : ''}`}>
-                                        {/* FRONT SIDE */}
-                                        <div className="absolute inset-0 w-full h-full backface-hidden">
-                                            <div className="w-full h-full relative rounded-2xl bg-gradient-to-br from-[#1a73e8] via-[#1557b0] to-[#174ea6] p-7 flex flex-col justify-between overflow-hidden shadow-md text-white">
-                                                <div className="flex justify-between items-start relative z-10">
-                                                    <div className="flex flex-col gap-1">
-                                                        <div className="w-10 h-7 rounded bg-amber-300/80 shadow-xs"></div>
-                                                        <p className="text-[10px] font-medium text-white/70 tracking-widest mt-1">TRAVEL OF GLOBE</p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="text-sm font-semibold tracking-wider text-white">B2B CARD</p>
+                            {/* Payment Content Area */}
+                            <div className="p-4 sm:p-6">
+                                {paymentMethod === 'credit_card' ? (
+                                    <div className="space-y-6 animate-in fade-in duration-300">
+                                        {/* Credit Card Visual */}
+                                        <div className="relative h-56 w-full max-w-[400px] mx-auto perspective-1000">
+                                            <div className={`relative w-full h-full transition-all duration-700 preserve-3d ${cardDetails.cvvFocused ? 'rotate-y-180' : ''}`}>
+                                                {/* FRONT SIDE */}
+                                                <div className="absolute inset-0 w-full h-full backface-hidden">
+                                                    <div className="w-full h-full relative rounded-2xl bg-gradient-to-br from-[#1a73e8] via-[#1557b0] to-[#174ea6] p-7 flex flex-col justify-between overflow-hidden shadow-md text-white">
+                                                        <div className="flex justify-between items-start relative z-10">
+                                                            <div className="flex flex-col gap-1">
+                                                                <div className="w-10 h-7 rounded bg-amber-300/80 shadow-xs"></div>
+                                                                <p className="text-[10px] font-medium text-white/70 tracking-widest mt-1">TRAVEL OF GLOBE</p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="text-sm font-semibold tracking-wider text-white">B2B CARD</p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="relative z-10">
+                                                            <p className="text-lg font-mono tracking-widest min-h-[30px] flex items-center text-white drop-shadow">
+                                                                {cardDetails.number || '••••  ••••  ••••  ••••'}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="flex justify-between items-end relative z-10">
+                                                            <div className="max-w-[70%]">
+                                                                <p className="text-[9px] font-medium uppercase tracking-wider text-white/70">Card Holder</p>
+                                                                <p className="text-xs font-semibold uppercase tracking-wide truncate text-white">
+                                                                    {cardDetails.holder || 'GUEST NAME'}
+                                                                </p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="text-[9px] font-medium uppercase tracking-wider text-white/70">Expires</p>
+                                                                <p className="text-xs font-semibold text-white">{cardDetails.expiry || 'MM / YY'}</p>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                <div className="relative z-10">
-                                                    <p className="text-lg font-mono tracking-widest min-h-[30px] flex items-center text-white drop-shadow">
-                                                        {cardDetails.number || '••••  ••••  ••••  ••••'}
+                                                {/* BACK SIDE */}
+                                                <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
+                                                    <div className="w-full h-full relative rounded-2xl bg-slate-800 flex flex-col shadow-md text-white">
+                                                        <div className="w-full h-10 bg-slate-950 mt-6"></div>
+                                                        <div className="flex-1 p-6 flex flex-col justify-center">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="flex-1 h-9 bg-slate-100 rounded flex items-center justify-end px-3">
+                                                                    <p className="text-slate-900 font-mono font-bold tracking-widest text-sm">{cardDetails.cvv || '•••'}</p>
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <p className="text-[10px] font-medium text-slate-400 uppercase">CVV / CVC</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-6 rounded-xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-xs space-y-4 max-w-[420px] mx-auto">
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400">Card Number</label>
+                                                <input
+                                                    name="number"
+                                                    maxLength={22}
+                                                    value={cardDetails.number}
+                                                    onChange={handleCardInputChange}
+                                                    onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
+                                                    className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
+                                                    placeholder="••••  ••••  ••••  ••••"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400">Card Holder Name</label>
+                                                <input
+                                                    name="holder"
+                                                    value={cardDetails.holder}
+                                                    onChange={handleCardInputChange}
+                                                    onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
+                                                    className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs uppercase"
+                                                    placeholder="FULL NAME AS PRINTED ON CARD"
+                                                />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400">Expiry Date</label>
+                                                    <input
+                                                        name="expiry"
+                                                        maxLength={7}
+                                                        value={cardDetails.expiry}
+                                                        onChange={handleCardInputChange}
+                                                        onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
+                                                        className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
+                                                        placeholder="MM / YY"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400">CVV / CVC</label>
+                                                    <input
+                                                        name="cvv"
+                                                        maxLength={4}
+                                                        value={cardDetails.cvv}
+                                                        onChange={handleCardInputChange}
+                                                        onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: true }))}
+                                                        onBlur={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
+                                                        type="password"
+                                                        className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
+                                                        placeholder="•••"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {/* Account Header */}
+                                        <div className="flex items-center justify-between pb-3 border-b border-[#dadce0] dark:border-slate-700">
+                                            <div className="flex items-center gap-3">
+                                                <div className="size-9 rounded-lg bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8]">
+                                                    <span className="material-symbols-outlined text-lg">corporate_fare</span>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-sm font-semibold text-[#202124] dark:text-white leading-tight">
+                                                        {tSummary('corporateDepositAccount', currentLang)}
+                                                    </h3>
+                                                    <p className="text-[11px] text-[#5f6368] dark:text-slate-400">
+                                                        {tSummary('verifiedB2bBalance', currentLang)}
                                                     </p>
                                                 </div>
-
-                                                <div className="flex justify-between items-end relative z-10">
-                                                    <div className="max-w-[70%]">
-                                                        <p className="text-[9px] font-medium uppercase tracking-wider text-white/70">Card Holder</p>
-                                                        <p className="text-xs font-semibold uppercase tracking-wide truncate text-white">
-                                                            {cardDetails.holder || 'GUEST NAME'}
-                                                        </p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="text-[9px] font-medium uppercase tracking-wider text-white/70">Expires</p>
-                                                        <p className="text-xs font-semibold text-white">{cardDetails.expiry || 'MM / YY'}</p>
-                                                    </div>
-                                                </div>
                                             </div>
-                                        </div>
 
-                                        {/* BACK SIDE */}
-                                        <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
-                                            <div className="w-full h-full relative rounded-2xl bg-slate-800 flex flex-col shadow-md text-white">
-                                                <div className="w-full h-10 bg-slate-950 mt-6"></div>
-                                                <div className="flex-1 p-6 flex flex-col justify-center">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex-1 h-9 bg-slate-100 rounded flex items-center justify-end px-3">
-                                                            <p className="text-slate-900 font-mono font-bold tracking-widest text-sm">{cardDetails.cvv || '•••'}</p>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="text-[10px] font-medium text-slate-400 uppercase">CVV / CVC</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="p-6 rounded-xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-xs space-y-4 max-w-[420px] mx-auto">
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400">Card Number</label>
-                                        <input
-                                            name="number"
-                                            maxLength={22}
-                                            value={cardDetails.number}
-                                            onChange={handleCardInputChange}
-                                            onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
-                                            className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-[4px] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
-                                            placeholder="••••  ••••  ••••  ••••"
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400">Card Holder Name</label>
-                                        <input
-                                            name="holder"
-                                            value={cardDetails.holder}
-                                            onChange={handleCardInputChange}
-                                            onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
-                                            className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-[4px] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs uppercase"
-                                            placeholder="FULL NAME AS PRINTED ON CARD"
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400">Expiry Date</label>
-                                            <input
-                                                name="expiry"
-                                                maxLength={7}
-                                                value={cardDetails.expiry}
-                                                onChange={handleCardInputChange}
-                                                onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
-                                                className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-[4px] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
-                                                placeholder="MM / YY"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400">CVV / CVC</label>
-                                            <input
-                                                name="cvv"
-                                                maxLength={4}
-                                                value={cardDetails.cvv}
-                                                onChange={handleCardInputChange}
-                                                onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: true }))}
-                                                onBlur={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
-                                                type="password"
-                                                className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-[4px] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
-                                                placeholder="•••"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="p-5 rounded-xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-xs" lang={currentLang}>
-                                <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[#dadce0] dark:border-slate-700">
-                                    <div className="size-9 rounded-lg bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8]">
-                                        <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-semibold text-[#202124] dark:text-white">
-                                            {tSummary('corporateDepositAccount', currentLang)}
-                                        </h3>
-                                        <p className="text-[11px] text-[#5f6368] dark:text-slate-400">
-                                            {tSummary('verifiedB2bBalance', currentLang)}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    {/* Current Balance */}
-                                    <div className="p-3.5 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-[#dadce0] dark:border-slate-700 flex items-center justify-between">
-                                        <div>
-                                            <p className="text-[11px] font-medium text-[#5f6368] dark:text-slate-400 mb-0.5">{tSummary('availableFunds', currentLang)}</p>
-                                            <p className="text-lg font-semibold text-[#202124] dark:text-white">{getCurrencySymbol(displayCurrency, currencySymbolMap)}12,450.00</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-[11px] font-medium text-[#5f6368] dark:text-slate-400 mb-0.5">{tSummary('status', currentLang)}</p>
-                                            <span className={`px-2.5 py-1 text-[10px] font-medium rounded-md inline-block ${
+                                            <span className={`px-2.5 py-1 text-[11px] font-medium rounded-md flex items-center gap-1.5 ${
                                                 isInsufficientBalance 
                                                     ? 'bg-[#fce8e6] text-[#d93025]' 
-                                                    : 'bg-[#e6f4ea] text-[#137333]'
+                                                    : 'bg-[#e6f4ea] text-[#137333] dark:bg-emerald-950/50 dark:text-emerald-300'
                                             }`}>
+                                                <span className="size-1.5 rounded-full bg-current"></span>
                                                 {isInsufficientBalance ? tSummary('insufficientFunds', currentLang) : tSummary('activeReady', currentLang)}
                                             </span>
                                         </div>
-                                    </div>
 
-                                    {/* Deduction Card */}
-                                    <div className="p-3.5 rounded-xl bg-[#fce8e6]/60 dark:bg-red-950/20 border border-[#fad2cf] dark:border-red-800/40 flex items-center justify-between">
-                                        <div>
-                                            <p className="text-[11px] font-medium text-[#d93025] mb-0.5">{tSummary('deductionAmount', currentLang)}</p>
-                                            <div className="flex items-center gap-1">
-                                                <span className="text-lg font-semibold text-[#d93025]">-</span>
-                                                <p className="text-lg font-semibold text-[#d93025]">
-                                                    {getCurrencySymbol(displayCurrency, currencySymbolMap)} {grandTotal.toFixed(2)}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-[11px] font-medium text-[#d93025] mb-0.5">{tSummary('paymentImpact', currentLang)}</p>
-                                            <span className="px-2.5 py-1 bg-[#fce8e6] text-[#d93025] text-[10px] font-medium rounded-md inline-block">
-                                                {tSummary('balanceDecrease', currentLang)}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Clean Estimated Balance or Warning Card */}
-                                    {isInsufficientBalance ? (
-                                        <div className="p-3.5 rounded-xl bg-[#fce8e6] dark:bg-red-950/40 text-[#d93025] dark:text-red-200 flex flex-col gap-2 border border-[#fad2cf] dark:border-red-800/50">
-                                            <div className="flex items-center justify-between">
+                                        {/* Financial Ledger Rows (Subtle, clean row breakdown without nested boxes) */}
+                                        <div className="divide-y divide-[#dadce0]/70 dark:divide-slate-700/70 text-xs">
+                                            {/* Available Funds Row */}
+                                            <div className="py-3 flex items-center justify-between">
                                                 <div>
-                                                    <p className="text-[11px] font-medium text-[#d93025] mb-0.5">{tSummary('deficitAmount', currentLang)}</p>
-                                                    <p className="text-lg font-semibold text-[#d93025]">
-                                                        - {getCurrencySymbol(displayCurrency, currencySymbolMap)} {(grandTotal - availableFunds).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    <span className="text-[#5f6368] dark:text-slate-400 font-medium">{tSummary('availableFunds', currentLang)}</span>
+                                                    <p className="text-[10px] text-[#70757a]">B2B Credit Line</p>
+                                                </div>
+                                                <span className="text-base font-semibold text-[#202124] dark:text-white tabular-nums">
+                                                    {getCurrencySymbol(displayCurrency, currencySymbolMap)} 12,450.00
+                                                </span>
+                                            </div>
+
+                                            {/* Deduction Amount Row */}
+                                            <div className="py-3 flex items-center justify-between">
+                                                <div>
+                                                    <span className="text-[#d93025] font-medium">{tSummary('deductionAmount', currentLang)}</span>
+                                                    <p className="text-[10px] text-[#d93025]/80">{tSummary('balanceDecrease', currentLang)}</p>
+                                                </div>
+                                                <span className="text-base font-semibold text-[#d93025] tabular-nums">
+                                                    - {getCurrencySymbol(displayCurrency, currencySymbolMap)} {grandTotal.toFixed(2)}
+                                                </span>
+                                            </div>
+
+                                            {/* Estimated Remaining Balance Row */}
+                                            <div className="pt-3.5 pb-1 flex items-center justify-between">
+                                                <div>
+                                                    <span className="text-xs font-semibold text-[#137333] dark:text-emerald-400">
+                                                        {tSummary('estimatedNewBalance', currentLang)}
+                                                    </span>
+                                                    <p className="text-[10px] text-[#5f6368] dark:text-slate-400">
+                                                        {tSummary('instantSettlement', currentLang)}
                                                     </p>
                                                 </div>
-                                                <div className="size-8 rounded-lg bg-[#d93025]/10 text-[#d93025] flex items-center justify-center">
-                                                    <span className="material-symbols-outlined text-lg">warning</span>
+                                                <div className="text-right">
+                                                    <span className="text-lg font-bold text-[#137333] dark:text-emerald-400 tabular-nums">
+                                                        {getCurrencySymbol(displayCurrency, currencySymbolMap)} {(availableFunds - grandTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <p className="text-[11px] font-medium text-[#d93025] bg-white/70 dark:bg-slate-900/60 p-2 rounded-lg text-center">
-                                                {tSummary('topUpPrompt', currentLang)}
-                                            </p>
                                         </div>
-                                    ) : (
-                                        <div className="p-3.5 rounded-xl bg-[#e6f4ea] dark:bg-emerald-950/20 border border-[#ceead6] dark:border-emerald-800/40 flex items-center justify-between">
-                                            <div>
-                                                <p className="text-[11px] font-medium text-[#137333] mb-0.5">{tSummary('estimatedNewBalance', currentLang)}</p>
-                                                <p className="text-lg font-semibold text-[#137333]">
-                                                    {getCurrencySymbol(displayCurrency, currencySymbolMap)} {(availableFunds - grandTotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                </p>
+
+                                        {/* Insufficient Balance Alert */}
+                                        {isInsufficientBalance && (
+                                            <div className="p-3 rounded-lg bg-[#fce8e6] dark:bg-red-950/40 text-[#d93025] dark:text-red-200 flex items-center gap-2.5 text-xs">
+                                                <span className="material-symbols-outlined text-base shrink-0">warning</span>
+                                                <span>{tSummary('topUpPrompt', currentLang)}</span>
                                             </div>
-                                            <div className="size-8 rounded-lg bg-[#ceead6] dark:bg-emerald-800/40 text-[#137333] flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-lg">account_balance</span>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
 
                     {/* Google Style Sticky Reservation Summary Sidebar */}

@@ -107,25 +107,25 @@ const PhoneInput = ({ value, onChange, label, error }) => {
     };
 
     return (
-        <div className="space-y-1">
+        <div>
             {label && (
-                <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block">
                     {label}
                 </label>
             )}
             <div className="relative" ref={dropdownRef}>
-                <div className={`flex items-stretch h-9 bg-white dark:bg-slate-800 border rounded-lg transition-all ${
-                    error ? 'border-rose-500' : 'border-slate-200 dark:border-slate-700 focus-within:border-primary'
+                <div className={`flex items-stretch h-10 bg-white dark:bg-[#303134] border rounded-[4px] transition-all ${
+                    error ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600 focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8]'
                 }`}>
                     <button
                         type="button"
                         ref={buttonRef}
                         onClick={toggleOpen}
-                        className="flex items-center gap-1.5 px-2.5 border-r border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors rounded-l-lg shrink-0 cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 border-r border-[#dadce0] dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors rounded-l-[4px] shrink-0 cursor-pointer"
                     >
                         <CountryFlag code={selectedCountry.code || selectedCountry.id} name={selectedCountry.name} fallbackEmoji={selectedCountry.flag || selectedCountry.emoji} size="sm" />
-                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{selectedCountry.code}</span>
-                        <span className={`material-symbols-outlined text-xs text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+                        <span className="text-xs font-normal text-[#202124] dark:text-white">{selectedCountry.code}</span>
+                        <span className={`material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
                             expand_more
                         </span>
                     </button>
@@ -135,14 +135,14 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                         type="text"
                         value={phoneNumber}
                         onChange={handlePhoneChange}
-                        className="flex-1 bg-transparent py-2 px-3 outline-none font-semibold text-xs text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-normal"
+                        className="flex-1 bg-transparent px-3 outline-none text-xs text-[#202124] dark:text-white placeholder:text-[#70757a]"
                         placeholder="5__ ___ __ __"
                     />
                 </div>
 
                 {/* Dropdown */}
                 {isOpen && (
-                    <div className={`absolute left-0 mt-1 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200`}>
+                    <div className={`absolute left-0 mt-1 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200`}>
                         <div className="p-2 border-b border-slate-100 dark:border-slate-800">
                             <div className="relative">
                                 <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
@@ -151,7 +151,7 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                                     placeholder="Search country..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 pl-8 pr-3 py-1.5 rounded-lg text-xs focus:outline-none focus:border-primary"
+                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 pl-8 pr-3 py-1.5 rounded-[4px] text-xs focus:outline-none focus:border-primary"
                                     autoFocus
                                 />
                             </div>

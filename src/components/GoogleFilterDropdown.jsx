@@ -53,7 +53,7 @@ const GoogleFilterDropdown = ({
             <button
                 type="button"
                 onClick={() => setIsOpen(prev => !prev)}
-                className={`group inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium border transition-all cursor-pointer select-none font-roboto shadow-2xs active:scale-[0.98] ${
+                className={`group inline-flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-medium border transition-all cursor-pointer select-none font-roboto shadow-2xs active:scale-[0.98] ${
                     isFiltered
                         ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8] dark:border-blue-500 text-[#1a73e8] dark:text-blue-300'
                         : 'bg-white dark:bg-[#202124] border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-300 hover:bg-[#f8f9fa] dark:hover:bg-slate-700/50 hover:border-[#bdc1c6] dark:hover:border-slate-500'
@@ -103,7 +103,7 @@ const GoogleFilterDropdown = ({
             {/* Dropdown Menu */}
             {isOpen && (
                 <div 
-                    className="absolute left-0 top-full mt-1.5 min-w-[210px] max-w-[300px] max-h-72 overflow-y-auto bg-white dark:bg-[#202124] rounded-2xl border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_24px_rgba(0,0,0,0.18)] py-1.5 z-[210] animate-in fade-in zoom-in-95 duration-150 custom-scrollbar"
+                    className="absolute left-0 top-full mt-1.5 min-w-[210px] max-w-[300px] max-h-72 overflow-y-auto bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_24px_rgba(0,0,0,0.18)] py-1.5 z-[210] animate-in fade-in zoom-in-95 duration-150 custom-scrollbar"
                 >
                     {options.map((opt) => {
                         const isSelected = opt.value === value;
@@ -112,7 +112,7 @@ const GoogleFilterDropdown = ({
                                 key={opt.value}
                                 type="button"
                                 onClick={() => handleSelect(opt.value)}
-                                className={`w-[calc(100%-8px)] mx-1 flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs text-left transition-colors cursor-pointer ${
+                                className={`w-[calc(100%-8px)] mx-1 flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors cursor-pointer ${
                                     isSelected
                                         ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300 font-semibold'
                                         : 'text-[#202124] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-slate-700/60'

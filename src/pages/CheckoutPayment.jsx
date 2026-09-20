@@ -1104,23 +1104,20 @@ const CheckoutPayment = () => {
     return (
         <div className="flex-1 bg-white dark:bg-[#202124] text-[#202124] dark:text-white font-roboto min-h-screen flex flex-col">
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                    <div className="flex-1">
-                        <CheckoutStepper 
-                            currentStep={3} 
-                            onStepClick={(stepId) => {
-                                const params = new URLSearchParams(window.location.search);
-                                const sid = params.get('sessionId');
-                                if (stepId === 1) {
-                                    setPendingStepId(stepId);
-                                    setShowConfirmBack(true);
-                                } else if (stepId === 2) {
-                                    navigate(`/travel/hotels/checkout/guests?sessionId=${sid}`, { state: location.state });
-                                }
-                            }}
-                        />
-                    </div>
-                    {expireAt && <CheckoutTimer expireAt={expireAt} />}
+                <div className="mb-6">
+                    <CheckoutStepper 
+                        currentStep={3} 
+                        onStepClick={(stepId) => {
+                            const params = new URLSearchParams(window.location.search);
+                            const sid = params.get('sessionId');
+                            if (stepId === 1) {
+                                setPendingStepId(stepId);
+                                setShowConfirmBack(true);
+                            } else if (stepId === 2) {
+                                navigate(`/travel/hotels/checkout/guests?sessionId=${sid}`, { state: location.state });
+                            }
+                        }}
+                    />
                 </div>
 
                 <ConfirmationModal 
@@ -1406,7 +1403,8 @@ const CheckoutPayment = () => {
                     </div>
 
                     {/* Google Style Sticky Reservation Summary Sidebar */}
-                    <div className="lg:col-span-5 lg:sticky lg:top-6">
+                    <div className="lg:col-span-5 lg:sticky lg:top-6 space-y-4">
+                        {expireAt && <CheckoutTimer expireAt={expireAt} />}
                         <HotelReservationSummaryCard
                             hotel={{
                                 ...hotel,

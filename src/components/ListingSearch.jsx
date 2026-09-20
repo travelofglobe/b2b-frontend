@@ -1190,7 +1190,9 @@ const ListingSearch = ({ isCompact = false }) => {
                         >
                             <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 500, 'opsz' 20" }}>person</span>
                             <span className="text-[13.5px] font-normal text-[#3c4043] dark:text-slate-200">{totalAdults + totalChildren}</span>
-                            <span className="material-symbols-outlined text-[18px] text-[#70757a]">arrow_drop_down</span>
+                            <span className={`material-symbols-outlined text-[19px] ${showGuestDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-300'}`}>
+                                {showGuestDropdown ? 'arrow_drop_up' : 'arrow_drop_down'}
+                            </span>
                         </button>
 
                         {/* Guest Dropdown - Google Flights Style */}

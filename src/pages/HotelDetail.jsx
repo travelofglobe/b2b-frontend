@@ -2386,7 +2386,7 @@ const HotelDetail = () => {
                             <div className={`flex-1 min-w-[280px] relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger ${
                                 isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')
                                     ? ''
-                                    : 'border border-[#dadce0] dark:border-slate-600 rounded-lg hover:border-[#bdc1c6] transition-all overflow-hidden'
+                                    : 'border border-[#dadce0] dark:border-slate-600 rounded-[4px] hover:border-[#bdc1c6] transition-all overflow-hidden'
                             }`}>
                                 {/* Check-In Half */}
                                 <div
@@ -2397,10 +2397,10 @@ const HotelDetail = () => {
                                     }}
                                     className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                         isDatePickerOpen && activeDateField === 'checkIn'
-                                            ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
+                                            ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
                                             : isDatePickerOpen && activeDateField === 'checkOut'
-                                            ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
-                                            : 'rounded-l-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                            ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                            : 'rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
                                     }`}
                                 >
                                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -2417,7 +2417,7 @@ const HotelDetail = () => {
                                         <button
                                             type="button"
                                             onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
-                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors cursor-pointer"
+                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded-[4px] transition-colors cursor-pointer"
                                             title="1 gün geri"
                                         >
                                             <span className="material-symbols-outlined text-[15px]">chevron_left</span>
@@ -2425,7 +2425,7 @@ const HotelDetail = () => {
                                         <button
                                             type="button"
                                             onClick={(e) => { e.stopPropagation(); stepCheckIn(1); }}
-                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors cursor-pointer"
+                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded-[4px] transition-colors cursor-pointer"
                                             title="1 gün ileri"
                                         >
                                             <span className="material-symbols-outlined text-[15px]">chevron_right</span>
@@ -2447,10 +2447,10 @@ const HotelDetail = () => {
                                     }}
                                     className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                         isDatePickerOpen && activeDateField === 'checkOut'
-                                            ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
+                                            ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
                                             : isDatePickerOpen && activeDateField === 'checkIn'
-                                            ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
-                                            : 'rounded-r-lg hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                            ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
+                                            : 'rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
                                     }`}
                                 >
                                     <div className="flex items-center min-w-0 flex-1">
@@ -2464,7 +2464,7 @@ const HotelDetail = () => {
                                         <button
                                             type="button"
                                             onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
-                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors cursor-pointer"
+                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded-[4px] transition-colors cursor-pointer"
                                             title="1 gün geri"
                                         >
                                             <span className="material-symbols-outlined text-[15px]">chevron_left</span>
@@ -2472,7 +2472,7 @@ const HotelDetail = () => {
                                         <button
                                             type="button"
                                             onClick={(e) => { e.stopPropagation(); stepCheckOut(1); }}
-                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors cursor-pointer"
+                                            className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded-[4px] transition-colors cursor-pointer"
                                             title="1 gün ileri"
                                         >
                                             <span className="material-symbols-outlined text-[15px]">chevron_right</span>
@@ -2505,25 +2505,32 @@ const HotelDetail = () => {
                                         setShowGuestDropdown(!showGuestDropdown);
                                         setIsDatePickerOpen(false);
                                     }}
-                                    className="flex items-center gap-1.5 border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-[#303134] px-4 h-12 rounded-lg transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer"
+                                    className={`flex items-center gap-1.5 border h-12 px-4 rounded-[4px] transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer bg-white dark:bg-[#303134] ${
+                                        showGuestDropdown
+                                            ? 'border-[#1a73e8]'
+                                            : 'border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
+                                    }`}
+                                    style={showGuestDropdown ? { boxShadow: '0 0 0 1px #1a73e8' } : { boxShadow: 'none' }}
                                 >
                                     <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 500, 'opsz' 20" }}>person</span>
                                     <span className="text-[13.5px] font-normal text-[#3c4043] dark:text-slate-200">
                                         {totalAdults + totalChildren}
                                     </span>
-                                    <span className="material-symbols-outlined text-[18px] text-[#70757a]">arrow_drop_down</span>
+                                    <span className={`material-symbols-outlined text-[19px] ${showGuestDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-300'}`}>
+                                        {showGuestDropdown ? 'arrow_drop_up' : 'arrow_drop_down'}
+                                    </span>
                                 </button>
 
                                 {/* Guest Dropdown - Google Flights Style */}
                                 {showGuestDropdown && (
-                                    <div className="absolute top-full left-0 w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <div className="absolute top-full left-0 w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-[4px] border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
                                         <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-3 -mr-3">
                                             {roomState.map((room, index) => (
                                                 <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 last:mb-0">
                                                     {roomState.length > 1 && (
                                                         <div className="flex justify-between items-center mb-3">
                                                             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{tLocal('room')} {index + 1}</span>
-                                                            <button type="button" onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded hover:bg-red-50">{tLocal('remove')}</button>
+                                                            <button type="button" onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-xs font-medium px-2 py-1 rounded-[4px] hover:bg-red-50">{tLocal('remove')}</button>
                                                         </div>
                                                     )}
 
@@ -2536,7 +2543,7 @@ const HotelDetail = () => {
                                                                     type="button"
                                                                     onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} 
                                                                     disabled={room.adults <= 1}
-                                                                    className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer"
+                                                                    className="w-8 h-8 rounded-[4px] bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer"
                                                                 >
                                                                     <span className="material-symbols-outlined text-[20px]">remove</span>
                                                                 </button>
@@ -2545,7 +2552,7 @@ const HotelDetail = () => {
                                                                     type="button"
                                                                     onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} 
                                                                     disabled={room.adults >= 6} 
-                                                                    className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer"
+                                                                    className="w-8 h-8 rounded-[4px] bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer"
                                                                 >
                                                                     <span className="material-symbols-outlined text-[20px]">add</span>
                                                                 </button>
@@ -2563,7 +2570,7 @@ const HotelDetail = () => {
                                                                     type="button"
                                                                     onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} 
                                                                     disabled={room.children <= 0}
-                                                                    className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer"
+                                                                    className="w-8 h-8 rounded-[4px] bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer"
                                                                 >
                                                                     <span className="material-symbols-outlined text-[20px]">remove</span>
                                                                 </button>
@@ -2572,7 +2579,7 @@ const HotelDetail = () => {
                                                                     type="button"
                                                                     onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} 
                                                                     disabled={room.children >= 4} 
-                                                                    className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer"
+                                                                    className="w-8 h-8 rounded-[4px] bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer"
                                                                 >
                                                                     <span className="material-symbols-outlined text-[20px]">add</span>
                                                                 </button>
@@ -2588,7 +2595,7 @@ const HotelDetail = () => {
                                                                         <select
                                                                             value={age}
                                                                             onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
-                                                                            className="w-full h-8 bg-white dark:bg-slate-800 rounded border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-0 outline-none text-[#3c4043] dark:text-white cursor-pointer"
+                                                                            className="w-full h-8 bg-white dark:bg-slate-800 rounded-[4px] border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-0 outline-none text-[#3c4043] dark:text-white cursor-pointer"
                                                                         >
                                                                             {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {tLocal('yr')}</option>)}
                                                                         </select>
@@ -2610,12 +2617,12 @@ const HotelDetail = () => {
 
                                         {/* Google Flights Style Footer */}
                                         <div className="flex items-center justify-end gap-6 mt-6 pt-2">
-                                            <button type="button" onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1.5 rounded transition-colors cursor-pointer">
+                                            <button type="button" onClick={() => setShowGuestDropdown(false)} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1.5 rounded-[4px] transition-colors cursor-pointer">
                                                 {tLocal('cancel') || 'İptal'}
                                             </button>
                                             <button type="button" onClick={() => {
                                                 setShowGuestDropdown(false);
-                                            }} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1.5 rounded transition-colors cursor-pointer">
+                                            }} className="text-[14px] text-[#1a73e8] font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1.5 rounded-[4px] transition-colors cursor-pointer">
                                                 {tLocal('done') || 'Bitti'}
                                             </button>
                                         </div>
@@ -2631,7 +2638,7 @@ const HotelDetail = () => {
                                         setNationality(newNat);
                                     }} 
                                     inputStyle={true} 
-                                    rounded="rounded-lg"
+                                    rounded="rounded-[4px]"
                                     onToggle={(isOpen) => {
                                         if (isOpen) {
                                             setShowGuestDropdown(false);
@@ -2646,7 +2653,7 @@ const HotelDetail = () => {
                                 <button
                                     type="button"
                                     onClick={handleSearch}
-                                    className="h-12 px-5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-lg font-medium text-[14px] flex items-center justify-center gap-2 shadow-[0_1px_2px_rgba(60,64,67,0.3),0_1px_3px_1px_rgba(60,64,67,0.15)] hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
+                                    className="h-12 px-5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-[4px] font-medium text-[14px] flex items-center justify-center gap-2 shadow-[0_1px_2px_rgba(60,64,67,0.3),0_1px_3px_1px_rgba(60,64,67,0.15)] hover:shadow-md transition-all active:scale-[0.98] cursor-pointer"
                                 >
                                     <span className="material-symbols-outlined text-[20px]">search</span>
                                     <span className="hidden sm:inline">{tLocal('search') || 'Ara'}</span>

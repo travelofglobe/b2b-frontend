@@ -7,6 +7,7 @@ import CheckoutStepper from '../components/CheckoutStepper';
 import ConfirmationModal from '../components/ConfirmationModal';
 import CheckoutTimer from '../components/CheckoutTimer';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
+import HotelReservationSummaryCard from '../components/HotelReservationSummaryCard';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 
 const confirmLocales = {
@@ -1143,7 +1144,7 @@ const CheckoutPayment = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     <div className="lg:col-span-7 space-y-6">
                         {/* Google Style Payment Method Selection */}
-                        <div className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-slate-700 p-4 shadow-xs">
+                        <div className="bg-white dark:bg-[#303134] rounded-xl border border-[#dadce0] dark:border-slate-700 p-4 shadow-xs">
                             <h2 className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-3">
                                 {tSummary('paymentMethod', currentLang)}
                             </h2>
@@ -1261,7 +1262,7 @@ const CheckoutPayment = () => {
                                     </div>
                                 </div>
 
-                                <div className="p-6 rounded-2xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-xs space-y-4 max-w-[420px] mx-auto">
+                                <div className="p-6 rounded-xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-xs space-y-4 max-w-[420px] mx-auto">
                                     <div className="space-y-1">
                                         <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400">Card Number</label>
                                         <input
@@ -1270,7 +1271,7 @@ const CheckoutPayment = () => {
                                             value={cardDetails.number}
                                             onChange={handleCardInputChange}
                                             onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
-                                            className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
+                                            className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-[4px] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
                                             placeholder="••••  ••••  ••••  ••••"
                                         />
                                     </div>
@@ -1281,7 +1282,7 @@ const CheckoutPayment = () => {
                                             value={cardDetails.holder}
                                             onChange={handleCardInputChange}
                                             onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
-                                            className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs uppercase"
+                                            className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-[4px] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs uppercase"
                                             placeholder="FULL NAME AS PRINTED ON CARD"
                                         />
                                     </div>
@@ -1294,7 +1295,7 @@ const CheckoutPayment = () => {
                                                 value={cardDetails.expiry}
                                                 onChange={handleCardInputChange}
                                                 onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
-                                                className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
+                                                className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-[4px] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
                                                 placeholder="MM / YY"
                                             />
                                         </div>
@@ -1308,7 +1309,7 @@ const CheckoutPayment = () => {
                                                 onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: true }))}
                                                 onBlur={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
                                                 type="password"
-                                                className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
+                                                className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-[4px] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
                                                 placeholder="•••"
                                             />
                                         </div>
@@ -1316,7 +1317,7 @@ const CheckoutPayment = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="p-5 rounded-2xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-xs" lang={currentLang}>
+                            <div className="p-5 rounded-xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-xs" lang={currentLang}>
                                 <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[#dadce0] dark:border-slate-700">
                                     <div className="size-9 rounded-lg bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8]">
                                         <span className="material-symbols-outlined text-lg">account_balance_wallet</span>
@@ -1405,209 +1406,30 @@ const CheckoutPayment = () => {
                     </div>
 
                     {/* Google Style Sticky Reservation Summary Sidebar */}
-                    <div className="lg:col-span-5 lg:sticky lg:top-6 space-y-4">
-                        <div className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-slate-700 shadow-xs overflow-hidden">
-                            {/* Card Header Badge */}
-                            <div className="p-4 pb-3 border-b border-[#dadce0] dark:border-slate-700">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5" lang={currentLang}>
-                                        <span className="material-symbols-outlined text-base text-[#1a73e8]">receipt_long</span>
-                                        {tSummary('reservationSummary', currentLang)}
-                                    </h3>
-                                    <span className="inline-flex items-center gap-1 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-blue-400 text-[10px] font-medium px-2 py-0.5 rounded-full" lang={currentLang}>
-                                        <span className="material-symbols-outlined text-xs">bolt</span>
-                                        {tSummary('instantConfirmation', currentLang)}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="p-4 space-y-4">
-                                {/* Hotel Mini Card */}
-                                <div className="rounded-xl overflow-hidden border border-[#dadce0] dark:border-slate-700">
-                                    <div className="relative h-28 overflow-hidden bg-gray-100">
-                                        <img src={hotelImage} alt={hotelName} className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
-                                        <div className="absolute bottom-2.5 left-3 right-3 text-white">
-                                            <div className="flex items-center gap-0.5 mb-0.5">
-                                                {[...Array(hotelStars)].map((_, i) => (
-                                                    <span key={i} className="material-symbols-outlined text-xs text-[#fbbc04] fill-1">star</span>
-                                                ))}
-                                                {hotel.isRecommended && (
-                                                    <span className="ml-1.5 bg-[#1a73e8] text-white text-[9px] font-medium px-1.5 py-0.5 rounded">
-                                                        REC
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <h4 className="font-semibold text-xs leading-tight line-clamp-1">{hotelName}</h4>
-                                        </div>
-                                    </div>
-                                    <div className="p-2.5 bg-gray-50 dark:bg-slate-800/60 space-y-1">
-                                        {hotelAddress && (
-                                            <div className="flex items-center gap-1 text-[#5f6368] dark:text-slate-400 text-[11px]">
-                                                <span className="material-symbols-outlined text-xs text-[#1a73e8] shrink-0">location_on</span>
-                                                <span className="truncate">{hotelAddress}</span>
-                                            </div>
-                                        )}
-                                        <div className="flex gap-4 text-[11px] text-[#5f6368] dark:text-slate-400" lang={currentLang}>
-                                            <div className="flex items-center gap-1">
-                                                <span className="material-symbols-outlined text-xs text-[#1a73e8]">login</span>
-                                                <span>{tSummary('in', currentLang)}: {hotel.checkIn || '15:00'}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <span className="material-symbols-outlined text-xs text-[#1a73e8]">logout</span>
-                                                <span>{tSummary('out', currentLang)}: {hotel.checkOut || '11:00'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Booking Dates Pill Grid */}
-                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                    <div className="p-2.5 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-[#dadce0] dark:border-slate-700">
-                                        <p className="text-[10px] text-[#5f6368] dark:text-slate-400 mb-0.5" lang={currentLang}>{tSummary('checkIn', currentLang)}</p>
-                                        <p className="font-semibold text-[#1a73e8]">{formattedDates.start}</p>
-                                    </div>
-                                    <div className="p-2.5 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-[#dadce0] dark:border-slate-700">
-                                        <p className="text-[10px] text-[#5f6368] dark:text-slate-400 mb-0.5" lang={currentLang}>{tSummary('checkOut', currentLang)}</p>
-                                        <p className="font-semibold text-[#1a73e8]">{formattedDates.end}</p>
-                                    </div>
-                                    <div className="col-span-2 p-2.5 rounded-xl bg-gray-50 dark:bg-slate-800/50 border border-[#dadce0] dark:border-slate-700 flex justify-between items-center text-[11px]">
-                                        <div className="flex items-center gap-1.5 text-[#3c4043] dark:text-slate-300">
-                                            <span className="material-symbols-outlined text-sm text-[#1a73e8]">nights_stay</span>
-                                            <span className="font-medium">
-                                                {`${nights} ${nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)} ${tSummary('stay', currentLang)}`}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5 text-[#3c4043] dark:text-slate-300">
-                                            <span className="material-symbols-outlined text-sm text-[#1a73e8]">group</span>
-                                            <span className="font-medium">
-                                                {(() => {
-                                                    const adultsCount = (checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy || checkRatesData?.occupancy)?.adults || roomState?.reduce((s, r) => s + r.adults, 0) || 0;
-                                                    const childrenCount = (checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy || checkRatesData?.occupancy)?.child || roomState?.reduce((s, r) => s + r.children, 0) || 0;
-                                                    const adultsLabel = adultsCount > 1 ? tSummary('adults', currentLang) : tSummary('adult', currentLang);
-                                                    const childrenLabel = childrenCount > 1 ? tSummary('children', currentLang) : tSummary('child', currentLang);
-                                                    return `${adultsCount} ${adultsLabel}${childrenCount > 0 ? `, ${childrenCount} ${childrenLabel}` : ''}`;
-                                                })()}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Room Breakdown */}
-                                <div className="space-y-2.5">
-                                    <p className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider" lang={currentLang}>{tSummary('selectedRooms', currentLang)}</p>
-                                    {selectedRooms?.map((room, idx) => {
-                                        const policies = room.cancellationPolicies || [];
-                                        return (
-                                            <div key={idx} className="p-3 rounded-xl bg-gray-50 dark:bg-slate-800/40 border border-[#dadce0] dark:border-slate-700 text-xs">
-                                                <div className="flex justify-between items-start gap-2 mb-2">
-                                                    <div className="flex items-start gap-2 flex-1">
-                                                        <div className="size-5 rounded bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[10px] font-semibold text-[#1a73e8] shrink-0 mt-0.5">
-                                                            {idx + 1}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-medium text-[#202124] dark:text-white line-clamp-2">{room.name}</p>
-                                                            <div className="flex flex-wrap gap-1.5 mt-1" lang={currentLang}>
-                                                                <span className="text-[10px] text-[#5f6368] dark:text-slate-400">
-                                                                    {checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName === 'RO' || !checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName === 'Room Only' ? tSummary('roomOnly', currentLang) : checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName}
-                                                                </span>
-                                                                {(() => {
-                                                                    const refundable = checkRatesData?.rooms?.[idx]?.rates?.[0]?.refundable;
-                                                                    if (refundable === undefined) return null;
-                                                                    return (
-                                                                        <RefundPolicyTooltip
-                                                                            isRefundable={refundable}
-                                                                            className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${refundable ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#fce8e6] text-[#d93025]'}`}
-                                                                        />
-                                                                    );
-                                                                })()}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right shrink-0">
-                                                        <div className="font-semibold text-xs text-[#1a73e8]">
-                                                            {getCurrencySymbol(displayCurrency, currencySymbolMap)} {(checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.calculatedAmount || checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || room.rate).toFixed(2)}
-                                                        </div>
-                                                        <p className="text-[10px] text-[#5f6368] dark:text-slate-400">{displayCurrency} · {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}</p>
-                                                    </div>
-                                                </div>
-
-                                                {/* Cancellation policy */}
-                                                <div className="pt-2 border-t border-gray-200 dark:border-slate-700/60" lang={currentLang}>
-                                                    {(() => {
-                                                        const currentPolicies = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || policies;
-                                                        if (!currentPolicies || currentPolicies.length === 0) {
-                                                            return (
-                                                                <span className="text-[10px] text-[#5f6368] dark:text-slate-400 flex items-center gap-1">
-                                                                    <span className="material-symbols-outlined text-xs">info</span>
-                                                                    {tSummary('standardCancellation', currentLang)}
-                                                                </span>
-                                                            );
-                                                        }
-                                                        return (
-                                                            <div className="space-y-1">
-                                                                <p className="text-[10px] font-medium text-[#5f6368] dark:text-slate-400 mb-0.5">{tSummary('cancellationPolicy', currentLang)}</p>
-                                                                {currentPolicies.map((policy, pIdx) => (
-                                                                    <div key={pIdx} className="flex justify-between items-center text-[10px]">
-                                                                        <span className="text-[#5f6368] dark:text-slate-400">
-                                                                            {policy.fromDate 
-                                                                                ? (policy.fromDate.includes('[') 
-                                                                                    ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
-                                                                                    : new Date(policy.fromDate).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' }))
-                                                                                : (policy.amount === 0 ? tSummary('flexible', currentLang) : tSummary('cancellationPenalty', currentLang))
-                                                                            }
-                                                                        </span>
-                                                                        <span className={`font-medium px-1.5 py-0.2 rounded ${
-                                                                            policy.amount === 0
-                                                                                ? 'bg-[#e6f4ea] text-[#137333]'
-                                                                                : 'bg-orange-50 dark:bg-orange-950/30 text-orange-600'
-                                                                        }`}>
-                                                                            {policy.amount === 0 ? tSummary('freeCancel', currentLang) : `${getCurrencySymbol(policy.currency || displayCurrency, currencySymbolMap)} ${policy.amount.toFixed(2)}`}
-                                                                        </span>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        );
-                                                    })()}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* Rate Notes */}
-                                {checkRatesData?.notes && checkRatesData.notes.length > 0 && (
-                                    <div className="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 text-xs" lang={currentLang}>
-                                        <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                            <span className="material-symbols-outlined text-xs">info</span>
-                                            {tSummary('rateNotes', currentLang)}
-                                        </p>
-                                        <div 
-                                            className="text-[11px] text-[#3c4043] dark:text-slate-300 space-y-1 max-h-32 overflow-y-auto pr-2 custom-scrollbar html-content"
-                                            dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(checkRatesData.notes.join('<br/>')) }}
-                                        />
-                                    </div>
-                                )}
-
-                                {/* Grand Total Card */}
-                                <div className="pt-3 border-t border-[#dadce0] dark:border-slate-700" lang={currentLang}>
-                                    <div className="flex items-center justify-between mb-1">
-                                        <p className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">{tSummary('totalStayPrice', currentLang)}</p>
-                                        <div className="text-right">
-                                            <div className="flex items-baseline justify-end gap-1">
-                                                <span className="text-lg font-bold text-[#1a73e8]">{getCurrencySymbol(displayCurrency, currencySymbolMap)}</span>
-                                                <span className="text-2xl font-bold text-[#1a73e8]">{grandTotal.toFixed(2)}</span>
-                                            </div>
-                                            <p className="text-[10px] text-[#5f6368] dark:text-slate-400">{displayCurrency} · {tSummary('taxesIncl', currentLang)}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Authorize Payment Button */}
+                    <div className="lg:col-span-5 lg:sticky lg:top-6">
+                        <HotelReservationSummaryCard
+                            hotel={{
+                                ...hotel,
+                                name: hotelName,
+                                image: hotelImage,
+                                stars: hotelStars,
+                                address: hotelAddress
+                            }}
+                            formattedDates={formattedDates}
+                            nights={nights}
+                            roomState={roomState}
+                            selectedRooms={selectedRooms}
+                            checkRatesData={checkRatesData}
+                            totalAmount={grandTotal}
+                            currency={displayCurrency}
+                            isLoadingRates={false}
+                            showSecurityBadge={true}
+                            lang={currentLang}
+                            actionButton={
                                 <button
                                     onClick={handlePayment}
                                     disabled={isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv))}
-                                    className={`w-full py-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl font-medium text-xs shadow-xs transition-colors flex items-center justify-center gap-2 ${
+                                    className={`w-full py-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-[4px] font-medium text-xs shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer mb-2 ${
                                         isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv)) 
                                             ? 'opacity-50 cursor-not-allowed' 
                                             : ''
@@ -1626,23 +1448,8 @@ const CheckoutPayment = () => {
                                         </>
                                     )}
                                 </button>
-
-                                <p className="text-[10px] text-center text-[#5f6368] dark:text-slate-400 font-medium" lang={currentLang}>
-                                    {tSummary('b2bRates', currentLang)}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Security Badge */}
-                        <div className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 rounded-xl p-3 flex items-center gap-3" lang={currentLang}>
-                            <div className="size-8 rounded-lg bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] shrink-0">
-                                <span className="material-symbols-outlined text-base">verified_user</span>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">{tSummary('securePayment', currentLang)}</p>
-                                <p className="text-xs font-medium text-[#202124] dark:text-white">{tSummary('protectedBooking', currentLang)}</p>
-                            </div>
-                        </div>
+                            }
+                        />
                     </div>
                 </div>
             </main>

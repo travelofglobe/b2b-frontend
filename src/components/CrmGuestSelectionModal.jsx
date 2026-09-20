@@ -341,7 +341,7 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
                 onClick={onClose}
             />
 
-            <div className="relative w-full max-w-4xl max-h-[85vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-top-4 duration-300">
+            <div className="relative w-full max-w-4xl max-h-[85vh] bg-white dark:bg-slate-900 rounded-[4px] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-top-4 duration-300">
 
                 {/* Header & Search */}
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 z-20">
@@ -365,7 +365,7 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
                             placeholder={tCrm(currentLang, 'searchPlaceholder')}
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-2 pl-10 pr-4 rounded-xl outline-none focus:border-primary transition-all font-medium text-xs text-slate-900 dark:text-white"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-2 pl-10 pr-4 rounded-[4px] outline-none focus:border-primary transition-all font-medium text-xs text-slate-900 dark:text-white"
                         />
                     </div>
                 </div>
@@ -384,7 +384,7 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
                     {isLoading ? (
                         <div className="p-4 space-y-3">
                             {[...Array(5)].map((_, i) => (
-                                <div key={i} className="h-10 bg-slate-50 dark:bg-slate-800/50 rounded-lg animate-pulse" />
+                                <div key={i} className="h-10 bg-slate-50 dark:bg-slate-800/50 rounded-[4px] animate-pulse" />
                             ))}
                         </div>
                     ) : error ? (
@@ -410,7 +410,7 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
                                 >
                                     {/* Name */}
                                     <div className="col-span-1 md:col-span-3 flex items-center gap-2.5">
-                                        <div className={`size-7 rounded-lg flex items-center justify-center shrink-0 ${guest.gender === 'FEMALE' ? 'bg-pink-100 text-pink-500' : 'bg-blue-100 text-blue-500'}`}>
+                                        <div className={`size-7 rounded-[4px] flex items-center justify-center shrink-0 ${guest.gender === 'FEMALE' ? 'bg-pink-100 text-pink-500' : 'bg-blue-100 text-blue-500'}`}>
                                             <span className="material-symbols-outlined text-sm">{guest.gender === 'FEMALE' ? 'female' : 'male'}</span>
                                         </div>
                                         <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate uppercase">
@@ -443,7 +443,7 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
                                             {guest.passportNo || '—'}
                                         </div>
                                         {guest.passportExpiry && (
-                                            <div className="text-[9px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                            <div className="text-[9px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-[4px]">
                                                 Exp: {guest.passportExpiry}
                                             </div>
                                         )}
@@ -451,7 +451,7 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
 
                                     {/* Action */}
                                     <div className="col-span-1 md:col-span-1 text-right">
-                                        <button className={`px-2.5 py-1 rounded-lg text-[9px] font-semibold uppercase tracking-wider transition-all ${selectedIndex === index ? 'bg-primary text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                                        <button className={`px-2.5 py-1 rounded-[4px] text-[9px] font-semibold uppercase tracking-wider transition-all ${selectedIndex === index ? 'bg-primary text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
                                             {tCrm(currentLang, 'selectBtn')}
                                         </button>
                                     </div>
@@ -465,11 +465,11 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
                 <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-6 text-[10px] font-black text-slate-400 uppercase tracking-widest order-2 sm:order-1">
                         <span className="flex items-center gap-1.5">
-                            <span className="bg-white dark:bg-slate-700 px-1.5 py-0.5 rounded shadow-sm border border-slate-200 dark:border-slate-600">↑↓</span>
+                            <span className="bg-white dark:bg-slate-700 px-1.5 py-0.5 rounded-[4px] shadow-sm border border-slate-200 dark:border-slate-600">↑↓</span>
                             {tCrm(currentLang, 'navigate')}
                         </span>
                         <span className="flex items-center gap-1.5">
-                            <span className="bg-white dark:bg-slate-700 px-1.5 py-0.5 rounded shadow-sm border border-slate-200 dark:border-slate-600">ENTER</span>
+                            <span className="bg-white dark:bg-slate-700 px-1.5 py-0.5 rounded-[4px] shadow-sm border border-slate-200 dark:border-slate-600">ENTER</span>
                             {tCrm(currentLang, 'select')}
                         </span>
                     </div>
@@ -478,13 +478,13 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
                         <button
                             disabled={page === 0 || isLoading}
                             onClick={() => fetchGuests(query, page - 1)}
-                            className="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-sm"
+                            className="size-8 flex items-center justify-center rounded-[4px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
                         >
                             <span className="material-symbols-outlined text-lg">chevron_left</span>
                         </button>
 
                         <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] font-black text-slate-800 dark:text-white bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md min-w-[32px] text-center">
+                            <span className="text-[11px] font-black text-slate-800 dark:text-white bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-[4px] min-w-[32px] text-center">
                                 {page + 1}
                             </span>
                             <span className="text-[10px] font-bold text-slate-400">/</span>
@@ -494,7 +494,7 @@ const CrmGuestSelectionModal = ({ isOpen, onClose, onSelect }) => {
                         <button
                             disabled={page >= totalPages - 1 || isLoading}
                             onClick={() => fetchGuests(query, page + 1)}
-                            className="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-sm"
+                            className="size-8 flex items-center justify-center rounded-[4px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
                         >
                             <span className="material-symbols-outlined text-lg">chevron_right</span>
                         </button>

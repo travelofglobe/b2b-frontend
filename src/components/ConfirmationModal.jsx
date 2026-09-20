@@ -39,7 +39,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, cancelT
             <div className="relative z-10 w-full max-w-sm bg-white dark:bg-[#202124] rounded-lg shadow-xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden animate-in zoom-in-95 fade-in duration-200">
                 <div className="p-5 sm:p-6">
                     {/* Icon */}
-                    <div className="size-11 rounded-lg bg-orange-500/10 text-orange-500 flex items-center justify-center mb-4 mx-auto">
+                    <div className="size-11 rounded-[4px] bg-orange-500/10 text-orange-500 flex items-center justify-center mb-4 mx-auto">
                         <span className="material-symbols-outlined text-xl">warning</span>
                     </div>
                     
@@ -53,7 +53,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, cancelT
                     <div className="flex gap-2.5">
                         <button
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 rounded-lg bg-[#f1f3f4] dark:bg-[#303134] text-[#3c4043] dark:text-slate-300 font-medium text-xs hover:bg-[#e8eaed] dark:hover:bg-[#3c4043] transition-colors cursor-pointer"
+                            className="flex-1 px-4 py-2 rounded-[4px] bg-[#f1f3f4] dark:bg-[#303134] text-[#3c4043] dark:text-slate-300 font-medium text-xs hover:bg-[#e8eaed] dark:hover:bg-[#3c4043] transition-colors cursor-pointer"
                         >
                             {finalCancel}
                         </button>
@@ -62,7 +62,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, cancelT
                                 onConfirm();
                                 onClose();
                             }}
-                            className="flex-1 px-4 py-2 rounded-lg bg-[#1a73e8] text-white font-medium text-xs hover:bg-[#1765cc] shadow-xs active:scale-98 transition-all cursor-pointer"
+                            className="flex-1 px-4 py-2 rounded-[4px] bg-[#1a73e8] text-white font-medium text-xs hover:bg-[#1765cc] shadow-xs active:scale-98 transition-all cursor-pointer"
                         >
                             {finalConfirm}
                         </button>

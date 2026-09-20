@@ -9,6 +9,7 @@ import PhoneInput from '../components/PhoneInput';
 import ConfirmationModal from '../components/ConfirmationModal';
 import CheckoutTimer from '../components/CheckoutTimer';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
+import HotelReservationSummaryCard from '../components/HotelReservationSummaryCard';
 import CrmGuestSelectionModal from '../components/CrmGuestSelectionModal';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 
@@ -1462,7 +1463,7 @@ const CheckoutGuestDetails = () => {
                                 <button
                                     key={idx}
                                     onClick={() => idx < activeRoomIdx && setActiveRoomIdx(idx)}
-                                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg border transition-all shrink-0 text-xs font-medium ${
+                                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-[4px] border transition-all shrink-0 text-xs font-medium cursor-pointer ${
                                         idx === activeRoomIdx 
                                             ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-xs' 
                                             : idx < activeRoomIdx 
@@ -1479,7 +1480,7 @@ const CheckoutGuestDetails = () => {
                         <div className="space-y-4" key={activeRoomIdx}>
                             <div className="flex items-center justify-between" lang={currentLang}>
                                 <h2 className="text-base font-semibold text-[#202124] dark:text-white">{currentRoom.roomName}</h2>
-                                <span className="px-2.5 py-0.5 bg-[#e8f0fe] text-[#1a73e8] rounded-full text-[10px] font-medium border border-[#d2e3fc]">
+                                <span className="px-2.5 py-0.5 bg-[#e8f0fe] text-[#1a73e8] rounded-[4px] text-[10px] font-medium border border-[#d2e3fc]">
                                     {tSummary('occupancyInfo', currentLang)}
                                 </span>
                             </div>
@@ -1488,7 +1489,7 @@ const CheckoutGuestDetails = () => {
                                 <div key={gIdx} className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-xs" lang={currentLang}>
                                     <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#dadce0] dark:border-slate-700">
                                         <div className="flex items-center gap-3">
-                                            <div className={`size-8 rounded-lg flex items-center justify-center ${guest.type === 'Adult' ? 'bg-[#e8f0fe] text-[#1a73e8]' : 'bg-[#e6f4ea] text-[#137333]'}`}>
+                                            <div className={`size-8 rounded-[4px] flex items-center justify-center ${guest.type === 'Adult' ? 'bg-[#e8f0fe] text-[#1a73e8]' : 'bg-[#e6f4ea] text-[#137333]'}`}>
                                                 <span className="material-symbols-outlined text-lg">{guest.type === 'Adult' ? 'person' : 'child_care'}</span>
                                             </div>
                                             <div>
@@ -1510,7 +1511,7 @@ const CheckoutGuestDetails = () => {
                                                 setTargetGuestIndex({ roomIdx: activeRoomIdx, guestIdx: gIdx });
                                                 setIsCrmModalOpen(true);
                                             }}
-                                            className="flex items-center gap-1.5 px-3 py-1 text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] rounded-lg text-xs font-medium transition-colors"
+                                            className="h-8 flex items-center gap-1.5 px-3 text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] rounded-[4px] text-xs font-medium transition-colors cursor-pointer"
                                         >
                                             <span className="material-symbols-outlined text-sm">contact_page</span>
                                             <span className="hidden sm:inline">{crmText}</span>
@@ -1524,7 +1525,7 @@ const CheckoutGuestDetails = () => {
                                             <input
                                                 data-field={`${activeRoomIdx}-${gIdx}-firstName`}
                                                 required
-                                                className={`w-full bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} py-2 px-3 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
+                                                className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3 rounded-[4px] outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
                                                 placeholder={tSummary('enterFirstName', currentLang)}
                                                 value={guest.firstName}
                                                 onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'firstName', e.target.value)}
@@ -1535,7 +1536,7 @@ const CheckoutGuestDetails = () => {
                                             <input
                                                 data-field={`${activeRoomIdx}-${gIdx}-lastName`}
                                                 required
-                                                className={`w-full bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} py-2 px-3 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
+                                                className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3 rounded-[4px] outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
                                                 placeholder={tSummary('enterLastName', currentLang)}
                                                 value={guest.lastName}
                                                 onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'lastName', e.target.value)}
@@ -1548,7 +1549,7 @@ const CheckoutGuestDetails = () => {
                                             <input
                                                 data-field={`${activeRoomIdx}-${gIdx}-birthDate`}
                                                 type="date"
-                                                className={`w-full bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} py-2 px-3 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
+                                                className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3 rounded-[4px] outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
                                                 value={guest.birthDate}
                                                 min="1900-01-01"
                                                 max={new Date().toISOString().split('T')[0]}
@@ -1579,14 +1580,14 @@ const CheckoutGuestDetails = () => {
                                             <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block">{tSummary('gender', currentLang)}</label>
                                             <div
                                                 data-field={`${activeRoomIdx}-${gIdx}-gender`}
-                                                className={`p-0.5 rounded-lg h-[38px] flex items-center border ${
+                                                className={`p-0.5 rounded-[4px] h-10 flex items-center border ${
                                                     errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'
                                                 } bg-[#f1f3f4] dark:bg-slate-800`}
                                             >
                                                 <button
                                                     type="button"
                                                     onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'male')}
-                                                    className={`flex-1 h-full flex items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-all ${
+                                                    className={`flex-1 h-full flex items-center justify-center gap-1.5 rounded-[4px] text-xs font-medium transition-all cursor-pointer ${
                                                         guest.gender === 'male'
                                                             ? 'bg-[#1a73e8] text-white shadow-xs'
                                                             : 'text-[#5f6368] dark:text-slate-400 hover:text-[#202124]'
@@ -1599,7 +1600,7 @@ const CheckoutGuestDetails = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'female')}
-                                                    className={`flex-1 h-full flex items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-all ${
+                                                    className={`flex-1 h-full flex items-center justify-center gap-1.5 rounded-[4px] text-xs font-medium transition-all cursor-pointer ${
                                                         guest.gender === 'female'
                                                             ? 'bg-[#1a73e8] text-white shadow-xs'
                                                             : 'text-[#5f6368] dark:text-slate-400 hover:text-[#202124]'
@@ -1619,7 +1620,7 @@ const CheckoutGuestDetails = () => {
                                                         data-field={`${activeRoomIdx}-${gIdx}-email`}
                                                         required
                                                         type="email"
-                                                        className={`w-full bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} py-2 px-3 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
+                                                        className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3 rounded-[4px] outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
                                                         placeholder={tSummary('enterEmail', currentLang)}
                                                         value={guest.email}
                                                         onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'email', e.target.value)}
@@ -1643,7 +1644,7 @@ const CheckoutGuestDetails = () => {
                             {activeRoomIdx === roomsData.length - 1 && (
                                 <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-xs">
                                     <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-[#dadce0] dark:border-slate-700">
-                                        <div className="size-7 rounded-lg bg-[#e8f0fe] flex items-center justify-center text-[#1a73e8]">
+                                        <div className="size-7 rounded-[4px] bg-[#e8f0fe] flex items-center justify-center text-[#1a73e8]">
                                             <span className="material-symbols-outlined text-base">receipt_long</span>
                                         </div>
                                         <div>
@@ -1656,7 +1657,7 @@ const CheckoutGuestDetails = () => {
                                         <div>
                                             <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block" lang={currentLang}>{tSummary('clientReferenceId', currentLang)}</label>
                                             <input
-                                                className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 py-2 px-3 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white"
+                                                className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 px-3 rounded-[4px] outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white"
                                                 placeholder={tSummary('internalReferenceNumber', currentLang)}
                                                 value={clientReferenceId}
                                                 onChange={(e) => setClientReferenceId(e.target.value)}
@@ -1665,7 +1666,7 @@ const CheckoutGuestDetails = () => {
                                         <div>
                                             <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block" lang={currentLang}>{tSummary('specialRemarks', currentLang)}</label>
                                             <input
-                                                className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 py-2 px-3 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white"
+                                                className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 px-3 rounded-[4px] outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white"
                                                 placeholder={tSummary('enterRemarks', currentLang)}
                                                 value={remark}
                                                 onChange={(e) => setRemark(e.target.value)}
@@ -1680,7 +1681,7 @@ const CheckoutGuestDetails = () => {
                                 <button
                                     type="button"
                                     onClick={() => activeRoomIdx > 0 ? setActiveRoomIdx(prev => prev - 1) : navigate(-1)}
-                                    className="px-5 py-2.5 rounded-lg border border-[#dadce0] dark:border-slate-700 font-medium text-xs text-[#1a73e8] hover:bg-white dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
+                                    className="px-5 py-2.5 rounded-[4px] border border-[#dadce0] dark:border-slate-700 font-medium text-xs text-[#1a73e8] hover:bg-white dark:hover:bg-slate-800 transition-colors flex items-center gap-2 cursor-pointer"
                                     lang={currentLang}
                                 >
                                     <span className="material-symbols-outlined text-[16px]">arrow_back</span>
@@ -1689,7 +1690,7 @@ const CheckoutGuestDetails = () => {
                                 <button
                                     type="button"
                                     onClick={handleNext}
-                                    className="px-6 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-lg font-medium text-xs shadow-xs transition-all flex items-center gap-2"
+                                    className="px-6 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-[4px] font-medium text-xs shadow-xs transition-all flex items-center gap-2 cursor-pointer"
                                     lang={currentLang}
                                 >
                                     {activeRoomIdx < roomsData.length - 1 ? (
@@ -1703,223 +1704,26 @@ const CheckoutGuestDetails = () => {
                     </div>
 
                     {/* Google Travel Sticky Reservation Summary Sidebar */}
-                    <div className="lg:col-span-5 lg:sticky lg:top-4 space-y-3 font-roboto">
-                        <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-sm">
-                            {/* Instant Confirmation Header */}
-                            <div className="flex items-center gap-2 text-[#137333] dark:text-emerald-300 font-medium text-xs mb-3.5 bg-[#e6f4ea] dark:bg-emerald-950/40 p-2.5 rounded-lg border border-[#ceead6] dark:border-emerald-800" lang={currentLang}>
-                                <span className="material-symbols-outlined text-base fill-1">bolt</span>
-                                {tSummary('instantConfirmation', currentLang)}
-                            </div>
-
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5" lang={currentLang}>
-                                    <span className="material-symbols-outlined text-sm text-[#1a73e8]">auto_awesome</span>
-                                    {tSummary('reservationSummary', currentLang)}
-                                </h3>
-                                <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-                                    {selectedRooms.length} / {roomState.length} {tSummary('room', currentLang)}
-                                </span>
-                            </div>
-
-                            {/* Hotel Info Card */}
-                            <div className="mb-3.5 rounded-xl overflow-hidden border border-[#dadce0] dark:border-slate-700 shadow-xs">
-                                <div className="relative h-24 overflow-hidden">
-                                    <img
-                                        src={hotelImage}
-                                        alt={hotelName}
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
-                                    <div className="absolute bottom-2 left-3 right-3">
-                                        <div className="flex items-center gap-0.5 mb-0.5">
-                                            {[...Array(hotelStars)].map((_, i) => (
-                                                <span key={i} className="material-symbols-outlined text-[11px] text-[#fbbc04] fill-1">star</span>
-                                            ))}
-                                            {hotel.isRecommended && (
-                                                <span className="ml-1 bg-[#1a73e8] text-white text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded shadow-xs flex items-center gap-0.5">
-                                                    <span className="material-symbols-outlined text-[10px] fill-1">thumb_up</span>
-                                                    REC
-                                                </span>
-                                            )}
-                                        </div>
-                                        <h4 className="font-semibold text-white text-xs uppercase tracking-tight leading-tight line-clamp-1">{hotelName}</h4>
-                                    </div>
-                                </div>
-                                <div className="p-2.5 bg-[#f8f9fa] dark:bg-[#303134] space-y-1.5 border-t border-[#dadce0] dark:border-slate-700">
-                                    {hotelAddress && (
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="material-symbols-outlined text-xs text-[#1a73e8] shrink-0">location_on</span>
-                                            <p className="text-[10px] font-normal text-[#5f6368] dark:text-slate-300 truncate">{hotelAddress}</p>
-                                        </div>
-                                    )}
-                                    <div className="flex gap-4" lang={currentLang}>
-                                        <div className="flex items-center gap-1">
-                                            <span className="material-symbols-outlined text-[11px] text-[#1a73e8]">login</span>
-                                            <span className="text-[9px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">{tSummary('in', currentLang)}: {hotel.checkIn || '15:00'}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <span className="material-symbols-outlined text-[11px] text-[#1a73e8]">logout</span>
-                                            <span className="text-[9px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">{tSummary('out', currentLang)}: {hotel.checkOut || '11:00'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Dates & Guests Stay Box */}
-                            <div className="grid grid-cols-2 gap-2 mb-3.5">
-                                <div className="p-2 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
-                                    <p className="text-[8px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>{tSummary('checkIn', currentLang)}</p>
-                                    <p className="text-xs font-semibold text-[#1a73e8] leading-tight">{formattedDates.start}</p>
-                                </div>
-                                <div className="p-2 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
-                                    <p className="text-[8px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>{tSummary('checkOut', currentLang)}</p>
-                                    <p className="text-xs font-semibold text-[#1a73e8] leading-tight">{formattedDates.end}</p>
-                                </div>
-                                <div className="col-span-2 p-2 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 flex justify-between items-center">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="material-symbols-outlined text-xs text-[#1a73e8]">nights_stay</span>
-                                        <span className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-300 uppercase tracking-wider" lang={currentLang}>
-                                            {`${nights} ${nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)} ${tSummary('stay', currentLang)}`}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="material-symbols-outlined text-xs text-[#1a73e8]">group</span>
-                                        <span className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-300 uppercase tracking-wider" lang={currentLang}>
-                                            {(() => {
-                                                const adultsCount = checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy?.adults || roomState.reduce((s, r) => s + r.adults, 0);
-                                                const childrenCount = checkRatesData?.rooms?.[0]?.rates?.[0]?.occupancy?.child || roomState.reduce((s, r) => s + r.children, 0);
-                                                const adultsLabel = adultsCount > 1 ? tSummary('adults', currentLang) : tSummary('adult', currentLang);
-                                                const childrenLabel = childrenCount > 1 ? tSummary('children', currentLang) : tSummary('child', currentLang);
-                                                return `${adultsCount} ${adultsLabel}${childrenCount > 0 ? `, ${childrenCount} ${childrenLabel}` : ''}`;
-                                            })()}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Room Breakdown */}
-                            <div className="space-y-2 mb-3.5">
-                                <p className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider" lang={currentLang}>{tSummary('selectedRooms', currentLang)}</p>
-                                {selectedRooms?.map((room, idx) => {
-                                    const policies = room.cancellationPolicies || [];
-                                    const rawBoard = checkRatesData?.rooms?.[idx]?.rates?.[0]?.boardName || 'Room Only';
-                                    const boardLabel = rawBoard.toLowerCase() === 'room only' 
-                                        ? tSummary('roomOnly', currentLang) 
-                                        : rawBoard;
-                                    const currentPolicies = checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.cancellationPolicies || policies;
-                                    const refundable = checkRatesData?.rooms?.[idx]?.rates?.[0]?.refundable;
-                                    const roomPriceVal = (checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.calculatedAmount || checkRatesData?.rooms?.[idx]?.rates?.[0]?.price?.totalPaymentAmount || room.rate || 0);
-
-                                    return (
-                                        <div key={idx} className="relative p-3 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
-                                            <div className="pr-2 mb-1.5">
-                                                <div className="flex items-start gap-1.5">
-                                                    <div className="size-4 rounded bg-[#e8f0fe] text-[#1a73e8] text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                                                        {idx + 1}
-                                                    </div>
-                                                    <span className="font-medium text-[#202124] dark:text-white text-xs line-clamp-2">
-                                                        {room.name}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#dadce0] dark:border-slate-700">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="bg-white dark:bg-slate-800 border border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-300 text-[10px] px-1.5 py-0.5 rounded font-normal">{boardLabel}</span>
-                                                    {refundable !== undefined && (
-                                                        <RefundPolicyTooltip
-                                                            isRefundable={refundable}
-                                                            className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${refundable ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#f1f3f4] text-[#5f6368]'}`}
-                                                        />
-                                                    )}
-                                                </div>
-                                                <div className="text-right">
-                                                    <span className="text-xs font-bold text-[#202124] dark:text-white">
-                                                        {getCurrencySymbol(displayCurrency, currencySymbolMap)} {roomPriceVal.toFixed(2)}
-                                                    </span>
-                                                    <p className="text-[9px] text-[#70757a]">
-                                                        {nights} {nights > 1 ? tSummary('nights', currentLang) : tSummary('night', currentLang)}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            {/* Cancellation Policy Details */}
-                                            <div className="mt-2 pt-1.5 border-t border-dashed border-[#dadce0] dark:border-slate-700">
-                                                {currentPolicies && currentPolicies.length > 0 ? (
-                                                    <div className="space-y-1">
-                                                        <p className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>{tSummary('cancellationPolicy', currentLang)}</p>
-                                                        {currentPolicies.map((policy, pIdx) => (
-                                                            <div key={pIdx} className="flex justify-between items-center text-[10px]">
-                                                                <span className="text-[#5f6368] dark:text-slate-400">
-                                                                    {policy.fromDate 
-                                                                        ? (policy.fromDate.includes('[') 
-                                                                            ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
-                                                                            : new Date(policy.fromDate).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' }))
-                                                                        : (policy.amount === 0 ? tSummary('flexible', currentLang) : tSummary('cancellationPenalty', currentLang))
-                                                                    }
-                                                                </span>
-                                                                <span className={`font-medium px-1.5 py-0.2 rounded text-[9px] ${
-                                                                    policy.amount === 0 ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
-                                                                }`}>
-                                                                    {policy.amount === 0 ? tSummary('freeCancel', currentLang) : `${getCurrencySymbol(policy.currency || displayCurrency, currencySymbolMap)} ${policy.amount.toFixed(2)}`}
-                                                                </span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-[10px] text-[#70757a] flex items-center gap-1" lang={currentLang}>
-                                                        <span className="material-symbols-outlined text-[11px]">info</span>
-                                                        {tSummary('standardCancellation', currentLang)}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Grand Total */}
-                            <div className="pt-3 border-t border-[#dadce0] dark:border-slate-700 mb-3" lang={currentLang}>
-                                <div className="flex items-baseline justify-between mb-1">
-                                    <div>
-                                        <span className="text-xs text-[#5f6368] dark:text-slate-400 font-medium block">{tSummary('totalStayPrice', currentLang)}</span>
-                                        <span className="text-[10px] text-[#70757a]">{displayCurrency} · {tSummary('taxesIncl', currentLang)}</span>
-                                    </div>
-                                    <span className="text-xl font-bold text-[#1a73e8] dark:text-blue-400">
-                                        {getCurrencySymbol(displayCurrency, currencySymbolMap)} {isLoadingRates ? '...' : grandTotal.toFixed(2)}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Rate Notes */}
-                            {checkRatesData?.notes && checkRatesData.notes.length > 0 && (
-                                <div className="mb-3 p-2.5 rounded-lg bg-[#fef7e0] dark:bg-amber-950/30 border border-[#fce8e6] dark:border-amber-900/50" lang={currentLang}>
-                                    <p className="text-[9px] font-semibold text-amber-800 dark:text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                        <span className="material-symbols-outlined text-[12px]">info</span>
-                                        {tSummary('rateNotes', currentLang)}
-                                    </p>
-                                    <div 
-                                        className="text-[10px] font-normal text-amber-900 dark:text-amber-200 space-y-1 max-h-32 overflow-y-auto pr-2 custom-scrollbar html-content"
-                                        dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(checkRatesData.notes.join('<br/>')) }}
-                                    />
-                                </div>
-                            )}
-
-                            <p className="text-[10px] text-center text-[#70757a] dark:text-slate-500 font-medium" lang={currentLang}>
-                                {tSummary('b2bRates', currentLang)}
-                            </p>
-                        </div>
-
-                        {/* Security Badge */}
-                        <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-3.5 flex items-center gap-3" lang={currentLang}>
-                            <div className="size-9 rounded-lg bg-[#e8f0fe] dark:bg-slate-800 flex items-center justify-center text-[#1a73e8] shrink-0">
-                                <span className="material-symbols-outlined text-lg">verified_user</span>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-medium text-[#70757a] uppercase tracking-wider leading-none mb-0.5">{tSummary('securePayment', currentLang)}</p>
-                                <p className="text-xs font-semibold text-[#202124] dark:text-white">{tSummary('protectedBooking', currentLang)}</p>
-                            </div>
-                        </div>
+                    <div className="lg:col-span-5 lg:sticky lg:top-4">
+                        <HotelReservationSummaryCard
+                            hotel={{
+                                ...hotel,
+                                name: hotelName,
+                                image: hotelImage,
+                                stars: hotelStars,
+                                address: hotelAddress
+                            }}
+                            formattedDates={formattedDates}
+                            nights={nights}
+                            roomState={roomState}
+                            selectedRooms={selectedRooms}
+                            checkRatesData={checkRatesData}
+                            totalAmount={grandTotal}
+                            currency={displayCurrency}
+                            isLoadingRates={isLoadingRates}
+                            showSecurityBadge={true}
+                            lang={currentLang}
+                        />
                     </div>
                 </div>
             </main>

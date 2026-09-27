@@ -148,16 +148,16 @@ const PortalLayout = () => {
                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                             >
                                 <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${(location.pathname.startsWith('/travel') && location.pathname.includes('/bookings')) || location.pathname === '/travel/bookings' ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>book_online</span>
-                                <span className="text-sm font-medium text-left leading-snug flex-1">Bookings</span>
+                                <span className="text-sm font-medium text-left leading-snug flex-1">{t('sidebar.bookings')}</span>
                                 <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isBookingsOpen ? 'rotate-90' : ''} ${(location.pathname.startsWith('/travel') && location.pathname.includes('/bookings')) || location.pathname === '/travel/bookings' ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
                             </button>
 
                             {isBookingsOpen && (
                                 <div className="space-y-0.5 animate-in slide-in-from-top-1 duration-200">
                                     {[
-                                        { path: '/travel/bookings', icon: 'list_alt', label: 'All bookings' },
-                                        { path: '/travel/hotels/bookings', icon: 'bed', label: 'Hotel bookings' },
-                                        { path: '/travel/flights/bookings', icon: 'flight', label: 'Flight bookings' },
+                                        { path: '/travel/bookings', icon: 'list_alt', label: t('sidebar.allBookings') },
+                                        { path: '/travel/hotels/bookings', icon: 'bed', label: t('sidebar.hotelBookings') },
+                                        { path: '/travel/flights/bookings', icon: 'flight', label: t('sidebar.flightBookings') },
                                     ].map(({ path, icon, label }) => {
                                         const isActive = location.pathname === path;
                                         return (

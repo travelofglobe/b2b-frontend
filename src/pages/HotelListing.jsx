@@ -2404,13 +2404,12 @@ const HotelListing = () => {
         try {
             const filters = getSearchParams();
             const currentPage = isReset ? 0 : pageRef.current;
-            const pageSize = 24;
             const baseRequest = {
                 // Use geo bounds if provided (map area search), otherwise use locationId
                 locationId: activeGeoBounds ? null : locationId,
                 geo: activeGeoBounds?.bounds || null,
                 zoom: activeGeoBounds?.zoom || null,
-                size: pageSize,
+                size: 100,
                 filters: {
                     locationIds: activeGeoBounds
                         ? [] // when searching by map bounds, don't restrict by locationId
@@ -2438,28 +2437,35 @@ const HotelListing = () => {
                 sort: sortConfig.field ? sortConfig : null,
                 signal: controller.signal
             };
-            const response = await hotelService.searchHotels({ ...baseRequest, page: currentPage, size: pageSize });
-            if (response && response.data) {
-                const pageData = response.data;
-                const filtersData = response.filters || response.data.filters;
-                const content = pageData.content || [];
-                const mappedHotels = content.map(h => mapApiHotelToModel(h));
+            const req1 = hotelService.searchHotels({ ...baseRequest, page: currentPage });
+            const req2 = hotelService.searchHotels({ ...baseRequest, page: currentPage + 1 });
+            const results = await Promise.allSettled([req1, req2]);
+            const res1 = results[0]?.status === 'fulfilled' ? results[0].value : null;
+            const res2 = results[1]?.status === 'fulfilled' ? results[1].value : null;
+            if (res1 && res1.data) {
+                const pageData1 = res1.data;
+                const pageData2 = (res2 && res2.data) ? res2.data : null;
+                const filtersData = res1.filters || res1.data.filters;
+                const content1 = pageData1.content || [];
+                const content2 = pageData2?.content || [];
+                const combinedContent = [...content1, ...content2];
+                const mappedHotels = combinedContent.map(h => mapApiHotelToModel(h));
                 setHotels(prev => {
                     if (currentPage === 0) return mappedHotels;
                     const existingIds = new Set(prev.map(h => h.id));
                     return [...prev, ...mappedHotels.filter(h => !existingIds.has(h.id))];
                 });
-                setTotalProperties(pageData.totalElements || 0);
+                setTotalProperties(pageData1.totalElements || 0);
                 if (currentPage === 0 && filtersData) setDynamicFilters(filtersData);
-                const noMore = (pageData.last || content.length === 0);
+                const noMore = (pageData1.last || pageData2?.last || combinedContent.length === 0);
                 const nextHasMore = !noMore;
                 setHasMore(nextHasMore);
                 hasMoreRef.current = nextHasMore;
-                const nextPage = currentPage + 1;
+                const nextPage = currentPage + 2;
                 setPage(nextPage);
                 pageRef.current = nextPage;
                 const newLocationNames = {};
-                content.forEach(hotel => {
+                combinedContent.forEach(hotel => {
                     if (hotel.locationBreadcrumbs) {
                         hotel.locationBreadcrumbs.forEach(crumb => {
                             if (crumb.locationId && crumb.name) {
@@ -2469,6 +2475,11 @@ const HotelListing = () => {
                     }
                 });
                 if (Object.keys(newLocationNames).length > 0) setLocationNames(prev => ({ ...prev, ...newLocationNames }));
+                if (currentPage === 0 && nextHasMore) {
+                    isFetchingRef.current = false;
+                    setTimeout(() => { loadMoreHotels(false, activeGeoBounds); }, 50);
+                    return;
+                }
             } else {
                 setHasMore(false);
                 hasMoreRef.current = false;
@@ -2824,7 +2835,7 @@ const HotelListing = () => {
     // Scroll-based infinite loading
     const handleListScroll = React.useCallback((e) => {
         const { scrollTop, scrollHeight, clientHeight } = e.target;
-        if (scrollHeight - scrollTop - clientHeight < 1500 && hasMoreRef.current && !isFetchingRef.current && hotels.length > 0) {
+        if (scrollHeight - scrollTop - clientHeight < 2500 && hasMoreRef.current && !isFetchingRef.current && hotels.length > 0) {
             loadMoreHotels(false, mapBoundsRef.current);
         }
     }, [loadMoreHotels, hotels.length]);

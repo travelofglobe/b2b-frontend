@@ -353,6 +353,14 @@ const MyOffice = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [userFormData, setUserFormData] = useState({ name: '', surname: '', email: '', password: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE', roleIds: [] });
 
+    // Update Password Modal state
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [passwordTargetUser, setPasswordTargetUser] = useState(null);
+    const [updatePasswordValue, setUpdatePasswordValue] = useState('');
+    const [showUpdatePasswordText, setShowUpdatePasswordText] = useState(false);
+    const [passwordModalError, setPasswordModalError] = useState(null);
+    const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false);
+
     // Guest management state
     const [guests, setGuests] = useState([]);
     const [guestFilters, setGuestFilters] = useState({ query: '', status: 'ACTIVE', countryCodes: [] });
@@ -725,12 +733,49 @@ const MyOffice = () => {
     const openEditUser = (u) => { setUserApiError(null); setShowPassword(false); setEditingUser(u); setUserFormData({ name: u.name, surname: u.surname, email: u.email, phoneCountryCode: u.phoneCountryCode || '90', phoneNumber: u.phoneNumber || '', status: u.status || 'ACTIVE', roleIds: u.roles?.map(r => r.id) || [] }); setIsUserModalOpen(true); };
 
     const validatePassword = (p) => ({
-        length: p.length >= 12 && p.length <= 16,
-        uppercase: /[A-Z]/.test(p),
-        lowercase: /[a-z]/.test(p),
-        number: /[0-9]/.test(p),
-        special: /[!@#$%^&*]/.test(p)
+        length: (p || '').length >= 12,
+        uppercase: /[A-Z]/.test(p || ''),
+        lowercase: /[a-z]/.test(p || ''),
+        number: /[0-9]/.test(p || ''),
+        special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(p || '') || /[^A-Za-z0-9]/.test(p || '')
     });
+
+    const openUpdatePasswordModal = (u) => {
+        setPasswordTargetUser(u);
+        setUpdatePasswordValue('');
+        setShowUpdatePasswordText(false);
+        setPasswordModalError(null);
+        setIsPasswordModalOpen(true);
+    };
+
+    const handleUpdatePasswordSubmit = async (e) => {
+        e.preventDefault();
+        if (!passwordTargetUser) return;
+
+        const v = validatePassword(updatePasswordValue);
+        const allRulesMet = v.length && v.uppercase && v.lowercase && v.number && v.special;
+        if (!allRulesMet) {
+            setPasswordModalError(L('pleaseMeetAllPasswordRules') || 'Lütfen tüm şifre kurallarını karşılayın.');
+            return;
+        }
+
+        try {
+            setIsPasswordSubmitting(true);
+            setPasswordModalError(null);
+
+            await userService.updatePassword(passwordTargetUser.id, updatePasswordValue);
+
+            showNotification(L('passwordUpdated') || 'Kullanıcı şifresi başarıyla güncellendi.');
+            setIsPasswordModalOpen(false);
+            setPasswordTargetUser(null);
+            setUpdatePasswordValue('');
+        } catch (err) {
+            console.error('Password update error:', err);
+            setPasswordModalError(err.message || L('updateFailed') || 'Şifre güncellenirken bir hata oluştu.');
+        } finally {
+            setIsPasswordSubmitting(false);
+        }
+    };
 
     const handleUserSubmit = async (e) => {
         e.preventDefault();
@@ -1767,6 +1812,13 @@ const MyOffice = () => {
                                                         </td>
                                                         <td className="px-4 py-3 text-right">
                                                             <div className="flex items-center justify-end gap-1">
+                                                                <button
+                                                                    onClick={() => openUpdatePasswordModal(u)}
+                                                                    className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#e8f0fe] hover:text-[#1a73e8] dark:text-[#9aa0a6] dark:hover:bg-[#1a73e8]/20 dark:hover:text-[#8ab4f8] transition-colors cursor-pointer"
+                                                                    title={L('updatePassword') || 'Şifre Güncelle'}
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[18px]">lock_reset</span>
+                                                                </button>
                                                                 <button onClick={() => openEditUser(u)} className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#f1f3f4] dark:text-[#9aa0a6] dark:hover:bg-[#202124] transition-colors cursor-pointer" title={L('editUser')}>
                                                                     <span className="material-symbols-outlined text-[18px]">edit</span>
                                                                 </button>
@@ -2410,8 +2462,8 @@ const MyOffice = () => {
                                     </div>
                                     <div className="mt-2.5 grid grid-cols-1 gap-1.5 p-3 bg-[#f8f9fa] dark:bg-[#303134]/50 rounded-xl border border-[#dadce0] dark:border-[#3c4043]">
                                         {[
-                                            { key: 'length', label: 'Minimum 12 - Maksimum 16 karakter' },
-                                            { key: 'uppercase', label: 'En az 1 büyük harf (A-Z)' },
+                                            { key: 'length', label: L('passwordRuleLength') || 'Minimum 12 karakter' },
+                                            { key: 'uppercase', label: L('passwordRuleUppercase') || 'En az 1 büyük harf (A-Z)' },
                                             { key: 'lowercase', label: 'En az 1 küçük harf (a-z)' },
                                             { key: 'number', label: 'En az 1 rakam (0-9)' },
                                             { key: 'special', label: 'En az 1 özel karakter (!@#$%^&*)' },
@@ -2482,6 +2534,121 @@ const MyOffice = () => {
                                     className="h-10 px-6 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium shadow-sm active:scale-95 transition-all disabled:opacity-50"
                                 >
                                     {saving ? L('processing') : L('saveUser')}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Google Material 3 Update Password Modal */}
+            {isPasswordModalOpen && passwordTargetUser && (
+                <div className="fixed inset-0 z-[20000] flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="modal-overlay fixed inset-0 bg-[#202124]/40 backdrop-blur-sm" onClick={() => !isPasswordSubmitting && setIsPasswordModalOpen(false)}></div>
+                    <div className="relative bg-white dark:bg-[#202124] w-full max-w-md rounded-[28px] shadow-2xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] animate-in zoom-in-95 duration-200">
+                        {/* Header */}
+                        <div className="p-6 border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="size-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-xl">lock_reset</span>
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-semibold text-[#202124] dark:text-white">{L('updatePassword') || 'Şifre Güncelle'}</h3>
+                                    <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] truncate max-w-[240px]">
+                                        {passwordTargetUser.name} {passwordTargetUser.surname} ({passwordTargetUser.email})
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsPasswordModalOpen(false)}
+                                disabled={isPasswordSubmitting}
+                                className="size-9 rounded-full flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors disabled:opacity-50"
+                            >
+                                <span className="material-symbols-outlined text-lg">close</span>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleUpdatePasswordSubmit} className="p-6 space-y-4">
+                            {passwordModalError && (
+                                <div className="p-3.5 bg-[#fce8e6] dark:bg-red-950/30 border border-[#fad2cf] dark:border-red-900/40 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2">
+                                    <div className="size-8 bg-[#d93025] rounded-full flex items-center justify-center text-white shrink-0">
+                                        <span className="material-symbols-outlined text-sm">error</span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[11px] font-semibold text-[#d93025] dark:text-red-400">Hata Oluştu</p>
+                                        <p className="text-xs text-[#5f6368] dark:text-[#dadce0] break-words">{passwordModalError}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">
+                                    {L('newPassword') || 'Yeni Şifre'}
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showUpdatePasswordText ? "text" : "password"}
+                                        required
+                                        autoComplete="new-password"
+                                        value={updatePasswordValue}
+                                        onChange={(e) => setUpdatePasswordValue(e.target.value)}
+                                        placeholder={L('enterNewPassword') || "Yeni şifrenizi girin..."}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl pl-3 pr-10 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowUpdatePasswordText(!showUpdatePasswordText)}
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] hover:text-[#202124] dark:hover:text-white transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">
+                                            {showUpdatePasswordText ? 'visibility_off' : 'visibility'}
+                                        </span>
+                                    </button>
+                                </div>
+
+                                {/* Password Rules Checklist */}
+                                <div className="mt-3 grid grid-cols-1 gap-1.5 p-3.5 bg-[#f8f9fa] dark:bg-[#303134]/50 rounded-xl border border-[#dadce0] dark:border-[#3c4043]">
+                                    <p className="text-[11px] font-semibold text-[#3c4043] dark:text-[#e8eaed] mb-1">
+                                        {L('passwordRulesTitle') || 'Şifre belirleme kuralları:'}
+                                    </p>
+                                    {[
+                                        { key: 'length', label: L('passwordRuleLength') || 'Minimum 12 karakter' },
+                                        { key: 'uppercase', label: L('passwordRuleUppercase') || 'En az 1 büyük harf (A-Z)' },
+                                        { key: 'lowercase', label: L('passwordRuleLowercase') || 'En az 1 küçük harf (a-z)' },
+                                        { key: 'number', label: L('passwordRuleNumber') || 'En az 1 rakam (0-9)' },
+                                        { key: 'special', label: L('passwordRuleSpecial') || 'En az 1 özel karakter (!@#$%^&*)' },
+                                    ].map(rule => {
+                                        const isValid = validatePassword(updatePasswordValue)[rule.key];
+                                        return (
+                                            <div key={rule.key} className="flex items-center gap-2">
+                                                <div className={`size-4 rounded-full flex items-center justify-center transition-colors ${isValid ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#f1f3f4] dark:bg-[#3c4043] text-[#5f6368] dark:text-[#9aa0a6]'}`}>
+                                                    <span className="material-symbols-outlined text-[11px] font-bold">{isValid ? 'check' : 'close'}</span>
+                                                </div>
+                                                <span className={`text-[11px] font-medium transition-colors ${isValid ? 'text-[#137333] dark:text-emerald-400 font-semibold' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>
+                                                    {rule.label}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="pt-3 border-t border-[#dadce0] dark:border-[#3c4043] flex items-center justify-end gap-2.5">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsPasswordModalOpen(false)}
+                                    disabled={isPasswordSubmitting}
+                                    className="h-10 px-5 rounded-full text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors disabled:opacity-50"
+                                >
+                                    {L('cancel') || 'İptal'}
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isPasswordSubmitting || !Object.values(validatePassword(updatePasswordValue)).every(Boolean)}
+                                    className="h-10 px-6 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium shadow-sm active:scale-95 transition-all disabled:opacity-50 flex items-center gap-1.5"
+                                >
+                                    {isPasswordSubmitting ? (L('processing') || 'İşleniyor...') : (L('updatePasswordBtn') || 'Şifreyi Güncelle')}
                                 </button>
                             </div>
                         </form>

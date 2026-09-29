@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { bookingService } from '../services/bookingService';
+import { hotelService } from '../services/hotelService';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import { tBD } from '../utils/bookingDetailLocales';
@@ -10,6 +11,7 @@ const BookingDetail = () => {
     const { bookingId } = useParams();
     const navigate = useNavigate();
     const [booking, setBooking] = useState(null);
+    const [hotelDetails, setHotelDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [copiedText, setCopiedText] = useState(null);
@@ -42,6 +44,16 @@ const BookingDetail = () => {
             const data = await bookingService.getBookingDetail(bookingId, signal);
             if (!signal?.aborted) {
                 setBooking(data);
+                if (data?.hotel?.internalHotelId) {
+                    try {
+                        const hDetails = await hotelService.getHotelDetail(data.hotel.internalHotelId, signal);
+                        if (!signal?.aborted && hDetails) {
+                            setHotelDetails(hDetails);
+                        }
+                    } catch (hErr) {
+                        console.error('Fetch supplementary hotel details error:', hErr);
+                    }
+                }
             }
         } catch (error) {
             if (error.name !== 'AbortError') {
@@ -103,6 +115,27 @@ const BookingDetail = () => {
             console.error('Error formatting date:', dateTimeString, error);
             return 'Invalid Date';
         }
+    };
+
+    const getHotelAddress = () => {
+        const addr = hotelDetails?.address || booking?.hotel?.address;
+        if (addr) {
+            if (typeof addr === 'string' && addr.trim()) return addr.trim();
+            if (typeof addr === 'object') {
+                const parts = [
+                    addr.street,
+                    addr.houseNumber,
+                    addr.cityName,
+                    addr.stateName,
+                    addr.countryName || addr.countryCode
+                ].filter(p => p && String(p).trim().length > 0);
+                if (parts.length > 0) return parts.join(', ');
+            }
+        }
+        if (hotelDetails?.locationPathNames && hotelDetails.locationPathNames.trim()) {
+            return hotelDetails.locationPathNames.trim();
+        }
+        return null;
     };
 
     const getPaymentStatusBadge = (status) => {
@@ -398,20 +431,25 @@ const BookingDetail = () => {
                             </div>
 
                             {/* Address & Meta */}
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-[#5f6368] dark:text-slate-400">
-                                {booking.hotel?.address && (
-                                    <div className="flex items-center gap-1">
-                                        <span className="material-symbols-outlined text-[16px] text-[#1a73e8]">location_on</span>
-                                        <span>{[booking.hotel.address.street, booking.hotel.address.cityName, booking.hotel.address.countryName].filter(Boolean).join(', ')}</span>
+                            {(() => {
+                                const hotelAddress = getHotelAddress();
+                                return (
+                                    <div className="flex flex-wrap items-center gap-2 text-xs text-[#5f6368] dark:text-slate-400">
+                                        {hotelAddress && (
+                                            <div className="flex items-center gap-1.5 text-[#3c4043] dark:text-slate-300">
+                                                <span className="material-symbols-outlined text-[16px] text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">location_on</span>
+                                                <span className="font-medium">{hotelAddress}</span>
+                                            </div>
+                                        )}
+                                        {booking.hotel?.internalHotelId && (
+                                            <>
+                                                {hotelAddress && <span>•</span>}
+                                                <span className="font-medium text-[#70757a]">ID: {booking.hotel.internalHotelId}</span>
+                                            </>
+                                        )}
                                     </div>
-                                )}
-                                {booking.hotel?.internalHotelId && (
-                                    <>
-                                        <span>•</span>
-                                        <span className="font-medium text-[#70757a]">ID: {booking.hotel.internalHotelId}</span>
-                                    </>
-                                )}
-                            </div>
+                                );
+                            })()}
                         </div>
 
                         {/* Top Total Amount Display */}

@@ -55,7 +55,7 @@ function App() {
               <Route path="/travel/hotels/bookings" element={<MyBookings />} />
               <Route path="/travel/hotels/bookings/:bookingId" element={<BookingDetail />} />
               <Route path="/bookings" element={<Navigate to="/travel/hotels/bookings" replace />} />
-              <Route path="/bookings/:bookingId" element={<Navigate to="/travel/hotels/bookings/:bookingId" replace />} />
+              <Route path="/bookings/:bookingId" element={<BookingDetail />} />
               <Route path="/travel/flights/bookings" element={<UnderConstruction title="Flight Bookings" icon="flight" />} />
               <Route path="/my-office" element={<MyOffice />} />
               <Route path="/definitions/markup" element={<MarkupManagement />} />

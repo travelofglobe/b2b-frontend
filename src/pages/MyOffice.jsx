@@ -54,11 +54,26 @@ const formatToPickerDate = (dateStr) => {
     return `${year}-${month}-${day}`;
 };
 
-const getCountryName = (countries, alphaTwoCode, lang = 'en') => {
-    if (!alphaTwoCode) return '';
-    const c = countries.find(x => x.alphaTwoCode === alphaTwoCode);
-    if (!c) return alphaTwoCode;
-    return c.name?.translations?.[lang] || c.name?.translations?.en || c.name?.defaultName || alphaTwoCode;
+const getCountryCode = (c) => {
+    if (!c) return '';
+    return c.countryIso2 || c.alphaTwoCode || c.code || c.countryCode || '';
+};
+
+const getCountryName = (countries, codeOrName, lang = 'tr') => {
+    if (!codeOrName) return '';
+    if (!Array.isArray(countries) || countries.length === 0) return codeOrName;
+    const clean = String(codeOrName).trim().toLowerCase();
+    const c = countries.find(x => {
+        const code2 = (x.countryIso2 || x.alphaTwoCode || x.code || '').toLowerCase();
+        const code3 = (x.countryIso3 || '').toLowerCase();
+        const defaultN = (x.name?.defaultName || (typeof x.name === 'string' ? x.name : '') || x.asciiName || '').toLowerCase();
+        const trN = (x.name?.translations?.tr || '').toLowerCase();
+        const enN = (x.name?.translations?.en || '').toLowerCase();
+        return code2 === clean || code3 === clean || defaultN === clean || trN === clean || enN === clean || String(x.id) === clean || String(x.locationId) === clean;
+    });
+    if (!c) return codeOrName;
+    if (typeof c.name === 'string') return c.name;
+    return c.name?.translations?.[lang] || c.name?.translations?.tr || c.name?.translations?.en || c.name?.defaultName || c.asciiName || getCountryCode(c) || codeOrName;
 };
 
 // Export to CSV Helper
@@ -182,6 +197,11 @@ const MyOffice = () => {
         setActiveTab(param);
     }, [searchParams]);
 
+    const [countries, setCountries] = useState([]);
+    const [cities, setCities] = useState([]);
+    const [finCities, setFinCities] = useState([]);
+    const [currencies, setCurrencies] = useState([]);
+
     // Favorite Backend Table & Autocomplete State
     const [favoriteBackendItems, setFavoriteBackendItems] = useState([]);
     const [favoriteLoading, setFavoriteLoading] = useState(false);
@@ -191,6 +211,17 @@ const MyOffice = () => {
     const [favoriteTotalElements, setFavoriteTotalElements] = useState(0);
     const [favoriteStatusFilter, setFavoriteStatusFilter] = useState('');
     const [favoriteSearchQuery, setFavoriteSearchQuery] = useState('');
+    const [favoriteCountryFilter, setFavoriteCountryFilter] = useState('');
+    const [favoriteCityFilter, setFavoriteCityFilter] = useState('');
+    const [showFavCountryDropdown, setShowFavCountryDropdown] = useState(false);
+    const [favCountrySearch, setFavCountrySearch] = useState('');
+    const favCountryDropdownRef = useRef(null);
+
+    const [favoriteCityOptions, setFavoriteCityOptions] = useState([]);
+    const [favoriteCityLoading, setFavoriteCityLoading] = useState(false);
+    const [showFavCityDropdown, setShowFavCityDropdown] = useState(false);
+    const [favCitySearch, setFavCitySearch] = useState('');
+    const favCityDropdownRef = useRef(null);
     const [auditTooltip, setAuditTooltip] = useState(null);
 
     const [hotelAutocompleteQuery, setHotelAutocompleteQuery] = useState('');
@@ -202,7 +233,14 @@ const MyOffice = () => {
     const fetchFavoriteHotels = useCallback(async (page = 0, size = favoritePageSize) => {
         setFavoriteLoading(true);
         try {
-            const res = await favoriteService.getFavorites(page, size, favoriteSearchQuery, favoriteStatusFilter);
+            const res = await favoriteService.getFavorites(
+                page, 
+                size, 
+                favoriteSearchQuery, 
+                favoriteStatusFilter, 
+                favoriteCountryFilter, 
+                favoriteCityFilter
+            );
             if (res && res.content) {
                 setFavoriteBackendItems(res.content);
                 setFavoritePage(res.pageNumber || 0);
@@ -214,13 +252,55 @@ const MyOffice = () => {
         } finally {
             setFavoriteLoading(false);
         }
-    }, [favoriteSearchQuery, favoriteStatusFilter, favoritePageSize]);
+    }, [favoriteSearchQuery, favoriteStatusFilter, favoriteCountryFilter, favoriteCityFilter, favoritePageSize]);
 
     useEffect(() => {
         if (activeTab === 'favorites') {
             fetchFavoriteHotels(0);
         }
     }, [activeTab, fetchFavoriteHotels]);
+
+    // Fetch sub-regions/cities when favoriteCountryFilter changes
+    useEffect(() => {
+        if (!favoriteCountryFilter) {
+            setFavoriteCityOptions([]);
+            setFavoriteCityFilter('');
+            return;
+        }
+        const clean = favoriteCountryFilter.trim().toLowerCase();
+        const countryObj = countries.find(c => {
+            const c2 = (c.countryIso2 || c.alphaTwoCode || c.code || '').toLowerCase();
+            const c3 = (c.countryIso3 || '').toLowerCase();
+            const defName = (c.name?.defaultName || (typeof c.name === 'string' ? c.name : '') || c.asciiName || '').toLowerCase();
+            const trN = (c.name?.translations?.tr || '').toLowerCase();
+            const enN = (c.name?.translations?.en || '').toLowerCase();
+            return c2 === clean || c3 === clean || defName === clean || trN === clean || enN === clean || String(c.id) === clean || String(c.locationId) === clean;
+        });
+
+        const countryId = countryObj?.id || countryObj?.locationId;
+        if (!countryId) {
+            setFavoriteCityOptions([]);
+            return;
+        }
+
+        setFavoriteCityLoading(true);
+        const abortController = new AbortController();
+        locationService.listSubRegions(countryId, abortController.signal)
+            .then(res => {
+                const list = Array.isArray(res) ? res : (res?.locationList || res?.data || []);
+                setFavoriteCityOptions(list);
+            })
+            .catch(err => {
+                if (err.name !== 'CanceledError' && err.name !== 'AbortError') {
+                    console.error('Failed to fetch sub-regions for favorite country:', err);
+                }
+            })
+            .finally(() => {
+                setFavoriteCityLoading(false);
+            });
+
+        return () => abortController.abort();
+    }, [favoriteCountryFilter, countries]);
 
     useEffect(() => {
         if (!hotelAutocompleteQuery || hotelAutocompleteQuery.trim().length < 2) {
@@ -247,6 +327,12 @@ const MyOffice = () => {
         const handleClickOutside = (event) => {
             if (hotelAutocompleteRef.current && !hotelAutocompleteRef.current.contains(event.target)) {
                 setShowHotelAutocompleteDropdown(false);
+            }
+            if (favCountryDropdownRef.current && !favCountryDropdownRef.current.contains(event.target)) {
+                setShowFavCountryDropdown(false);
+            }
+            if (favCityDropdownRef.current && !favCityDropdownRef.current.contains(event.target)) {
+                setShowFavCityDropdown(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -420,11 +506,6 @@ const MyOffice = () => {
         updatedBy: ''
     });
 
-    const [countries, setCountries] = useState([]);
-    const [cities, setCities] = useState([]);
-    const [finCities, setFinCities] = useState([]);
-    const [currencies, setCurrencies] = useState([]);
-
     // Single Mount Effect
     useEffect(() => {
         const abortController = new AbortController();
@@ -463,7 +544,8 @@ const MyOffice = () => {
                 currencyService.listActiveCurrencies(signal)
             ]);
 
-            setCountries(countriesData.locationList || []);
+            const countryList = Array.isArray(countriesData) ? countriesData : (countriesData?.locationList || countriesData?.data || []);
+            setCountries(countryList);
             setCurrencies(currenciesData || []);
 
             let initialCities = [];
@@ -1161,7 +1243,7 @@ const MyOffice = () => {
 
     const fetchAllFilteredFavorites = async () => {
         try {
-            const response = await favoriteService.getFavorites(0, 10000, favoriteSearchQuery, favoriteStatusFilter);
+            const response = await favoriteService.getFavorites(0, 10000, favoriteSearchQuery, favoriteStatusFilter, favoriteCountryFilter, favoriteCityFilter);
             return response.content || response.favoriteHotels || response.items || [];
         } catch (e) {
             console.error("Failed to fetch all favorites for export", e);
@@ -1182,17 +1264,19 @@ const MyOffice = () => {
             const exportData = allFavs.map(f => ({
                 'Hotel ID': f.hotelId ?? '',
                 [L('hotelName') || 'Hotel Name']: f.hotelName || '-',
-                [L('locationLabel') || 'City']: f.cityName || '-',
+                [L('hotelCountry') || 'Hotel Country']: f.countryName || f.countryCode || '-',
+                [L('hotelCity') || 'Hotel City']: f.cityName || '-',
                 [L('starsLabel') || 'Stars']: f.stars ?? '-',
                 [L('colStatus') || 'Status']: f.status === 'ACTIVE' ? L('active') : L('passive'),
                 [L('created') || 'Created By']: f.createdBy || '-',
-                [L('addedOn') || 'Created Date']: f.createdDate ? new Date(f.createdDate).toLocaleString() : '-'
+                [L('addedOn') || 'Created Date']: f.createDateTime ? new Date(f.createDateTime).toLocaleString() : (f.createdDate ? new Date(f.createdDate).toLocaleString() : '-')
             }));
 
             const worksheet = XLSX.utils.json_to_sheet(exportData);
             worksheet['!cols'] = [
                 { wch: 12 },
                 { wch: 32 },
+                { wch: 20 },
                 { wch: 20 },
                 { wch: 10 },
                 { wch: 12 },
@@ -1238,15 +1322,16 @@ const MyOffice = () => {
             doc.setTextColor(100);
             doc.text(`Generated: ${new Date().toLocaleString()}  |  Total Favorite Hotels: ${allFavs.length}`, 10, 17);
 
-            const headers = ['Hotel ID', L('hotelName') || 'Hotel Name', L('locationLabel') || 'City', L('starsLabel') || 'Stars', L('colStatus') || 'Status', L('created') || 'Created By', L('addedOn') || 'Created Date'];
+            const headers = ['Hotel ID', L('hotelName') || 'Hotel Name', L('hotelCountry') || 'Hotel Country', L('hotelCity') || 'Hotel City', L('starsLabel') || 'Stars', L('colStatus') || 'Status', L('created') || 'Created By', L('addedOn') || 'Created Date'];
             const rows = allFavs.map(f => [
                 f.hotelId ?? '',
                 f.hotelName || '-',
+                f.countryName || f.countryCode || '-',
                 f.cityName || '-',
                 f.stars ? `${f.stars} ★` : '-',
                 f.status === 'ACTIVE' ? L('active') : L('passive'),
                 f.createdBy || '-',
-                f.createdDate ? new Date(f.createdDate).toLocaleString() : '-'
+                f.createDateTime ? new Date(f.createDateTime).toLocaleString() : (f.createdDate ? new Date(f.createdDate).toLocaleString() : '-')
             ]);
 
             autoTable(doc, {
@@ -2098,16 +2183,215 @@ const MyOffice = () => {
                                     </div>
 
                                     {/* Table Search & Filter Controls */}
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex flex-wrap items-center gap-2">
                                         <div className="relative">
                                             <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
                                             <input
                                                 type="text"
-                                                placeholder={L('searchTablePlaceholder')}
+                                                placeholder={L('searchTablePlaceholder') || 'Search...'}
                                                 value={favoriteSearchQuery}
                                                 onChange={(e) => setFavoriteSearchQuery(e.target.value)}
-                                                className="w-40 sm:w-48 pl-9 pr-3 py-2 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#202124] dark:text-[#e8eaed] placeholder-[#5f6368] dark:placeholder-[#9aa0a6] focus:outline-none focus:border-[#1a73e8] transition-colors"
+                                                className="w-36 sm:w-44 pl-9 pr-3 py-2 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#202124] dark:text-[#e8eaed] placeholder-[#5f6368] dark:placeholder-[#9aa0a6] focus:outline-none focus:border-[#1a73e8] transition-colors"
                                             />
+                                        </div>
+
+                                        {/* Country Dropdown Filter */}
+                                        <div className="relative" ref={favCountryDropdownRef}>
+                                            <div
+                                                onClick={() => setShowFavCountryDropdown(!showFavCountryDropdown)}
+                                                className={`h-9 px-3 bg-[#f8f9fa] dark:bg-[#202124] border ${favoriteCountryFilter ? 'border-[#1a73e8] text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'border-[#dadce0] dark:border-[#3c4043] text-[#3c4043] dark:text-[#bdc1c6]'} rounded-full text-xs flex items-center gap-1.5 cursor-pointer hover:border-[#1a73e8] transition-colors select-none`}
+                                                title={favoriteCountryFilter ? (getCountryName(countries, favoriteCountryFilter, currentLang) || favoriteCountryFilter) : (L('hotelCountry') || 'Otel Ülkesi')}
+                                            >
+                                                <span className="material-symbols-outlined text-[16px] shrink-0">public</span>
+                                                <span className="truncate max-w-[100px] sm:max-w-[130px]">
+                                                    {favoriteCountryFilter ? (getCountryName(countries, favoriteCountryFilter, currentLang) || favoriteCountryFilter) : (L('hotelCountry') || 'Otel Ülkesi')}
+                                                </span>
+                                                {favoriteCountryFilter ? (
+                                                    <span
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setFavoriteCountryFilter('');
+                                                        }}
+                                                        className="material-symbols-outlined text-[15px] hover:text-[#d93025] transition-colors ml-0.5"
+                                                    >
+                                                        close
+                                                    </span>
+                                                ) : (
+                                                    <span className={`material-symbols-outlined text-[16px] text-[#5f6368] dark:text-[#9aa0a6] transition-transform ${showFavCountryDropdown ? 'rotate-180' : ''}`}>
+                                                        expand_more
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {showFavCountryDropdown && (
+                                                <div className="absolute top-full left-0 mt-1.5 w-64 max-h-72 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-2xl z-[1002] flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                                    <div className="p-2 border-b border-[#dadce0] dark:border-[#3c4043]">
+                                                        <div className="relative">
+                                                            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[16px]">search</span>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Ülke ara..."
+                                                                value={favCountrySearch}
+                                                                onChange={(e) => setFavCountrySearch(e.target.value)}
+                                                                autoFocus
+                                                                className="w-full h-8 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-full pl-8 pr-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex-1 overflow-y-auto p-1.5 custom-scrollbar">
+                                                        <div
+                                                            onClick={() => {
+                                                                setFavoriteCountryFilter('');
+                                                                setShowFavCountryDropdown(false);
+                                                                setFavCountrySearch('');
+                                                            }}
+                                                            className={`px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${!favoriteCountryFilter ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-[#dadce0]'}`}
+                                                        >
+                                                            <span>{L('allCountries') || 'Tüm Ülkeler'}</span>
+                                                            {!favoriteCountryFilter && <span className="material-symbols-outlined text-[16px]">check</span>}
+                                                        </div>
+                                                        {countries
+                                                            .filter(c => {
+                                                                const cCode = (c.countryIso2 || c.alphaTwoCode || c.code || c.countryCode || '').toLowerCase();
+                                                                const nameTr = (c.name?.translations?.tr || '').toLowerCase();
+                                                                const nameEn = (c.name?.translations?.en || '').toLowerCase();
+                                                                const nameCurr = (c.name?.translations?.[currentLang] || '').toLowerCase();
+                                                                const defaultName = (c.name?.defaultName || (typeof c.name === 'string' ? c.name : '') || c.asciiName || '').toLowerCase();
+                                                                const search = (favCountrySearch || '').trim().toLowerCase();
+                                                                return !search || nameTr.includes(search) || nameEn.includes(search) || nameCurr.includes(search) || defaultName.includes(search) || cCode.includes(search);
+                                                            })
+                                                            .map((c, i) => {
+                                                                const cCode = c.countryIso2 || c.alphaTwoCode || c.code || c.countryCode || '';
+                                                                const cName = getCountryName(countries, cCode, currentLang) || c.name?.translations?.[currentLang] || c.name?.translations?.tr || c.name?.translations?.en || c.name?.defaultName || c.asciiName || (typeof c.name === 'string' ? c.name : '') || cCode || `Country #${c.id || c.locationId || i}`;
+                                                                const isSelected = Boolean(favoriteCountryFilter) && (
+                                                                    favoriteCountryFilter.toLowerCase() === cCode.toLowerCase() ||
+                                                                    favoriteCountryFilter.toLowerCase() === cName.toLowerCase()
+                                                                );
+                                                                return (
+                                                                    <div
+                                                                        key={c.id || c.locationId || cCode || `country-${i}`}
+                                                                        onClick={() => {
+                                                                            setFavoriteCountryFilter(cCode || cName);
+                                                                            setShowFavCountryDropdown(false);
+                                                                            setFavCountrySearch('');
+                                                                        }}
+                                                                        className={`px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${isSelected ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-[#dadce0]'}`}
+                                                                    >
+                                                                        <div className="flex items-center gap-2 truncate">
+                                                                            {cCode && <span className="opacity-60 text-[10px] w-6 uppercase font-mono">{cCode}</span>}
+                                                                            <span className="truncate">{cName}</span>
+                                                                        </div>
+                                                                        {isSelected && <span className="material-symbols-outlined text-[16px]">check</span>}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* City Dropdown Filter */}
+                                        <div className="relative" ref={favCityDropdownRef}>
+                                            <div
+                                                onClick={() => {
+                                                    if (!favoriteCountryFilter) {
+                                                        setShowFavCountryDropdown(true);
+                                                        return;
+                                                    }
+                                                    setShowFavCityDropdown(!showFavCityDropdown);
+                                                }}
+                                                className={`h-9 px-3 bg-[#f8f9fa] dark:bg-[#202124] border ${favoriteCityFilter ? 'border-[#1a73e8] text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'border-[#dadce0] dark:border-[#3c4043] text-[#3c4043] dark:text-[#bdc1c6]'} rounded-full text-xs flex items-center gap-1.5 cursor-pointer hover:border-[#1a73e8] transition-colors select-none`}
+                                                title={favoriteCityFilter || (L('filterCity') || 'Şehir Filtrele')}
+                                            >
+                                                <span className="material-symbols-outlined text-[16px] shrink-0">location_city</span>
+                                                <span className="truncate max-w-[90px] sm:max-w-[120px]">
+                                                    {favoriteCityFilter || (L('filterCity') || 'Şehir Filtrele')}
+                                                </span>
+                                                {favoriteCityFilter ? (
+                                                    <span
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setFavoriteCityFilter('');
+                                                        }}
+                                                        className="material-symbols-outlined text-[15px] hover:text-[#d93025] transition-colors ml-0.5"
+                                                    >
+                                                        close
+                                                    </span>
+                                                ) : (
+                                                    <span className={`material-symbols-outlined text-[16px] text-[#5f6368] dark:text-[#9aa0a6] transition-transform ${showFavCityDropdown ? 'rotate-180' : ''}`}>
+                                                        expand_more
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {showFavCityDropdown && (
+                                                <div className="absolute top-full left-0 mt-1.5 w-64 max-h-72 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-2xl z-[1002] flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                                    <div className="p-2 border-b border-[#dadce0] dark:border-[#3c4043]">
+                                                        <div className="relative">
+                                                            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[16px]">search</span>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Şehir ara..."
+                                                                value={favCitySearch}
+                                                                onChange={(e) => setFavCitySearch(e.target.value)}
+                                                                autoFocus
+                                                                className="w-full h-8 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-full pl-8 pr-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex-1 overflow-y-auto p-1.5 custom-scrollbar">
+                                                        <div
+                                                            onClick={() => {
+                                                                setFavoriteCityFilter('');
+                                                                setShowFavCityDropdown(false);
+                                                                setFavCitySearch('');
+                                                            }}
+                                                            className={`px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${!favoriteCityFilter ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-[#dadce0]'}`}
+                                                        >
+                                                            <span>{L('allCities') || 'Tüm Şehirler'}</span>
+                                                            {!favoriteCityFilter && <span className="material-symbols-outlined text-[16px]">check</span>}
+                                                        </div>
+                                                        {favoriteCityLoading ? (
+                                                            <div className="py-4 text-center text-xs text-[#5f6368] dark:text-[#9aa0a6] flex items-center justify-center gap-2">
+                                                                <div className="size-3.5 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
+                                                                <span>Şehirler yükleniyor...</span>
+                                                            </div>
+                                                        ) : favoriteCityOptions.length === 0 ? (
+                                                            <div className="py-4 text-center text-xs text-[#5f6368] dark:text-[#9aa0a6]">
+                                                                {!favoriteCountryFilter ? 'Lütfen önce ülke seçiniz' : 'Şehir bulunamadı'}
+                                                            </div>
+                                                        ) : (
+                                                            favoriteCityOptions
+                                                                .filter(c => {
+                                                                    const nameTr = (c.name?.translations?.tr || '').toLowerCase();
+                                                                    const nameEn = (c.name?.translations?.en || '').toLowerCase();
+                                                                    const nameCurr = (c.name?.translations?.[currentLang] || '').toLowerCase();
+                                                                    const defaultName = (c.name?.defaultName || (typeof c.name === 'string' ? c.name : '') || c.asciiName || '').toLowerCase();
+                                                                    const search = (favCitySearch || '').trim().toLowerCase();
+                                                                    return !search || nameTr.includes(search) || nameEn.includes(search) || nameCurr.includes(search) || defaultName.includes(search);
+                                                                })
+                                                                .map((c, i) => {
+                                                                    const cityName = c.name?.translations?.[currentLang] || c.name?.translations?.tr || c.name?.translations?.en || c.name?.defaultName || c.asciiName || (typeof c.name === 'string' ? c.name : '') || `City #${c.id || i}`;
+                                                                    const isSelected = Boolean(favoriteCityFilter) && favoriteCityFilter.toLowerCase() === cityName.toLowerCase();
+                                                                    return (
+                                                                        <div
+                                                                            key={c.id || c.locationId || `city-${i}`}
+                                                                            onClick={() => {
+                                                                                setFavoriteCityFilter(cityName);
+                                                                                setShowFavCityDropdown(false);
+                                                                                setFavCitySearch('');
+                                                                            }}
+                                                                            className={`px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${isSelected ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-[#dadce0]'}`}
+                                                                        >
+                                                                            <span className="truncate">{cityName}</span>
+                                                                            {isSelected && <span className="material-symbols-outlined text-[16px]">check</span>}
+                                                                        </div>
+                                                                    );
+                                                                })
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <select
@@ -2119,6 +2403,23 @@ const MyOffice = () => {
                                             <option value="ACTIVE">{L('statusActive')}</option>
                                             <option value="PASSIVE">{L('statusPassive')}</option>
                                         </select>
+
+                                        {(favoriteSearchQuery || favoriteCountryFilter || favoriteCityFilter || favoriteStatusFilter) && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFavoriteSearchQuery('');
+                                                    setFavoriteCountryFilter('');
+                                                    setFavoriteCityFilter('');
+                                                    setFavoriteStatusFilter('');
+                                                }}
+                                                className="h-9 px-3 rounded-full text-xs text-[#5f6368] dark:text-slate-400 hover:text-[#d93025] hover:bg-[#fce8e6] dark:hover:bg-[#c5221f]/20 transition-all flex items-center gap-1 cursor-pointer"
+                                                title={L('clearFilters') || 'Filtreleri Temizle'}
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">close</span>
+                                                <span className="hidden sm:inline">{L('clearFilters') || 'Temizle'}</span>
+                                            </button>
+                                        )}
 
                                         <button
                                             onClick={handleExportFavoritesExcel}
@@ -2177,17 +2478,18 @@ const MyOffice = () => {
                                     <table className="w-full border-collapse">
                                         <thead className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] sticky top-0 z-10">
                                             <tr>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[80px] select-none">ID</th>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[240px] select-none">{L('colHotelInfo')}</th>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[160px] select-none">{L('colLocationStars')}</th>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colDateAdded')}</th>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('status')}</th>
-                                                <th className="px-4 py-3 text-right text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[100px] select-none">{L('colActions')}</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[70px] select-none">ID</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[220px] select-none">{L('colHotelInfo')}</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[130px] select-none">{L('hotelCountry') || 'Otel Ülkesi'}</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[140px] select-none">{L('hotelCity') || 'Otel Şehri'}</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[90px] select-none">{L('colDateAdded')}</th>
+                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[90px] select-none">{L('status')}</th>
+                                                <th className="px-4 py-3 text-right text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[90px] select-none">{L('colActions')}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {favoriteLoading ? (
-                                                <TableSkeleton columns={6} rows={favoritePageSize || 10} />
+                                                <TableSkeleton columns={7} rows={favoritePageSize || 10} />
                                             ) : favoriteBackendItems.length > 0 ? (
                                                 favoriteBackendItems.map((fav, idx) => (
                                                     <tr
@@ -2201,34 +2503,46 @@ const MyOffice = () => {
                                                         <td className="px-4 py-3">
                                                             <div className="flex items-center gap-3">
                                                                 <div className="size-8 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center font-medium text-xs flex-shrink-0 overflow-hidden">
-                                                                    {fav.imageUrl ? (
-                                                                        <img src={fav.imageUrl} alt={fav.hotelName} className="w-full h-full object-cover" />
+                                                                    {fav.imageUrl || fav.image ? (
+                                                                        <img src={fav.imageUrl || fav.image} alt={fav.hotelName} className="w-full h-full object-cover" />
                                                                     ) : (
                                                                         <span className="material-symbols-outlined text-[18px]">hotel</span>
                                                                     )}
                                                                 </div>
-                                                                <span
-                                                                    className="font-medium text-[#202124] dark:text-[#e8eaed] hover:text-[#1a73e8] dark:hover:text-[#8ab4f8] transition-colors cursor-pointer text-xs truncate max-w-[280px]"
-                                                                    onClick={() => navigate(`/travel/hotels/detail/${fav.hotelId}`)}
-                                                                    title={fav.hotelName}
-                                                                >
-                                                                    {fav.hotelName}
+                                                                <div className="min-w-0">
+                                                                    <span
+                                                                        className="font-medium text-[#202124] dark:text-[#e8eaed] hover:text-[#1a73e8] dark:hover:text-[#8ab4f8] transition-colors cursor-pointer text-xs truncate max-w-[260px] block"
+                                                                        onClick={() => navigate(`/travel/hotels/detail/${fav.hotelId}`)}
+                                                                        title={fav.hotelName}
+                                                                    >
+                                                                        {fav.hotelName}
+                                                                    </span>
+                                                                    <div className="flex items-center gap-0.5 text-[#f9ab00] mt-0.5">
+                                                                        {[...Array(fav.stars || 4)].map((_, i) => (
+                                                                            <span key={`star-${fav.id || idx}-${i}`} className="material-symbols-outlined text-[12px] fill-1">star</span>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+
+                                                        {/* Hotel Country */}
+                                                        <td className="px-4 py-3 text-[#3c4043] dark:text-[#e8eaed]">
+                                                            <div className="flex items-center gap-1.5 text-xs font-normal">
+                                                                <span className="material-symbols-outlined text-[15px] text-[#5f6368] dark:text-[#9aa0a6] shrink-0">public</span>
+                                                                <span className="truncate max-w-[140px]" title={fav.countryName || fav.countryCode || 'N/A'}>
+                                                                    {fav.countryName || fav.countryCode || 'N/A'}
                                                                 </span>
                                                             </div>
                                                         </td>
 
-                                                        {/* Location & Stars */}
+                                                        {/* Hotel City */}
                                                         <td className="px-4 py-3 text-[#3c4043] dark:text-[#e8eaed]">
-                                                            <div>
-                                                                <p className="text-xs font-normal flex items-center gap-1">
-                                                                    <span className="material-symbols-outlined text-[14px] text-[#1a73e8] dark:text-[#8ab4f8]">location_on</span>
-                                                                    <span>{fav.cityName || 'N/A'}</span>
-                                                                </p>
-                                                                <div className="flex items-center gap-0.5 text-[#f9ab00] mt-0.5">
-                                                                    {[...Array(fav.stars || 4)].map((_, i) => (
-                                                                        <span key={`star-${fav.id || idx}-${i}`} className="material-symbols-outlined text-[12px] fill-1">star</span>
-                                                                    ))}
-                                                                </div>
+                                                            <div className="flex items-center gap-1.5 text-xs font-normal">
+                                                                <span className="material-symbols-outlined text-[15px] text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">location_on</span>
+                                                                <span className="truncate max-w-[150px]" title={fav.cityName || 'N/A'}>
+                                                                    {fav.cityName || 'N/A'}
+                                                                </span>
                                                             </div>
                                                         </td>
 
@@ -2292,7 +2606,7 @@ const MyOffice = () => {
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan="6" className="px-4 py-12 text-center text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium italic">
+                                                    <td colSpan="7" className="px-4 py-12 text-center text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium italic">
                                                         {L('noFavoritesFound')}
                                                     </td>
                                                 </tr>

@@ -138,6 +138,27 @@ const BookingDetail = () => {
         return null;
     };
 
+    const getHotelStarData = () => {
+        const starObj = hotelDetails?.hotelStar || booking?.hotel?.hotelStar;
+        let count = 0;
+        if (starObj?.star != null) {
+            count = Number(starObj.star);
+        } else if (hotelDetails?.stars != null) {
+            count = Number(hotelDetails.stars);
+        } else if (booking?.hotel?.stars != null) {
+            count = Number(booking.hotel.stars);
+        } else if (starObj?.names?.en) {
+            const parsed = parseInt(starObj.names.en, 10);
+            if (!isNaN(parsed)) count = parsed;
+        }
+
+        if (count > 0 && count <= 7) {
+            const label = starObj?.names?.[currentLang] || starObj?.names?.en || `${count} ${L('stars') || 'Yıldız'}`;
+            return { count, label };
+        }
+        return null;
+    };
+
     const getPaymentStatusBadge = (status) => {
         switch (status) {
             case 'PAID_ACCOUNT':
@@ -422,6 +443,29 @@ const BookingDetail = () => {
                                 <h1 className="text-2xl sm:text-3xl font-bold text-[#202124] dark:text-white tracking-tight">
                                     {booking.hotel?.hotelName || 'Otel Bilgisi'}
                                 </h1>
+                                {(() => {
+                                    const starData = getHotelStarData();
+                                    if (!starData) return null;
+                                    return (
+                                        <div 
+                                            className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 shadow-2xs" 
+                                            title={starData.label}
+                                        >
+                                            {[...Array(starData.count)].map((_, i) => (
+                                                <span 
+                                                    key={i} 
+                                                    className="material-symbols-outlined text-[15px] text-amber-400 select-none leading-none"
+                                                    style={{ fontVariationSettings: "'FILL' 1" }}
+                                                >
+                                                    star
+                                                </span>
+                                            ))}
+                                            <span className="text-[11px] font-bold text-amber-700 dark:text-amber-300 ml-1">
+                                                {starData.count}★
+                                            </span>
+                                        </div>
+                                    );
+                                })()}
                                 {booking.hotel?.isRecommended && (
                                     <span className="bg-[#e6f4ea] text-[#137333] dark:bg-emerald-950/40 dark:text-emerald-300 border border-[#ceead6] dark:border-emerald-800 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full flex items-center gap-1">
                                         <span className="material-symbols-outlined text-[14px]">thumb_up</span>

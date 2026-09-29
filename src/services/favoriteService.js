@@ -12,10 +12,12 @@ const clearActiveHotelIdsCache = () => {
 };
 
 export const favoriteService = {
-    getFavorites: async (page = 0, size = 10, query = '', status = '', signal) => {
+    getFavorites: async (page = 0, size = 10, query = '', status = '', country = '', city = '', signal) => {
         const params = new URLSearchParams({ page, size });
         if (query) params.append('query', query);
         if (status) params.append('status', status);
+        if (country) params.append('country', country);
+        if (city) params.append('city', city);
         return apiClient.get(`${API_BASE_URL}/favorite-hotel?${params.toString()}`, { signal });
     },
     addFavorite: async (hotelData) => {

@@ -812,32 +812,32 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                     </div>
                 )}
 
-                {/* Image Slider */}
+                {/* Image Crossfade Slider */}
                 <div className="w-full h-full relative overflow-hidden bg-[#f1f3f4] dark:bg-slate-800">
-                    <div
-                        className="flex w-full h-full transition-transform duration-400 ease-[cubic-bezier(0.25,1,0.5,1)]"
-                        style={{ transform: `translateX(-${imgIdx * 100}%)` }}
-                    >
-                        {images.map((img, i) => (
-                            <div key={i} className="w-full h-full shrink-0 relative overflow-hidden">
-                                <img
-                                    src={img || placeholderHotel}
-                                    alt={hotel.name}
-                                    onError={e => {
-                                        if (e.target.src !== placeholderHotel) {
-                                            e.target.src = placeholderHotel;
-                                        }
-                                        e.target.onerror = null;
-                                    }}
-                                    className={`w-full h-full object-cover select-none will-change-transform ${
-                                        isCardHovered && i === imgIdx ? 'animate-kenburns' : 'scale-100'
-                                    }`}
-                                    loading={i === 0 ? 'eager' : 'lazy'}
-                                    decoding="async"
-                                />
-                            </div>
-                        ))}
-                    </div>
+                    {images.map((img, i) => (
+                        <div
+                            key={i}
+                            className={`absolute inset-0 w-full h-full overflow-hidden transition-opacity duration-700 ease-in-out ${
+                                i === imgIdx ? 'opacity-100 z-[2]' : 'opacity-0 z-[1] pointer-events-none'
+                            }`}
+                        >
+                            <img
+                                src={img || placeholderHotel}
+                                alt={hotel.name}
+                                onError={e => {
+                                    if (e.target.src !== placeholderHotel) {
+                                        e.target.src = placeholderHotel;
+                                    }
+                                    e.target.onerror = null;
+                                }}
+                                className={`w-full h-full object-cover select-none will-change-transform transition-transform duration-[3800ms] ease-out ${
+                                    isCardHovered && i === imgIdx ? 'scale-[1.08]' : 'scale-100'
+                                }`}
+                                loading={i === 0 ? 'eager' : 'lazy'}
+                                decoding="async"
+                            />
+                        </div>
+                    ))}
                 </div>
 
                 {images.length > 1 && (

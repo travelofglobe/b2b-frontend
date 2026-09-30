@@ -266,27 +266,27 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
             <div 
                 className={`relative overflow-hidden isolate z-0 transform-gpu ${isList ? 'rounded-t-xl md:rounded-l-xl md:rounded-tr-none h-52 md:h-auto md:w-[330px] lg:w-[350px] shrink-0' : 'rounded-t-xl h-52'}`}
             >
-                {/* Image Slider */}
+                {/* Image Crossfade Slider */}
                 <div className="w-full h-full relative overflow-hidden bg-slate-100 dark:bg-slate-800">
-                    <div
-                        className="flex w-full h-full transition-transform duration-400 ease-[cubic-bezier(0.25,1,0.5,1)]"
-                        style={{ transform: `translateX(-${currentImg * 100}%)` }}
-                    >
-                        {images.map((img, idx) => (
-                            <div key={idx} className="w-full h-full shrink-0 relative overflow-hidden">
-                                <img
-                                    src={img || placeholderHotel}
-                                    alt={`${hotel.name} ${idx + 1}`}
-                                    onError={handleImageError}
-                                    className={`w-full h-full object-cover select-none will-change-transform ${
-                                        isHovered && idx === currentImg ? 'animate-kenburns' : 'scale-100'
-                                    }`}
-                                    loading={idx === 0 ? 'eager' : 'lazy'}
-                                    decoding="async"
-                                />
-                            </div>
-                        ))}
-                    </div>
+                    {images.map((img, idx) => (
+                        <div
+                            key={idx}
+                            className={`absolute inset-0 w-full h-full overflow-hidden transition-opacity duration-700 ease-in-out ${
+                                idx === currentImg ? 'opacity-100 z-[2]' : 'opacity-0 z-[1] pointer-events-none'
+                            }`}
+                        >
+                            <img
+                                src={img || placeholderHotel}
+                                alt={`${hotel.name} ${idx + 1}`}
+                                onError={handleImageError}
+                                className={`w-full h-full object-cover select-none will-change-transform transition-transform duration-[3800ms] ease-out ${
+                                    isHovered && idx === currentImg ? 'scale-[1.08]' : 'scale-100'
+                                }`}
+                                loading={idx === 0 ? 'eager' : 'lazy'}
+                                decoding="async"
+                            />
+                        </div>
+                    ))}
                 </div>
 
                     {/* Navigation Arrows */}

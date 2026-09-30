@@ -34,78 +34,69 @@ import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
 // ═══════════════════════════════════════════════
 // ═══════════════════════════════════════════════
 // ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // Map Location Watcher - single unified controller for map center & bounds fitting
 // ═══════════════════════════════════════════════
 const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRefit, onRefitDone, isProgrammaticMoveRef }) => {
     const map = useMap();
-    const prevLocationKeyRef = React.useRef('');
-    const prevSlugRef = React.useRef(slug);
-    const prevLocIdRef = React.useRef(searchParams?.get('locationId'));
-    const prevQRef = React.useRef(searchParams?.get('q') || q);
+    const lastTargetLocationRef = React.useRef('');
+    const lastFittedBoundsRef = React.useRef('');
 
+    // 1. Immediately pan/fly map to target search city when search parameters change (even during isLoading)
     React.useEffect(() => {
-        // Wait for hotel search to finish before executing map animation to prevent double movement
-        if (isLoading && shouldRefit) {
-            return;
-        }
-
         const lat = parseFloat(searchParams?.get('lat'));
         const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
-        const locationId = searchParams?.get('locationId');
-        const currentQ = searchParams?.get('q') || q;
+        const locationId = searchParams?.get('locationId') || '';
+        const currentQ = searchParams?.get('q') || q || '';
+        const searchTargetKey = `${slug || ''}_${locationId}_${lat}_${lng}_${currentQ}`;
 
-        // Reset key ref if locationId, slug, or query changed so new search location always triggers movement
-        if (prevSlugRef.current !== slug || prevLocIdRef.current !== locationId || prevQRef.current !== currentQ) {
-            prevSlugRef.current = slug;
-            prevLocIdRef.current = locationId;
-            prevQRef.current = currentQ;
-            prevLocationKeyRef.current = '';
+        if (searchTargetKey !== lastTargetLocationRef.current) {
+            lastTargetLocationRef.current = searchTargetKey;
+            lastFittedBoundsRef.current = '';
+
+            if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0 && map) {
+                const center = map.getCenter();
+                const dist = map.distance(center, [lat, lng]);
+                // If map is not already centered on this target city (e.g. > 500m away)
+                if (dist > 500) {
+                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+                    map.flyTo([lat, lng], 11, { duration: 0.9 });
+                    setTimeout(() => {
+                        if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                    }, 1000);
+                }
+            }
         }
+    }, [slug, q, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('locationId'), searchParams?.get('q'), map, isProgrammaticMoveRef]);
 
-        // 1. Primary: auto-fit map bounds to cover all returned hotels when shouldRefit is true
-        if (shouldRefit) {
-            if (hotels && hotels.length > 0) {
-                const valid = hotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
-                if (valid.length > 0) {
-                    try {
-                        const bounds = L.latLngBounds(valid.map(h => [parseFloat(h.lat), parseFloat(h.lng)]));
-                        if (bounds.isValid()) {
-                            const boundsKey = `bounds_${locationId || ''}_${slug || ''}_${valid.length}_${bounds.getNorthEast().lat.toFixed(3)}_${bounds.getSouthWest().lng.toFixed(3)}`;
-                            if (prevLocationKeyRef.current !== boundsKey) {
-                                prevLocationKeyRef.current = boundsKey;
-                                if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
-                                map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 14, duration: 1.2 });
-                                if (onRefitDone) onRefitDone();
-                                setTimeout(() => {
-                                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
-                                }, 1200);
-                                return;
-                            }
+    // 2. Auto-fit bounds once hotels are loaded and shouldRefit is true
+    React.useEffect(() => {
+        if (isLoading || !shouldRefit || !map) return;
+
+        if (hotels && hotels.length > 0) {
+            const valid = hotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
+            if (valid.length > 0) {
+                try {
+                    const bounds = L.latLngBounds(valid.map(h => [parseFloat(h.lat), parseFloat(h.lng)]));
+                    if (bounds.isValid()) {
+                        const boundsKey = `${valid.length}_${bounds.getNorthEast().lat.toFixed(3)}_${bounds.getSouthWest().lng.toFixed(3)}`;
+                        if (lastFittedBoundsRef.current !== boundsKey) {
+                            lastFittedBoundsRef.current = boundsKey;
+                            if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+                            map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 14, duration: 1.0 });
+                            if (onRefitDone) onRefitDone();
+                            setTimeout(() => {
+                                if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                            }, 1100);
+                            return;
                         }
-                    } catch (_e) { }
-                }
-            }
-
-            // Fallback when shouldRefit is true but 0 hotels returned for search
-            if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-                const locKey = `geo_${locationId || ''}_${lat.toFixed(4)}_${lng.toFixed(4)}`;
-                if (prevLocationKeyRef.current !== locKey) {
-                    prevLocationKeyRef.current = locKey;
-                    const currentCenter = map.getCenter();
-                    const dist = map.distance(currentCenter, [lat, lng]);
-                    if (dist > 500) {
-                        if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
-                        map.flyTo([lat, lng], 11, { duration: 1.2 });
-                        if (onRefitDone) onRefitDone();
-                        setTimeout(() => {
-                            if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
-                        }, 1200);
                     }
-                }
-                return;
+                } catch (_e) { }
             }
         }
-    }, [slug, q, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('locationId'), shouldRefit, hotels, isLoading, map, onRefitDone, isProgrammaticMoveRef]);
+
+        if (onRefitDone) onRefitDone();
+    }, [hotels, isLoading, shouldRefit, map, onRefitDone, isProgrammaticMoveRef]);
 
     return null;
 };
@@ -812,32 +803,32 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                     </div>
                 )}
 
-                {/* Image Slider */}
+                {/* Image Crossfade Slider */}
                 <div className="w-full h-full relative overflow-hidden bg-[#f1f3f4] dark:bg-slate-800">
-                    <div
-                        className="flex w-full h-full transition-transform duration-400 ease-[cubic-bezier(0.25,1,0.5,1)]"
-                        style={{ transform: `translateX(-${imgIdx * 100}%)` }}
-                    >
-                        {images.map((img, i) => (
-                            <div key={i} className="w-full h-full shrink-0 relative overflow-hidden">
-                                <img
-                                    src={img || placeholderHotel}
-                                    alt={hotel.name}
-                                    onError={e => {
-                                        if (e.target.src !== placeholderHotel) {
-                                            e.target.src = placeholderHotel;
-                                        }
-                                        e.target.onerror = null;
-                                    }}
-                                    className={`w-full h-full object-cover select-none will-change-transform ${
-                                        isCardHovered && i === imgIdx ? 'animate-kenburns' : 'scale-100'
-                                    }`}
-                                    loading={i === 0 ? 'eager' : 'lazy'}
-                                    decoding="async"
-                                />
-                            </div>
-                        ))}
-                    </div>
+                    {images.map((img, i) => (
+                        <div
+                            key={i}
+                            className={`absolute inset-0 w-full h-full overflow-hidden transition-opacity duration-700 ease-in-out ${
+                                i === imgIdx ? 'opacity-100 z-[2]' : 'opacity-0 z-[1] pointer-events-none'
+                            }`}
+                        >
+                            <img
+                                src={img || placeholderHotel}
+                                alt={hotel.name}
+                                onError={e => {
+                                    if (e.target.src !== placeholderHotel) {
+                                        e.target.src = placeholderHotel;
+                                    }
+                                    e.target.onerror = null;
+                                }}
+                                className={`w-full h-full object-cover select-none will-change-transform transition-transform duration-[3800ms] ease-out ${
+                                    isCardHovered && i === imgIdx ? 'scale-[1.08]' : 'scale-100'
+                                }`}
+                                loading={i === 0 ? 'eager' : 'lazy'}
+                                decoding="async"
+                            />
+                        </div>
+                    ))}
                 </div>
 
                 {images.length > 1 && (

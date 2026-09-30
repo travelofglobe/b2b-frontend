@@ -88,6 +88,7 @@ const DRAWER_LOCALES = {
         topRoomsDesc: "Tüm oda ve fiyat seçeneklerini Fiyatlar sekmesinde görebilirsiniz.",
         standardRate: "Standart Fiyat",
         bestAvailability: "En iyi müsaitlik garantisi",
+        loadingRates: "Fiyatlar aranıyor...",
         viewAllRoomsCta: (n) => `Tüm Odaları & Fiyatları Gör (${n} Seçenek) →`,
         hotelDescription: "Tesis Açıklaması",
         readMoreInAbout: "Devamını Hakkında sekmesinde oku →",
@@ -185,6 +186,7 @@ const DRAWER_LOCALES = {
         topRoomsDesc: "You can browse all available rooms and rates in the Prices tab.",
         standardRate: "Standard Rate",
         bestAvailability: "Best availability guarantee",
+        loadingRates: "Searching rates...",
         viewAllRoomsCta: (n) => `View All Rooms & Rates (${n} Options) →`,
         hotelDescription: "Hotel Description",
         readMoreInAbout: "Read more in About tab →",
@@ -282,6 +284,7 @@ const DRAWER_LOCALES = {
         topRoomsDesc: "Alle Zimmer und Preise können Sie im Tab Preise einsehen.",
         standardRate: "Standardtarif",
         bestAvailability: "Garantie für beste Verfügbarkeit",
+        loadingRates: "Preise werden gesucht...",
         viewAllRoomsCta: (n) => `Alle Zimmer & Preise ansehen (${n} Optionen) →`,
         hotelDescription: "Hotelbeschreibung",
         readMoreInAbout: "Mehr im Tab Über das Hotel lesen →",
@@ -379,6 +382,7 @@ const DRAWER_LOCALES = {
         topRoomsDesc: "يمكنك استعراض كافة الغرف والأسعار في تبويب الأسعار.",
         standardRate: "السعر القياسي",
         bestAvailability: "أفضل ضمان توفر",
+        loadingRates: "جاري البحث عن الأسعار...",
         viewAllRoomsCta: (n) => `عرض كافة الغرف والأسعار (${n} خيارات) ←`,
         hotelDescription: "وصف الفندق",
         readMoreInAbout: "اقرأ المزيد في تبويب حول الفندق ←",
@@ -476,6 +480,7 @@ const DRAWER_LOCALES = {
         topRoomsDesc: "Consulte todas las habitaciones disponibles en la pestaña Precios.",
         standardRate: "Tarifa estándar",
         bestAvailability: "Mejor disponibilidad garantizada",
+        loadingRates: "Buscando tarifas...",
         viewAllRoomsCta: (n) => `Ver todas las habitaciones (${n} opciones) →`,
         hotelDescription: "Descripción del hotel",
         readMoreInAbout: "Leer más en la pestaña Acerca de →",
@@ -573,6 +578,7 @@ const DRAWER_LOCALES = {
         topRoomsDesc: "Все доступные номера и цены можно посмотреть во вкладке Цены.",
         standardRate: "Стандартный тариф",
         bestAvailability: "Гарантия лучшей доступности",
+        loadingRates: "Поиск цен...",
         viewAllRoomsCta: (n) => `Все номера и цены (${n} вариантов) →`,
         hotelDescription: "Описание отеля",
         readMoreInAbout: "Подробнее во вкладке Об отеле →",
@@ -641,7 +647,7 @@ const HotelQuickLookDrawer = ({
     const [cachedHotel, setCachedHotel] = useState(hotel);
     const [detailData, setDetailData] = useState(null);
     const [rooms, setRooms] = useState([]);
-    const [isRoomsLoading, setIsRoomsLoading] = useState(false);
+    const [isRoomsLoading, setIsRoomsLoading] = useState(isOpen);
     const [isCopied, setIsCopied] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(null);
     const [lightboxImages, setLightboxImages] = useState([]);
@@ -696,6 +702,7 @@ const HotelQuickLookDrawer = ({
 
     const currentHotelId = hotel ? (hotel.id || hotel.hotelId) : null;
     const [prevHotelId, setPrevHotelId] = useState(currentHotelId);
+    const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
 
     // Synchronously update state during render when hotel prop changes to prevent stale data flashing
     if (currentHotelId && currentHotelId !== prevHotelId) {
@@ -703,6 +710,7 @@ const HotelQuickLookDrawer = ({
         setCachedHotel(hotel);
         setDetailData(null);
         setRooms([]);
+        setIsRoomsLoading(true);
         setActiveTab('overview');
         setBoardTypeFilter('ALL');
         setCancelFilter('ALL');
@@ -712,6 +720,15 @@ const HotelQuickLookDrawer = ({
         if (scrollContainerRef.current) {
             scrollContainerRef.current.scrollTop = 0;
         }
+    }
+
+    if (isOpen && !prevIsOpen) {
+        setPrevIsOpen(true);
+        if (rooms.length === 0) {
+            setIsRoomsLoading(true);
+        }
+    } else if (!isOpen && prevIsOpen) {
+        setPrevIsOpen(false);
     }
 
     // Keep cached hotel so during exit animation the content remains intact
@@ -1494,21 +1511,38 @@ const HotelQuickLookDrawer = ({
                         {/* Featured Prices Preview Card */}
                         <div className="border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 space-y-3 bg-white dark:bg-[#303134]">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-[15px] font-medium text-[#202124] dark:text-slate-100">
+                                <h3 className="text-[15px] font-medium text-[#202124] dark:text-slate-100 flex items-center gap-2">
                                     {t('featuredRates')}
                                 </h3>
-                                <button
-                                    onClick={() => handleTabChange('prices')}
-                                    className="text-[13px] font-medium text-[#1a73e8] dark:text-blue-400 hover:underline cursor-pointer"
-                                >
-                                    {t('viewAllRoomsCta', groupedRooms.length > 0 ? groupedRooms.reduce((sum, g) => sum + g.rates.length, 0) : 0)}
-                                </button>
+                                {isRoomsLoading ? (
+                                    <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-[11.5px] font-medium text-[#1a73e8] dark:text-blue-400">
+                                        <span className="size-1.5 rounded-full bg-[#1a73e8] dark:bg-blue-400 animate-ping"></span>
+                                        <span>{t('loadingRates')}</span>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => handleTabChange('prices')}
+                                        className="text-[13px] font-medium text-[#1a73e8] dark:text-blue-400 hover:underline cursor-pointer"
+                                    >
+                                        {t('viewAllRoomsCta', groupedRooms.length > 0 ? groupedRooms.reduce((sum, g) => sum + g.rates.length, 0) : 0)}
+                                    </button>
+                                )}
                             </div>
 
                             {isRoomsLoading ? (
-                                <div className="space-y-2 py-2">
-                                    <div className="h-12 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse" />
-                                    <div className="h-12 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse" />
+                                <div className="space-y-2.5">
+                                    {[1, 2, 3].map((i) => (
+                                        <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-[#e8eaed] dark:border-slate-700/80 bg-slate-50/50 dark:bg-slate-800/40 animate-pulse">
+                                            <div className="space-y-2 flex-1 pr-3">
+                                                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded-md w-3/5"></div>
+                                                <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-md w-2/5"></div>
+                                            </div>
+                                            <div className="flex items-center gap-3 shrink-0">
+                                                <div className="h-5 w-16 bg-slate-200 dark:bg-slate-700 rounded-md"></div>
+                                                <div className="h-7 w-20 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             ) : groupedRooms.length > 0 ? (
                                 <div className="space-y-2.5">
@@ -1668,7 +1702,7 @@ const HotelQuickLookDrawer = ({
                                     value={boardTypeFilter}
                                     onChange={setBoardTypeFilter}
                                     options={[
-                                        { value: 'ALL', label: `${t('allBoards')} (${rooms?.length || 0})`, icon: 'check_circle' },
+                                        { value: 'ALL', label: isRoomsLoading ? t('allBoards') : `${t('allBoards')} (${rooms?.length || 0})`, icon: 'check_circle' },
                                         ...Object.keys(BOARD_TYPES)
                                             .filter(code => boardCounts[code] > 0)
                                             .map(code => ({
@@ -1689,17 +1723,24 @@ const HotelQuickLookDrawer = ({
                                     value={cancelFilter}
                                     onChange={setCancelFilter}
                                     options={[
-                                        { value: 'ALL', label: `${t('allPolicies')} (${rooms?.length || 0})`, icon: 'rule' },
-                                        { value: 'FREE', label: `${t('freeCancellation')} (${policyCounts.FREE})`, icon: 'verified' },
-                                        { value: 'NON_REFUNDABLE', label: `${t('nonRefundable')} (${policyCounts.NON_REFUNDABLE})`, icon: 'cancel' }
+                                        { value: 'ALL', label: isRoomsLoading ? t('allPolicies') : `${t('allPolicies')} (${rooms?.length || 0})`, icon: 'rule' },
+                                        { value: 'FREE', label: isRoomsLoading ? t('freeCancellation') : `${t('freeCancellation')} (${policyCounts.FREE})`, icon: 'verified' },
+                                        { value: 'NON_REFUNDABLE', label: isRoomsLoading ? t('nonRefundable') : `${t('nonRefundable')} (${policyCounts.NON_REFUNDABLE})`, icon: 'cancel' }
                                     ]}
                                     defaultValue="ALL"
                                     placeholder={t('allPolicies')}
                                 />
                             </div>
 
-                            <div className="text-xs text-[#5f6368] dark:text-slate-400 font-medium ml-auto">
-                                {groupedRooms.length} {t('roomTypesFound')}
+                            <div className="text-xs text-[#5f6368] dark:text-slate-400 font-medium ml-auto flex items-center">
+                                {isRoomsLoading ? (
+                                    <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                                        <span className="size-2 rounded-full bg-blue-500 animate-ping"></span>
+                                        <span>{t('loadingRates')}</span>
+                                    </div>
+                                ) : (
+                                    `${groupedRooms.length} ${t('roomTypesFound')}`
+                                )}
                             </div>
                         </div>
 
@@ -1707,14 +1748,18 @@ const HotelQuickLookDrawer = ({
                             <div className="divide-y divide-[#e8eaed] dark:divide-slate-700">
                                 {[1, 2, 3].map(i => (
                                     <div key={i} className="px-6 py-5 space-y-4 animate-pulse">
-                                        <div className="flex gap-4">
-                                            <div className="w-44 h-28 bg-slate-200 dark:bg-slate-800 rounded-lg shrink-0" />
-                                            <div className="flex-1 space-y-2 py-1">
-                                                <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/2" />
-                                                <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-1/3" />
+                                        <div className="flex flex-col sm:flex-row gap-4">
+                                            <div className="w-full sm:w-48 h-32 bg-slate-200 dark:bg-slate-800 rounded-lg shrink-0" />
+                                            <div className="flex-1 space-y-2.5 py-1">
+                                                <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-2/3" />
+                                                <div className="h-3.5 bg-slate-100 dark:bg-slate-800 rounded w-1/3" />
+                                                <div className="flex gap-2 pt-2">
+                                                    <div className="h-6 w-20 bg-slate-100 dark:bg-slate-800 rounded-md" />
+                                                    <div className="h-6 w-24 bg-slate-100 dark:bg-slate-800 rounded-md" />
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="h-12 bg-slate-100 dark:bg-slate-800 rounded-lg" />
+                                        <div className="h-14 bg-slate-100/70 dark:bg-slate-800/70 rounded-lg" />
                                     </div>
                                 ))}
                             </div>

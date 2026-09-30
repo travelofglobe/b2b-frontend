@@ -178,7 +178,7 @@ const LocationMarker = ({ position, setPosition }) => {
 
 const MyOffice = () => {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { user, logout } = useAuth();
     const { favorites, isFavorite, addFavorite, removeFavorite, refreshFavorites } = useFavorites();
     const { i18n } = useTranslation();
@@ -1978,7 +1978,14 @@ const MyOffice = () => {
                                             </div>
                                             <select value={guestFilters.countryCodes[0] || ''} onChange={(e) => handleGuestFilterChange({ ...guestFilters, countryCodes: e.target.value ? [e.target.value] : [] })} className="h-10 px-3.5 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#3c4043] dark:text-[#bdc1c6] focus:border-[#1a73e8] outline-none cursor-pointer">
                                                 <option value="">{L('allCountries')}</option>
-                                                {countries.map(c => <option key={c.locationId} value={c.alphaTwoCode}>{getCountryName(countries, c.alphaTwoCode, currentLang)}</option>)}
+                                                {countries.map((c, idx) => {
+                                                    const code = c.countryIso2 || c.alphaTwoCode || c.code || c.countryCode || '';
+                                                    return (
+                                                        <option key={c.locationId || c.id || code || idx} value={code}>
+                                                            {getCountryName(countries, code, currentLang)}
+                                                        </option>
+                                                    );
+                                                })}
                                             </select>
                                             <select value={guestFilters.status} onChange={(e) => handleGuestFilterChange({ ...guestFilters, status: e.target.value })} className="h-10 px-3.5 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#3c4043] dark:text-[#bdc1c6] focus:border-[#1a73e8] outline-none cursor-pointer">
                                                 <option value="ACTIVE">Active</option>
@@ -3090,26 +3097,35 @@ const MyOffice = () => {
                                                 <div className="flex-1 overflow-y-auto p-1.5 custom-scrollbar">
                                                     {countries
                                                         .filter(c => {
-                                                            const name = (c.name?.translations?.[currentLang] || c.name?.translations?.en || c.name?.defaultName || '').toLowerCase();
-                                                            return name.includes(guestCountrySearch.toLowerCase()) || c.alphaTwoCode.toLowerCase().includes(guestCountrySearch.toLowerCase());
+                                                            const cCode = (c.countryIso2 || c.alphaTwoCode || c.code || c.countryCode || '').toLowerCase();
+                                                            const nameTr = (c.name?.translations?.tr || '').toLowerCase();
+                                                            const nameEn = (c.name?.translations?.en || '').toLowerCase();
+                                                            const nameCurr = (c.name?.translations?.[currentLang] || '').toLowerCase();
+                                                            const defaultName = (c.name?.defaultName || (typeof c.name === 'string' ? c.name : '') || c.asciiName || '').toLowerCase();
+                                                            const search = (guestCountrySearch || '').trim().toLowerCase();
+                                                            return !search || nameTr.includes(search) || nameEn.includes(search) || nameCurr.includes(search) || defaultName.includes(search) || cCode.includes(search);
                                                         })
-                                                        .map(c => (
-                                                            <div
-                                                                key={c.id}
-                                                                onClick={() => {
-                                                                    setGuestFormData(prev => ({ ...prev, country: c.alphaTwoCode }));
-                                                                    setShowGuestCountries(false);
-                                                                    setGuestCountrySearch('');
-                                                                }}
-                                                                className={`px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${guestFormData.country === c.alphaTwoCode ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-[#dadce0]'}`}
-                                                            >
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="opacity-60 text-[10px] w-6 uppercase font-mono">{c.alphaTwoCode}</span>
-                                                                    <span>{c.name?.translations?.[currentLang] || c.name?.translations?.en || c.name?.defaultName}</span>
+                                                        .map((c, i) => {
+                                                            const cCode = c.countryIso2 || c.alphaTwoCode || c.code || c.countryCode || '';
+                                                            const cName = getCountryName(countries, cCode, currentLang) || c.name?.translations?.[currentLang] || c.name?.translations?.tr || c.name?.translations?.en || c.name?.defaultName || c.asciiName || (typeof c.name === 'string' ? c.name : '') || cCode;
+                                                            return (
+                                                                <div
+                                                                    key={c.id || c.locationId || cCode || `guest-country-${i}`}
+                                                                    onClick={() => {
+                                                                        setGuestFormData(prev => ({ ...prev, country: cCode }));
+                                                                        setShowGuestCountries(false);
+                                                                        setGuestCountrySearch('');
+                                                                    }}
+                                                                    className={`px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${guestFormData.country === cCode ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-[#dadce0]'}`}
+                                                                >
+                                                                    <div className="flex items-center gap-2">
+                                                                        {cCode && <span className="opacity-60 text-[10px] w-6 uppercase font-mono">{cCode}</span>}
+                                                                        <span>{cName}</span>
+                                                                    </div>
+                                                                    {guestFormData.country === cCode && <span className="material-symbols-outlined text-sm">check</span>}
                                                                 </div>
-                                                                {guestFormData.country === c.alphaTwoCode && <span className="material-symbols-outlined text-sm">check</span>}
-                                                            </div>
-                                                        ))}
+                                                            );
+                                                        })}
                                                 </div>
                                             </div>
                                         </>

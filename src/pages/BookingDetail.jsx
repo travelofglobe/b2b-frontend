@@ -65,11 +65,42 @@ const BookingDetail = () => {
         }
     };
 
-    const handleCopy = (text, label) => {
+    const handleCopy = async (text, label) => {
         if (!text) return;
-        navigator.clipboard.writeText(text);
-        setCopiedText(label);
-        setTimeout(() => setCopiedText(null), 2500);
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                // Fallback for HTTP or older browsers
+                const el = document.createElement('textarea');
+                el.value = text;
+                el.style.position = 'fixed';
+                el.style.opacity = '0';
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+            }
+            setCopiedText(label);
+            setTimeout(() => setCopiedText(null), 2500);
+        } catch (err) {
+            console.error('Copy failed:', err);
+            // Fallback on clipboard API failure
+            try {
+                const el = document.createElement('textarea');
+                el.value = text;
+                el.style.position = 'fixed';
+                el.style.opacity = '0';
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                setCopiedText(label);
+                setTimeout(() => setCopiedText(null), 2500);
+            } catch (fallbackErr) {
+                console.error('Fallback copy failed:', fallbackErr);
+            }
+        }
     };
 
     const formatDate = (dateString) => {

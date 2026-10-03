@@ -1098,15 +1098,15 @@ const DashboardSearch = () => {
                         />
                     </div>
 
-                    {/* Compact Nationality Selector (Far Right) */}
-                    <div className="flex-shrink-0 relative h-14 w-[76px] sm:w-[82px] transition-all duration-300">
+                    {/* Nationality Selector (Far Right) */}
+                    <div className="flex-shrink-0 relative h-14 w-full md:w-[155px] lg:w-[170px] transition-all duration-300">
                         <NationalitySelect 
                             value={nationality} 
                             onChange={(newNat) => {
                                 setNationality(newNat);
                             }} 
                             inputStyle={true} 
-                            compact={true}
+                            compact={false}
                             rounded="rounded-[4px]"
                             onToggle={(isOpen) => {
                                 if (isOpen) {

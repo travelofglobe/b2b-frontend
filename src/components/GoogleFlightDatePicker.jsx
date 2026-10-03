@@ -243,10 +243,12 @@ const GoogleFlightDatePicker = ({
     };
 
     const handleReset = () => {
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        onCheckInChange(today);
-        onCheckOutChange(tomorrow);
+        const defaultCheckIn = new Date(today);
+        defaultCheckIn.setDate(defaultCheckIn.getDate() + 2);
+        const defaultCheckOut = new Date(defaultCheckIn);
+        defaultCheckOut.setDate(defaultCheckOut.getDate() + 1);
+        onCheckInChange(defaultCheckIn);
+        onCheckOutChange(defaultCheckOut);
         setActiveField('checkIn');
     };
 

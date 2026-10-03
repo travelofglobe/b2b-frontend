@@ -12,7 +12,7 @@ const PublicHeader = () => {
     const isApplicationPage = location.pathname === '/agency-application';
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-40 h-16 bg-slate-950/40 dark:bg-slate-950/60 backdrop-blur-xl border-b border-white/[0.08] px-4 md:px-8 flex items-center justify-between shadow-xs transition-all duration-300">
+        <header className="fixed top-0 left-0 right-0 z-40 h-16 bg-slate-900/25 dark:bg-slate-950/40 backdrop-blur-xl border-b border-white/10 px-4 md:px-8 flex items-center justify-between shadow-xs transition-all duration-300">
             {/* Brand Logo & Title */}
             <div 
                 className="flex items-center gap-3 select-none cursor-pointer group" 

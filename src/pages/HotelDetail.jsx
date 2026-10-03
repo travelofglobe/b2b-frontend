@@ -1716,11 +1716,6 @@ const HotelDetail = () => {
         return null;
     };
 
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const dayAfter = new Date(tomorrow);
-    dayAfter.setDate(dayAfter.getDate() + 1);
-
     const [checkInDate, setCheckInDate] = useState(() => {
         return validateAndSanitizeDates(searchParams.get('checkin'), searchParams.get('checkout')).checkInDate;
     });

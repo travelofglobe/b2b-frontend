@@ -1957,17 +1957,17 @@ const HotelListing = () => {
     const [facilityNames, setFacilityNames] = React.useState({});
 
     const getDefaultDates = () => {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const dayAfter = new Date(tomorrow);
-        dayAfter.setDate(dayAfter.getDate() + 1);
+        const checkin = new Date();
+        checkin.setDate(checkin.getDate() + 2);
+        const checkout = new Date(checkin);
+        checkout.setDate(checkout.getDate() + 1);
         const fmt = (d) => {
             const y = d.getFullYear();
             const m = String(d.getMonth() + 1).padStart(2, '0');
             const day = String(d.getDate()).padStart(2, '0');
             return `${y}-${m}-${day}`;
         };
-        return { checkin: fmt(tomorrow), checkout: fmt(dayAfter) };
+        return { checkin: fmt(checkin), checkout: fmt(checkout) };
     };
 
     const getSearchParams = () => {

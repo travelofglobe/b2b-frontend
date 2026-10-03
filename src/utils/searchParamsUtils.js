@@ -128,11 +128,11 @@ export const validateAndSanitizeDates = (checkinParam, checkoutParam) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const defaultCheckIn = new Date(today);
+    defaultCheckIn.setDate(defaultCheckIn.getDate() + 2);
 
     const parsedCheckin = parseDateParam(checkinParam);
-    let validCheckIn = today;
+    let validCheckIn = defaultCheckIn;
     if (parsedCheckin) {
         const checkinDay = new Date(parsedCheckin.getFullYear(), parsedCheckin.getMonth(), parsedCheckin.getDate());
         if (checkinDay >= today) {

@@ -31,14 +31,14 @@ const formatDate = (value, defaultValue = null) => {
 };
 
 const getDefaultRequestDates = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const dayAfter = new Date(tomorrow);
-    dayAfter.setDate(dayAfter.getDate() + 1);
+    const checkin = new Date();
+    checkin.setDate(checkin.getDate() + 2);
+    const checkout = new Date(checkin);
+    checkout.setDate(checkout.getDate() + 1);
     
     return {
-        checkin: formatDate(tomorrow),
-        checkout: formatDate(dayAfter)
+        checkin: formatDate(checkin),
+        checkout: formatDate(checkout)
     };
 };
 

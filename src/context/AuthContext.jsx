@@ -14,6 +14,7 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [remainingSeconds, setRemainingSeconds] = useState(null);
     const [agencyCurrency, setAgencyCurrency] = useState(null);
+    const [agencyType, setAgencyType] = useState(null);
     // Map of currency code -> symbol fetched from backend
     const [currencySymbolMap, setCurrencySymbolMap] = useState({});
 
@@ -63,6 +64,9 @@ export const AuthProvider = ({ children }) => {
                 if (res) {
                     if (res.currency) {
                         setAgencyCurrency(res.currency);
+                    }
+                    if (res.agencyType) {
+                        setAgencyType(res.agencyType);
                     }
 
                     // Store sales channel (agency) country code
@@ -131,15 +135,19 @@ export const AuthProvider = ({ children }) => {
     }, []); 
 
     const login = useCallback(async (email, password) => {
+        // Clear agency cache so the new user's agency data is fetched fresh
+        agencyService.clearMeCache();
         const data = await authService.login(email, password);
         setUser(authService.getUser());
         return data;
     }, []);
 
     const logout = useCallback(() => {
+        agencyService.clearMeCache();
         authService.logout();
         setUser(null);
         setAgencyCurrency(null);
+        setAgencyType(null);
     }, []);
 
     const renewSession = useCallback(async () => {
@@ -162,8 +170,9 @@ export const AuthProvider = ({ children }) => {
         remainingSeconds,
         renewSession,
         agencyCurrency,
+        agencyType,
         currencySymbolMap
-    }), [user, loading, login, logout, remainingSeconds, renewSession, agencyCurrency, currencySymbolMap]);
+    }), [user, loading, login, logout, remainingSeconds, renewSession, agencyCurrency, agencyType, currencySymbolMap]);
 
     return (
         <AuthContext.Provider value={value}>

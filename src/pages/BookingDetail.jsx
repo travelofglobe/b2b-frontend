@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { bookingService } from '../services/bookingService';
@@ -15,6 +16,18 @@ const BookingDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [copiedText, setCopiedText] = useState(null);
+
+    // ── Cancel flow state ──────────────────────────────────────────
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    // step: 'info' | 'reason' | 'simulation' | 'confirming'
+    const [cancelStep, setCancelStep] = useState('info');
+    const [cancelReason, setCancelReason] = useState('GUEST_REQUEST');
+    const [cancelNote, setCancelNote] = useState('');
+    const [cancelSimResult, setCancelSimResult] = useState(null);
+    const [cancelSimLoading, setCancelSimLoading] = useState(false);
+    const [cancelConfirmLoading, setCancelConfirmLoading] = useState(false);
+    const [cancelError, setCancelError] = useState(null);
+    // ──────────────────────────────────────────────────────────────
 
     const { i18n } = useTranslation();
     const [currentLang, setCurrentLang] = useState(() => {
@@ -102,6 +115,121 @@ const BookingDetail = () => {
             }
         }
     };
+
+    // ── Cancel reasons (enum) ─────────────────────────────────────
+    const CANCEL_REASONS = [
+        { value: 'GUEST_REQUEST',       en: 'Guest requested cancellation',                          tr: 'Misafir iptal talebinde bulundu' },
+        { value: 'DUPLICATE_BOOKING',   en: 'Duplicate booking',                                     tr: 'Mükerrer rezervasyon' },
+        { value: 'PAYMENT_FAILED',      en: 'Payment failed or not received',                        tr: 'Ödeme başarısız oldu veya ödeme alınamadı' },
+        { value: 'HOTEL_OVERBOOKED',    en: 'Hotel overbooked',                                      tr: 'Otel fazla rezervasyon aldı (overbooking)' },
+        { value: 'PRICE_CHANGED',       en: 'Price change after booking',                            tr: 'Rezervasyon sonrası fiyat değişikliği' },
+        { value: 'INVALID_RATE',        en: 'Invalid or expired rate',                               tr: 'Geçersiz veya süresi dolmuş fiyat' },
+        { value: 'INVALID_ROOM',        en: 'Invalid or unavailable room',                           tr: 'Geçersiz veya müsait olmayan oda' },
+        { value: 'TECHNICAL_ERROR',     en: 'System or technical error',                             tr: 'Sistem veya teknik hata' },
+        { value: 'SUPPLIER_REJECTION',  en: 'Supplier rejected booking',                             tr: 'Tedarikçi rezervasyonu reddetti' },
+        { value: 'NO_SHOW',             en: 'Guest did not arrive (no-show)',                        tr: 'Misafir otele gelmedi (no-show)' },
+        { value: 'AGENT_REQUEST',       en: 'Agency requested cancellation',                         tr: 'Acente iptal talebinde bulundu' },
+        { value: 'HOTEL_CLOSED',        en: 'Hotel temporarily or permanently closed',               tr: 'Otel geçici veya kalıcı olarak kapalı' },
+        { value: 'FORCE_MAJEURE',       en: 'Force majeure (e.g. natural disaster, pandemic)',       tr: 'Mücbir sebep (ör. doğal afet, pandemi)' },
+        { value: 'FRAUD_SUSPECTED',     en: 'Fraud suspected or security concern',                   tr: 'Dolandırıcılık şüphesi veya güvenlik endişesi' },
+        { value: 'CUSTOMER_CHANGED_DATES', en: 'Customer changed travel dates',                     tr: 'Müşteri seyahat tarihlerini değiştirdi' },
+        { value: 'POLICY_VIOLATION',    en: 'Cancellation due to policy or rule violation',          tr: 'Politika veya kural ihlali nedeniyle iptal' },
+        { value: 'TIMEOUT',             en: 'Supplier or system timeout during confirmation',        tr: 'Rezervasyon onayı sırasında tedarikçi veya sistem zaman aşımı' },
+        { value: 'UNKNOWN',             en: 'Unknown reason',                                        tr: 'Bilinmeyen neden' },
+    ];
+
+    const getCancelReasonLabel = (value) => {
+        const r = CANCEL_REASONS.find(x => x.value === value);
+        if (!r) return value;
+        return currentLang === 'tr' ? r.tr : r.en;
+    };
+
+    // ── Determine cancel eligibility ─────────────────────────────
+    const getCancelEligibility = () => {
+        if (!booking) return { canCancel: false, reason: 'noBooking' };
+        const status = booking.hotel?.bookingStatus || booking.status;
+        if (status === 'CANCELLED' || status === 'CANCELED') return { canCancel: false, reason: 'alreadyCancelled' };
+        if (status === 'FAILED' || status === 'ERROR') return { canCancel: false, reason: 'failed' };
+        const rooms = booking.hotel?.rooms || [];
+        const anyRefundable = rooms.some(r => r.rates?.some(rate => rate.refundable === true));
+        if (!anyRefundable) return { canCancel: false, reason: 'nonRefundable' };
+        return { canCancel: true, reason: null };
+    };
+
+    // Build the cancel request payload
+    const buildCancelPayload = (simulation) => {
+        const roomConfirmationCodes = (booking.hotel?.rooms || [])
+            .map(r => r.roomConfirmationCode)
+            .filter(Boolean);
+        return {
+            voucher: booking.voucher,
+            roomConfirmationCodes,
+            simulation,
+            cancelReason,
+            bookingUuid: booking.uuid || booking.bookingUuid || booking.id || bookingId,
+            cancelNote
+        };
+    };
+
+    // Open modal → step 1: info
+    const handleCancelClick = () => {
+        setCancelError(null);
+        setCancelSimResult(null);
+        setCancelReason('GUEST_REQUEST');
+        setCancelNote('');
+        setCancelStep('info');
+        setIsCancelModalOpen(true);
+    };
+
+    // Step 1 → Step 2: show reason form
+    const handleCancelInfoContinue = () => {
+        setCancelStep('reason');
+    };
+
+    // Step 2 → Step 3: run simulation
+    const handleCancelReasonContinue = async () => {
+        if (!cancelReason) return;
+        setCancelError(null);
+        setCancelSimResult(null);
+        setCancelStep('simulation');
+        setCancelSimLoading(true);
+        try {
+            const payload = buildCancelPayload(true);
+            const result = await hotelService.cancelBooking(payload);
+            setCancelSimResult(result);
+        } catch (err) {
+            console.error('Cancel simulation error:', err);
+            setCancelError(err?.message || L('cancelSimulationErrorMsg'));
+        } finally {
+            setCancelSimLoading(false);
+        }
+    };
+
+    // Step 3 → real cancel (simulation: false)
+    const handleCancelConfirm = async () => {
+        setCancelError(null);
+        setCancelConfirmLoading(true);
+        try {
+            const payload = buildCancelPayload(false);
+            await hotelService.cancelBooking(payload);
+            setIsCancelModalOpen(false);
+            setCancelSimResult(null);
+            await fetchBookingDetail();
+        } catch (err) {
+            console.error('Cancel confirm error:', err);
+            setCancelError(err?.message || L('cancelErrorMsg'));
+        } finally {
+            setCancelConfirmLoading(false);
+        }
+    };
+
+    const handleCancelClose = () => {
+        if (cancelSimLoading || cancelConfirmLoading) return;
+        setIsCancelModalOpen(false);
+        setCancelSimResult(null);
+        setCancelError(null);
+    };
+    // ──────────────────────────────────────────────────────────────
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -394,6 +522,7 @@ const BookingDetail = () => {
     const totalGuests = booking.hotel?.rooms?.reduce((acc, r) => acc + (r.occupancies?.length || 0), 0) || 0;
 
     return (
+        <>
         <div className="flex-1 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto">
             {/* Toast Notification */}
             {copiedText && (
@@ -433,6 +562,19 @@ const BookingDetail = () => {
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-2 self-end sm:self-auto">
+                        {(() => {
+                            const { canCancel } = getCancelEligibility();
+                            if (!canCancel) return null;
+                            return (
+                                <button
+                                    onClick={handleCancelClick}
+                                    className="h-9 px-4 rounded-full flex items-center gap-1.5 font-semibold text-xs transition-all bg-[#fce8e6] hover:bg-[#d93025] text-[#d93025] hover:text-white border border-[#fad2cf] hover:border-[#d93025] shadow-xs active:scale-95 cursor-pointer"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">cancel</span>
+                                    <span>{L('cancelBooking')}</span>
+                                </button>
+                            );
+                        })()}
                         {booking.voucher && (
                             <button
                                 onClick={() => window.open(`/travel/hotels/bookings/${booking.voucher}/voucher`, '_blank')}
@@ -1088,6 +1230,377 @@ const BookingDetail = () => {
 
             </main>
         </div>
+
+        {/* ── Cancel Confirmation Modal ──────────────────────────── */}
+        {isCancelModalOpen && createPortal(
+            <div
+                className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="cancel-modal-title"
+            >
+                {/* Backdrop */}
+                <div
+                    className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                    onClick={handleCancelClose}
+                />
+
+                {/* Modal Panel */}
+                <div className="relative z-10 w-full max-w-lg bg-white dark:bg-[#28292c] rounded-2xl shadow-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden">
+
+                    {/* ── Header ── */}
+                    <div className="flex items-start gap-4 p-6 border-b border-[#dadce0] dark:border-[#3c4043]">
+                        <div className="size-11 rounded-2xl bg-[#fce8e6] dark:bg-rose-950/40 flex items-center justify-center text-[#d93025] dark:text-rose-400 shrink-0">
+                            <span className="material-symbols-outlined text-[24px]">cancel</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h2 id="cancel-modal-title" className="text-base font-bold text-[#202124] dark:text-white leading-snug">
+                                {L('cancelBooking')}
+                            </h2>
+                            {/* Step indicator */}
+                            <div className="flex items-center gap-1.5 mt-2">
+                                {['info', 'reason', 'simulation'].map((s, i) => (
+                                    <React.Fragment key={s}>
+                                        <div className={`size-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${
+                                            cancelStep === s
+                                                ? 'bg-[#d93025] text-white'
+                                                : ['info', 'reason', 'simulation'].indexOf(cancelStep) > i
+                                                    ? 'bg-[#137333] text-white'
+                                                    : 'bg-[#f1f3f4] dark:bg-[#3c4043] text-[#5f6368] dark:text-slate-400'
+                                        }`}>
+                                            {['info', 'reason', 'simulation'].indexOf(cancelStep) > i
+                                                ? <span className="material-symbols-outlined text-[12px]">check</span>
+                                                : i + 1
+                                            }
+                                        </div>
+                                        {i < 2 && <div className={`h-[2px] w-6 rounded transition-colors ${['info', 'reason', 'simulation'].indexOf(cancelStep) > i ? 'bg-[#137333]' : 'bg-[#dadce0] dark:bg-[#5f6368]'}`} />}
+                                    </React.Fragment>
+                                ))}
+                                <span className="ml-1 text-[11px] text-[#5f6368] dark:text-slate-400">
+                                    {cancelStep === 'info' && (currentLang === 'tr' ? 'Rezervasyon Bilgileri' : 'Booking Info')}
+                                    {cancelStep === 'reason' && (currentLang === 'tr' ? 'İptal Sebebi' : 'Cancel Reason')}
+                                    {cancelStep === 'simulation' && (currentLang === 'tr' ? 'Özet' : 'Summary')}
+                                </span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleCancelClose}
+                            disabled={cancelSimLoading || cancelConfirmLoading}
+                            className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors shrink-0 cursor-pointer disabled:opacity-40"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">close</span>
+                        </button>
+                    </div>
+
+                    {/* ── Body ── */}
+                    <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+
+                        {/* ───── STEP 1: Info ───── */}
+                        {cancelStep === 'info' && (
+                            <div className="space-y-3">
+                                <p className="text-xs text-[#5f6368] dark:text-slate-400 leading-relaxed">
+                                    {L('cancelModalSubtitle')}
+                                </p>
+                                <div className="rounded-xl border border-[#dadce0] dark:border-[#3c4043] divide-y divide-[#dadce0] dark:divide-[#3c4043] overflow-hidden">
+                                    {booking.voucher && (
+                                        <div className="flex items-center justify-between px-4 py-3 text-xs bg-[#f8f9fa] dark:bg-[#202124]">
+                                            <span className="text-[#5f6368] dark:text-slate-400 font-medium">{L('bookingRef')}</span>
+                                            <span className="font-mono font-bold text-[#202124] dark:text-white">{booking.voucher}</span>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-between px-4 py-3 text-xs">
+                                        <span className="text-[#5f6368] dark:text-slate-400 font-medium">{currentLang === 'tr' ? 'Otel' : 'Hotel'}</span>
+                                        <span className="font-semibold text-[#202124] dark:text-white text-right max-w-[240px] truncate">{booking.hotel?.hotelName}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between px-4 py-3 text-xs">
+                                        <span className="text-[#5f6368] dark:text-slate-400 font-medium">{L('checkIn')} / {L('checkOut')}</span>
+                                        <span className="font-semibold text-[#202124] dark:text-white">
+                                            {formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}
+                                        </span>
+                                    </div>
+                                    {booking.hotel?.rooms?.[0]?.roomName && (
+                                        <div className="flex items-center justify-between px-4 py-3 text-xs">
+                                            <span className="text-[#5f6368] dark:text-slate-400 font-medium">{L('room')}</span>
+                                            <span className="font-semibold text-[#202124] dark:text-white">{booking.hotel.rooms[0].roomName}</span>
+                                        </div>
+                                    )}
+                                    {booking.hotel?.rooms?.map((r, ri) => r.roomConfirmationCode ? (
+                                        <div key={ri} className="flex items-center justify-between px-4 py-3 text-xs">
+                                            <span className="text-[#5f6368] dark:text-slate-400 font-medium">{L('confCode')}{booking.hotel.rooms.length > 1 ? ` ${ri + 1}` : ''}</span>
+                                            <span className="font-mono font-bold text-[#202124] dark:text-white">{r.roomConfirmationCode}</span>
+                                        </div>
+                                    ) : null)}
+                                    <div className="flex items-center justify-between px-4 py-3 text-xs">
+                                        <span className="text-[#5f6368] dark:text-slate-400 font-medium">{L('totalAmount')}</span>
+                                        <span className="font-bold text-[#1a73e8] dark:text-[#8ab4f8]">
+                                            {booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'} {booking.currency}
+                                        </span>
+                                    </div>
+                                    {/* Cancellation policies from first room/rate */}
+                                    {booking.hotel?.rooms?.[0]?.rates?.[0]?.cancellationPolicies?.length > 0 && (
+                                        <div className="px-4 py-3 space-y-2">
+                                            <p className="text-[10px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">{L('cancelPolicies')}</p>
+                                            {booking.hotel.rooms[0].rates[0].cancellationPolicies.map((p, pi) => (
+                                                <div key={pi} className="flex items-center justify-between text-xs">
+                                                    <span className="text-[#5f6368] dark:text-slate-400">{formatDateTime(p.fromDate)}</span>
+                                                    <span className={`font-bold ${Number(p.amount) > 0 ? 'text-[#d93025]' : 'text-[#137333]'}`}>
+                                                        {Number(p.amount) === 0 ? (currentLang === 'tr' ? 'Ücretsiz' : 'Free') : `${Number(p.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} ${p.currency}`}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ───── STEP 2: Reason & Note ───── */}
+                        {cancelStep === 'reason' && (
+                            <div className="space-y-4">
+                                {/* Cancel Reason */}
+                                <div className="space-y-1.5">
+                                    <label className="block text-xs font-bold text-[#202124] dark:text-white uppercase tracking-wider">
+                                        {L('cancelReason')} <span className="text-[#d93025]">*</span>
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            value={cancelReason}
+                                            onChange={e => setCancelReason(e.target.value)}
+                                            className="w-full h-10 pl-3 pr-8 rounded-xl border border-[#dadce0] dark:border-[#5f6368] bg-white dark:bg-[#202124] text-xs font-medium text-[#202124] dark:text-white appearance-none focus:outline-none focus:ring-2 focus:ring-[#1a73e8] cursor-pointer"
+                                        >
+                                            {CANCEL_REASONS.map(r => (
+                                                <option key={r.value} value={r.value}>
+                                                    {currentLang === 'tr' ? r.tr : r.en}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-[#5f6368] pointer-events-none">expand_more</span>
+                                    </div>
+                                </div>
+
+                                {/* Cancel Note */}
+                                <div className="space-y-1.5">
+                                    <label className="block text-xs font-bold text-[#202124] dark:text-white uppercase tracking-wider">
+                                        {L('cancelNote')} <span className="text-[#70757a] font-normal normal-case">({currentLang === 'tr' ? 'İsteğe bağlı' : 'Optional'})</span>
+                                    </label>
+                                    <textarea
+                                        value={cancelNote}
+                                        onChange={e => setCancelNote(e.target.value)}
+                                        rows={3}
+                                        maxLength={500}
+                                        placeholder={currentLang === 'tr' ? 'İptal hakkında ek bilgi giriniz...' : 'Enter additional information about this cancellation...'}
+                                        className="w-full px-3 py-2.5 rounded-xl border border-[#dadce0] dark:border-[#5f6368] bg-white dark:bg-[#202124] text-xs text-[#202124] dark:text-white placeholder:text-[#9aa0a6] dark:placeholder:text-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-[#1a73e8]"
+                                    />
+                                    <p className="text-[10px] text-[#70757a] text-right">{cancelNote.length}/500</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ───── STEP 3: Simulation result ───── */}
+                        {cancelStep === 'simulation' && (
+                            <div className="space-y-4">
+                                {/* Loading */}
+                                {cancelSimLoading && (
+                                    <div className="flex flex-col items-center justify-center py-8 gap-3">
+                                        <div className="size-10 border-[3px] border-[#1a73e8]/20 border-t-[#1a73e8] rounded-full animate-spin"></div>
+                                        <p className="text-xs text-[#5f6368] dark:text-slate-400">{L('cancelSimulating')}</p>
+                                    </div>
+                                )}
+
+                                {/* Error */}
+                                {!cancelSimLoading && cancelError && (
+                                    <div className="flex items-start gap-3 p-4 rounded-xl bg-[#fce8e6] dark:bg-rose-950/30 border border-[#fad2cf] dark:border-rose-800">
+                                        <span className="material-symbols-outlined text-[20px] text-[#d93025] dark:text-rose-400 shrink-0 mt-0.5">error</span>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-bold text-[#d93025] dark:text-rose-300">
+                                                {currentLang === 'tr' ? 'İşlem Başarısız' : 'Request Failed'}
+                                            </p>
+                                            <p className="text-xs text-[#d93025] dark:text-rose-300 mt-0.5 leading-relaxed">{cancelError}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Simulation result */}
+                                {!cancelSimLoading && cancelSimResult && !cancelError && (
+                                    <>
+                                        {/* Status badge */}
+                                        <div className="flex items-center gap-2 p-3 rounded-xl bg-[#e6f4ea] dark:bg-emerald-950/30 border border-[#ceead6] dark:border-emerald-800">
+                                            <span className="material-symbols-outlined text-[18px] text-[#137333] dark:text-emerald-400">check_circle</span>
+                                            <p className="text-xs font-semibold text-[#137333] dark:text-emerald-300">
+                                                {currentLang === 'tr'
+                                                    ? 'İptal işlemi tamamlanabilir. Aşağıdaki detayları inceleyiniz.'
+                                                    : 'Cancellation can be processed. Please review the details below.'}
+                                            </p>
+                                        </div>
+
+                                        {/* Summary table */}
+                                        <div className="rounded-xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden">
+                                            <div className="flex items-center gap-2 px-4 py-3 bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043]">
+                                                <span className="material-symbols-outlined text-[16px] text-[#1a73e8]">receipt_long</span>
+                                                <span className="text-[11px] font-bold text-[#202124] dark:text-white uppercase tracking-wider">
+                                                    {L('cancelSimulationResult')}
+                                                </span>
+                                            </div>
+                                            <div className="divide-y divide-[#dadce0] dark:divide-[#3c4043]">
+                                                {cancelSimResult.amount != null && (
+                                                    <div className="flex items-center justify-between px-4 py-3 text-xs">
+                                                        <span className="text-[#5f6368] dark:text-slate-400">{L('cancelTotalAmount')}</span>
+                                                        <span className="font-semibold text-[#202124] dark:text-white">
+                                                            {Number(cancelSimResult.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {cancelSimResult.currency || booking.currency}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {cancelSimResult.refundAmount != null && (
+                                                    <div className="flex items-center justify-between px-4 py-3 text-xs">
+                                                        <span className="text-[#5f6368] dark:text-slate-400">{L('cancelRefundAmount')}</span>
+                                                        <span className={`font-bold ${Number(cancelSimResult.refundAmount) > 0 ? 'text-[#137333] dark:text-emerald-400' : 'text-[#5f6368]'}`}>
+                                                            {Number(cancelSimResult.refundAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {cancelSimResult.currency || booking.currency}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {cancelSimResult.penaltyAmount != null && (
+                                                    <div className="flex items-center justify-between px-4 py-3 text-xs">
+                                                        <span className="text-[#5f6368] dark:text-slate-400">{L('cancelPenaltyAmount')}</span>
+                                                        <span className={`font-bold ${Number(cancelSimResult.penaltyAmount) > 0 ? 'text-[#d93025] dark:text-rose-400' : 'text-[#137333] dark:text-emerald-400'}`}>
+                                                            {Number(cancelSimResult.penaltyAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {cancelSimResult.currency || booking.currency}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {cancelSimResult.cancelledAt && (
+                                                    <div className="flex items-center justify-between px-4 py-3 text-xs">
+                                                        <span className="text-[#5f6368] dark:text-slate-400">{L('cancelledAt')}</span>
+                                                        <span className="font-medium text-[#202124] dark:text-white">{formatDateTime(cancelSimResult.cancelledAt)}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Refund/penalty highlight */}
+                                        {Number(cancelSimResult.penaltyAmount || 0) === 0 && Number(cancelSimResult.refundAmount || 0) > 0 ? (
+                                            <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-[#e6f4ea] dark:bg-emerald-950/30 border border-[#ceead6] dark:border-emerald-800">
+                                                <span className="material-symbols-outlined text-[16px] text-[#137333] dark:text-emerald-400 shrink-0 mt-0.5">savings</span>
+                                                <p className="text-xs text-[#137333] dark:text-emerald-300 leading-relaxed">
+                                                    {currentLang === 'tr'
+                                                        ? <><strong>{Number(cancelSimResult.refundAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {cancelSimResult.currency || booking.currency}</strong> tutarındaki ödeme acente hesabınıza iade edilecektir.</>
+                                                        : <><strong>{Number(cancelSimResult.refundAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {cancelSimResult.currency || booking.currency}</strong> will be refunded to your agency account.</>
+                                                    }
+                                                </p>
+                                            </div>
+                                        ) : Number(cancelSimResult.penaltyAmount || 0) > 0 ? (
+                                            <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-[#fef7e0] dark:bg-amber-950/30 border border-[#feefc3] dark:border-amber-800">
+                                                <span className="material-symbols-outlined text-[16px] text-[#b06000] dark:text-amber-400 shrink-0 mt-0.5">warning</span>
+                                                <p className="text-xs text-[#b06000] dark:text-amber-300 leading-relaxed">
+                                                    {currentLang === 'tr'
+                                                        ? <><strong>{Number(cancelSimResult.penaltyAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {cancelSimResult.currency || booking.currency}</strong> tutarında ceza uygulanacaktır.</>
+                                                        : <>A penalty of <strong>{Number(cancelSimResult.penaltyAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {cancelSimResult.currency || booking.currency}</strong> will be applied.</>
+                                                    }
+                                                </p>
+                                            </div>
+                                        ) : null}
+
+                                        {/* Chosen reason display */}
+                                        <div className="flex items-center justify-between text-xs px-1">
+                                            <span className="text-[#5f6368] dark:text-slate-400">{L('cancelReason')}</span>
+                                            <span className="font-semibold text-[#202124] dark:text-white">{getCancelReasonLabel(cancelReason)}</span>
+                                        </div>
+                                        {cancelNote && (
+                                            <div className="flex items-start justify-between text-xs px-1 gap-4">
+                                                <span className="text-[#5f6368] dark:text-slate-400 shrink-0">{L('cancelNote')}</span>
+                                                <span className="font-medium text-[#202124] dark:text-white text-right italic">"{cancelNote}"</span>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Confirm error (shown in simulation step when confirm fails) */}
+                        {cancelStep === 'simulation' && !cancelSimLoading && cancelConfirmLoading === false && cancelError && cancelSimResult && (
+                            <div className="flex items-start gap-3 p-4 rounded-xl bg-[#fce8e6] dark:bg-rose-950/30 border border-[#fad2cf] dark:border-rose-800 mt-2">
+                                <span className="material-symbols-outlined text-[20px] text-[#d93025] shrink-0 mt-0.5">error</span>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-bold text-[#d93025] dark:text-rose-300">
+                                        {currentLang === 'tr' ? 'İptal Başarısız' : 'Cancellation Failed'}
+                                    </p>
+                                    <p className="text-xs text-[#d93025] dark:text-rose-300 mt-0.5 leading-relaxed">{cancelError}</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ── Footer ── */}
+                    <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-[#dadce0] dark:border-[#3c4043] bg-[#f8f9fa] dark:bg-[#202124]">
+                        {/* Back / Cancel */}
+                        <button
+                            onClick={() => {
+                                if (cancelStep === 'info') { handleCancelClose(); return; }
+                                if (cancelStep === 'reason') { setCancelStep('info'); return; }
+                                if (cancelStep === 'simulation') { setCancelStep('reason'); setCancelSimResult(null); setCancelError(null); return; }
+                            }}
+                            disabled={cancelSimLoading || cancelConfirmLoading}
+                            className="h-9 px-5 rounded-full font-semibold text-xs bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] text-[#3c4043] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors disabled:opacity-40 cursor-pointer flex items-center gap-1.5"
+                        >
+                            {cancelStep === 'info'
+                                ? <><span className="material-symbols-outlined text-[16px]">close</span>{currentLang === 'tr' ? 'Vazgeç' : 'Cancel'}</>
+                                : <><span className="material-symbols-outlined text-[16px]">arrow_back</span>{currentLang === 'tr' ? 'Geri' : 'Back'}</>
+                            }
+                        </button>
+
+                        {/* Primary action */}
+                        {cancelStep === 'info' && (
+                            <button
+                                onClick={handleCancelInfoContinue}
+                                className="h-9 px-5 rounded-full font-semibold text-xs bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-colors shadow-xs active:scale-95 cursor-pointer flex items-center gap-1.5"
+                            >
+                                {currentLang === 'tr' ? 'Devam Et' : 'Continue'}
+                                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                            </button>
+                        )}
+                        {cancelStep === 'reason' && (
+                            <button
+                                onClick={handleCancelReasonContinue}
+                                disabled={!cancelReason}
+                                className="h-9 px-5 rounded-full font-semibold text-xs bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-colors shadow-xs active:scale-95 disabled:opacity-40 disabled:pointer-events-none cursor-pointer flex items-center gap-1.5"
+                            >
+                                {currentLang === 'tr' ? 'Devam Et' : 'Continue'}
+                                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                            </button>
+                        )}
+                        {cancelStep === 'simulation' && !cancelSimLoading && cancelSimResult && !cancelError && (
+                            <button
+                                onClick={handleCancelConfirm}
+                                disabled={cancelConfirmLoading}
+                                className="h-9 px-5 rounded-full font-semibold text-xs bg-[#d93025] hover:bg-[#b31412] text-white transition-colors shadow-xs active:scale-95 disabled:opacity-40 disabled:pointer-events-none cursor-pointer flex items-center gap-2"
+                            >
+                                {cancelConfirmLoading ? (
+                                    <>
+                                        <div className="size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        <span>{L('cancelConfirming')}</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="material-symbols-outlined text-[16px]">cancel</span>
+                                        <span>{currentLang === 'tr' ? 'Rezervasyonu İptal Et' : 'Cancel Booking'}</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
+                        {cancelStep === 'simulation' && !cancelSimLoading && cancelError && (
+                            <button
+                                onClick={handleCancelReasonContinue}
+                                className="h-9 px-5 rounded-full font-semibold text-xs bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-colors shadow-xs active:scale-95 cursor-pointer flex items-center gap-1.5"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">refresh</span>
+                                {currentLang === 'tr' ? 'Tekrar Dene' : 'Retry'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>,
+            document.body
+        )}
+        {/* ────────────────────────────────────────────────────────── */}
+        </>
     );
 };
 

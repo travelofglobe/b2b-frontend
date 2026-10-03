@@ -215,6 +215,25 @@ export const hotelService = {
      */
     getHotelDetail: async (hotelId, signal = null) => {
         return apiClient.get(`${API_BASE_URL}/detail/${hotelId}`, { signal });
+    },
+
+    /**
+     * Cancel a hotel booking.
+     * Call first with simulation: true to get penalty/refund preview,
+     * then with simulation: false to execute the actual cancellation.
+     * @param {Object} request
+     * @param {string} request.voucher
+     * @param {string[]} request.roomConfirmationCodes
+     * @param {boolean} request.simulation
+     * @param {string} request.cancelReason
+     * @param {string} request.bookingUuid
+     * @param {string} [request.cancelNote]
+     */
+    cancelBooking: async (request) => {
+        return apiClient.post(
+            'http://72.62.17.189:8000/b2b-backend/v1/hotels/book/cancel',
+            request
+        );
     }
 };
 

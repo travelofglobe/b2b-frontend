@@ -4,12 +4,32 @@ import { useTranslation } from 'react-i18next';
 import HeaderActions from '../components/HeaderActions';
 import LanguageModal from '../components/LanguageModal';
 import { SUPPORTED_LANGUAGES } from '../i18n';
+import { useAuth } from '../context/AuthContext';
+
+/**
+ * Returns the sidebar label for the management section based on agencyType and current language.
+ * - AGENCY → "Acente Yönetimi" (TR) / "Agency Management" (others)
+ * - GSA / RSA / any other → "<TYPE> Management" (EN) / "<TYPE> Yönetimi" (TR) etc.
+ */
+const getManagementLabel = (agencyType, lang) => {
+    const type = (agencyType || 'GSA').toUpperCase();
+    const isTR = (lang || '').startsWith('tr');
+
+    if (type === 'AGENCY') {
+        return isTR ? 'Acente Yönetimi' : 'Agency Management';
+    }
+    // GSA, RSA or anything else — use the type value as-is
+    return isTR ? `${type} Yönetimi` : `${type} Management`;
+};
 
 const PortalLayout = () => {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
     const mainRef = useRef(null);
+    const { agencyType } = useAuth();
+
+    const managementLabel = getManagementLabel(agencyType, i18n.language);
     
     // Layout State
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -275,7 +295,7 @@ const PortalLayout = () => {
                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                             >
                                 <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname.startsWith('/gsa') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>admin_panel_settings</span>
-                                <span className="text-sm font-medium text-left leading-snug flex-1">{t('sidebar.gsaManagement')}</span>
+                                <span className="text-sm font-medium text-left leading-snug flex-1">{managementLabel}</span>
                                 <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isGSAManagementOpen ? 'rotate-90' : ''} ${location.pathname.startsWith('/gsa') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
                             </button>
 

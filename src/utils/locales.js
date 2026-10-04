@@ -61,7 +61,8 @@ export const resources = {
         "operations": "Operations",
         "gsaManagement": "GSA Management",
         "agencyManagement": "Agency Management",
-        "reports": "Reports"
+        "reports": "Reports",
+        "transactions": "Transactions"
       },
       "login": {
         "title": "Travel of Globe B2B",
@@ -239,7 +240,8 @@ export const resources = {
         "operations": "Operasyonlar",
         "gsaManagement": "GSA Yönetimi",
         "agencyManagement": "Acente Yönetimi",
-        "reports": "Raporlar"
+        "reports": "Raporlar",
+        "transactions": "İşlemler"
       },
       "login": {
         "title": "Travel of Globe B2B",
@@ -413,7 +415,8 @@ export const resources = {
         "operations": "العمليات",
         "gsaManagement": "إدارة وكلاء المبيعات العامين",
         "agencyManagement": "إدارة الوكالات",
-        "reports": "التقارير"
+        "reports": "التقارير",
+        "transactions": "المعاملات"
       },
       "login": {
         "title": "ترافيل أوف جلوب B2B",
@@ -587,7 +590,8 @@ export const resources = {
         "operations": "Operaciones",
         "gsaManagement": "Gestión GSA",
         "agencyManagement": "Gestión de Agencias",
-        "reports": "Informes"
+        "reports": "Informes",
+        "transactions": "Transacciones"
       },
       "login": {
         "title": "Travel of Globe B2B",
@@ -761,7 +765,8 @@ export const resources = {
         "operations": "Операции",
         "gsaManagement": "Управление GSA",
         "agencyManagement": "Управление агентствами",
-        "reports": "Отчеты"
+        "reports": "Отчеты",
+        "transactions": "Транзакции"
       },
       "login": {
         "title": "Travel of Globe B2B",
@@ -935,7 +940,8 @@ export const resources = {
         "operations": "业务运营",
         "gsaManagement": "GSA 管理",
         "agencyManagement": "机构管理",
-        "reports": "报表中心"
+        "reports": "报表中心",
+        "transactions": "交易记录"
       },
       "login": {
         "title": "Travel of Globe B2B",
@@ -1109,7 +1115,8 @@ export const resources = {
         "operations": "オペレーション",
         "gsaManagement": "GSA管理",
         "agencyManagement": "代理店管理",
-        "reports": "レポート"
+        "reports": "レポート",
+        "transactions": "取引一覧"
       },
       "login": {
         "title": "Travel of Globe B2B",
@@ -1283,7 +1290,8 @@ export const resources = {
         "operations": "عملیات‌ها",
         "gsaManagement": "مدیریت GSA",
         "agencyManagement": "مدیریت آژانس‌ها",
-        "reports": "گزارش‌ها"
+        "reports": "گزارش‌ها",
+        "transactions": "تراکنش‌ها"
       },
       "login": {
         "title": "تراول آف گلوب B2B",
@@ -1457,7 +1465,8 @@ export const resources = {
         "operations": "Opérations",
         "gsaManagement": "Gestion GSA",
         "agencyManagement": "Gestion des Agences",
-        "reports": "Rapports"
+        "reports": "Rapports",
+        "transactions": "Transactions"
       },
       "login": {
         "title": "Travel of Globe B2B",
@@ -1631,7 +1640,8 @@ export const resources = {
         "operations": "Operazioni",
         "gsaManagement": "Gestione GSA",
         "agencyManagement": "Gestione Agenzie",
-        "reports": "Rapporti"
+        "reports": "Rapporti",
+        "transactions": "Transazioni"
       },
       "login": {
         "title": "Travel of Globe B2B",
@@ -1805,7 +1815,8 @@ export const resources = {
         "operations": "Λειτουργίες",
         "gsaManagement": "Διαχείριση GSA",
         "agencyManagement": "Διαχείριση Πρακτορείων",
-        "reports": "Αναφορές"
+        "reports": "Αναφορές",
+        "transactions": "Συναλλαγές"
       },
       "login": {
         "title": "Travel of Globe B2B",
@@ -1979,7 +1990,8 @@ export const resources = {
         "operations": "Operações",
         "gsaManagement": "Gestão GSA",
         "agencyManagement": "Gestão de Agências",
-        "reports": "Relatórios"
+        "reports": "Relatórios",
+        "transactions": "Transações"
       },
       "login": {
         "title": "Travel of Globe B2B",

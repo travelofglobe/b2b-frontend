@@ -18,6 +18,8 @@ import MyOffice from './pages/MyOffice';
 import MarkupManagement from './pages/MarkupManagement';
 import GSAAgencyManagement from './pages/GSAAgencyManagement';
 import SubAgencyMarkups from './pages/SubAgencyMarkups';
+import FinancePage from './pages/FinancePage';
+import TransactionDetailPage from './pages/TransactionDetailPage';
 import UnderConstruction from './pages/UnderConstruction';
 import ProtectedRoute from './components/ProtectedRoute';
 import PortalLayout from './layouts/PortalLayout';
@@ -72,7 +74,8 @@ function App() {
               <Route path="/flight-deals" element={<UnderConstruction title="Uçuş Fırsatları" icon="auto_awesome" />} />
               <Route path="/tracked-flight-prices" element={<UnderConstruction title="Takip Edilen Uçuş Fiyatları" icon="show_chart" />} />
 
-              <Route path="/finance" element={<UnderConstruction title="Finance" icon="account_balance_wallet" />} />
+              <Route path="/finance" element={<FinancePage />} />
+              <Route path="/finance/transactions/detail" element={<TransactionDetailPage />} />
               <Route path="/accounting" element={<UnderConstruction title="Accounting" icon="analytics" />} />
               <Route path="/operations" element={<UnderConstruction title="Operations" icon="settings" />} />
               <Route path="/gsa/agency" element={<GSAAgencyManagement />} />

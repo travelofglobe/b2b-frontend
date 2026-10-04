@@ -42,6 +42,7 @@ const PortalLayout = () => {
     const [isBookingsOpen, setIsBookingsOpen] = useState((location.pathname.startsWith('/travel') && location.pathname.includes('/bookings')) || location.pathname === '/travel/bookings');
     const [isMyOfficeOpen, setIsMyOfficeOpen] = useState(location.pathname.startsWith('/my-office'));
     const [isDefinitionsOpen, setIsDefinitionsOpen] = useState(location.pathname.startsWith('/definitions'));
+    const [isFinanceOpen, setIsFinanceOpen] = useState(location.pathname.startsWith('/finance'));
     const [isGSAManagementOpen, setIsGSAManagementOpen] = useState(location.pathname.startsWith('/gsa'));
 
     // Automatically scroll main container to top on route change
@@ -264,8 +265,40 @@ const PortalLayout = () => {
 
                         {/* --- Section 3: Finance --- */}
                         <div className="space-y-0.5 mb-1">
+                            {/* Finance — collapsible parent */}
+                            <button
+                                onClick={() => handleMenuToggle(setIsFinanceOpen, isFinanceOpen)}
+                                className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group focus:outline-none cursor-pointer ${location.pathname.startsWith('/finance')
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
+                                    : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
+                            >
+                                <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname.startsWith('/finance') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>account_balance_wallet</span>
+                                <span className="text-sm font-medium text-left leading-snug flex-1">{t('sidebar.finance')}</span>
+                                <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isFinanceOpen ? 'rotate-90' : ''} ${location.pathname.startsWith('/finance') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
+                            </button>
+
+                            {isFinanceOpen && (
+                                <div className="space-y-0.5 animate-in slide-in-from-top-1 duration-200">
+                                    {[
+                                        { path: '/finance?tab=transactions', matchPath: '/finance', icon: 'receipt_long', label: t('sidebar.transactions') },
+                                    ].map(({ path, matchPath, icon, label }) => {
+                                        const isActive = location.pathname === (matchPath || path);
+                                        return (
+                                            <button key={path} onClick={() => { setIsSidebarOpen(false); navigate(path); }}
+                                                className={`w-full flex items-center gap-4 -ml-2 pl-14 pr-4 py-2 rounded-r-full transition-colors group cursor-pointer ${isActive
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
+                                                    : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
+                                            >
+                                                <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
+                                                <span className="text-sm font-medium text-left leading-snug">{label}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Accounting & Operations remain as flat items */}
                             {[
-                                { path: '/finance', icon: 'account_balance_wallet', label: t('sidebar.finance') },
                                 { path: '/accounting', icon: 'analytics', label: t('sidebar.accounting') },
                                 { path: '/operations', icon: 'settings', label: t('sidebar.operations') },
                             ].map(({ path, icon, label }) => {

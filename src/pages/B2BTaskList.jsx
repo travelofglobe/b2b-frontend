@@ -43,17 +43,17 @@ const B2BTaskList = () => {
     const [totalElements, setTotalElements] = useState(0);
 
     // Slide-over Drawer State
-    const [selectedTaskId, setSelectedTaskId] = useState(null);
+    const [selectedTask, setSelectedTask] = useState(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-    const handleOpenDetail = (taskId) => {
-        setSelectedTaskId(taskId);
+    const handleOpenDetail = (task) => {
+        setSelectedTask(task);
         setIsDrawerOpen(true);
     };
 
     const handleCloseDrawer = () => {
         setIsDrawerOpen(false);
-        setSelectedTaskId(null);
+        setSelectedTask(null);
     };
 
     // Filters
@@ -279,7 +279,7 @@ const B2BTaskList = () => {
                                         return (
                                             <tr
                                                 key={task.id}
-                                                onClick={() => handleOpenDetail(task.id)}
+                                                onClick={() => handleOpenDetail(task)}
                                                 className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
                                             >
                                                 <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">
@@ -365,7 +365,7 @@ const B2BTaskList = () => {
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            handleOpenDetail(task.id);
+                                                            handleOpenDetail(task);
                                                         }}
                                                         className="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
                                                     >
@@ -411,7 +411,8 @@ const B2BTaskList = () => {
 
             {/* Slide-over Task Detail Drawer */}
             <TaskDetailDrawer
-                taskId={selectedTaskId}
+                taskId={selectedTask?.id}
+                initialTask={selectedTask}
                 isOpen={isDrawerOpen}
                 onClose={handleCloseDrawer}
                 onUpdated={fetchTasks}

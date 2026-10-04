@@ -31,12 +31,12 @@ const productIcons = {
     GENERAL: 'support_agent'
 };
 
-const TaskDetailDrawer = ({ taskId, isOpen, onClose, onUpdated }) => {
+const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdated }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
-    const [task, setTask] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [task, setTask] = useState(initialTask || null);
+    const [loading, setLoading] = useState(!initialTask);
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'details' | 'attachments'
 
@@ -58,7 +58,13 @@ const TaskDetailDrawer = ({ taskId, isOpen, onClose, onUpdated }) => {
 
     useEffect(() => {
         if (isOpen && taskId) {
-            fetchDetail();
+            if (initialTask && initialTask.id === taskId) {
+                setTask(initialTask);
+                setLoading(!initialTask.messages);
+                fetchDetail(true); // background fetch full task details
+            } else {
+                fetchDetail(false);
+            }
         } else {
             setTask(null);
             setMessageText('');
@@ -66,7 +72,7 @@ const TaskDetailDrawer = ({ taskId, isOpen, onClose, onUpdated }) => {
             setActiveTab('chat');
             prevMessagesLengthRef.current = 0;
         }
-    }, [isOpen, taskId]);
+    }, [isOpen, taskId, initialTask]);
 
     const fetchDetail = async (silent = false) => {
         try {
@@ -78,9 +84,7 @@ const TaskDetailDrawer = ({ taskId, isOpen, onClose, onUpdated }) => {
         } catch (err) {
             console.error('Failed to load task detail:', err);
         } finally {
-            if (!silent) {
-                setLoading(false);
-            }
+            setLoading(false);
         }
     };
 
@@ -207,13 +211,13 @@ const TaskDetailDrawer = ({ taskId, isOpen, onClose, onUpdated }) => {
         <div className="fixed inset-0 z-[99999] overflow-hidden">
             {/* Backdrop */}
             <div 
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200 cursor-pointer"
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-150 cursor-pointer"
                 onClick={onClose}
             />
 
             {/* Slide-over Panel */}
             <div className="absolute inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
-                <div className="w-screen max-w-2xl bg-white dark:bg-[#202124] shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col font-roboto animate-in slide-in-from-right duration-300">
+                <div className="w-screen max-w-2xl bg-white dark:bg-[#202124] shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col font-roboto animate-in slide-in-from-right duration-150 ease-out">
                     
                     {/* Drawer Header */}
                     <div className="px-6 py-4 bg-slate-50 dark:bg-[#28292c] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
@@ -269,7 +273,7 @@ const TaskDetailDrawer = ({ taskId, isOpen, onClose, onUpdated }) => {
                         </div>
                     </div>
 
-                    {loading || !task ? (
+                    {!task ? (
                         <div className="flex-1 flex items-center justify-center">
                             <div className="size-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                         </div>

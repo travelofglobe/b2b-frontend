@@ -1,6 +1,7 @@
 import apiClient from '../utils/apiClient';
+import ENV from '../config/environment';
 
-const FINANCE_API_BASE = 'http://72.62.17.189:8000/b2b-backend/v1';
+const FINANCE_API_BASE = `${ENV.API_GATEWAY_URL}/b2b-backend/v1`;
 
 export const financeService = {
     /**

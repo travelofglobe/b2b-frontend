@@ -6,6 +6,7 @@ import { bookingService } from '../services/bookingService';
 import { hotelService } from '../services/hotelService';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
+import CreateTaskModal from '../components/CreateTaskModal';
 import { tBD } from '../utils/bookingDetailLocales';
 
 const BookingDetail = () => {
@@ -19,6 +20,7 @@ const BookingDetail = () => {
 
     // ── Cancel flow state ──────────────────────────────────────────
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
     // step: 'info' | 'reason' | 'simulation' | 'confirming'
     const [cancelStep, setCancelStep] = useState('info');
     const [cancelReason, setCancelReason] = useState('GUEST_REQUEST');
@@ -562,6 +564,13 @@ const BookingDetail = () => {
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-2 self-end sm:self-auto">
+                        <button
+                            onClick={() => setIsRequestModalOpen(true)}
+                            className="h-9 px-4 rounded-full flex items-center gap-1.5 font-semibold text-xs transition-all bg-[#e8f0fe] dark:bg-blue-900/40 hover:bg-[#1a73e8] text-[#1a73e8] dark:text-blue-300 hover:text-white border border-blue-200 dark:border-blue-800 hover:border-blue-600 shadow-xs active:scale-95 cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">support_agent</span>
+                            <span>{currentLang === 'tr' ? 'Talep Oluştur' : 'Create Request'}</span>
+                        </button>
                         {(() => {
                             const { canCancel } = getCancelEligibility();
                             if (!canCancel) return null;
@@ -1600,6 +1609,15 @@ const BookingDetail = () => {
             document.body
         )}
         {/* ────────────────────────────────────────────────────────── */}
+        <CreateTaskModal
+            isOpen={isRequestModalOpen}
+            onClose={() => setIsRequestModalOpen(false)}
+            booking={booking}
+            productType="HOTEL"
+            onSuccess={(created) => {
+                navigate(`/task-management/${created.id}`);
+            }}
+        />
         </>
     );
 };

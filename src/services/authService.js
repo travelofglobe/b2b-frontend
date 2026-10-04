@@ -1,6 +1,7 @@
 import apiClient from '../utils/apiClient';
+import ENV from '../config/environment';
 
-const AUTH_BASE_URL = 'http://72.62.17.189:8000/auth/v1/agency-token';
+const AUTH_BASE_URL = `${ENV.API_GATEWAY_URL}/auth/v1/agency-token`;
 const API_URL = `${AUTH_BASE_URL}/access`;
 const USER_ME_URL = `${AUTH_BASE_URL}/me`;
 const REFRESH_URL = `${AUTH_BASE_URL}/refresh`;
@@ -135,7 +136,7 @@ export const authService = {
     },
 
     forgotPassword: async (email) => {
-        const url = 'http://72.62.17.189:8000/b2b-backend/v1/reset-password/forgot-password';
+        const url = `${ENV.API_GATEWAY_URL}/b2b-backend/v1/reset-password/forgot-password`;
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -171,7 +172,7 @@ export const authService = {
     },
 
     changePassword: async (token, newPassword, newPasswordAgain) => {
-        const url = 'http://72.62.17.189:8000/b2b-backend/v1/reset-password/change-password';
+        const url = `${ENV.API_GATEWAY_URL}/b2b-backend/v1/reset-password/change-password`;
         try {
             const response = await fetch(url, {
                 method: 'POST',

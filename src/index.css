@@ -138,4 +138,95 @@ body {
   .data-table tbody tr {
     @apply border-b border-solid border-slate-100 dark:border-slate-800/60 even:bg-slate-50/40 dark:even:bg-slate-900/30 hover:bg-blue-50/30 dark:hover:bg-blue-900/20 transition-colors duration-150;
   }
+
+  /* Authentic iOS 7+ iMessage Speech Bubbles */
+  .imessage-bubble {
+    position: relative;
+    width: fit-content;
+    min-width: 60px;
+    max-width: 75%;
+    padding: 10px 20px;
+    font-size: 14px;
+    line-height: 1.35;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    white-space: pre-wrap;
+    border-radius: 20px;
+    color: #000000;
+  }
+
+  .imessage-bubble > * {
+    position: relative;
+    z-index: 5;
+  }
+
+  .imessage-bubble::before,
+  .imessage-bubble::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    height: 20px;
+  }
+
+  .imessage-bubble.from-me {
+    background-color: #0b93f6;
+    color: #ffffff;
+    align-self: flex-end;
+    margin-right: 8px;
+    padding: 10px 20px;
+  }
+
+  .imessage-bubble.from-me::before {
+    right: -6px;
+    width: 20px;
+    background-color: #0b93f6;
+    border-bottom-left-radius: 16px 14px;
+    z-index: 1;
+  }
+
+  .imessage-bubble.from-me::after {
+    right: -10px;
+    width: 10px;
+    background-color: var(--chat-bg, #ffffff);
+    border-bottom-left-radius: 10px;
+    z-index: 2;
+  }
+
+  .imessage-bubble.from-them {
+    background-color: #e5e5ea;
+    color: #000000;
+    align-self: flex-start;
+    margin-left: 8px;
+    padding: 10px 20px;
+  }
+
+  .imessage-bubble.from-them::before {
+    left: -6px;
+    width: 20px;
+    background-color: #e5e5ea;
+    border-bottom-right-radius: 16px 14px;
+    z-index: 1;
+  }
+
+  .imessage-bubble.from-them::after {
+    left: -10px;
+    width: 10px;
+    background-color: var(--chat-bg, #ffffff);
+    border-bottom-right-radius: 10px;
+    z-index: 2;
+  }
+
+  .dark .imessage-bubble.from-them {
+    background-color: #2c2c2e;
+    color: #ffffff;
+  }
+
+  .dark .imessage-bubble.from-them::before {
+    background-color: #2c2c2e;
+  }
+
+  .dark .imessage-bubble.from-me::after,
+  .dark .imessage-bubble.from-them::after {
+    background-color: var(--chat-bg-dark, #202124);
+  }
 }

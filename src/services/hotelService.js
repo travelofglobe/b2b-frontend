@@ -1,6 +1,7 @@
 import apiClient from '../utils/apiClient';
+import ENV from '../config/environment';
 
-const API_BASE_URL = 'http://72.62.17.189:8000/b2b/v1/hotels';
+const API_BASE_URL = `${ENV.API_GATEWAY_URL}/b2b/v1/hotels`;
 
 // Persistent cache for facility names during the session
 const facilityCache = {};
@@ -231,7 +232,7 @@ export const hotelService = {
      */
     cancelBooking: async (request) => {
         return apiClient.post(
-            'http://72.62.17.189:8000/b2b-backend/v1/hotels/book/cancel',
+            `${ENV.API_GATEWAY_URL}/b2b-backend/v1/hotels/book/cancel`,
             request
         );
     }

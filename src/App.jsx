@@ -24,6 +24,8 @@ import UnderConstruction from './pages/UnderConstruction';
 import ProtectedRoute from './components/ProtectedRoute';
 import PortalLayout from './layouts/PortalLayout';
 import VoucherPage from './pages/VoucherPage';
+import B2BTaskList from './pages/B2BTaskList';
+import B2BTaskDetail from './pages/B2BTaskDetail';
 import { AuthProvider } from './context/AuthContext';
 import { FavoritesProvider } from './context/FavoritesContext';
 import ForbiddenPage from './pages/ForbiddenPage';
@@ -77,7 +79,16 @@ function App() {
               <Route path="/finance" element={<FinancePage />} />
               <Route path="/finance/transactions/detail" element={<TransactionDetailPage />} />
               <Route path="/accounting" element={<UnderConstruction title="Accounting" icon="analytics" />} />
-              <Route path="/operations" element={<UnderConstruction title="Operations" icon="settings" />} />
+              
+              {/* Talep Yönetimi / Task Management Routes */}
+              <Route path="/task-management" element={<B2BTaskList />} />
+              <Route path="/task-management/:id" element={<B2BTaskDetail />} />
+              <Route path="/operations" element={<Navigate to="/task-management" replace />} />
+              <Route path="/operations/requests" element={<Navigate to="/task-management" replace />} />
+              <Route path="/operations/requests/:id" element={<B2BTaskDetail />} />
+              <Route path="/operations/tasks" element={<Navigate to="/task-management" replace />} />
+              <Route path="/operations/tasks/:id" element={<B2BTaskDetail />} />
+              
               <Route path="/gsa/agency" element={<GSAAgencyManagement />} />
               <Route path="/gsa/markups" element={<SubAgencyMarkups />} />
               <Route path="/gsa/finance" element={<UnderConstruction title="GSA Finance" icon="attach_money" />} />

@@ -297,12 +297,12 @@ const PortalLayout = () => {
                                 </div>
                             )}
 
-                            {/* Accounting & Operations remain as flat items */}
+                            {/* Accounting & Operations */}
                             {[
                                 { path: '/accounting', icon: 'analytics', label: t('sidebar.accounting') },
-                                { path: '/operations', icon: 'settings', label: t('sidebar.operations') },
-                            ].map(({ path, icon, label }) => {
-                                const isActive = location.pathname === path;
+                                { path: '/task-management', matchPrefix: '/task-management', icon: 'support_agent', label: 'Talep Yönetimi' },
+                            ].map(({ path, matchPrefix, icon, label }) => {
+                                const isActive = matchPrefix ? location.pathname.startsWith(matchPrefix) : location.pathname === path;
                                 return (
                                     <button key={path} onClick={() => { setIsSidebarOpen(false); navigate(path); }}
                                         className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group cursor-pointer ${isActive

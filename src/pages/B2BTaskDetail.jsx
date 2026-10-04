@@ -43,6 +43,7 @@ const B2BTaskDetail = () => {
     const [messageText, setMessageText] = useState('');
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [sending, setSending] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     // Confirmation decision state
     const [decisionNote, setDecisionNote] = useState('');
@@ -74,6 +75,15 @@ const B2BTaskDetail = () => {
             if (!silent) {
                 setLoading(false);
             }
+        }
+    };
+
+    const handleManualRefresh = async () => {
+        try {
+            setRefreshing(true);
+            await fetchTaskDetail(true);
+        } finally {
+            setRefreshing(false);
         }
     };
 
@@ -204,8 +214,8 @@ const B2BTaskDetail = () => {
     }
 
     return (
-        <div className="flex-1 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto p-4 sm:p-8">
-            <div className="max-w-[1440px] mx-auto space-y-6">
+        <div className="flex-1 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto p-6 sm:p-10 lg:px-16 xl:px-20 py-8">
+            <div className="max-w-7xl mx-auto space-y-6">
                 
                 {/* Top Nav & Breadcrumb */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -237,16 +247,70 @@ const B2BTaskDetail = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={fetchTaskDetail}
-                            className="px-3 py-2 rounded-xl bg-white dark:bg-[#202124] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-50 flex items-center gap-1.5 transition-colors cursor-pointer"
-                        >
-                            <span className="material-symbols-outlined text-[16px]">refresh</span>
-                            <span>Yenile</span>
-                        </button>
+                    {/* Right side: Price Difference Status Pill */}
+                    <div className="flex items-center gap-3">
+                        {productDetail?.confirmationStatus === 'CONFIRMED' && (
+                            <div className="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs flex items-center gap-2 shadow-2xs animate-in fade-in-50">
+                                <span className="material-symbols-outlined text-emerald-600 text-[18px]">check_circle</span>
+                                <span className="font-medium">Fiyat farkı (<strong>+{productDetail.priceDifference} {productDetail.currency}</strong>) onaylandı.</span>
+                            </div>
+                        )}
+
+                        {productDetail?.confirmationStatus === 'REJECTED' && (
+                            <div className="px-3.5 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2 shadow-2xs animate-in fade-in-50">
+                                <span className="material-symbols-outlined text-rose-600 text-[18px]">cancel</span>
+                                <span className="font-medium">Fiyat farkı reddedildi.</span>
+                            </div>
+                        )}
                     </div>
                 </div>
+
+                {/* Price Difference Action Banner (Only shown when pending confirmation) */}
+                {productDetail?.confirmationStatus === 'PENDING_CONFIRMATION' && (
+                    <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg space-y-3 animate-in fade-in-50 duration-300">
+                        <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-2.5">
+                                <span className="material-symbols-outlined text-[28px]">payments</span>
+                                <div>
+                                    <h3 className="font-bold text-sm">Fiyat Farkı Onayı Bekleniyor</h3>
+                                    <p className="text-xs text-amber-100">Operasyon ekibi bu talep için fiyat farkı bildirdi</p>
+                                </div>
+                            </div>
+                            <span className="text-xl font-black bg-white/20 px-3 py-1 rounded-xl">
+                                +{productDetail.priceDifference} {productDetail.currency || 'EUR'}
+                            </span>
+                        </div>
+
+                        {productDetail.confirmationNote && (
+                            <div className="p-3 bg-white/10 rounded-xl text-xs backdrop-blur-xs">
+                                <strong>Operasyon Notu:</strong> {productDetail.confirmationNote}
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                            <button
+                                onClick={() => {
+                                    setPendingApprovalState(false);
+                                    setShowDecisionModal(true);
+                                }}
+                                className="py-2 px-3 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">close</span>
+                                <span>Farkı Reddet</span>
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setPendingApprovalState(true);
+                                    setShowDecisionModal(true);
+                                }}
+                                className="py-2 px-3 rounded-xl bg-white text-orange-600 hover:bg-orange-50 text-xs font-black shadow-md transition-all flex items-center justify-center gap-1 cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                                <span>Farkı Onayla</span>
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Main 2-Column Layout */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -254,73 +318,7 @@ const B2BTaskDetail = () => {
                     {/* Left Column: Summary & Details (5 cols) */}
                     <div className="lg:col-span-5 space-y-6">
                         
-                        {/* 1. Price Difference Approval Banner */}
-                        {productDetail?.confirmationStatus === 'PENDING_CONFIRMATION' && (
-                            <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg space-y-3 animate-in fade-in-50 duration-300">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex items-center gap-2.5">
-                                        <span className="material-symbols-outlined text-[28px]">payments</span>
-                                        <div>
-                                            <h3 className="font-bold text-sm">Fiyat Farkı Onayı Bekleniyor</h3>
-                                            <p className="text-xs text-amber-100">Operasyon ekibi bu talep için fiyat farkı bildirdi</p>
-                                        </div>
-                                    </div>
-                                    <span className="text-xl font-black bg-white/20 px-3 py-1 rounded-xl">
-                                        +{productDetail.priceDifference} {productDetail.currency || 'EUR'}
-                                    </span>
-                                </div>
-
-                                {productDetail.confirmationNote && (
-                                    <div className="p-3 bg-white/10 rounded-xl text-xs backdrop-blur-xs">
-                                        <strong>Operasyon Notu:</strong> {productDetail.confirmationNote}
-                                    </div>
-                                )}
-
-                                <div className="grid grid-cols-2 gap-2 pt-1">
-                                    <button
-                                        onClick={() => {
-                                            setPendingApprovalState(false);
-                                            setShowDecisionModal(true);
-                                        }}
-                                        className="py-2 px-3 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
-                                    >
-                                        <span className="material-symbols-outlined text-[18px]">close</span>
-                                        <span>Farkı Reddet</span>
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setPendingApprovalState(true);
-                                            setShowDecisionModal(true);
-                                        }}
-                                        className="py-2 px-3 rounded-xl bg-white text-orange-600 hover:bg-orange-50 text-xs font-black shadow-md transition-all flex items-center justify-center gap-1 cursor-pointer"
-                                    >
-                                        <span className="material-symbols-outlined text-[18px]">check_circle</span>
-                                        <span>Farkı Onayla</span>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 2. Confirmed or Rejected status pill */}
-                        {productDetail?.confirmationStatus === 'CONFIRMED' && (
-                            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-emerald-600 text-[20px]">check_circle</span>
-                                    <span>Fiyat farkı (<strong>+{productDetail.priceDifference} {productDetail.currency}</strong>) onaylandı.</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {productDetail?.confirmationStatus === 'REJECTED' && (
-                            <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-rose-600 text-[20px]">cancel</span>
-                                    <span>Fiyat farkı tarafınızca reddedildi.</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 3. Reservation & Product Card */}
+                        {/* 1. Reservation & Product Card */}
                         <div className="bg-white dark:bg-[#202124] border border-slate-200 dark:border-slate-700/80 rounded-2xl p-5 space-y-4 shadow-xs">
                             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -350,7 +348,7 @@ const B2BTaskDetail = () => {
                                     <div>
                                         <span className="text-slate-400 block text-[11px]">Tarihler:</span>
                                         <span className="font-medium text-slate-700 dark:text-slate-300">
-                                            {currentData.checkIn} {currentData.checkOut ? `➔ ${currentData.checkOut}` : ''}
+                                             {currentData.checkIn} {currentData.checkOut ? `➔ ${currentData.checkOut}` : ''}
                                         </span>
                                     </div>
                                 )}
@@ -364,7 +362,7 @@ const B2BTaskDetail = () => {
                             </div>
                         </div>
 
-                        {/* 4. Request Details & Dynamic JSON */}
+                        {/* 2. Request Details & Dynamic JSON */}
                         <div className="bg-white dark:bg-[#202124] border border-slate-200 dark:border-slate-700/80 rounded-2xl p-5 space-y-4 shadow-xs">
                             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Talep Bilgileri</span>
@@ -408,7 +406,7 @@ const B2BTaskDetail = () => {
                             </div>
                         </div>
 
-                        {/* 5. Attachments Card */}
+                        {/* 3. Attachments Card */}
                         {task.attachments && task.attachments.length > 0 && (
                             <div className="bg-white dark:bg-[#202124] border border-slate-200 dark:border-slate-700/80 rounded-2xl p-5 space-y-3 shadow-xs">
                                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
@@ -437,8 +435,11 @@ const B2BTaskDetail = () => {
                         )}
                     </div>
 
-                    {/* Right Column: Chat Timeline & Message Composer (7 cols) */}
-                    <div className="lg:col-span-7 bg-white dark:bg-[#202124] border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-xs overflow-hidden flex flex-col h-[700px]">
+                    {/* Right Column: Chat Timeline */}
+                    <div className="lg:col-span-7">
+                        
+                        {/* Chat Card */}
+                        <div className="bg-white dark:bg-[#202124] border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-xs overflow-hidden flex flex-col h-[520px]">
                         
                         {/* Chat Header */}
                         <div className="px-6 py-4 bg-slate-50 dark:bg-[#28292c] border-b border-slate-200 dark:border-slate-700 flex items-center justify-between shrink-0">
@@ -621,6 +622,17 @@ const B2BTaskDetail = () => {
                                 />
 
                                 <button
+                                    type="button"
+                                    onClick={handleManualRefresh}
+                                    disabled={refreshing}
+                                    title="Akışı Yenile"
+                                    className="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-[#28292c] hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-slate-200 dark:border-slate-700 disabled:opacity-50"
+                                >
+                                    <span className={`material-symbols-outlined text-[18px] text-slate-600 dark:text-slate-300 ${refreshing ? 'animate-spin' : ''}`}>refresh</span>
+                                    <span className="hidden sm:inline">Yenile</span>
+                                </button>
+
+                                <button
                                     type="submit"
                                     disabled={sending || (!messageText.trim() && selectedFiles.length === 0)}
                                     className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none shrink-0"
@@ -638,6 +650,7 @@ const B2BTaskDetail = () => {
                         </form>
                     </div>
                 </div>
+            </div>
             </div>
 
             {/* Decision Confirmation Modal */}

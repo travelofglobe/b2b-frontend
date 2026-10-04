@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { taskManagementService } from '../services/taskManagementService';
+import TaskDetailDrawer from '../components/TaskDetailDrawer';
 
 const statusConfig = {
     OPEN: { label: 'Açık / Open', bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800', dot: 'bg-blue-500' },
@@ -40,6 +41,20 @@ const B2BTaskList = () => {
     const [size, setSize] = useState(15);
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
+
+    // Slide-over Drawer State
+    const [selectedTaskId, setSelectedTaskId] = useState(null);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+    const handleOpenDetail = (taskId) => {
+        setSelectedTaskId(taskId);
+        setIsDrawerOpen(true);
+    };
+
+    const handleCloseDrawer = () => {
+        setIsDrawerOpen(false);
+        setSelectedTaskId(null);
+    };
 
     // Filters
     const [productTab, setProductTab] = useState('ALL');
@@ -99,8 +114,8 @@ const B2BTaskList = () => {
     };
 
     return (
-        <div className="flex-1 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto p-6 sm:p-8 space-y-6">
-            <div className="max-w-[1440px] mx-auto space-y-6">
+        <div className="flex-1 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto p-6 sm:p-10 lg:px-16 xl:px-20 py-8 space-y-6">
+            <div className="max-w-7xl mx-auto space-y-6">
                 
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -264,7 +279,7 @@ const B2BTaskList = () => {
                                         return (
                                             <tr
                                                 key={task.id}
-                                                onClick={() => navigate(`/task-management/${task.id}`)}
+                                                onClick={() => handleOpenDetail(task.id)}
                                                 className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
                                             >
                                                 <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">
@@ -350,7 +365,7 @@ const B2BTaskList = () => {
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            navigate(`/task-management/${task.id}`);
+                                                            handleOpenDetail(task.id);
                                                         }}
                                                         className="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
                                                     >
@@ -393,6 +408,14 @@ const B2BTaskList = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Slide-over Task Detail Drawer */}
+            <TaskDetailDrawer
+                taskId={selectedTaskId}
+                isOpen={isDrawerOpen}
+                onClose={handleCloseDrawer}
+                onUpdated={fetchTasks}
+            />
         </div>
     );
 };

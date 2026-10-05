@@ -52,7 +52,45 @@ export const taskManagementService = {
         return res.json();
     },
 
-    // Download attachment URL
+    // Download attachment with Authorization token
+    downloadAttachment: async (id, fileName = 'attachment') => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await fetch(`${API_BASE_URL}/attachments/${id}/download`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
+            });
+            if (!response.ok) {
+                throw new Error(`Download failed: ${response.status}`);
+            }
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+        } catch (err) {
+            console.error('Download error:', err);
+            alert('Dosya indirilemedi: ' + err.message);
+        }
+    },
+
+    // Get attachment blob URL (for image preview)
+    getAttachmentBlobUrl: async (id) => {
+        const token = localStorage.getItem('accessToken');
+        const response = await fetch(`${API_BASE_URL}/attachments/${id}/download`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (!response.ok) {
+            throw new Error(`Blob fetch failed: ${response.status}`);
+        }
+        const blob = await response.blob();
+        return window.URL.createObjectURL(blob);
+    },
+
+    // Download attachment URL (fallback)
     getAttachmentDownloadUrl: (id) => {
         return `${API_BASE_URL}/attachments/${id}/download`;
     },

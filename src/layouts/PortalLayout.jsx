@@ -300,7 +300,7 @@ const PortalLayout = () => {
                             {/* Accounting & Operations */}
                             {[
                                 { path: '/accounting', icon: 'analytics', label: t('sidebar.accounting') },
-                                { path: '/task-management', matchPrefix: '/task-management', icon: 'support_agent', label: 'Talep Yönetimi' },
+                                { path: '/task-management', matchPrefix: '/task-management', icon: 'support_agent', label: t('sidebar.taskManagement', 'Talep Yönetimi') },
                             ].map(({ path, matchPrefix, icon, label }) => {
                                 const isActive = matchPrefix ? location.pathname.startsWith(matchPrefix) : location.pathname === path;
                                 return (

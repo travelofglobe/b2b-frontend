@@ -5,21 +5,21 @@ import { taskManagementService } from '../services/taskManagementService';
 import TaskDetailDrawer from '../components/TaskDetailDrawer';
 
 const statusConfig = {
-    OPEN: { label: 'Açık / Open', bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800', dot: 'bg-blue-500' },
-    IN_PROGRESS: { label: 'İşleniyor', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800', dot: 'bg-amber-500' },
-    WAITING_FOR_SUPPLIER: { label: 'Tedarikçi Bekleniyor', bg: 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800', dot: 'bg-purple-500' },
-    WAITING_FOR_AGENCY: { label: 'Onayınız Bekleniyor', bg: 'bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800 animate-pulse', dot: 'bg-orange-500' },
-    APPROVED: { label: 'Onaylandı', bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800', dot: 'bg-emerald-500' },
-    REJECTED: { label: 'Reddedildi', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800', dot: 'bg-rose-500' },
-    COMPLETED: { label: 'Tamamlandı', bg: 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800', dot: 'bg-green-500' },
-    CANCELLED: { label: 'İptal Edildi', bg: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700', dot: 'bg-slate-400' }
+    OPEN: { bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800', dot: 'bg-blue-500' },
+    IN_PROGRESS: { bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800', dot: 'bg-amber-500' },
+    WAITING_FOR_SUPPLIER: { bg: 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800', dot: 'bg-purple-500' },
+    WAITING_FOR_AGENCY: { bg: 'bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800 animate-pulse', dot: 'bg-orange-500' },
+    APPROVED: { bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800', dot: 'bg-emerald-500' },
+    REJECTED: { bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800', dot: 'bg-rose-500' },
+    COMPLETED: { bg: 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800', dot: 'bg-green-500' },
+    CANCELLED: { bg: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700', dot: 'bg-slate-400' }
 };
 
 const priorityConfig = {
-    LOW: { label: 'Düşük', color: 'text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 border-slate-200' },
-    NORMAL: { label: 'Normal', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/30 dark:text-blue-300 border-blue-200' },
-    HIGH: { label: 'Yüksek', color: 'text-amber-700 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-300 border-amber-200' },
-    URGENT: { label: 'Acil', color: 'text-rose-700 bg-rose-50 dark:bg-rose-950/30 dark:text-rose-300 border-rose-300' }
+    LOW: { color: 'text-slate-600 bg-slate-100 dark:bg-slate-800 dark:text-slate-300 border-slate-200' },
+    NORMAL: { color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/30 dark:text-blue-300 border-blue-200' },
+    HIGH: { color: 'text-amber-700 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-300 border-amber-200' },
+    URGENT: { color: 'text-rose-700 bg-rose-50 dark:bg-rose-950/30 dark:text-rose-300 border-rose-300' }
 };
 
 const productIcons = {
@@ -115,10 +115,10 @@ const B2BTaskList = () => {
                             </div>
                             <div>
                                 <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                                    Talep Yönetimi
+                                    {t('taskManagement.title', 'Talep Yönetimi')}
                                 </h1>
                                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                                    Rezervasyonlarınızla ilgili oluşturduğunuz tüm operasyonel talepleri ve durumlarını takip edin
+                                    {t('taskManagement.subtitle', 'Rezervasyonlarınızla ilgili oluşturduğunuz tüm operasyonel talepleri ve durumlarını takip edin')}
                                 </p>
                             </div>
                         </div>
@@ -128,12 +128,12 @@ const B2BTaskList = () => {
                 {/* Product Filter Tabs */}
                 <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-700 pb-2 overflow-x-auto">
                     {[
-                        { id: 'ALL', label: 'Tüm Ürünler', icon: 'apps' },
-                        { id: 'HOTEL', label: 'Otel', icon: 'hotel' },
-                        { id: 'FLIGHT', label: 'Uçak', icon: 'flight' },
-                        { id: 'TRANSFER', label: 'Transfer', icon: 'directions_car' },
-                        { id: 'RENT_A_CAR', label: 'Araç Kiralama', icon: 'car_rental' },
-                        { id: 'TRAIN', label: 'Tren', icon: 'train' }
+                        { id: 'ALL', labelKey: 'taskManagement.productTypes.ALL', defaultLabel: 'Tüm Ürünler', icon: 'apps' },
+                        { id: 'HOTEL', labelKey: 'taskManagement.productTypes.HOTEL', defaultLabel: 'Otel', icon: 'hotel' },
+                        { id: 'FLIGHT', labelKey: 'taskManagement.productTypes.FLIGHT', defaultLabel: 'Uçak', icon: 'flight' },
+                        { id: 'TRANSFER', labelKey: 'taskManagement.productTypes.TRANSFER', defaultLabel: 'Transfer', icon: 'directions_car' },
+                        { id: 'RENT_A_CAR', labelKey: 'taskManagement.productTypes.RENT_A_CAR', defaultLabel: 'Araç Kiralama', icon: 'car_rental' },
+                        { id: 'TRAIN', labelKey: 'taskManagement.productTypes.TRAIN', defaultLabel: 'Tren', icon: 'train' }
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -148,7 +148,7 @@ const B2BTaskList = () => {
                             }`}
                         >
                             <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
-                            <span>{tab.label}</span>
+                            <span>{t(tab.labelKey, tab.defaultLabel)}</span>
                         </button>
                     ))}
                 </div>
@@ -165,7 +165,7 @@ const B2BTaskList = () => {
                                 type="text"
                                 value={search}
                                 onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-                                placeholder="Talep No, Rez No, Ürün Adı..."
+                                placeholder={t('taskManagement.searchPlaceholder', 'Talep No, Rez No, Ürün Adı...')}
                                 className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#137fec] font-medium"
                             />
                         </div>
@@ -177,9 +177,11 @@ const B2BTaskList = () => {
                                 onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
                                 className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#137fec] font-medium cursor-pointer"
                             >
-                                <option value="">Tüm Durumlar</option>
-                                {Object.entries(statusConfig).map(([k, v]) => (
-                                    <option key={k} value={k}>{v.label}</option>
+                                <option value="">{t('taskManagement.allStatuses', 'Tüm Durumlar')}</option>
+                                {Object.keys(statusConfig).map((k) => (
+                                    <option key={k} value={k}>
+                                        {t(`taskManagement.statuses.${k}`, k)}
+                                    </option>
                                 ))}
                             </select>
                         </div>
@@ -191,22 +193,30 @@ const B2BTaskList = () => {
                                 onChange={(e) => { setPriorityFilter(e.target.value); setPage(0); }}
                                 className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#137fec] font-medium cursor-pointer"
                             >
-                                <option value="">Tüm Öncelikler</option>
-                                <option value="LOW">Düşük</option>
-                                <option value="NORMAL">Normal</option>
-                                <option value="HIGH">Yüksek</option>
-                                <option value="URGENT">Acil</option>
+                                <option value="">{t('taskManagement.allPriorities', 'Tüm Öncelikler')}</option>
+                                <option value="LOW">{t('taskManagement.priorities.LOW', 'Düşük')}</option>
+                                <option value="NORMAL">{t('taskManagement.priorities.NORMAL', 'Normal')}</option>
+                                <option value="HIGH">{t('taskManagement.priorities.HIGH', 'Yüksek')}</option>
+                                <option value="URGENT">{t('taskManagement.priorities.URGENT', 'Acil')}</option>
                             </select>
                         </div>
 
-                        {/* Reset Filters */}
-                        <div>
+                        {/* Reset Filters & Refresh */}
+                        <div className="flex gap-2">
                             <button
                                 onClick={resetFilters}
-                                className="w-full py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                                className="flex-1 py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                                title={t('taskManagement.clearFilters', 'Filtreleri Temizle')}
                             >
                                 <span className="material-symbols-outlined text-[16px]">filter_alt_off</span>
-                                <span>Filtreleri Temizle</span>
+                                <span className="hidden sm:inline">{t('taskManagement.clearFilters', 'Temizle')}</span>
+                            </button>
+                            <button
+                                onClick={() => fetchTasks()}
+                                className="py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                                title={t('taskManagement.refresh', 'Yenile')}
+                            >
+                                <span className="material-symbols-outlined text-[16px]">refresh</span>
                             </button>
                         </div>
                     </div>
@@ -218,26 +228,24 @@ const B2BTaskList = () => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50/75 dark:bg-[#28292c] text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                    <th className="py-3.5 px-4">Talep No</th>
-                                    <th className="py-3.5 px-4">Ürün & Rez No</th>
-                                    <th className="py-3.5 px-4">Talep Tipi</th>
-                                    <th className="py-3.5 px-4">Öncelik</th>
-                                    <th className="py-3.5 px-4">Durum</th>
-                                    <th className="py-3.5 px-4">Fiyat Farkı</th>
-                                    <th className="py-3.5 px-4">Mesaj</th>
-                                    <th className="py-3.5 px-4">Son Güncelleme</th>
-                                    <th className="py-3.5 px-4 text-right">İşlem</th>
+                                    <th className="py-3.5 px-4">{t('taskManagement.table.taskNo', 'Talep No')}</th>
+                                    <th className="py-3.5 px-4">{t('taskManagement.table.productAndRez', 'Ürün & Rez No')}</th>
+                                    <th className="py-3.5 px-4">{t('taskManagement.table.taskType', 'Talep Tipi')}</th>
+                                    <th className="py-3.5 px-4">{t('taskManagement.table.priority', 'Öncelik')}</th>
+                                    <th className="py-3.5 px-4">{t('taskManagement.table.status', 'Durum')}</th>
+                                    <th className="py-3.5 px-4">{t('taskManagement.table.priceDiff', 'Fiyat Farkı')}</th>
+                                    <th className="py-3.5 px-4">{t('taskManagement.drawer.tabMessages', 'Mesaj')}</th>
+                                    <th className="py-3.5 px-4">{t('taskManagement.table.lastUpdate', 'Son Güncelleme')}</th>
+                                    <th className="py-3.5 px-4 text-right">{t('taskManagement.table.action', 'İşlem')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs text-slate-700 dark:text-slate-300">
                                 {loading ? (
                                     Array.from({ length: 7 }).map((_, idx) => (
                                         <tr key={`b2b-skeleton-${idx}`} className="animate-pulse">
-                                            {/* Talep No */}
                                             <td className="py-4 px-4 whitespace-nowrap">
                                                 <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700/60 rounded-md"></div>
                                             </td>
-                                            {/* Ürün & Rez No */}
                                             <td className="py-4 px-4">
                                                 <div className="flex items-center gap-2">
                                                     <div className="size-5 bg-slate-200 dark:bg-slate-700/60 rounded-full shrink-0"></div>
@@ -247,31 +255,24 @@ const B2BTaskList = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            {/* Talep Tipi */}
                                             <td className="py-4 px-4">
                                                 <div className="h-5 w-28 bg-slate-200 dark:bg-slate-700/60 rounded-lg"></div>
                                             </td>
-                                            {/* Öncelik */}
                                             <td className="py-4 px-4 whitespace-nowrap">
                                                 <div className="h-5 w-16 bg-slate-200 dark:bg-slate-700/60 rounded-full"></div>
                                             </td>
-                                            {/* Durum */}
                                             <td className="py-4 px-4 whitespace-nowrap">
                                                 <div className="h-5 w-20 bg-slate-200 dark:bg-slate-700/60 rounded-full"></div>
                                             </td>
-                                            {/* Fiyat Farkı */}
                                             <td className="py-4 px-4">
                                                 <div className="h-3.5 w-14 bg-slate-200 dark:bg-slate-700/60 rounded"></div>
                                             </td>
-                                            {/* Mesaj Sayısı */}
                                             <td className="py-4 px-4">
                                                 <div className="h-3.5 w-8 bg-slate-200 dark:bg-slate-700/60 rounded"></div>
                                             </td>
-                                            {/* Son Güncelleme */}
                                             <td className="py-4 px-4 whitespace-nowrap">
                                                 <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700/60 rounded"></div>
                                             </td>
-                                            {/* İşlem */}
                                             <td className="py-4 px-4 text-right">
                                                 <div className="h-6 w-14 bg-slate-200 dark:bg-slate-700/60 rounded-lg ml-auto"></div>
                                             </td>
@@ -281,7 +282,12 @@ const B2BTaskList = () => {
                                     <tr>
                                         <td colSpan="9" className="py-12 text-center text-slate-400">
                                             <span className="material-symbols-outlined text-[36px] text-slate-300 dark:text-slate-600 block mb-2">inbox</span>
-                                            <span>Kayıtlı talep bulunamadı.</span>
+                                            <span className="font-medium text-slate-600 dark:text-slate-300 block mb-1">
+                                                {t('taskManagement.table.emptyTitle', 'Kayıtlı talep bulunamadı.')}
+                                            </span>
+                                            <span className="text-[11px] text-slate-400">
+                                                {t('taskManagement.table.emptySubtitle', 'Filtreleme kriterlerinize uygun talep bulunmuyor.')}
+                                            </span>
                                         </td>
                                     </tr>
                                 ) : (
@@ -310,7 +316,7 @@ const B2BTaskList = () => {
                                                                 {task.productName || task.productType}
                                                             </strong>
                                                             <span className="text-[11px] text-slate-400">
-                                                                Rez: #{task.reservationNo || '-'}
+                                                                {t('taskManagement.table.rez', 'Rez')}: #{task.reservationNo || '-'}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -324,14 +330,14 @@ const B2BTaskList = () => {
 
                                                 <td className="py-3.5 px-4">
                                                     <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${priority.color}`}>
-                                                        {priority.label}
+                                                        {t(`taskManagement.priorities.${task.priority}`, task.priority)}
                                                     </span>
                                                 </td>
 
                                                 <td className="py-3.5 px-4">
                                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${status.bg}`}>
                                                         <span className={`size-1.5 rounded-full ${status.dot}`}></span>
-                                                        <span>{status.label}</span>
+                                                        <span>{t(`taskManagement.statuses.${task.taskStatus}`, task.taskStatus)}</span>
                                                     </span>
                                                 </td>
 
@@ -343,17 +349,17 @@ const B2BTaskList = () => {
                                                             </strong>
                                                             {task.confirmationStatus === 'PENDING_CONFIRMATION' && (
                                                                 <span className="block text-[10px] text-orange-600 font-bold animate-pulse">
-                                                                    Onay Bekliyor
+                                                                    {t('taskManagement.statuses.WAITING_FOR_AGENCY', 'Onay Bekliyor')}
                                                                 </span>
                                                             )}
                                                             {task.confirmationStatus === 'CONFIRMED' && (
                                                                 <span className="block text-[10px] text-emerald-600 font-medium">
-                                                                    Onaylandı
+                                                                    {t('taskManagement.statuses.APPROVED', 'Onaylandı')}
                                                                 </span>
                                                             )}
                                                             {task.confirmationStatus === 'REJECTED' && (
                                                                 <span className="block text-[10px] text-rose-600 font-medium">
-                                                                    Reddedildi
+                                                                    {t('taskManagement.statuses.REJECTED', 'Reddedildi')}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -371,8 +377,8 @@ const B2BTaskList = () => {
 
                                                 <td className="py-3.5 px-4 text-slate-400 text-[11px] whitespace-nowrap">
                                                     {task.lastActivityDate
-                                                        ? new Date(task.lastActivityDate).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })
-                                                        : (task.createdAt ? new Date(task.createdAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }) : '-')}
+                                                        ? new Date(task.lastActivityDate).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
+                                                        : (task.createdAt ? new Date(task.createdAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '-')}
                                                 </td>
 
                                                 <td className="py-3.5 px-4 text-right">
@@ -383,7 +389,7 @@ const B2BTaskList = () => {
                                                         }}
                                                         className="px-3 py-1.5 rounded-xl bg-[#137fec]/10 dark:bg-[#137fec]/20 text-[#137fec] dark:text-[#3898ec] hover:bg-[#137fec] hover:text-white dark:hover:bg-[#137fec] dark:hover:text-white text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
                                                     >
-                                                        <span>Detay</span>
+                                                        <span>{t('taskManagement.table.view', 'Detay')}</span>
                                                         <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                                                     </button>
                                                 </td>
@@ -397,7 +403,9 @@ const B2BTaskList = () => {
 
                     {/* Pagination */}
                     <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-[#28292c] flex items-center justify-between text-xs text-slate-500">
-                        <span>Toplam <strong>{totalElements}</strong> talep bulundu</span>
+                        <span>
+                            {t('common.total', 'Toplam')} <strong>{totalElements}</strong> {t('taskManagement.table.taskType', 'talep').toLowerCase()}
+                        </span>
                         {totalPages > 1 && (
                             <div className="flex items-center gap-2">
                                 <button
@@ -405,7 +413,7 @@ const B2BTaskList = () => {
                                     onClick={() => setPage(p => Math.max(0, p - 1))}
                                     className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
                                 >
-                                    Önceki
+                                    {t('common.previous', 'Önceki')}
                                 </button>
                                 <span className="font-semibold text-slate-700 dark:text-slate-300">
                                     {page + 1} / {totalPages}
@@ -415,7 +423,7 @@ const B2BTaskList = () => {
                                     onClick={() => setPage(p => p + 1)}
                                     className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
                                 >
-                                    Sonraki
+                                    {t('common.next', 'Sonraki')}
                                 </button>
                             </div>
                         )}

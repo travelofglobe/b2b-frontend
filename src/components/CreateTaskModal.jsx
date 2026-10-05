@@ -374,15 +374,18 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                             <span className="material-symbols-outlined text-[24px]">support_agent</span>
                         </div>
                         <div>
-                            <h2 className="text-base font-bold text-slate-900 dark:text-white">Talep Yönetimi - Yeni Talep Oluştur</h2>
+                            <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                                {t('taskManagement.createModal.title', 'Talep Yönetimi - Yeni Talep Oluştur')}
+                            </h2>
                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                                {productType} rezervasyonunuz için değişiklik, iptal veya özel istek talebinizi iletin
+                                {t('taskManagement.createModal.subtitle', 'Rezervasyonunuz ile ilgili değişiklik, iptal veya özel isteklerinizi iletin.')}
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="size-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 dark:hover:bg-slate-700 transition-colors"
+                        title={t('common.close', 'Kapat')}
+                        className="size-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                     >
                         <span className="material-symbols-outlined text-[20px]">close</span>
                     </button>
@@ -402,7 +405,7 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                     <div className="bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                {productType} Rezervasyon Bilgileri (Salt Okunur)
+                                {productType} {t('taskManagement.drawer.reservationSummary.title', 'Rezervasyon Bilgileri (Salt Okunur)')}
                             </span>
                             <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
                                 #{reservationNo} • {currentStatus}
@@ -410,19 +413,19 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                             <div>
-                                <span className="text-slate-400 block text-[11px]">Ürün / Otel / Hat:</span>
+                                <span className="text-slate-400 block text-[11px]">{t('taskManagement.drawer.reservationSummary.productName', 'Ürün / Otel / Hat:')}</span>
                                 <strong className="text-slate-800 dark:text-slate-200 font-semibold truncate block" title={productName}>{productName}</strong>
                             </div>
                             <div>
-                                <span className="text-slate-400 block text-[11px]">Tarihler:</span>
+                                <span className="text-slate-400 block text-[11px]">{t('taskManagement.drawer.reservationSummary.checkInDate', 'Tarihler:')}</span>
                                 <strong className="text-slate-800 dark:text-slate-200 font-semibold block">{checkIn} {checkOut !== 'N/A' ? `➔ ${checkOut}` : ''}</strong>
                             </div>
                             <div>
-                                <span className="text-slate-400 block text-[11px]">Detay / Tip:</span>
+                                <span className="text-slate-400 block text-[11px]">{t('taskManagement.drawer.reservationSummary.roomType', 'Detay / Tip:')}</span>
                                 <strong className="text-slate-800 dark:text-slate-200 font-semibold truncate block" title={optionName}>{optionName}</strong>
                             </div>
                             <div>
-                                <span className="text-slate-400 block text-[11px]">Misafir / Yolcu:</span>
+                                <span className="text-slate-400 block text-[11px]">{t('taskManagement.drawer.reservationSummary.guests', 'Misafir / Yolcu:')}</span>
                                 <strong className="text-slate-800 dark:text-slate-200 font-semibold truncate block" title={primaryGuest}>{primaryGuest}</strong>
                             </div>
                         </div>
@@ -432,7 +435,7 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block mb-1.5">
-                                Talep Tipi ({productType}) *
+                                {t('taskManagement.table.taskType', 'Talep Tipi')} ({productType}) *
                             </label>
                             <select
                                 value={selectedTypeCode}
@@ -440,9 +443,9 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                                 disabled={loadingTypes}
                                 className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer"
                             >
-                                {taskTypes.map(t => (
-                                    <option key={t.code} value={t.code}>
-                                        {getLocalizedName(t)} {getLocalizedDescription(t) ? `- (${getLocalizedDescription(t)})` : ''}
+                                {taskTypes.map(tItem => (
+                                    <option key={tItem.code} value={tItem.code}>
+                                        {getLocalizedName(tItem)} {getLocalizedDescription(tItem) ? `- (${getLocalizedDescription(tItem)})` : ''}
                                     </option>
                                 ))}
                             </select>
@@ -450,7 +453,7 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
 
                         <div>
                             <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block mb-1.5">
-                                Öncelik (Priority) *
+                                {t('taskManagement.table.priority', 'Öncelik')} *
                             </label>
                             <div className="grid grid-cols-4 gap-1.5">
                                 {priorityOptions.map(p => (
@@ -464,7 +467,7 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                                                 : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
                                         }`}
                                     >
-                                        {p.label.split(' ')[0]}
+                                        {t(`taskManagement.priorities.${p.value}`, p.label.split(' ')[0])}
                                     </button>
                                 ))}
                             </div>
@@ -475,13 +478,15 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                     <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/60 space-y-3">
                         <div className="text-xs font-bold text-blue-900 dark:text-blue-300 flex items-center gap-1.5">
                             <span className="material-symbols-outlined text-[18px]">tune</span>
-                            <span>Talep Detay Alanları ({selectedTypeName || selectedTypeCode})</span>
+                            <span>{t('taskManagement.createModal.detailFields', 'Talep Detay Alanları')} ({selectedTypeName || selectedTypeCode})</span>
                         </div>
 
                         {selectedTypeCode.includes('DATE') && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Mevcut Tarihler (Read-only)</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                                        {t('taskManagement.createModal.currentDates', 'Mevcut Tarihler (Read-only)')}
+                                    </label>
                                     <input
                                         type="text"
                                         readOnly
@@ -491,7 +496,9 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                                 </div>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Yeni Başlangıç / Check-in *</label>
+                                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                                            {t('taskManagement.createModal.newStartDate', 'Yeni Başlangıç / Check-in *')}
+                                        </label>
                                         <input
                                             type="date"
                                             value={newDateStart}
@@ -500,7 +507,9 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Yeni Bitiş / Check-out</label>
+                                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                                            {t('taskManagement.createModal.newEndDate', 'Yeni Bitiş / Check-out')}
+                                        </label>
                                         <input
                                             type="date"
                                             value={newDateEnd}
@@ -515,20 +524,24 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                         {selectedTypeCode.includes('NAME') && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Değişecek / Hatalı Misafir Adı</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                                        {t('taskManagement.createModal.oldGuestName', 'Değişecek / Hatalı Misafir Adı')}
+                                    </label>
                                     <input
                                         type="text"
-                                        placeholder="Mevcut isim"
+                                        placeholder={t('taskManagement.createModal.currentNamePlaceholder', 'Mevcut isim')}
                                         value={guestNameChangeOld}
                                         onChange={(e) => setGuestNameChangeOld(e.target.value)}
                                         className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Yeni Doğru İsim (Pasaport ile Birebir) *</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                                        {t('taskManagement.createModal.newGuestName', 'Yeni Doğru İsim (Pasaport ile Birebir) *')}
+                                    </label>
                                     <input
                                         type="text"
-                                        placeholder="Yeni ad soyad"
+                                        placeholder={t('taskManagement.createModal.newNamePlaceholder', 'Yeni ad soyad')}
                                         value={guestNameChangeNew}
                                         onChange={(e) => setGuestNameChangeNew(e.target.value)}
                                         className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600"
@@ -539,10 +552,12 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
 
                         {(selectedTypeCode.includes('ROOM') || selectedTypeCode.includes('UPGRADE') || selectedTypeCode.includes('SEAT') || selectedTypeCode.includes('BAGGAGE')) && (
                             <div>
-                                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">Talep Edilen Tercih / Upgrade Detayı *</label>
+                                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                                    {t('taskManagement.createModal.optionPreferenceLabel', 'Talep Edilen Tercih / Upgrade Detayı *')}
+                                </label>
                                 <input
                                     type="text"
-                                    placeholder="Örn: Deluxe Sea View, VIP Minibüs, 20kg Ekstra Bagaj, Ön Koltuk vb."
+                                    placeholder={t('taskManagement.createModal.optionPreferencePlaceholder', 'Örn: Deluxe Sea View, VIP Minibüs, 20kg Ekstra Bagaj, Ön Koltuk vb.')}
                                     value={newOptionPreference}
                                     onChange={(e) => setNewOptionPreference(e.target.value)}
                                     className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -552,7 +567,7 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
 
                         {!selectedTypeCode.includes('DATE') && !selectedTypeCode.includes('NAME') && !selectedTypeCode.includes('ROOM') && !selectedTypeCode.includes('UPGRADE') && !selectedTypeCode.includes('SEAT') && !selectedTypeCode.includes('BAGGAGE') && (
                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Lütfen aşağıdaki açıklama alanına talebinizi detaylı olarak belirtin.
+                                {t('taskManagement.createModal.otherTypesNote', 'Lütfen aşağıdaki açıklama alanına talebinizi detaylı olarak belirtin.')}
                             </p>
                         )}
                     </div>
@@ -560,14 +575,14 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                     {/* 4. Description Textarea */}
                     <div>
                         <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block mb-1.5">
-                            Talep Açıklaması *
+                            {t('taskManagement.createModal.description', 'Talep Açıklaması *')}
                         </label>
                         <textarea
                             required
                             rows={3}
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Operasyon ekibimize iletmek istediğiniz detayları yazın..."
+                            placeholder={t('taskManagement.createModal.descriptionPlaceholder', 'Operasyon ekibimize iletmek istediğiniz detayları yazın...')}
                             className="w-full px-4 py-3 text-xs rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none leading-relaxed"
                         />
                     </div>
@@ -575,8 +590,8 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                     {/* 5. Attachments Upload to MinIO */}
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between">
-                            <span>Ek Dosyalar / Belgeler (Opsiyonel)</span>
-                            <span className="text-[11px] text-slate-400 font-normal">Görsel, PDF, Word dosyaları</span>
+                            <span>{t('taskManagement.createModal.attachments', 'Ek Dosyalar / Belgeler (Opsiyonel)')}</span>
+                            <span className="text-[11px] text-slate-400 font-normal">{t('taskManagement.drawer.fileSizeLimit', 'Görsel, PDF, Word dosyaları')}</span>
                         </label>
 
                         <input
@@ -593,8 +608,8 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                         >
                             <div className="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400">
                                 <span className="material-symbols-outlined text-[24px] text-blue-600">cloud_upload</span>
-                                <span className="text-xs font-semibold">Dosya yüklemek için tıklayın</span>
-                                <span className="text-[10px] text-slate-400">MinIO bulut depolamaya yüklenecektir</span>
+                                <span className="text-xs font-semibold">{t('taskManagement.drawer.uploadFile', 'Dosya yüklemek için tıklayın')}</span>
+                                <span className="text-[10px] text-slate-400">MinIO</span>
                             </div>
                         </div>
 
@@ -626,7 +641,7 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                         onClick={onClose}
                         className="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                     >
-                        Vazgeç
+                        {t('common.cancel', 'Vazgeç')}
                     </button>
                     <button
                         type="button"
@@ -637,12 +652,12 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                         {submitting ? (
                             <>
                                 <div className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                <span>Talebiniz İletiliyor...</span>
+                                <span>{t('taskManagement.createModal.submitting', 'Talebiniz İletiliyor...')}</span>
                             </>
                         ) : (
                             <>
                                 <span className="material-symbols-outlined text-[18px]">send</span>
-                                <span>Talebi Gönder</span>
+                                <span>{t('taskManagement.createModal.submit', 'Talebi Gönder')}</span>
                             </>
                         )}
                     </button>

@@ -429,21 +429,21 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                             <div>
                                 <div className="flex items-center gap-2">
                                     <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                                        Talep #{task?.taskNumber || taskId}
+                                        {t('taskManagement.drawer.title', 'Talep')} #{task?.taskNumber || taskId}
                                     </h2>
                                     {task && (
                                         <>
                                             <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${status.bg}`}>
-                                                {status.label}
+                                                {t(`taskManagement.statuses.${task.taskStatus}`, status.label)}
                                             </span>
                                             <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${priority.color}`}>
-                                                {priority.label}
+                                                {t(`taskManagement.priorities.${task.priority}`, priority.label)}
                                             </span>
                                         </>
                                     )}
                                 </div>
                                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                                    {task?.productType} • Rez: #{task?.reservationNo || '-'} • {task?.createdAt ? new Date(task.createdAt).toLocaleString('tr-TR') : '-'}
+                                    {task?.productType ? t(`taskManagement.productTypes.${task.productType}`, task.productType) : t('taskManagement.productTypes.GENERAL', 'Genel Destek')} • {t('taskManagement.table.rez', 'Rez')}: #{task?.reservationNo || '-'} • {task?.createdAt ? new Date(task.createdAt).toLocaleString() : '-'}
                                 </p>
                             </div>
                         </div>
@@ -451,7 +451,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                         <div className="flex items-center gap-1.5">
                             <button
                                 onClick={() => navigate(`/task-management/${taskId}`)}
-                                title="Tam Sayfada Aç"
+                                title={t('taskManagement.drawer.openFullPage', 'Tam Sayfada Aç')}
                                 className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                             >
                                 <span className="material-symbols-outlined text-[18px]">open_in_new</span>
@@ -459,14 +459,14 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                             <button
                                 onClick={handleManualRefresh}
                                 disabled={refreshing}
-                                title="Yenile"
+                                title={t('taskManagement.refresh', 'Yenile')}
                                 className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                             >
                                 <span className={`material-symbols-outlined text-[18px] ${refreshing ? 'animate-spin' : ''}`}>refresh</span>
                             </button>
                             <button
                                 onClick={onClose}
-                                title="Kapat"
+                                title={t('taskManagement.drawer.close', 'Kapat')}
                                 className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors cursor-pointer"
                             >
                                 <span className="material-symbols-outlined text-[20px]">close</span>
@@ -487,8 +487,12 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                         <div className="flex items-center gap-2">
                                             <span className="material-symbols-outlined text-[24px]">payments</span>
                                             <div>
-                                                <h4 className="font-bold text-xs">Fiyat Farkı Onayı Bekleniyor</h4>
-                                                <p className="text-[11px] text-amber-100">Operasyon ekibi fiyat farkı bildirdi</p>
+                                                <h4 className="font-bold text-xs">
+                                                    {t('taskManagement.drawer.priceDiffNotice', 'Fiyat Farkı Onayı Bekleniyor')}
+                                                </h4>
+                                                <p className="text-[11px] text-amber-100">
+                                                    {t('taskManagement.drawer.priceDiffDesc', 'Operasyon ekibi fiyat farkı bildirdi')}
+                                                </p>
                                             </div>
                                         </div>
                                         <span className="text-base font-black bg-white/20 px-2.5 py-0.5 rounded-lg">
@@ -497,7 +501,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                     </div>
                                     {productDetail.confirmationNote && (
                                         <div className="p-2 bg-white/10 rounded-lg text-[11px] backdrop-blur-xs">
-                                            <strong>Not:</strong> {productDetail.confirmationNote}
+                                            <strong>{t('common.note', 'Not')}:</strong> {productDetail.confirmationNote}
                                         </div>
                                     )}
                                     <div className="grid grid-cols-2 gap-2 pt-0.5">
@@ -509,7 +513,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                             className="py-1.5 px-3 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
                                         >
                                             <span className="material-symbols-outlined text-[16px]">close</span>
-                                            <span>Farkı Reddet</span>
+                                            <span>{t('taskManagement.drawer.rejectDiff', 'Farkı Reddet')}</span>
                                         </button>
                                         <button
                                             onClick={() => {
@@ -519,7 +523,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                             className="py-1.5 px-3 rounded-lg bg-white text-orange-600 hover:bg-orange-50 text-xs font-black shadow-xs transition-all flex items-center justify-center gap-1 cursor-pointer"
                                         >
                                             <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                                            <span>Farkı Onayla</span>
+                                            <span>{t('taskManagement.drawer.approveDiff', 'Farkı Onayla')}</span>
                                         </button>
                                     </div>
                                 </div>
@@ -528,14 +532,14 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                             {productDetail?.confirmationStatus === 'CONFIRMED' && (
                                 <div className="px-6 py-2.5 bg-emerald-50 dark:bg-emerald-950/40 border-b border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs flex items-center gap-2 shrink-0">
                                     <span className="material-symbols-outlined text-emerald-600 text-[18px]">check_circle</span>
-                                    <span>Fiyat farkı (<strong>+{productDetail.priceDifference} {productDetail.currency}</strong>) onaylandı.</span>
+                                    <span>{t('taskManagement.drawer.events.priceApproved', 'Fiyat farkı onaylandı')} (<strong>+{productDetail.priceDifference} {productDetail.currency}</strong>).</span>
                                 </div>
                             )}
 
                             {productDetail?.confirmationStatus === 'REJECTED' && (
                                 <div className="px-6 py-2.5 bg-rose-50 dark:bg-rose-950/40 border-b border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2 shrink-0">
                                     <span className="material-symbols-outlined text-rose-600 text-[18px]">cancel</span>
-                                    <span>Fiyat farkı tarafınızca reddedildi.</span>
+                                    <span>{t('taskManagement.drawer.events.priceRejected', 'Fiyat farkı tarafınızca reddedildi')}.</span>
                                 </div>
                             )}
 
@@ -550,7 +554,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                     }`}
                                 >
                                     <span className="material-symbols-outlined text-[18px]">forum</span>
-                                    <span>Mesajlaşma Akışı</span>
+                                    <span>{t('taskManagement.drawer.tabMessages', 'Mesajlaşma Akışı')}</span>
                                     <span className="size-5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] flex items-center justify-center font-bold">
                                         {allChatItems.length || 0}
                                     </span>
@@ -565,7 +569,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                     }`}
                                 >
                                     <span className="material-symbols-outlined text-[18px]">info</span>
-                                    <span>Rezervasyon & Talep</span>
+                                    <span>{t('taskManagement.drawer.tabSummary', 'Rezervasyon & Talep')}</span>
                                 </button>
 
                                 <button
@@ -577,7 +581,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                     }`}
                                 >
                                     <span className="material-symbols-outlined text-[18px]">attach_file</span>
-                                    <span>Dosya Ekleri ({task.attachments?.length || 0})</span>
+                                    <span>{t('taskManagement.drawer.tabAttachments', 'Dosya Ekleri')} ({task.attachments?.length || 0})</span>
                                 </button>
                             </div>
 
@@ -602,12 +606,12 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                     {isLoadingOlder ? (
                                                         <>
                                                             <span className="material-symbols-outlined text-[15px] text-blue-500 animate-spin">progress_activity</span>
-                                                            <span>Önceki mesajlar yükleniyor...</span>
+                                                            <span>{t('taskManagement.drawer.loadingOlder', 'Önceki mesajlar yükleniyor...')}</span>
                                                         </>
                                                     ) : (
                                                         <>
                                                             <span className="material-symbols-outlined text-[15px] text-blue-500">history</span>
-                                                            <span>Daha eski mesajları göster ({allChatItems.length - visibleCount} mesaj daha)</span>
+                                                            <span>{t('taskManagement.drawer.showOlder', 'Daha eski mesajları göster')} ({allChatItems.length - visibleCount})</span>
                                                         </>
                                                     )}
                                                 </button>
@@ -615,7 +619,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                         ) : (
                                             allChatItems.length > PAGE_SIZE && (
                                                 <div className="text-center py-2 text-[10px] text-slate-400 font-medium shrink-0">
-                                                    — Konuşmanın başlangıcı —
+                                                    {t('taskManagement.drawer.startOfConversation', '— Konuşmanın başlangıcı —')}
                                                 </div>
                                             )
                                         )}
@@ -623,7 +627,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                         {(!visibleChatItems || visibleChatItems.length === 0) ? (
                                             <div className="text-center py-12 text-slate-400 text-xs">
                                                 <span className="material-symbols-outlined text-[32px] text-slate-300 block mb-1">chat</span>
-                                                Henüz mesaj kaydı bulunmuyor.
+                                                {t('taskManagement.drawer.noMessagesYet', 'Henüz mesaj kaydı bulunmuyor.')}
                                             </div>
                                         ) : (
                                             visibleChatItems.map((msg) => {
@@ -646,16 +650,18 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                             <div key={msg.id} className="flex flex-col items-center justify-center my-3 gap-1.5">
                                                                 <div className="px-3.5 py-1.5 rounded-full bg-slate-50 dark:bg-[#28292c] text-slate-600 dark:text-slate-300 text-[11px] font-medium flex flex-wrap items-center justify-center gap-1.5 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
                                                                     <span className="material-symbols-outlined text-[15px] text-blue-500">sync_alt</span>
-                                                                    <span className="font-semibold text-slate-500 dark:text-slate-400">Durum Güncellendi:</span>
+                                                                    <span className="font-semibold text-slate-500 dark:text-slate-400">
+                                                                        {t('taskManagement.drawer.statusUpdated', 'Durum Güncellendi:')}
+                                                                    </span>
                                                                     <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${oldConf.bg}`}>
-                                                                        {oldConf.label}
+                                                                        {t(`taskManagement.statuses.${oldStatus}`, oldConf.label)}
                                                                     </span>
                                                                     <span className="text-slate-400 font-bold text-[11px]">➔</span>
                                                                     <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${newConf.bg}`}>
-                                                                        {newConf.label}
+                                                                        {t(`taskManagement.statuses.${newStatus}`, newConf.label)}
                                                                     </span>
                                                                     <span className="text-[10px] text-slate-400 ml-1">
-                                                                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : ''}
                                                                     </span>
                                                                 </div>
                                                                 {note && (
@@ -673,7 +679,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                                 <span className="material-symbols-outlined text-[14px]">info</span>
                                                                 <span>{msg.message}</span>
                                                                 <span className="text-[10px] text-slate-400 ml-1">
-                                                                    {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                                    {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : ''}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -689,9 +695,11 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                             <div className="max-w-[85%] sm:max-w-[78%] rounded-[20px] rounded-tl-[4px] p-4 bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white shadow-md space-y-2 border border-amber-400/30">
                                                                 <div className="flex items-center gap-2 pb-1.5 border-b border-white/20">
                                                                     <span className="material-symbols-outlined text-[18px]">payments</span>
-                                                                    <span className="font-bold text-xs uppercase tracking-wider">Fiyat Farkı Bildirimi</span>
+                                                                    <span className="font-bold text-xs uppercase tracking-wider">
+                                                                        {t('taskManagement.drawer.priceDiffNotice', 'Fiyat Farkı Bildirimi')}
+                                                                    </span>
                                                                     <span className="text-[10px] text-amber-100 ml-auto font-medium">
-                                                                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : ''}
                                                                     </span>
                                                                 </div>
                                                                 <div className="text-[13px] leading-relaxed whitespace-pre-wrap">{msg.message}</div>
@@ -727,7 +735,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                                                     </div>
                                                                                     <div className="flex-1 min-w-0">
                                                                                         <span className="block truncate font-semibold leading-tight text-[12px]">{a.fileOriginalName || a.fileName}</span>
-                                                                                        <span className="text-[10px] opacity-75 block mt-0.5">İndirmek için tıklayın</span>
+                                                                                        <span className="text-[10px] opacity-75 block mt-0.5">{t('taskManagement.drawer.downloadPrompt', 'İndirmek için tıklayın')}</span>
                                                                                     </div>
                                                                                     <span className="material-symbols-outlined text-[16px] opacity-80 group-hover:opacity-100 group-hover:translate-y-0.5 transition-all shrink-0">download</span>
                                                                                 </button>
@@ -736,7 +744,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                                     )}
                                                                 </div>
                                                                 <span className="text-[10px] text-slate-400 mt-1 px-1 font-medium">
-                                                                    {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                                    {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : ''}
                                                                 </span>
                                                             </div>
                                                         ) : (
@@ -773,7 +781,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                                                     </div>
                                                                                     <div className="flex-1 min-w-0">
                                                                                         <span className="block truncate font-semibold leading-tight text-slate-900 dark:text-white text-[12px]">{a.fileOriginalName || a.fileName}</span>
-                                                                                        <span className="text-[10px] text-slate-400 dark:text-slate-400 block mt-0.5">İndirmek için tıklayın</span>
+                                                                                        <span className="text-[10px] text-slate-400 dark:text-slate-400 block mt-0.5">{t('taskManagement.drawer.downloadPrompt', 'İndirmek için tıklayın')}</span>
                                                                                     </div>
                                                                                     <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400 group-hover:translate-y-0.5 transition-all shrink-0">download</span>
                                                                                 </button>
@@ -782,7 +790,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                                     )}
                                                                 </div>
                                                                 <span className="text-[10px] text-slate-400 mt-1 px-1 font-medium">
-                                                                    {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                                    {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : ''}
                                                                 </span>
                                                             </div>
                                                         )}
@@ -826,7 +834,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                             <button
                                                 type="button"
                                                 onClick={() => fileInputRef.current?.click()}
-                                                title="Dosya / Belge Ekle"
+                                                title={t('taskManagement.drawer.attachFile', 'Dosya / Belge Ekle')}
                                                 className="size-10 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
                                             >
                                                 <span className="material-symbols-outlined text-[20px]">attach_file</span>
@@ -836,7 +844,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                 type="text"
                                                 value={messageText}
                                                 onChange={(e) => setMessageText(e.target.value)}
-                                                placeholder="Operasyon ekibine mesaj yazın..."
+                                                placeholder={t('taskManagement.drawer.typeMessagePlaceholder', 'Operasyon ekibine mesaj yazın...')}
                                                 className="flex-1 px-4 py-2.5 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                                             />
 
@@ -844,11 +852,11 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                 type="button"
                                                 onClick={handleManualRefresh}
                                                 disabled={refreshing}
-                                                title="Akışı Yenile"
+                                                title={t('taskManagement.refresh', 'Yenile')}
                                                 className="px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-[#28292c] hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-slate-200 dark:border-slate-700 disabled:opacity-50"
                                             >
                                                 <span className={`material-symbols-outlined text-[18px] text-slate-600 dark:text-slate-300 ${refreshing ? 'animate-spin' : ''}`}>refresh</span>
-                                                <span className="hidden sm:inline">Yenile</span>
+                                                <span className="hidden sm:inline">{t('taskManagement.refresh', 'Yenile')}</span>
                                             </button>
 
                                             <button
@@ -861,7 +869,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                 ) : (
                                                     <>
                                                         <span className="material-symbols-outlined text-[18px]">send</span>
-                                                        <span>Gönder</span>
+                                                        <span>{t('taskManagement.drawer.send', 'Gönder')}</span>
                                                     </>
                                                 )}
                                             </button>
@@ -878,16 +886,16 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                     <div className="bg-white dark:bg-[#202124] border border-slate-200 dark:border-slate-700/80 rounded-2xl p-5 space-y-4 shadow-xs">
                                         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                                             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                                {task.productType} Rezervasyon Özeti
+                                                {t(`taskManagement.productTypes.${task.productType}`, task.productType)} {t('taskManagement.drawer.reservationSummary.title', 'Rezervasyon Özeti')}
                                             </span>
                                             <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded">
-                                                Rez: #{task.reservationNo || '-'}
+                                                {t('taskManagement.table.rez', 'Rez')}: #{task.reservationNo || '-'}
                                             </span>
                                         </div>
 
                                         <div className="space-y-2.5 text-xs">
                                             <div>
-                                                <span className="text-slate-400 block text-[11px]">Ürün / Otel / Hat:</span>
+                                                <span className="text-slate-400 block text-[11px]">{t('taskManagement.drawer.reservationSummary.productName', 'Ürün / Otel / Hat:')}</span>
                                                 <strong className="text-slate-900 dark:text-white text-sm font-bold block">
                                                     {productDetail?.productName || task.productType}
                                                 </strong>
@@ -895,14 +903,14 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
 
                                             {productDetail?.supplierName && (
                                                 <div>
-                                                    <span className="text-slate-400 block text-[11px]">Tedarikçi:</span>
+                                                    <span className="text-slate-400 block text-[11px]">{t('taskManagement.drawer.reservationSummary.supplier', 'Tedarikçi:')}</span>
                                                     <span className="font-medium text-slate-700 dark:text-slate-300">{productDetail.supplierName}</span>
                                                 </div>
                                             )}
 
                                             {currentData?.checkIn && (
                                                 <div>
-                                                    <span className="text-slate-400 block text-[11px]">Tarihler:</span>
+                                                    <span className="text-slate-400 block text-[11px]">{t('taskManagement.drawer.reservationSummary.checkInDate', 'Tarihler:')}</span>
                                                     <span className="font-medium text-slate-700 dark:text-slate-300">
                                                         {currentData.checkIn} {currentData.checkOut ? `➔ ${currentData.checkOut}` : ''}
                                                     </span>
@@ -911,7 +919,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
 
                                             {currentData?.primaryGuest && (
                                                 <div>
-                                                    <span className="text-slate-400 block text-[11px]">Misafir / Yolcu:</span>
+                                                    <span className="text-slate-400 block text-[11px]">{t('taskManagement.drawer.reservationSummary.guests', 'Misafir / Yolcu:')}</span>
                                                     <span className="font-medium text-slate-700 dark:text-slate-300">{currentData.primaryGuest}</span>
                                                 </div>
                                             )}
@@ -920,7 +928,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                             {(task.gsaName || task.rsaName || task.agencyName) && (
                                                 <div className="pt-3 mt-1 border-t border-slate-200/80 dark:border-slate-700/60">
                                                     <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
-                                                        Satış Kanalı Hiyerarşisi (GSA ➔ RSA ➔ Acente)
+                                                        {t('taskManagement.drawer.reservationSummary.salesChannelHierarchy', 'Satış Kanalı Hiyerarşisi (GSA ➔ RSA ➔ Acente)')}
                                                     </span>
                                                     <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700">
                                                         {task.gsaName && (
@@ -943,7 +951,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                         )}
                                                         {task.agencyName && task.agencyName !== task.gsaName && task.agencyName !== task.rsaName && (
                                                             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs">
-                                                                <span className="px-1 py-0.5 rounded text-[9px] font-black bg-blue-600 text-white uppercase">Acente</span>
+                                                                <span className="px-1 py-0.5 rounded text-[9px] font-black bg-blue-600 text-white uppercase">{t('salesChannel.agency', 'Acente')}</span>
                                                                 <span className="font-bold text-blue-900 dark:text-blue-200">{task.agencyName}</span>
                                                             </div>
                                                         )}
@@ -956,7 +964,9 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                     {/* 2. Request Details */}
                                     <div className="bg-white dark:bg-[#202124] border border-slate-200 dark:border-slate-700/80 rounded-2xl p-5 space-y-4 shadow-xs">
                                         <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Talep Bilgileri</span>
+                                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                                {t('taskManagement.drawer.reservationSummary.requestDetails', 'Talep Bilgileri')}
+                                            </span>
                                             <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold">
                                                 {task.taskTypeName || task.taskTypeCode}
                                             </span>
@@ -964,7 +974,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
 
                                         <div className="space-y-3 text-xs">
                                             <div>
-                                                <span className="text-slate-400 block text-[11px] mb-1">İlk Talep Açıklaması:</span>
+                                                <span className="text-slate-400 block text-[11px] mb-1">{t('taskManagement.drawer.reservationSummary.initialDescription', 'İlk Talep Açıklaması:')}</span>
                                                 <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-[#28292c] text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                                                     {task.description}
                                                 </div>
@@ -972,7 +982,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
 
                                             {requestedChangeData.newDateStart && (
                                                 <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 text-xs">
-                                                    <span className="text-blue-900 dark:text-blue-300 font-bold block mb-1">İstenen Yeni Tarihler:</span>
+                                                    <span className="text-blue-900 dark:text-blue-300 font-bold block mb-1">{t('taskManagement.drawer.reservationSummary.requestedNewDates', 'İstenen Yeni Tarihler:')}</span>
                                                     <span className="text-blue-700 dark:text-blue-400 font-semibold">
                                                         {requestedChangeData.newDateStart} {requestedChangeData.newDateEnd ? `➔ ${requestedChangeData.newDateEnd}` : ''}
                                                     </span>
@@ -981,7 +991,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
 
                                             {requestedChangeData.guestNameChanges && (
                                                 <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 text-xs">
-                                                    <span className="text-blue-900 dark:text-blue-300 font-bold block mb-1">İsim Değişikliği:</span>
+                                                    <span className="text-blue-900 dark:text-blue-300 font-bold block mb-1">{t('taskManagement.drawer.reservationSummary.nameChange', 'İsim Değişikliği:')}</span>
                                                     <span className="text-slate-500 line-through mr-2">{requestedChangeData.guestNameChanges.oldName}</span>
                                                     <span className="text-emerald-600 font-bold">➔ {requestedChangeData.guestNameChanges.newName}</span>
                                                 </div>
@@ -989,7 +999,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
 
                                             {requestedChangeData.newOptionPreference && (
                                                 <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 text-xs">
-                                                    <span className="text-blue-900 dark:text-blue-300 font-bold block mb-1">Talep Edilen Tercih / Upgrade:</span>
+                                                    <span className="text-blue-900 dark:text-blue-300 font-bold block mb-1">{t('taskManagement.drawer.reservationSummary.preferenceUpgrade', 'Talep Edilen Tercih / Upgrade:')}</span>
                                                     <span className="text-blue-700 dark:text-blue-400 font-semibold">{requestedChangeData.newOptionPreference}</span>
                                                 </div>
                                             )}
@@ -1004,7 +1014,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                     {(!task.attachments || task.attachments.length === 0) ? (
                                         <div className="text-center py-16 text-slate-400 text-xs">
                                             <span className="material-symbols-outlined text-[36px] text-slate-300 dark:text-slate-600 block mb-2">folder_off</span>
-                                            Bu talebe eklenmiş herhangi bir dosya bulunmamaktadır.
+                                            {t('taskManagement.drawer.noAttachmentsYet', 'Bu talebe eklenmiş herhangi bir dosya bulunmamaktadır.')}
                                         </div>
                                     ) : (
                                         <div className="space-y-2.5">
@@ -1024,7 +1034,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                                 {att.fileOriginalName || att.fileName}
                                                             </span>
                                                             <span className="text-[10px] text-slate-400">
-                                                                {att.createdAt ? new Date(att.createdAt).toLocaleString('tr-TR') : ''}
+                                                                {att.createdAt ? new Date(att.createdAt).toLocaleString() : ''}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -1051,7 +1061,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                             </div>
                             <div>
                                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                                    {pendingApprovalState ? 'Fiyat Farkını Onayla' : 'Fiyat Farkını Reddet'}
+                                    {pendingApprovalState ? t('taskManagement.drawer.approveDiff', 'Fiyat Farkını Onayla') : t('taskManagement.drawer.rejectDiff', 'Fiyat Farkını Reddet')}
                                 </h3>
                                 <p className="text-xs text-slate-500">
                                     +{productDetail?.priceDifference} {productDetail?.currency} tutarındaki fark için kararınız
@@ -1062,12 +1072,12 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                         <form onSubmit={handleDecisionSubmit} className="space-y-4 pt-2">
                             <div>
                                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                                    Açıklama / Notunuz (Opsiyonel)
+                                    {t('common.note', 'Açıklama / Notunuz (Opsiyonel)')}
                                 </label>
                                 <textarea
                                     value={decisionNote}
                                     onChange={(e) => setDecisionNote(e.target.value)}
-                                    placeholder="Operasyon ekibine iletilecek not..."
+                                    placeholder={t('taskManagement.drawer.typeMessagePlaceholder', 'Operasyon ekibine iletilecek not...')}
                                     rows={3}
                                     className="w-full p-3 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none font-medium"
                                 />
@@ -1079,7 +1089,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                     onClick={() => setShowDecisionModal(false)}
                                     className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer"
                                 >
-                                    Vazgeç
+                                    {t('common.cancel', 'Vazgeç')}
                                 </button>
                                 <button
                                     type="submit"
@@ -1090,7 +1100,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                             : 'bg-rose-600 hover:bg-rose-700'
                                     }`}
                                 >
-                                    {submittingDecision ? 'Kaydediliyor...' : (pendingApprovalState ? 'Onayla' : 'Reddet')}
+                                    {submittingDecision ? t('common.saving', 'Kaydediliyor...') : (pendingApprovalState ? t('taskManagement.statuses.APPROVED', 'Onayla') : t('taskManagement.statuses.REJECTED', 'Reddet'))}
                                 </button>
                             </div>
                         </form>
@@ -1118,16 +1128,16 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                 type="button"
                                 onClick={() => taskManagementService.downloadAttachment(previewImage.id, previewImage.name)}
                                 className="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-blue-600 text-white transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer"
-                                title="İndir"
+                                title={t('common.download', 'İndir')}
                             >
                                 <span className="material-symbols-outlined text-[17px]">download</span>
-                                <span>İndir</span>
+                                <span>{t('common.download', 'İndir')}</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setPreviewImage(null)}
                                 className="p-1.5 rounded-xl bg-white/15 hover:bg-red-600 text-white transition-all cursor-pointer flex items-center justify-center"
-                                title="Kapat (ESC)"
+                                title={t('common.close', 'Kapat')}
                             >
                                 <span className="material-symbols-outlined text-[20px]">close</span>
                             </button>

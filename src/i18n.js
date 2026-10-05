@@ -1,6 +1,18 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { resources } from './utils/locales';
+import { TASK_MANAGEMENT_LOCALES } from './utils/taskManagementLocales';
+
+// Merge TASK_MANAGEMENT_LOCALES into i18n resources
+Object.keys(TASK_MANAGEMENT_LOCALES).forEach(lng => {
+  if (resources[lng]) {
+    resources[lng].translation = resources[lng].translation || {};
+    resources[lng].translation.taskManagement = TASK_MANAGEMENT_LOCALES[lng];
+    if (resources[lng].translation.sidebar) {
+      resources[lng].translation.sidebar.taskManagement = TASK_MANAGEMENT_LOCALES[lng]?.title || 'Task Management';
+    }
+  }
+});
 
 // Supported languages list
 export const SUPPORTED_LANGUAGES = [

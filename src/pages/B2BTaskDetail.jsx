@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { taskManagementService } from '../services/taskManagementService';
 import { useAuth } from '../context/AuthContext';
+import { getTaskTypeLabel } from '../utils/taskTypeDictionary';
 
 const statusConfig = {
     OPEN: { label: 'Açık', bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800', dot: 'bg-blue-500' },
@@ -147,7 +148,7 @@ const ImageAttachmentPreview = ({ attachment, isFromMe = false, onPreview }) => 
 const B2BTaskDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { user } = useAuth();
 
     const userDisplayName = (user?.name || user?.surname)
@@ -569,7 +570,7 @@ const B2BTaskDetail = () => {
                             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Talep Bilgileri</span>
                                 <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold">
-                                    {task.taskTypeName || task.taskTypeCode}
+                                    {getTaskTypeLabel(task, i18n.language)}
                                 </span>
                             </div>
 

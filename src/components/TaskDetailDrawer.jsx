@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { taskManagementService } from '../services/taskManagementService';
 import { useAuth } from '../context/AuthContext';
+import { getTaskTypeLabel } from '../utils/taskTypeDictionary';
 
 const statusConfig = {
     OPEN: { label: 'Açık', bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200/70 dark:border-blue-800/70', dot: 'bg-blue-500' },
@@ -146,7 +147,7 @@ const ImageAttachmentPreview = ({ attachment, isFromMe = false, onPreview }) => 
 };
 
 const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdated }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const { user } = useAuth();
 
@@ -189,13 +190,13 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
         setVisibleCount(PAGE_SIZE);
 
         if (isOpen && taskId) {
+            setLoading(true);
             if (initialTask && initialTask.id === taskId) {
                 setTask(initialTask);
-                setLoading(!initialTask.messages);
-                fetchDetail(true); // background fetch full task details
             } else {
-                fetchDetail(false);
+                setTask(null);
             }
+            fetchDetail(false);
         } else if (!isOpen) {
             setMessageText('');
             setSelectedFiles([]);
@@ -624,7 +625,36 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                             )
                                         )}
 
-                                        {(!visibleChatItems || visibleChatItems.length === 0) ? (
+                                        {loading ? (
+                                            <div className="py-12 flex flex-col items-center justify-center space-y-4">
+                                                <div className="size-8 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
+                                                <div className="text-center space-y-0.5">
+                                                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 block">
+                                                        {t('taskManagement.drawer.loadingMessages', 'Mesajlar ve talep geçmişi yükleniyor...')}
+                                                    </span>
+                                                    <span className="text-[11px] text-slate-400">
+                                                        {t('taskManagement.drawer.loadingSubtitle', 'Lütfen bekleyiniz')}
+                                                    </span>
+                                                </div>
+                                                {/* Visual skeleton bubbles to give instant chat context without 'no message' flicker */}
+                                                <div className="w-full max-w-sm space-y-3 pt-2 opacity-75">
+                                                    <div className="flex gap-2 items-start">
+                                                        <div className="size-7 rounded-full bg-slate-200 dark:bg-slate-700/60 animate-pulse shrink-0"></div>
+                                                        <div className="space-y-1.5 flex-1">
+                                                            <div className="h-2.5 w-20 bg-slate-200 dark:bg-slate-700/60 rounded animate-pulse"></div>
+                                                            <div className="h-10 w-44 bg-slate-200 dark:bg-slate-700/60 rounded-2xl animate-pulse"></div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2 items-start justify-end">
+                                                        <div className="space-y-1.5 flex flex-col items-end flex-1">
+                                                            <div className="h-2.5 w-16 bg-slate-200 dark:bg-slate-700/60 rounded animate-pulse"></div>
+                                                            <div className="h-8 w-36 bg-blue-100 dark:bg-blue-900/40 rounded-2xl animate-pulse"></div>
+                                                        </div>
+                                                        <div className="size-7 rounded-full bg-blue-200 dark:bg-blue-800/60 animate-pulse shrink-0"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (!visibleChatItems || visibleChatItems.length === 0) ? (
                                             <div className="text-center py-12 text-slate-400 text-xs">
                                                 <span className="material-symbols-outlined text-[32px] text-slate-300 block mb-1">chat</span>
                                                 {t('taskManagement.drawer.noMessagesYet', 'Henüz mesaj kaydı bulunmuyor.')}
@@ -968,7 +998,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                 {t('taskManagement.drawer.reservationSummary.requestDetails', 'Talep Bilgileri')}
                                             </span>
                                             <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold">
-                                                {task.taskTypeName || task.taskTypeCode}
+                                                {getTaskTypeLabel(task, i18n.language)}
                                             </span>
                                         </div>
 

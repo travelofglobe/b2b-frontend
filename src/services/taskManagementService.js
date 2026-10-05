@@ -66,6 +66,12 @@ export const taskManagementService = {
         if (params.length > 0) url += `?${params.join('&')}`;
 
         return apiClient.post(url, { decision, note });
+    },
+
+    // Respond price confirmation (alias for processDecision)
+    respondPriceConfirmation: async (id, { approved, note = '' }) => {
+        const decision = approved ? 'CONFIRMED' : 'REJECTED';
+        return taskManagementService.processDecision(id, decision, note);
     }
 };
 

@@ -65,11 +65,9 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
             } else {
                 fetchDetail(false);
             }
-        } else {
-            setTask(null);
+        } else if (!isOpen) {
             setMessageText('');
             setSelectedFiles([]);
-            setActiveTab('chat');
             prevMessagesLengthRef.current = 0;
         }
     }, [isOpen, taskId, initialTask]);
@@ -157,12 +155,11 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
         e.preventDefault();
         try {
             setSubmittingDecision(true);
-            await taskManagementService.respondPriceConfirmation(taskId, {
-                approved: pendingApprovalState,
-                note: decisionNote
-            });
+            const decision = pendingApprovalState ? 'CONFIRMED' : 'REJECTED';
+            await taskManagementService.processDecision(taskId, decision, decisionNote);
             setShowDecisionModal(false);
             setDecisionNote('');
+            setPendingApprovalState(null);
             await fetchDetail();
             if (onUpdated) onUpdated();
         } catch (err) {
@@ -181,8 +178,6 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
     const removeSelectedFile = (idx) => {
         setSelectedFiles(prev => prev.filter((_, i) => i !== idx));
     };
-
-    if (!isOpen) return null;
 
     const status = task ? (statusConfig[task.taskStatus] || statusConfig.OPEN) : statusConfig.OPEN;
     const priority = task ? (priorityConfig[task.priority] || priorityConfig.NORMAL) : priorityConfig.NORMAL;
@@ -208,16 +203,21 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
     }
 
     return createPortal(
-        <div className="fixed inset-0 z-[99999] overflow-hidden">
+        <div className={`fixed inset-0 z-[99999] overflow-hidden ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
             {/* Backdrop */}
             <div 
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-150 cursor-pointer"
+                className={`fixed inset-0 bg-black/40 dark:bg-black/60 transition-opacity duration-300 ease-in-out cursor-pointer ${
+                    isOpen ? 'opacity-100' : 'opacity-0'
+                }`}
                 onClick={onClose}
             />
 
-            {/* Slide-over Panel */}
-            <div className="absolute inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
-                <div className="w-screen max-w-2xl bg-white dark:bg-[#202124] shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col font-roboto animate-in slide-in-from-right duration-150 ease-out">
+            {/* Sidebar Drawer (Slides in same as sidebar: transition-transform duration-300 ease-in-out) */}
+            <aside 
+                className={`fixed top-0 bottom-0 right-0 w-screen max-w-2xl bg-white dark:bg-[#202124] z-[99999] flex flex-col border-l border-[#dadce0] dark:border-slate-800 shadow-2xl overflow-hidden font-roboto transition-transform duration-300 ease-in-out ${
+                    isOpen ? 'translate-x-0' : 'translate-x-full'
+                }`}
+            >
                     
                     {/* Drawer Header */}
                     <div className="px-6 py-4 bg-slate-50 dark:bg-[#28292c] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
@@ -708,8 +708,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                             )}
                         </>
                     )}
-                </div>
-            </div>
+                </aside>
 
             {/* Decision Confirmation Modal */}
             {showDecisionModal && (

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { taskManagementService } from '../services/taskManagementService';
+import { useAuth } from '../context/AuthContext';
 
 const statusConfig = {
     OPEN: { label: 'Açık', bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200/70 dark:border-blue-800/70', dot: 'bg-blue-500' },
@@ -147,6 +148,11 @@ const ImageAttachmentPreview = ({ attachment, isFromMe = false, onPreview }) => 
 const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdated }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { user } = useAuth();
+
+    const userDisplayName = (user?.name || user?.surname)
+        ? `${user.name || ''} ${user.surname || ''}`.trim()
+        : (user?.fullName || user?.email || 'Acente Kullanıcısı');
 
     const [task, setTask] = useState(initialTask || null);
     const [loading, setLoading] = useState(!initialTask);
@@ -312,7 +318,8 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                 const msgRes = await taskManagementService.addMessage(taskId, {
                     message: text,
                     messageType: 'TEXT',
-                    senderName: 'Acente Yetkilisi'
+                    senderName: userDisplayName,
+                    senderUserId: user?.id
                 });
                 messageId = msgRes?.data?.id || msgRes?.id;
             }
@@ -320,7 +327,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
             // 2. Upload files if any (linking to messageId if created)
             if (files.length > 0) {
                 for (const f of files) {
-                    await taskManagementService.uploadAttachment(taskId, f, messageId);
+                    await taskManagementService.uploadAttachment(taskId, f, messageId, userDisplayName);
                 }
             }
 
@@ -342,7 +349,15 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
         try {
             setSubmittingDecision(true);
             const decision = pendingApprovalState ? 'CONFIRMED' : 'REJECTED';
-            await taskManagementService.processDecision(taskId, decision, decisionNote);
+            await taskManagementService.processAgencyDecision(
+                taskId,
+                {
+                    approved: pendingApprovalState,
+                    note: decisionNote
+                },
+                user?.id,
+                userDisplayName
+            );
             setShowDecisionModal(false);
             setDecisionNote('');
             setPendingApprovalState(null);
@@ -898,6 +913,41 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                 <div>
                                                     <span className="text-slate-400 block text-[11px]">Misafir / Yolcu:</span>
                                                     <span className="font-medium text-slate-700 dark:text-slate-300">{currentData.primaryGuest}</span>
+                                                </div>
+                                            )}
+
+                                            {/* Satış Kanalı Hiyerarşisi */}
+                                            {(task.gsaName || task.rsaName || task.agencyName) && (
+                                                <div className="pt-3 mt-1 border-t border-slate-200/80 dark:border-slate-700/60">
+                                                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
+                                                        Satış Kanalı Hiyerarşisi (GSA ➔ RSA ➔ Acente)
+                                                    </span>
+                                                    <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700">
+                                                        {task.gsaName && (
+                                                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs">
+                                                                <span className="px-1 py-0.5 rounded text-[9px] font-black bg-amber-500 text-white uppercase">GSA</span>
+                                                                <span className="font-bold text-amber-900 dark:text-amber-200">{task.gsaName}</span>
+                                                            </div>
+                                                        )}
+                                                        {task.gsaName && (task.rsaName || (task.agencyName && task.agencyName !== task.gsaName)) && (
+                                                            <span className="material-symbols-outlined text-[16px] text-slate-400">arrow_right_alt</span>
+                                                        )}
+                                                        {task.rsaName && (
+                                                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs">
+                                                                <span className="px-1 py-0.5 rounded text-[9px] font-black bg-indigo-600 text-white uppercase">RSA</span>
+                                                                <span className="font-bold text-indigo-900 dark:text-indigo-200">{task.rsaName}</span>
+                                                            </div>
+                                                        )}
+                                                        {task.rsaName && task.agencyName && task.agencyName !== task.rsaName && (
+                                                            <span className="material-symbols-outlined text-[16px] text-slate-400">arrow_right_alt</span>
+                                                        )}
+                                                        {task.agencyName && task.agencyName !== task.gsaName && task.agencyName !== task.rsaName && (
+                                                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs">
+                                                                <span className="px-1 py-0.5 rounded text-[9px] font-black bg-blue-600 text-white uppercase">Acente</span>
+                                                                <span className="font-bold text-blue-900 dark:text-blue-200">{task.agencyName}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>

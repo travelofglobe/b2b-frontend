@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { taskManagementService } from '../services/taskManagementService';
+import { useAuth } from '../context/AuthContext';
 
 const priorityOptions = [
     { value: 'LOW', label: 'Düşük / Low', color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' },
@@ -11,10 +12,34 @@ const priorityOptions = [
 ];
 
 const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSuccess }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const { user } = useAuth();
     const fileInputRef = useRef(null);
 
+    const getLocalizedName = (type) => {
+        if (!type) return '';
+        const lang = i18n.language || 'tr';
+        if (type.nameTranslations) {
+            return type.nameTranslations[lang] || type.nameTranslations.tr || type.nameTranslations.en || type.name;
+        }
+        return type.name;
+    };
+
+    const getLocalizedDescription = (type) => {
+        if (!type) return '';
+        const lang = i18n.language || 'tr';
+        if (type.descriptionTranslations) {
+            return type.descriptionTranslations[lang] || type.descriptionTranslations.tr || type.descriptionTranslations.en || type.description;
+        }
+        return type.description;
+    };
+
+    const userDisplayName = (user?.name || user?.surname)
+        ? `${user.name || ''} ${user.surname || ''}`.trim()
+        : (user?.fullName || user?.email || 'Acente Kullanıcısı');
+
     const [taskTypes, setTaskTypes] = useState([]);
+    const [selectedTypeId, setSelectedTypeId] = useState(null);
     const [selectedTypeCode, setSelectedTypeCode] = useState('');
     const [selectedTypeName, setSelectedTypeName] = useState('');
     const [priority, setPriority] = useState('NORMAL');
@@ -38,7 +63,7 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
         if (isOpen) {
             loadTaskTypes();
         }
-    }, [isOpen, productType]);
+    }, [isOpen, productType, i18n.language]);
 
     const loadTaskTypes = async () => {
         try {
@@ -46,21 +71,24 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
             const types = await taskManagementService.getActiveTaskTypes(productType);
             if (types && types.length > 0) {
                 setTaskTypes(types);
+                setSelectedTypeId(types[0].id || null);
                 setSelectedTypeCode(types[0].code);
-                setSelectedTypeName(types[0].name);
+                setSelectedTypeName(getLocalizedName(types[0]));
             } else {
                 // Fallback default types for product
                 const fallback = getFallbackTypes(productType);
                 setTaskTypes(fallback);
+                setSelectedTypeId(null);
                 setSelectedTypeCode(fallback[0]?.code || 'OTHER');
-                setSelectedTypeName(fallback[0]?.name || 'Diğer Talepler');
+                setSelectedTypeName(getLocalizedName(fallback[0]) || 'Diğer Talepler');
             }
         } catch (err) {
             console.warn('Failed to fetch dynamic task types, using defaults:', err);
             const fallback = getFallbackTypes(productType);
             setTaskTypes(fallback);
+            setSelectedTypeId(null);
             setSelectedTypeCode(fallback[0]?.code || 'OTHER');
-            setSelectedTypeName(fallback[0]?.name || 'Diğer Talepler');
+            setSelectedTypeName(getLocalizedName(fallback[0]) || 'Diğer Talepler');
         } finally {
             setLoadingTypes(false);
         }
@@ -69,31 +97,157 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
     const getFallbackTypes = (prod) => {
         if (prod === 'FLIGHT') {
             return [
-                { code: 'FLIGHT_DATE_CHANGE', name: 'Tarih / Parkur Değişikliği', description: 'Uçuş saati, tarihi veya parkur değişikliği', icon: 'flight_takeoff' },
-                { code: 'FLIGHT_CANCELLATION', name: 'Bilet İptal / İade Talebi', description: 'Uçak bileti iptali veya iade hesabı', icon: 'cancel' },
-                { code: 'FLIGHT_NAME_CORRECTION', name: 'Yolcu İsim Düzeltme', description: 'Bilet üzerindeki isim hatası düzeltmesi', icon: 'badge' },
-                { code: 'FLIGHT_EXTRA_BAGGAGE', name: 'Ekstra Bagaj Satın Alma', description: 'Ekstra bagaj hakkı ekleme talebi', icon: 'luggage' },
-                { code: 'FLIGHT_SEAT_SELECTION', name: 'Koltuk Seçimi', description: 'Koltuk seçimi talepleri', icon: 'airline_seat_recline_extra' },
-                { code: 'FLIGHT_OTHER', name: 'Diğer Uçuş Talepleri', description: 'Diğer tüm uçuş operasyon talepleri', icon: 'flight' }
+                { 
+                    code: 'FLIGHT_DATE_CHANGE', 
+                    name: 'Tarih / Parkur Değişikliği', 
+                    description: 'Uçuş saati, tarihi veya parkur değişikliği', 
+                    nameTranslations: { tr: 'Tarih / Parkur Değişikliği', en: 'Date / Route Change' },
+                    descriptionTranslations: { tr: 'Uçuş saati, tarihi veya parkur değişikliği', en: 'Flight date, time or routing change' },
+                    icon: 'flight_takeoff' 
+                },
+                { 
+                    code: 'FLIGHT_CANCELLATION', 
+                    name: 'Bilet İptal / İade Talebi', 
+                    description: 'Uçak bileti iptali veya iade hesabı', 
+                    nameTranslations: { tr: 'Bilet İptal / İade Talebi', en: 'Flight Cancellation / Refund' },
+                    descriptionTranslations: { tr: 'Uçak bileti iptali veya iade hesabı', en: 'Ticket cancellation or refund calculation' },
+                    icon: 'cancel' 
+                },
+                { 
+                    code: 'FLIGHT_NAME_CORRECTION', 
+                    name: 'Yolcu İsim Düzeltme', 
+                    description: 'Bilet üzerindeki isim hatası düzeltmesi', 
+                    nameTranslations: { tr: 'Yolcu İsim Düzeltme', en: 'Passenger Name Correction' },
+                    descriptionTranslations: { tr: 'Bilet üzerindeki isim hatası düzeltmesi', en: 'Passenger name letter typo correction' },
+                    icon: 'badge' 
+                },
+                { 
+                    code: 'FLIGHT_EXTRA_BAGGAGE', 
+                    name: 'Ekstra Bagaj Satın Alma', 
+                    description: 'Ekstra bagaj hakkı ekleme talebi', 
+                    nameTranslations: { tr: 'Ekstra Bagaj Satın Alma', en: 'Extra Baggage Purchase' },
+                    descriptionTranslations: { tr: 'Ekstra bagaj hakkı ekleme talebi', en: 'Additional baggage allowance purchase' },
+                    icon: 'luggage' 
+                },
+                { 
+                    code: 'FLIGHT_SEAT_SELECTION', 
+                    name: 'Koltuk Seçimi', 
+                    description: 'Koltuk seçimi talepleri', 
+                    nameTranslations: { tr: 'Koltuk Seçimi', en: 'Seat Selection' },
+                    descriptionTranslations: { tr: 'Koltuk seçimi talepleri', en: 'Seat reservation & selection request' },
+                    icon: 'airline_seat_recline_extra' 
+                },
+                { 
+                    code: 'FLIGHT_OTHER', 
+                    name: 'Diğer Uçuş Talepleri', 
+                    description: 'Diğer tüm uçuş operasyon talepleri', 
+                    nameTranslations: { tr: 'Diğer Uçuş Talepleri', en: 'Other Flight Requests' },
+                    descriptionTranslations: { tr: 'Diğer tüm uçuş operasyon talepleri', en: 'Other flight operational requests' },
+                    icon: 'flight' 
+                }
             ];
         } else if (prod === 'TRANSFER') {
             return [
-                { code: 'TRANSFER_TIME_CHANGE', name: 'Transfer Saat / Uçuş No Değişikliği', description: 'Uçuş rötarı veya transfer saati güncelleme', icon: 'directions_car' },
-                { code: 'TRANSFER_CANCELLATION', name: 'Transfer İptali', description: 'Transfer iptal talebi', icon: 'cancel' },
-                { code: 'TRANSFER_VEHICLE_UPGRADE', name: 'Araç Yükseltme', description: 'Araç kapasitesi veya sınıf yükseltme', icon: 'local_taxi' },
-                { code: 'TRANSFER_OTHER', name: 'Diğer Transfer Talepleri', description: 'Diğer transfer talepleri', icon: 'commute' }
+                { 
+                    code: 'TRANSFER_TIME_CHANGE', 
+                    name: 'Transfer Saat / Uçuş No Değişikliği', 
+                    description: 'Uçuş rötarı veya transfer saati güncelleme', 
+                    nameTranslations: { tr: 'Transfer Saat / Uçuş No Değişikliği', en: 'Transfer Time / Flight Update' },
+                    descriptionTranslations: { tr: 'Uçuş rötarı veya transfer saati güncelleme', en: 'Flight delay update or transfer pick-up time change' },
+                    icon: 'directions_car' 
+                },
+                { 
+                    code: 'TRANSFER_CANCELLATION', 
+                    name: 'Transfer İptali', 
+                    description: 'Transfer iptal talebi', 
+                    nameTranslations: { tr: 'Transfer İptali', en: 'Transfer Cancellation' },
+                    descriptionTranslations: { tr: 'Transfer iptal talebi', en: 'Transfer booking cancellation request' },
+                    icon: 'cancel' 
+                },
+                { 
+                    code: 'TRANSFER_VEHICLE_UPGRADE', 
+                    name: 'Araç Yükseltme', 
+                    description: 'Araç kapasitesi veya sınıf yükseltme', 
+                    nameTranslations: { tr: 'Araç Yükseltme', en: 'Vehicle Class Upgrade' },
+                    descriptionTranslations: { tr: 'Araç kapasitesi veya sınıf yükseltme', en: 'Vehicle capacity or class upgrade' },
+                    icon: 'local_taxi' 
+                },
+                { 
+                    code: 'TRANSFER_OTHER', 
+                    name: 'Diğer Transfer Talepleri', 
+                    description: 'Diğer transfer talepleri', 
+                    nameTranslations: { tr: 'Diğer Transfer Talepleri', en: 'Other Transfer Requests' },
+                    descriptionTranslations: { tr: 'Diğer transfer talepleri', en: 'Other transfer operational requests' },
+                    icon: 'commute' 
+                }
             ];
         }
         // Default HOTEL
         return [
-            { code: 'HOTEL_DATE_CHANGE', name: 'Tarih Değişikliği', description: 'Check-in / check-out tarihi değiştirme', icon: 'calendar_month' },
-            { code: 'HOTEL_CANCELLATION', name: 'İptal Talebi', description: 'Rezervasyon iptal ve ceza kontrol talebi', icon: 'cancel' },
-            { code: 'HOTEL_NAME_CHANGE', name: 'Misafir İsim Değişikliği / Düzeltme', description: 'Misafir isim düzeltme talebi', icon: 'badge' },
-            { code: 'HOTEL_ROOM_UPGRADE', name: 'Oda Tipi / Pansiyon Değişikliği', description: 'Oda veya konsept değişikliği', icon: 'hotel' },
-            { code: 'HOTEL_EARLY_LATE', name: 'Erken Giriş / Geç Çıkış', description: 'Erken giriş veya geç çıkış talebi', icon: 'schedule' },
-            { code: 'HOTEL_SPECIAL_REQUEST', name: 'Özel İstek / Balayı / Yatak', description: 'Balayı konsepti, yatak tercihi vb.', icon: 'favorite' },
-            { code: 'HOTEL_INVOICE', name: 'Fatura / Muhasebe Talebi', description: 'Fatura veya ödeme düzeltmesi', icon: 'receipt_long' },
-            { code: 'HOTEL_OTHER', name: 'Diğer Otel Talepleri', description: 'Diğer tüm talepler', icon: 'help_outline' }
+            { 
+                code: 'HOTEL_DATE_CHANGE', 
+                name: 'Tarih Değişikliği', 
+                description: 'Check-in / check-out tarihi değiştirme', 
+                nameTranslations: { tr: 'Tarih Değişikliği', en: 'Date Change' },
+                descriptionTranslations: { tr: 'Check-in / check-out tarihi değiştirme', en: 'Change check-in or check-out dates' },
+                icon: 'calendar_month' 
+            },
+            { 
+                code: 'HOTEL_CANCELLATION', 
+                name: 'İptal Talebi', 
+                description: 'Rezervasyon iptal ve ceza kontrol talebi', 
+                nameTranslations: { tr: 'İptal Talebi', en: 'Cancellation Request' },
+                descriptionTranslations: { tr: 'Rezervasyon iptal ve ceza kontrol talebi', en: 'Reservation cancellation and penalty check' },
+                icon: 'cancel' 
+            },
+            { 
+                code: 'HOTEL_NAME_CHANGE', 
+                name: 'Misafir İsim Değişikliği / Düzeltme', 
+                description: 'Misafir isim düzeltme talebi', 
+                nameTranslations: { tr: 'Misafir İsim Değişikliği / Düzeltme', en: 'Guest Name Correction' },
+                descriptionTranslations: { tr: 'Misafir isim düzeltme talebi', en: 'Guest name or surname correction request' },
+                icon: 'badge' 
+            },
+            { 
+                code: 'HOTEL_ROOM_UPGRADE', 
+                name: 'Oda Tipi / Pansiyon Değişikliği', 
+                description: 'Oda veya konsept değişikliği', 
+                nameTranslations: { tr: 'Oda Tipi / Pansiyon Değişikliği', en: 'Room / Board Upgrade' },
+                descriptionTranslations: { tr: 'Oda veya konsept değişikliği', en: 'Room category or board concept upgrade' },
+                icon: 'hotel' 
+            },
+            { 
+                code: 'HOTEL_EARLY_LATE', 
+                name: 'Erken Giriş / Geç Çıkış', 
+                description: 'Erken giriş veya geç çıkış talebi', 
+                nameTranslations: { tr: 'Erken Giriş / Geç Çıkış', en: 'Early Check-in / Late Check-out' },
+                descriptionTranslations: { tr: 'Erken giriş veya geç çıkış talebi', en: 'Early check-in or late check-out arrangement' },
+                icon: 'schedule' 
+            },
+            { 
+                code: 'HOTEL_SPECIAL_REQUEST', 
+                name: 'Özel İstek / Balayı / Yatak', 
+                description: 'Balayı konsepti, yatak tercihi vb.', 
+                nameTranslations: { tr: 'Özel İstek / Balayı / Yatak', en: 'Special Request / Honeymoon' },
+                descriptionTranslations: { tr: 'Balayı konsepti, yatak tercihi vb.', en: 'Honeymoon setup, bed preferences, special amenities' },
+                icon: 'favorite' 
+            },
+            { 
+                code: 'HOTEL_INVOICE', 
+                name: 'Fatura / Muhasebe Talebi', 
+                description: 'Fatura veya ödeme düzeltmesi', 
+                nameTranslations: { tr: 'Fatura / Muhasebe Talebi', en: 'Invoice & Billing Request' },
+                descriptionTranslations: { tr: 'Fatura veya ödeme düzeltmesi', en: 'Invoice or billing reconciliation request' },
+                icon: 'receipt_long' 
+            },
+            { 
+                code: 'HOTEL_OTHER', 
+                name: 'Diğer Otel Talepleri', 
+                description: 'Diğer tüm talepler', 
+                nameTranslations: { tr: 'Diğer Otel Talepleri', en: 'Other Hotel Requests' },
+                descriptionTranslations: { tr: 'Diğer tüm talepler', en: 'Other hotel operational requests' },
+                icon: 'help_outline' 
+            }
         ];
     };
 
@@ -114,7 +268,10 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
     const handleTypeSelect = (code) => {
         setSelectedTypeCode(code);
         const t = taskTypes.find(x => x.code === code);
-        if (t) setSelectedTypeName(t.name);
+        if (t) {
+            setSelectedTypeName(getLocalizedName(t));
+            setSelectedTypeId(t.id || null);
+        }
     };
 
     const handleFileChange = (e) => {
@@ -159,15 +316,22 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                 removeGuestName: removeGuestName || null
             };
 
+            const resolvedBookingId = (booking?.bookingId ?? booking?.id)
+                ? Number(booking.bookingId ?? booking.id)
+                : (reservationNo && !isNaN(reservationNo) ? Number(reservationNo) : null);
+
             const payload = {
                 productType: productType.toUpperCase(),
                 reservationNo: String(reservationNo),
-                bookingId: booking?.id ? Number(booking.id) : null,
+                bookingId: resolvedBookingId,
+                taskTypeId: selectedTypeId || null,
                 taskTypeCode: selectedTypeCode,
                 taskTypeName: selectedTypeName,
                 priority: priority,
                 title: `${selectedTypeName} - #${reservationNo}`,
                 description: description.trim(),
+                createdByUserId: user?.id || null,
+                createdByUserName: userDisplayName,
                 productName: productName,
                 supplierName: supplierName,
                 currentDataJson: JSON.stringify(currentDataObj),
@@ -180,7 +344,7 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
             if (files.length > 0 && createdTask?.id) {
                 for (const f of files) {
                     try {
-                        await taskManagementService.uploadAttachment(createdTask.id, f);
+                        await taskManagementService.uploadAttachment(createdTask.id, f, null, userDisplayName);
                     } catch (attErr) {
                         console.error('Failed to upload file attachment:', attErr);
                     }
@@ -277,7 +441,9 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                                 className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer"
                             >
                                 {taskTypes.map(t => (
-                                    <option key={t.code} value={t.code}>{t.name} {t.description ? `- (${t.description})` : ''}</option>
+                                    <option key={t.code} value={t.code}>
+                                        {getLocalizedName(t)} {getLocalizedDescription(t) ? `- (${getLocalizedDescription(t)})` : ''}
+                                    </option>
                                 ))}
                             </select>
                         </div>

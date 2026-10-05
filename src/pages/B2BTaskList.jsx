@@ -110,7 +110,7 @@ const B2BTaskList = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <div className="flex items-center gap-2.5">
-                            <div className="size-10 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-xs">
+                            <div className="size-10 rounded-2xl bg-[#137fec]/10 dark:bg-[#137fec]/20 text-[#137fec] flex items-center justify-center shadow-xs">
                                 <span className="material-symbols-outlined text-[24px]">support_agent</span>
                             </div>
                             <div>
@@ -143,7 +143,7 @@ const B2BTaskList = () => {
                             }}
                             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                                 productTab === tab.id
-                                    ? 'bg-blue-600 text-white shadow-xs'
+                                    ? 'bg-[#137fec] text-white shadow-xs'
                                     : 'bg-white dark:bg-[#202124] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700'
                             }`}
                         >
@@ -166,7 +166,7 @@ const B2BTaskList = () => {
                                 value={search}
                                 onChange={(e) => { setSearch(e.target.value); setPage(0); }}
                                 placeholder="Talep No, Rez No, Ürün Adı..."
-                                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                                className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#137fec] font-medium"
                             />
                         </div>
 
@@ -175,7 +175,7 @@ const B2BTaskList = () => {
                             <select
                                 value={statusFilter}
                                 onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
-                                className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer"
+                                className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#137fec] font-medium cursor-pointer"
                             >
                                 <option value="">Tüm Durumlar</option>
                                 {Object.entries(statusConfig).map(([k, v]) => (
@@ -189,7 +189,7 @@ const B2BTaskList = () => {
                             <select
                                 value={priorityFilter}
                                 onChange={(e) => { setPriorityFilter(e.target.value); setPage(0); }}
-                                className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer"
+                                className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#137fec] font-medium cursor-pointer"
                             >
                                 <option value="">Tüm Öncelikler</option>
                                 <option value="LOW">Düşük</option>
@@ -296,7 +296,7 @@ const B2BTaskList = () => {
                                                 onClick={() => handleOpenDetail(task)}
                                                 className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 cursor-pointer transition-colors"
                                             >
-                                                <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                                                <td className="py-3.5 px-4 font-mono font-bold text-[#137fec] whitespace-nowrap">
                                                     #{task.taskNumber || task.id}
                                                 </td>
 
@@ -381,7 +381,7 @@ const B2BTaskList = () => {
                                                             e.stopPropagation();
                                                             handleOpenDetail(task);
                                                         }}
-                                                        className="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
+                                                        className="px-3 py-1.5 rounded-xl bg-[#137fec]/10 dark:bg-[#137fec]/20 text-[#137fec] dark:text-[#3898ec] hover:bg-[#137fec] hover:text-white dark:hover:bg-[#137fec] dark:hover:text-white text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
                                                     >
                                                         <span>Detay</span>
                                                         <span className="material-symbols-outlined text-[14px]">arrow_forward</span>

@@ -61,21 +61,6 @@ const B2BTaskList = () => {
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [priorityFilter, setPriorityFilter] = useState('');
-    const [typeFilter, setTypeFilter] = useState('');
-    const [availableTypes, setAvailableTypes] = useState([]);
-
-    // Load available types when product tab changes
-    useEffect(() => {
-        const fetchTypes = async () => {
-            try {
-                const types = await taskManagementService.getActiveTaskTypes(productTab === 'ALL' ? null : productTab);
-                setAvailableTypes(types || []);
-            } catch (err) {
-                console.warn('Failed to load types:', err);
-            }
-        };
-        fetchTypes();
-    }, [productTab]);
 
     const fetchTasks = useCallback(async () => {
         try {
@@ -85,7 +70,8 @@ const B2BTaskList = () => {
                 search: search.trim() || null,
                 taskStatus: statusFilter || null,
                 priority: priorityFilter || null,
-                taskTypeCode: typeFilter || null,
+                sortBy: 'updatedAt',
+                sortDirection: 'DESC',
                 page,
                 size
             };
@@ -98,7 +84,7 @@ const B2BTaskList = () => {
         } finally {
             setLoading(false);
         }
-    }, [productTab, search, statusFilter, priorityFilter, typeFilter, page, size]);
+    }, [productTab, search, statusFilter, priorityFilter, page, size]);
 
     useEffect(() => {
         fetchTasks();
@@ -108,7 +94,6 @@ const B2BTaskList = () => {
         setSearch('');
         setStatusFilter('');
         setPriorityFilter('');
-        setTypeFilter('');
         setProductTab('ALL');
         setPage(0);
     };
@@ -150,7 +135,6 @@ const B2BTaskList = () => {
                             key={tab.id}
                             onClick={() => {
                                 setProductTab(tab.id);
-                                setTypeFilter('');
                                 setPage(0);
                             }}
                             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
@@ -167,7 +151,7 @@ const B2BTaskList = () => {
 
                 {/* Filter Toolbar */}
                 <div className="bg-white dark:bg-[#202124] border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 shadow-xs">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
                         {/* Search Input */}
                         <div className="relative">
                             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">
@@ -208,20 +192,6 @@ const B2BTaskList = () => {
                                 <option value="NORMAL">Normal</option>
                                 <option value="HIGH">Yüksek</option>
                                 <option value="URGENT">Acil</option>
-                            </select>
-                        </div>
-
-                        {/* Dynamic Task Type Select */}
-                        <div>
-                            <select
-                                value={typeFilter}
-                                onChange={(e) => { setTypeFilter(e.target.value); setPage(0); }}
-                                className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer"
-                            >
-                                <option value="">Tüm Talep Tipleri</option>
-                                {availableTypes.map(t => (
-                                    <option key={t.code} value={t.code}>{t.name}</option>
-                                ))}
                             </select>
                         </div>
 

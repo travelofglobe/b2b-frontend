@@ -142,17 +142,18 @@ body {
   /* Authentic iOS 7+ iMessage Speech Bubbles */
   .imessage-bubble {
     position: relative;
+    display: inline-block;
     width: fit-content;
     min-width: 60px;
-    max-width: 75%;
-    padding: 10px 20px;
+    max-width: 100%;
     font-size: 14px;
-    line-height: 1.35;
-    word-break: keep-all;
-    overflow-wrap: normal;
+    line-height: 1.45;
+    word-break: break-word;
+    overflow-wrap: break-word;
     white-space: pre-wrap;
-    border-radius: 20px;
+    border-radius: 18px;
     color: #000000;
+    box-sizing: border-box;
   }
 
   .imessage-bubble > * {
@@ -173,7 +174,7 @@ body {
     color: #ffffff;
     align-self: flex-end;
     margin-right: 8px;
-    padding: 10px 20px;
+    padding: 10px 20px 10px 20px;
   }
 
   .imessage-bubble.from-me::before {
@@ -197,7 +198,7 @@ body {
     color: #000000;
     align-self: flex-start;
     margin-left: 8px;
-    padding: 10px 20px;
+    padding: 10px 20px 10px 20px;
   }
 
   .imessage-bubble.from-them::before {

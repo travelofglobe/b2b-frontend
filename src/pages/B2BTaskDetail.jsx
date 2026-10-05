@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { taskManagementService } from '../services/taskManagementService';
 
 const statusConfig = {
-    OPEN: { label: 'Açık / Open', bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800', dot: 'bg-blue-500' },
+    OPEN: { label: 'Açık', bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800', dot: 'bg-blue-500' },
     IN_PROGRESS: { label: 'İşleniyor', bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800', dot: 'bg-amber-500' },
     WAITING_FOR_SUPPLIER: { label: 'Tedarikçi Bekleniyor', bg: 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800', dot: 'bg-purple-500' },
     WAITING_FOR_AGENCY: { label: 'Onayınız Bekleniyor', bg: 'bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800 animate-pulse', dot: 'bg-orange-500' },
@@ -30,6 +30,119 @@ const productIcons = {
     GENERAL: 'support_agent'
 };
 
+const PAGE_SIZE = 10;
+
+const isImageAttachment = (att) => {
+    const name = att?.fileOriginalName || att?.fileName || '';
+    const type = att?.contentType || '';
+    if (type?.startsWith('image/')) return true;
+    return /\.(jpg|jpeg|png|webp|gif|svg|bmp)$/i.test(name);
+};
+
+const ImageAttachmentPreview = ({ attachment, isFromMe = false, onPreview }) => {
+    const [blobUrl, setBlobUrl] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const fileName = attachment.fileOriginalName || attachment.fileName || 'Görsel';
+
+    useEffect(() => {
+        let active = true;
+        let objectUrl = null;
+
+        const loadBlob = async () => {
+            try {
+                setLoading(true);
+                const url = await taskManagementService.getAttachmentBlobUrl(attachment.id);
+                if (active) {
+                    objectUrl = url;
+                    setBlobUrl(url);
+                    setLoading(false);
+                }
+            } catch (err) {
+                if (active) {
+                    console.error('Failed to load image blob:', err);
+                    setError(true);
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadBlob();
+
+        return () => {
+            active = false;
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
+        };
+    }, [attachment.id]);
+
+    if (error || (!loading && !blobUrl)) {
+        return (
+            <button
+                type="button"
+                onClick={() => taskManagementService.downloadAttachment(attachment.id, fileName)}
+                className={`w-full min-w-[200px] max-w-full flex items-center gap-2.5 p-2 px-3 rounded-xl ${
+                    isFromMe
+                        ? 'bg-white/15 hover:bg-white/25 text-white border border-white/20'
+                        : 'bg-white dark:bg-[#1C1C1E] hover:bg-slate-50 dark:hover:bg-[#2C2C2E] text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/10'
+                } text-[12px] font-medium transition-all cursor-pointer shadow-xs text-left group`}
+            >
+                <div className="size-7 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[17px]">image</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                    <span className="block truncate font-semibold leading-tight text-[12px]">{fileName}</span>
+                    <span className="text-[10px] opacity-75 block mt-0.5">İndirmek için tıklayın</span>
+                </div>
+                <span className="material-symbols-outlined text-[16px] opacity-80 group-hover:opacity-100 group-hover:translate-y-0.5 transition-all shrink-0">download</span>
+            </button>
+        );
+    }
+
+    return (
+        <div className="relative group/img rounded-xl overflow-hidden max-w-[280px] w-full border border-black/10 dark:border-white/15 bg-black/5 dark:bg-white/5 my-1 shadow-xs">
+            {loading ? (
+                <div className="w-[220px] h-[130px] flex flex-col items-center justify-center gap-2 text-slate-400 text-xs">
+                    <span className="material-symbols-outlined text-[22px] animate-spin text-blue-500">progress_activity</span>
+                    <span className="text-[11px]">Görsel yükleniyor...</span>
+                </div>
+            ) : (
+                <div 
+                    className="relative cursor-pointer group"
+                    onClick={() => onPreview({ url: blobUrl, name: fileName, id: attachment.id })}
+                >
+                    <img
+                        src={blobUrl}
+                        alt={fileName}
+                        className="w-full max-h-[220px] object-cover rounded-xl transition-transform duration-200 group-hover:scale-[1.02]"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <div className="size-10 rounded-full bg-black/70 text-white flex items-center justify-center shadow-lg backdrop-blur-xs">
+                            <span className="material-symbols-outlined text-[20px]">zoom_in</span>
+                        </div>
+                    </div>
+                    {/* Caption Bar */}
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent p-2 pt-4 flex items-center justify-between text-white text-[11px]">
+                        <span className="truncate max-w-[180px] font-medium drop-shadow-xs">{fileName}</span>
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                taskManagementService.downloadAttachment(attachment.id, fileName);
+                            }}
+                            className="p-1 rounded-md bg-white/20 hover:bg-white/40 text-white transition-colors ml-1 shrink-0"
+                            title="İndir"
+                        >
+                            <span className="material-symbols-outlined text-[14px]">download</span>
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const B2BTaskDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -38,12 +151,15 @@ const B2BTaskDetail = () => {
     const [task, setTask] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [previewImage, setPreviewImage] = useState(null); // { url, name, id }
 
     // Chat compose state
     const [messageText, setMessageText] = useState('');
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [sending, setSending] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+    const [isLoadingOlder, setIsLoadingOlder] = useState(false);
 
     // Confirmation decision state
     const [decisionNote, setDecisionNote] = useState('');
@@ -52,9 +168,18 @@ const B2BTaskDetail = () => {
     const [pendingApprovalState, setPendingApprovalState] = useState(null); // true = approve, false = reject
 
     const messagesEndRef = useRef(null);
+    const chatContainerRef = useRef(null);
     const fileInputRef = useRef(null);
+    const prevScrollHeightRef = useRef(0);
+    const prevScrollTopRef = useRef(0);
+    const isPrependingRef = useRef(false);
+    const prevTotalChatItemsRef = useRef(0);
+    const initialScrollDoneRef = useRef(false);
 
     useEffect(() => {
+        initialScrollDoneRef.current = false;
+        prevTotalChatItemsRef.current = 0;
+        setVisibleCount(PAGE_SIZE);
         fetchTaskDetail();
     }, [id]);
 
@@ -87,11 +212,79 @@ const B2BTaskDetail = () => {
         }
     };
 
-    useEffect(() => {
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    const allChatItems = useMemo(() => {
+        if (!task) return [];
+        const msgs = [...(task.messages || [])];
+
+        const attachedIdsInMsgs = new Set();
+        msgs.forEach(m => {
+            (m.attachments || []).forEach(a => attachedIdsInMsgs.add(a.id));
+        });
+
+        const unlinkedAttachments = (task.attachments || []).filter(a => !attachedIdsInMsgs.has(a.id));
+
+        unlinkedAttachments.forEach(att => {
+            msgs.push({
+                id: `att-${att.id}`,
+                senderType: att.uploadedByUserType || 'AGENCY_USER',
+                senderName: att.uploadedBy || (att.uploadedByUserType === 'TOG_ADMIN' ? 'TOG Operasyon' : 'Acente'),
+                message: '',
+                messageType: 'ATTACHMENT',
+                isInternal: Boolean(att.isInternal),
+                attachments: [att],
+                createdAt: att.createdAt
+            });
+        });
+
+        return msgs.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+    }, [task]);
+
+    const visibleChatItems = useMemo(() => {
+        if (allChatItems.length <= visibleCount) return allChatItems;
+        return allChatItems.slice(-visibleCount);
+    }, [allChatItems, visibleCount]);
+
+    const hasMoreOlder = allChatItems.length > visibleCount;
+
+    const loadOlderMessages = () => {
+        if (!hasMoreOlder || isLoadingOlder || !chatContainerRef.current) return;
+        setIsLoadingOlder(true);
+        prevScrollHeightRef.current = chatContainerRef.current.scrollHeight;
+        prevScrollTopRef.current = chatContainerRef.current.scrollTop;
+        isPrependingRef.current = true;
+
+        setVisibleCount(prev => Math.min(prev + PAGE_SIZE, allChatItems.length));
+        setIsLoadingOlder(false);
+    };
+
+    const handleChatScroll = (e) => {
+        if (e.target.scrollTop < 40 && hasMoreOlder && !isLoadingOlder && !isPrependingRef.current) {
+            loadOlderMessages();
         }
-    }, [task?.messages]);
+    };
+
+    useLayoutEffect(() => {
+        if (!chatContainerRef.current) return;
+
+        if (isPrependingRef.current) {
+            const newScrollHeight = chatContainerRef.current.scrollHeight;
+            const diff = newScrollHeight - prevScrollHeightRef.current;
+            chatContainerRef.current.scrollTop = prevScrollTopRef.current + diff;
+            isPrependingRef.current = false;
+            return;
+        }
+
+        const totalCount = allChatItems.length;
+        const isNewMessage = totalCount > prevTotalChatItemsRef.current && prevTotalChatItemsRef.current > 0;
+
+        if (!initialScrollDoneRef.current || isNewMessage) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+            if (totalCount > 0) {
+                initialScrollDoneRef.current = true;
+            }
+        }
+        prevTotalChatItemsRef.current = totalCount;
+    }, [visibleChatItems, allChatItems.length]);
 
     const handleSendMessage = async (e) => {
         e?.preventDefault();
@@ -105,19 +298,21 @@ const B2BTaskDetail = () => {
 
         try {
             setSending(true);
-            // 1. Send text message
+            // 1. Send text message if provided
+            let messageId = null;
             if (text) {
-                await taskManagementService.addMessage(id, {
+                const msgRes = await taskManagementService.addMessage(id, {
                     message: text,
                     messageType: 'TEXT',
                     senderName: 'Acente Yetkilisi'
                 });
+                messageId = msgRes?.data?.id || msgRes?.id;
             }
 
             // 2. Upload files if any
             if (files.length > 0) {
                 for (const f of files) {
-                    await taskManagementService.uploadAttachment(id, f);
+                    await taskManagementService.uploadAttachment(id, f, messageId);
                 }
             }
 
@@ -125,7 +320,7 @@ const B2BTaskDetail = () => {
             await fetchTaskDetail(true);
         } catch (err) {
             console.error('Failed to send message:', err);
-            alert('Mesaj gönderilemedi: ' + err.message);
+            alert('Mesaj gönderilemedi: ' + (err.response?.data?.message || err.message));
             setMessageText(text);
             setSelectedFiles(files);
         } finally {
@@ -414,12 +609,11 @@ const B2BTaskDetail = () => {
                                 </span>
                                 <div className="space-y-2">
                                     {task.attachments.map(att => (
-                                        <a
+                                        <button
                                             key={att.id}
-                                            href={taskManagementService.getAttachmentDownloadUrl(att.id)}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[#28292c] hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-slate-700 transition-colors group cursor-pointer text-xs"
+                                            type="button"
+                                            onClick={() => taskManagementService.downloadAttachment(att.id, att.fileOriginalName || att.fileName)}
+                                            className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-[#28292c] hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-slate-700 transition-colors group cursor-pointer text-xs text-left"
                                         >
                                             <div className="flex items-center gap-2 truncate">
                                                 <span className="material-symbols-outlined text-[18px] text-blue-600">description</span>
@@ -428,7 +622,7 @@ const B2BTaskDetail = () => {
                                                 </span>
                                             </div>
                                             <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-blue-600">download</span>
-                                        </a>
+                                        </button>
                                     ))}
                                 </div>
                             </div>
@@ -458,24 +652,91 @@ const B2BTaskDetail = () => {
 
                         {/* Chat Messages Timeline */}
                         <div 
+                            ref={chatContainerRef}
+                            onScroll={handleChatScroll}
                             className="flex-1 overflow-y-auto p-6 space-y-4 bg-white dark:bg-[#1c1c1e]"
                             style={{ '--chat-bg': '#ffffff', '--chat-bg-dark': '#1c1c1e' }}
                         >
-                            {(!task.messages || task.messages.length === 0) ? (
+                            {/* Reverse infinite loading indicator / button */}
+                            {hasMoreOlder ? (
+                                <div className="flex justify-center py-2 shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={loadOlderMessages}
+                                        disabled={isLoadingOlder}
+                                        className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer border border-slate-200 dark:border-slate-700 disabled:opacity-50"
+                                    >
+                                        {isLoadingOlder ? (
+                                            <>
+                                                <span className="material-symbols-outlined text-[15px] text-blue-500 animate-spin">progress_activity</span>
+                                                <span>Önceki mesajlar yükleniyor...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="material-symbols-outlined text-[15px] text-blue-500">history</span>
+                                                <span>Daha eski mesajları göster ({allChatItems.length - visibleCount} mesaj daha)</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            ) : (
+                                allChatItems.length > PAGE_SIZE && (
+                                    <div className="text-center py-2 text-[10px] text-slate-400 font-medium shrink-0">
+                                        — Konuşmanın başlangıcı —
+                                    </div>
+                                )
+                            )}
+
+                            {(!visibleChatItems || visibleChatItems.length === 0) ? (
                                 <div className="text-center py-12 text-slate-400 text-xs">
                                     <span className="material-symbols-outlined text-[32px] text-slate-300 block mb-1">chat</span>
                                     Henüz mesaj bulunmuyor.
                                 </div>
                             ) : (
-                                task.messages.map((msg) => {
+                                visibleChatItems.map((msg) => {
                                     const isAgency = msg.senderType === 'AGENCY_USER';
                                     const isSystem = msg.messageType === 'STATUS_CHANGE' || msg.messageType === 'SYSTEM';
                                     const isPriceOffer = msg.messageType === 'PRICE_OFFER';
 
                                     if (isSystem) {
+                                        const statusMatch = msg.message?.match(/Durum güncellendi:\s*([A-Z_]+)\s*->\s*([A-Z_]+)(?:\.\s*Not:\s*(.*))?/i);
+
+                                        if (statusMatch) {
+                                            const oldStatus = statusMatch[1]?.trim();
+                                            const newStatus = statusMatch[2]?.trim();
+                                            const note = statusMatch[3]?.trim();
+
+                                            const oldConf = statusConfig[oldStatus] || { label: oldStatus, bg: 'bg-slate-100 dark:bg-slate-800 text-slate-600' };
+                                            const newConf = statusConfig[newStatus] || { label: newStatus, bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700' };
+
+                                            return (
+                                                <div key={msg.id} className="flex flex-col items-center justify-center my-3 gap-1.5">
+                                                    <div className="px-3.5 py-1.5 rounded-full bg-slate-50 dark:bg-[#28292c] text-slate-600 dark:text-slate-300 text-[11px] font-medium flex flex-wrap items-center justify-center gap-1.5 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
+                                                        <span className="material-symbols-outlined text-[15px] text-blue-500">sync_alt</span>
+                                                        <span className="font-semibold text-slate-500 dark:text-slate-400">Durum Güncellendi:</span>
+                                                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${oldConf.bg}`}>
+                                                            {oldConf.label}
+                                                        </span>
+                                                        <span className="text-slate-400 font-bold text-[11px]">➔</span>
+                                                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${newConf.bg}`}>
+                                                            {newConf.label}
+                                                        </span>
+                                                        <span className="text-[10px] text-slate-400 ml-1">
+                                                            {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                        </span>
+                                                    </div>
+                                                    {note && (
+                                                        <div className="text-[11px] text-slate-600 dark:text-slate-300 italic bg-amber-50/60 dark:bg-amber-950/20 px-3 py-1 rounded-lg border border-amber-200/60 dark:border-amber-900/40 text-center max-w-[85%]">
+                                                            "{note}"
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        }
+
                                         return (
                                             <div key={msg.id} className="flex items-center justify-center my-2">
-                                                <div className="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] font-medium flex items-center gap-1.5 border border-slate-200 dark:border-slate-700">
+                                                <div className="px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] font-medium flex items-center gap-1.5 border border-slate-200 dark:border-slate-700">
                                                     <span className="material-symbols-outlined text-[14px]">info</span>
                                                     <span>{msg.message}</span>
                                                     <span className="text-[10px] text-slate-400 ml-1">
@@ -503,27 +764,41 @@ const B2BTaskDetail = () => {
                                                     <div className="text-[13px] sm:text-[14px] leading-relaxed whitespace-pre-wrap">{msg.message}</div>
                                                 </div>
                                             ) : isAgency ? (
-                                                <div className="flex flex-col items-end max-w-[85%] sm:max-w-[75%]">
+                                                <div className="flex flex-col items-end max-w-[85%] sm:max-w-[75%] min-w-0">
                                                     <div className="imessage-bubble from-me">
-                                                        <div className="whitespace-pre-wrap select-text leading-relaxed break-normal">
-                                                            {msg.message}
-                                                        </div>
+                                                        {msg.message && (
+                                                            <div className="whitespace-pre-wrap select-text leading-relaxed break-normal">
+                                                                {msg.message}
+                                                            </div>
+                                                        )}
 
                                                         {/* Attachments */}
                                                         {msg.attachments && msg.attachments.length > 0 && (
-                                                            <div className="mt-2 pt-2 border-t border-white/25 space-y-1.5">
-                                                                {msg.attachments.map(a => (
-                                                                    <a
+                                                            <div className={`${msg.message ? 'mt-2 pt-2 border-t border-white/25' : ''} space-y-1.5 w-full`}>
+                                                                {msg.attachments.map(a => isImageAttachment(a) ? (
+                                                                    <ImageAttachmentPreview
                                                                         key={a.id}
-                                                                        href={taskManagementService.getAttachmentDownloadUrl(a.id)}
-                                                                        target="_blank"
-                                                                        rel="noreferrer"
-                                                                        className="flex items-center gap-2 p-1.5 px-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-[12px] font-medium transition-colors cursor-pointer border border-white/20"
+                                                                        attachment={a}
+                                                                        isFromMe={true}
+                                                                        onPreview={setPreviewImage}
+                                                                    />
+                                                                ) : (
+                                                                    <button
+                                                                        key={a.id}
+                                                                        type="button"
+                                                                        title={a.fileOriginalName || a.fileName}
+                                                                        onClick={() => taskManagementService.downloadAttachment(a.id, a.fileOriginalName || a.fileName)}
+                                                                        className="w-full min-w-[200px] max-w-full flex items-center gap-2.5 p-2 px-3 rounded-xl bg-white/15 hover:bg-white/25 text-white text-[12px] font-medium transition-all cursor-pointer border border-white/20 text-left group"
                                                                     >
-                                                                        <span className="material-symbols-outlined text-[16px]">description</span>
-                                                                        <span className="truncate flex-1">{a.fileOriginalName || a.fileName}</span>
-                                                                        <span className="material-symbols-outlined text-[14px] opacity-80">download</span>
-                                                                    </a>
+                                                                        <div className="size-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                                                                            <span className="material-symbols-outlined text-[17px]">description</span>
+                                                                        </div>
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <span className="block truncate font-semibold leading-tight text-[12px]">{a.fileOriginalName || a.fileName}</span>
+                                                                            <span className="text-[10px] opacity-75 block mt-0.5">İndirmek için tıklayın</span>
+                                                                        </div>
+                                                                        <span className="material-symbols-outlined text-[16px] opacity-80 group-hover:opacity-100 group-hover:translate-y-0.5 transition-all shrink-0">download</span>
+                                                                    </button>
                                                                 ))}
                                                             </div>
                                                         )}
@@ -533,30 +808,44 @@ const B2BTaskDetail = () => {
                                                     </span>
                                                 </div>
                                             ) : (
-                                                <div className="flex flex-col items-start max-w-[85%] sm:max-w-[75%]">
+                                                <div className="flex flex-col items-start max-w-[85%] sm:max-w-[75%] min-w-0">
                                                     <span className="text-[11px] text-slate-400 font-semibold mb-1 px-1">
                                                         {msg.senderName || 'TOG Operasyon'}
                                                     </span>
                                                     <div className="imessage-bubble from-them">
-                                                        <div className="whitespace-pre-wrap select-text leading-relaxed break-normal">
-                                                            {msg.message}
-                                                        </div>
+                                                        {msg.message && (
+                                                            <div className="whitespace-pre-wrap select-text leading-relaxed break-normal">
+                                                                {msg.message}
+                                                            </div>
+                                                        )}
 
                                                         {/* Attachments */}
                                                         {msg.attachments && msg.attachments.length > 0 && (
-                                                            <div className="mt-2 pt-2 border-t border-black/10 dark:border-white/10 space-y-1.5">
-                                                                {msg.attachments.map(a => (
-                                                                    <a
+                                                            <div className={`${msg.message ? 'mt-2 pt-2 border-t border-black/10 dark:border-white/10' : ''} space-y-1.5 w-full`}>
+                                                                {msg.attachments.map(a => isImageAttachment(a) ? (
+                                                                    <ImageAttachmentPreview
                                                                         key={a.id}
-                                                                        href={taskManagementService.getAttachmentDownloadUrl(a.id)}
-                                                                        target="_blank"
-                                                                        rel="noreferrer"
-                                                                        className="flex items-center gap-2 p-1.5 px-2.5 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-slate-50 dark:hover:bg-[#3A3A3C] text-blue-600 dark:text-blue-400 text-[12px] font-medium transition-colors cursor-pointer border border-slate-200/60 dark:border-white/10 shadow-xs"
+                                                                        attachment={a}
+                                                                        isFromMe={false}
+                                                                        onPreview={setPreviewImage}
+                                                                    />
+                                                                ) : (
+                                                                    <button
+                                                                        key={a.id}
+                                                                        type="button"
+                                                                        title={a.fileOriginalName || a.fileName}
+                                                                        onClick={() => taskManagementService.downloadAttachment(a.id, a.fileOriginalName || a.fileName)}
+                                                                        className="w-full min-w-[200px] max-w-full flex items-center gap-2.5 p-2 px-3 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-slate-50 dark:hover:bg-[#2C2C2E] text-slate-800 dark:text-slate-100 text-[12px] font-medium transition-all cursor-pointer border border-slate-200/80 dark:border-white/10 shadow-xs text-left group"
                                                                     >
-                                                                        <span className="material-symbols-outlined text-[16px]">description</span>
-                                                                        <span className="truncate flex-1 text-slate-800 dark:text-slate-200">{a.fileOriginalName || a.fileName}</span>
-                                                                        <span className="material-symbols-outlined text-[14px]">download</span>
-                                                                    </a>
+                                                                        <div className="size-7 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                                                            <span className="material-symbols-outlined text-[17px]">description</span>
+                                                                        </div>
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <span className="block truncate font-semibold leading-tight text-slate-900 dark:text-white text-[12px]">{a.fileOriginalName || a.fileName}</span>
+                                                                            <span className="text-[10px] text-slate-400 dark:text-slate-400 block mt-0.5">İndirmek için tıklayın</span>
+                                                                        </div>
+                                                                        <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400 group-hover:translate-y-0.5 transition-all shrink-0">download</span>
+                                                                    </button>
                                                                 ))}
                                                             </div>
                                                         )}
@@ -708,6 +997,53 @@ const B2BTaskDetail = () => {
                                 {submittingDecision ? 'İşleniyor...' : (pendingApprovalState ? 'Onaylıyorum' : 'Reddediyorum')}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Image Fullscreen Lightbox Modal */}
+            {previewImage && (
+                <div 
+                    className="fixed inset-0 z-[1000000] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 select-none animate-in fade-in duration-200"
+                    onClick={() => setPreviewImage(null)}
+                >
+                    {/* Top Floating Control Bar */}
+                    <div 
+                        className="absolute top-4 inset-x-4 max-w-4xl mx-auto flex items-center justify-between z-10 px-4 py-2.5 rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 text-white shadow-2xl"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-2 truncate pr-4">
+                            <span className="material-symbols-outlined text-blue-400 text-[20px]">image</span>
+                            <span className="text-sm font-semibold truncate">{previewImage.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => taskManagementService.downloadAttachment(previewImage.id, previewImage.name)}
+                                className="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-blue-600 text-white transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+                                title="İndir"
+                            >
+                                <span className="material-symbols-outlined text-[17px]">download</span>
+                                <span>İndir</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setPreviewImage(null)}
+                                className="p-1.5 rounded-xl bg-white/15 hover:bg-red-600 text-white transition-all cursor-pointer flex items-center justify-center"
+                                title="Kapat (ESC)"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">close</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Big Image View */}
+                    <div className="max-w-[92vw] max-h-[84vh] flex items-center justify-center" onClick={e => e.stopPropagation()}>
+                        <img
+                            src={previewImage.url}
+                            alt={previewImage.name}
+                            className="max-w-full max-h-[84vh] object-contain rounded-xl shadow-2xl transition-transform"
+                        />
                     </div>
                 </div>
             )}

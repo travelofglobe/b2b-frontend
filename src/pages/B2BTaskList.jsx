@@ -62,9 +62,9 @@ const B2BTaskList = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [priorityFilter, setPriorityFilter] = useState('');
 
-    const fetchTasks = useCallback(async () => {
+    const fetchTasks = useCallback(async (isSilent = false) => {
         try {
-            setLoading(true);
+            if (!isSilent) setLoading(true);
             const payload = {
                 productType: productTab === 'ALL' ? null : productTab,
                 search: search.trim() || null,
@@ -82,12 +82,16 @@ const B2BTaskList = () => {
         } catch (err) {
             console.error('Error fetching tasks:', err);
         } finally {
-            setLoading(false);
+            if (!isSilent) setLoading(false);
         }
     }, [productTab, search, statusFilter, priorityFilter, page, size]);
 
     useEffect(() => {
         fetchTasks();
+    }, [fetchTasks]);
+
+    const handleTaskUpdated = useCallback(() => {
+        fetchTasks(true);
     }, [fetchTasks]);
 
     const resetFilters = () => {
@@ -227,12 +231,52 @@ const B2BTaskList = () => {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs text-slate-700 dark:text-slate-300">
                                 {loading ? (
-                                    <tr>
-                                        <td colSpan="9" className="py-12 text-center text-slate-400">
-                                            <div className="size-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                                            <span>Talepler yükleniyor...</span>
-                                        </td>
-                                    </tr>
+                                    Array.from({ length: 7 }).map((_, idx) => (
+                                        <tr key={`b2b-skeleton-${idx}`} className="animate-pulse">
+                                            {/* Talep No */}
+                                            <td className="py-4 px-4 whitespace-nowrap">
+                                                <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700/60 rounded-md"></div>
+                                            </td>
+                                            {/* Ürün & Rez No */}
+                                            <td className="py-4 px-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="size-5 bg-slate-200 dark:bg-slate-700/60 rounded-full shrink-0"></div>
+                                                    <div>
+                                                        <div className="h-3.5 w-28 bg-slate-200 dark:bg-slate-700/60 rounded mb-1"></div>
+                                                        <div className="h-2.5 w-16 bg-slate-100 dark:bg-slate-800 rounded"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            {/* Talep Tipi */}
+                                            <td className="py-4 px-4">
+                                                <div className="h-5 w-28 bg-slate-200 dark:bg-slate-700/60 rounded-lg"></div>
+                                            </td>
+                                            {/* Öncelik */}
+                                            <td className="py-4 px-4 whitespace-nowrap">
+                                                <div className="h-5 w-16 bg-slate-200 dark:bg-slate-700/60 rounded-full"></div>
+                                            </td>
+                                            {/* Durum */}
+                                            <td className="py-4 px-4 whitespace-nowrap">
+                                                <div className="h-5 w-20 bg-slate-200 dark:bg-slate-700/60 rounded-full"></div>
+                                            </td>
+                                            {/* Fiyat Farkı */}
+                                            <td className="py-4 px-4">
+                                                <div className="h-3.5 w-14 bg-slate-200 dark:bg-slate-700/60 rounded"></div>
+                                            </td>
+                                            {/* Mesaj Sayısı */}
+                                            <td className="py-4 px-4">
+                                                <div className="h-3.5 w-8 bg-slate-200 dark:bg-slate-700/60 rounded"></div>
+                                            </td>
+                                            {/* Son Güncelleme */}
+                                            <td className="py-4 px-4 whitespace-nowrap">
+                                                <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700/60 rounded"></div>
+                                            </td>
+                                            {/* İşlem */}
+                                            <td className="py-4 px-4 text-right">
+                                                <div className="h-6 w-14 bg-slate-200 dark:bg-slate-700/60 rounded-lg ml-auto"></div>
+                                            </td>
+                                        </tr>
+                                    ))
                                 ) : tasks.length === 0 ? (
                                     <tr>
                                         <td colSpan="9" className="py-12 text-center text-slate-400">
@@ -385,7 +429,7 @@ const B2BTaskList = () => {
                 initialTask={selectedTask}
                 isOpen={isDrawerOpen}
                 onClose={handleCloseDrawer}
-                onUpdated={fetchTasks}
+                onUpdated={handleTaskUpdated}
             />
         </div>
     );

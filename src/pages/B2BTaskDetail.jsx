@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from 're
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { taskManagementService } from '../services/taskManagementService';
+import { useAuth } from '../context/AuthContext';
 
 const statusConfig = {
     OPEN: { label: 'Açık', bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800', dot: 'bg-blue-500' },
@@ -147,6 +148,11 @@ const B2BTaskDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { user } = useAuth();
+
+    const userDisplayName = (user?.name || user?.surname)
+        ? `${user.name || ''} ${user.surname || ''}`.trim()
+        : (user?.fullName || user?.email || 'Acente Kullanıcısı');
 
     const [task, setTask] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -304,7 +310,8 @@ const B2BTaskDetail = () => {
                 const msgRes = await taskManagementService.addMessage(id, {
                     message: text,
                     messageType: 'TEXT',
-                    senderName: 'Acente Yetkilisi'
+                    senderName: userDisplayName,
+                    senderUserId: user?.id
                 });
                 messageId = msgRes?.data?.id || msgRes?.id;
             }
@@ -312,7 +319,7 @@ const B2BTaskDetail = () => {
             // 2. Upload files if any
             if (files.length > 0) {
                 for (const f of files) {
-                    await taskManagementService.uploadAttachment(id, f, messageId);
+                    await taskManagementService.uploadAttachment(id, f, messageId, userDisplayName);
                 }
             }
 

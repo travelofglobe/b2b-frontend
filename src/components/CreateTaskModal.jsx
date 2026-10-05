@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { taskManagementService } from '../services/taskManagementService';
+import { useAuth } from '../context/AuthContext';
 
 const priorityOptions = [
     { value: 'LOW', label: 'Düşük / Low', color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' },
@@ -12,9 +13,15 @@ const priorityOptions = [
 
 const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSuccess }) => {
     const { t } = useTranslation();
+    const { user } = useAuth();
     const fileInputRef = useRef(null);
 
+    const userDisplayName = (user?.name || user?.surname)
+        ? `${user.name || ''} ${user.surname || ''}`.trim()
+        : (user?.fullName || user?.email || 'Acente Kullanıcısı');
+
     const [taskTypes, setTaskTypes] = useState([]);
+    const [selectedTypeId, setSelectedTypeId] = useState(null);
     const [selectedTypeCode, setSelectedTypeCode] = useState('');
     const [selectedTypeName, setSelectedTypeName] = useState('');
     const [priority, setPriority] = useState('NORMAL');
@@ -46,12 +53,14 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
             const types = await taskManagementService.getActiveTaskTypes(productType);
             if (types && types.length > 0) {
                 setTaskTypes(types);
+                setSelectedTypeId(types[0].id || null);
                 setSelectedTypeCode(types[0].code);
                 setSelectedTypeName(types[0].name);
             } else {
                 // Fallback default types for product
                 const fallback = getFallbackTypes(productType);
                 setTaskTypes(fallback);
+                setSelectedTypeId(null);
                 setSelectedTypeCode(fallback[0]?.code || 'OTHER');
                 setSelectedTypeName(fallback[0]?.name || 'Diğer Talepler');
             }
@@ -59,6 +68,7 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
             console.warn('Failed to fetch dynamic task types, using defaults:', err);
             const fallback = getFallbackTypes(productType);
             setTaskTypes(fallback);
+            setSelectedTypeId(null);
             setSelectedTypeCode(fallback[0]?.code || 'OTHER');
             setSelectedTypeName(fallback[0]?.name || 'Diğer Talepler');
         } finally {
@@ -114,7 +124,10 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
     const handleTypeSelect = (code) => {
         setSelectedTypeCode(code);
         const t = taskTypes.find(x => x.code === code);
-        if (t) setSelectedTypeName(t.name);
+        if (t) {
+            setSelectedTypeName(t.name);
+            setSelectedTypeId(t.id || null);
+        }
     };
 
     const handleFileChange = (e) => {
@@ -159,15 +172,22 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
                 removeGuestName: removeGuestName || null
             };
 
+            const resolvedBookingId = (booking?.bookingId ?? booking?.id)
+                ? Number(booking.bookingId ?? booking.id)
+                : (reservationNo && !isNaN(reservationNo) ? Number(reservationNo) : null);
+
             const payload = {
                 productType: productType.toUpperCase(),
                 reservationNo: String(reservationNo),
-                bookingId: booking?.id ? Number(booking.id) : null,
+                bookingId: resolvedBookingId,
+                taskTypeId: selectedTypeId || null,
                 taskTypeCode: selectedTypeCode,
                 taskTypeName: selectedTypeName,
                 priority: priority,
                 title: `${selectedTypeName} - #${reservationNo}`,
                 description: description.trim(),
+                createdByUserId: user?.id || null,
+                createdByUserName: userDisplayName,
                 productName: productName,
                 supplierName: supplierName,
                 currentDataJson: JSON.stringify(currentDataObj),
@@ -180,7 +200,7 @@ const CreateTaskModal = ({ isOpen, onClose, booking, productType = 'HOTEL', onSu
             if (files.length > 0 && createdTask?.id) {
                 for (const f of files) {
                     try {
-                        await taskManagementService.uploadAttachment(createdTask.id, f);
+                        await taskManagementService.uploadAttachment(createdTask.id, f, null, userDisplayName);
                     } catch (attErr) {
                         console.error('Failed to upload file attachment:', attErr);
                     }

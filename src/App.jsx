@@ -20,6 +20,7 @@ import GSAAgencyManagement from './pages/GSAAgencyManagement';
 import SubAgencyMarkups from './pages/SubAgencyMarkups';
 import FinancePage from './pages/FinancePage';
 import TransactionDetailPage from './pages/TransactionDetailPage';
+import LimitManagementPage from './pages/LimitManagementPage';
 import UnderConstruction from './pages/UnderConstruction';
 import ProtectedRoute from './components/ProtectedRoute';
 import PortalLayout from './layouts/PortalLayout';
@@ -78,6 +79,7 @@ function App() {
 
               <Route path="/finance" element={<FinancePage />} />
               <Route path="/finance/transactions/detail" element={<TransactionDetailPage />} />
+              <Route path="/finance/limits" element={<LimitManagementPage />} />
               <Route path="/accounting" element={<UnderConstruction title="Accounting" icon="analytics" />} />
               
               {/* Talep Yönetimi / Task Management Routes */}

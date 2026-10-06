@@ -35,4 +35,56 @@ export const financeService = {
             { signal }
         );
     },
+
+    // ─── Limit Management ────────────────────────────────────────────────────
+
+    /**
+     * Fetch paginated agency limits with optional filters.
+     * @param {Object} filters - { query, status, agencyType, currency }
+     * @param {number} page
+     * @param {number} size
+     * @param {AbortSignal} signal
+     */
+    filterLimits: async (filters = {}, page = 0, size = 10, signal) => {
+        return apiClient.post(
+            `${FINANCE_API_BASE}/agency-limit/filter?page=${page}&size=${size}`,
+            filters,
+            { signal }
+        );
+    },
+
+    /**
+     * Create a new agency limit.
+     * @param {{ agencyId: number, creditLimit: number, usedLimit: number }} data
+     */
+    createLimit: async (data) => {
+        return apiClient.post(`${FINANCE_API_BASE}/agency-limit`, data);
+    },
+
+    /**
+     * Update an existing agency limit (creditLimit and/or status).
+     * @param {number} id
+     * @param {{ creditLimit?: number, status?: string }} data
+     */
+    updateLimit: async (id, data) => {
+        return apiClient.put(`${FINANCE_API_BASE}/agency-limit/${id}`, data);
+    },
+
+    /**
+     * Fetch the limit summary for the logged-in user's hierarchy.
+     */
+    getLimitSummary: async (signal) => {
+        return apiClient.post(
+            `${FINANCE_API_BASE}/agency-limit/get-limit-summary`,
+            {},
+            { signal }
+        );
+    },
+
+    /**
+     * Fetch active currencies list for currency selector.
+     */
+    listActiveCurrencies: async (signal) => {
+        return apiClient.get(`${FINANCE_API_BASE}/currency/list-active-currencies`, { signal });
+    },
 };

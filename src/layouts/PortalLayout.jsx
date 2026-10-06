@@ -281,6 +281,9 @@ const PortalLayout = () => {
                                 <div className="space-y-0.5 animate-in slide-in-from-top-1 duration-200">
                                     {[
                                         { path: '/finance?tab=transactions', matchPath: '/finance', icon: 'receipt_long', label: t('sidebar.transactions') },
+                                        ...(['GSA', 'RSA'].includes(agencyType)
+                                            ? [{ path: '/finance/limits', matchPath: '/finance/limits', icon: 'tune', label: 'Limit Yönetimi' }]
+                                            : []),
                                     ].map(({ path, matchPath, icon, label }) => {
                                         const isActive = location.pathname === (matchPath || path);
                                         return (

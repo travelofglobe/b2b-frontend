@@ -618,10 +618,91 @@ const BookingDetail = () => {
 
                 {/* 1. Google Travel Stay / Flight Hero Itinerary Banner */}
                 <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-6 sm:p-7 shadow-xs space-y-6">
+
+                    {/* ── Cancellation / Status Banner ─────────────────────────── */}
+                    {(() => {
+                        const status = booking.hotel?.bookingStatus;
+                        const isCancelled = status === 'CANCELLED' || status === 'CANCELLED_WITH_PENALTY';
+                        const isError = status === 'ERROR';
+
+                        if (!isCancelled && !isError && status !== 'NEW') return null;
+
+                        // Format cancel datetime
+                        const cancelDT = booking.hotel?.cancelDateTime;
+                        const cancelDateFormatted = cancelDT
+                            ? new Date(cancelDT).toLocaleString('tr-TR', {
+                                year: 'numeric', month: '2-digit', day: '2-digit',
+                                hour: '2-digit', minute: '2-digit'
+                              })
+                            : null;
+
+                        // Map cancelReason to human-readable text
+                        const CANCEL_REASON_LABELS = {
+                            SUPPLIER_REJECTION:     currentLang === 'tr' ? 'Tedarikçi rezervasyonu reddetti'         : 'Supplier rejected the reservation',
+                            GUEST_REQUEST:          currentLang === 'tr' ? 'Misafir talebi üzerine iptal edildi'     : 'Cancelled at guest request',
+                            HOTEL_REQUEST:          currentLang === 'tr' ? 'Otel talebi üzerine iptal edildi'        : 'Cancelled at hotel request',
+                            NO_SHOW:                currentLang === 'tr' ? 'Misafir gelmedi (No-Show)'               : 'No-show by guest',
+                            SYSTEM_ERROR:           currentLang === 'tr' ? 'Sistem hatası nedeniyle iptal edildi'    : 'Cancelled due to system error',
+                            ADMIN_CANCELLATION:     currentLang === 'tr' ? 'Yönetici tarafından iptal edildi'        : 'Cancelled by admin',
+                            DUPLICATE_RESERVATION:  currentLang === 'tr' ? 'Mükerrer rezervasyon nedeniyle iptal'   : 'Duplicate reservation',
+                        };
+                        const reasonText = CANCEL_REASON_LABELS[booking.hotel?.cancelReason] || booking.hotel?.cancelReason || null;
+                        const cancelNote = booking.hotel?.cancelNote;
+
+                        // Determine banner style
+                        const bannerStyle = isError
+                            ? 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/50 text-rose-700 dark:text-rose-300'
+                            : status === 'CANCELLED_WITH_PENALTY'
+                            ? 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800/50 text-orange-700 dark:text-orange-300'
+                            : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-300';
+
+                        const iconStyle = isError ? 'text-rose-500' : status === 'CANCELLED_WITH_PENALTY' ? 'text-orange-500' : 'text-red-500';
+                        const icon = isError ? 'error' : status === 'CANCELLED_WITH_PENALTY' ? 'money_off' : 'cancel';
+
+                        return (
+                            <div className={`flex items-start gap-3 px-4 py-3.5 rounded-xl border ${bannerStyle} mb-2`}>
+                                <span className={`material-symbols-outlined text-[22px] shrink-0 mt-0.5 ${iconStyle}`}
+                                    style={{ fontVariationSettings: "'FILL' 1" }}>
+                                    {icon}
+                                </span>
+                                <div className="flex flex-col gap-1 min-w-0">
+                                    {/* Status + datetime */}
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <BookingStatusBadge status={status} showIcon className="text-[11px]" />
+                                        {cancelDateFormatted && (
+                                            <span className="text-xs font-medium opacity-80">
+                                                {currentLang === 'tr'
+                                                    ? `Bu rezervasyon ${cancelDateFormatted} tarihinde iptal edilmiştir.`
+                                                    : `This reservation was cancelled on ${cancelDateFormatted}.`}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {/* Cancel reason */}
+                                    {reasonText && (
+                                        <p className="text-xs font-semibold">
+                                            {currentLang === 'tr' ? 'İptal Nedeni:' : 'Cancellation Reason:'}{' '}
+                                            <span className="font-normal">{reasonText}</span>
+                                        </p>
+                                    )}
+                                    {/* Cancel note */}
+                                    {cancelNote && cancelNote !== reasonText && (
+                                        <p className="text-xs opacity-75 italic">{cancelNote}</p>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })()}
+
                     {/* Top Row: Hotel Title & Price */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#dadce0] dark:border-[#3c4043]">
                         <div className="space-y-1.5">
                             <div className="flex flex-wrap items-center gap-2.5">
+                                {/* BookingStatus badge above hotel name */}
+                                {booking.hotel?.bookingStatus && (
+                                    <div className="w-full mb-0.5">
+                                        <BookingStatusBadge status={booking.hotel.bookingStatus} showIcon className="text-[12px]" />
+                                    </div>
+                                )}
                                 <h1 className="text-2xl sm:text-3xl font-bold text-[#202124] dark:text-white tracking-tight">
                                     {booking.hotel?.hotelName || 'Otel Bilgisi'}
                                 </h1>

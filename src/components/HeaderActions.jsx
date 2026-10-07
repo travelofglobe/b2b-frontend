@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 import ThemeToggle from './ThemeToggle';
 import { agencyService } from '../services/agencyService';
 import { useTranslation } from 'react-i18next';
@@ -25,7 +25,7 @@ const HeaderActions = () => {
     const { t, i18n } = useTranslation();
     const currentLang = (i18n.language || 'en').split('-')[0].toLowerCase();
     const L = LABELS[currentLang] || LABELS.en;
-    const { user, logout } = useAuth();
+    const { user, logout, myLimit, agencyCurrency, currencySymbolMap } = useAuth();
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isConfirmSignOutOpen, setIsConfirmSignOutOpen] = useState(false);
@@ -76,6 +76,51 @@ const HeaderActions = () => {
     return (
         <div className="flex items-center gap-2">
             <ThemeToggle />
+
+            {/* ── Credit Limit Widget ── */}
+            {myLimit && (
+                <div className="hidden sm:flex items-center gap-px rounded-lg overflow-hidden border border-[#dadce0] dark:border-slate-700 text-[11px] font-medium select-none">
+                    {/* Credit */}
+                    <div className="flex flex-col items-end px-2.5 py-1 bg-[#f8f9fa] dark:bg-[#2c2c2e]">
+                        <span className="text-[9px] font-semibold uppercase tracking-wide text-[#70757a] dark:text-slate-400 leading-none mb-0.5">
+                            Kredi
+                        </span>
+                        <span className="text-[#202124] dark:text-slate-100 tabular-nums leading-none">
+                            {getCurrencySymbol(myLimit.agency?.currency || agencyCurrency, currencySymbolMap)}{' '}
+                            {Number(myLimit.creditLimit ?? 0).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </span>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="w-px self-stretch bg-[#dadce0] dark:bg-slate-700" />
+
+                    {/* Used */}
+                    <div className="flex flex-col items-end px-2.5 py-1 bg-[#f8f9fa] dark:bg-[#2c2c2e]">
+                        <span className="text-[9px] font-semibold uppercase tracking-wide text-[#d93025] dark:text-red-400 leading-none mb-0.5">
+                            Kullanılan
+                        </span>
+                        <span className="text-[#d93025] dark:text-red-400 tabular-nums leading-none">
+                            {getCurrencySymbol(myLimit.agency?.currency || agencyCurrency, currencySymbolMap)}{' '}
+                            {Number(myLimit.usedLimit ?? 0).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </span>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="w-px self-stretch bg-[#dadce0] dark:bg-slate-700" />
+
+                    {/* Available */}
+                    <div className="flex flex-col items-end px-2.5 py-1 bg-[#f8f9fa] dark:bg-[#2c2c2e]">
+                        <span className="text-[9px] font-semibold uppercase tracking-wide text-[#137333] dark:text-emerald-400 leading-none mb-0.5">
+                            Kullanılabilir
+                        </span>
+                        <span className="text-[#137333] dark:text-emerald-400 tabular-nums leading-none">
+                            {getCurrencySymbol(myLimit.agency?.currency || agencyCurrency, currencySymbolMap)}{' '}
+                            {Number(myLimit.availableLimit ?? 0).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </span>
+                    </div>
+                </div>
+            )}
+
             <div className="relative" ref={menuRef}>
                 <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}

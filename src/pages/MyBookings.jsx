@@ -177,13 +177,13 @@ const MyBookings = () => {
     };
 
     const AVAILABLE_COLUMNS = [
-        "Reservation Number", "Reservation Date", "Check-in", "Check-out", "Hotel", 
+        "Reservation Number", "Voucher", "Reservation Date", "Check-in", "Check-out", "Hotel", 
         "Country", "City", "GSA", "RSA", "Agency", "Room", 
         "Board Type", "Guest", "Status", "Currency", "Net Amount", "Markup", 
         "Sale Amount", "Profit", "Supplier", "Supplier Reservation Number"
     ];
 
-    const [columns, setColumns] = useState(["Reservation Number", "Reservation Date", "Check-in", "Check-out", "Hotel", "Agency", "Status", "Currency", "Sale Amount"]);
+    const [columns, setColumns] = useState(["Reservation Number", "Voucher", "Reservation Date", "Check-in", "Check-out", "Hotel", "Agency", "Status", "Currency", "Sale Amount"]);
     const [allAgencies, setAllAgencies] = useState([]);
     
     // Location states
@@ -1049,13 +1049,13 @@ const MyBookings = () => {
                                 </div>
                             </div>
 
-                            {/* Group 3: Konaklama & Konum */}
+                            {/* Group 3a: Hotel */}
                             <div className="space-y-3 bg-[#f8f9fa] dark:bg-[#202124] p-3.5 rounded-xl border border-[#dadce0]/60 dark:border-[#3c4043]/60">
                                 <span className="block font-bold text-[#3c4043] dark:text-slate-200 uppercase tracking-wider text-[11px]">
-                                    {L('hotelLocation')}
+                                    {L('colHotel')}
                                 </span>
                                 <div>
-                                    <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">{L('colHotel')}</label>
+                                    <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">{L('phHotelName')}</label>
                                     <input 
                                         type="text" 
                                         value={filters.hotelName} 
@@ -1064,6 +1064,13 @@ const MyBookings = () => {
                                         className="w-full bg-white dark:bg-[#28292c] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1.5 px-2.5 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]" 
                                     />
                                 </div>
+                            </div>
+
+                            {/* Group 3b: Location */}
+                            <div className="space-y-3 bg-[#f8f9fa] dark:bg-[#202124] p-3.5 rounded-xl border border-[#dadce0]/60 dark:border-[#3c4043]/60">
+                                <span className="block font-bold text-[#3c4043] dark:text-slate-200 uppercase tracking-wider text-[11px]">
+                                    Location
+                                </span>
                                 <div>
                                     <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">{L('country')}</label>
                                     <GenericMultiSelect options={countryOptions} selectedValues={filters.countryIds || []} onChange={(values) => handleFilterChange('countryIds', values)} placeholder={L('selectCountry')} />

@@ -295,13 +295,15 @@ const TransactionDetailPage = () => {
                                         <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Para Birimi</th>
                                         <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">İşlem Tarihi</th>
                                         <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Giriş Tarihi</th>
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Çıkış Tarihi</th>
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Otel Adı</th>
                                         <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Durum</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {details.length === 0 ? (
                                         <tr>
-                                            <td colSpan={13} className="text-center py-16 text-slate-400 dark:text-slate-500">
+                                            <td colSpan={15} className="text-center py-16 text-slate-400 dark:text-slate-500">
                                                 <div className="flex flex-col items-center gap-2">
                                                     <span className="material-symbols-outlined text-4xl">receipt_long</span>
                                                     <span className="text-sm">Detay kaydı bulunamadı</span>
@@ -421,6 +423,16 @@ const DetailRow = ({ row }) => {
             {/* Giriş Tarihi (checkInDate) */}
             <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
                 {fmtDate(row.checkInDate)}
+            </td>
+
+            {/* Çıkış Tarihi (checkOutDate) */}
+            <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                {fmtDate(row.checkOutDate)}
+            </td>
+
+            {/* Otel Adı */}
+            <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-200 whitespace-nowrap">
+                {row.hotelName || '-'}
             </td>
 
             {/* Durum */}

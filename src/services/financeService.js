@@ -87,4 +87,12 @@ export const financeService = {
     listActiveCurrencies: async (signal) => {
         return apiClient.get(`${FINANCE_API_BASE}/currency/list-active-currencies`, { signal });
     },
+
+    /**
+     * Fetch the credit limit record assigned to the logged-in user's agency.
+     * Returns { agency, creditLimit, usedLimit, availableLimit, usageRate, currency, status, ... }
+     */
+    getMyLimit: async (signal) => {
+        return apiClient.get(`${FINANCE_API_BASE}/agency-limit/get-my-limit`, { signal });
+    },
 };

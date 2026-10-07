@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect, useMemo, useCall
 import { authService } from '../services/authService';
 import { agencyService } from '../services/agencyService';
 import { currencyService } from '../services/currencyService';
+import { financeService } from '../services/financeService';
 
 import i18n from '../i18n';
 import { getCountryCodeFromName, getUserCountryCode } from '../utils/geoUtils';
@@ -17,8 +18,11 @@ export const AuthProvider = ({ children }) => {
     const [agencyType, setAgencyType] = useState(null);
     // Map of currency code -> symbol fetched from backend
     const [currencySymbolMap, setCurrencySymbolMap] = useState({});
+    // My agency's credit limit data — refreshed every 5 minutes
+    const [myLimit, setMyLimit] = useState(null);
 
     const isAutoRenewingRef = useRef(false);
+    const myLimitIntervalRef = useRef(null);
 
     // Initial auth check - runs only once on mount
     useEffect(() => {
@@ -94,6 +98,42 @@ export const AuthProvider = ({ children }) => {
         return () => controller.abort();
     }, [user]);
 
+    // Fetch my agency limit on login + refresh every 5 minutes
+    useEffect(() => {
+        if (!user) {
+            setMyLimit(null);
+            if (myLimitIntervalRef.current) {
+                clearInterval(myLimitIntervalRef.current);
+                myLimitIntervalRef.current = null;
+            }
+            return;
+        }
+
+        const fetchMyLimit = async () => {
+            try {
+                const res = await financeService.getMyLimit();
+                if (res) setMyLimit(res);
+            } catch (err) {
+                if (err?.name !== 'AbortError') {
+                    console.error('Failed to fetch my limit:', err);
+                }
+            }
+        };
+
+        // Fetch immediately on login
+        fetchMyLimit();
+
+        // Then refresh every 5 minutes
+        myLimitIntervalRef.current = setInterval(fetchMyLimit, 5 * 60 * 1000);
+
+        return () => {
+            if (myLimitIntervalRef.current) {
+                clearInterval(myLimitIntervalRef.current);
+                myLimitIntervalRef.current = null;
+            }
+        };
+    }, [user]);
+
     // Session tracking & silent auto-renew token when near expiration
     useEffect(() => {
         const updateTimer = async () => {
@@ -148,6 +188,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setAgencyCurrency(null);
         setAgencyType(null);
+        setMyLimit(null);
     }, []);
 
     const renewSession = useCallback(async () => {
@@ -162,6 +203,15 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+    const refreshMyLimit = useCallback(async () => {
+        try {
+            const res = await financeService.getMyLimit();
+            if (res) setMyLimit(res);
+        } catch (err) {
+            console.error('Failed to refresh my limit:', err);
+        }
+    }, []);
+
     const value = useMemo(() => ({
         user,
         loading,
@@ -171,8 +221,10 @@ export const AuthProvider = ({ children }) => {
         renewSession,
         agencyCurrency,
         agencyType,
-        currencySymbolMap
-    }), [user, loading, login, logout, remainingSeconds, renewSession, agencyCurrency, agencyType, currencySymbolMap]);
+        currencySymbolMap,
+        myLimit,
+        refreshMyLimit,
+    }), [user, loading, login, logout, remainingSeconds, renewSession, agencyCurrency, agencyType, currencySymbolMap, myLimit, refreshMyLimit]);
 
     return (
         <AuthContext.Provider value={value}>

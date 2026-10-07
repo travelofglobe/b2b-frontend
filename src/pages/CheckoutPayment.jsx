@@ -776,7 +776,7 @@ const CheckoutPayment = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { i18n } = useTranslation();
-    const { agencyCurrency, currencySymbolMap } = useAuth();
+    const { agencyCurrency, currencySymbolMap, myLimit, refreshMyLimit } = useAuth();
     const [currentLang, setCurrentLang] = useState(() => {
         const rawLang = i18n.language || localStorage.getItem('language') || 'tr';
         return rawLang.split('-')[0].toLowerCase();
@@ -976,6 +976,9 @@ const CheckoutPayment = () => {
                 }
             }
 
+            // Refresh credit limit header widget after successful booking
+            refreshMyLimit();
+
             navigate('/travel/hotels/checkout/result', {
                 state: {
                     ...location.state,
@@ -1098,7 +1101,7 @@ const CheckoutPayment = () => {
     const grandTotal = checkRatesData?.rooms?.reduce((sum, room) => sum + (room.rates?.[0]?.price?.calculatedAmount || room.rates?.[0]?.price?.totalPaymentAmount || 0), 0) || checkRatesData?.price?.calculatedAmount || checkRatesData?.price?.totalPaymentAmount || ((selectedRooms?.reduce((sum, r) => sum + r.rate, 0) || 0));
     const displayCurrency = checkRate?.price?.currency || checkRatesData?.price?.currency || selectedRooms?.[0]?.currency || agencyCurrency || 'USD';
 
-    const availableFunds = 12450.00;
+    const availableFunds = myLimit?.availableLimit ?? 0;
     const isInsufficientBalance = grandTotal > availableFunds;
 
     return (
@@ -1356,7 +1359,7 @@ const CheckoutPayment = () => {
                                                     <p className="text-[10px] text-[#70757a]">B2B Credit Line</p>
                                                 </div>
                                                 <span className="text-base font-semibold text-[#202124] dark:text-white tabular-nums">
-                                                    {getCurrencySymbol(displayCurrency, currencySymbolMap)} 12,450.00
+                                                    {getCurrencySymbol(displayCurrency, currencySymbolMap)} {Number(availableFunds).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </span>
                                             </div>
 

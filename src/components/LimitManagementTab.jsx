@@ -775,7 +775,7 @@ const LimitManagementTab = () => {
                         <tbody>
                             {limits.map((item, idx) => {
                                 const currency = item.agency?.currency || item.currency || '—';
-                                const rate = Number(item.usageRate ?? 0) * 100;
+                                const rate = Number(item.usageRate ?? 0);
                                 const isWarning = rate >= 90;
 
                                 return (

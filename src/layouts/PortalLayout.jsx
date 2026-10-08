@@ -322,8 +322,8 @@ const PortalLayout = () => {
                         {/* Divider */}
                         <div className="my-2 border-t border-[#e8eaed] dark:border-slate-800"></div>
 
-                        {/* --- Section 4: GSA Management --- */}
-                        <div className="space-y-0.5">
+                        {/* --- Section 4: GSA Management (hidden for AGENCY type) --- */}
+                        {agencyType !== 'AGENCY' && <div className="space-y-0.5">
                             <button
                                 onClick={() => handleMenuToggle(setIsGSAManagementOpen, isGSAManagementOpen)}
                                 className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group focus:outline-none cursor-pointer ${location.pathname.startsWith('/gsa')
@@ -357,10 +357,10 @@ const PortalLayout = () => {
                                     })}
                                 </div>
                             )}
-                        </div>
+                        </div>}
 
-                        {/* Divider */}
-                        <div className="my-2 border-t border-[#e8eaed] dark:border-slate-800"></div>
+                        {/* Divider (only when Agency Management section is visible) */}
+                        {agencyType !== 'AGENCY' && <div className="my-2 border-t border-[#e8eaed] dark:border-slate-800"></div>}
 
                         {/* --- Language (Bottom Item) --- */}
                         <div className="space-y-0.5 mt-auto pt-2">

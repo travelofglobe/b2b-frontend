@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { taskManagementService } from '../services/taskManagementService';
 import { useAuth } from '../context/AuthContext';
 import { getTaskTypeLabel } from '../utils/taskTypeDictionary';
+import CreateTaskModal from './CreateTaskModal';
+
 
 const statusConfig = {
     OPEN: { label: 'Açık', bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200/70 dark:border-blue-800/70', dot: 'bg-blue-500' },
@@ -160,6 +162,7 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'details' | 'attachments'
     const [previewImage, setPreviewImage] = useState(null); // { url, name, id }
+    const [showCreateModal, setShowCreateModal] = useState(false);
 
     // Chat compose state
     const [messageText, setMessageText] = useState('');
@@ -302,6 +305,9 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
 
     const handleSendMessage = async (e) => {
         e?.preventDefault();
+        if (task && ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(task.taskStatus)) {
+            return;
+        }
         const text = messageText.trim();
         const files = [...selectedFiles];
         if (!text && files.length === 0) return;
@@ -403,6 +409,27 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
     } catch (e) {
         currentData = {};
     }
+
+    const isClosed = Boolean(task && ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(task.taskStatus));
+
+    const bookingData = useMemo(() => {
+        if (!task) return null;
+        return {
+            orderId: task.reservationNo || task.bookingId,
+            reservationNo: task.reservationNo,
+            id: task.bookingId,
+            productName: productDetail?.productName || task.title,
+            supplierName: productDetail?.supplierName,
+            hotel: {
+                hotelName: productDetail?.productName,
+                supplierName: productDetail?.supplierName,
+                checkIn: currentData?.checkIn,
+                checkOut: currentData?.checkOut,
+                roomName: currentData?.optionName
+            },
+            holderName: currentData?.primaryGuest
+        };
+    }, [task, productDetail, currentData]);
 
     return createPortal(
         <div className={`fixed inset-0 z-[99999] overflow-hidden ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
@@ -831,80 +858,108 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                         <div ref={messagesEndRef} />
                                     </div>
 
-                                    {/* Message Composer Footer */}
-                                    <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-[#202124] border-t border-slate-200 dark:border-slate-800 space-y-3 shrink-0">
-                                        {/* Selected file preview */}
-                                        {selectedFiles.length > 0 && (
-                                            <div className="flex flex-wrap gap-1.5 pb-1">
-                                                {selectedFiles.map((f, i) => (
-                                                    <div key={i} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-xs border border-blue-200 dark:border-blue-800">
-                                                        <span className="material-symbols-outlined text-[14px]">attachment</span>
-                                                        <span className="truncate max-w-[120px]">{f.name}</span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeSelectedFile(i)}
-                                                            className="text-blue-500 hover:text-rose-600 cursor-pointer"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[14px]">close</span>
-                                                        </button>
+                                    {/* Message Composer Footer / Closed Notice */}
+                                    {isClosed ? (
+                                        <div className="p-4 bg-slate-50 dark:bg-[#202124] border-t border-slate-200 dark:border-slate-800 shrink-0">
+                                            <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-[#28292c] border border-slate-200/90 dark:border-slate-700/90 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
+                                                <div className="flex items-center gap-2.5 text-left">
+                                                    <div className="size-8 rounded-lg bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/20">
+                                                        <span className="material-symbols-outlined text-[18px]">lock</span>
                                                     </div>
-                                                ))}
+                                                    <div>
+                                                        <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                                                            {t('taskManagement.drawer.closedNoticeTitle', 'Bu talep kapatılmıştır')} ({t(`taskManagement.statuses.${task.taskStatus}`, status.label)})
+                                                        </h4>
+                                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                                                            {t('taskManagement.drawer.closedNoticeDesc', 'Tamamlandı, İptal Edildi veya Reddedildi statüsündeki bir talebe tekrar mesaj yazılamaz. Yeni bir işlem için lütfen yeni talep oluşturunuz.')}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowCreateModal(true)}
+                                                    className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0"
+                                                >
+                                                    <span className="material-symbols-outlined text-[16px]">add_circle</span>
+                                                    <span>{t('taskManagement.drawer.createNewTask', 'Yeni Talep Oluştur')}</span>
+                                                </button>
                                             </div>
-                                        )}
-
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="file"
-                                                ref={fileInputRef}
-                                                onChange={handleFileSelect}
-                                                multiple
-                                                className="hidden"
-                                            />
-
-                                            <button
-                                                type="button"
-                                                onClick={() => fileInputRef.current?.click()}
-                                                title={t('taskManagement.drawer.attachFile', 'Dosya / Belge Ekle')}
-                                                className="size-10 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
-                                            >
-                                                <span className="material-symbols-outlined text-[20px]">attach_file</span>
-                                            </button>
-
-                                            <input
-                                                type="text"
-                                                value={messageText}
-                                                onChange={(e) => setMessageText(e.target.value)}
-                                                placeholder={t('taskManagement.drawer.typeMessagePlaceholder', 'Operasyon ekibine mesaj yazın...')}
-                                                className="flex-1 px-4 py-2.5 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                                            />
-
-                                            <button
-                                                type="button"
-                                                onClick={handleManualRefresh}
-                                                disabled={refreshing}
-                                                title={t('taskManagement.refresh', 'Yenile')}
-                                                className="px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-[#28292c] hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-slate-200 dark:border-slate-700 disabled:opacity-50"
-                                            >
-                                                <span className={`material-symbols-outlined text-[18px] text-slate-600 dark:text-slate-300 ${refreshing ? 'animate-spin' : ''}`}>refresh</span>
-                                                <span className="hidden sm:inline">{t('taskManagement.refresh', 'Yenile')}</span>
-                                            </button>
-
-                                            <button
-                                                type="submit"
-                                                disabled={sending || (!messageText.trim() && selectedFiles.length === 0)}
-                                                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none shrink-0"
-                                            >
-                                                {sending ? (
-                                                    <div className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                ) : (
-                                                    <>
-                                                        <span className="material-symbols-outlined text-[18px]">send</span>
-                                                        <span>{t('taskManagement.drawer.send', 'Gönder')}</span>
-                                                    </>
-                                                )}
-                                            </button>
                                         </div>
-                                    </form>
+                                    ) : (
+                                        <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-[#202124] border-t border-slate-200 dark:border-slate-800 space-y-3 shrink-0">
+                                            {/* Selected file preview */}
+                                            {selectedFiles.length > 0 && (
+                                                <div className="flex flex-wrap gap-1.5 pb-1">
+                                                    {selectedFiles.map((f, i) => (
+                                                        <div key={i} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-xs border border-blue-200 dark:border-blue-800">
+                                                            <span className="material-symbols-outlined text-[14px]">attachment</span>
+                                                            <span className="truncate max-w-[120px]">{f.name}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeSelectedFile(i)}
+                                                                className="text-blue-500 hover:text-rose-600 cursor-pointer"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[14px]">close</span>
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="file"
+                                                    ref={fileInputRef}
+                                                    onChange={handleFileSelect}
+                                                    multiple
+                                                    className="hidden"
+                                                />
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    title={t('taskManagement.drawer.attachFile', 'Dosya / Belge Ekle')}
+                                                    className="size-10 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
+                                                >
+                                                    <span className="material-symbols-outlined text-[20px]">attach_file</span>
+                                                </button>
+
+                                                <input
+                                                    type="text"
+                                                    value={messageText}
+                                                    onChange={(e) => setMessageText(e.target.value)}
+                                                    placeholder={t('taskManagement.drawer.typeMessagePlaceholder', 'Operasyon ekibine mesaj yazın...')}
+                                                    className="flex-1 px-4 py-2.5 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                                                />
+
+                                                <button
+                                                    type="button"
+                                                    onClick={handleManualRefresh}
+                                                    disabled={refreshing}
+                                                    title={t('taskManagement.refresh', 'Yenile')}
+                                                    className="px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-[#28292c] hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-slate-200 dark:border-slate-700 disabled:opacity-50"
+                                                >
+                                                    <span className={`material-symbols-outlined text-[18px] text-slate-600 dark:text-slate-300 ${refreshing ? 'animate-spin' : ''}`}>refresh</span>
+                                                    <span className="hidden sm:inline">{t('taskManagement.refresh', 'Yenile')}</span>
+                                                </button>
+
+                                                <button
+                                                    type="submit"
+                                                    disabled={sending || (!messageText.trim() && selectedFiles.length === 0)}
+                                                    className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none shrink-0"
+                                                >
+                                                    {sending ? (
+                                                        <div className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                    ) : (
+                                                        <>
+                                                            <span className="material-symbols-outlined text-[18px]">send</span>
+                                                            <span>{t('taskManagement.drawer.send', 'Gönder')}</span>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    )}
                                 </div>
                             )}
 
@@ -1184,9 +1239,28 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                     </div>
                 </div>
             )}
+
+            {/* Create New Task Modal */}
+            {showCreateModal && (
+                <CreateTaskModal
+                    isOpen={showCreateModal}
+                    onClose={() => setShowCreateModal(false)}
+                    booking={bookingData}
+                    productType={task?.productType || 'HOTEL'}
+                    onSuccess={(newTask) => {
+                        setShowCreateModal(false);
+                        if (onUpdated) onUpdated();
+                        if (newTask?.id) {
+                            navigate(`/task-management/${newTask.id}`);
+                            onClose();
+                        }
+                    }}
+                />
+            )}
         </div>,
         document.body
     );
 };
 
 export default TaskDetailDrawer;
+

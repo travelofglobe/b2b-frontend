@@ -154,103 +154,104 @@ const B2BTaskList = () => {
                     ))}
                 </div>
 
-                {/* Filter Toolbar - Google Style Search & Filter Bar */}
-                <div className="bg-white dark:bg-[#202124] border border-slate-200 dark:border-slate-700/80 rounded-2xl p-2.5 sm:p-3 shadow-xs">
-                    <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5">
-                        {/* Google Style Search Input */}
-                        <div className="relative flex-1 min-w-[220px]">
-                            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-[18px] pointer-events-none">
-                                search
-                            </span>
-                            <input
-                                type="text"
-                                value={search}
-                                onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-                                placeholder={t('taskManagement.searchPlaceholder', 'Search by request #, reservation no, or subject...')}
-                                className="w-full pl-10 pr-9 py-2 text-xs rounded-full bg-slate-100/80 hover:bg-slate-100 dark:bg-[#303134] dark:hover:bg-[#383a3e] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#202124] focus:ring-2 focus:ring-[#1a73e8]/20 text-slate-900 dark:text-white font-medium placeholder-slate-400 dark:placeholder-slate-500 transition-all outline-none"
-                            />
-                            {search && (
-                                <button
-                                    type="button"
-                                    onClick={() => { setSearch(''); setPage(0); }}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 size-4 rounded-full bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500 text-slate-700 dark:text-white flex items-center justify-center cursor-pointer transition-colors"
-                                    title={t('common.clear', 'Temizle')}
-                                >
-                                    <span className="material-symbols-outlined text-[12px]">close</span>
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Status Select - Google Pill Chip */}
-                        <div className="relative shrink-0">
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
-                                className={`appearance-none pl-4 pr-8 py-2 text-xs rounded-full font-medium transition-all cursor-pointer outline-none border ${
-                                    statusFilter
-                                        ? 'bg-blue-50 dark:bg-blue-950/40 text-[#1a73e8] dark:text-[#8ab4f8] border-blue-200 dark:border-blue-800 ring-1 ring-blue-500/20'
-                                        : 'bg-slate-100/80 hover:bg-slate-100 dark:bg-[#303134] dark:hover:bg-[#383a3e] text-slate-700 dark:text-slate-200 border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-[#1a73e8]'
-                                }`}
-                            >
-                                <option value="">{t('taskManagement.allStatuses', 'All Statuses')}</option>
-                                {Object.keys(statusConfig).map((k) => (
-                                    <option key={k} value={k}>
-                                        {t(`taskManagement.statuses.${k}`, k)}
-                                    </option>
-                                ))}
-                            </select>
-                            <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-[18px]">
-                                arrow_drop_down
-                            </span>
-                        </div>
-
-                        {/* Priority Select - Google Pill Chip */}
-                        <div className="relative shrink-0">
-                            <select
-                                value={priorityFilter}
-                                onChange={(e) => { setPriorityFilter(e.target.value); setPage(0); }}
-                                className={`appearance-none pl-4 pr-8 py-2 text-xs rounded-full font-medium transition-all cursor-pointer outline-none border ${
-                                    priorityFilter
-                                        ? 'bg-blue-50 dark:bg-blue-950/40 text-[#1a73e8] dark:text-[#8ab4f8] border-blue-200 dark:border-blue-800 ring-1 ring-blue-500/20'
-                                        : 'bg-slate-100/80 hover:bg-slate-100 dark:bg-[#303134] dark:hover:bg-[#383a3e] text-slate-700 dark:text-slate-200 border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-[#1a73e8]'
-                                }`}
-                            >
-                                <option value="">{t('taskManagement.allPriorities', 'All Priorities')}</option>
-                                <option value="LOW">{t('taskManagement.priorities.LOW', 'Low')}</option>
-                                <option value="NORMAL">{t('taskManagement.priorities.NORMAL', 'Normal')}</option>
-                                <option value="HIGH">{t('taskManagement.priorities.HIGH', 'High')}</option>
-                                <option value="URGENT">{t('taskManagement.priorities.URGENT', 'Urgent')}</option>
-                            </select>
-                            <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-[18px]">
-                                arrow_drop_down
-                            </span>
-                        </div>
-
-                        {/* Clear Filters Button - Google Style Pill */}
-                        <button
-                            type="button"
-                            onClick={resetFilters}
-                            className="px-3.5 py-2 rounded-full border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-[#303134] text-slate-600 dark:text-slate-300 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
-                            title={t('taskManagement.clearFilters', 'Clear Filters')}
-                        >
-                            <span className="material-symbols-outlined text-[16px]">filter_alt_off</span>
-                            <span>{t('taskManagement.clearFilters', 'Clear Filters')}</span>
-                        </button>
-
-                        {/* Refresh Button - Google Style Circular */}
-                        <button
-                            type="button"
-                            onClick={() => fetchTasks()}
-                            className="size-9 rounded-full border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-[#303134] text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer shrink-0 ml-auto sm:ml-0"
-                            title={t('taskManagement.refresh', 'Refresh')}
-                        >
-                            <span className={`material-symbols-outlined text-[18px] ${loading ? 'animate-spin' : ''}`}>refresh</span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Table View */}
+                {/* Unified Card: Filters Toolbar + Table + Pagination */}
                 <div className="bg-white dark:bg-[#202124] border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-xs overflow-hidden">
+                    {/* Integrated Filter Toolbar */}
+                    <div className="p-3 sm:p-3.5 border-b border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-[#202124]">
+                        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5">
+                            {/* Google Style Search Input */}
+                            <div className="relative flex-1 min-w-[220px]">
+                                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-[18px] pointer-events-none">
+                                    search
+                                </span>
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                                    placeholder={t('taskManagement.searchPlaceholder', 'Search by request #, reservation no, or subject...')}
+                                    className="w-full pl-10 pr-9 py-1.5 sm:py-2 text-xs rounded-full bg-slate-100/80 hover:bg-slate-100 dark:bg-[#303134] dark:hover:bg-[#383a3e] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#202124] focus:ring-2 focus:ring-[#1a73e8]/20 text-slate-900 dark:text-white font-medium placeholder-slate-400 dark:placeholder-slate-500 transition-all outline-none"
+                                />
+                                {search && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setSearch(''); setPage(0); }}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 size-4 rounded-full bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500 text-slate-700 dark:text-white flex items-center justify-center cursor-pointer transition-colors"
+                                        title={t('common.clear', 'Temizle')}
+                                    >
+                                        <span className="material-symbols-outlined text-[12px]">close</span>
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Status Select - Google Pill Chip */}
+                            <div className="relative shrink-0">
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
+                                    className={`appearance-none pl-4 pr-8 py-1.5 sm:py-2 text-xs rounded-full font-medium transition-all cursor-pointer outline-none border ${
+                                        statusFilter
+                                            ? 'bg-blue-50 dark:bg-blue-950/40 text-[#1a73e8] dark:text-[#8ab4f8] border-blue-200 dark:border-blue-800 ring-1 ring-blue-500/20'
+                                            : 'bg-slate-100/80 hover:bg-slate-100 dark:bg-[#303134] dark:hover:bg-[#383a3e] text-slate-700 dark:text-slate-200 border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-[#1a73e8]'
+                                    }`}
+                                >
+                                    <option value="">{t('taskManagement.allStatuses', 'All Statuses')}</option>
+                                    {Object.keys(statusConfig).map((k) => (
+                                        <option key={k} value={k}>
+                                            {t(`taskManagement.statuses.${k}`, k)}
+                                        </option>
+                                    ))}
+                                </select>
+                                <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-[18px]">
+                                    arrow_drop_down
+                                </span>
+                            </div>
+
+                            {/* Priority Select - Google Pill Chip */}
+                            <div className="relative shrink-0">
+                                <select
+                                    value={priorityFilter}
+                                    onChange={(e) => { setPriorityFilter(e.target.value); setPage(0); }}
+                                    className={`appearance-none pl-4 pr-8 py-1.5 sm:py-2 text-xs rounded-full font-medium transition-all cursor-pointer outline-none border ${
+                                        priorityFilter
+                                            ? 'bg-blue-50 dark:bg-blue-950/40 text-[#1a73e8] dark:text-[#8ab4f8] border-blue-200 dark:border-blue-800 ring-1 ring-blue-500/20'
+                                            : 'bg-slate-100/80 hover:bg-slate-100 dark:bg-[#303134] dark:hover:bg-[#383a3e] text-slate-700 dark:text-slate-200 border-transparent hover:border-slate-300 dark:hover:border-slate-600 focus:border-[#1a73e8]'
+                                    }`}
+                                >
+                                    <option value="">{t('taskManagement.allPriorities', 'All Priorities')}</option>
+                                    <option value="LOW">{t('taskManagement.priorities.LOW', 'Low')}</option>
+                                    <option value="NORMAL">{t('taskManagement.priorities.NORMAL', 'Normal')}</option>
+                                    <option value="HIGH">{t('taskManagement.priorities.HIGH', 'High')}</option>
+                                    <option value="URGENT">{t('taskManagement.priorities.URGENT', 'Urgent')}</option>
+                                </select>
+                                <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-[18px]">
+                                    arrow_drop_down
+                                </span>
+                            </div>
+
+                            {/* Clear Filters Button - Google Style Pill */}
+                            <button
+                                type="button"
+                                onClick={resetFilters}
+                                className="px-3.5 py-1.5 sm:py-2 rounded-full border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-[#303134] text-slate-600 dark:text-slate-300 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                                title={t('taskManagement.clearFilters', 'Clear Filters')}
+                            >
+                                <span className="material-symbols-outlined text-[16px]">filter_alt_off</span>
+                                <span>{t('taskManagement.clearFilters', 'Clear Filters')}</span>
+                            </button>
+
+                            {/* Refresh Button - Google Style Circular */}
+                            <button
+                                type="button"
+                                onClick={() => fetchTasks()}
+                                className="size-8.5 rounded-full border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-[#303134] text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer shrink-0 ml-auto sm:ml-0"
+                                title={t('taskManagement.refresh', 'Refresh')}
+                            >
+                                <span className={`material-symbols-outlined text-[18px] ${loading ? 'animate-spin' : ''}`}>refresh</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Table View */}
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>

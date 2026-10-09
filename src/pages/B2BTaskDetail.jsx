@@ -179,6 +179,8 @@ const B2BTaskDetail = () => {
 
     const messagesEndRef = useRef(null);
     const chatContainerRef = useRef(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const dragCounterRef = useRef(0);
     const fileInputRef = useRef(null);
     const prevScrollHeightRef = useRef(0);
     const prevScrollTopRef = useRef(0);
@@ -363,7 +365,47 @@ const B2BTaskDetail = () => {
 
     const handleFileSelect = (e) => {
         const files = Array.from(e.target.files || []);
-        setSelectedFiles(prev => [...prev, ...files]);
+        if (files.length > 0) {
+            setSelectedFiles(prev => [...prev, ...files]);
+        }
+        if (e.target) {
+            e.target.value = '';
+        }
+    };
+
+    const handleDragEnter = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounterRef.current += 1;
+        if (e.dataTransfer?.items && e.dataTransfer.items.length > 0) {
+            setIsDragging(true);
+        }
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounterRef.current -= 1;
+        if (dragCounterRef.current <= 0) {
+            dragCounterRef.current = 0;
+            setIsDragging(false);
+        }
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounterRef.current = 0;
+        setIsDragging(false);
+        const droppedFiles = Array.from(e.dataTransfer?.files || []);
+        if (droppedFiles.length > 0) {
+            setSelectedFiles(prev => [...prev, ...droppedFiles]);
+        }
     };
 
     const removeSelectedFile = (idx) => {
@@ -925,19 +967,19 @@ const B2BTaskDetail = () => {
                                 </div>
                             </div>
                         ) : (
-                            <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-[#202124] border-t border-slate-200 dark:border-slate-700 space-y-3 shrink-0">
+                            <form onSubmit={handleSendMessage} className="p-3 bg-[#F9F9FB] dark:bg-[#1C1C1E] border-t border-slate-200/80 dark:border-[#2C2C2E] space-y-2 shrink-0">
                                 
-                                {/* Selected file preview */}
+                                {/* Selected file preview (iOS pill chips) */}
                                 {selectedFiles.length > 0 && (
-                                    <div className="flex flex-wrap gap-1.5 pb-1">
+                                    <div className="flex flex-wrap gap-1.5 px-1 pb-0.5">
                                         {selectedFiles.map((f, i) => (
-                                            <div key={i} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-xs border border-blue-200 dark:border-blue-800">
-                                                <span className="material-symbols-outlined text-[14px]">attachment</span>
-                                                <span className="truncate max-w-[120px]">{f.name}</span>
+                                            <div key={i} className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-[#2C2C2E] text-slate-700 dark:text-slate-200 text-xs border border-slate-200 dark:border-[#3A3A3C] shadow-2xs">
+                                                <span className="material-symbols-outlined text-[15px] text-[#007AFF]">attachment</span>
+                                                <span className="truncate max-w-[130px] font-medium">{f.name}</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => removeSelectedFile(i)}
-                                                    className="text-blue-500 hover:text-rose-600 cursor-pointer"
+                                                    className="text-slate-400 hover:text-rose-500 transition-colors ml-0.5 cursor-pointer"
                                                 >
                                                     <span className="material-symbols-outlined text-[14px]">close</span>
                                                 </button>
@@ -947,56 +989,74 @@ const B2BTaskDetail = () => {
                                 )}
 
                                 <div className="flex items-center gap-2">
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        onChange={handleFileSelect}
-                                        multiple
-                                        className="hidden"
-                                    />
-
-                                    <button
-                                        type="button"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        title="Dosya / Belge Ekle"
-                                        className="size-10 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
+                                    {/* iOS Style Attachment / Media Button (Direct invisible file input layer) */}
+                                    <div
+                                        title="Dosya / Görsel Ekle"
+                                        className="size-9 rounded-full bg-slate-200/80 hover:bg-slate-300/80 dark:bg-[#2C2C2E] dark:hover:bg-[#3A3A3C] text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all shrink-0 cursor-pointer active:scale-95 shadow-2xs relative overflow-hidden group"
                                     >
-                                        <span className="material-symbols-outlined text-[20px]">attach_file</span>
-                                    </button>
+                                        <input
+                                            type="file"
+                                            onChange={handleFileSelect}
+                                            multiple
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                                            title=""
+                                        />
+                                        <span className="material-symbols-outlined text-[20px] pointer-events-none group-hover:scale-110 transition-transform">
+                                            add_photo_alternate
+                                        </span>
+                                    </div>
 
-                                    <input
-                                        type="text"
-                                        value={messageText}
-                                        onChange={(e) => setMessageText(e.target.value)}
-                                        placeholder="Operasyon ekibine mesaj yazın..."
-                                        className="flex-1 px-4 py-2.5 text-xs rounded-xl bg-slate-50 dark:bg-[#28292c] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
-                                    />
-
+                                    {/* Refresh Button - iOS subtle circular action */}
                                     <button
                                         type="button"
                                         onClick={handleManualRefresh}
                                         disabled={refreshing}
                                         title="Akışı Yenile"
-                                        className="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-[#28292c] hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 border border-slate-200 dark:border-slate-700 disabled:opacity-50"
+                                        className="size-9 rounded-full bg-slate-200/80 hover:bg-slate-300/80 dark:bg-[#2C2C2E] dark:hover:bg-[#3A3A3C] text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all shrink-0 cursor-pointer active:scale-95 shadow-2xs disabled:opacity-50"
                                     >
-                                        <span className={`material-symbols-outlined text-[18px] text-slate-600 dark:text-slate-300 ${refreshing ? 'animate-spin' : ''}`}>refresh</span>
-                                        <span className="hidden sm:inline">Yenile</span>
+                                        <span className={`material-symbols-outlined text-[19px] ${refreshing ? 'animate-spin text-[#007AFF]' : ''}`}>refresh</span>
                                     </button>
 
-                                    <button
-                                        type="submit"
-                                        disabled={sending || (!messageText.trim() && selectedFiles.length === 0)}
-                                        className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none shrink-0"
-                                    >
-                                        {sending ? (
-                                            <div className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        ) : (
-                                            <>
-                                                <span className="material-symbols-outlined text-[18px]">send</span>
-                                                <span>Gönder</span>
-                                            </>
-                                        )}
-                                    </button>
+                                    {/* iOS iMessage Capsule Container */}
+                                    <div className="flex-1 flex items-center min-h-[40px] pl-4 pr-1.5 py-1 rounded-full border border-slate-300/80 dark:border-[#3A3A3C] bg-white dark:bg-[#2C2C2E] focus-within:ring-2 focus-within:ring-[#007AFF]/25 focus-within:border-[#007AFF] transition-all duration-200 shadow-2xs">
+                                        <input
+                                            type="text"
+                                            value={messageText}
+                                            onChange={(e) => setMessageText(e.target.value)}
+                                            placeholder="Operasyon ekibine mesaj yazın..."
+                                            className="flex-1 bg-transparent text-[13.5px] leading-relaxed text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-[#8E8E93] focus:outline-none border-none py-1 pr-2 font-normal"
+                                        />
+
+                                        {/* iOS Circular Send Button with Upward Arrow */}
+                                        <button
+                                            type="submit"
+                                            disabled={sending || (!messageText.trim() && selectedFiles.length === 0)}
+                                            aria-label="Gönder"
+                                            title="Gönder"
+                                            className={`size-8 rounded-full flex items-center justify-center transition-all shrink-0 select-none ${
+                                                (!messageText.trim() && selectedFiles.length === 0)
+                                                    ? 'bg-slate-300/60 dark:bg-[#3A3A3C] text-slate-400 dark:text-[#636366] cursor-not-allowed opacity-60'
+                                                    : 'bg-[#007AFF] hover:bg-[#006ee6] text-white shadow-xs cursor-pointer active:scale-90'
+                                            }`}
+                                        >
+                                            {sending ? (
+                                                <div className="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                <svg 
+                                                    className="w-4 h-4 translate-y-[-0.5px]" 
+                                                    viewBox="0 0 24 24" 
+                                                    fill="none" 
+                                                    stroke="currentColor" 
+                                                    strokeWidth="3.2" 
+                                                    strokeLinecap="round" 
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <line x1="12" y1="19" x2="12" y2="5" />
+                                                    <polyline points="5 12 12 5 19 12" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                         )}

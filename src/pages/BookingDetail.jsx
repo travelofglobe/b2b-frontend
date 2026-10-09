@@ -638,13 +638,29 @@ const BookingDetail = () => {
 
                         // Map cancelReason to human-readable text
                         const CANCEL_REASON_LABELS = {
-                            SUPPLIER_REJECTION:     currentLang === 'tr' ? 'Tedarikçi rezervasyonu reddetti'         : 'Supplier rejected the reservation',
-                            GUEST_REQUEST:          currentLang === 'tr' ? 'Misafir talebi üzerine iptal edildi'     : 'Cancelled at guest request',
-                            HOTEL_REQUEST:          currentLang === 'tr' ? 'Otel talebi üzerine iptal edildi'        : 'Cancelled at hotel request',
-                            NO_SHOW:                currentLang === 'tr' ? 'Misafir gelmedi (No-Show)'               : 'No-show by guest',
-                            SYSTEM_ERROR:           currentLang === 'tr' ? 'Sistem hatası nedeniyle iptal edildi'    : 'Cancelled due to system error',
-                            ADMIN_CANCELLATION:     currentLang === 'tr' ? 'Yönetici tarafından iptal edildi'        : 'Cancelled by admin',
-                            DUPLICATE_RESERVATION:  currentLang === 'tr' ? 'Mükerrer rezervasyon nedeniyle iptal'   : 'Duplicate reservation',
+                            GUEST_REQUEST:          currentLang === 'tr' ? 'Misafir iptal talebinde bulundu'                              : 'Guest requested cancellation',
+                            DUPLICATE_BOOKING:      currentLang === 'tr' ? 'Mükerrer rezervasyon'                                         : 'Duplicate booking',
+                            PAYMENT_FAILED:         currentLang === 'tr' ? 'Ödeme başarısız oldu veya ödeme alınamadı'                   : 'Payment failed or not received',
+                            HOTEL_OVERBOOKED:       currentLang === 'tr' ? 'Otel fazla rezervasyon aldı (overbooking)'                   : 'Hotel overbooked',
+                            PRICE_CHANGED:          currentLang === 'tr' ? 'Rezervasyon sonrası fiyat değişikliği'                       : 'Price change after booking',
+                            INVALID_RATE:           currentLang === 'tr' ? 'Geçersiz veya süresi dolmuş fiyat'                           : 'Invalid or expired rate',
+                            INVALID_ROOM:           currentLang === 'tr' ? 'Geçersiz veya müsait olmayan oda'                            : 'Invalid or unavailable room',
+                            TECHNICAL_ERROR:        currentLang === 'tr' ? 'Sistem veya teknik hata'                                     : 'System or technical error',
+                            SUPPLIER_REJECTION:     currentLang === 'tr' ? 'Tedarikçi rezervasyonu reddetti'                             : 'Supplier rejected booking',
+                            NO_SHOW:                currentLang === 'tr' ? 'Misafir otele gelmedi (no-show)'                             : 'Guest did not arrive (no-show)',
+                            AGENT_REQUEST:          currentLang === 'tr' ? 'Acente iptal talebinde bulundu'                              : 'Agency requested cancellation',
+                            HOTEL_CLOSED:           currentLang === 'tr' ? 'Otel geçici veya kalıcı olarak kapalı'                      : 'Hotel temporarily or permanently closed',
+                            FORCE_MAJEURE:          currentLang === 'tr' ? 'Mücbir sebep (ör. doğal afet, pandemi)'                     : 'Force majeure (e.g. natural disaster, pandemic)',
+                            FRAUD_SUSPECTED:        currentLang === 'tr' ? 'Dolandırıcılık şüphesi veya güvenlik endişesi'              : 'Fraud suspected or security concern',
+                            CUSTOMER_CHANGED_DATES: currentLang === 'tr' ? 'Müşteri seyahat tarihlerini değiştirdi'                     : 'Customer changed travel dates',
+                            POLICY_VIOLATION:       currentLang === 'tr' ? 'Politika veya kural ihlali nedeniyle iptal'                 : 'Cancellation due to policy or rule violation',
+                            TIMEOUT:                currentLang === 'tr' ? 'Rezervasyon onayı sırasında tedarikçi veya sistem zaman aşımı' : 'Supplier or system timeout during confirmation',
+                            UNKNOWN:                currentLang === 'tr' ? 'Bilinmeyen neden'                                            : 'Unknown reason',
+                            // legacy values
+                            HOTEL_REQUEST:          currentLang === 'tr' ? 'Otel talebi üzerine iptal edildi'                           : 'Cancelled at hotel request',
+                            SYSTEM_ERROR:           currentLang === 'tr' ? 'Sistem hatası nedeniyle iptal edildi'                       : 'Cancelled due to system error',
+                            ADMIN_CANCELLATION:     currentLang === 'tr' ? 'Yönetici tarafından iptal edildi'                           : 'Cancelled by admin',
+                            DUPLICATE_RESERVATION:  currentLang === 'tr' ? 'Mükerrer rezervasyon nedeniyle iptal'                       : 'Duplicate reservation',
                         };
                         const reasonText = CANCEL_REASON_LABELS[booking.hotel?.cancelReason] || booking.hotel?.cancelReason || null;
                         const cancelNote = booking.hotel?.cancelNote;

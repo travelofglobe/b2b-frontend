@@ -1045,36 +1045,48 @@ const BookingDetail = () => {
                                         )}
 
                                         {/* Cancellation Policy Timeline Card */}
-                                        {rate.cancellationPolicies && rate.cancellationPolicies.length > 0 && (
-                                            <div className="space-y-2.5">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="material-symbols-outlined text-[18px] text-[#70757a]">policy</span>
-                                                    <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                                        {L('cancelPolicies')}
-                                                    </span>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    {rate.cancellationPolicies.map((p, pIdx) => (
-                                                        <div 
-                                                            key={pIdx} 
-                                                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-xl bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0]/70 dark:border-[#3c4043]"
-                                                        >
-                                                            <div className="flex items-center gap-2.5">
-                                                                <span className="size-2 rounded-full bg-[#d93025]"></span>
-                                                                <div className="text-xs">
-                                                                    <span className="font-semibold text-[#202124] dark:text-white">{formatDateTime(p.fromDate)}</span>
-                                                                    <span className="text-[#70757a] mx-1.5">→</span>
-                                                                    <span className="font-semibold text-[#202124] dark:text-white">{formatDateTime(p.toDate)}</span>
+                                        {(() => {
+                                            const policies =
+                                                (rate.cancellationPolicies?.length > 0 ? rate.cancellationPolicies : null) ||
+                                                (rate.prices?.[0]?.cancellationPolicies?.length > 0 ? rate.prices[0].cancellationPolicies : null) ||
+                                                (room.cancellationPolicies?.length > 0 ? room.cancellationPolicies : null);
+                                            if (!policies) return null;
+                                            return (
+                                                <div className="space-y-2.5">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="material-symbols-outlined text-[18px] text-[#70757a]">policy</span>
+                                                        <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
+                                                            {L('cancelPolicies')}
+                                                        </span>
+                                                    </div>
+                                                    <div className="rounded-xl bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0]/70 dark:border-[#3c4043] overflow-hidden">
+                                                        {policies.map((p, pIdx) => (
+                                                            <div
+                                                                key={pIdx}
+                                                                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-2.5
+                                                                    ${pIdx < policies.length - 1 ? 'border-b border-[#dadce0]/60 dark:border-[#3c4043]' : ''}
+                                                                `}
+                                                            >
+                                                                <div className="flex items-center gap-2.5">
+                                                                    <span className={`size-2 shrink-0 rounded-full ${p.amount === 0 ? 'bg-[#188038]' : 'bg-[#d93025]'}`}></span>
+                                                                    <div className="text-xs text-[#3c4043] dark:text-slate-300">
+                                                                        <span className="font-semibold text-[#202124] dark:text-white">{formatDateTime(p.fromDate)}</span>
+                                                                        <span className="text-[#70757a] mx-1.5">→</span>
+                                                                        <span className="font-semibold text-[#202124] dark:text-white">{formatDateTime(p.toDate)}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div className={`text-xs font-bold shrink-0 self-end sm:self-auto ${p.amount === 0 ? 'text-[#188038] dark:text-emerald-400' : 'text-[#d93025] dark:text-rose-400'}`}>
+                                                                    {p.amount === 0
+                                                                        ? (L('freeCancel') || 'Ücretsiz İptal')
+                                                                        : `${L('penaltyAmount')}: ${Number(p.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} ${p.currency}`
+                                                                    }
                                                                 </div>
                                                             </div>
-                                                            <div className="text-xs font-bold text-[#d93025] dark:text-rose-400 self-end sm:self-auto">
-                                                                {L('penaltyAmount')}: {Number(p.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {p.currency}
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
+                                            );
+                                        })()}
                                     </div>
                                 ))}
                             </div>

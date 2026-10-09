@@ -106,10 +106,20 @@ export const taskManagementService = {
         return apiClient.post(url, { decision, note });
     },
 
+    // Process agency decision (supports both object parameter and direct arguments)
+    processAgencyDecision: async (id, decisionOrObj, agencyUserId = null, agencyUserName = '') => {
+        if (typeof decisionOrObj === 'object' && decisionOrObj !== null) {
+            const decision = decisionOrObj.decision || (decisionOrObj.approved ? 'CONFIRMED' : 'REJECTED');
+            const note = decisionOrObj.note || '';
+            return taskManagementService.processDecision(id, decision, note, agencyUserId, agencyUserName);
+        }
+        return taskManagementService.processDecision(id, decisionOrObj, '', agencyUserId, agencyUserName);
+    },
+
     // Respond price confirmation (alias for processDecision)
-    respondPriceConfirmation: async (id, { approved, note = '' }) => {
+    respondPriceConfirmation: async (id, { approved, note = '' }, agencyUserId = null, agencyUserName = '') => {
         const decision = approved ? 'CONFIRMED' : 'REJECTED';
-        return taskManagementService.processDecision(id, decision, note);
+        return taskManagementService.processDecision(id, decision, note, agencyUserId, agencyUserName);
     }
 };
 

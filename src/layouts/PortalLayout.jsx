@@ -68,9 +68,9 @@ const PortalLayout = () => {
     return (
         <div className="flex flex-col h-screen bg-white dark:bg-[#202124] text-slate-900 dark:text-slate-100 font-sans overflow-hidden transition-colors duration-200">
             {/* Header (Google Flights style) */}
-            <header className={`flex items-center justify-between px-4 h-16 shrink-0 bg-white dark:bg-[#202124] z-[1000] border-b border-slate-200 dark:border-slate-800 transition-all duration-200 ${isScrolled ? 'shadow-md' : ''}`}>
+            <header className={`relative flex items-center justify-between px-4 h-16 shrink-0 bg-white dark:bg-[#202124] z-[1000] border-b border-slate-200 dark:border-slate-800 transition-all duration-200 ${isScrolled ? 'shadow-md' : ''}`}>
                 {/* Left: Hamburger & Logo */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 z-10">
                     <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors focus:outline-none" aria-label="Menü">
                         <span className="material-symbols-outlined text-xl">menu</span>
                     </button>
@@ -87,8 +87,8 @@ const PortalLayout = () => {
                     </div>
                 </div>
 
-                {/* Center: Tabs */}
-                <div className="hidden lg:flex items-center gap-2 font-roboto">
+                {/* Center: Tabs (True Center) */}
+                <div className="hidden lg:flex items-center gap-2 font-roboto absolute left-1/2 -translate-x-1/2 z-0 pointer-events-auto">
                     {[
                         { path: '/travel/explore', icon: 'travel_explore', label: t('nav.explore'), isCurrent: location.pathname === '/travel/explore' || location.pathname === '/explore' },
                         { path: '/travel/hotels', icon: 'bed', label: t('nav.hotels'), isCurrent: location.pathname.startsWith('/travel/hotels') || location.pathname.startsWith('/hotel') || location.pathname.startsWith('/map') || location.pathname === '/travel/search' || location.pathname === '/dashboard' },
@@ -113,7 +113,7 @@ const PortalLayout = () => {
                 </div>
 
                 {/* Right: Actions */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 z-10">
                     <button className="p-2 hidden sm:flex rounded-full hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#70757a] dark:text-slate-300 transition-colors focus:outline-none cursor-pointer">
                         <span className="material-symbols-outlined text-xl">apps</span>
                     </button>

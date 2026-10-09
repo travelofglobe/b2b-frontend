@@ -584,7 +584,7 @@ const BookingDetail = () => {
                                 </button>
                             );
                         })()}
-                        {booking.voucher && (
+                        {booking.voucher && booking.hotel?.bookingStatus === 'CONFIRMED' && (
                             <button
                                 onClick={() => window.open(`/travel/hotels/bookings/${booking.voucher}/voucher`, '_blank')}
                                 disabled={booking.status === 'FAILED' || booking.status === 'ERROR' || booking.hotel?.bookingStatus === 'FAILED' || booking.hotel?.bookingStatus === 'ERROR'}

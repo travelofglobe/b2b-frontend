@@ -4,8 +4,11 @@ import { locationService } from '../services/locationService';
 import { currencyService } from '../services/currencyService';
 import PhoneInput from './PhoneInput';
 import AppleSwitch from './AppleSwitch';
+import { useAuth } from '../context/AuthContext';
 
 const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode = 'add' }) => {
+    const { agencyType: currentUserAgencyType } = useAuth();
+    const isRSA = currentUserAgencyType === 'RSA';
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [countries, setCountries] = useState([]);
@@ -328,10 +331,11 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                         <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300">Agency Type</label>
                                         <select 
                                             name="agencyType" value={form.agencyType} onChange={handleChange}
-                                            className="w-full h-9 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 text-xs font-medium outline-none cursor-pointer focus:border-blue-500"
+                                            disabled={isRSA}
+                                            className={`w-full h-9 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 text-xs font-medium outline-none focus:border-blue-500 ${isRSA ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                                         >
                                             <option value="AGENCY">Agency</option>
-                                            <option value="RSA">RSA</option>
+                                            {!isRSA && <option value="RSA">RSA</option>}
                                         </select>
                                     </div>
                                     <div className="space-y-1">
@@ -401,7 +405,7 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                         >
                                             <option value="">Select Country</option>
                                             {countries.map(c => (
-                                                <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>
+                                                <option key={c.id} value={c.id}>{getName(c.name)}</option>
                                             ))}
                                         </select>
                                         {formErrors.countryId && <p className="text-[10px] font-medium text-rose-500">{formErrors.countryId}</p>}
@@ -414,7 +418,7 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                         >
                                             <option value="">{form.countryId ? 'Select City' : 'Select Country First'}</option>
                                             {cities.map(c => (
-                                                <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>
+                                                <option key={c.id} value={c.id}>{getName(c.name)}</option>
                                             ))}
                                         </select>
                                         {formErrors.cityId && <p className="text-[10px] font-medium text-rose-500">{formErrors.cityId}</p>}
@@ -523,7 +527,7 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                         >
                                             <option value="">Select Country</option>
                                             {countries.map(c => (
-                                                <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>
+                                                <option key={c.id} value={c.id}>{getName(c.name)}</option>
                                             ))}
                                         </select>
                                         {formErrors['agencyFinancialInfo.countryId'] && <p className="text-[10px] font-medium text-rose-500">{formErrors['agencyFinancialInfo.countryId']}</p>}
@@ -536,7 +540,7 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                                         >
                                             <option value="">{form.agencyFinancialInfo.countryId ? 'Select City' : 'Select Country First'}</option>
                                             {finCities.map(c => (
-                                                <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>
+                                                <option key={c.id} value={c.id}>{getName(c.name)}</option>
                                             ))}
                                         </select>
                                         {formErrors['agencyFinancialInfo.cityId'] && <p className="text-[10px] font-medium text-rose-500">{formErrors['agencyFinancialInfo.cityId']}</p>}

@@ -989,22 +989,28 @@ const B2BTaskDetail = () => {
                                 )}
 
                                 <div className="flex items-center gap-2">
-                                    {/* iOS Style Attachment / Media Button (Direct invisible file input layer) */}
-                                    <div
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleFileSelect}
+                                        multiple
+                                        className="hidden"
+                                    />
+
+                                    {/* iOS Style Attachment / Media Button */}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (fileInputRef.current) {
+                                                fileInputRef.current.value = '';
+                                                fileInputRef.current.click();
+                                            }
+                                        }}
                                         title="Dosya / Görsel Ekle"
-                                        className="size-9 rounded-full bg-slate-200/80 hover:bg-slate-300/80 dark:bg-[#2C2C2E] dark:hover:bg-[#3A3A3C] text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all shrink-0 cursor-pointer active:scale-95 shadow-2xs relative overflow-hidden group"
+                                        className="size-9 rounded-full bg-slate-200/80 hover:bg-slate-300/80 dark:bg-[#2C2C2E] dark:hover:bg-[#3A3A3C] text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all shrink-0 cursor-pointer active:scale-95 shadow-2xs"
                                     >
-                                        <input
-                                            type="file"
-                                            onChange={handleFileSelect}
-                                            multiple
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                                            title=""
-                                        />
-                                        <span className="material-symbols-outlined text-[20px] pointer-events-none group-hover:scale-110 transition-transform">
-                                            add_photo_alternate
-                                        </span>
-                                    </div>
+                                        <span className="material-symbols-outlined text-[20px]">add_photo_alternate</span>
+                                    </button>
 
                                     {/* Refresh Button - iOS subtle circular action */}
                                     <button

@@ -114,7 +114,8 @@ export const BOOKING_DETAIL_LOCALES = {
         hotelName: 'Hotel',
         checkInOut: 'Check-in / Check-out',
         roomInfo: 'Room',
-        stars: 'Stars'
+        stars: 'Stars',
+        freeCancel: 'Free Cancellation'
     },
     tr: {
         bookings: "Rezervasyonlar",
@@ -231,7 +232,8 @@ export const BOOKING_DETAIL_LOCALES = {
         hotelName: 'Otel',
         checkInOut: 'Giriş / Çıkış',
         roomInfo: 'Oda',
-        stars: 'Yıldız'
+        stars: 'Yıldız',
+        freeCancel: 'Ücretsiz İptal'
     },
     ar: {
         bookings: "الحجوزات",
@@ -348,7 +350,8 @@ export const BOOKING_DETAIL_LOCALES = {
         hotelName: 'الفندق',
         checkInOut: 'الدخول / المغادرة',
         roomInfo: 'الغرفة',
-        stars: 'نجوم'
+        stars: 'نجوم',
+        freeCancel: 'إلغاء مجاني'
     },
     es: {
         bookings: "Reservas",
@@ -465,7 +468,8 @@ export const BOOKING_DETAIL_LOCALES = {
         hotelName: 'Hotel',
         checkInOut: 'Entrada / Salida',
         roomInfo: 'Habitación',
-        stars: 'Estrellas'
+        stars: 'Estrellas',
+        freeCancel: 'Cancelación Gratuita'
     },
     ru: {
         bookings: "Бронирования",
@@ -582,7 +586,8 @@ export const BOOKING_DETAIL_LOCALES = {
         hotelName: 'Отель',
         checkInOut: 'Заезд / Выезд',
         roomInfo: 'Номер',
-        stars: 'Звёзд'
+        stars: 'Звёзд',
+        freeCancel: 'Бесплатная Отмена'
     },
     zh: {
         bookings: "预订列表",
@@ -699,7 +704,8 @@ export const BOOKING_DETAIL_LOCALES = {
         hotelName: '酒店',
         checkInOut: '入住 / 退房',
         roomInfo: '客房',
-        stars: '星级'
+        stars: '星级',
+        freeCancel: '免费取消'
     },
     ja: {
         bookings: "予約一覧",
@@ -816,7 +822,8 @@ export const BOOKING_DETAIL_LOCALES = {
         hotelName: 'ホテル',
         checkInOut: 'チェックイン / チェックアウト',
         roomInfo: '客室',
-        stars: '星'
+        stars: '星',
+        freeCancel: '無料キャンセル'
     },
     fa: {
         bookings: "رزروها",
@@ -933,7 +940,8 @@ export const BOOKING_DETAIL_LOCALES = {
         hotelName: 'هتل',
         checkInOut: 'ورود / خروج',
         roomInfo: 'اتاق',
-        stars: 'ستاره'
+        stars: 'ستاره',
+        freeCancel: 'لغو رایگان'
     },
     fr: {
         bookings: "Réservations",
@@ -1050,7 +1058,8 @@ export const BOOKING_DETAIL_LOCALES = {
         hotelName: 'Hôtel',
         checkInOut: 'Arrivée / Départ',
         roomInfo: 'Chambre',
-        stars: 'Étoiles'
+        stars: 'Étoiles',
+        freeCancel: 'Annulation Gratuite'
     },
     it: {
         bookings: "Prenotazioni",
@@ -1167,7 +1176,8 @@ export const BOOKING_DETAIL_LOCALES = {
         hotelName: 'Hotel',
         checkInOut: 'Check-in / Check-out',
         roomInfo: 'Camera',
-        stars: 'Stelle'
+        stars: 'Stelle',
+        freeCancel: 'Cancellazione Gratuita'
     },
     el: {
         bookings: "Κρατήσεις",

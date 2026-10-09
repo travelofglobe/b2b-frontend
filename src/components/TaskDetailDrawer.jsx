@@ -186,25 +186,29 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
     const isPrependingRef = useRef(false);
     const prevTotalChatItemsRef = useRef(0);
     const initialScrollDoneRef = useRef(false);
+    const prevTaskIdRef = useRef(null);
 
     useEffect(() => {
-        initialScrollDoneRef.current = false;
-        prevTotalChatItemsRef.current = 0;
-        setVisibleCount(PAGE_SIZE);
-
         if (isOpen && taskId) {
-            setLoading(true);
-            if (initialTask && initialTask.id === taskId) {
-                setTask(initialTask);
-            } else {
-                setTask(null);
+            if (prevTaskIdRef.current !== taskId) {
+                prevTaskIdRef.current = taskId;
+                initialScrollDoneRef.current = false;
+                prevTotalChatItemsRef.current = 0;
+                setVisibleCount(PAGE_SIZE);
+                setLoading(true);
+                if (initialTask && initialTask.id === taskId) {
+                    setTask(initialTask);
+                } else {
+                    setTask(null);
+                }
+                fetchDetail(false);
             }
-            fetchDetail(false);
         } else if (!isOpen) {
+            prevTaskIdRef.current = null;
             setMessageText('');
             setSelectedFiles([]);
         }
-    }, [isOpen, taskId, initialTask]);
+    }, [isOpen, taskId]);
 
     const fetchDetail = async (silent = false) => {
         try {
@@ -216,14 +220,20 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
         } catch (err) {
             console.error('Failed to load task detail:', err);
         } finally {
-            setLoading(false);
+            if (!silent) {
+                setLoading(false);
+            }
         }
     };
 
     const handleManualRefresh = async () => {
         try {
             setRefreshing(true);
-            await fetchDetail(true);
+            const detailPromise = fetchDetail(true);
+            const parentPromise = onUpdated ? Promise.resolve(onUpdated()) : Promise.resolve();
+            await Promise.all([detailPromise, parentPromise]);
+        } catch (err) {
+            console.error('Failed to refresh task details:', err);
         } finally {
             setRefreshing(false);
         }

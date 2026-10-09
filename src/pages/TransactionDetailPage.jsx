@@ -312,7 +312,7 @@ const TransactionDetailPage = () => {
                                         </tr>
                                     ) : (
                                         details.map((row, idx) => (
-                                            <DetailRow key={`${row.accountTransactionId}-${idx}`} row={row} />
+                                            <DetailRow key={`${row.id}-${idx}`} row={row} />
                                         ))
                                     )}
                                 </tbody>
@@ -350,7 +350,7 @@ const DetailRow = ({ row }) => {
         <tr className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
             {/* İşlem ID */}
             <td className="px-4 py-3 text-slate-600 dark:text-slate-300 font-mono text-xs font-semibold">
-                {row.accountTransactionId ?? '-'}
+                {row.id ?? '-'}
             </td>
 
             {/* Sipariş ID */}

@@ -162,6 +162,7 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
     const [agencyDropdownOpen, setAgencyDropdownOpen] = useState(false);
 
     const [creditLimit, setCreditLimit] = useState('');
+    const [additionLimit, setAdditionLimit] = useState('0');
     const [usedLimit, setUsedLimit] = useState('0');
     const [status, setStatus] = useState('ACTIVE');
     const [saving, setSaving] = useState(false);
@@ -178,12 +179,14 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
         setSaving(false);
         if (isEdit) {
             setCreditLimit(String(editData.creditLimit ?? ''));
+            setAdditionLimit(String(editData.additionLimit ?? '0'));
             setStatus(editData.status ?? 'ACTIVE');
             setSelectedAgency(editData.agency ?? null);
             setAgencyQuery(editData.agency?.name ?? '');
             setUsedLimit(String(editData.usedLimit ?? '0'));
         } else {
             setCreditLimit('');
+            setAdditionLimit('0');
             setUsedLimit('0');
             setStatus('ACTIVE');
             setSelectedAgency(null);
@@ -250,7 +253,8 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
         setAgencyDropdownOpen(false);
     };
 
-    const availableLimit = (Number(creditLimit) || 0) - (Number(usedLimit) || 0);
+    const totalLimit = (Number(creditLimit) || 0) + (Number(additionLimit) || 0);
+    const availableLimit = totalLimit - (Number(usedLimit) || 0);
 
     const handleSubmit = async () => {
         setError(null);
@@ -267,13 +271,16 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
             if (isEdit) {
                 await financeService.updateLimit(editData.id, {
                     creditLimit: Number(creditLimit),
+                    additionLimit: Number(additionLimit) || 0,
                     status,
                 });
             } else {
                 await financeService.createLimit({
                     agencyId: selectedAgency.id,
                     creditLimit: Number(creditLimit),
-                    usedLimit: Number(usedLimit) || 0,
+                    additionLimit: Number(additionLimit) || 0,
+                    usedCreditLimit: Number(usedLimit) || 0,
+                    usedAdditionLimit: 0,
                 });
             }
             onSuccess?.();
@@ -392,6 +399,22 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                         />
                     </div>
 
+                    {/* Addition Limit */}
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                            Addition Limit
+                        </label>
+                        <input
+                            type="number"
+                            min="0"
+                            step="100"
+                            placeholder="0"
+                            value={additionLimit}
+                            onChange={(e) => setAdditionLimit(e.target.value)}
+                            className="h-10 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors"
+                        />
+                    </div>
+
                     {/* Used Limit — only on create, read-only */}
                     {!isEdit && (
                         <div className="flex flex-col gap-1.5">
@@ -409,9 +432,15 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
 
                     {/* Available Limit preview */}
                     <div className="px-3 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                        <span className="text-xs text-slate-500 dark:text-slate-400">Toplam Limit (Credit + Addition):</span>
+                        <span className="text-sm font-semibold tabular-nums text-blue-600 dark:text-blue-400">
+                            {(creditLimit || additionLimit) ? fmt(totalLimit) : '—'}
+                        </span>
+                    </div>
+                    <div className="px-3 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                         <span className="text-xs text-slate-500 dark:text-slate-400">Kullanılabilir Limit:</span>
                         <span className={`text-sm font-semibold tabular-nums ${availableLimit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
-                            {creditLimit ? fmt(availableLimit) : '—'}
+                            {(creditLimit || additionLimit) ? fmt(availableLimit) : '—'}
                         </span>
                     </div>
 
@@ -761,6 +790,8 @@ const LimitManagementTab = () => {
                                 </th>
                                 <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Para Birimi</th>
                                 <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Credit Limit</th>
+                                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Addition Limit</th>
+                                <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Total Limit</th>
                                 <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Used Limit</th>
                                 <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Available Limit</th>
                                 <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Kullanım %</th>
@@ -805,6 +836,18 @@ const LimitManagementTab = () => {
                                         {/* Credit Limit */}
                                         <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-200 font-medium tabular-nums whitespace-nowrap">
                                             {fmt(item.creditLimit)} {currency !== '—' ? currency : ''}
+                                        </td>
+
+                                        {/* Addition Limit */}
+                                        <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap">
+                                            <span className={`font-medium ${Number(item.additionLimit) > 0 ? 'text-violet-600 dark:text-violet-400' : 'text-slate-400'}`}>
+                                                {fmt(item.additionLimit ?? 0)} {currency !== '—' ? currency : ''}
+                                            </span>
+                                        </td>
+
+                                        {/* Total Limit */}
+                                        <td className="px-4 py-3 text-right text-blue-700 dark:text-blue-300 font-semibold tabular-nums whitespace-nowrap">
+                                            {fmt(item.totalLimit ?? ((item.creditLimit ?? 0) + (item.additionLimit ?? 0)))} {currency !== '—' ? currency : ''}
                                         </td>
 
                                         {/* Used Limit */}

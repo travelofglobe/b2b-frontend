@@ -52,31 +52,41 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
     }, [locationId]); // only re-fetch when locationId changes
 
     // Helper to get name with current language translation preference
-    const getName = (nameObj) => {
-        if (!nameObj) return '';
-        return nameObj.translations?.[currentLang] || nameObj.translations?.en || nameObj.defaultName || '';
+    const getName = (crumb) => {
+        if (!crumb) return '';
+        if (typeof crumb === 'string') return crumb;
+        const nameObj = crumb.name || crumb;
+        if (typeof nameObj === 'string') return nameObj;
+        return nameObj.translations?.[currentLang] || nameObj.translations?.en || nameObj.translations?.tr || nameObj.defaultName || crumb.displayName || crumb.nameFull || '';
     };
 
-    // Dedicated icons per locationType or depth index
+    // Dedicated icons per locationType / geography type or depth index
     const getLocationIcon = (crumb, index) => {
-        const type = (crumb?.locationType || crumb?.type || '').toUpperCase();
+        const type = (crumb?.type || crumb?.locationType || '').toUpperCase();
         switch (type) {
+            case 'CONTINENT':
             case 'COUNTRY':
                 return 'public';
-            case 'CITY':
+            case 'PROVINCE_STATE':
             case 'PROVINCE':
             case 'STATE':
+                return 'domain';
+            case 'CITY':
+            case 'MULTI_CITY_VICINITY':
                 return 'location_city';
+            case 'HIGH_LEVEL_REGION':
+            case 'REGION':
+            case 'AREA':
+                return 'terrain';
+            case 'NEIGHBORHOOD':
             case 'DISTRICT':
-                return 'grid_view';
             case 'TOWN':
             case 'VILLAGE':
                 return 'holiday_village';
+            case 'POINT_OF_INTEREST':
+                return 'pin_drop';
             case 'HOTEL':
                 return 'hotel';
-            case 'REGION':
-            case 'AREA':
-                return 'explore';
             default:
                 if (index === 0) return 'public';
                 if (index === 1) return 'location_city';
@@ -153,12 +163,13 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
 
             {breadcrumbs.map((crumb, index) => {
                 const isLast = index === breadcrumbs.length - 1;
-                const name = getName(crumb.name);
+                const name = getName(crumb);
                 const iconName = getLocationIcon(crumb, index);
-                const isCountryAfterHome = index === 0 && (crumb.locationType === 'COUNTRY' || crumb.type === 'COUNTRY');
+                const crumbType = (crumb?.type || crumb?.locationType || '').toUpperCase();
+                const isCountryAfterHome = index === 0 && (crumbType === 'COUNTRY' || crumbType === 'CONTINENT');
 
                 return (
-                    <React.Fragment key={crumb.locationId}>
+                    <React.Fragment key={crumb.regionId || crumb.locationId || index}>
                         <span className="text-slate-300 dark:text-slate-700 font-light select-none shrink-0">/</span>
                         {isLast ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-primary/10 text-primary dark:bg-primary/20 dark:text-blue-300 font-semibold text-xs shrink-0">

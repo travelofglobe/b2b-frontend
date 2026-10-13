@@ -142,14 +142,14 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
         try {
             const res = await autocompleteService.search({ 
                 query, 
-                types: ["HOTEL"] 
+                types: ["PROPERTY"] 
             });
             if (res && res.content) {
                 const mappedHotels = res.content
-                    .filter(item => item.type === 'HOTEL')
+                    .filter(item => item.type === 'PROPERTY' || item.type === 'HOTEL')
                     .map(item => ({
                         ...item,
-                        hotelId: item.id.includes('hotel_') ? item.id.replace('hotel_', '') : item.id
+                        hotelId: item.togId || (item.id?.includes('property_') ? item.id.replace('property_', '') : (item.id?.includes('hotel_') ? item.id.replace('hotel_', '') : item.id))
                     }));
                 setHotelSuggestions(mappedHotels);
             }
@@ -171,11 +171,13 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
         const hotelIdNum = Number(hotel.hotelId);
         if (formData.hotelIds.includes(hotelIdNum)) return;
         
+        const locString = (hotel.ancestors?.map(l => typeof l.name === 'string' ? l.name : getLocalizedName(l.name)) || hotel.locationBreadcrumbs?.map(l => getLocalizedName(l.name)) || []).join(', ');
+
         setFormData(prev => ({ ...prev, hotelIds: [...prev.hotelIds, hotelIdNum] }));
         setSelectedHotels(prev => [...prev, { 
             id: hotelIdNum, 
             name: getLocalizedName(hotel.name), 
-            location: hotel.locationBreadcrumbs?.map(l => getLocalizedName(l.name)).join(', ') 
+            location: locString 
         }]);
         setHotelSearch('');
         setShowHotelSuggestions(false);

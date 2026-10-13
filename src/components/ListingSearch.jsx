@@ -358,16 +358,26 @@ const ListingSearch = ({ isCompact = false }) => {
         localStorage.setItem('dashboard_last_guests', serializeGuestsParam(roomState));
     }, [roomState]);
 
+    const getCrumbsParts = (item) => {
+        if (item?.ancestors && Array.isArray(item.ancestors) && item.ancestors.length > 0) {
+            return item.ancestors.map(b => (typeof b.name === 'string' ? b.name : b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName || '')).filter(Boolean);
+        }
+        if (item?.locationBreadcrumbs && Array.isArray(item.locationBreadcrumbs) && item.locationBreadcrumbs.length > 0) {
+            return item.locationBreadcrumbs.map(b => (typeof b.name === 'string' ? b.name : b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName || '')).filter(Boolean);
+        }
+        return [];
+    };
+
     const fetchResults = async () => {
         setLoading(true);
         try {
-            const data = await autocompleteService.search({ query, types: ['HOTEL', 'LOCATION'] });
+            const data = await autocompleteService.search({ query, types: ['PROPERTY', 'GEOGRAPHY_REGION', 'POI'] });
             const resultsData = data?.data || data;
             
             if (resultsData) {
                 const items = resultsData.content || [];
-                const hotels = items.filter(item => item.type === 'HOTEL');
-                const regions = items.filter(item => item.type === 'LOCATION');
+                const hotels = items.filter(item => item.type === 'PROPERTY' || item.type === 'HOTEL');
+                const regions = items.filter(item => item.type === 'GEOGRAPHY_REGION' || item.type === 'POI' || item.type === 'LOCATION');
                 setResults({ hotels, regions });
             }
         } catch (error) {
@@ -403,15 +413,12 @@ const ListingSearch = ({ isCompact = false }) => {
     };
 
     const buildLocationSlug = (location) => {
-        if (location.locationBreadcrumbs && location.locationBreadcrumbs.length > 0) {
-            // parts: [Country, City, District] (hierarchical order from API)
-            const breadcrumbs = location.locationBreadcrumbs.map(b => (b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName || '').toLowerCase());
-            
-            // If more than 1 part (e.g., City exists), skip Country (at index 0)
+        const parts = getCrumbsParts(location);
+        if (parts.length > 0) {
+            const breadcrumbs = parts.map(p => p.toLowerCase());
             if (breadcrumbs.length > 1) {
                 return breadcrumbs.slice(1).join('/');
             }
-            // Just one part
             return breadcrumbs[0];
         }
         return (location.name?.translations?.[currentLang] || location.name?.translations?.en || Object.values(location.name?.translations || {})[0] || 'destination').toLowerCase();
@@ -517,18 +524,19 @@ const ListingSearch = ({ isCompact = false }) => {
 
         // Construct full name from breadcrumbs for display
         let fullName = name;
-        if (location.locationBreadcrumbs && location.locationBreadcrumbs.length > 0) {
-            const parts = location.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName);
+        const parts = getCrumbsParts(location);
+        if (parts.length > 0) {
             fullName = parts.reverse().join(', ');
         }
 
-        saveSearchHistoryItem(fullName, 'LOCATION', location.locationId, getRegionName(location));
+        const locId = location.regionId || location.poiId || location.locationId;
+        saveSearchHistoryItem(fullName, location.type || 'GEOGRAPHY_REGION', locId, getRegionName(location));
 
         localStorage.setItem('dashboard_last_search', fullName);
-        localStorage.setItem('dashboard_last_type', 'LOCATION');
+        localStorage.setItem('dashboard_last_type', location.type || 'GEOGRAPHY_REGION');
         // Save locationId for later use with Search button
-        if (location.locationId) {
-            localStorage.setItem('dashboard_last_locationId', location.locationId);
+        if (locId) {
+            localStorage.setItem('dashboard_last_locationId', locId);
         }
 
         let latVal = location.geoCoordinate?.lat || location.geoCoordinate?.latitude || location.lat || location.latitude;
@@ -550,7 +558,7 @@ const ListingSearch = ({ isCompact = false }) => {
             localStorage.removeItem('dashboard_last_lng');
         }
 
-        const countryCode = location.countryCode || (location.locationBreadcrumbs?.find(b => b.locationType === 'COUNTRY')?.countryCode);
+        const countryCode = location.countryCode || (location.ancestors?.find(b => b.type === 'country')?.name || location.locationBreadcrumbs?.find(b => b.locationType === 'COUNTRY')?.countryCode);
         if (countryCode) {
             setDestinationCountryCode(countryCode);
             localStorage.setItem('dashboard_last_countryCode', countryCode);
@@ -565,7 +573,7 @@ const ListingSearch = ({ isCompact = false }) => {
 
         setQuery(fullName);
         
-        const locationParam = location.locationId ? `&locationId=${location.locationId}` : '';
+        const locationParam = locId ? `&locationId=${locId}` : '';
         const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
         const searchParamsString = getUrlParams({ query: fullName }) + locationParam + geoParam;
 
@@ -581,8 +589,8 @@ const ListingSearch = ({ isCompact = false }) => {
         // Construct full name with location context
         let fullName = name;
         let locationContext = '';
-        if (hotel.locationBreadcrumbs && hotel.locationBreadcrumbs.length > 0) {
-            const parts = hotel.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName);
+        const parts = getCrumbsParts(hotel);
+        if (parts.length > 0) {
             locationContext = parts.reverse().join(', ');
             fullName = `${name}, ${locationContext}`;
         } else if (hotel.countryCode) {
@@ -590,14 +598,14 @@ const ListingSearch = ({ isCompact = false }) => {
             fullName = `${name}, ${hotel.countryCode}`;
         }
 
-        const hId = hotel.hotelId || hotel.id?.replace('hotel_', '');
-        saveSearchHistoryItem(fullName, 'HOTEL', hId, locationContext);
+        const hId = hotel.togId || hotel.propertyId || hotel.hotelId || hotel.id?.replace('hotel_', '').replace('property_', '');
+        saveSearchHistoryItem(fullName, hotel.type || 'PROPERTY', hId, locationContext);
 
         localStorage.setItem('dashboard_last_search', fullName);
-        localStorage.setItem('dashboard_last_type', 'HOTEL');
+        localStorage.setItem('dashboard_last_type', hotel.type || 'PROPERTY');
         localStorage.setItem('dashboard_last_hotelId', hId);
 
-        const countryCode = hotel.countryCode || (hotel.locationBreadcrumbs?.find(b => b.locationType === 'COUNTRY')?.countryCode);
+        const countryCode = hotel.countryCode || (hotel.ancestors?.find(b => b.type === 'country')?.name || hotel.locationBreadcrumbs?.find(b => b.locationType === 'COUNTRY')?.countryCode);
         if (countryCode) {
             setDestinationCountryCode(countryCode);
             localStorage.setItem('dashboard_last_countryCode', countryCode);
@@ -625,8 +633,8 @@ const ListingSearch = ({ isCompact = false }) => {
 
     // Helper to get Region Name
     const getRegionName = (region) => {
-        if (region.locationBreadcrumbs && region.locationBreadcrumbs.length > 0) {
-            const parts = region.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName);
+        const parts = getCrumbsParts(region);
+        if (parts.length > 0) {
             return parts.reverse().join(', ');
         }
         return region.name?.translations?.[currentLang] || region.name?.translations?.en || Object.values(region.name?.translations || {})[0] || 'Unknown Region';
@@ -938,7 +946,7 @@ const ListingSearch = ({ isCompact = false }) => {
                                                 }
 
                                                 const lower = (rawName + ' ' + rawSub).toLowerCase();
-                                                let locationIcon = 'location_on';
+                                                let locationIcon = region.type === 'POI' ? 'place' : 'location_on';
                                                 if (lower.includes('airport') || lower.includes('havalimanı') || lower.includes('havaalanı')) {
                                                     locationIcon = 'flight';
                                                 } else if (lower.includes('tren') || lower.includes('train') || lower.includes('istasyon') || lower.includes('station')) {
@@ -950,7 +958,7 @@ const ListingSearch = ({ isCompact = false }) => {
 
                                                 return (
                                                     <div
-                                                        key={region.locationId || `reg-${index}`}
+                                                        key={region.regionId || region.poiId || region.locationId || region.id || `reg-${index}`}
                                                         data-autocomplete-active={isActive}
                                                         onClick={() => handleSelectLocation(region)}
                                                         className={`w-full text-left px-4 py-2.5 min-h-[48px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
@@ -986,8 +994,9 @@ const ListingSearch = ({ isCompact = false }) => {
                                         <div>
                                             {results.hotels.map((hotel, index) => {
                                                 const hotelTitle = getHotelName(hotel);
-                                                let hotelSubtitle = hotel.locationBreadcrumbs 
-                                                    ? hotel.locationBreadcrumbs.map(b => b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName).reverse().join(', ') 
+                                                const parts = getCrumbsParts(hotel);
+                                                let hotelSubtitle = parts.length > 0 
+                                                    ? parts.reverse().join(', ') 
                                                     : (hotel.countryCode || '');
 
                                                 if (hotelSubtitle.startsWith(hotelTitle + ', ')) {
@@ -1000,7 +1009,7 @@ const ListingSearch = ({ isCompact = false }) => {
 
                                                 return (
                                                     <div
-                                                        key={hotel.hotelId || `hot-${index}`}
+                                                        key={hotel.togId || hotel.propertyId || hotel.hotelId || hotel.id || `hot-${index}`}
                                                         data-autocomplete-active={isActive}
                                                         onClick={() => handleSelectHotel(hotel)}
                                                         className={`w-full text-left px-4 py-2.5 min-h-[48px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}

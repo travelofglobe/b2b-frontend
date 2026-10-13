@@ -64,7 +64,7 @@ const PhoneInput = ({ value, onChange, label, error }) => {
     const dropdownRef = useRef(null);
     const buttonRef = useRef(null);
     
-    const initialCountry = countries.find(c => value?.startsWith(c.code)) || countries[0];
+    const initialCountry = countries.find(c => value?.startsWith(c.code) ) || countries[0];
     const [selectedCountry, setSelectedCountry] = useState(initialCountry);
     const [phoneNumber, setPhoneNumber] = useState(() => {
         if (!value) return '';
@@ -159,11 +159,11 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                         <div className="max-h-56 overflow-y-auto custom-scrollbar py-1">
                             {filteredCountries.map((country, index) => (
                                 <button
-                                    key={country.code || country.id}
+                                    key={country.id}
                                     type="button"
                                     onClick={() => handleCountrySelect(country)}
                                     className={`w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs cursor-pointer ${
-                                        (selectedCountry.code === country.code) ? 'bg-primary/5 dark:bg-primary/10' : ''
+                                        (selectedCountry.id === country.id) ? 'bg-primary/5 dark:bg-primary/10' : ''
                                     } ${activeIndex === index ? 'bg-slate-100 dark:bg-slate-800' : ''}`}
                                 >
                                     <div className="flex items-center gap-2">
@@ -171,7 +171,7 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                                         <span className="font-semibold text-slate-700 dark:text-slate-300">{country.dial_code || country.code}</span>
                                         <span className="font-medium text-slate-500 dark:text-slate-400">{country.name}</span>
                                     </div>
-                                    {selectedCountry.code === country.code && (
+                                    {selectedCountry.id === country.id && (
                                         <span className="material-symbols-outlined text-primary text-sm">check</span>
                                     )}
                                 </button>

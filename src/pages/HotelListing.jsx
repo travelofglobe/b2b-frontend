@@ -46,9 +46,9 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
     React.useEffect(() => {
         const lat = parseFloat(searchParams?.get('lat'));
         const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
-        const locationId = searchParams?.get('locationId') || '';
+        const targetId = searchParams?.get('regionId') || searchParams?.get('togId') || searchParams?.get('locationId') || searchParams?.get('hotelId') || '';
         const currentQ = searchParams?.get('q') || q || '';
-        const searchTargetKey = `${slug || ''}_${locationId}_${lat}_${lng}_${currentQ}`;
+        const searchTargetKey = `${slug || ''}_${targetId}_${lat}_${lng}_${currentQ}`;
 
         if (searchTargetKey !== lastTargetLocationRef.current) {
             lastTargetLocationRef.current = searchTargetKey;
@@ -67,7 +67,7 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
                 }
             }
         }
-    }, [slug, q, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('locationId'), searchParams?.get('q'), map, isProgrammaticMoveRef]);
+    }, [slug, q, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('regionId'), searchParams?.get('togId'), searchParams?.get('locationId'), searchParams?.get('q'), map, isProgrammaticMoveRef]);
 
     // 2. Auto-fit bounds once hotels are loaded and shouldRefit is true
     React.useEffect(() => {
@@ -2028,7 +2028,9 @@ const HotelListing = () => {
     const themeName = theme ? theme.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
     const campaignName = campaign ? campaign.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
 
-    const locationId = searchParams.get('locationId');
+    const togId = searchParams.get('togId') || searchParams.get('hotelId') || '';
+    const regionId = searchParams.get('regionId') || searchParams.get('locationId') || '';
+    const locationId = regionId;
 
     // Resolve initial map center immediately so Turkey is not displayed needlessly
     const initialMapState = React.useMemo(() => {
@@ -2396,15 +2398,16 @@ const HotelListing = () => {
             const filters = getSearchParams();
             const currentPage = isReset ? 0 : pageRef.current;
             const baseRequest = {
-                // Use geo bounds if provided (map area search), otherwise use locationId
-                locationId: activeGeoBounds ? null : locationId,
+                // Use geo bounds if provided (map area search), otherwise use regionId
+                locationId: activeGeoBounds ? null : (regionId || null),
                 geo: activeGeoBounds?.bounds || null,
                 zoom: activeGeoBounds?.zoom || null,
                 size: 100,
                 filters: {
+                    hotelIds: togId ? [parseInt(togId)] : (filters.hotelIds || null),
                     locationIds: activeGeoBounds
                         ? [] // when searching by map bounds, don't restrict by locationId
-                        : (filters.locations?.length > 0 ? filters.locations : (locationId ? [parseInt(locationId)] : null)),
+                        : (filters.locations?.length > 0 ? filters.locations : (regionId ? [parseInt(regionId)] : null)),
                     stars: filters.stars,
                     hasFreeCancellation: filters.freeCancellation,
                     hasPrePayment: filters.prePayment,
@@ -2489,7 +2492,7 @@ const HotelListing = () => {
                 isFetchingRef.current = false;
             }
         }
-    }, [locationId, mapApiHotelToModel, roomState, searchParams, sortConfig]);
+    }, [locationId, regionId, togId, mapApiHotelToModel, roomState, searchParams, sortConfig]);
 
     const handleMapBoundsChange = React.useCallback((boundsData) => {
         mapBoundsRef.current = boundsData;
@@ -2512,7 +2515,7 @@ const HotelListing = () => {
                 if (!center) return;
 
                 const currentZoom = typeof mapInstance.getZoom === 'function' ? mapInstance.getZoom() : 11;
-                const currentLocationId = searchParams.get('locationId');
+                const currentLocationId = searchParams.get('regionId') || searchParams.get('locationId');
                 const currentQ = searchParams.get('q');
 
                 // Find closest hotel that has locationBreadcrumbs
@@ -2643,9 +2646,14 @@ const HotelListing = () => {
                 if (fullName) {
                     localStorage.setItem('dashboard_last_search', fullName);
                     if (targetLocId) {
-                        localStorage.setItem('dashboard_last_locationId', targetLocId);
+                        localStorage.setItem('dashboard_last_search_param', 'regionId');
+                        localStorage.setItem('dashboard_last_search_id', targetLocId);
+                        localStorage.setItem('dashboard_last_regionId', targetLocId);
+                        localStorage.removeItem('dashboard_last_locationId');
+                        localStorage.removeItem('dashboard_last_togId');
                     }
-                    if (searchParams.get('q') !== fullName || (targetLocId && searchParams.get('locationId') !== targetLocId)) {
+                    const currentTargetLoc = searchParams.get('regionId') || searchParams.get('locationId');
+                    if (searchParams.get('q') !== fullName || (targetLocId && currentTargetLoc !== targetLocId)) {
                         isSyncingQRef.current = true;
                         const newParams = new URLSearchParams(searchParams);
                         newParams.set('q', fullName);
@@ -2654,9 +2662,13 @@ const HotelListing = () => {
                             newParams.set('lng', center.lng.toFixed(4));
                         }
                         if (targetLocId) {
-                            newParams.set('locationId', targetLocId);
-                        } else {
+                            newParams.set('regionId', targetLocId);
                             newParams.delete('locationId');
+                            newParams.delete('togId');
+                        } else {
+                            newParams.delete('regionId');
+                            newParams.delete('locationId');
+                            newParams.delete('togId');
                         }
                         setSearchParams(newParams, { replace: true });
                     }

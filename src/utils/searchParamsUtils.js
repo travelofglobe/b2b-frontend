@@ -243,3 +243,270 @@ export const resolveKnownCoordinates = (str) => {
     return null;
 };
 
+/**
+ * Resolves the appropriate search ID parameter and value for an autocomplete item:
+ * - PROPERTY / HOTEL -> { param: 'togId', id: togId }
+ * - GEOGRAPHY_REGION / LOCATION -> { param: 'regionId', id: regionId }
+ * - POI -> { param: 'regionId', id: regionId } (uses POI's parent regionId)
+ *
+ * @param {Object} item
+ * @returns {{ param: 'togId'|'regionId'|null, id: string|number|null }}
+ */
+export const resolveSearchTargetId = (item) => {
+    if (!item) return { param: null, id: null };
+
+    const type = String(item.type || item.searchType || '').toUpperCase();
+
+    // 1. PROPERTY / HOTEL
+    if (type === 'PROPERTY' || type === 'HOTEL') {
+        const togId = item.togId || item.propertyId || item.hotelId ||
+            (typeof item.id === 'string' ? item.id.replace('property_', '').replace('hotel_', '') : item.id);
+        return { param: 'togId', id: togId || null };
+    }
+
+    // 2. POI
+    if (type === 'POI' || item.poiId) {
+        // For POI, send its regionId (parent region)
+        let regionId = item.regionId;
+        if (!regionId && Array.isArray(item.ancestors)) {
+            const parent = item.ancestors.find(a => a.type === 'neighborhood' || a.type === 'city' || a.type === 'province_state' || a.type === 'country');
+            if (parent) regionId = parent.regionId || parent.id;
+        }
+        return { param: 'regionId', id: regionId || null };
+    }
+
+    // 3. GEOGRAPHY_REGION / LOCATION
+    const regionId = item.regionId || item.locationId ||
+        (typeof item.id === 'string' ? item.id.replace('geography_region_', '').replace('region_', '').replace('location_', '') : item.id);
+    return { param: 'regionId', id: regionId || null };
+};
+
+/**
+ * Determines whether a given autocomplete item is a POI (Point of Interest).
+ *
+ * @param {Object} item
+ * @returns {boolean}
+ */
+export const isPoiItem = (item) => {
+    if (!item) return false;
+    return item.type === 'POI' ||
+        Boolean(item.poiId) ||
+        (item.locationType && String(item.locationType).toLowerCase().includes('poi')) ||
+        (item.locationType && String(item.locationType).toLowerCase().includes('point_of_interest'));
+};
+
+/**
+ * Determines the appropriate icon and metadata for a location/region/POI item.
+ *
+ * @param {Object} region - The region or location item
+ * @param {string} title - Resolved title
+ * @param {string} subtitle - Resolved subtitle
+ * @param {boolean} isChild - Whether this item is displayed as a child in a tree
+ * @returns {{ icon: string, isPoi: boolean }}
+ */
+export const getLocationIconMeta = (region, title = '', subtitle = '', isChild = false) => {
+    const isPoi = isPoiItem(region);
+
+    const lower = `${title || ''} ${subtitle || ''}`.toLowerCase();
+
+    if (lower.includes('airport') || lower.includes('havalimanı') || lower.includes('havaalanı')) {
+        return { icon: 'flight', isPoi };
+    }
+    if (lower.includes('tren') || lower.includes('train') || lower.includes('istasyon') || lower.includes('station')) {
+        return { icon: 'train', isPoi };
+    }
+
+    if (isPoi) {
+        if (lower.includes('museum') || lower.includes('müze')) {
+            return { icon: 'museum', isPoi: true };
+        }
+        if (lower.includes('park') || lower.includes('kanyon') || lower.includes('canyon')) {
+            return { icon: 'park', isPoi: true };
+        }
+        if (lower.includes('beach') || lower.includes('plaj') || lower.includes('koy') || lower.includes('bay')) {
+            return { icon: 'beach_access', isPoi: true };
+        }
+        return { icon: 'attractions', isPoi: true };
+    }
+
+    if (isChild) {
+        return { icon: 'subdirectory_arrow_right', isPoi: false };
+    }
+
+    return { icon: 'location_on', isPoi: false };
+};
+
+/**
+ * Organizes flat autocomplete regions/locations into a tree hierarchy where
+ * ONLY POIs (Points of Interest) are nested as child menu items under their parent region.
+ * All regions, cities, provinces and neighborhoods remain top-level items.
+ *
+ * @param {Array} items - Flat list of region/location/POI items
+ * @returns {Array} Tree structured items where .children contains only POIs
+ */
+export const buildLocationTree = (items = []) => {
+    if (!Array.isArray(items) || items.length === 0) return [];
+
+    const itemMap = new Map();
+    items.forEach(item => {
+        const id = String(item.regionId || item.poiId || item.locationId || item.id || '');
+        if (id) itemMap.set(id, item);
+        if (item.regionId) itemMap.set(String(item.regionId), item);
+        if (item.id) itemMap.set(String(item.id), item);
+        if (item.poiId) itemMap.set(String(item.poiId), item);
+        if (item.locationId) itemMap.set(String(item.locationId), item);
+    });
+
+    const childrenMap = new Map();
+    const rootItems = [];
+
+    items.forEach(item => {
+        const isPoi = isPoiItem(item);
+
+        // ONLY POI items can be nested as child menu items
+        if (!isPoi) {
+            rootItems.push(item);
+            return;
+        }
+
+        const itemId = String(item.regionId || item.poiId || item.locationId || item.id || '');
+        let parentItem = null;
+
+        if (Array.isArray(item.ancestors)) {
+            for (const ancestor of item.ancestors) {
+                const ancId = String(ancestor.regionId || ancestor.id || ancestor.locationId || '');
+                if (ancId && ancId !== itemId && itemMap.has(ancId)) {
+                    const candidate = itemMap.get(ancId);
+                    if (candidate && !isPoiItem(candidate)) {
+                        parentItem = candidate;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!parentItem && Array.isArray(item.locationBreadcrumbs)) {
+            for (const crumb of item.locationBreadcrumbs) {
+                const cId = String(crumb.locationId || crumb.regionId || crumb.id || '');
+                if (cId && cId !== itemId && itemMap.has(cId)) {
+                    const candidate = itemMap.get(cId);
+                    if (candidate && !isPoiItem(candidate)) {
+                        parentItem = candidate;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!parentItem && item.regionId && String(item.regionId) !== itemId && itemMap.has(String(item.regionId))) {
+            const candidate = itemMap.get(String(item.regionId));
+            if (candidate && !isPoiItem(candidate)) {
+                parentItem = candidate;
+            }
+        }
+
+        if (parentItem && parentItem !== item) {
+            const parentKey = String(parentItem.regionId || parentItem.poiId || parentItem.locationId || parentItem.id);
+            if (!childrenMap.has(parentKey)) {
+                childrenMap.set(parentKey, []);
+            }
+            childrenMap.get(parentKey).push(item);
+        } else {
+            // If POI has no parent region in current results, display at root level
+            rootItems.push(item);
+        }
+    });
+
+    return rootItems.map(root => {
+        const rootKey = String(root.regionId || root.poiId || root.locationId || root.id);
+        const children = childrenMap.get(rootKey) || [];
+        return {
+            ...root,
+            children
+        };
+    });
+};
+
+export const PROPERTY_CATEGORIES = {
+    0: { id: 0, name: 'Property', icon: 'domain', tr: 'Tesis' },
+    1: { id: 1, name: 'Hotel', icon: 'hotel', tr: 'Otel' },
+    2: { id: 2, name: 'Motel', icon: 'hotel', tr: 'Motel' },
+    3: { id: 3, name: 'Resort', icon: 'resort', tr: 'Tatil Köyü / Resort' },
+    4: { id: 4, name: 'Inn', icon: 'night_shelter', tr: 'Han' },
+    5: { id: 5, name: 'Bed & Breakfast', icon: 'bed', tr: 'Oda & Kahvaltı' },
+    6: { id: 6, name: 'Guesthouse', icon: 'gite', tr: 'Konukevi' },
+    7: { id: 7, name: 'Condo', icon: 'apartment', tr: 'Kat Mülkiyeti (Condo)' },
+    8: { id: 8, name: 'All-Inclusive Property', icon: 'spa', tr: 'Her Şey Dahil' },
+    9: { id: 9, name: 'Cabin', icon: 'cabin', tr: 'Dağ Evi / Kulübe' },
+    10: { id: 10, name: 'Chalet', icon: 'chalet', tr: 'Şale' },
+    11: { id: 11, name: 'Cottage', icon: 'cottage', tr: 'Kır Evi' },
+    12: { id: 12, name: 'Hostel/Backpacker Accommodation', icon: 'backpack', tr: 'Hostel' },
+    13: { id: 13, name: 'Ranch', icon: 'agriculture', tr: 'Çiftlik Evi' },
+    14: { id: 14, name: 'Villa', icon: 'villa', tr: 'Villa' },
+    15: { id: 15, name: 'Lodge', icon: 'cabin', tr: 'Lodge / Orman Evi' },
+    16: { id: 16, name: 'Apartment', icon: 'apartment', tr: 'Apart / Daire' },
+    17: { id: 17, name: 'Private Vacation Home', icon: 'house', tr: 'Müstakil Tatil Evi' },
+    18: { id: 18, name: 'Houseboat', icon: 'houseboat', tr: 'Yüzen Ev' },
+    20: { id: 20, name: 'Ryokan', icon: 'temple_buddhist', tr: 'Ryokan' },
+    21: { id: 21, name: 'Tree House Property', icon: 'forest', tr: 'Ağaç Ev' },
+    22: { id: 22, name: 'Aparthotel', icon: 'corporate_fare', tr: 'Aparthotel' },
+    23: { id: 23, name: 'Condominium Resort', icon: 'holiday_village', tr: 'Tatil Rezidansı' },
+    24: { id: 24, name: 'Campsite', icon: 'camping', tr: 'Kamp Alanı' },
+    25: { id: 25, name: 'Riad', icon: 'villa', tr: 'Riyad' },
+    26: { id: 26, name: 'Hostal', icon: 'night_shelter', tr: 'Hostal' },
+    29: { id: 29, name: 'Country House', icon: 'cottage', tr: 'Köy Evi' },
+    30: { id: 30, name: 'Pension', icon: 'bed', tr: 'Pansiyon' },
+    31: { id: 31, name: 'Pousada (Portugal)', icon: 'castle', tr: 'Pousada' },
+    32: { id: 32, name: 'Pousada (Brazil)', icon: 'gite', tr: 'Pousada' },
+    33: { id: 33, name: 'Residence', icon: 'domain', tr: 'Rezidans' },
+    34: { id: 34, name: 'Affittacamere', icon: 'meeting_room', tr: 'Kiralık Oda' },
+    36: { id: 36, name: 'Castle', icon: 'castle', tr: 'Şato / Kale' },
+    37: { id: 37, name: 'Safari/Tentalow', icon: 'camping', tr: 'Safari Çadırı' },
+    39: { id: 39, name: 'Palace', icon: 'castle', tr: 'Saray' },
+    40: { id: 40, name: 'Agritourism Property', icon: 'agriculture', tr: 'Agroturizm' },
+    41: { id: 41, name: 'Cruise', icon: 'directions_boat', tr: 'Kruvaziyer / Gemi' },
+    42: { id: 42, name: 'Holiday Park', icon: 'holiday_village', tr: 'Tatil Parkı' },
+    43: { id: 43, name: 'Capsule hotel', icon: 'meeting_room', tr: 'Kapsül Otel' },
+    44: { id: 44, name: 'Mobile home', icon: 'rv_hookup', tr: 'Karavan / Mobil Ev' },
+};
+
+/**
+ * Returns icon and localized category name for a property based on its categoryId or category name.
+ */
+export const getPropertyCategoryMeta = (item, lang = 'tr') => {
+    let rawId = item?.categoryId ?? item?.category;
+    let numericId = null;
+
+    if (typeof rawId === 'number') {
+        numericId = rawId;
+    } else if (typeof rawId === 'string' && /^\d+$/.test(rawId.trim())) {
+        numericId = parseInt(rawId.trim(), 10);
+    }
+
+    if (numericId !== null && PROPERTY_CATEGORIES[numericId]) {
+        const cat = PROPERTY_CATEGORIES[numericId];
+        return {
+            id: cat.id,
+            name: lang === 'tr' ? cat.tr : cat.name,
+            icon: cat.icon
+        };
+    }
+
+    // Fallback search by string name
+    const text = String(item?.category || item?.name?.searchName || item?.name || '').toLowerCase();
+    for (const cat of Object.values(PROPERTY_CATEGORIES)) {
+        if (text.includes(cat.name.toLowerCase())) {
+            return {
+                id: cat.id,
+                name: lang === 'tr' ? cat.tr : cat.name,
+                icon: cat.icon
+            };
+        }
+    }
+
+    return {
+        id: 1,
+        name: lang === 'tr' ? 'Otel' : 'Hotel',
+        icon: 'hotel'
+    };
+};

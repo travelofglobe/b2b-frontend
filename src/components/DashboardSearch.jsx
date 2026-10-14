@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { autocompleteService } from '../services/autocompleteService';
 import DatePicker from "react-datepicker";
@@ -8,7 +8,7 @@ import HolidaySidePanel from "./HolidaySidePanel";
 import 'react-datepicker/dist/react-datepicker.css';
 import "../datepicker-custom.css";
 import { useHolidays } from '../utils/useHolidays';
-import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, resolveKnownCoordinates } from '../utils/searchParamsUtils';
+import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, resolveKnownCoordinates, getLocationIconMeta, buildLocationTree, getPropertyCategoryMeta, isPoiItem, resolveSearchTargetId } from '../utils/searchParamsUtils';
 import { useTranslation } from 'react-i18next';
 
 import { getUserCountryCode } from '../utils/geoUtils';
@@ -150,11 +150,19 @@ const DashboardSearch = () => {
         }
 
         if (item.targetId) {
-            if (itemType === 'LOCATION') {
-                localStorage.setItem('dashboard_last_locationId', item.targetId);
-            } else if (itemType === 'HOTEL') {
+            if (itemType === 'PROPERTY' || itemType === 'HOTEL') {
+                localStorage.setItem('dashboard_last_search_param', 'togId');
+                localStorage.setItem('dashboard_last_search_id', item.targetId);
+                localStorage.setItem('dashboard_last_togId', item.targetId);
                 localStorage.setItem('dashboard_last_hotelId', item.targetId);
+                localStorage.removeItem('dashboard_last_regionId');
+            } else {
+                localStorage.setItem('dashboard_last_search_param', 'regionId');
+                localStorage.setItem('dashboard_last_search_id', item.targetId);
+                localStorage.setItem('dashboard_last_regionId', item.targetId);
+                localStorage.removeItem('dashboard_last_togId');
             }
+            localStorage.removeItem('dashboard_last_locationId');
         }
     };
 
@@ -244,6 +252,16 @@ const DashboardSearch = () => {
     const [error, setError] = useState(false);
 
     const isUserInteraction = useRef(false);
+    const activeQueryRef = useRef('');
+    const abortControllerRef = useRef(null);
+
+    const [expandedNodes, setExpandedNodes] = useState({});
+    const toggleExpand = (nodeId) => {
+        setExpandedNodes(prev => ({
+            ...prev,
+            [nodeId]: prev[nodeId] === false ? true : false
+        }));
+    };
 
     // Debounce search
     useEffect(() => {
@@ -252,12 +270,23 @@ const DashboardSearch = () => {
             return;
         }
 
-        const timeoutId = setTimeout(() => {
-            if (query.length >= 3) {
-                fetchResults();
-            } else {
-                setResults({ hotels: [], regions: [] });
+        const trimmed = query.trim();
+        if (trimmed.length < 3) {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
             }
+            activeQueryRef.current = '';
+            setResults({ hotels: [], regions: [] });
+            return;
+        }
+
+        // Clear stale results immediately when typing a new/different query
+        if (activeQueryRef.current && activeQueryRef.current !== trimmed) {
+            setResults({ hotels: [], regions: [] });
+        }
+
+        const timeoutId = setTimeout(() => {
+            fetchResults(trimmed);
         }, 300);
 
         return () => clearTimeout(timeoutId);
@@ -276,6 +305,20 @@ const DashboardSearch = () => {
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Auto-focus and select input text on mount so user can start typing directly
+    useEffect(() => {
+        const focusInput = () => {
+            if (inputRef.current) {
+                inputRef.current.focus();
+                inputRef.current.select();
+            }
+        };
+
+        focusInput();
+        const timer = setTimeout(focusInput, 50);
+        return () => clearTimeout(timer);
     }, []);
 
     // Save state to localStorage whenever it changes
@@ -309,22 +352,49 @@ const DashboardSearch = () => {
         return [];
     };
 
-    const fetchResults = async () => {
+    const fetchResults = async (targetQuery) => {
+        const q = (targetQuery !== undefined ? targetQuery : query).trim();
+        if (q.length < 3) {
+            setResults({ hotels: [], regions: [] });
+            return;
+        }
+
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+        activeQueryRef.current = q;
+
         setLoading(true);
+        // Ensure stale results are cleared when starting the new request
+        setResults({ hotels: [], regions: [] });
+
         try {
-            const data = await autocompleteService.search({ query, types: ['PROPERTY', 'GEOGRAPHY_REGION', 'POI'] });
+            const data = await autocompleteService.search(
+                { query: q, types: ['PROPERTY', 'GEOGRAPHY_REGION', 'POI'] },
+                controller.signal
+            );
+
+            // Ignore if active query changed while request was in-flight
+            if (activeQueryRef.current !== q) return;
+
             const resultsData = data?.data || data;
-            
-            if (resultsData) {
-                const items = resultsData.content || [];
-                const hotels = items.filter(item => item.type === 'PROPERTY' || item.type === 'HOTEL');
-                const regions = items.filter(item => item.type === 'GEOGRAPHY_REGION' || item.type === 'POI' || item.type === 'LOCATION');
-                setResults({ hotels, regions });
-            }
+            const items = resultsData?.content || (Array.isArray(resultsData) ? resultsData : []);
+            const hotels = items.filter(item => item.type === 'PROPERTY' || item.type === 'HOTEL');
+            const regions = items.filter(item => item.type === 'GEOGRAPHY_REGION' || item.type === 'POI' || item.type === 'LOCATION');
+            setResults({ hotels, regions });
         } catch (error) {
-            console.error(error);
+            if (error.name === 'AbortError') return;
+            // On error / 404, clear results so stale items never remain
+            if (activeQueryRef.current === q) {
+                setResults({ hotels: [], regions: [] });
+            }
+            console.error("Autocomplete fetch error:", error);
         } finally {
-            setLoading(false);
+            if (activeQueryRef.current === q) {
+                setLoading(false);
+            }
         }
     };
 
@@ -376,14 +446,12 @@ const DashboardSearch = () => {
                 localStorage.setItem('dashboard_last_type', 'SEARCH');
                 localStorage.removeItem('dashboard_last_hotelId');
                 localStorage.removeItem('dashboard_last_locationId');
+                localStorage.removeItem('dashboard_last_search_param');
+                localStorage.removeItem('dashboard_last_search_id');
+                localStorage.removeItem('dashboard_last_togId');
+                localStorage.removeItem('dashboard_last_regionId');
             }
 
-            if (savedLastType === 'HOTEL' && query === savedLastSearch && savedLastHotelId) {
-                const searchParamsString = getUrlParams();
-                navigate(`/travel/hotels/detail/${savedLastHotelId}?${searchParamsString}`);
-                return;
-            }
-            
             // If query contains commas, try to build a hierarchical slug
             // e.g. "Üsküdar, İstanbul, Türkiye" -> ["Üsküdar", "İstanbul", "Türkiye"]
             const queryParts = query.split(',').map(p => p.trim().toLowerCase());
@@ -396,13 +464,25 @@ const DashboardSearch = () => {
                 slug = reversed.slice(1).join('/');
             }
 
-            // Retrieve locationId & coordinates from localStorage if they exist
-            const savedLocationId = localStorage.getItem('dashboard_last_locationId');
+            // Retrieve target parameter (togId or regionId) & coordinates
+            const savedParam = localStorage.getItem('dashboard_last_search_param');
+            const savedId = localStorage.getItem('dashboard_last_search_id');
+            const savedTogId = localStorage.getItem('dashboard_last_togId');
+            const savedRegionId = localStorage.getItem('dashboard_last_regionId');
             const savedLat = localStorage.getItem('dashboard_last_lat');
             const savedLng = localStorage.getItem('dashboard_last_lng');
-            const locationParam = savedLocationId ? `&locationId=${savedLocationId}` : '';
+
+            let targetIdParam = '';
+            if (savedParam && savedId) {
+                targetIdParam = `&${savedParam}=${savedId}`;
+            } else if (savedTogId) {
+                targetIdParam = `&togId=${savedTogId}`;
+            } else if (savedRegionId) {
+                targetIdParam = `&regionId=${savedRegionId}`;
+            }
+
             const geoParam = (savedLat && savedLng) ? `&lat=${savedLat}&lng=${savedLng}` : '';
-            const searchParamsString = getUrlParams() + locationParam + geoParam;
+            const searchParamsString = getUrlParams() + targetIdParam + geoParam;
 
             localStorage.setItem('last_hotel_search_slug', slug);
             localStorage.setItem('last_hotel_search_params', searchParamsString);
@@ -422,15 +502,25 @@ const DashboardSearch = () => {
             fullName = parts.reverse().join(', ');
         }
 
-        const locId = location.regionId || location.poiId || location.locationId;
-        saveSearchHistoryItem(fullName, location.type || 'GEOGRAPHY_REGION', locId, getRegionName(location));
+        const { param: targetParam, id: targetId } = resolveSearchTargetId(location);
+        const locType = location.type || (location.poiId ? 'POI' : 'GEOGRAPHY_REGION');
+        saveSearchHistoryItem(fullName, locType, targetId, getRegionName(location));
 
         localStorage.setItem('dashboard_last_search', fullName);
-        localStorage.setItem('dashboard_last_type', location.type || 'GEOGRAPHY_REGION');
-        // Save locationId for later use with Search button
-        if (locId) {
-            localStorage.setItem('dashboard_last_locationId', locId);
+        localStorage.setItem('dashboard_last_type', locType);
+
+        if (targetParam && targetId) {
+            localStorage.setItem('dashboard_last_search_param', targetParam);
+            localStorage.setItem('dashboard_last_search_id', targetId);
+            if (targetParam === 'togId') {
+                localStorage.setItem('dashboard_last_togId', targetId);
+                localStorage.removeItem('dashboard_last_regionId');
+            } else {
+                localStorage.setItem('dashboard_last_regionId', targetId);
+                localStorage.removeItem('dashboard_last_togId');
+            }
         }
+        localStorage.removeItem('dashboard_last_locationId');
 
         let latVal = location.geoCoordinate?.lat || location.geoCoordinate?.latitude || location.lat || location.latitude;
         let lngVal = location.geoCoordinate?.lon || location.geoCoordinate?.lng || location.geoCoordinate?.longitude || location.lng || location.lon || location.longitude;
@@ -466,9 +556,9 @@ const DashboardSearch = () => {
 
         setQuery(fullName);
         
-        const locationParam = locId ? `&locationId=${locId}` : '';
+        const targetIdParam = (targetParam && targetId) ? `&${targetParam}=${targetId}` : '';
         const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
-        const searchParamsString = getUrlParams(fullName) + locationParam + geoParam;
+        const searchParamsString = getUrlParams(fullName) + targetIdParam + geoParam;
 
         localStorage.setItem('last_hotel_search_slug', slug);
         localStorage.setItem('last_hotel_search_params', searchParamsString);
@@ -489,12 +579,31 @@ const DashboardSearch = () => {
             fullName = `${name}, ${hotel.countryCode}`;
         }
 
-        const hId = hotel.togId || hotel.propertyId || hotel.hotelId || hotel.id?.replace('hotel_', '').replace('property_', '');
+        const { param: targetParam, id: targetId } = resolveSearchTargetId(hotel);
+        const hId = targetId || hotel.togId || hotel.propertyId || hotel.hotelId || hotel.id?.replace('hotel_', '').replace('property_', '');
         saveSearchHistoryItem(fullName, hotel.type || 'PROPERTY', hId, locationContext);
 
         localStorage.setItem('dashboard_last_search', fullName);
         localStorage.setItem('dashboard_last_type', hotel.type || 'PROPERTY');
         localStorage.setItem('dashboard_last_hotelId', hId);
+
+        if (targetParam && targetId) {
+            localStorage.setItem('dashboard_last_search_param', targetParam);
+            localStorage.setItem('dashboard_last_search_id', targetId);
+            localStorage.setItem('dashboard_last_togId', targetId);
+            localStorage.removeItem('dashboard_last_regionId');
+        }
+        localStorage.removeItem('dashboard_last_locationId');
+
+        let latVal = hotel.geoCoordinate?.lat || hotel.geoCoordinate?.latitude || hotel.lat || hotel.latitude;
+        let lngVal = hotel.geoCoordinate?.lon || hotel.geoCoordinate?.lng || hotel.geoCoordinate?.longitude || hotel.lng || hotel.lon || hotel.longitude;
+        if (latVal && lngVal) {
+            localStorage.setItem('dashboard_last_lat', latVal);
+            localStorage.setItem('dashboard_last_lng', lngVal);
+        } else {
+            localStorage.removeItem('dashboard_last_lat');
+            localStorage.removeItem('dashboard_last_lng');
+        }
 
         const countryCode = hotel.countryCode || (hotel.ancestors?.find(b => b.type === 'country')?.name || hotel.locationBreadcrumbs?.find(b => b.locationType === 'COUNTRY')?.countryCode);
         if (countryCode) {
@@ -509,9 +618,12 @@ const DashboardSearch = () => {
 
         setQuery(fullName);
 
-        const searchParamsString = getUrlParams(fullName);
+        const slug = buildLocationSlug(hotel);
+        const targetIdParam = (targetParam && targetId) ? `&${targetParam}=${targetId}` : '';
+        const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
+        const searchParamsString = getUrlParams(fullName) + targetIdParam + geoParam;
 
-        localStorage.setItem('last_hotel_search_slug', hotel.url || hId);
+        localStorage.setItem('last_hotel_search_slug', slug);
         localStorage.setItem('last_hotel_search_params', searchParamsString);
     };
 
@@ -529,16 +641,49 @@ const DashboardSearch = () => {
         return region.name?.translations?.[currentLang] || region.name?.translations?.en || Object.values(region.name?.translations || {})[0] || 'Unknown Region';
     };
 
+    const matchingHistory = query.trim()
+        ? searchHistory.filter(item => (item.query || '').toLowerCase().includes(query.toLowerCase().trim()))
+        : searchHistory;
+
+    const treeRegions = useMemo(() => {
+        return buildLocationTree(results.regions);
+    }, [results.regions]);
+
+    const flatRegionsList = useMemo(() => {
+        const list = [];
+        treeRegions.forEach(parent => {
+            list.push({ item: parent, isChild: false });
+            const nodeId = String(parent.regionId || parent.poiId || parent.locationId || parent.id || '');
+            const isExp = expandedNodes[nodeId] !== false; // expanded by default
+            if (isExp && parent.children && parent.children.length > 0) {
+                parent.children.forEach(child => {
+                    list.push({ item: child, isChild: true, parentId: nodeId });
+                });
+            }
+        });
+        return list;
+    }, [treeRegions, expandedNodes]);
+
     const handleKeyDown = (e) => {
+        const historyCount = matchingHistory.length;
+        const regionCount = flatRegionsList.length;
+        const hotelCount = results.hotels.length;
+        const totalItems = historyCount + regionCount + hotelCount;
+
         // Allow Enter key to trigger search actions regardless of dropdown state
         if (e.key === 'Enter') {
             e.preventDefault();
             // If dropdown is open and we have an active item, select it
-            if (showDropdown && activeIndex >= 0) {
-                if (activeIndex < results.regions.length) {
-                    handleSelectLocation(results.regions[activeIndex]);
+            if (showDropdown && activeIndex >= 0 && activeIndex < totalItems) {
+                if (activeIndex < historyCount) {
+                    handleSelectHistoryItem(matchingHistory[activeIndex]);
+                } else if (activeIndex < historyCount + regionCount) {
+                    handleSelectLocation(flatRegionsList[activeIndex - historyCount].item);
                 } else {
-                    handleSelectHotel(results.hotels[activeIndex - results.regions.length]);
+                    const hotelIdx = activeIndex - historyCount - regionCount;
+                    if (results.hotels[hotelIdx]) {
+                        handleSelectHotel(results.hotels[hotelIdx]);
+                    }
                 }
             } else {
                 // Otherwise, trigger the main search
@@ -548,9 +693,7 @@ const DashboardSearch = () => {
         }
 
         // For navigation keys, we need the dropdown to be open and have results
-        if (!showDropdown || (results.regions.length === 0 && results.hotels.length === 0)) return;
-
-        const totalItems = results.regions.length + results.hotels.length;
+        if (!showDropdown || totalItems === 0) return;
 
         if (e.key === 'ArrowDown') {
             e.preventDefault();
@@ -602,11 +745,7 @@ const DashboardSearch = () => {
         }
     };
 
-    const matchingHistory = query.trim()
-        ? searchHistory.filter(item => item.query.toLowerCase().includes(query.toLowerCase().trim()))
-        : searchHistory;
-
-    const hasAnyResults = matchingHistory.length > 0 || results.regions.length > 0 || results.hotels.length > 0 || loading;
+    const hasAnyResults = matchingHistory.length > 0 || flatRegionsList.length > 0 || results.hotels.length > 0 || loading;
 
     return (
         <section className="relative group/search w-full flex flex-col items-center">
@@ -768,6 +907,7 @@ const DashboardSearch = () => {
                             </span>
                             <input
                                 ref={inputRef}
+                                autoFocus
                                 className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[14px] font-normal text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate"
                                 placeholder={ls.placeholder || "Nereye?"}
                                 type="text"
@@ -826,7 +966,9 @@ const DashboardSearch = () => {
                                             {matchingHistory.map((item, index) => {
                                                 const itemType = item.type || item.searchType || 'SEARCH';
                                                 let icon = 'history';
-                                                if (itemType === 'LOCATION') icon = 'location_on';
+                                                const isHistoryPoi = itemType === 'POI';
+                                                if (isHistoryPoi) icon = 'attractions';
+                                                else if (itemType === 'LOCATION' || itemType === 'GEOGRAPHY_REGION') icon = 'location_on';
                                                 else if (itemType === 'HOTEL') icon = 'hotel';
                                                 else if (itemType === 'AIRPORT') icon = 'flight';
 
@@ -848,12 +990,17 @@ const DashboardSearch = () => {
                                                         className="w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors group cursor-pointer"
                                                     >
                                                         <div className="flex items-center min-w-0 flex-1 mr-3">
-                                                            <span className="material-symbols-outlined text-[19px] text-[#5f6368] dark:text-[#9aa0a6] mr-3.5 shrink-0 select-none">
+                                                            <span className={`material-symbols-outlined text-[19px] ${isHistoryPoi ? 'text-amber-600 dark:text-amber-400' : 'text-[#5f6368] dark:text-[#9aa0a6]'} mr-3.5 shrink-0 select-none`}>
                                                                 {icon}
                                                             </span>
                                                             <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate">
-                                                                    {title}
+                                                                <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate flex items-center gap-1.5">
+                                                                    <span className="truncate">{title}</span>
+                                                                    {isHistoryPoi && (
+                                                                        <span className="text-[9px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60 uppercase shrink-0">
+                                                                            POI
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                                 {subtitle && (
                                                                     <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
@@ -884,12 +1031,14 @@ const DashboardSearch = () => {
                                             <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.popularDestinations || 'Popüler Noktalar'}</span>
                                         </div>
                                         <div>
-                                            {results.regions.map((region, index) => {
+                                            {treeRegions.map((region) => {
                                                 const rawName = region.name?.translations?.[currentLang] || region.name?.translations?.en || region.name?.defaultName || '';
                                                 const rawSub = getRegionName(region);
 
                                                 let title = rawName;
                                                 let subtitle = rawSub;
+
+                                                const isPoi = isPoiItem(region);
 
                                                 if (rawSub === rawName) {
                                                     if (rawName.includes(',')) {
@@ -897,43 +1046,131 @@ const DashboardSearch = () => {
                                                         title = parts[0];
                                                         subtitle = parts.slice(1).join(', ');
                                                     } else {
-                                                        subtitle = region.countryCode ? `${region.countryCode}` : (ls.cityRegion || 'City / Region');
+                                                        subtitle = region.countryCode ? `${region.countryCode}` : (isPoi ? (ls.pointOfInterest || 'Point of Interest') : (ls.cityRegion || 'City / Region'));
                                                     }
                                                 } else if (rawSub.startsWith(rawName + ', ')) {
                                                     subtitle = rawSub.slice(rawName.length + 2);
                                                 }
 
-                                                const lowerTitle = title.toLowerCase();
-                                                let icon = region.type === 'POI' ? 'place' : 'location_on';
-                                                if (lowerTitle.includes('airport') || lowerTitle.includes('havalimanı') || lowerTitle.includes('havaalanı')) {
-                                                    icon = 'flight';
-                                                } else if (lowerTitle.includes('tren') || lowerTitle.includes('train') || lowerTitle.includes('istasyon') || lowerTitle.includes('station')) {
-                                                    icon = 'train';
-                                                }
+                                                const { icon } = getLocationIconMeta(region, title, subtitle, false);
+
+                                                const hasChildren = region.children && region.children.length > 0;
+                                                const parentNodeId = String(region.regionId || region.poiId || region.locationId || region.id || title);
+                                                const isExpanded = expandedNodes[parentNodeId] !== false; // expanded by default
+
+                                                const parentFlatIdx = flatRegionsList.findIndex(f => f.item === region);
+                                                const isParentActive = activeIndex === (matchingHistory.length + parentFlatIdx);
 
                                                 return (
-                                                    <button
-                                                        key={region.regionId || region.poiId || region.locationId || region.id || index}
-                                                        type="button"
-                                                        onClick={() => handleSelectLocation(region)}
-                                                        className={`w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${activeIndex === index ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
-                                                    >
-                                                        <div className="flex items-center min-w-0 flex-1">
-                                                             <span className="material-symbols-outlined text-[19px] text-[#5f6368] dark:text-[#9aa0a6] mr-3.5 shrink-0 select-none">
-                                                                {icon}
-                                                            </span>
-                                                            <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate">
-                                                                    {title}
-                                                                </div>
-                                                                {subtitle && (
-                                                                    <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
-                                                                        {subtitle}
+                                                    <div key={parentNodeId} className="w-full">
+                                                        {/* Parent Row */}
+                                                        <div
+                                                            onClick={() => handleSelectLocation(region)}
+                                                            className={`w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isParentActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                        >
+                                                            <div className="flex items-center min-w-0 flex-1">
+                                                                <span className={`material-symbols-outlined text-[19px] ${isPoi ? 'text-amber-600 dark:text-amber-400' : 'text-[#5f6368] dark:text-[#9aa0a6]'} mr-3.5 shrink-0 select-none`}>
+                                                                    {icon}
+                                                                </span>
+                                                                <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                                                    <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate flex items-center gap-1.5">
+                                                                        <span className="truncate">{title}</span>
+                                                                        {isPoi && (
+                                                                            <span className="text-[9px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60 uppercase shrink-0">
+                                                                                POI
+                                                                            </span>
+                                                                        )}
                                                                     </div>
-                                                                )}
+                                                                    {subtitle && (
+                                                                        <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
+                                                                            {subtitle}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
                                                             </div>
+
+                                                            {/* Chevron Toggle Button if has children */}
+                                                            {hasChildren && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        toggleExpand(parentNodeId);
+                                                                    }}
+                                                                    className="p-1 sm:p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-[#5f6368] dark:text-[#9aa0a6] transition-colors ml-2 shrink-0 cursor-pointer flex items-center gap-1.5"
+                                                                    title={isExpanded ? 'POI\'leri Gizle' : 'POI\'leri Göster'}
+                                                                >
+                                                                    <span className="text-[10px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60 uppercase">
+                                                                        {region.children.length} POI
+                                                                    </span>
+                                                                    <span className="material-symbols-outlined text-[18px] leading-none">
+                                                                        {isExpanded ? 'expand_less' : 'expand_more'}
+                                                                    </span>
+                                                                </button>
+                                                            )}
                                                         </div>
-                                                    </button>
+
+                                                        {/* Sub-regions Tree Branch (Nested) */}
+                                                        {hasChildren && isExpanded && (
+                                                            <div className="relative ml-6 sm:ml-7 pl-3 sm:pl-3.5 border-l-2 border-[#e8eaed] dark:border-[#3c4043] my-0.5 space-y-0.5">
+                                                                {region.children.map((child) => {
+                                                                    const rawChildName = child.name?.translations?.[currentLang] || child.name?.translations?.en || child.name?.defaultName || '';
+                                                                    const rawChildSub = getRegionName(child);
+
+                                                                    let childTitle = rawChildName;
+                                                                    let childSubtitle = rawChildSub;
+
+                                                                    const childIsPoi = isPoiItem(child);
+
+                                                                    if (rawChildSub === rawChildName) {
+                                                                        if (rawChildName.includes(',')) {
+                                                                            const parts = rawChildName.split(',').map(s => s.trim());
+                                                                            childTitle = parts[0];
+                                                                            childSubtitle = parts.slice(1).join(', ');
+                                                                        } else {
+                                                                            childSubtitle = child.countryCode ? `${child.countryCode}` : (childIsPoi ? (ls.pointOfInterest || 'Point of Interest') : (ls.cityRegion || 'City / Region'));
+                                                                        }
+                                                                    } else if (rawChildSub.startsWith(rawChildName + ', ')) {
+                                                                        childSubtitle = rawChildSub.slice(rawChildName.length + 2);
+                                                                    }
+
+                                                                    const { icon: childIcon } = getLocationIconMeta(child, childTitle, childSubtitle, true);
+
+                                                                    const childFlatIdx = flatRegionsList.findIndex(f => f.item === child);
+                                                                    const isChildActive = activeIndex === (matchingHistory.length + childFlatIdx);
+
+                                                                    return (
+                                                                        <div
+                                                                            key={child.regionId || child.poiId || child.locationId || child.id || childTitle}
+                                                                            onClick={() => handleSelectLocation(child)}
+                                                                            className={`w-full text-left px-3.5 py-2.5 min-h-[46px] rounded hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group/child ${isChildActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                                        >
+                                                                            <div className="flex items-center min-w-0 flex-1">
+                                                                                <span className={`material-symbols-outlined text-[18px] ${childIsPoi ? 'text-amber-600 dark:text-amber-400' : 'text-[#70757a] dark:text-[#9aa0a6]'} mr-3 shrink-0 select-none`}>
+                                                                                    {childIcon}
+                                                                                </span>
+                                                                                <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                                                                    <div className="text-[13.5px] font-normal text-[#202124] dark:text-white leading-tight truncate flex items-center gap-1.5">
+                                                                                        <span className="truncate">{childTitle}</span>
+                                                                                        {childIsPoi && (
+                                                                                            <span className="text-[8.5px] font-semibold tracking-wider px-1 py-0.2 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60 uppercase shrink-0">
+                                                                                                POI
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                    {childSubtitle && (
+                                                                                        <div className="text-[11.5px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
+                                                                                            {childSubtitle}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 );
                                             })}
                                         </div>
@@ -949,6 +1186,7 @@ const DashboardSearch = () => {
                                         <div>
                                             {results.hotels.map((hotel, index) => {
                                                 const hotelTitle = getHotelName(hotel);
+                                                const hotelMeta = getPropertyCategoryMeta(hotel, currentLang);
                                                 const parts = getCrumbsParts(hotel);
                                                 let hotelSubtitle = parts.length > 0 
                                                     ? parts.reverse().join(', ') 
@@ -963,15 +1201,20 @@ const DashboardSearch = () => {
                                                         key={hotel.togId || hotel.propertyId || hotel.hotelId || hotel.id || index}
                                                         type="button"
                                                         onClick={() => handleSelectHotel(hotel)}
-                                                        className={`w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${activeIndex === (results.regions.length + index) ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                        className={`w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${activeIndex === (matchingHistory.length + flatRegionsList.length + index) ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
                                                     >
                                                         <div className="flex items-center min-w-0 flex-1">
                                                             <span className="material-symbols-outlined text-[19px] text-[#5f6368] dark:text-[#9aa0a6] mr-3.5 shrink-0 select-none">
-                                                                hotel
+                                                                {hotelMeta.icon}
                                                             </span>
                                                             <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate">
-                                                                    {hotelTitle}
+                                                                <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate flex items-center gap-1.5">
+                                                                    <span className="truncate">{hotelTitle}</span>
+                                                                    {hotelMeta.id !== 1 && (
+                                                                        <span className="text-[9px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/70 dark:border-blue-800/60 uppercase shrink-0">
+                                                                            {hotelMeta.name}
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                                 {hotelSubtitle && (
                                                                     <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">

@@ -52,8 +52,13 @@ export const hotelService = {
      * @param {number} params.size - Items per page
      * @param {Object} [params.geo] - Geo bounding box (topLeft, bottomRight)
      */
-    searchHotels: async ({ locationId, page = 0, size = 100, geo = null, zoom = null, filters = {}, searchCriteria = null, sort = null, signal = null }) => {
+    searchHotels: async ({ locationId, regionId, regionIds, page = 0, size = 100, geo = null, zoom = null, filters = {}, searchCriteria = null, sort = null, signal = null }) => {
         const defaults = getDefaultRequestDates();
+        const effectiveRegionId = regionId || filters.regionId || (locationId ? String(locationId) : null);
+        const effectiveRegionIds = filters.regionIds?.length > 0
+            ? filters.regionIds
+            : (regionIds?.length > 0 ? regionIds : (filters.locationIds?.length > 0 ? filters.locationIds : (effectiveRegionId ? [effectiveRegionId] : null)));
+
         const body = {
             geo: geo || null,
             zoom: zoom,
@@ -72,7 +77,10 @@ export const hotelService = {
                     rooms: [{ adults: 2, children: 0, childAges: [] }]
                 },
             filters: {
-                locationIds: filters.locationIds?.length > 0 ? filters.locationIds : (locationId ? [parseInt(locationId)] : null),
+                regionId: effectiveRegionId,
+                regionIds: effectiveRegionIds,
+                locationIds: filters.locationIds?.length > 0 ? filters.locationIds : (effectiveRegionId ? [parseInt(effectiveRegionId)] : null),
+                togIds: filters.togIds || filters.hotelIds || null,
                 hotelName: null,
                 citySlug: null,
                 countryCode: null,

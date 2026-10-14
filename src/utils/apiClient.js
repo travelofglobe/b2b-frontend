@@ -13,9 +13,10 @@ const apiClient = {
     request: async (url, options = {}) => {
         let token = localStorage.getItem('accessToken');
 
+        const activeLang = localStorage.getItem('language') || localStorage.getItem('i18nextLng') || 'en';
         // Merge headers
         const headers = {
-            'Accept-Language': 'en-us',
+            'Accept-Language': activeLang,
             ...(options.headers || {})
         };
 

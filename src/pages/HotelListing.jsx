@@ -2399,12 +2399,17 @@ const HotelListing = () => {
             const currentPage = isReset ? 0 : pageRef.current;
             const baseRequest = {
                 // Use geo bounds if provided (map area search), otherwise use regionId
+                regionId: activeGeoBounds ? null : (regionId || null),
                 locationId: activeGeoBounds ? null : (regionId || null),
                 geo: activeGeoBounds?.bounds || null,
                 zoom: activeGeoBounds?.zoom || null,
                 size: 100,
                 filters: {
+                    togIds: togId ? [parseInt(togId)] : (filters.hotelIds || null),
                     hotelIds: togId ? [parseInt(togId)] : (filters.hotelIds || null),
+                    regionIds: activeGeoBounds
+                        ? []
+                        : (filters.regionIds?.length > 0 ? filters.regionIds : (filters.locations?.length > 0 ? filters.locations : (regionId ? [String(regionId)] : null))),
                     locationIds: activeGeoBounds
                         ? [] // when searching by map bounds, don't restrict by locationId
                         : (filters.locations?.length > 0 ? filters.locations : (regionId ? [parseInt(regionId)] : null)),

@@ -189,8 +189,8 @@ const IosBatteryCredit = ({
                 ref={buttonRef}
                 onClick={toggleOpen}
                 className={`flex items-center gap-2 px-2 py-1 rounded-xl transition-colors duration-150 cursor-pointer outline-none focus:outline-none select-none border-0 ${isOpen
-                        ? 'bg-slate-200/80 dark:bg-slate-800 text-slate-900 dark:text-white'
-                        : 'hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                    ? 'bg-slate-200/80 dark:bg-slate-800 text-slate-900 dark:text-white'
+                    : 'hover:bg-slate-100 dark:hover:bg-slate-800/60'
                     }`}
                 title={isLoading ? 'Kredi bilgileri yükleniyor...' : `Kredi Limiti: %${percentage} (${currencySymbol} ${formatNumber(availableLimit)} kullanılabilir) - Detaylar için tıklayın`}
                 aria-label="Kredi Durumu"
@@ -250,13 +250,6 @@ const IosBatteryCredit = ({
                             />
                         )}
                     </svg>
-
-                    {/* Micro Credit/Wallet Badge attached to Battery */}
-                    <span
-                        className="absolute -top-1.5 -left-1.5 size-3.5 rounded-full bg-[#007AFF] text-white flex items-center justify-center shadow-xs ring-1 ring-white dark:ring-slate-900 pointer-events-none"
-                    >
-                        <span className="material-symbols-outlined text-[9px] leading-none">account_balance_wallet</span>
-                    </span>
                 </div>
 
                 {/* Compact Stacked Percentage & Credit Label (Zero horizontal bloating) */}
@@ -281,9 +274,8 @@ const IosBatteryCredit = ({
                 <div className="font-sans">
                     {/* Backdrop Overlay (Starts under header at top-16 like left sidebar) */}
                     <div
-                        className={`fixed inset-0 top-16 z-[900] transition-opacity duration-300 ease-in-out ${
-                            isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-                        }`}
+                        className={`fixed inset-0 top-16 z-[900] transition-opacity duration-300 ease-in-out ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                            }`}
                     >
                         <div
                             className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-xs"
@@ -294,9 +286,8 @@ const IosBatteryCredit = ({
                     {/* Right Sidebar Drawer (Mirrors the left sidebar, top-16 to bottom-0) */}
                     <aside
                         ref={popupRef}
-                        className={`fixed top-16 bottom-0 right-0 w-[350px] sm:w-[410px] bg-white dark:bg-[#202124] border-l border-slate-200 dark:border-slate-800 shadow-2xl z-[950] flex flex-col transition-transform duration-300 ease-in-out font-sans overflow-hidden select-text ${
-                            isOpen ? 'translate-x-0 pointer-events-auto' : 'translate-x-full pointer-events-none'
-                        }`}
+                        className={`fixed top-16 bottom-0 right-0 w-[350px] sm:w-[410px] bg-white dark:bg-[#202124] border-l border-slate-200 dark:border-slate-800 shadow-2xl z-[950] flex flex-col transition-transform duration-300 ease-in-out font-sans overflow-hidden select-text ${isOpen ? 'translate-x-0 pointer-events-auto' : 'translate-x-full pointer-events-none'
+                            }`}
                     >
                         {/* ── Drawer Header ── */}
                         <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-[#25272a] shrink-0">
@@ -375,10 +366,10 @@ const IosBatteryCredit = ({
                                 <div className="w-full bg-slate-200/70 dark:bg-slate-700/60 rounded-full h-3 p-[2px] my-3.5 border border-slate-200/70 dark:border-slate-700">
                                     <div
                                         className={`h-full rounded-full transition-all duration-500 shadow-xs ${isLoading ? 'w-1/3 bg-slate-300 dark:bg-slate-600 animate-pulse' :
-                                                batteryState === 'charging' ? 'bg-[#34C759]' :
-                                                    batteryState === 'low-power' ? 'bg-[#FFCC00]' :
-                                                        batteryState === 'critical' ? 'bg-[#FF3B30]' :
-                                                            'bg-[#34C759]'
+                                            batteryState === 'charging' ? 'bg-[#34C759]' :
+                                                batteryState === 'low-power' ? 'bg-[#FFCC00]' :
+                                                    batteryState === 'critical' ? 'bg-[#FF3B30]' :
+                                                        'bg-[#34C759]'
                                             }`}
                                         style={isLoading ? {} : { width: `${percentage}%` }}
                                     />

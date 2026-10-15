@@ -8,7 +8,7 @@ import HolidaySidePanel from "./HolidaySidePanel";
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
 import { useHolidays } from '../utils/useHolidays';
-import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, formatDateForUrl, resolveKnownCoordinates, getLocationIconMeta, buildLocationTree, getPropertyCategoryMeta, isPoiItem, resolveSearchTargetId } from '../utils/searchParamsUtils';
+import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, formatDateForUrl, resolveKnownCoordinates, getLocationIconMeta, buildLocationTree, getPropertyCategoryMeta, isPoiItem, resolveSearchTargetId, getItemPrimaryName, getLocationHierarchyParts, getRegionSubtitle, formatLocationFullName, buildLocationSlug } from '../utils/searchParamsUtils';
 import NationalitySelect from './NationalitySelect';
 import { getUserCountryCode } from '../utils/geoUtils';
 import { useTranslation } from 'react-i18next';
@@ -343,13 +343,7 @@ const HeaderSearch = () => {
     // -- Handlers --
 
     const getCrumbsParts = (item) => {
-        if (item?.ancestors && Array.isArray(item.ancestors) && item.ancestors.length > 0) {
-            return item.ancestors.map(b => (typeof b.name === 'string' ? b.name : b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName || '')).filter(Boolean);
-        }
-        if (item?.locationBreadcrumbs && Array.isArray(item.locationBreadcrumbs) && item.locationBreadcrumbs.length > 0) {
-            return item.locationBreadcrumbs.map(b => (typeof b.name === 'string' ? b.name : b.name?.translations?.[currentLang] || b.name?.translations?.en || b.name?.defaultName || '')).filter(Boolean);
-        }
-        return [];
+        return getLocationHierarchyParts(item, currentLang);
     };
 
     const fetchResults = async (targetQuery) => {
@@ -469,17 +463,7 @@ const HeaderSearch = () => {
         return params;
     };
 
-    const buildLocationSlug = (location) => {
-        const parts = getCrumbsParts(location);
-        if (parts.length > 0) {
-            const breadcrumbs = parts.map(p => p.toLowerCase());
-            if (breadcrumbs.length > 1) {
-                return breadcrumbs.slice(1).join('/');
-            }
-            return breadcrumbs[0];
-        }
-        return (location.name?.translations?.[currentLang] || location.name?.translations?.en || Object.values(location.name?.translations || {})[0] || 'destination').toLowerCase();
-    };
+
 
     const handleSearch = () => {
         if (query) {
@@ -547,19 +531,14 @@ const HeaderSearch = () => {
     };
 
     const handleSelectLocation = (location) => {
-        const name = location.name?.translations?.[currentLang] || location.name?.translations?.en || Object.values(location.name?.translations || {})[0] || 'destination';
-
-        let fullName = name;
-        const parts = getCrumbsParts(location);
-        if (parts.length > 0) {
-            fullName = parts.reverse().join(', ');
-        }
+        const fullName = formatLocationFullName(location, currentLang);
+        const sub = getRegionSubtitle(location, currentLang);
 
         const { param: targetParam, id: targetId } = resolveSearchTargetId(location);
         const locType = location.type || (location.poiId ? 'POI' : 'GEOGRAPHY_REGION');
         saveSearchHistoryItem(fullName, locType, targetId, getRegionName(location));
 
-        const slug = buildLocationSlug(location);
+        const slug = buildLocationSlug(location, currentLang);
 
         isUserInteraction.current = false;
         setResults({ hotels: [], regions: [] });
@@ -609,19 +588,8 @@ const HeaderSearch = () => {
     };
 
     const handleSelectHotel = (hotel) => {
-        const name = hotel.name?.translations?.[currentLang] || hotel.name?.translations?.en || Object.values(hotel.name?.translations || {})[0] || 'Hotel';
-
-        // Construct full name with location context
-        let fullName = name;
-        let locationContext = '';
-        const parts = getCrumbsParts(hotel);
-        if (parts.length > 0) {
-            locationContext = parts.reverse().join(', ');
-            fullName = `${name}, ${locationContext}`;
-        } else if (hotel.countryCode) {
-            locationContext = hotel.countryCode;
-            fullName = `${name}, ${hotel.countryCode}`;
-        }
+        const fullName = formatLocationFullName(hotel, currentLang);
+        const locationContext = getRegionSubtitle(hotel, currentLang);
 
         const { param: targetParam, id: targetId } = resolveSearchTargetId(hotel);
         const hId = targetId || hotel.togId || hotel.propertyId || hotel.hotelId || hotel.id?.replace('hotel_', '').replace('property_', '');
@@ -662,7 +630,7 @@ const HeaderSearch = () => {
 
         setQuery(fullName);
 
-        const slug = buildLocationSlug(hotel);
+        const slug = buildLocationSlug(hotel, currentLang);
         const targetIdParam = (targetParam && targetId) ? `&${targetParam}=${targetId}` : '';
         const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
         const searchParamsString = getUrlParams(fullName) + targetIdParam + geoParam;
@@ -672,11 +640,7 @@ const HeaderSearch = () => {
     };
 
     const getRegionName = (region) => {
-        const parts = getCrumbsParts(region);
-        if (parts.length > 0) {
-            return parts.reverse().join(', ');
-        }
-        return region.name?.translations?.[currentLang] || region.name?.translations?.en || Object.values(region.name?.translations || {})[0] || 'Unknown Region';
+        return getRegionSubtitle(region, currentLang);
     };
 
     const getHotelName = (hotel) => hotel.name?.translations?.[currentLang] || hotel.name?.translations?.en || Object.values(hotel.name?.translations || {})[0] || 'Hotel';
@@ -973,14 +937,7 @@ const HeaderSearch = () => {
                                     {results.hotels.map((hotel, index) => {
                                         const hotelTitle = getHotelName(hotel);
                                         const hotelMeta = getPropertyCategoryMeta(hotel, currentLang);
-                                        const parts = getCrumbsParts(hotel);
-                                        let hotelSubtitle = parts.length > 0 
-                                            ? parts.reverse().join(', ') 
-                                            : (hotel.countryCode || '');
-
-                                        if (hotelSubtitle.startsWith(hotelTitle + ', ')) {
-                                            hotelSubtitle = hotelSubtitle.slice(hotelTitle.length + 2);
-                                        }
+                                        const hotelSubtitle = getRegionSubtitle(hotel, currentLang);
 
                                         return (
                                             <button

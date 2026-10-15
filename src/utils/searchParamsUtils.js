@@ -510,3 +510,175 @@ export const getPropertyCategoryMeta = (item, lang = 'tr') => {
         icon: 'hotel'
     };
 };
+
+/**
+ * Resolves the primary localized display name of an item (region, hotel, POI).
+ */
+export const getItemPrimaryName = (item, currentLang = 'tr') => {
+    if (!item) return '';
+    const nameObj = item.names || item.name;
+    if (typeof nameObj === 'string') return nameObj.trim();
+    if (nameObj && typeof nameObj === 'object') {
+        const val = nameObj.translations?.[currentLang] 
+            || nameObj.translations?.tr
+            || nameObj.translations?.en
+            || nameObj[currentLang]
+            || nameObj.tr
+            || nameObj.en
+            || nameObj.defaultName
+            || Object.values(nameObj.translations || {})[0];
+        if (typeof val === 'string' && val.trim()) return val.trim();
+    }
+    if (typeof item.defaultName === 'string') return item.defaultName.trim();
+    return '';
+};
+
+/**
+ * Normalizes text for comparison (handles Turkish characters like I/İ/ı/i)
+ */
+const normalizeTextForCompare = (txt) => {
+    if (!txt) return '';
+    return String(txt)
+        .trim()
+        .replace(/İ/g, 'i')
+        .replace(/I/g, 'ı')
+        .toLowerCase();
+};
+
+/**
+ * Extracts and cleans the ancestor/breadcrumb parts for an item (region, hotel, POI).
+ * Filters out synthetic areas like "(and vicinity)", continents, and deduplicates names.
+ * Returns an array ordered from immediate parent -> higher parent -> country (leaf-to-root).
+ */
+export const getLocationHierarchyParts = (item, currentLang = 'tr') => {
+    if (!item) return [];
+
+    let nodes = [];
+    if (Array.isArray(item.ancestors) && item.ancestors.length > 0) {
+        nodes = item.ancestors;
+    } else if (Array.isArray(item.locationBreadcrumbs) && item.locationBreadcrumbs.length > 0) {
+        nodes = item.locationBreadcrumbs;
+    }
+
+    let rawParts = [];
+    if (nodes.length > 0) {
+        const firstType = (nodes[0]?.type || nodes[0]?.locationType || '').toLowerCase();
+        const lastType = (nodes[nodes.length - 1]?.type || nodes[nodes.length - 1]?.locationType || '').toLowerCase();
+        
+        let orderedNodes = [...nodes];
+        // If the first item is country, then it is root-to-leaf (Country -> Province -> City), so reverse it to leaf-to-root
+        if (firstType === 'country' && lastType !== 'country') {
+            orderedNodes.reverse();
+        }
+
+        for (const node of orderedNodes) {
+            const nodeType = (node.type || node.locationType || '').toLowerCase();
+            // Skip continents or high level world regions
+            if (nodeType === 'continent' || nodeType === 'high_level_region') continue;
+
+            let nameStr = typeof node.name === 'string' 
+                ? node.name 
+                : (node.name?.translations?.[currentLang] || node.name?.translations?.tr || node.name?.translations?.en || node.name?.defaultName || '');
+
+            if (!nameStr) continue;
+
+            // Clean noise like "(and vicinity)" or "(civarı)"
+            nameStr = nameStr
+                .replace(/\s*\([^)]*(?:vicinity|civarı|metropolitan|metro area)[^)]*\)/gi, '')
+                .trim();
+
+            if (nameStr) {
+                rawParts.push(nameStr);
+            }
+        }
+    } else if (item.locationPath && typeof item.locationPath === 'string') {
+        rawParts = item.locationPath.split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    // Deduplicate sequentially and case-insensitively while preserving original casing
+    const primaryName = getItemPrimaryName(item, currentLang);
+    const primaryNorm = normalizeTextForCompare(primaryName);
+    const seen = new Set();
+    if (primaryNorm) {
+        seen.add(primaryNorm);
+    }
+
+    const cleanParts = [];
+    for (const part of rawParts) {
+        const norm = normalizeTextForCompare(part);
+        if (norm && !seen.has(norm)) {
+            seen.add(norm);
+            cleanParts.push(part);
+        }
+    }
+
+    return cleanParts;
+};
+
+/**
+ * Returns formatted subtitle for dropdown items (e.g., "Istanbul, Türkiye").
+ */
+export const getRegionSubtitle = (item, currentLang = 'tr') => {
+    if (!item) return '';
+    const parts = getLocationHierarchyParts(item, currentLang);
+    if (parts.length > 0) {
+        return parts.join(', ');
+    }
+    if (item.countryCode) {
+        return item.countryCode;
+    }
+    return '';
+};
+
+/**
+ * Returns complete formatted display name for the search input textbox
+ * (e.g. "Üsküdar, Istanbul, Türkiye" or "Olen Üsküdar Hotel, Istanbul, Türkiye").
+ */
+export const formatLocationFullName = (item, currentLang = 'tr') => {
+    if (!item) return '';
+    const primaryName = getItemPrimaryName(item, currentLang);
+    const hierarchyParts = getLocationHierarchyParts(item, currentLang);
+
+    if (!primaryName) {
+        return hierarchyParts.join(', ');
+    }
+    if (hierarchyParts.length === 0) {
+        if (item.countryCode && primaryName.toLowerCase() !== item.countryCode.toLowerCase()) {
+            return `${primaryName}, ${item.countryCode}`;
+        }
+        return primaryName;
+    }
+
+    return [primaryName, ...hierarchyParts].join(', ');
+};
+
+/**
+ * Builds URL-friendly hierarchical slug (e.g. "istanbul/uskudar")
+ */
+export const buildLocationSlug = (item, currentLang = 'tr') => {
+    if (!item) return 'destination';
+    const primary = getItemPrimaryName(item, currentLang);
+    const hierarchy = getLocationHierarchyParts(item, currentLang);
+    
+    // Exclude country from slug if other parts exist
+    const nonCountry = hierarchy.filter(h => {
+        const lower = h.toLowerCase();
+        const cCode = (item.countryCode || '').toLowerCase();
+        return lower !== cCode && lower !== 'türkiye' && lower !== 'turkey';
+    });
+
+    const slugParts = [...nonCountry.reverse(), primary].filter(Boolean);
+    if (slugParts.length > 0) {
+        return slugParts
+            .map(s => s.toLowerCase()
+                .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
+                .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '')
+            )
+            .filter(Boolean)
+            .join('/');
+    }
+    return (primary || 'destination').toLowerCase();
+};
+

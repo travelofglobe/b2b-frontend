@@ -31,8 +31,17 @@ const PortalLayout = () => {
 
     const managementLabel = getManagementLabel(agencyType, i18n.language);
     
-    // Layout State
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    // Unified Drawer State: 'left' | 'credit' | 'profile' | null
+    // Ensures only one drawer is open at a time and avoids conflicting overlays
+    const [activeDrawer, setActiveDrawer] = useState(null);
+    const isSidebarOpen = activeDrawer === 'left';
+    const setIsSidebarOpen = (val) => {
+        if (typeof val === 'function') {
+            setActiveDrawer(prev => val(prev === 'left') ? 'left' : null);
+        } else {
+            setActiveDrawer(val ? 'left' : null);
+        }
+    };
     const [isScrolled, setIsScrolled] = useState(false);
     const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
 
@@ -45,8 +54,9 @@ const PortalLayout = () => {
     const [isFinanceOpen, setIsFinanceOpen] = useState(location.pathname.startsWith('/finance'));
     const [isGSAManagementOpen, setIsGSAManagementOpen] = useState(location.pathname.startsWith('/gsa'));
 
-    // Automatically scroll main container to top on route change
+    // Automatically scroll main container to top on route change and close any open drawer
     useEffect(() => {
+        setActiveDrawer(null);
         if (mainRef.current) {
             mainRef.current.scrollTop = 0;
         }
@@ -117,17 +127,17 @@ const PortalLayout = () => {
                     <button className="p-2 hidden sm:flex rounded-full hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#70757a] dark:text-slate-300 transition-colors focus:outline-none cursor-pointer">
                         <span className="material-symbols-outlined text-xl">apps</span>
                     </button>
-                    <HeaderActions />
+                    <HeaderActions activeDrawer={activeDrawer} setActiveDrawer={setActiveDrawer} />
                 </div>
             </header>
 
             {/* Sidebar Overlay (Opens under the header, dims the content below) */}
-            {isSidebarOpen && (
-                <div 
-                    className="fixed inset-0 top-16 bg-black/40 z-[900] transition-opacity duration-300 animate-in fade-in" 
-                    onClick={() => setIsSidebarOpen(false)}
-                />
-            )}
+            <div 
+                className={`fixed inset-0 top-16 bg-black/40 z-[900] transition-opacity duration-300 ease-in-out ${
+                    isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                }`} 
+                onClick={() => setIsSidebarOpen(false)}
+            />
             
             {/* Sidebar Drawer (Slides in underneath header like Google Flights - no duplicate header/logo) */}
             <aside className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-[280px] fixed top-16 bottom-0 left-0 flex-shrink-0 bg-white dark:bg-[#202124] z-[950] flex flex-col border-r border-[#dadce0] dark:border-slate-800 transition-transform duration-300 ease-in-out shadow-2xl overflow-hidden font-roboto`}>

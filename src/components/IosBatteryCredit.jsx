@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -28,45 +29,42 @@ const CREDIT_LABELS = {
  * - Persistent rendering on page refresh (no pop-in delay) with smooth loading shimmer.
  * - High-transparency Apple Liquid Glass popover with ultra-sheer inner cards and real updateDateTime binding.
  */
-const IosBatteryCredit = ({ agencyInfo }) => {
+const IosBatteryCredit = ({
+    agencyInfo,
+    isOpen: controlledIsOpen,
+    onToggle: controlledOnToggle,
+    onClose: controlledOnClose
+}) => {
     const { t, i18n } = useTranslation();
     const currentLang = (i18n?.language || 'en').split('-')[0].toLowerCase();
     const creditLabel = CREDIT_LABELS[currentLang] || CREDIT_LABELS.en;
     const { myLimit, agencyCurrency, currencySymbolMap, refreshMyLimit } = useAuth();
     const navigate = useNavigate();
-    const [isOpen, setIsOpen] = useState(false);
+    const [internalIsOpen, setInternalIsOpen] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const popupRef = useRef(null);
     const buttonRef = useRef(null);
 
+    const isControlled = controlledIsOpen !== undefined;
+    const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
+    const toggleOpen = isControlled ? controlledOnToggle : () => setInternalIsOpen(prev => !prev);
+    const closeDrawer = isControlled ? controlledOnClose : () => setInternalIsOpen(false);
+
     // Loading state while myLimit is being fetched on page load / refresh
     const isLoading = !myLimit;
 
-    // Close on click outside or escape key
+    // Close on escape key
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (
-                popupRef.current &&
-                !popupRef.current.contains(event.target) &&
-                buttonRef.current &&
-                !buttonRef.current.contains(event.target)
-            ) {
-                setIsOpen(false);
-            }
-        };
-
         const handleKeyDown = (event) => {
             if (event.key === 'Escape') {
-                setIsOpen(false);
+                closeDrawer?.();
             }
         };
 
         if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
             document.addEventListener('keydown', handleKeyDown);
         }
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [isOpen]);
@@ -189,7 +187,7 @@ const IosBatteryCredit = ({ agencyInfo }) => {
             {/* ── Trigger Button: Ultra-Compact iOS Battery with Credit Micro-Badge & Stacked Label ── */}
             <button
                 ref={buttonRef}
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={toggleOpen}
                 className={`flex items-center gap-2 px-2 py-1 rounded-xl transition-colors duration-150 cursor-pointer outline-none focus:outline-none select-none border-0 ${isOpen
                         ? 'bg-slate-200/80 dark:bg-slate-800 text-slate-900 dark:text-white'
                         : 'hover:bg-slate-100 dark:hover:bg-slate-800/60'
@@ -278,162 +276,312 @@ const IosBatteryCredit = ({ agencyInfo }) => {
                 </div>
             </button>
 
-            {/* ── Apple macOS / iOS Frosted Glass Popover ── */}
-            {isOpen && (
-                <div
-                    ref={popupRef}
-                    className="absolute right-0 top-full mt-2 w-[335px] sm:w-[365px] bg-white/80 dark:bg-[#1E1E1E]/90 backdrop-blur-2xl saturate-150 rounded-[24px] border border-white/70 dark:border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] overflow-hidden z-[9999] animate-in fade-in zoom-in-95 duration-150 font-sans"
-                >
-                    {/* ── Header: Agency Info & Actions ── */}
-                    <div className="px-4 py-3 border-b border-black/[0.04] dark:border-white/[0.08] flex items-center justify-between bg-white/40 dark:bg-white/[0.02] backdrop-blur-md">
-                        <div className="flex items-center gap-2.5">
-                            {/* Apple Wallet Icon Badge - Frosted Glass */}
-                            <div className="size-9 rounded-xl bg-white/80 dark:bg-white/10 text-slate-800 dark:text-slate-100 border border-white/80 dark:border-white/15 backdrop-blur-md flex items-center justify-center shadow-xs shrink-0">
-                                <span className="material-symbols-outlined text-[19px]">account_balance_wallet</span>
-                            </div>
-                            <div className="flex flex-col">
-                                <h4 className="text-[13.5px] font-semibold text-slate-900 dark:text-white leading-tight truncate max-w-[175px]" title={agencyInfo?.name || myLimit?.agency?.name || 'Acente Kredi Asistanı'}>
-                                    {agencyInfo?.name || myLimit?.agency?.name || 'Acente Kredi Asistanı'}
-                                </h4>
-                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                                    Finans & Limit Özeti
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Action Buttons: Refresh & Close (Frosted Glass Pills) */}
-                        <div className="flex items-center gap-1.5">
-                            <button
-                                onClick={handleRefresh}
-                                disabled={isRefreshing || isLoading}
-                                title="Limit Bilgilerini Yenile"
-                                className="size-7.5 rounded-full bg-white/60 hover:bg-white dark:bg-white/10 dark:hover:bg-white/15 border border-white/80 dark:border-white/10 text-slate-700 dark:text-slate-300 backdrop-blur-md flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-xs"
-                            >
-                                <span className={`material-symbols-outlined text-[15px] ${(isRefreshing || isLoading) ? 'animate-spin text-slate-900 dark:text-white' : ''}`}>
-                                    refresh
-                                </span>
-                            </button>
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                title="Kapat"
-                                className="size-7.5 rounded-full bg-white/60 hover:bg-white dark:bg-white/10 dark:hover:bg-white/15 border border-white/80 dark:border-white/10 text-slate-700 dark:text-slate-300 backdrop-blur-md flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-xs"
-                            >
-                                <span className="material-symbols-outlined text-[15px]">close</span>
-                            </button>
-                        </div>
+            {/* ── Right Slide-over Sidebar Drawer (Slides in underneath header like left sidebar) ── */}
+            {createPortal(
+                <div className="font-sans">
+                    {/* Backdrop Overlay (Starts under header at top-16 like left sidebar) */}
+                    <div
+                        className={`fixed inset-0 top-16 z-[900] transition-opacity duration-300 ease-in-out ${
+                            isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+                        }`}
+                    >
+                        <div
+                            className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-xs"
+                            onClick={closeDrawer}
+                        />
                     </div>
 
-                    {/* ── Content Body: Multi-layered Luminous Apple Glass ── */}
-                    <div className="p-3.5 flex flex-col gap-3">
-                        {/* Apple Luminous Frosted Glass Card */}
-                        <div className="w-full bg-white/65 dark:bg-white/[0.05] backdrop-blur-xl rounded-2xl p-4 border border-white/80 dark:border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.08)] relative overflow-hidden">
-
-                            {/* Card Top: Health Badge & Percentage */}
-                            <div className="flex items-center justify-between gap-2">
-                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-md text-[11px] font-semibold text-slate-700 dark:text-slate-200 border border-white/80 dark:border-white/10 shadow-xs">
-                                    <span className={`size-2 rounded-full ${isLoading ? 'bg-slate-400 animate-pulse' : creditHealthBadge.dotColor} ${batteryState === 'charging' ? 'animate-pulse' : ''}`} />
-                                    <span>{isLoading ? 'Limit Hesaplanıyor...' : creditHealthBadge.title}</span>
+                    {/* Right Sidebar Drawer (Mirrors the left sidebar, top-16 to bottom-0) */}
+                    <aside
+                        ref={popupRef}
+                        className={`fixed top-16 bottom-0 right-0 w-[350px] sm:w-[410px] bg-white dark:bg-[#202124] border-l border-slate-200 dark:border-slate-800 shadow-2xl z-[950] flex flex-col transition-transform duration-300 ease-in-out font-sans overflow-hidden select-text ${
+                            isOpen ? 'translate-x-0 pointer-events-auto' : 'translate-x-full pointer-events-none'
+                        }`}
+                    >
+                        {/* ── Drawer Header ── */}
+                        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-[#25272a] shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="size-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-[#007AFF] border border-blue-200/60 dark:border-blue-900/40 flex items-center justify-center shadow-xs shrink-0">
+                                    <span className="material-symbols-outlined text-[22px]">account_balance_wallet</span>
                                 </div>
-
-                                <span className="text-[12px] font-bold text-slate-800 dark:text-slate-200 tabular-nums">
-                                    {isLoading ? '...' : `%${percentage}`}
-                                </span>
+                                <div className="flex flex-col min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                        <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white leading-tight truncate" title={agencyInfo?.name || myLimit?.agency?.name || 'Acente Kredi Asistanı'}>
+                                            {agencyInfo?.name || myLimit?.agency?.name || 'Acente Kredisi'}
+                                        </h3>
+                                        <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold uppercase bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 shrink-0">
+                                            {agencyInfo?.agencyType || 'GSA'}
+                                        </span>
+                                    </div>
+                                    <span className="text-[11.5px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                                        Finans & Limit Asistanı
+                                    </span>
+                                </div>
                             </div>
 
-                            {/* Available Credit Big Stat */}
-                            <div className="mt-3.5 mb-1">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-0.5">
-                                    Kullanılabilir Bakiye
+                            {/* Actions: Refresh & Close */}
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={handleRefresh}
+                                    disabled={isRefreshing || isLoading}
+                                    title="Bilgileri Yenile"
+                                    className="size-8 rounded-full hover:bg-slate-200/70 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
+                                >
+                                    <span className={`material-symbols-outlined text-[18px] ${(isRefreshing || isLoading) ? 'animate-spin text-[#007AFF]' : ''}`}>
+                                        refresh
+                                    </span>
+                                </button>
+                                <button
+                                    onClick={closeDrawer}
+                                    title="Kapat"
+                                    className="size-8 rounded-full hover:bg-slate-200/70 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
+                                >
+                                    <span className="material-symbols-outlined text-[20px]">close</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* ── Drawer Scrollable Content ── */}
+                        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+                            {/* Apple Luminous Frosted Glass Card */}
+                            <div className="w-full bg-slate-50/80 dark:bg-[#282a2d] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700/60 shadow-xs relative overflow-hidden">
+                                {/* Card Top: Health Badge & Percentage */}
+                                <div className="flex items-center justify-between gap-2 mb-3">
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 shadow-2xs">
+                                        <span className={`size-2 rounded-full ${isLoading ? 'bg-slate-400 animate-pulse' : creditHealthBadge.dotColor} ${batteryState === 'charging' ? 'animate-pulse' : ''}`} />
+                                        <span>{isLoading ? 'Limit Hesaplanıyor...' : creditHealthBadge.title}</span>
+                                    </div>
+
+                                    <span className="text-[13px] font-bold text-slate-800 dark:text-slate-200 tabular-nums">
+                                        {isLoading ? '...' : `%${percentage}`}
+                                    </span>
+                                </div>
+
+                                {/* Available Credit Big Stat */}
+                                <div className="my-3">
+                                    <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
+                                        Kullanılabilir Bakiye
+                                    </span>
+                                    <div className="text-[30px] font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
+                                        {isLoading ? (
+                                            <span className="inline-block h-8 w-36 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse" />
+                                        ) : (
+                                            `${currencySymbol} ${formatNumber(availableLimit)}`
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Apple Battery Style Progress Bar */}
+                                <div className="w-full bg-slate-200/70 dark:bg-slate-700/60 rounded-full h-3 p-[2px] my-3.5 border border-slate-200/70 dark:border-slate-700">
+                                    <div
+                                        className={`h-full rounded-full transition-all duration-500 shadow-xs ${isLoading ? 'w-1/3 bg-slate-300 dark:bg-slate-600 animate-pulse' :
+                                                batteryState === 'charging' ? 'bg-[#34C759]' :
+                                                    batteryState === 'low-power' ? 'bg-[#FFCC00]' :
+                                                        batteryState === 'critical' ? 'bg-[#FF3B30]' :
+                                                            'bg-[#34C759]'
+                                            }`}
+                                        style={isLoading ? {} : { width: `${percentage}%` }}
+                                    />
+                                </div>
+
+                                {/* Breakdown 2-Column Cards */}
+                                <div className="grid grid-cols-2 gap-2.5 mb-3.5">
+                                    <div className="bg-white dark:bg-slate-800/90 rounded-xl p-3 border border-slate-200/80 dark:border-slate-700/70 flex flex-col shadow-2xs">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">
+                                            Toplam Limit
+                                        </span>
+                                        <span className="text-[14px] font-bold text-slate-900 dark:text-white tabular-nums">
+                                            {isLoading ? (
+                                                <span className="inline-block h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                                            ) : (
+                                                `${currencySymbol} ${formatNumber(creditLimit)}`
+                                            )}
+                                        </span>
+                                    </div>
+
+                                    <div className="bg-white dark:bg-slate-800/90 rounded-xl p-3 border border-slate-200/80 dark:border-slate-700/70 flex flex-col shadow-2xs">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-rose-500 dark:text-rose-400 mb-0.5">
+                                            Kullanılan
+                                        </span>
+                                        <span className="text-[14px] font-bold text-rose-600 dark:text-rose-400 tabular-nums">
+                                            {isLoading ? (
+                                                <span className="inline-block h-4 w-14 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                                            ) : (
+                                                `${currencySymbol} ${formatNumber(usedLimit)}`
+                                            )}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Last Updated & Sync Indicator */}
+                                <div className="pt-3 border-t border-slate-200/70 dark:border-slate-700/70 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                                    <span className="truncate pr-2" title={myLimit?.updateDateTime ? `Sunucu Güncelleme Tarihi: ${lastUpdatedStr}` : ''}>
+                                        {isLoading ? 'Veriler güncelleniyor...' : `Son Güncelleme: ${lastUpdatedStr}`}
+                                    </span>
+                                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 shrink-0">
+                                        <span className="material-symbols-outlined text-[14px]">{isLoading ? 'sync' : 'check_circle'}</span>
+                                        <span>{isLoading ? 'Senkronize' : 'Güncel'}</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* ── Status Insight Banner ── */}
+                            <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 flex items-start gap-2.5">
+                                <span className="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400 shrink-0 mt-0.5">
+                                    info
                                 </span>
-                                <div className="text-[28px] font-bold tracking-tight text-slate-900 dark:text-white leading-none">
-                                    {isLoading ? (
-                                        <span className="inline-block h-7 w-32 bg-slate-200/50 dark:bg-white/10 rounded-md animate-pulse" />
+                                <div className="text-[12px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                                    {percentage > 35 ? (
+                                        <span>Kredi limitiniz yeterli seviyededir. Otel ve uçak rezervasyonlarınızı kesintisiz tamamlayabilirsiniz.</span>
+                                    ) : percentage > 20 ? (
+                                        <span className="text-amber-700 dark:text-amber-300 font-medium">Kredi limitiniz %35 seviyesine indi. Yeni rezervasyonlar için limit artışı talep edebilirsiniz.</span>
                                     ) : (
-                                        `${currencySymbol} ${formatNumber(availableLimit)}`
+                                        <span className="text-rose-700 dark:text-rose-300 font-semibold">Kredi limitiniz kritik düzeydedir. Lütfen finans veya limit yönetimi üzerinden limit artışı sağlayın.</span>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Apple Battery Style Progress Bar */}
-                            <div className="w-full bg-slate-200/50 dark:bg-white/10 backdrop-blur-sm rounded-full h-2.5 p-[1.5px] my-3.5 border border-white/40 dark:border-white/5">
-                                <div
-                                    className={`h-full rounded-full transition-all duration-500 shadow-xs ${isLoading ? 'w-1/3 bg-slate-300 dark:bg-slate-600 animate-pulse' :
-                                            batteryState === 'charging' ? 'bg-[#34C759]' :
-                                                batteryState === 'low-power' ? 'bg-[#FFCC00]' :
-                                                    batteryState === 'critical' ? 'bg-[#FF3B30]' :
-                                                        'bg-[#34C759]'
-                                        }`}
-                                    style={isLoading ? {} : { width: `${percentage}%` }}
-                                />
-                            </div>
+                            {/* ── Navigation Menu Section (Sidebar Inset List) ── */}
+                            <div className="space-y-1">
+                                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-1">
+                                    Hızlı İşlemler
+                                </span>
 
-                            {/* Breakdown Sub-Cards: Total & Used (Frosted Sub-Glass) */}
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="bg-white/70 dark:bg-white/[0.04] backdrop-blur-md rounded-xl p-2.5 border border-white/80 dark:border-white/[0.06] flex flex-col shadow-xs">
-                                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">
-                                        Toplam Limit
-                                    </span>
-                                    <span className="text-[13px] font-bold text-slate-900 dark:text-white tabular-nums">
-                                        {isLoading ? (
-                                            <span className="inline-block h-4 w-16 bg-slate-200/50 dark:bg-white/10 rounded animate-pulse" />
-                                        ) : (
-                                            `${currencySymbol} ${formatNumber(creditLimit)}`
-                                        )}
-                                    </span>
-                                </div>
+                                <div className="bg-slate-50/50 dark:bg-[#282a2d]/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 divide-y divide-slate-200/60 dark:divide-slate-700/60 overflow-hidden">
+                                    {/* Link 1: Limit Yönetimi */}
+                                    <button
+                                        onClick={() => {
+                                            closeDrawer();
+                                            navigate('/finance/limits');
+                                        }}
+                                        className="w-full px-3.5 py-3 flex items-center justify-between hover:bg-slate-100/70 dark:hover:bg-slate-800/60 transition-colors text-left group cursor-pointer"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="size-8 rounded-lg bg-blue-100/70 dark:bg-blue-950/50 text-[#007AFF] flex items-center justify-center shrink-0">
+                                                <span className="material-symbols-outlined text-[18px]">tune</span>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-[13px] font-semibold text-slate-900 dark:text-white leading-tight group-hover:text-[#007AFF] transition-colors">
+                                                    Limit Yönetimi
+                                                </h4>
+                                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                                    Limit ayarları ve artış talepleri
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-[#007AFF] transition-colors">
+                                            chevron_right
+                                        </span>
+                                    </button>
 
-                                <div className="bg-white/70 dark:bg-white/[0.04] backdrop-blur-md rounded-xl p-2.5 border border-white/80 dark:border-white/[0.06] flex flex-col shadow-xs">
-                                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-rose-500/90 dark:text-rose-400/90 mb-0.5">
-                                        Kullanılan
-                                    </span>
-                                    <span className="text-[13px] font-bold text-rose-600 dark:text-rose-400 tabular-nums">
-                                        {isLoading ? (
-                                            <span className="inline-block h-4 w-14 bg-slate-200/50 dark:bg-white/10 rounded animate-pulse" />
-                                        ) : (
-                                            `${currencySymbol} ${formatNumber(usedLimit)}`
-                                        )}
-                                    </span>
+                                    {/* Link 2: Finans Detayları */}
+                                    <button
+                                        onClick={() => {
+                                            closeDrawer();
+                                            navigate('/finance');
+                                        }}
+                                        className="w-full px-3.5 py-3 flex items-center justify-between hover:bg-slate-100/70 dark:hover:bg-slate-800/60 transition-colors text-left group cursor-pointer"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="size-8 rounded-lg bg-emerald-100/70 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                                <span className="material-symbols-outlined text-[18px]">query_stats</span>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-[13px] font-semibold text-slate-900 dark:text-white leading-tight group-hover:text-emerald-600 transition-colors">
+                                                    Finans Özeti & Cari
+                                                </h4>
+                                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                                    Cari hareketler ve mutabakat
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-emerald-600 transition-colors">
+                                            chevron_right
+                                        </span>
+                                    </button>
+
+                                    {/* Link 3: Hesap Hareketleri */}
+                                    <button
+                                        onClick={() => {
+                                            closeDrawer();
+                                            navigate('/finance/transactions/detail');
+                                        }}
+                                        className="w-full px-3.5 py-3 flex items-center justify-between hover:bg-slate-100/70 dark:hover:bg-slate-800/60 transition-colors text-left group cursor-pointer"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="size-8 rounded-lg bg-purple-100/70 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                                                <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-[13px] font-semibold text-slate-900 dark:text-white leading-tight group-hover:text-purple-600 transition-colors">
+                                                    İşlem & Fatura Detayı
+                                                </h4>
+                                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                                    Geçmiş rezervasyon ödemeleri
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-purple-600 transition-colors">
+                                            chevron_right
+                                        </span>
+                                    </button>
+
+                                    {/* Link 4: Acente Ofisim */}
+                                    <button
+                                        onClick={() => {
+                                            closeDrawer();
+                                            navigate('/my-office');
+                                        }}
+                                        className="w-full px-3.5 py-3 flex items-center justify-between hover:bg-slate-100/70 dark:hover:bg-slate-800/60 transition-colors text-left group cursor-pointer"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="size-8 rounded-lg bg-amber-100/70 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                                                <span className="material-symbols-outlined text-[18px]">domain</span>
+                                            </div>
+                                            <div>
+                                                <h4 className="text-[13px] font-semibold text-slate-900 dark:text-white leading-tight group-hover:text-amber-600 transition-colors">
+                                                    Acente Profilim
+                                                </h4>
+                                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                                    Acente ayarları ve yetkiler
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-amber-600 transition-colors">
+                                            chevron_right
+                                        </span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Status Footer: Real updateDateTime Binding & Verification */}
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 px-1 font-medium">
-                            <span title={myLimit?.updateDateTime ? `Sunucu Güncelleme Tarihi: ${lastUpdatedStr}` : ''}>
-                                {isLoading ? 'Veriler güncelleniyor...' : `Son Güncelleme: ${lastUpdatedStr}`}
-                            </span>
-                            <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[13px]">{isLoading ? 'sync' : 'check_circle'}</span>
-                                {isLoading ? 'Senkronize ediliyor' : 'Güncel'}
-                            </span>
+                        {/* ── Drawer Sticky Footer Actions ── */}
+                        <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-[#25272a] grid grid-cols-2 gap-2.5 shrink-0">
+                            <button
+                                onClick={() => {
+                                    closeDrawer();
+                                    navigate('/finance/limits');
+                                }}
+                                className="w-full py-2.5 px-3 rounded-xl bg-[#007AFF] hover:bg-[#0071E3] active:scale-[0.98] text-white text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-[#007AFF]/25 cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">tune</span>
+                                <span className="truncate">Limit Yönetimi</span>
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    closeDrawer();
+                                    navigate('/finance');
+                                }}
+                                className="w-full py-2.5 px-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-[0.98] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">query_stats</span>
+                                <span className="truncate">Finans Özeti</span>
+                            </button>
                         </div>
-                    </div>
-
-                    {/* ── Footer Navigation Actions (Apple iOS / macOS Action Buttons) ── */}
-                    <div className="p-3 bg-white/40 dark:bg-white/[0.02] backdrop-blur-md border-t border-black/[0.04] dark:border-white/[0.08] flex items-center gap-2">
-                        <button
-                            onClick={() => {
-                                setIsOpen(false);
-                                navigate('/finance');
-                            }}
-                            className="flex-1 py-2 px-3 rounded-xl bg-[#007AFF] hover:bg-[#0071E3] active:scale-[0.98] text-white text-[12px] font-semibold transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-[#007AFF]/25 cursor-pointer"
-                        >
-                            <span className="material-symbols-outlined text-[15px]">query_stats</span>
-                            <span>Finans Detayları</span>
-                        </button>
-
-                        <button
-                            onClick={() => {
-                                setIsOpen(false);
-                                navigate('/finance/limits');
-                            }}
-                            className="flex-1 py-2 px-3 rounded-xl bg-white/60 hover:bg-white dark:bg-white/10 dark:hover:bg-white/15 border border-white/80 dark:border-white/10 text-slate-700 dark:text-slate-200 text-[12px] font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] backdrop-blur-md shadow-xs cursor-pointer"
-                        >
-                            <span className="material-symbols-outlined text-[15px]">tune</span>
-                            <span>Limit Yönetimi</span>
-                        </button>
-                    </div>
-                </div>
+                    </aside>
+                </div>,
+                document.body
             )}
         </div>
     );

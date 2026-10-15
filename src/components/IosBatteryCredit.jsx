@@ -1,17 +1,37 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
+
+const CREDIT_LABELS = {
+    en: "Credit",
+    tr: "Kredi",
+    ar: "الائتمان",
+    es: "Crédito",
+    ru: "Кредит",
+    fr: "Crédit",
+    zh: "授信",
+    ja: "クレジット",
+    fa: "اعتبار",
+    it: "Credito",
+    el: "Πίστωση",
+    pt: "Crédito"
+};
 
 /**
  * IosBatteryCredit Component
  * Displays credit balance formatted as an authentic iOS battery indicator (iOS 16+ style).
  * Features:
+ * - Clear identification as agency credit indicator with wallet icon and localized label.
  * - Color states: Green/Charging with ⚡ when full & unused, Yellow when Low Power (<=35%), Red when critical (<=20%), Black/White when normal.
  * - Dynamic fill level matching available credit percentage.
  * - Persistent rendering on page refresh (no pop-in delay) with smooth loading shimmer.
  * - High-transparency Apple Liquid Glass popover with ultra-sheer inner cards and real updateDateTime binding.
  */
 const IosBatteryCredit = ({ agencyInfo }) => {
+    const { t, i18n } = useTranslation();
+    const currentLang = (i18n?.language || 'en').split('-')[0].toLowerCase();
+    const creditLabel = CREDIT_LABELS[currentLang] || CREDIT_LABELS.en;
     const { myLimit, agencyCurrency, currencySymbolMap, refreshMyLimit } = useAuth();
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +46,7 @@ const IosBatteryCredit = ({ agencyInfo }) => {
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (
-                popupRef.current && 
+                popupRef.current &&
                 !popupRef.current.contains(event.target) &&
                 buttonRef.current &&
                 !buttonRef.current.contains(event.target)
@@ -107,7 +127,7 @@ const IosBatteryCredit = ({ agencyInfo }) => {
         }
     };
 
-    const lastUpdatedStr = formatDateTime(myLimit?.updateDateTime || myLimit?.createDateTime) 
+    const lastUpdatedStr = formatDateTime(myLimit?.updateDateTime || myLimit?.createDateTime)
         || new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 
     const handleRefresh = async (e) => {
@@ -124,7 +144,7 @@ const IosBatteryCredit = ({ agencyInfo }) => {
     // Color definitions
     const fillColors = {
         charging: '#34C759',    // Apple Green
-        normal: 'currentColor', // Slate-900 / White
+        normal: '#34C759',      // Apple Green (iOS Healthy Level)
         'low-power': '#FFCC00', // Apple Yellow (Low Power Mode)
         critical: '#FF3B30'     // Apple Red (Low Battery)
     };
@@ -166,105 +186,109 @@ const IosBatteryCredit = ({ agencyInfo }) => {
 
     return (
         <div className="relative select-none">
-            {/* ── Trigger Button: iOS Battery & Percentage (Always rendered immediately on page refresh) ── */}
+            {/* ── Trigger Button: Ultra-Compact iOS Battery with Credit Micro-Badge & Stacked Label ── */}
             <button
                 ref={buttonRef}
                 onClick={() => setIsOpen(!isOpen)}
-                className={`flex items-center gap-1.5 px-2 py-1 rounded-full transition-colors duration-150 cursor-pointer outline-none focus:outline-none select-none border-0 ${
-                    isOpen 
-                        ? 'bg-slate-200/70 dark:bg-slate-800 text-slate-900 dark:text-white' 
+                className={`flex items-center gap-2 px-2 py-1 rounded-xl transition-colors duration-150 cursor-pointer outline-none focus:outline-none select-none border-0 ${isOpen
+                        ? 'bg-slate-200/80 dark:bg-slate-800 text-slate-900 dark:text-white'
                         : 'hover:bg-slate-100 dark:hover:bg-slate-800/60'
-                }`}
-                title={isLoading ? 'Kredi bilgileri yükleniyor...' : `Kredi Durumu: %${percentage} (${currencySymbol} ${formatNumber(availableLimit)} kullanılabilir) - Detaylar için tıklayın`}
+                    }`}
+                title={isLoading ? 'Kredi bilgileri yükleniyor...' : `Kredi Limiti: %${percentage} (${currencySymbol} ${formatNumber(availableLimit)} kullanılabilir) - Detaylar için tıklayın`}
                 aria-label="Kredi Durumu"
             >
-                {/* iPhone Battery Icon */}
-                <div className="flex items-center text-slate-900 dark:text-white">
-                    <svg 
-                        className="w-[28px] h-[14px] shrink-0" 
-                        viewBox="0 0 28 14" 
-                        fill="none" 
+                {/* iPhone Battery Icon with Micro Wallet Badge */}
+                <div className="relative flex items-center text-slate-900 dark:text-white shrink-0">
+                    <svg
+                        className="w-[28px] h-[14px] shrink-0"
+                        viewBox="0 0 28 14"
+                        fill="none"
                         xmlns="http://www.w3.org/2000/svg"
                     >
                         {/* Battery Outer Frame */}
-                        <rect 
-                            x="0.75" 
-                            y="0.75" 
-                            width="23.5" 
-                            height="12.5" 
-                            rx="4" 
-                            stroke="currentColor" 
-                            strokeWidth="1.5" 
+                        <rect
+                            x="0.75"
+                            y="0.75"
+                            width="23.5"
+                            height="12.5"
+                            rx="4"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
                         />
                         {/* Battery Positive Terminal (Nub on right) */}
-                        <path 
-                            d="M25.5 4.75C26.19 4.75 26.75 5.31 26.75 6V8C26.75 8.69 26.19 9.25 25.5 9.25V4.75Z" 
-                            fill="currentColor" 
+                        <path
+                            d="M25.5 4.75C26.19 4.75 26.75 5.31 26.75 6V8C26.75 8.69 26.19 9.25 25.5 9.25V4.75Z"
+                            fill="currentColor"
                         />
                         {/* Battery Inner Fill Level (with subtle shimmer when loading) */}
                         {isLoading ? (
-                            <rect 
-                                x="2.5" 
-                                y="2.5" 
-                                width="12" 
-                                height="9" 
-                                rx="2" 
-                                fill="currentColor" 
+                            <rect
+                                x="2.5"
+                                y="2.5"
+                                width="12"
+                                height="9"
+                                rx="2"
+                                fill="currentColor"
                                 className="opacity-30 animate-pulse"
                             />
                         ) : percentage > 0 ? (
-                            <rect 
-                                x="2.5" 
-                                y="2.5" 
-                                width={Math.max(1.5, ((percentage / 100) * 20))} 
-                                height="9" 
-                                rx="2" 
-                                fill={fillColors[batteryState]} 
+                            <rect
+                                x="2.5"
+                                y="2.5"
+                                width={Math.max(1.5, ((percentage / 100) * 20))}
+                                height="9"
+                                rx="2"
+                                fill={fillColors[batteryState]}
                                 className="transition-all duration-300 ease-out"
                             />
                         ) : null}
 
                         {/* Charging Lightning Bolt Icon inside Battery when fully charged & unused */}
                         {isFullyCharged && (
-                            <path 
-                                d="M13 2.5L8.5 7.5H12L11 11.5L16 6.5H12.5L13 2.5Z" 
-                                fill="white" 
+                            <path
+                                d="M13 2.5L8.5 7.5H12L11 11.5L16 6.5H12.5L13 2.5Z"
+                                fill="white"
                                 className="drop-shadow-xs"
                             />
                         )}
                     </svg>
+
+                    {/* Micro Credit/Wallet Badge attached to Battery */}
+                    <span
+                        className="absolute -top-1.5 -left-1.5 size-3.5 rounded-full bg-[#007AFF] text-white flex items-center justify-center shadow-xs ring-1 ring-white dark:ring-slate-900 pointer-events-none"
+                    >
+                        <span className="material-symbols-outlined text-[9px] leading-none">account_balance_wallet</span>
+                    </span>
                 </div>
 
-                {/* Percentage Text or Loading indicator */}
-                {isLoading ? (
-                    <span className="text-[12px] font-bold tracking-tight tabular-nums leading-none text-slate-400 dark:text-slate-500 animate-pulse">
-                        ...
+                {/* Compact Stacked Percentage & Credit Label (Zero horizontal bloating) */}
+                <div className="flex flex-col items-start leading-none shrink-0">
+                    {isLoading ? (
+                        <span className="text-[11px] font-bold tracking-tight tabular-nums text-slate-400 dark:text-slate-500 animate-pulse">
+                            ...
+                        </span>
+                    ) : (
+                        <span className={`text-[11px] font-bold tracking-tight tabular-nums ${textColors[batteryState]}`}>
+                            %{percentage}
+                        </span>
+                    )}
+                    <span className="text-[7.5px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 mt-0.5">
+                        {creditLabel}
                     </span>
-                ) : (
-                    <span className={`text-[12px] font-bold tracking-tight tabular-nums leading-none ${textColors[batteryState]}`}>
-                        {percentage}%
-                    </span>
-                )}
-
-                {/* Charging Bolt indicator beside text if fully charged */}
-                {isFullyCharged && (
-                    <span className="material-symbols-outlined text-[13px] text-emerald-500 leading-none -ml-1 animate-pulse">
-                        bolt
-                    </span>
-                )}
+                </div>
             </button>
 
-            {/* ── Apple iOS Ultra-Translucent Frosted Glass Popover ── */}
+            {/* ── Apple macOS / iOS Frosted Glass Popover ── */}
             {isOpen && (
-                <div 
+                <div
                     ref={popupRef}
-                    className="absolute right-0 top-full mt-2 w-[335px] sm:w-[365px] bg-white/15 dark:bg-black/30 backdrop-blur-xl saturate-180 rounded-[26px] border border-white/60 dark:border-white/15 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.16),inset_0_1px_2px_rgba(255,255,255,0.8)] dark:shadow-[0_25px_60px_-10px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.15)] overflow-hidden z-[9999] animate-in fade-in zoom-in-95 duration-150 font-sans"
+                    className="absolute right-0 top-full mt-2 w-[335px] sm:w-[365px] bg-white/80 dark:bg-[#1E1E1E]/90 backdrop-blur-2xl saturate-150 rounded-[24px] border border-white/70 dark:border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.12),inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] overflow-hidden z-[9999] animate-in fade-in zoom-in-95 duration-150 font-sans"
                 >
                     {/* ── Header: Agency Info & Actions ── */}
-                    <div className="px-4 py-3 border-b border-black/[0.04] dark:border-white/[0.08] flex items-center justify-between bg-white/10 dark:bg-white/[0.02] backdrop-blur-md">
+                    <div className="px-4 py-3 border-b border-black/[0.04] dark:border-white/[0.08] flex items-center justify-between bg-white/40 dark:bg-white/[0.02] backdrop-blur-md">
                         <div className="flex items-center gap-2.5">
                             {/* Apple Wallet Icon Badge - Frosted Glass */}
-                            <div className="size-9 rounded-xl bg-white/40 dark:bg-white/10 text-slate-800 dark:text-slate-100 border border-white/70 dark:border-white/15 backdrop-blur-md flex items-center justify-center shadow-2xs shrink-0">
+                            <div className="size-9 rounded-xl bg-white/80 dark:bg-white/10 text-slate-800 dark:text-slate-100 border border-white/80 dark:border-white/15 backdrop-blur-md flex items-center justify-center shadow-xs shrink-0">
                                 <span className="material-symbols-outlined text-[19px]">account_balance_wallet</span>
                             </div>
                             <div className="flex flex-col">
@@ -283,7 +307,7 @@ const IosBatteryCredit = ({ agencyInfo }) => {
                                 onClick={handleRefresh}
                                 disabled={isRefreshing || isLoading}
                                 title="Limit Bilgilerini Yenile"
-                                className="size-7.5 rounded-full bg-white/35 hover:bg-white/60 dark:bg-white/10 dark:hover:bg-white/15 border border-white/60 dark:border-white/10 text-slate-700 dark:text-slate-300 backdrop-blur-md flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                className="size-7.5 rounded-full bg-white/60 hover:bg-white dark:bg-white/10 dark:hover:bg-white/15 border border-white/80 dark:border-white/10 text-slate-700 dark:text-slate-300 backdrop-blur-md flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-xs"
                             >
                                 <span className={`material-symbols-outlined text-[15px] ${(isRefreshing || isLoading) ? 'animate-spin text-slate-900 dark:text-white' : ''}`}>
                                     refresh
@@ -292,21 +316,21 @@ const IosBatteryCredit = ({ agencyInfo }) => {
                             <button
                                 onClick={() => setIsOpen(false)}
                                 title="Kapat"
-                                className="size-7.5 rounded-full bg-white/35 hover:bg-white/60 dark:bg-white/10 dark:hover:bg-white/15 border border-white/60 dark:border-white/10 text-slate-700 dark:text-slate-300 backdrop-blur-md flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-2xs"
+                                className="size-7.5 rounded-full bg-white/60 hover:bg-white dark:bg-white/10 dark:hover:bg-white/15 border border-white/80 dark:border-white/10 text-slate-700 dark:text-slate-300 backdrop-blur-md flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-xs"
                             >
                                 <span className="material-symbols-outlined text-[15px]">close</span>
                             </button>
                         </div>
                     </div>
 
-                    {/* ── Content Body: Multi-layered Ultra-Sheer Glass ── */}
+                    {/* ── Content Body: Multi-layered Luminous Apple Glass ── */}
                     <div className="p-3.5 flex flex-col gap-3">
-                        {/* Apple Ultra-Sheer Glass Card (Pure Glass) */}
-                        <div className="w-full bg-white/15 dark:bg-white/[0.04] backdrop-blur-lg rounded-2xl p-4 border border-white/60 dark:border-white/[0.08] shadow-[0_8px_30px_rgba(0,0,0,0.02),inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] relative overflow-hidden">
-                            
+                        {/* Apple Luminous Frosted Glass Card */}
+                        <div className="w-full bg-white/65 dark:bg-white/[0.05] backdrop-blur-xl rounded-2xl p-4 border border-white/80 dark:border-white/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.08)] relative overflow-hidden">
+
                             {/* Card Top: Health Badge & Percentage */}
                             <div className="flex items-center justify-between gap-2">
-                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/30 dark:bg-white/10 backdrop-blur-md text-[11px] font-semibold text-slate-700 dark:text-slate-200 border border-white/50 dark:border-white/10 shadow-2xs">
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-md text-[11px] font-semibold text-slate-700 dark:text-slate-200 border border-white/80 dark:border-white/10 shadow-xs">
                                     <span className={`size-2 rounded-full ${isLoading ? 'bg-slate-400 animate-pulse' : creditHealthBadge.dotColor} ${batteryState === 'charging' ? 'animate-pulse' : ''}`} />
                                     <span>{isLoading ? 'Limit Hesaplanıyor...' : creditHealthBadge.title}</span>
                                 </div>
@@ -331,22 +355,21 @@ const IosBatteryCredit = ({ agencyInfo }) => {
                             </div>
 
                             {/* Apple Battery Style Progress Bar */}
-                            <div className="w-full bg-slate-200/40 dark:bg-white/10 backdrop-blur-sm rounded-full h-2.5 p-[1.5px] my-3.5 border border-white/30 dark:border-white/5">
-                                <div 
-                                    className={`h-full rounded-full transition-all duration-500 shadow-2xs ${
-                                        isLoading ? 'w-1/3 bg-slate-300 dark:bg-slate-600 animate-pulse' :
-                                        batteryState === 'charging' ? 'bg-[#34C759]' :
-                                        batteryState === 'low-power' ? 'bg-[#FFCC00]' :
-                                        batteryState === 'critical' ? 'bg-[#FF3B30]' :
-                                        'bg-slate-900 dark:bg-white'
-                                    }`}
+                            <div className="w-full bg-slate-200/50 dark:bg-white/10 backdrop-blur-sm rounded-full h-2.5 p-[1.5px] my-3.5 border border-white/40 dark:border-white/5">
+                                <div
+                                    className={`h-full rounded-full transition-all duration-500 shadow-xs ${isLoading ? 'w-1/3 bg-slate-300 dark:bg-slate-600 animate-pulse' :
+                                            batteryState === 'charging' ? 'bg-[#34C759]' :
+                                                batteryState === 'low-power' ? 'bg-[#FFCC00]' :
+                                                    batteryState === 'critical' ? 'bg-[#FF3B30]' :
+                                                        'bg-[#34C759]'
+                                        }`}
                                     style={isLoading ? {} : { width: `${percentage}%` }}
                                 />
                             </div>
 
                             {/* Breakdown Sub-Cards: Total & Used (Frosted Sub-Glass) */}
                             <div className="grid grid-cols-2 gap-2">
-                                <div className="bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-xl p-2.5 border border-white/50 dark:border-white/[0.05] flex flex-col shadow-2xs">
+                                <div className="bg-white/70 dark:bg-white/[0.04] backdrop-blur-md rounded-xl p-2.5 border border-white/80 dark:border-white/[0.06] flex flex-col shadow-xs">
                                     <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">
                                         Toplam Limit
                                     </span>
@@ -359,7 +382,7 @@ const IosBatteryCredit = ({ agencyInfo }) => {
                                     </span>
                                 </div>
 
-                                <div className="bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-xl p-2.5 border border-white/50 dark:border-white/[0.05] flex flex-col shadow-2xs">
+                                <div className="bg-white/70 dark:bg-white/[0.04] backdrop-blur-md rounded-xl p-2.5 border border-white/80 dark:border-white/[0.06] flex flex-col shadow-xs">
                                     <span className="text-[9.5px] font-bold uppercase tracking-wider text-rose-500/90 dark:text-rose-400/90 mb-0.5">
                                         Kullanılan
                                     </span>
@@ -386,27 +409,27 @@ const IosBatteryCredit = ({ agencyInfo }) => {
                         </div>
                     </div>
 
-                    {/* ── Footer Navigation Actions (Apple iOS Frosted Glass Buttons) ── */}
-                    <div className="p-3 bg-white/10 dark:bg-white/[0.02] backdrop-blur-md border-t border-black/[0.04] dark:border-white/[0.08] flex items-center gap-2">
+                    {/* ── Footer Navigation Actions (Apple iOS / macOS Action Buttons) ── */}
+                    <div className="p-3 bg-white/40 dark:bg-white/[0.02] backdrop-blur-md border-t border-black/[0.04] dark:border-white/[0.08] flex items-center gap-2">
                         <button
                             onClick={() => {
                                 setIsOpen(false);
                                 navigate('/finance');
                             }}
-                            className="flex-1 py-2 px-3 rounded-xl bg-slate-900/85 hover:bg-slate-900 dark:bg-white/90 dark:hover:bg-white text-white dark:text-slate-900 text-[12px] font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs active:scale-[0.98] backdrop-blur-xl cursor-pointer"
+                            className="flex-1 py-2 px-3 rounded-xl bg-[#007AFF] hover:bg-[#0071E3] active:scale-[0.98] text-white text-[12px] font-semibold transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-[#007AFF]/25 cursor-pointer"
                         >
                             <span className="material-symbols-outlined text-[15px]">query_stats</span>
                             <span>Finans Detayları</span>
                         </button>
-                        
+
                         <button
                             onClick={() => {
                                 setIsOpen(false);
-                                navigate('/my-office');
+                                navigate('/finance/limits');
                             }}
-                            className="flex-1 py-2 px-3 rounded-xl bg-white/30 hover:bg-white/50 dark:bg-white/10 dark:hover:bg-white/15 border border-white/50 dark:border-white/10 text-slate-800 dark:text-slate-200 text-[12px] font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] backdrop-blur-xl shadow-2xs cursor-pointer"
+                            className="flex-1 py-2 px-3 rounded-xl bg-white/60 hover:bg-white dark:bg-white/10 dark:hover:bg-white/15 border border-white/80 dark:border-white/10 text-slate-700 dark:text-slate-200 text-[12px] font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-[0.98] backdrop-blur-md shadow-xs cursor-pointer"
                         >
-                            <span className="material-symbols-outlined text-[15px]">account_balance_wallet</span>
+                            <span className="material-symbols-outlined text-[15px]">tune</span>
                             <span>Limit Yönetimi</span>
                         </button>
                     </div>

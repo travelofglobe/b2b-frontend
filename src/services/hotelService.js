@@ -77,9 +77,7 @@ export const hotelService = {
                     rooms: [{ adults: 2, children: 0, childAges: [] }]
                 },
             filters: {
-                regionId: effectiveRegionId,
                 regionIds: effectiveRegionIds,
-                locationIds: filters.locationIds?.length > 0 ? filters.locationIds : (effectiveRegionId ? [parseInt(effectiveRegionId)] : null),
                 togIds: filters.togIds || filters.hotelIds || null,
                 hotelName: null,
                 citySlug: null,

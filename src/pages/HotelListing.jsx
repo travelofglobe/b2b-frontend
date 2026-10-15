@@ -2235,10 +2235,16 @@ const HotelListing = () => {
     // Map hotel from API to UI model
     const mapApiHotelToModel = React.useCallback((apiHotel) => {
         const hotelNames = apiHotel.names || apiHotel.name;
-        const name = hotelNames?.[currentLang] || hotelNames?.en || hotelNames?.defaultName || 'Unknown Hotel';
-        const starCount = apiHotel.hotelStar?.star || 0;
-        const starLabel = apiHotel.hotelStar?.names?.[currentLang] || apiHotel.hotelStar?.names?.en || '';
+        const name = apiHotel.name || hotelNames?.[currentLang] || hotelNames?.en || hotelNames?.defaultName || 'Unknown Hotel';
+        const starCount = apiHotel.starRating != null
+            ? Number(apiHotel.starRating)
+            : (apiHotel.propertyRating ? parseFloat(apiHotel.propertyRating) : (apiHotel.rating || apiHotel.hotelStar?.star || 0));
+        const starLabel = apiHotel.categoryName || (apiHotel.propertyRating ? `${apiHotel.propertyRating} Stars` : (apiHotel.hotelStar?.names?.[currentLang] || apiHotel.hotelStar?.names?.en || ''));
         let locationString = apiHotel.locationPathNames?.replace(/,/g, ', ');
+        if (!locationString && Array.isArray(apiHotel.ancestors)) {
+            const ancestorNames = apiHotel.ancestors.map(a => a.name).filter(Boolean);
+            if (ancestorNames.length > 0) locationString = ancestorNames.join(', ');
+        }
         if (!locationString && Array.isArray(apiHotel.locationBreadcrumbs)) {
             const crumbs = apiHotel.locationBreadcrumbs
                 .filter(crumb => crumb.locationType !== 'COUNTRY')
@@ -2248,7 +2254,12 @@ const HotelListing = () => {
                 }).filter(Boolean);
             if (crumbs.length > 0) locationString = crumbs.join(', ');
         }
-        const rating = apiHotel.score ? (apiHotel.score / 10000).toFixed(1) : '0';
+        if (!locationString && apiHotel.address?.cityName) {
+            locationString = [apiHotel.address.cityName, apiHotel.address.countryCode].filter(Boolean).join(', ');
+        }
+        const rating = apiHotel.guestOverall != null
+            ? Number(apiHotel.guestOverall).toFixed(1)
+            : (apiHotel.score ? (apiHotel.score > 10 ? (apiHotel.score / 10000).toFixed(1) : Number(apiHotel.score).toFixed(1)) : '0');
         let ratingLabel = 'Good';
         const ratingVal = parseFloat(rating);
         if (ratingVal >= 9) ratingLabel = 'Superb';
@@ -2348,6 +2359,11 @@ const HotelListing = () => {
             availableRoomsCount: apiHotel.rooms?.length || 0,
             isRecommended: Boolean(apiHotel.isRecommended || apiHotel.preferred || apiHotel.is_recommended || apiHotel.recommended || apiHotel.isPreferred),
             locationBreadcrumbs: apiHotel.locationBreadcrumbs,
+            ancestors: apiHotel.ancestors,
+            reviewsCount: apiHotel.guestCount || apiHotel.votesCount || 0,
+            checkinBeginTime: apiHotel.checkinBeginTime || apiHotel.checkIn,
+            checkoutTime: apiHotel.checkoutTime || apiHotel.checkOut,
+            checkinMinAge: apiHotel.checkinMinAge || apiHotel.minAge,
             facilityIds: (rawFacs && Array.isArray(rawFacs))
                 ? rawFacs.map(f => typeof f === 'object' ? (f.facilityId || f.id || f.value) : f).map(Number).filter(Boolean)
                 : []
@@ -2398,9 +2414,10 @@ const HotelListing = () => {
             const filters = getSearchParams();
             const currentPage = isReset ? 0 : pageRef.current;
             const baseRequest = {
-                // Use geo bounds if provided (map area search), otherwise use regionId
-                regionId: activeGeoBounds ? null : (regionId || null),
-                locationId: activeGeoBounds ? null : (regionId || null),
+                // Use geo bounds if provided (map area search), otherwise use regionIds
+                regionIds: activeGeoBounds
+                    ? []
+                    : (filters.regionIds?.length > 0 ? filters.regionIds : (filters.locations?.length > 0 ? filters.locations : (regionId ? [String(regionId)] : null))),
                 geo: activeGeoBounds?.bounds || null,
                 zoom: activeGeoBounds?.zoom || null,
                 size: 100,
@@ -2410,9 +2427,6 @@ const HotelListing = () => {
                     regionIds: activeGeoBounds
                         ? []
                         : (filters.regionIds?.length > 0 ? filters.regionIds : (filters.locations?.length > 0 ? filters.locations : (regionId ? [String(regionId)] : null))),
-                    locationIds: activeGeoBounds
-                        ? [] // when searching by map bounds, don't restrict by locationId
-                        : (filters.locations?.length > 0 ? filters.locations : (regionId ? [parseInt(regionId)] : null)),
                     stars: filters.stars,
                     hasFreeCancellation: filters.freeCancellation,
                     hasPrePayment: filters.prePayment,

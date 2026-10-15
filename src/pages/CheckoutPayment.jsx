@@ -1092,7 +1092,7 @@ const CheckoutPayment = () => {
     }
 
     const hotelName = hotel.names?.tr || hotel.names?.en || hotel.name || 'Hotel';
-    const hotelStars = hotel.hotelStar?.star || hotel.stars || 5;
+    const hotelStars = hotel.starRating || (hotel.propertyRating ? parseFloat(hotel.propertyRating) : (hotel.stars || hotel.hotelStar?.star || 5));
     const hotelAddress = hotel.address ? `${hotel.address.street || ''}, ${hotel.address.cityName || ''}`.replace(/^,\s*/, '').replace(/,\s*$/, '') : (hotel.location || '');
     const hotelImage = hotel.images?.[0]?.url || hotel.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
 

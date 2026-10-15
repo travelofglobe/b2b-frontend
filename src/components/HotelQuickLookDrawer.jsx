@@ -847,8 +847,8 @@ const HotelQuickLookDrawer = ({
 
     const formattedPrice = currentHotel.price ? Math.round(currentHotel.price).toLocaleString('tr-TR') : '—';
     const formattedRating = (parseFloat(currentHotel.rating) || 4.4).toFixed(1).replace('.', ',');
-    const reviewCount = currentHotel.reviewCount || (currentHotel.stars ? currentHotel.stars * 125 + 42 : 642);
-    const starsCount = currentHotel.stars || currentHotel.hotelStar?.star || 4;
+    const reviewCount = currentHotel.reviewsCount || currentHotel.guestCount || currentHotel.reviewCount || (currentHotel.stars ? currentHotel.stars * 125 + 42 : 642);
+    const starsCount = currentHotel.starRating || (currentHotel.propertyRating ? parseFloat(currentHotel.propertyRating) : (currentHotel.stars || currentHotel.hotelStar?.star || 4));
 
     const images = useMemo(() => {
         let rawList = [];

@@ -629,7 +629,7 @@ const HotelReservationSummaryCard = ({
     const hotelName = decodeHTMLEntities(
         hotel?.names?.[currentLang] || hotel?.names?.tr || hotel?.names?.en || hotel?.name || 'Hotel'
     );
-    const hotelStars = Number(hotel?.stars || hotel?.starRating || 5);
+    const hotelStars = Number(hotel?.starRating || (hotel?.propertyRating ? parseFloat(hotel?.propertyRating) : (hotel?.stars || 5)));
     const hotelImage = hotel?.images?.[0]?.url || hotel?.images?.[0] || hotel?.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';
     const hotelAddress = typeof hotel?.address === 'object'
         ? (hotel?.address?.addressLine || hotel?.address?.street || `${hotel?.address?.city || ''}, ${hotel?.address?.country || ''}`)

@@ -300,7 +300,7 @@ const ShareModal = ({ isOpen, onClose, hotel }) => {
                         </div>
                         <div className="flex flex-col justify-center min-w-0 flex-1">
                             <div className="flex items-center gap-1 mb-2 text-amber-400">
-                                {[...Array(hotel.hotelStar?.star || 5)].map((_, i) => (
+                                {[...Array(Math.round(hotel.starRating || (hotel.propertyRating ? parseFloat(hotel.propertyRating) : (hotel.stars || hotel.hotelStar?.star || 5))))].map((_, i) => (
                                     <span key={i} className="material-symbols-outlined text-[10px] fill-1">star</span>
                                 ))}
                             </div>
@@ -1793,11 +1793,11 @@ const HotelDetail = () => {
             hotelId: currentHotelId,
             id: currentHotelId,
             name: hotel.name || hotel.hotelName || 'Hotel',
-            stars: hotel.stars || hotel.hotelStar?.star || 5,
-            city: hotel.city || hotel.locationPathNames?.split(',')?.[0]?.trim() || '',
-            country: hotel.country || hotel.locationPathNames?.split(',')?.slice(-1)?.[0]?.trim() || '',
-            location: hotel.location || hotel.locationPathNames || '',
-            supplier: hotel.supplier || hotel.provider || 'Hotel Hub',
+            stars: hotel.starRating || (hotel.propertyRating ? parseFloat(hotel.propertyRating) : (hotel.stars || hotel.hotelStar?.star || 5)),
+            city: hotel.city || hotel.address?.cityName || hotel.locationPathNames?.split(',')?.[0]?.trim() || '',
+            country: hotel.country || hotel.address?.countryCode || hotel.locationPathNames?.split(',')?.slice(-1)?.[0]?.trim() || '',
+            location: hotel.location || (Array.isArray(hotel.ancestors) ? hotel.ancestors.map(a => a.name).filter(Boolean).join(', ') : (hotel.locationPathNames || '')),
+            supplier: hotel.provider || hotel.supplier || 'Hotel Hub',
             image: hotel.image || images?.[0] || '',
             images: images || []
         });
@@ -2272,7 +2272,7 @@ const HotelDetail = () => {
                         <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
                             <h1 className="text-2xl sm:text-3xl font-medium text-[#202124] dark:text-white tracking-normal">{decodeHTMLEntities(hotel.names?.tr || hotel.names?.en || hotel.name)}</h1>
                             <div className="flex text-[#fbbc04]">
-                                {[...Array(hotel.hotelStar?.star || 5)].map((_, i) => (
+                                {[...Array(Math.round(hotel.starRating || (hotel.propertyRating ? parseFloat(hotel.propertyRating) : (hotel.stars || hotel.hotelStar?.star || 5))))].map((_, i) => (
                                     <span key={i} className="material-symbols-outlined fill-1 text-[18px]">star</span>
                                 ))}
                             </div>
@@ -2286,7 +2286,7 @@ const HotelDetail = () => {
                         <div className="flex flex-wrap items-center gap-3 text-sm text-[#5f6368] dark:text-slate-400">
                             <div className="flex items-center gap-1">
                                 <span className="material-symbols-outlined text-[18px] text-[#5f6368]">location_on</span>
-                                <span>{decodeHTMLEntities(hotel.address ? `${hotel.address.street}, ${hotel.address.cityName}` : hotel.location)}</span>
+                                <span>{decodeHTMLEntities(hotel.address ? `${hotel.address.street || ''}, ${hotel.address.cityName || ''}` : (Array.isArray(hotel.ancestors) ? hotel.ancestors.map(a => a.name).filter(Boolean).join(', ') : hotel.location))}</span>
                             </div>
                             <span>•</span>
                             <button
@@ -2328,11 +2328,11 @@ const HotelDetail = () => {
                         {/* Rating Display */}
                         <div className="flex items-center gap-3 border-l border-[#dadce0] dark:border-slate-700 pl-4">
                             <div className="bg-[#1a73e8] text-white font-medium text-sm px-2.5 py-1 rounded-md">
-                                {hotel.stars || hotel.hotelStar?.star || '4.5'}
+                                {hotel.guestOverall ? Number(hotel.guestOverall).toFixed(1) : (hotel.propertyRating || hotel.stars || hotel.hotelStar?.star || '4.5')}
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-sm font-medium text-[#202124] dark:text-white leading-tight">{hotel.ratingLabel || 'Çok İyi'}</span>
-                                <span className="text-xs text-[#5f6368] dark:text-slate-400 mt-0.5">1,240 {tLocal('reviewsLabel')}</span>
+                                <span className="text-xs text-[#5f6368] dark:text-slate-400 mt-0.5">{(hotel.guestCount || hotel.votesCount || 1240).toLocaleString()} {tLocal('reviewsLabel')}</span>
                             </div>
                         </div>
                     </div>

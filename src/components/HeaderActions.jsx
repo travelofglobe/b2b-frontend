@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, getCurrencySymbol } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import ThemeToggle from './ThemeToggle';
 import { agencyService } from '../services/agencyService';
 import { useTranslation } from 'react-i18next';
 import ConfirmModal from './ConfirmModal';
+import IosBatteryCredit from './IosBatteryCredit';
 
 const LABELS = {
     en: { myOffice: "My Office", agency: "Agency", currency: "Currency" },
@@ -25,7 +26,7 @@ const HeaderActions = () => {
     const { t, i18n } = useTranslation();
     const currentLang = (i18n.language || 'en').split('-')[0].toLowerCase();
     const L = LABELS[currentLang] || LABELS.en;
-    const { user, logout, myLimit, agencyCurrency, currencySymbolMap } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isConfirmSignOutOpen, setIsConfirmSignOutOpen] = useState(false);
@@ -77,60 +78,10 @@ const HeaderActions = () => {
         <div className="flex items-center gap-2">
             <ThemeToggle />
 
-            {/* ── Credit Limit Widget (Transparent & Dividers) ── */}
-            {myLimit && (
-                <>
-                    <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block mx-0.5" />
-                    
-                    <div className="hidden sm:flex items-center gap-2.5 px-1 py-0.5 select-none">
-                        {/* Wallet Icon */}
-                        <div className="size-6 rounded-md bg-blue-50 dark:bg-blue-950/40 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center shrink-0">
-                            <span className="material-symbols-outlined text-[15px]">account_balance_wallet</span>
-                        </div>
-
-                        {/* Credit */}
-                        <div className="flex flex-col items-end">
-                            <span className="text-[8.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 leading-none mb-0.5">
-                                {t('finance.credit', 'Kredi')}
-                            </span>
-                            <span className="text-[11.5px] font-bold text-slate-800 dark:text-slate-100 tabular-nums leading-none">
-                                {getCurrencySymbol(myLimit.agency?.currency || agencyCurrency, currencySymbolMap)}{' '}
-                                {Number(myLimit.creditLimit ?? 0).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                            </span>
-                        </div>
-
-                        {/* Divider */}
-                        <div className="h-4.5 w-px bg-slate-200 dark:bg-slate-700" />
-
-                        {/* Used */}
-                        <div className="flex flex-col items-end">
-                            <span className="text-[8.5px] font-bold uppercase tracking-wider text-rose-500 dark:text-rose-400 leading-none mb-0.5">
-                                {t('finance.used', 'Kullanılan')}
-                            </span>
-                            <span className="text-[11.5px] font-bold text-rose-600 dark:text-rose-400 tabular-nums leading-none">
-                                {getCurrencySymbol(myLimit.agency?.currency || agencyCurrency, currencySymbolMap)}{' '}
-                                {Number(myLimit.usedLimit ?? 0).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                            </span>
-                        </div>
-
-                        {/* Divider */}
-                        <div className="h-4.5 w-px bg-slate-200 dark:bg-slate-700" />
-
-                        {/* Available */}
-                        <div className="flex flex-col items-end">
-                            <span className="text-[8.5px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 leading-none mb-0.5">
-                                {t('finance.available', 'Kullanılabilir')}
-                            </span>
-                            <span className="text-[11.5px] font-bold text-emerald-600 dark:text-emerald-400 tabular-nums leading-none">
-                                {getCurrencySymbol(myLimit.agency?.currency || agencyCurrency, currencySymbolMap)}{' '}
-                                {Number(myLimit.availableLimit ?? 0).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block mx-0.5" />
-                </>
-            )}
+            {/* ── Credit Limit iPhone Battery Widget ── */}
+            <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block mx-0.5" />
+            <IosBatteryCredit agencyInfo={agencyInfo} />
+            <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block mx-0.5" />
 
             <div className="relative" ref={menuRef}>
                 <button

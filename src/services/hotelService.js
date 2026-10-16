@@ -52,7 +52,7 @@ export const hotelService = {
      * @param {number} params.size - Items per page
      * @param {Object} [params.geo] - Geo bounding box (topLeft, bottomRight)
      */
-    searchHotels: async ({ locationId, regionId, regionIds, page = 0, size = 100, geo = null, zoom = null, filters = {}, searchCriteria = null, sort = null, signal = null }) => {
+    searchHotels: async ({ locationId, regionId, regionIds, page = 0, size = 20, geo = null, zoom = null, filters = {}, searchCriteria = null, sort = null, signal = null }) => {
         const defaults = getDefaultRequestDates();
         const effectiveRegionId = regionId || filters.regionId || (locationId ? String(locationId) : null);
         const effectiveRegionIds = filters.regionIds?.length > 0
@@ -117,6 +117,52 @@ export const hotelService = {
         };
 
         return apiClient.post(`${API_BASE_URL}/search`, body, { signal });
+    },
+
+    /**
+     * Search for lightweight map markers and clusters.
+     */
+    searchHotelMapMarkers: async ({ locationId, regionId, regionIds, geo = null, zoom = 12, limit = 60, filters = {}, searchCriteria = null, forceMarkers = false, signal = null }) => {
+        const defaults = getDefaultRequestDates();
+        const effectiveRegionId = regionId || filters.regionId || (locationId ? String(locationId) : null);
+        const effectiveRegionIds = filters.regionIds?.length > 0
+            ? filters.regionIds
+            : (regionIds?.length > 0 ? regionIds : (filters.locationIds?.length > 0 ? filters.locationIds : (effectiveRegionId ? [effectiveRegionId] : null)));
+
+        const body = {
+            geo: geo || null,
+            zoom: zoom,
+            limit: limit,
+            forceMarkers: forceMarkers,
+            searchCriteria: searchCriteria
+                ? {
+                    ...searchCriteria,
+                    checkin: formatDate(searchCriteria.checkin, defaults.checkin),
+                    checkout: formatDate(searchCriteria.checkout, defaults.checkout),
+                    nationality: searchCriteria.nationality || 'TR',
+                    rooms: searchCriteria.rooms || [{ adults: 2, children: 0, childAges: [] }]
+                }
+                : {
+                    checkin: defaults.checkin,
+                    checkout: defaults.checkout,
+                    nationality: 'TR',
+                    rooms: [{ adults: 2, children: 0, childAges: [] }]
+                },
+            filters: {
+                regionIds: effectiveRegionIds,
+                togIds: filters.togIds || filters.hotelIds || null,
+                hotelStarCategoryIds: filters.stars || filters.hotelStarCategoryIds || null,
+                preferred: filters.preferred ?? null,
+                hasFreeCancellation: filters.hasFreeCancellation ?? null,
+                hasPrePayment: filters.hasPrePayment ?? null,
+                isRecommended: filters.isRecommended ?? null,
+                hotelFacilityIds: filters.facilities || null,
+                score: filters.score || null,
+                rating: filters.rating || null
+            }
+        };
+
+        return apiClient.post(`${API_BASE_URL}/map`, body, { signal });
     },
 
     /**

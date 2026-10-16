@@ -283,311 +283,202 @@ const IosBatteryCredit = ({
                         />
                     </div>
 
-                    {/* Right Sidebar Drawer (Mirrors the left sidebar, top-16 to bottom-0) */}
+                    {/* Right Sidebar Drawer - Clean, Minimalist & Focused */}
                     <aside
                         ref={popupRef}
-                        className={`fixed top-16 bottom-0 right-0 w-[350px] sm:w-[410px] bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-800 shadow-2xl z-[950] flex flex-col transition-transform duration-300 ease-in-out font-roboto overflow-hidden select-text ${
+                        className={`fixed top-16 bottom-0 right-0 w-[340px] sm:w-[380px] bg-white dark:bg-[#1e2023] border-l border-slate-200/80 dark:border-slate-800 shadow-xl z-[950] flex flex-col transition-transform duration-300 ease-in-out font-roboto overflow-hidden select-text ${
                             isOpen ? 'translate-x-0 pointer-events-auto' : 'translate-x-full pointer-events-none'
                         }`}
                     >
-                        {/* ── Drawer Header (Google Account / Workspace Style) ── */}
-                        <div className="px-5 py-4 border-b border-[#dadce0] dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-[#25272a] shrink-0">
-                            <div className="flex items-center gap-3">
-                                <div className="size-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center shrink-0">
-                                    <span className="material-symbols-outlined text-[22px]">account_balance_wallet</span>
-                                </div>
-                                <div className="flex flex-col min-w-0">
-                                    <div className="flex items-center gap-1.5">
-                                        <h3 className="text-[15px] font-semibold text-[#202124] dark:text-white leading-tight truncate" title={agencyInfo?.name || myLimit?.agency?.name || 'Acente Kredi Asistanı'}>
-                                            {agencyInfo?.name || myLimit?.agency?.name || 'Acente Kredisi'}
-                                        </h3>
-                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] shrink-0">
-                                            {agencyInfo?.agencyType || 'GSA'}
-                                        </span>
-                                    </div>
-                                    <span className="text-[12px] text-[#70757a] dark:text-slate-400 font-normal mt-0.5">
-                                        Finans & Limit Asistanı
-                                    </span>
-                                </div>
+                        {/* ── Minimalist Header ── */}
+                        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+                            <div>
+                                <h3 className="text-[15px] font-semibold text-slate-900 dark:text-white leading-tight">
+                                    Kredi & Limit
+                                </h3>
+                                <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[220px]">
+                                    {agencyInfo?.name || myLimit?.agency?.name || 'Acente Hesabı'}
+                                </p>
                             </div>
 
-                            {/* Actions: Refresh & Close */}
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1 shrink-0">
                                 <button
                                     onClick={handleRefresh}
                                     disabled={isRefreshing || isLoading}
-                                    title="Bilgileri Yenile"
-                                    className="size-8 rounded-full hover:bg-slate-200/70 dark:hover:bg-slate-700 text-[#5f6368] dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
+                                    title="Yenile"
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                                 >
-                                    <span className={`material-symbols-outlined text-[19px] ${(isRefreshing || isLoading) ? 'animate-spin text-[#1a73e8]' : ''}`}>
+                                    <span className={`material-symbols-outlined text-[19px] ${(isRefreshing || isLoading) ? 'animate-spin text-blue-600' : ''}`}>
                                         refresh
                                     </span>
                                 </button>
                                 <button
                                     onClick={closeDrawer}
                                     title="Kapat"
-                                    className="size-8 rounded-full hover:bg-slate-200/70 dark:hover:bg-slate-700 text-[#5f6368] dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                                 >
                                     <span className="material-symbols-outlined text-[20px]">close</span>
                                 </button>
                             </div>
                         </div>
 
-                        {/* ── Drawer Scrollable Content ── */}
-                        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-                            {/* Google Material 3 Financial Card */}
-                            <div className="w-full bg-white dark:bg-[#303134]/40 rounded-2xl p-5 border border-[#dadce0] dark:border-[#3c4043] shadow-xs relative overflow-hidden">
-                                {/* Card Top: Health Badge & Percentage */}
-                                <div className="flex items-center justify-between gap-2 mb-3">
-                                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11.5px] font-medium ${
-                                        batteryState === 'critical'
-                                            ? 'bg-[#fce8e6] text-[#c5221f] dark:bg-[#d93025]/20 dark:text-[#f28b82]'
-                                            : batteryState === 'low-power'
-                                                ? 'bg-[#fef7e0] text-[#b06000] dark:bg-[#f9ab00]/20 dark:text-[#fdd663]'
-                                                : 'bg-[#e6f4ea] text-[#137333] dark:bg-[#137333]/20 dark:text-[#81c995]'
-                                    }`}>
-                                        <span className={`size-2 rounded-full ${isLoading ? 'bg-slate-400 animate-pulse' : creditHealthBadge.dotColor} ${batteryState === 'charging' ? 'animate-pulse' : ''}`} />
-                                        <span>{isLoading ? 'Limit Hesaplanıyor...' : creditHealthBadge.title}</span>
-                                    </div>
-
-                                    <span className="text-[12.5px] font-semibold text-[#202124] dark:text-slate-200 tabular-nums px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60">
-                                        {isLoading ? '...' : `%${percentage}`}
+                        {/* ── Content (Clean & Breathable) ── */}
+                        <div className="flex-1 px-6 py-6 flex flex-col justify-between overflow-y-auto space-y-6">
+                            <div className="space-y-6">
+                                {/* 1. Main Balance Highlight */}
+                                <div>
+                                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">
+                                        Kullanılabilir Limit
                                     </span>
-                                </div>
-
-                                {/* Available Credit Big Stat */}
-                                <div className="my-3">
-                                    <span className="text-[11px] font-medium uppercase tracking-wider text-[#70757a] dark:text-slate-400 block mb-1">
-                                        Kullanılabilir Bakiye
-                                    </span>
-                                    <div className="text-[32px] font-medium tracking-tight text-[#202124] dark:text-white leading-none">
+                                    <div className="text-[34px] font-bold tracking-tight text-slate-900 dark:text-white tabular-nums leading-none">
                                         {isLoading ? (
-                                            <span className="inline-block h-8 w-36 bg-slate-200 dark:bg-slate-700 rounded-md animate-pulse" />
+                                            <span className="inline-block h-8 w-40 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
                                         ) : (
                                             `${currencySymbol} ${formatNumber(availableLimit)}`
                                         )}
                                     </div>
-                                </div>
 
-                                {/* Google Style Linear Progress Bar */}
-                                <div className="w-full bg-[#e8eaed] dark:bg-[#3c4043] rounded-full h-2.5 overflow-hidden my-4">
-                                    <div
-                                        className={`h-full rounded-full transition-all duration-500 ${isLoading ? 'w-1/3 bg-slate-300 dark:bg-slate-600 animate-pulse' :
-                                            batteryState === 'charging' ? 'bg-[#1a73e8]' :
-                                                batteryState === 'low-power' ? 'bg-[#f9ab00]' :
-                                                    batteryState === 'critical' ? 'bg-[#d93025]' :
-                                                        'bg-[#1a73e8]'
-                                            }`}
-                                        style={isLoading ? {} : { width: `${percentage}%` }}
-                                    />
-                                </div>
-
-                                {/* Breakdown 2-Column Cards */}
-                                <div className="grid grid-cols-2 gap-2.5 mb-3.5">
-                                    <div className="bg-slate-50 dark:bg-[#202124] rounded-xl p-3 border border-[#dadce0]/70 dark:border-[#3c4043] flex flex-col">
-                                        <span className="text-[10.5px] font-medium uppercase tracking-wider text-[#70757a] dark:text-slate-400 mb-0.5">
-                                            Toplam Limit
-                                        </span>
-                                        <span className="text-[14.5px] font-semibold text-[#202124] dark:text-white tabular-nums">
-                                            {isLoading ? (
-                                                <span className="inline-block h-4 w-16 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
-                                            ) : (
-                                                `${currencySymbol} ${formatNumber(creditLimit)}`
-                                            )}
-                                        </span>
-                                    </div>
-
-                                    <div className="bg-slate-50 dark:bg-[#202124] rounded-xl p-3 border border-[#dadce0]/70 dark:border-[#3c4043] flex flex-col">
-                                        <span className="text-[10.5px] font-medium uppercase tracking-wider text-[#d93025] dark:text-[#f28b82] mb-0.5">
-                                            Kullanılan
-                                        </span>
-                                        <span className="text-[14.5px] font-semibold text-[#d93025] dark:text-[#f28b82] tabular-nums">
-                                            {isLoading ? (
-                                                <span className="inline-block h-4 w-14 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
-                                            ) : (
-                                                `${currencySymbol} ${formatNumber(usedLimit)}`
-                                            )}
-                                        </span>
+                                    {/* Minimalist Progress Line */}
+                                    <div className="mt-3.5 space-y-1.5">
+                                        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full transition-all duration-300 ${
+                                                    isLoading ? 'w-1/3 bg-slate-300 dark:bg-slate-700 animate-pulse' :
+                                                    batteryState === 'critical' ? 'bg-rose-500' :
+                                                    batteryState === 'low-power' ? 'bg-amber-500' :
+                                                    'bg-blue-600'
+                                                }`}
+                                                style={isLoading ? {} : { width: `${percentage}%` }}
+                                            />
+                                        </div>
+                                        <div className="flex justify-between items-center text-[11px] text-slate-400 font-medium">
+                                            <span>%{percentage} kullanılabilir</span>
+                                            <span>Güncelleme: {lastUpdatedStr}</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Last Updated & Sync Indicator */}
-                                <div className="pt-3 border-t border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between text-[11.5px] text-[#70757a] dark:text-slate-400">
-                                    <span className="truncate pr-2" title={myLimit?.updateDateTime ? `Sunucu Güncelleme Tarihi: ${lastUpdatedStr}` : ''}>
-                                        {isLoading ? 'Veriler güncelleniyor...' : `Son Güncelleme: ${lastUpdatedStr}`}
-                                    </span>
-                                    <span className="text-[#137333] dark:text-[#81c995] font-medium flex items-center gap-1.5 shrink-0">
-                                        <span className="material-symbols-outlined text-[15px]">{isLoading ? 'sync' : 'check_circle'}</span>
-                                        <span>{isLoading ? 'Senkronize' : 'Güncel'}</span>
-                                    </span>
+                                {/* 2. Financial Summary (Key-Value rows, zero nested clutter) */}
+                                <div className="border-t border-slate-100 dark:border-slate-800 pt-5 space-y-3">
+                                    <div className="flex items-center justify-between text-[13px]">
+                                        <span className="text-slate-500 dark:text-slate-400">Toplam Limit</span>
+                                        <span className="font-semibold text-slate-800 dark:text-slate-200 tabular-nums">
+                                            {isLoading ? '...' : `${currencySymbol} ${formatNumber(creditLimit)}`}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-[13px]">
+                                        <span className="text-slate-500 dark:text-slate-400">Kullanılan Tutar</span>
+                                        <span className={`font-semibold tabular-nums ${usedLimit > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-800 dark:text-slate-200'}`}>
+                                            {isLoading ? '...' : `${currencySymbol} ${formatNumber(usedLimit)}`}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-[13px]">
+                                        <span className="text-slate-500 dark:text-slate-400">Para Birimi</span>
+                                        <span className="font-medium text-slate-700 dark:text-slate-300">
+                                            {currency}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-[13px]">
+                                        <span className="text-slate-500 dark:text-slate-400">Hesap Türü</span>
+                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                            {agencyInfo?.agencyType || 'GSA'}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* ── Status Insight Banner (Google Callout Style) ── */}
-                            <div className={`p-3.5 rounded-2xl border flex items-start gap-2.5 ${
-                                percentage > 35
-                                    ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/10 border-[#d2e3fc] dark:border-[#1a73e8]/30'
-                                    : percentage > 20
-                                        ? 'bg-[#fef7e0] dark:bg-[#f9ab00]/10 border-[#feefc3] dark:border-[#f9ab00]/30'
-                                        : 'bg-[#fce8e6] dark:bg-[#d93025]/10 border-[#fad2cf] dark:border-[#d93025]/30'
-                            }`}>
-                                <span className={`material-symbols-outlined text-[18px] shrink-0 mt-0.5 ${
-                                    percentage > 35
-                                        ? 'text-[#1a73e8] dark:text-[#8ab4f8]'
-                                        : percentage > 20
-                                            ? 'text-[#b06000] dark:text-[#fdd663]'
-                                            : 'text-[#d93025] dark:text-[#f28b82]'
-                                }`}>
-                                    {percentage > 35 ? 'info' : percentage > 20 ? 'warning' : 'error'}
-                                </span>
-                                <div className="text-[12px] text-[#3c4043] dark:text-slate-300 leading-relaxed font-normal">
-                                    {percentage > 35 ? (
-                                        <span>Kredi limitiniz yeterli seviyededir. Otel ve uçak rezervasyonlarınızı kesintisiz tamamlayabilirsiniz.</span>
-                                    ) : percentage > 20 ? (
-                                        <span className="text-[#b06000] dark:text-[#fdd663] font-medium">Kredi limitiniz %35 seviyesine indi. Yeni rezervasyonlar için limit artışı talep edebilirsiniz.</span>
-                                    ) : (
-                                        <span className="text-[#c5221f] dark:text-[#f28b82] font-medium">Kredi limitiniz kritik düzeydedir. Lütfen finans veya limit yönetimi üzerinden limit artışı sağlayın.</span>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* ── Navigation Menu Section (Google Workspace Inset List) ── */}
-                            <div className="space-y-1">
-                                <span className="text-[11px] font-medium uppercase tracking-wider text-[#70757a] dark:text-slate-400 px-1">
-                                    Hızlı İşlemler
-                                </span>
-
-                                <div className="rounded-2xl border border-[#dadce0] dark:border-[#3c4043] divide-y divide-[#dadce0] dark:divide-[#3c4043] overflow-hidden bg-white dark:bg-[#202124] shadow-2xs">
-                                    {/* Link 1: Limit Yönetimi */}
+                                {/* 3. Quick Navigation Links */}
+                                <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-1">
                                     <button
                                         onClick={() => {
                                             closeDrawer();
                                             navigate('/finance/limits');
                                         }}
-                                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#f8f9fa] dark:hover:bg-[#303134] transition-colors text-left group cursor-pointer"
+                                        className="w-full py-2.5 px-3 rounded-xl flex items-center justify-between text-[13px] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div className="size-8 rounded-lg bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center shrink-0">
-                                                <span className="material-symbols-outlined text-[18px]">tune</span>
-                                            </div>
-                                            <div>
-                                                <h4 className="text-[13px] font-medium text-[#202124] dark:text-slate-200 leading-tight group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors">
-                                                    Limit Yönetimi
-                                                </h4>
-                                                <p className="text-[11px] text-[#70757a] dark:text-slate-400 mt-0.5">
-                                                    Limit ayarları ve artış talepleri
-                                                </p>
-                                            </div>
+                                        <div className="flex items-center gap-2.5">
+                                            <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-blue-600 transition-colors">
+                                                tune
+                                            </span>
+                                            <span>Limit Yönetimi</span>
                                         </div>
-                                        <span className="material-symbols-outlined text-[18px] text-[#70757a] group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors">
+                                        <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:translate-x-0.5 transition-transform">
                                             chevron_right
                                         </span>
                                     </button>
 
-                                    {/* Link 2: Finans Detayları */}
                                     <button
                                         onClick={() => {
                                             closeDrawer();
                                             navigate('/finance');
                                         }}
-                                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#f8f9fa] dark:hover:bg-[#303134] transition-colors text-left group cursor-pointer"
+                                        className="w-full py-2.5 px-3 rounded-xl flex items-center justify-between text-[13px] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div className="size-8 rounded-lg bg-[#e6f4ea] dark:bg-[#137333]/20 text-[#137333] dark:text-[#81c995] flex items-center justify-center shrink-0">
-                                                <span className="material-symbols-outlined text-[18px]">query_stats</span>
-                                            </div>
-                                            <div>
-                                                <h4 className="text-[13px] font-medium text-[#202124] dark:text-slate-200 leading-tight group-hover:text-[#137333] dark:group-hover:text-[#81c995] transition-colors">
-                                                    Finans Özeti & Cari
-                                                </h4>
-                                                <p className="text-[11px] text-[#70757a] dark:text-slate-400 mt-0.5">
-                                                    Cari hareketler ve mutabakat
-                                                </p>
-                                            </div>
+                                        <div className="flex items-center gap-2.5">
+                                            <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-blue-600 transition-colors">
+                                                query_stats
+                                            </span>
+                                            <span>Finans & Cari Hareketler</span>
                                         </div>
-                                        <span className="material-symbols-outlined text-[18px] text-[#70757a] group-hover:text-[#137333] dark:group-hover:text-[#81c995] transition-colors">
+                                        <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:translate-x-0.5 transition-transform">
                                             chevron_right
                                         </span>
                                     </button>
 
-                                    {/* Link 3: Hesap Hareketleri */}
                                     <button
                                         onClick={() => {
                                             closeDrawer();
                                             navigate('/finance/transactions/detail');
                                         }}
-                                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#f8f9fa] dark:hover:bg-[#303134] transition-colors text-left group cursor-pointer"
+                                        className="w-full py-2.5 px-3 rounded-xl flex items-center justify-between text-[13px] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div className="size-8 rounded-lg bg-[#f3e8fd] dark:bg-[#9334e6]/20 text-[#9334e6] dark:text-[#c58af9] flex items-center justify-center shrink-0">
-                                                <span className="material-symbols-outlined text-[18px]">receipt_long</span>
-                                            </div>
-                                            <div>
-                                                <h4 className="text-[13px] font-medium text-[#202124] dark:text-slate-200 leading-tight group-hover:text-[#9334e6] dark:group-hover:text-[#c58af9] transition-colors">
-                                                    İşlem & Fatura Detayı
-                                                </h4>
-                                                <p className="text-[11px] text-[#70757a] dark:text-slate-400 mt-0.5">
-                                                    Geçmiş rezervasyon ödemeleri
-                                                </p>
-                                            </div>
+                                        <div className="flex items-center gap-2.5">
+                                            <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-blue-600 transition-colors">
+                                                receipt_long
+                                            </span>
+                                            <span>Fatura ve İşlem Detayları</span>
                                         </div>
-                                        <span className="material-symbols-outlined text-[18px] text-[#70757a] group-hover:text-[#9334e6] dark:group-hover:text-[#c58af9] transition-colors">
-                                            chevron_right
-                                        </span>
-                                    </button>
-
-                                    {/* Link 4: Acente Ofisim */}
-                                    <button
-                                        onClick={() => {
-                                            closeDrawer();
-                                            navigate('/my-office');
-                                        }}
-                                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#f8f9fa] dark:hover:bg-[#303134] transition-colors text-left group cursor-pointer"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="size-8 rounded-lg bg-[#fef7e0] dark:bg-[#f9ab00]/20 text-[#b06000] dark:text-[#fdd663] flex items-center justify-center shrink-0">
-                                                <span className="material-symbols-outlined text-[18px]">domain</span>
-                                            </div>
-                                            <div>
-                                                <h4 className="text-[13px] font-medium text-[#202124] dark:text-slate-200 leading-tight group-hover:text-[#b06000] dark:group-hover:text-[#fdd663] transition-colors">
-                                                    Acente Profilim
-                                                </h4>
-                                                <p className="text-[11px] text-[#70757a] dark:text-slate-400 mt-0.5">
-                                                    Acente ayarları ve yetkiler
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <span className="material-symbols-outlined text-[18px] text-[#70757a] group-hover:text-[#b06000] dark:group-hover:text-[#fdd663] transition-colors">
+                                        <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:translate-x-0.5 transition-transform">
                                             chevron_right
                                         </span>
                                     </button>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* ── Drawer Sticky Footer Actions (Google Material 3 Pill Buttons) ── */}
-                        <div className="p-4 border-t border-[#dadce0] dark:border-[#3c4043] bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md grid grid-cols-2 gap-2.5 shrink-0">
-                            <button
-                                onClick={() => {
-                                    closeDrawer();
-                                    navigate('/finance/limits');
-                                }}
-                                className="w-full py-2.5 px-3 rounded-full bg-[#1a73e8] hover:bg-[#1765cc] active:bg-[#1557b0] text-white text-[13px] font-medium transition-all flex items-center justify-center gap-1.5 shadow-xs hover:shadow-md cursor-pointer select-none"
-                            >
-                                <span className="material-symbols-outlined text-[18px]">tune</span>
-                                <span className="truncate">Limit Yönetimi</span>
-                            </button>
+                            {/* 4. Bottom Agency Office Shortcut & Status Footer */}
+                            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2.5">
+                                <button
+                                    onClick={() => {
+                                        closeDrawer();
+                                        navigate('/my-office');
+                                    }}
+                                    className="w-full p-3 rounded-xl bg-slate-50 hover:bg-slate-100/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/80 border border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-left transition-colors cursor-pointer group"
+                                >
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className="size-8 rounded-lg bg-white dark:bg-slate-700/60 shadow-2xs border border-slate-200/60 dark:border-slate-700/40 flex items-center justify-center shrink-0 text-slate-500 dark:text-slate-300 group-hover:text-blue-600 transition-colors">
+                                            <span className="material-symbols-outlined text-[17px]">domain</span>
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="text-[12px] font-medium text-slate-800 dark:text-slate-200 truncate group-hover:text-blue-600 transition-colors">
+                                                Acente Ofisim
+                                            </div>
+                                            <div className="text-[11px] text-slate-400 dark:text-slate-500 truncate">
+                                                Firma bilgileri ve yetkiler
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:translate-x-0.5 group-hover:text-blue-600 transition-all">
+                                        arrow_forward
+                                    </span>
+                                </button>
 
-                            <button
-                                onClick={() => {
-                                    closeDrawer();
-                                    navigate('/finance');
-                                }}
-                                className="w-full py-2.5 px-3 rounded-full bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-[#3c4043] active:scale-[0.98] border border-[#dadce0] dark:border-[#5f6368] text-[#1a73e8] dark:text-[#8ab4f8] text-[13px] font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs select-none"
-                            >
-                                <span className="material-symbols-outlined text-[18px]">query_stats</span>
-                                <span className="truncate">Finans Özeti</span>
-                            </button>
+                                <div className="flex items-center justify-between px-1 text-[11px] text-slate-400 dark:text-slate-500">
+                                    <span className="flex items-center gap-1.5">
+                                        <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                        <span>Güvenli B2B Kredi Hattı</span>
+                                    </span>
+                                    <span>Anlık Senkron</span>
+                                </div>
+                            </div>
                         </div>
                     </aside>
                 </div>,

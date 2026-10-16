@@ -307,19 +307,6 @@ const DashboardSearch = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Auto-focus and select input text on mount so user can start typing directly
-    useEffect(() => {
-        const focusInput = () => {
-            if (inputRef.current) {
-                inputRef.current.focus();
-                inputRef.current.select();
-            }
-        };
-
-        focusInput();
-        const timer = setTimeout(focusInput, 50);
-        return () => clearTimeout(timer);
-    }, []);
 
     // Save state to localStorage whenever it changes
     useEffect(() => {
@@ -869,7 +856,6 @@ const DashboardSearch = () => {
                             </span>
                             <input
                                 ref={inputRef}
-                                autoFocus
                                 className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[14px] font-normal text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate"
                                 placeholder={ls.placeholder || "Nereye?"}
                                 type="text"

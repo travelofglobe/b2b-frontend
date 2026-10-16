@@ -104,60 +104,69 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
 // ═══════════════════════════════════════════════
 // Map Bounds Watcher - triggers search on map move or zoom (user interactions)
 // ═══════════════════════════════════════════════
-const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved, isProgrammaticMoveRef }) => {
-    const debounceTimerRef = React.useRef(null);
+const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved, onViewportChange, isProgrammaticMoveRef }) => {
+    const viewportTimerRef = React.useRef(null);
+    const listingTimerRef = React.useRef(null);
     const lastBoundsDataRef = React.useRef(null);
+
+    React.useEffect(() => {
+        return () => {
+            if (viewportTimerRef.current) clearTimeout(viewportTimerRef.current);
+            if (listingTimerRef.current) clearTimeout(listingTimerRef.current);
+        };
+    }, []);
 
     const handleUpdate = React.useCallback((map) => {
         if (isProgrammaticMoveRef && isProgrammaticMoveRef.current) {
             return;
         }
 
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-        }
+        if (viewportTimerRef.current) clearTimeout(viewportTimerRef.current);
+        if (listingTimerRef.current) clearTimeout(listingTimerRef.current);
 
-        debounceTimerRef.current = setTimeout(() => {
-            if (isProgrammaticMoveRef && isProgrammaticMoveRef.current) {
+        const bounds = map.getBounds();
+        const nw = bounds.getNorthWest();
+        const se = bounds.getSouthEast();
+        const currentZoom = Math.round(map.getZoom());
+
+        const boundsData = {
+            bounds: {
+                topLeft: { lat: nw.lat, lon: nw.lng },
+                bottomRight: { lat: se.lat, lon: se.lng }
+            },
+            zoom: currentZoom
+        };
+
+        // Avoid duplicate triggers if bounds and zoom haven't actually changed
+        const prev = lastBoundsDataRef.current;
+        if (prev) {
+            const eps = 0.000001;
+            if (
+                prev.zoom === currentZoom &&
+                Math.abs(prev.bounds.topLeft.lat - boundsData.bounds.topLeft.lat) < eps &&
+                Math.abs(prev.bounds.topLeft.lon - boundsData.bounds.topLeft.lon) < eps &&
+                Math.abs(prev.bounds.bottomRight.lat - boundsData.bounds.bottomRight.lat) < eps &&
+                Math.abs(prev.bounds.bottomRight.lon - boundsData.bounds.bottomRight.lon) < eps
+            ) {
                 return;
             }
+        }
 
-            const bounds = map.getBounds();
-            const nw = bounds.getNorthWest();
-            const se = bounds.getSouthEast();
-            const currentZoom = map.getZoom();
+        lastBoundsDataRef.current = boundsData;
 
-            const boundsData = {
-                bounds: {
-                    topLeft: { lat: nw.lat, lon: nw.lng },
-                    bottomRight: { lat: se.lat, lon: se.lng }
-                },
-                zoom: currentZoom
-            };
-
-            // Avoid duplicate triggers if bounds and zoom haven't actually changed
-            const prev = lastBoundsDataRef.current;
-            if (prev) {
-                const eps = 0.000001;
-                if (
-                    prev.zoom === currentZoom &&
-                    Math.abs(prev.bounds.topLeft.lat - boundsData.bounds.topLeft.lat) < eps &&
-                    Math.abs(prev.bounds.topLeft.lon - boundsData.bounds.topLeft.lon) < eps &&
-                    Math.abs(prev.bounds.bottomRight.lat - boundsData.bounds.bottomRight.lat) < eps &&
-                    Math.abs(prev.bounds.bottomRight.lon - boundsData.bounds.bottomRight.lon) < eps
-                ) {
+        // If searchOnMove is enabled (checkbox checked), debounce and trigger search
+        if (searchOnMove) {
+            listingTimerRef.current = setTimeout(() => {
+                if (isProgrammaticMoveRef && isProgrammaticMoveRef.current) {
                     return;
                 }
-            }
-
-            lastBoundsDataRef.current = boundsData;
-
-            if (searchOnMove) {
                 onBoundsChange(boundsData);
-            } else {
-                onMapMoved?.(boundsData);
-            }
-        }, 150);
+            }, 500);
+        } else {
+            // When searchOnMove is disabled, do NOT search automatically!
+            // Simply mark map as moved so "Search this area" button appears
+            onMapMoved?.(boundsData);
+        }
     }, [searchOnMove, onBoundsChange, onMapMoved, isProgrammaticMoveRef]);
 
     useMapEvents({
@@ -241,7 +250,10 @@ const PriceMarker = React.memo(({
         };
     }, []);
 
-    const priceDisplay = hotel.price ? Math.round(hotel.price).toLocaleString('tr-TR') : '';
+    const hasPrice = Boolean(hotel.price && Number(hotel.price) > 0);
+    const priceDisplay = hasPrice
+        ? `${currencySymbol} ${Math.round(hotel.price).toLocaleString('tr-TR')}`
+        : (hotel.rating ? `★ ${(parseFloat(hotel.rating) || 4.2).toFixed(1).replace('.', ',')}` : '★ 4.2');
 
     const checkIsNearTop = React.useCallback(() => {
         if (!map || !hotel.lat || !hotel.lng) return false;
@@ -371,7 +383,7 @@ const PriceMarker = React.memo(({
 
     const icon = React.useMemo(() => {
         // Measure text width for perfect bubble sizing
-        const textWidth = measurePriceText(`${currencySymbol} ${priceDisplay}`);
+        const textWidth = measurePriceText(priceDisplay);
 
         // Compact bubble geometry
         const H = 26; // Pill height
@@ -432,7 +444,7 @@ const PriceMarker = React.memo(({
                 <svg width="${W}" height="34" viewBox="0 0 ${W} 34" style="overflow:visible;filter:${shadow};display:block;transform-origin:${tailTipX}px 32px;transform:${scale};">
                     <path class="marker-bubble-path" d="${path}" fill="${bgFill}" stroke="${borderColor}" stroke-width="${isSelected ? 1.0 : 0.75}" stroke-linejoin="round" style="transition:stroke 0.35s ease, fill 0.35s ease;"/>
                     ${iconGroup}
-                    <text x="26" y="13" dominant-baseline="central" font-family="'Google Sans', Roboto, -apple-system, BlinkMacSystemFont, Arial, sans-serif" font-size="12" font-weight="${textWeight}" fill="${textColor}" letter-spacing="-0.1px">${currencySymbol}<tspan dx="2">${priceDisplay}</tspan></text>
+                    <text x="26" y="13" dominant-baseline="central" font-family="'Google Sans', Roboto, -apple-system, BlinkMacSystemFont, Arial, sans-serif" font-size="12" font-weight="${textWeight}" fill="${textColor}" letter-spacing="-0.1px">${priceDisplay}</text>
                     ${favSvg}
                 </svg>
             </div>
@@ -444,7 +456,7 @@ const PriceMarker = React.memo(({
             iconSize: [W, 34],
             iconAnchor: [tailTipX, 32],
         });
-    }, [isSelected, isFav, currencySymbol, priceDisplay]);
+    }, [isSelected, isFav, priceDisplay]);
 
     const formattedRating = (parseFloat(hotel.rating) || 4.2).toFixed(1).replace('.', ',');
     const reviewCount = hotel.reviewCount || (hotel.stars ? hotel.stars * 115 + 42 : 432);
@@ -694,6 +706,67 @@ const PriceMarker = React.memo(({
 });
 
 // ═══════════════════════════════════════════════
+// Google Hotels Style Spatially Aggregated Cluster Marker
+// ═══════════════════════════════════════════════
+const ClusterMarker = React.memo(({ cluster, onClusterClick }) => {
+    const count = cluster.count || 0;
+    const countDisplay = count > 999 ? `${(count / 1000).toFixed(1)}k` : `${count}`;
+
+    const icon = React.useMemo(() => {
+        const size = count > 100 ? 44 : (count > 20 ? 38 : 34);
+        const half = size / 2;
+        const html = `
+            <div style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;transition:transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);" class="group hover:scale-110 active:scale-95">
+                <div style="
+                    width: ${size}px;
+                    height: ${size}px;
+                    border-radius: 50%;
+                    background: linear-gradient(135deg, #F75270 0%, #e11d48 100%);
+                    color: #ffffff;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    font-family: 'Google Sans', Roboto, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+                    font-weight: 700;
+                    font-size: ${count > 99 ? '12px' : '13px'};
+                    box-shadow: 0 4px 14px rgba(247, 82, 112, 0.45), 0 2px 6px rgba(0,0,0,0.18);
+                    border: 2.5px solid #ffffff;
+                    line-height: 1;
+                ">
+                    <span>${countDisplay}</span>
+                </div>
+            </div>
+        `;
+        return L.divIcon({
+            className: 'google-hotel-cluster-marker',
+            html,
+            iconSize: [size, size],
+            iconAnchor: [half, half],
+        });
+    }, [count, countDisplay]);
+
+    const handleClick = React.useCallback(() => {
+        if (onClusterClick) {
+            onClusterClick(cluster);
+        }
+    }, [cluster, onClusterClick]);
+
+    if (!cluster.lat || !cluster.lng) return null;
+
+    return (
+        <Marker
+            position={[parseFloat(cluster.lat), parseFloat(cluster.lng)]}
+            icon={icon}
+            zIndexOffset={1000}
+            eventHandlers={{
+                click: handleClick
+            }}
+        />
+    );
+});
+
+// ═══════════════════════════════════════════════
 // Google Hotels Style Card
 // ═══════════════════════════════════════════════
 const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered, onHover, onSelect, currentLang, isFav, onToggleFav, isCompact = false }) => {
@@ -790,6 +863,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
 
     return (
         <div
+            id={`hotel-card-${hotel.id || hotel.hotelId}`}
             className={`flex py-4 pl-6 pr-4 border-b border-[#e8eaed] dark:border-slate-700 cursor-pointer transition-colors group ${isActive ? 'bg-[#f0f4ff] dark:bg-blue-900/10' : 'bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-800/40'}`}
             onMouseEnter={() => { setIsLocalHovered(true); onHover(hotel); }}
             onMouseLeave={() => { setIsLocalHovered(false); onHover(null); }}
@@ -957,14 +1031,22 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                             </div>
                         ) : (
                             <>
-                                {hotel.strikethroughPrice && (
-                                    <div className="text-[13px] text-[#70757a] dark:text-slate-400 line-through leading-none mb-1 font-roboto">
-                                        {currencySymbol}{Math.round(hotel.strikethroughPrice).toLocaleString('tr-TR')}
-                                    </div>
+                                {formattedPrice ? (
+                                    <>
+                                        {hotel.strikethroughPrice && (
+                                            <div className="text-[13px] text-[#70757a] dark:text-slate-400 line-through leading-none mb-1 font-roboto">
+                                                {currencySymbol}{Math.round(hotel.strikethroughPrice).toLocaleString('tr-TR')}
+                                            </div>
+                                        )}
+                                        <span className="text-[22px] font-bold text-[#202124] dark:text-slate-100 leading-none font-roboto">
+                                            {currencySymbol}{formattedPrice}
+                                        </span>
+                                    </>
+                                ) : (
+                                    <span className="text-[14px] font-semibold text-[#1a73e8] dark:text-blue-400 font-roboto">
+                                        {showPricesLabel[currentLang] || showPricesLabel.en}
+                                    </span>
                                 )}
-                                <span className="text-[22px] font-bold text-[#202124] dark:text-slate-100 leading-none font-roboto">
-                                    {currencySymbol}{formattedPrice}
-                                </span>
                             </>
                         )}
                     </div>
@@ -1651,6 +1733,10 @@ const HotelListing = () => {
         if (hotel) {
             setSelectedHotel(hotel);
             setIsQuickLookOpen(true);
+            const cardEl = document.getElementById(`hotel-card-${hotel.id || hotel.hotelId}`);
+            if (cardEl) {
+                cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         } else {
             setIsQuickLookOpen(false);
             closeTimeoutRef.current = setTimeout(() => {
@@ -1663,6 +1749,13 @@ const HotelListing = () => {
     const handleCloseQuickLook = React.useCallback(() => {
         handleSelectHotel(null);
     }, [handleSelectHotel]);
+
+    // Independent Map Markers & Clusters state
+    const [mapMarkers, setMapMarkers] = React.useState([]);
+    const [mapClusters, setMapClusters] = React.useState([]);
+    const [isMapMarkersLoading, setIsMapMarkersLoading] = React.useState(false);
+    const mapAbortControllerRef = React.useRef(null);
+
     const [hoveredHotel, setHoveredHotel] = React.useState(null);
     const [shouldRefitMap, setShouldRefitMap] = React.useState(true);
     const [isSortOpen, setIsSortOpen] = React.useState(false);
@@ -2377,7 +2470,94 @@ const HotelListing = () => {
         if (currentParams) localStorage.setItem('last_hotel_search_params', currentParams);
     }, [slug, searchParams]);
 
-    // Load hotels from API (optionally using geo bounds for map-area search)
+    // Fetch lightweight map markers and clusters independently
+    const fetchMapMarkers = React.useCallback(async (boundsData = null) => {
+        if (mapAbortControllerRef.current) {
+            mapAbortControllerRef.current.abort();
+        }
+        const controller = new AbortController();
+        mapAbortControllerRef.current = controller;
+        setIsMapMarkersLoading(true);
+
+        try {
+            const filters = getSearchParams();
+            const activeGeoBounds = boundsData || mapBoundsRef.current;
+            const currentZoom = activeGeoBounds?.zoom ?? (mapInstance?.getZoom ? Math.round(mapInstance.getZoom()) : 12);
+
+            const res = await hotelService.searchHotelMapMarkers({
+                regionId: regionId ? String(regionId) : null,
+                locationId: locationId ? String(locationId) : null,
+                regionIds: activeGeoBounds
+                    ? []
+                    : (filters.regionIds?.length > 0 ? filters.regionIds : (filters.locations?.length > 0 ? filters.locations : (regionId ? [String(regionId)] : null))),
+                geo: activeGeoBounds?.bounds || null,
+                zoom: currentZoom,
+                limit: 60,
+                filters: {
+                    togIds: togId ? [parseInt(togId)] : (filters.hotelIds || null),
+                    hotelIds: togId ? [parseInt(togId)] : (filters.hotelIds || null),
+                    stars: filters.stars,
+                    hasFreeCancellation: filters.freeCancellation,
+                    hasPrePayment: filters.prePayment,
+                    facilities: filters.facilities,
+                    isRecommended: filters.recommended,
+                    preferred: filters.recommended
+                },
+                searchCriteria: (() => {
+                    const sanitized = validateAndSanitizeDates(searchParams.get('checkin'), searchParams.get('checkout'));
+                    return {
+                        checkin: formatDateForUrl(sanitized.checkInDate),
+                        checkout: formatDateForUrl(sanitized.checkOutDate),
+                        nationality: searchParams.get('nationality') || 'TR',
+                        rooms: roomState
+                    };
+                })(),
+                signal: controller.signal
+            });
+
+            if (res) {
+                const data = res.data || res;
+                const rawMarkers = data.markers || res.markers || [];
+                const rawClusters = data.clusters || res.clusters || [];
+                const newMarkers = rawMarkers.map(m => ({
+                    id: m.id || m.togId,
+                    hotelId: m.id || m.togId,
+                    name: m.name,
+                    lat: m.lat,
+                    lng: m.lng,
+                    rating: m.rating || 4.2,
+                    stars: m.stars || 4,
+                    price: m.price || 0,
+                    currency: m.currency || 'TRY',
+                    image: m.thumbnail || placeholderHotel,
+                    images: m.thumbnail ? [m.thumbnail] : [placeholderHotel],
+                    location: m.city || '',
+                    isRecommended: m.isRecommended || false
+                }));
+                setMapMarkers(newMarkers);
+                setMapClusters(rawClusters);
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('Error fetching map markers:', err);
+            }
+        } finally {
+            if (mapAbortControllerRef.current === controller) {
+                setIsMapMarkersLoading(false);
+            }
+        }
+    }, [regionId, locationId, togId, getSearchParams, searchParams, roomState, mapInstance]);
+
+    const handleClusterClick = React.useCallback((cluster) => {
+        if (!mapInstance || !cluster.lat || !cluster.lng) return;
+        const currentZoom = typeof mapInstance.getZoom === 'function' ? mapInstance.getZoom() : 11;
+        mapInstance.setView([parseFloat(cluster.lat), parseFloat(cluster.lng)], Math.min(currentZoom + 2.5, 16), {
+            animate: true,
+            duration: 0.5
+        });
+    }, [mapInstance]);
+
+    // Load hotels from API (paginated listing, size 20)
     const loadMoreHotels = React.useCallback(async (isReset = false, geoBounds = null) => {
         // If this is a reset search without explicit geoBounds, it's a new location/filter search.
         if (isReset && !geoBounds) {
@@ -2407,6 +2587,8 @@ const HotelListing = () => {
             hasMoreRef.current = true;
             setPage(0);
             setHasMore(true);
+            // Independent map markers fetch on search reset
+            fetchMapMarkers(activeGeoBounds);
         }
         const controller = new AbortController();
         abortControllerRef.current = controller;
@@ -2420,7 +2602,7 @@ const HotelListing = () => {
                     : (filters.regionIds?.length > 0 ? filters.regionIds : (filters.locations?.length > 0 ? filters.locations : (regionId ? [String(regionId)] : null))),
                 geo: activeGeoBounds?.bounds || null,
                 zoom: activeGeoBounds?.zoom || null,
-                size: 100,
+                size: 20,
                 filters: {
                     togIds: togId ? [parseInt(togId)] : (filters.hotelIds || null),
                     hotelIds: togId ? [parseInt(togId)] : (filters.hotelIds || null),
@@ -2450,35 +2632,27 @@ const HotelListing = () => {
                 sort: sortConfig.field ? sortConfig : null,
                 signal: controller.signal
             };
-            const req1 = hotelService.searchHotels({ ...baseRequest, page: currentPage });
-            const req2 = hotelService.searchHotels({ ...baseRequest, page: currentPage + 1 });
-            const results = await Promise.allSettled([req1, req2]);
-            const res1 = results[0]?.status === 'fulfilled' ? results[0].value : null;
-            const res2 = results[1]?.status === 'fulfilled' ? results[1].value : null;
-            if (res1 && res1.data) {
-                const pageData1 = res1.data;
-                const pageData2 = (res2 && res2.data) ? res2.data : null;
-                const filtersData = res1.filters || res1.data.filters;
-                const content1 = pageData1.content || [];
-                const content2 = pageData2?.content || [];
-                const combinedContent = [...content1, ...content2];
-                const mappedHotels = combinedContent.map(h => mapApiHotelToModel(h));
+            const res = await hotelService.searchHotels({ ...baseRequest, page: currentPage, size: 20 });
+            if (res && res.data) {
+                const pageData = res.data;
+                const filtersData = res.filters || res.data.filters;
+                const content = pageData.content || [];
+                const mappedHotels = content.map(h => mapApiHotelToModel(h));
                 setHotels(prev => {
                     if (currentPage === 0) return mappedHotels;
                     const existingIds = new Set(prev.map(h => h.id));
                     return [...prev, ...mappedHotels.filter(h => !existingIds.has(h.id))];
                 });
-                setTotalProperties(pageData1.totalElements || 0);
+                setTotalProperties(pageData.totalElements || 0);
                 if (currentPage === 0 && filtersData) setDynamicFilters(filtersData);
-                const noMore = (pageData1.last || pageData2?.last || combinedContent.length === 0);
-                const nextHasMore = !noMore;
+                const nextHasMore = !pageData.last && content.length >= 20;
                 setHasMore(nextHasMore);
                 hasMoreRef.current = nextHasMore;
-                const nextPage = currentPage + 2;
+                const nextPage = currentPage + 1;
                 setPage(nextPage);
                 pageRef.current = nextPage;
                 const newLocationNames = {};
-                combinedContent.forEach(hotel => {
+                content.forEach(hotel => {
                     if (hotel.locationBreadcrumbs) {
                         hotel.locationBreadcrumbs.forEach(crumb => {
                             if (crumb.locationId && crumb.name) {
@@ -2488,11 +2662,6 @@ const HotelListing = () => {
                     }
                 });
                 if (Object.keys(newLocationNames).length > 0) setLocationNames(prev => ({ ...prev, ...newLocationNames }));
-                if (currentPage === 0 && nextHasMore) {
-                    isFetchingRef.current = false;
-                    setTimeout(() => { loadMoreHotels(false, activeGeoBounds); }, 50);
-                    return;
-                }
             } else {
                 setHasMore(false);
                 hasMoreRef.current = false;
@@ -2511,13 +2680,62 @@ const HotelListing = () => {
                 isFetchingRef.current = false;
             }
         }
-    }, [locationId, regionId, togId, mapApiHotelToModel, roomState, searchParams, sortConfig]);
+    }, [locationId, regionId, togId, mapApiHotelToModel, roomState, searchParams, sortConfig, fetchMapMarkers]);
+
+    // Infinite scroll observer for loading more hotel cards on scroll
+    React.useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            const first = entries[0];
+            if (first.isIntersecting && hasMoreRef.current && !isFetchingRef.current && !isLoading) {
+                loadMoreHotels(false);
+            }
+        }, { threshold: 0.1, rootMargin: '250px' });
+
+        const currentLoader = loaderRef.current;
+        if (currentLoader) {
+            observer.observe(currentLoader);
+        }
+
+        return () => {
+            if (currentLoader) observer.unobserve(currentLoader);
+            observer.disconnect();
+        };
+    }, [loadMoreHotels, isLoading]);
+
+    // Merge map markers with loaded listing hotel cards (so listing cards provide real lowest room prices)
+    const effectiveMapMarkers = React.useMemo(() => {
+        const listingHotelMap = new Map();
+        hotels.forEach(h => {
+            if (h.id) listingHotelMap.set(String(h.id), h);
+            if (h.hotelId) listingHotelMap.set(String(h.hotelId), h);
+        });
+
+        if (mapMarkers.length > 0) {
+            return mapMarkers.map(marker => {
+                const idKey = String(marker.id || marker.hotelId);
+                const listingHotel = listingHotelMap.get(idKey);
+                if (listingHotel) {
+                    return {
+                        ...marker,
+                        ...listingHotel,
+                        lat: listingHotel.lat || marker.lat,
+                        lng: listingHotel.lng || marker.lng
+                    };
+                }
+                return marker;
+            });
+        }
+
+        // Fallback when map markers are not yet loaded: show coordinates from listing
+        return displayedHotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
+    }, [mapMarkers, hotels, displayedHotels]);
 
     const handleMapBoundsChange = React.useCallback((boundsData) => {
         mapBoundsRef.current = boundsData;
         setMapMoved(false);
+        fetchMapMarkers(boundsData);
         loadMoreHotels(true, boundsData);
-    }, [loadMoreHotels]);
+    }, [loadMoreHotels, fetchMapMarkers]);
 
     const handleMapMoved = React.useCallback((boundsData) => {
         mapBoundsRef.current = boundsData;
@@ -3621,12 +3839,21 @@ const HotelListing = () => {
                                 <PoiMarker key={poi.id} poi={poi} currentLang={currentLang} />
                             ))}
 
+                            {/* Spatially aggregated clusters at lower zoom levels */}
+                            {mapClusters.map(cluster => (
+                                <ClusterMarker
+                                    key={cluster.id || `${cluster.lat}-${cluster.lng}`}
+                                    cluster={cluster}
+                                    onClusterClick={handleClusterClick}
+                                />
+                            ))}
+
                             {/* Price markers for hotels with coordinates */}
-                            {displayedHotels
+                            {effectiveMapMarkers
                                 .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)))
                                 .map(hotel => (
                                     <PriceMarker
-                                        key={hotel.id}
+                                        key={hotel.id || hotel.hotelId}
                                         hotel={hotel}
                                         isSelected={Boolean(selectedHotel && (selectedHotel.id === hotel.id || (selectedHotel.hotelId && hotel.hotelId && selectedHotel.hotelId === hotel.hotelId)))}
                                         isHovered={hoveredHotel?.id === hotel.id}
@@ -3646,6 +3873,7 @@ const HotelListing = () => {
                                 searchOnMove={searchOnMapMove}
                                 onBoundsChange={handleMapBoundsChange}
                                 onMapMoved={handleMapMoved}
+                                onViewportChange={fetchMapMarkers}
                                 isProgrammaticMoveRef={isProgrammaticMoveRef}
                             />
                         </MapContainer>
@@ -3742,46 +3970,45 @@ const HotelListing = () => {
                         </button>
                     </div>
 
-                    {/* Top center: Search-on-move toggle OR "Listeyi güncelle" button */}
-                    <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto">
-                        {/* Always show the toggle */}
-                        {!mapMoved && (
-                            <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
-                                <button
-                                    onClick={() => setSearchOnMapMove(v => !v)}
-                                    className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0 ${searchOnMapMove
-                                            ? 'bg-[#1a73e8] border-[#1a73e8]'
-                                            : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
-                                        }`}
-                                >
-                                    {searchOnMapMove && (
-                                        <span className="material-symbols-outlined text-white" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>check</span>
-                                    )}
-                                </button>
-                                <span
-                                    onClick={() => setSearchOnMapMove(v => !v)}
-                                    className="text-[13px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
-                                >
-                                    {tListing('searchMapMoves', currentLang)}
-                                </span>
-                            </div>
-                        )}
-
-                        {/* Show manual update button when map moved but searchOnMove is off */}
+                    {/* Top center: Search-on-move toggle & "Bu alanda ara" button */}
+                    <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2">
+                        {/* Show manual search button when map moved and searchOnMapMove is off */}
                         {mapMoved && !searchOnMapMove && (
                             <button
+                                type="button"
                                 onClick={() => {
                                     isUserPanRef.current = false;
                                     setShouldRefitMap(false);
-                                    setMapMoved(false);
-                                    loadMoreHotels(true, mapBoundsRef.current);
+                                    handleMapBoundsChange(mapBoundsRef.current);
                                 }}
-                                className="flex items-center gap-2 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-full px-4 py-2 text-[13px] font-medium text-[#3c4043] dark:text-slate-200 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] transition-colors cursor-pointer"
+                                className="flex items-center gap-1.5 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#1a73e8] dark:text-blue-400 font-semibold rounded-full px-4 py-2 text-[13px] shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all cursor-pointer active:scale-95 border border-[#1a73e8]/30"
                             >
-                                <span className={`material-symbols-outlined text-[#1a73e8] ${isLoading ? 'animate-spin' : ''}`} style={{ fontSize: '18px' }}>refresh</span>
-                                {tListing('searchThisArea', currentLang)}
+                                <span className={`material-symbols-outlined text-[18px] ${isLoading || isMapMarkersLoading ? 'animate-spin' : ''}`}>refresh</span>
+                                <span>{tListing('searchThisArea', currentLang)}</span>
                             </button>
                         )}
+
+                        {/* Always visible "Haritayı kaydırdıkça ara" checkbox */}
+                        <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3.5 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+                            <button
+                                type="button"
+                                onClick={() => setSearchOnMapMove(v => !v)}
+                                className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 cursor-pointer ${searchOnMapMove
+                                        ? 'bg-[#1a73e8] border-[#1a73e8]'
+                                        : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
+                                    }`}
+                            >
+                                {searchOnMapMove && (
+                                    <span className="material-symbols-outlined text-white text-[12px] font-bold">check</span>
+                                )}
+                            </button>
+                            <span
+                                onClick={() => setSearchOnMapMove(v => !v)}
+                                className="text-[12px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
+                            >
+                                {tListing('searchMapMoves', currentLang)}
+                            </span>
+                        </div>
                     </div>
 
                     {/* Bottom-left: Map layer switcher (Google Maps style) */}

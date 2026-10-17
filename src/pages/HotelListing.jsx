@@ -104,15 +104,22 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
 // ═══════════════════════════════════════════════
 // Map Bounds Watcher - triggers search on map move or zoom (user interactions)
 // ═══════════════════════════════════════════════
-const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved, onViewportChange, isProgrammaticMoveRef }) => {
-    const viewportTimerRef = React.useRef(null);
-    const listingTimerRef = React.useRef(null);
+const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved, isProgrammaticMoveRef }) => {
+    const timerRef = React.useRef(null);
     const lastBoundsDataRef = React.useRef(null);
+
+    const searchOnMoveRef = React.useRef(searchOnMove);
+    searchOnMoveRef.current = searchOnMove;
+
+    const onBoundsChangeRef = React.useRef(onBoundsChange);
+    onBoundsChangeRef.current = onBoundsChange;
+
+    const onMapMovedRef = React.useRef(onMapMoved);
+    onMapMovedRef.current = onMapMoved;
 
     React.useEffect(() => {
         return () => {
-            if (viewportTimerRef.current) clearTimeout(viewportTimerRef.current);
-            if (listingTimerRef.current) clearTimeout(listingTimerRef.current);
+            if (timerRef.current) clearTimeout(timerRef.current);
         };
     }, []);
 
@@ -121,8 +128,7 @@ const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved, onViewport
             return;
         }
 
-        if (viewportTimerRef.current) clearTimeout(viewportTimerRef.current);
-        if (listingTimerRef.current) clearTimeout(listingTimerRef.current);
+        if (timerRef.current) clearTimeout(timerRef.current);
 
         const bounds = map.getBounds();
         const nw = bounds.getNorthWest();
@@ -155,36 +161,31 @@ const MapBoundsWatcher = ({ searchOnMove, onBoundsChange, onMapMoved, onViewport
         lastBoundsDataRef.current = boundsData;
 
         // If searchOnMove is enabled (checkbox checked), debounce and trigger search
-        if (searchOnMove) {
-            listingTimerRef.current = setTimeout(() => {
+        if (searchOnMoveRef.current) {
+            timerRef.current = setTimeout(() => {
                 if (isProgrammaticMoveRef && isProgrammaticMoveRef.current) {
                     return;
                 }
-                onBoundsChange(boundsData);
-            }, 500);
+                onBoundsChangeRef.current?.(boundsData);
+            }, 400);
         } else {
-            // When searchOnMove is disabled, do NOT search automatically!
-            // Simply mark map as moved so "Search this area" button appears
-            onMapMoved?.(boundsData);
+            // When searchOnMove is disabled, do not search automatically:
+            // Signal that map has moved so "Search this area" button appears
+            onMapMovedRef.current?.(boundsData);
         }
-    }, [searchOnMove, onBoundsChange, onMapMoved, isProgrammaticMoveRef]);
+    }, [isProgrammaticMoveRef]);
 
     useMapEvents({
         dragstart: () => {
+            if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+        },
+        zoomstart: () => {
             if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
         },
         moveend: (e) => {
             handleUpdate(e.target);
         }
     });
-
-    React.useEffect(() => {
-        return () => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-        };
-    }, []);
 
     return null;
 };
@@ -2494,8 +2495,8 @@ const HotelListing = () => {
                 zoom: currentZoom,
                 limit: 60,
                 filters: {
-                    togIds: togId ? [parseInt(togId)] : (filters.hotelIds || null),
-                    hotelIds: togId ? [parseInt(togId)] : (filters.hotelIds || null),
+                    togIds: activeGeoBounds ? (filters.hotelIds || null) : (togId ? [parseInt(togId)] : (filters.hotelIds || null)),
+                    hotelIds: activeGeoBounds ? (filters.hotelIds || null) : (togId ? [parseInt(togId)] : (filters.hotelIds || null)),
                     stars: filters.stars,
                     hasFreeCancellation: filters.freeCancellation,
                     hasPrePayment: filters.prePayment,
@@ -2604,8 +2605,8 @@ const HotelListing = () => {
                 zoom: activeGeoBounds?.zoom || null,
                 size: 20,
                 filters: {
-                    togIds: togId ? [parseInt(togId)] : (filters.hotelIds || null),
-                    hotelIds: togId ? [parseInt(togId)] : (filters.hotelIds || null),
+                    togIds: activeGeoBounds ? (filters.hotelIds || null) : (togId ? [parseInt(togId)] : (filters.hotelIds || null)),
+                    hotelIds: activeGeoBounds ? (filters.hotelIds || null) : (togId ? [parseInt(togId)] : (filters.hotelIds || null)),
                     regionIds: activeGeoBounds
                         ? []
                         : (filters.regionIds?.length > 0 ? filters.regionIds : (filters.locations?.length > 0 ? filters.locations : (regionId ? [String(regionId)] : null))),
@@ -2741,6 +2742,16 @@ const HotelListing = () => {
         mapBoundsRef.current = boundsData;
         setMapMoved(true);
     }, []);
+
+    const handleToggleSearchOnMove = React.useCallback(() => {
+        setSearchOnMapMove(prev => {
+            const next = !prev;
+            if (next && mapBoundsRef.current) {
+                handleMapBoundsChange(mapBoundsRef.current);
+            }
+            return next;
+        });
+    }, [handleMapBoundsChange]);
 
     // Sync autocomplete (q + locationId) with map center after a geo-bounds search
     React.useEffect(() => {
@@ -3873,7 +3884,6 @@ const HotelListing = () => {
                                 searchOnMove={searchOnMapMove}
                                 onBoundsChange={handleMapBoundsChange}
                                 onMapMoved={handleMapMoved}
-                                onViewportChange={fetchMapMarkers}
                                 isProgrammaticMoveRef={isProgrammaticMoveRef}
                             />
                         </MapContainer>
@@ -3970,8 +3980,8 @@ const HotelListing = () => {
                         </button>
                     </div>
 
-                    {/* Top center: Search-on-move toggle & "Bu alanda ara" button */}
-                    <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2">
+                    {/* Top center: Search-on-move toggle OR "Bu alanda ara" button */}
+                    <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center justify-center">
                         {/* Show manual search button when map moved and searchOnMapMove is off */}
                         {mapMoved && !searchOnMapMove && (
                             <button
@@ -3981,34 +3991,36 @@ const HotelListing = () => {
                                     setShouldRefitMap(false);
                                     handleMapBoundsChange(mapBoundsRef.current);
                                 }}
-                                className="flex items-center gap-1.5 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#1a73e8] dark:text-blue-400 font-semibold rounded-full px-4 py-2 text-[13px] shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all cursor-pointer active:scale-95 border border-[#1a73e8]/30"
+                                className="flex items-center gap-1.5 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#1a73e8] dark:text-blue-400 font-semibold rounded-full px-4 py-2 text-[13px] shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all cursor-pointer active:scale-95 border border-[#1a73e8]/30 whitespace-nowrap"
                             >
                                 <span className={`material-symbols-outlined text-[18px] ${isLoading || isMapMarkersLoading ? 'animate-spin' : ''}`}>refresh</span>
                                 <span>{tListing('searchThisArea', currentLang)}</span>
                             </button>
                         )}
 
-                        {/* Always visible "Haritayı kaydırdıkça ara" checkbox */}
-                        <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3.5 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
-                            <button
-                                type="button"
-                                onClick={() => setSearchOnMapMove(v => !v)}
-                                className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 cursor-pointer ${searchOnMapMove
-                                        ? 'bg-[#1a73e8] border-[#1a73e8]'
-                                        : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
-                                    }`}
-                            >
-                                {searchOnMapMove && (
-                                    <span className="material-symbols-outlined text-white text-[12px] font-bold">check</span>
-                                )}
-                            </button>
-                            <span
-                                onClick={() => setSearchOnMapMove(v => !v)}
-                                className="text-[12px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
-                            >
-                                {tListing('searchMapMoves', currentLang)}
-                            </span>
-                        </div>
+                        {/* Show "Haritayı kaydırdıkça ara" toggle when map has not moved or when searchOnMapMove is already on */}
+                        {(!mapMoved || searchOnMapMove) && (
+                            <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3.5 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+                                <button
+                                    type="button"
+                                    onClick={handleToggleSearchOnMove}
+                                    className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 cursor-pointer ${searchOnMapMove
+                                            ? 'bg-[#1a73e8] border-[#1a73e8]'
+                                            : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
+                                        }`}
+                                >
+                                    {searchOnMapMove && (
+                                        <span className="material-symbols-outlined text-white text-[12px] font-bold">check</span>
+                                    )}
+                                </button>
+                                <span
+                                    onClick={handleToggleSearchOnMove}
+                                    className="text-[12px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
+                                >
+                                    {tListing('searchMapMoves', currentLang)}
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Bottom-left: Map layer switcher (Google Maps style) */}

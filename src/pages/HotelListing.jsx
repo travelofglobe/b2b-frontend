@@ -965,18 +965,41 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         {hotel.name}
                     </Link>
 
-                    {/* Rating */}
-                    {ratingNum > 0 && (
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-[13px] font-medium text-[#3c4043] dark:text-slate-200">{ratingNum.toFixed(1)}</span>
-                            <div className="flex">
-                                {[...Array(5)].map((_, i) => (
-                                    <span key={i} style={{ fontSize: '12px', color: i < Math.round(ratingNum) ? '#fabb05' : '#dadce0' }}>★</span>
-                                ))}
+                    {/* Classification & Guest Rating */}
+                    <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                        {hotel.stars > 0 && (
+                            <div className="flex items-center gap-1">
+                                <div className="flex">
+                                    {[...Array(Math.min(5, Math.floor(hotel.stars)))].map((_, i) => (
+                                        <span key={i} style={{ fontSize: '12px', color: '#fabb05' }}>★</span>
+                                    ))}
+                                </div>
+                                <span className="text-[12px] text-[#5f6368] dark:text-slate-400 font-medium">
+                                    {typeLabel}
+                                </span>
                             </div>
-                            <span className="text-[12px] text-[#70757a] dark:text-slate-400">({hotel.ratingLabel})</span>
-                        </div>
-                    )}
+                        )}
+
+                        {hotel.stars > 0 && ratingNum > 0 && (
+                            <span className="text-[#dadce0] dark:text-slate-600 text-[12px]">•</span>
+                        )}
+
+                        {ratingNum > 0 && (
+                            <div className="flex items-center gap-1.5">
+                                <span className="inline-flex items-center justify-center bg-[#1a73e8] text-white text-[11px] font-bold px-1.5 py-0.5 rounded-sm">
+                                    {ratingNum.toFixed(1)}
+                                </span>
+                                <span className="text-[12px] text-[#3c4043] dark:text-slate-200 font-medium">
+                                    {hotel.ratingLabel}
+                                </span>
+                                {hotel.reviewsCount > 0 && (
+                                    <span className="text-[12px] text-[#70757a] dark:text-slate-400">
+                                        ({hotel.reviewsCount.toLocaleString('tr-TR')})
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </div>
 
                     {/* Amenities grid (3x3 - 9 items) */}
                     {(() => {
@@ -2471,83 +2494,8 @@ const HotelListing = () => {
         if (currentParams) localStorage.setItem('last_hotel_search_params', currentParams);
     }, [slug, searchParams]);
 
-    // Fetch lightweight map markers and clusters independently
-    const fetchMapMarkers = React.useCallback(async (boundsData = null) => {
-        if (mapAbortControllerRef.current) {
-            mapAbortControllerRef.current.abort();
-        }
-        const controller = new AbortController();
-        mapAbortControllerRef.current = controller;
-        setIsMapMarkersLoading(true);
-
-        try {
-            const filters = getSearchParams();
-            const activeGeoBounds = boundsData || mapBoundsRef.current;
-            const currentZoom = activeGeoBounds?.zoom ?? (mapInstance?.getZoom ? Math.round(mapInstance.getZoom()) : 12);
-
-            const res = await hotelService.searchHotelMapMarkers({
-                regionId: regionId ? String(regionId) : null,
-                locationId: locationId ? String(locationId) : null,
-                regionIds: activeGeoBounds
-                    ? []
-                    : (filters.regionIds?.length > 0 ? filters.regionIds : (filters.locations?.length > 0 ? filters.locations : (regionId ? [String(regionId)] : null))),
-                geo: activeGeoBounds?.bounds || null,
-                zoom: currentZoom,
-                limit: 60,
-                filters: {
-                    togIds: activeGeoBounds ? (filters.hotelIds || null) : (togId ? [parseInt(togId)] : (filters.hotelIds || null)),
-                    hotelIds: activeGeoBounds ? (filters.hotelIds || null) : (togId ? [parseInt(togId)] : (filters.hotelIds || null)),
-                    stars: filters.stars,
-                    hasFreeCancellation: filters.freeCancellation,
-                    hasPrePayment: filters.prePayment,
-                    facilities: filters.facilities,
-                    isRecommended: filters.recommended,
-                    preferred: filters.recommended
-                },
-                searchCriteria: (() => {
-                    const sanitized = validateAndSanitizeDates(searchParams.get('checkin'), searchParams.get('checkout'));
-                    return {
-                        checkin: formatDateForUrl(sanitized.checkInDate),
-                        checkout: formatDateForUrl(sanitized.checkOutDate),
-                        nationality: searchParams.get('nationality') || 'TR',
-                        rooms: roomState
-                    };
-                })(),
-                signal: controller.signal
-            });
-
-            if (res) {
-                const data = res.data || res;
-                const rawMarkers = data.markers || res.markers || [];
-                const rawClusters = data.clusters || res.clusters || [];
-                const newMarkers = rawMarkers.map(m => ({
-                    id: m.id || m.togId,
-                    hotelId: m.id || m.togId,
-                    name: m.name,
-                    lat: m.lat,
-                    lng: m.lng,
-                    rating: m.rating || 4.2,
-                    stars: m.stars || 4,
-                    price: m.price || 0,
-                    currency: m.currency || 'TRY',
-                    image: m.thumbnail || placeholderHotel,
-                    images: m.thumbnail ? [m.thumbnail] : [placeholderHotel],
-                    location: m.city || '',
-                    isRecommended: m.isRecommended || false
-                }));
-                setMapMarkers(newMarkers);
-                setMapClusters(rawClusters);
-            }
-        } catch (err) {
-            if (err.name !== 'AbortError') {
-                console.error('Error fetching map markers:', err);
-            }
-        } finally {
-            if (mapAbortControllerRef.current === controller) {
-                setIsMapMarkersLoading(false);
-            }
-        }
-    }, [regionId, locationId, togId, getSearchParams, searchParams, roomState, mapInstance]);
+    // Map points are provided directly by search results without extra /map request
+    const fetchMapMarkers = React.useCallback(() => {}, []);
 
     const handleClusterClick = React.useCallback((cluster) => {
         if (!mapInstance || !cluster.lat || !cluster.lng) return;
@@ -2588,8 +2536,6 @@ const HotelListing = () => {
             hasMoreRef.current = true;
             setPage(0);
             setHasMore(true);
-            // Independent map markers fetch on search reset
-            fetchMapMarkers(activeGeoBounds);
         }
         const controller = new AbortController();
         abortControllerRef.current = controller;
@@ -2703,40 +2649,16 @@ const HotelListing = () => {
         };
     }, [loadMoreHotels, isLoading]);
 
-    // Merge map markers with loaded listing hotel cards (so listing cards provide real lowest room prices)
+    // Map markers derived directly from loaded search results with real room prices and coordinates
     const effectiveMapMarkers = React.useMemo(() => {
-        const listingHotelMap = new Map();
-        hotels.forEach(h => {
-            if (h.id) listingHotelMap.set(String(h.id), h);
-            if (h.hotelId) listingHotelMap.set(String(h.hotelId), h);
-        });
-
-        if (mapMarkers.length > 0) {
-            return mapMarkers.map(marker => {
-                const idKey = String(marker.id || marker.hotelId);
-                const listingHotel = listingHotelMap.get(idKey);
-                if (listingHotel) {
-                    return {
-                        ...marker,
-                        ...listingHotel,
-                        lat: listingHotel.lat || marker.lat,
-                        lng: listingHotel.lng || marker.lng
-                    };
-                }
-                return marker;
-            });
-        }
-
-        // Fallback when map markers are not yet loaded: show coordinates from listing
         return displayedHotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
-    }, [mapMarkers, hotels, displayedHotels]);
+    }, [displayedHotels]);
 
     const handleMapBoundsChange = React.useCallback((boundsData) => {
         mapBoundsRef.current = boundsData;
         setMapMoved(false);
-        fetchMapMarkers(boundsData);
         loadMoreHotels(true, boundsData);
-    }, [loadMoreHotels, fetchMapMarkers]);
+    }, [loadMoreHotels]);
 
     const handleMapMoved = React.useCallback((boundsData) => {
         mapBoundsRef.current = boundsData;
@@ -3850,14 +3772,7 @@ const HotelListing = () => {
                                 <PoiMarker key={poi.id} poi={poi} currentLang={currentLang} />
                             ))}
 
-                            {/* Spatially aggregated clusters at lower zoom levels */}
-                            {mapClusters.map(cluster => (
-                                <ClusterMarker
-                                    key={cluster.id || `${cluster.lat}-${cluster.lng}`}
-                                    cluster={cluster}
-                                    onClusterClick={handleClusterClick}
-                                />
-                            ))}
+
 
                             {/* Price markers for hotels with coordinates */}
                             {effectiveMapMarkers

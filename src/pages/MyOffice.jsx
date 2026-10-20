@@ -14,7 +14,7 @@ import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../context/AuthContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { agencyService } from '../services/agencyService';
-import { locationService } from '../services/locationService';
+import { geographyService } from '../services/geographyService';
 import { userService, roleService } from '../services/userService';
 import { guestService } from '../services/guestService';
 import { currencyService } from '../services/currencyService';
@@ -285,9 +285,9 @@ const MyOffice = () => {
 
         setFavoriteCityLoading(true);
         const abortController = new AbortController();
-        locationService.listSubRegions(countryId, abortController.signal)
+        geographyService.listSubRegions(countryId, abortController.signal)
             .then(res => {
-                const list = Array.isArray(res) ? res : (res?.locationList || res?.data || []);
+                const list = Array.isArray(res) ? res : (res?.regionList || res?.locationList || res?.data || []);
                 setFavoriteCityOptions(list);
             })
             .catch(err => {
@@ -540,19 +540,19 @@ const MyOffice = () => {
             setLoading(true);
             const [agencyData, countriesData, currenciesData] = await Promise.all([
                 agencyService.getMe(signal),
-                locationService.listCountries(signal),
+                geographyService.listCountries(signal),
                 currencyService.listActiveCurrencies(signal)
             ]);
 
-            const countryList = Array.isArray(countriesData) ? countriesData : (countriesData?.locationList || countriesData?.data || []);
+            const countryList = Array.isArray(countriesData) ? countriesData : (countriesData?.regionList || countriesData?.locationList || countriesData?.data || []);
             setCountries(countryList);
             setCurrencies(currenciesData || []);
 
             let initialCities = [];
             if (agencyData.countryId) {
                 try {
-                    const citiesData = await locationService.listSubRegions(agencyData.countryId);
-                    initialCities = citiesData.locationList || [];
+                    const citiesData = await geographyService.listSubRegions(agencyData.countryId);
+                    initialCities = citiesData.regionList || citiesData.locationList || [];
                 } catch (e) { console.error(e); }
             }
             setCities(initialCities);
@@ -560,8 +560,8 @@ const MyOffice = () => {
             let initialFinCities = [];
             if (agencyData.agencyFinancialInfo?.countryId) {
                 try {
-                    const finCitiesData = await locationService.listSubRegions(agencyData.agencyFinancialInfo.countryId);
-                    initialFinCities = finCitiesData.locationList || [];
+                    const finCitiesData = await geographyService.listSubRegions(agencyData.agencyFinancialInfo.countryId);
+                    initialFinCities = finCitiesData.regionList || finCitiesData.locationList || [];
                 } catch (e) { console.error(e); }
             }
             setFinCities(initialFinCities);
@@ -743,8 +743,8 @@ const MyOffice = () => {
         setFormData(prev => ({ ...prev, countryId, cityId: '' }));
         if (countryId) {
             try {
-                const citiesData = await locationService.listSubRegions(countryId);
-                setCities(citiesData.locationList || []);
+                const citiesData = await geographyService.listSubRegions(countryId);
+                setCities(citiesData.regionList || citiesData.locationList || []);
             } catch (err) { console.error(err); setCities([]); }
         } else { setCities([]); }
     };
@@ -757,8 +757,8 @@ const MyOffice = () => {
         }));
         if (countryId) {
             try {
-                const citiesData = await locationService.listSubRegions(countryId);
-                setFinCities(citiesData.locationList || []);
+                const citiesData = await geographyService.listSubRegions(countryId);
+                setFinCities(citiesData.regionList || citiesData.locationList || []);
             } catch (err) { console.error(err); setFinCities([]); }
         } else { setFinCities([]); }
     };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { agencyService } from '../services/agencyService';
-import { locationService } from '../services/locationService';
+import { geographyService } from '../services/geographyService';
 import { currencyService } from '../services/currencyService';
 import PhoneInput from './PhoneInput';
 import AppleSwitch from './AppleSwitch';
@@ -90,10 +90,11 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
     const fetchInitialData = async () => {
         try {
             const [countryRes, currencyRes] = await Promise.all([
-                locationService.listCountries(),
+                geographyService.listCountries(),
                 currencyService.listActiveCurrencies()
             ]);
-            if (countryRes && countryRes.locationList) setCountries(countryRes.locationList);
+            const cList = countryRes?.regionList || countryRes?.locationList;
+            if (cList) setCountries(cList);
             if (currencyRes) setCurrencies(currencyRes);
         } catch (error) {
             console.error('Error fetching initial modal data:', error);
@@ -106,8 +107,9 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
             setCities([]);
             return;
         }
-        locationService.listSubRegions(form.countryId).then(res => {
-            if (res && res.locationList) setCities(res.locationList);
+        geographyService.listSubRegions(form.countryId).then(res => {
+            const list = res?.regionList || res?.locationList;
+            if (list) setCities(list);
         });
     }, [form.countryId]);
 
@@ -117,8 +119,9 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
             setFinCities([]);
             return;
         }
-        locationService.listSubRegions(form.agencyFinancialInfo.countryId).then(res => {
-            if (res && res.locationList) setFinCities(res.locationList);
+        geographyService.listSubRegions(form.agencyFinancialInfo.countryId).then(res => {
+            const list = res?.regionList || res?.locationList;
+            if (list) setFinCities(list);
         });
     }, [form.agencyFinancialInfo.countryId]);
 

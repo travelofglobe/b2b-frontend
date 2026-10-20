@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { locationService } from '../services/locationService';
+import { geographyService } from '../services/geographyService';
 
 const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
     const [breadcrumbs, setBreadcrumbs] = useState([]);
@@ -27,7 +27,7 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
         const fetchBreadcrumbs = async () => {
             setLoading(true);
             try {
-                const data = await locationService.fetchBreadcrumb(locationId);
+                const data = await geographyService.fetchBreadcrumb(locationId, currentLang);
                 if (controller.signal.aborted) return;
 
                 if (data && data.breadcrumbs) {
@@ -121,15 +121,16 @@ const Breadcrumbs = ({ locationId, onBreadcrumbsLoaded, initialData }) => {
         const isMapPage = location.pathname.startsWith('/map');
         const searchParams = new URLSearchParams(location.search);
 
+        const targetId = crumb.regionId || crumb.locationId || crumb.id;
         // Update locationId to the clicked breadcrumb's locationId
-        searchParams.set('locationId', crumb.locationId);
+        searchParams.set('locationId', targetId);
 
         // Add query parameter with location name for autocomplete and page title
-        const name = getName(crumb.name);
+        const name = getName(crumb);
         searchParams.set('q', name);
 
         // Build hierarchical slug starting from City (index 1) if possible
-        const index = breadcrumbs.findIndex(c => c.locationId === crumb.locationId);
+        const index = breadcrumbs.findIndex(c => (c.regionId || c.locationId || c.id) === targetId);
         let slug = name.toLowerCase();
         
         if (index > 0) {

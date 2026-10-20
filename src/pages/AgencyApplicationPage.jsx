@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { locationService } from '../services/locationService';
+import { geographyService } from '../services/geographyService';
 import { agencyApplicationService } from '../services/agencyApplicationService';
 import PlaneLoading from '../components/PlaneLoading';
 import PublicHeader from '../components/PublicHeader';
@@ -88,9 +88,9 @@ const AgencyApplicationPage = () => {
     useEffect(() => {
         const fetchCountries = async () => {
             try {
-                const res = await locationService.listCountries();
-                if (res && res.locationList) {
-                    setCountries(res.locationList);
+                const res = await geographyService.listCountries();
+                if (res && (res.regionList || res.locationList)) {
+                    setCountries(res.regionList || res.locationList);
                 }
             } catch (err) {
                 console.error("Failed to load countries:", err);
@@ -108,9 +108,9 @@ const AgencyApplicationPage = () => {
         }
         const fetchCities = async () => {
             try {
-                const res = await locationService.listSubRegions(formData.countryId);
-                if (res && res.locationList) {
-                    setCities(res.locationList);
+                const res = await geographyService.listSubRegions(formData.countryId);
+                if (res && (res.regionList || res.locationList)) {
+                    setCities(res.regionList || res.locationList);
                 } else {
                     setCities([]);
                 }

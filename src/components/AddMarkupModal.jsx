@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { markupService } from '../services/markupService';
-import { locationService } from '../services/locationService';
+import { geographyService } from '../services/geographyService';
 import { autocompleteService } from '../services/autocompleteService';
 import AgencyMultiSelect from './AgencyMultiSelect';
 
@@ -124,9 +124,10 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
 
     const fetchInitialData = async () => {
         try {
-            const countryRes = await locationService.listCountries();
-            if (countryRes && countryRes.locationList) {
-                setCountries(countryRes.locationList);
+            const countryRes = await geographyService.listCountries();
+            const list = countryRes?.regionList || countryRes?.locationList;
+            if (list) {
+                setCountries(list);
             }
         } catch (error) {
             console.error("Error fetching initial data:", error);

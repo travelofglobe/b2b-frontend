@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { agencyService } from '../services/agencyService';
 import { agencyGroupService } from '../services/agencyGroupService';
-import { locationService } from '../services/locationService';
+import { geographyService } from '../services/geographyService';
 import AddAgencyModal from '../components/AddAgencyModal';
 import AddAgencyGroupModal from '../components/AddAgencyGroupModal';
 import SubAgencyDetailView from '../components/SubAgencyDetailView';
@@ -78,9 +78,10 @@ const GSAAgencyManagement = () => {
 
     const fetchCountries = useCallback(async () => {
         try {
-            const response = await locationService.listCountries();
-            if (response && response.locationList) {
-                setCountries(response.locationList.sort((a, b) => 
+            const response = await geographyService.listCountries();
+            const list = response?.regionList || response?.locationList;
+            if (response && list) {
+                setCountries(list.sort((a, b) => 
                     getName(a.name).localeCompare(getName(b.name))
                 ));
             }
@@ -99,9 +100,10 @@ const GSAAgencyManagement = () => {
         }
         const fetchCities = async () => {
             try {
-                const response = await locationService.listSubRegions(agencyFilters.countryId);
-                if (response && response.locationList) {
-                    setCities(response.locationList.sort((a, b) => 
+                const response = await geographyService.listSubRegions(agencyFilters.countryId);
+                const list = response?.regionList || response?.locationList;
+                if (response && list) {
+                    setCities(list.sort((a, b) => 
                         getName(a.name).localeCompare(getName(b.name))
                     ));
                 }

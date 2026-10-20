@@ -55,10 +55,17 @@ export const geographyService = {
         return normalizeRegion(response);
     },
 
-    listCountries: async (lang = '', signal) => {
+    listCountries: async (langOrSignal = '', signal) => {
+        let lang = '';
+        let actualSignal = signal;
+        if (langOrSignal && typeof langOrSignal === 'object' && ('aborted' in langOrSignal || 'addEventListener' in langOrSignal)) {
+            actualSignal = langOrSignal;
+        } else if (typeof langOrSignal === 'string') {
+            lang = langOrSignal;
+        }
         const response = await apiClient.get(`${API_BASE_URL}/geography/countries`, {
             params: { ...(lang && { lang }) },
-            signal
+            signal: actualSignal
         });
         const list = response?.regionList || response?.locationList || (Array.isArray(response) ? response : []);
         const normalizedList = list.map(normalizeRegion);
@@ -69,11 +76,18 @@ export const geographyService = {
         };
     },
 
-    listSubRegions: async (parentId, lang = '', signal) => {
+    listSubRegions: async (parentId, langOrSignal = '', signal) => {
         if (!parentId) return { numberOfItems: 0, regionList: [], locationList: [] };
+        let lang = '';
+        let actualSignal = signal;
+        if (langOrSignal && typeof langOrSignal === 'object' && ('aborted' in langOrSignal || 'addEventListener' in langOrSignal)) {
+            actualSignal = langOrSignal;
+        } else if (typeof langOrSignal === 'string') {
+            lang = langOrSignal;
+        }
         const response = await apiClient.get(`${API_BASE_URL}/geography/sub-regions/${parentId}`, {
             params: { ...(lang && { lang }) },
-            signal
+            signal: actualSignal
         });
         const list = response?.regionList || response?.locationList || (Array.isArray(response) ? response : []);
         const normalizedList = list.map(normalizeRegion);
@@ -82,6 +96,10 @@ export const geographyService = {
             regionList: normalizedList,
             locationList: normalizedList
         };
+    },
+
+    fetchLocationDetails: async (regionId) => {
+        return geographyService.fetchRegionDetails(regionId);
     },
 
     getAncestors: async (regionId) => {

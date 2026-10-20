@@ -7,7 +7,7 @@ import StatusMultiSelect from '../components/StatusMultiSelect';
 import GenericMultiSelect from '../components/GenericMultiSelect';
 import ColumnManager from '../components/ColumnManager';
 import { agencyService } from '../services/agencyService';
-import { locationService } from '../services/locationService';
+import { geographyService } from '../services/geographyService';
 import * as XLSX from 'xlsx';
 import { BOOKING_STATUS_CONFIG } from '../utils/bookingStatusUtils';
 import { tMB } from '../utils/myBookingsLocales';
@@ -256,17 +256,13 @@ const MyBookings = () => {
     // Fetch countries on mount
     useEffect(() => {
         const controller = new AbortController();
-        locationService.listCountries(controller.signal)
+        geographyService.listCountries(controller.signal)
             .then(res => {
-                if (res?.locationList && Array.isArray(res.locationList)) {
-                    setCountryOptions(res.locationList.map(c => ({ 
-                        id: c.locationId || c.id, 
-                        name: `${getFlagEmoji(c.alphaTwoCode || c.countryIso2)} ${c.name?.translations?.[i18n.language] || c.name?.defaultName || c.name}` 
-                    })));
-                } else if (Array.isArray(res)) {
-                    setCountryOptions(res.map(c => ({ 
-                        id: c.locationId || c.id, 
-                        name: `${getFlagEmoji(c.alphaTwoCode || c.countryIso2)} ${c.name?.translations?.[i18n.language] || c.name?.defaultName || c.name}` 
+                const list = res?.regionList || res?.locationList || (Array.isArray(res) ? res : []);
+                if (list.length > 0) {
+                    setCountryOptions(list.map(c => ({ 
+                        id: c.regionId || c.locationId || c.id, 
+                        name: `${getFlagEmoji(c.countryCode || c.countryIso2 || c.alphaTwoCode)} ${c.name?.translations?.[i18n.language] || c.name?.defaultName || c.displayName || c.name}` 
                     })));
                 }
             })
@@ -284,17 +280,13 @@ const MyBookings = () => {
         }
         // Fetch subregions for the first selected country for now
         const controller = new AbortController();
-        locationService.listSubRegions(filters.countryIds[0], controller.signal)
+        geographyService.listSubRegions(filters.countryIds[0], controller.signal)
             .then(res => {
-                if (res?.locationList && Array.isArray(res.locationList)) {
-                    setCityOptions(res.locationList.map(c => ({ 
-                        id: c.locationId || c.id, 
-                        name: `${c.name?.translations?.[i18n.language] || c.name?.defaultName || c.name}` 
-                    })));
-                } else if (Array.isArray(res)) {
-                    setCityOptions(res.map(c => ({ 
-                        id: c.locationId || c.id, 
-                        name: `${c.name?.translations?.[i18n.language] || c.name?.defaultName || c.name}` 
+                const list = res?.regionList || res?.locationList || (Array.isArray(res) ? res : []);
+                if (list.length > 0) {
+                    setCityOptions(list.map(c => ({ 
+                        id: c.regionId || c.locationId || c.id, 
+                        name: `${c.name?.translations?.[i18n.language] || c.name?.defaultName || c.displayName || c.name}` 
                     })));
                 }
             })

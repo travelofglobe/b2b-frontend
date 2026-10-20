@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import Sidebar from '../components/Sidebar';
 import { parseGuestsParam, validateAndSanitizeDates, formatDateForUrl } from '../utils/searchParamsUtils';
 import { hotelService } from '../services/hotelService';
-import { locationService } from '../services/locationService';
+import { geographyService } from '../services/geographyService';
 import ListingSearch from '../components/ListingSearch';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
 import { useFavorites } from '../context/FavoritesContext';
@@ -2862,14 +2862,16 @@ const HotelListing = () => {
             const newNames = {};
             await Promise.allSettled(missingLocIds.map(async (id) => {
                 try {
-                    const data = await locationService.fetchBreadcrumb(id);
+                    const data = await geographyService.fetchBreadcrumb(id);
                     if (data && data.data && Array.isArray(data.data)) {
                         data.data.forEach(crumb => {
-                            if (crumb.locationId && crumb.name) newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
+                            const cId = crumb.locationId || crumb.regionId || crumb.id;
+                            if (cId && crumb.name) newNames[cId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr || crumb.displayName;
                         });
                     } else if (data && data.breadcrumbs) {
                         data.breadcrumbs.forEach(crumb => {
-                            if (crumb.locationId && crumb.name) newNames[crumb.locationId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr;
+                            const cId = crumb.locationId || crumb.regionId || crumb.id;
+                            if (cId && crumb.name) newNames[cId] = crumb.name.defaultName || crumb.name.translations?.en || crumb.name.translations?.tr || crumb.displayName;
                         });
                     }
                 } catch (error) { console.error(`Failed to fetch breadcrumb for location ${id}`, error); }

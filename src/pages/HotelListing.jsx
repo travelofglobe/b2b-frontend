@@ -30,6 +30,7 @@ import { LISTING_LOCALES, AMENITY_LOCALES, getAmenityText, getLayerLabel, tListi
 import { MAP_POIS } from '../data/mapPoiData';
 import PoiMarker from '../components/PoiMarker';
 import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
+import { resolveFacility } from '../utils/facilityUtils';
 
 // ═══════════════════════════════════════════════
 // ═══════════════════════════════════════════════
@@ -794,15 +795,79 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
     const currencySymbol = getCurrencySymbol(hotel.currency);
     const formattedPrice = hotel.price ? Math.round(hotel.price).toLocaleString('tr-TR') : '';
 
-    const starTypeLabelMap = {
-        tr: 'Yıldızlı Otel', en: 'Star Hotel', ar: 'نجوم', de: 'Sterne Hotel',
-        fr: 'Étoiles', ru: 'Звезд', zh: '星酒店', es: 'Estrellas', it: 'Stelle', ja: '星ホテル'
-    };
-    const typeLabel = hotel.stars > 0
-        ? `${hotel.stars} ${starTypeLabelMap[currentLang] || starTypeLabelMap.en}`
-        : (hotel.type || 'Hotel');
+    const starLabel = React.useMemo(() => {
+        const count = Math.round(Number(hotel.stars) || 0);
+        if (count > 0) {
+            const labels = {
+                tr: `${count} yıldızlı otel`,
+                en: `${count}-star hotel`,
+                de: `${count}-Sterne-Hotel`,
+                ar: `فندق ${count} نجوم`,
+                fr: `Hôtel ${count} étoiles`,
+                es: `Hotel de ${count} estrellas`,
+                ru: `${count}-звездочный отель`
+            };
+            return labels[currentLang] || labels.en;
+        }
+        return hotel.type || (currentLang === 'tr' ? 'Otel' : 'Hotel');
+    }, [hotel.stars, hotel.type, currentLang]);
 
     const ratingNum = parseFloat(hotel.rating) || 0;
+    const displayRating = React.useMemo(() => {
+        if (!ratingNum || ratingNum <= 0) return null;
+        let val = ratingNum;
+        if (val > 5.0) {
+            val = val / 2; // Normalize 10-point scale to Google's 5.0 scale
+        }
+        const str = val.toFixed(1);
+        return currentLang === 'tr' ? str.replace('.', ',') : str;
+    }, [ratingNum, currentLang]);
+
+    const displayAmenities = React.useMemo(() => {
+        const items = [];
+
+        // 1. Star / Category info is ALWAYS the 1st item in Google
+        items.push({ icon: 'hotel', label: starLabel });
+
+        // 2. Meal / Board (e.g. Kahvaltı ($), Kahvaltı Dahil, Sadece Oda)
+        if (hotel.boardName) {
+            const bLower = hotel.boardName.toLowerCase();
+            const isBreakfast = bLower.includes('breakfast') || bLower.includes('kahvalt');
+            const icon = isBreakfast ? 'free_breakfast' : 'restaurant';
+            items.push({ icon, label: hotel.boardName });
+        }
+
+        // 3. Hotel facilities/amenities
+        if (Array.isArray(hotel.amenities)) {
+            hotel.amenities.forEach(a => {
+                const label = typeof a === 'object' ? (Array.isArray(a.label) ? a.label[0] : a.label) : String(a);
+                const icon = (typeof a === 'object' && a.icon) ? a.icon : 'check_circle';
+                if (label && label.toLowerCase() !== starLabel.toLowerCase()) {
+                    items.push({ icon, label });
+                }
+            });
+        }
+
+        // Deduplicate
+        const seen = new Set();
+        const unique = [];
+        items.forEach(item => {
+            const key = (item.label || '').trim().toLowerCase();
+            if (key && !seen.has(key)) {
+                seen.add(key);
+                unique.push(item);
+            }
+        });
+
+        const sliced = unique.slice(0, 9);
+        if (unique.length > 9 && sliced.length === 9) {
+            sliced[8] = {
+                icon: 'checklist',
+                label: currentLang === 'tr' ? 'Tüm özelliklere sahip' : 'All amenities'
+            };
+        }
+        return sliced;
+    }, [starLabel, hotel.boardName, hotel.amenities, currentLang]);
 
     const showPricesLabel = {
         tr: 'Fiyatları göster', en: 'Show prices', ar: 'عرض الأسعار', de: 'Preise anzeigen',
@@ -817,12 +882,11 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
         fr: 'Annulation gratuite', ru: 'Бесплатная отмена', zh: '免费取消', es: 'Cancelación gratuita', it: 'Cancellazione gratuita'
     };
     const hasPriceDrop = hotel.strikethroughPrice && hotel.strikethroughPrice > hotel.price;
-    const hasMeal = hotel.boardName && !hotel.boardName.toLowerCase().includes('room only') && !hotel.boardName.toLowerCase().includes('sadece oda');
-    const isGreatDeal = hasPriceDrop && hasMeal && hotel.hasFreeCancellation;
-    const discountPercent = hasPriceDrop ? Math.round(((hotel.strikethroughPrice - hotel.price) / hotel.strikethroughPrice) * 100) : 0;
+    const isGreatDeal = hasPriceDrop || Boolean(hotel.isRecommended);
+    const discountPercent = hasPriceDrop ? Math.round(((hotel.strikethroughPrice - hotel.price) / hotel.strikethroughPrice) * 100) : 20;
 
     const greatDealLabel = {
-        tr: 'HARİKA FIRSAT', en: 'GREAT DEAL', ar: 'عرض رائع', de: 'TOLLES ANGEBOT',
+        tr: 'FIRSAT', en: 'DEAL', ar: 'عرض', de: 'ANGEBOT',
         fr: 'SUPER OFFRE', ru: 'ОТЛИЧНОЕ ПРЕДЛОЖЕНИЕ', zh: '超值特价', es: 'GRAN OFERTA', it: 'OTTIMO AFFARE'
     };
 
@@ -965,66 +1029,36 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         {hotel.name}
                     </Link>
 
-                    {/* Classification & Guest Rating */}
-                    <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                        {hotel.stars > 0 && (
-                            <div className="flex items-center gap-1">
-                                <div className="flex">
-                                    {[...Array(Math.min(5, Math.floor(hotel.stars)))].map((_, i) => (
-                                        <span key={i} style={{ fontSize: '12px', color: '#fabb05' }}>★</span>
-                                    ))}
-                                </div>
-                                <span className="text-[12px] text-[#5f6368] dark:text-slate-400 font-medium">
-                                    {typeLabel}
+                    {/* Google-style Rating line: 4,8 ★ (485) */}
+                    {displayRating && (
+                        <div className="flex items-center gap-1 mt-0.5 text-[13px]">
+                            <span className="font-bold text-[#202124] dark:text-slate-100 font-roboto">
+                                {displayRating}
+                            </span>
+                            <span className="text-[#fabb05] text-[13px] leading-none select-none">★</span>
+                            {hotel.reviewsCount > 0 && (
+                                <span className="text-[#1a73e8] dark:text-blue-400 font-normal hover:underline cursor-pointer">
+                                    ({hotel.reviewsCount.toLocaleString(currentLang === 'tr' ? 'tr-TR' : 'en-US')})
                                 </span>
-                            </div>
-                        )}
+                            )}
+                        </div>
+                    )}
 
-                        {hotel.stars > 0 && ratingNum > 0 && (
-                            <span className="text-[#dadce0] dark:text-slate-600 text-[12px]">•</span>
-                        )}
-
-                        {ratingNum > 0 && (
-                            <div className="flex items-center gap-1.5">
-                                <span className="inline-flex items-center justify-center bg-[#1a73e8] text-white text-[11px] font-bold px-1.5 py-0.5 rounded-sm">
-                                    {ratingNum.toFixed(1)}
-                                </span>
-                                <span className="text-[12px] text-[#3c4043] dark:text-slate-200 font-medium">
-                                    {hotel.ratingLabel}
-                                </span>
-                                {hotel.reviewsCount > 0 && (
-                                    <span className="text-[12px] text-[#70757a] dark:text-slate-400">
-                                        ({hotel.reviewsCount.toLocaleString('tr-TR')})
+                    {/* Google-style Amenities grid (3x3 - 9 items) */}
+                    {displayAmenities.length > 0 && (
+                        <div className="grid grid-cols-3 gap-x-3 gap-y-1 mt-2">
+                            {displayAmenities.map((amenity, i) => (
+                                <div key={i} className="flex items-center gap-1.5 text-[12.5px] text-[#3c4043] dark:text-slate-300 min-w-0 font-roboto" title={amenity.label}>
+                                    <span className="material-symbols-outlined text-[#5f6368] dark:text-slate-400 shrink-0" style={{ fontSize: '17px' }}>
+                                        {amenity.icon}
                                     </span>
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Amenities grid (3x3 - 9 items) */}
-                    {(() => {
-                        const displayAmenities = [
-                            ...(typeLabel ? [{ icon: 'hotel', label: typeLabel }] : []),
-                            ...(hotel.boardName ? [{ icon: 'local_cafe', label: hotel.boardName }] : []),
-                            ...(hotel.amenities || []).filter(a => {
-                                const lbl = Array.isArray(a.label) ? a.label[0] : a.label;
-                                return lbl && lbl !== typeLabel;
-                            })
-                        ].slice(0, 9);
-
-                        return displayAmenities.length > 0 ? (
-                            <div className="grid grid-cols-3 gap-x-3 gap-y-1 mt-2">
-                                {displayAmenities.map((amenity, i) => (
-                                    <div key={i} className="flex items-center gap-1.5 text-[13px] text-[#5f6368] dark:text-slate-300 min-w-0 font-roboto">
-                                        <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 shrink-0" style={{ fontSize: '18px' }}>{amenity.icon}</span>
-                                        <span className="truncate">
-                                            {Array.isArray(amenity.label) ? amenity.label[0] : amenity.label}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : null;
-                    })()}
+                                    <span className="truncate">
+                                        {amenity.label}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Bottom row: free cancel + board Name */}
                     <div className="flex items-center gap-2 min-w-0 mt-auto pt-4">
@@ -2384,25 +2418,20 @@ const HotelListing = () => {
         else if (ratingVal >= 7) ratingLabel = 'Very Good';
 
         let amenities = [];
-        const rawFacs = apiHotel.hotelFacilityIds || apiHotel.facilities || apiHotel.facilityIds || apiHotel.hotelFacilities;
+        const rawFacs = apiHotel.facilities || apiHotel.hotelFacilityIds || apiHotel.facilityIds || apiHotel.hotelFacilities || apiHotel.amenities;
         if (rawFacs && Array.isArray(rawFacs)) {
-            const iconGroups = {};
+            const seenLabels = new Set();
             rawFacs.forEach(f => {
-                const id = typeof f === 'object' ? (f.facilityId || f.id || f.value) : f;
-                const match = FACILITY_ICON_MAP[Number(id)];
-                if (match) {
-                    const localizedLabel = typeof f === 'object' && f.names
-                        ? (f.names[currentLang] || f.names.en || match.label) : match.label;
-                    if (!iconGroups[match.icon]) {
-                        iconGroups[match.icon] = { ...match, labels: [localizedLabel] };
-                    } else if (!iconGroups[match.icon].labels.includes(localizedLabel)) {
-                        iconGroups[match.icon].labels.push(localizedLabel);
+                const resolved = resolveFacility(f, currentLang);
+                if (resolved && resolved.label) {
+                    const norm = resolved.label.trim().toLowerCase();
+                    if (!seenLabels.has(norm)) {
+                        seenLabels.add(norm);
+                        amenities.push(resolved);
                     }
                 }
             });
-            amenities = Object.values(iconGroups).map(g => ({ icon: g.icon, label: g.labels })).slice(0, 20);
         }
-        if (amenities.length === 0) amenities = [{ icon: 'info', label: ['Details'] }];
 
         let imagesToMap = [];
         const seen = new Set();

@@ -2781,33 +2781,20 @@ const HotelListing = () => {
             .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)) && h.price && Number(h.price) > 0);
     }, [mapMarkers, displayedHotels]);
 
-    const handleMapBoundsChange = React.useCallback((boundsData) => {
+    const handleMapBoundsChange = React.useCallback(async (boundsData) => {
+        if (!boundsData) return;
         mapBoundsRef.current = boundsData;
-        setMapMoved(false);
-
-        if (mapFetchDebounceRef.current) {
-            clearTimeout(mapFetchDebounceRef.current);
+        try {
+            await loadMoreHotels(true, boundsData);
+        } finally {
+            setMapMoved(false);
         }
-        mapFetchDebounceRef.current = setTimeout(() => {
-            fetchMapMarkers(boundsData, false);
-        }, 350);
-
-        if (searchOnMapMove) {
-            loadMoreHotels(true, boundsData);
-        }
-    }, [fetchMapMarkers, searchOnMapMove, loadMoreHotels]);
+    }, [loadMoreHotels]);
 
     const handleMapMoved = React.useCallback((boundsData) => {
         mapBoundsRef.current = boundsData;
         setMapMoved(true);
-
-        if (mapFetchDebounceRef.current) {
-            clearTimeout(mapFetchDebounceRef.current);
-        }
-        mapFetchDebounceRef.current = setTimeout(() => {
-            fetchMapMarkers(boundsData, false);
-        }, 350);
-    }, [fetchMapMarkers]);
+    }, []);
 
     const handleToggleSearchOnMove = React.useCallback(() => {
         setSearchOnMapMove(prev => {
@@ -4041,47 +4028,46 @@ const HotelListing = () => {
                         </button>
                     </div>
 
-                    {/* Top center: Search-on-move toggle OR "Bu alanda ara" button */}
-                    <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center justify-center">
+                    {/* Top center: Search-on-move toggle & "Bu alanda ara" button */}
+                    <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2">
                         {/* Show manual search button when map moved and searchOnMapMove is off */}
                         {mapMoved && !searchOnMapMove && (
                             <button
                                 type="button"
+                                disabled={isLoading}
                                 onClick={() => {
                                     isUserPanRef.current = false;
                                     setShouldRefitMap(false);
                                     handleMapBoundsChange(mapBoundsRef.current);
                                 }}
-                                className="flex items-center gap-1.5 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#1a73e8] dark:text-blue-400 font-semibold rounded-full px-4 py-2 text-[13px] shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all cursor-pointer active:scale-95 border border-[#1a73e8]/30 whitespace-nowrap"
+                                className="flex items-center gap-1.5 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#1a73e8] dark:text-blue-400 font-semibold rounded-full px-4 py-2 text-[13px] shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all cursor-pointer active:scale-95 border border-[#1a73e8]/30 whitespace-nowrap disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                <span className={`material-symbols-outlined text-[18px] ${isLoading || isMapMarkersLoading ? 'animate-spin' : ''}`}>refresh</span>
-                                <span>{tListing('searchThisArea', currentLang)}</span>
+                                <span className={`material-symbols-outlined text-[18px] ${isLoading ? 'animate-spin' : ''}`}>refresh</span>
+                                <span>{isLoading ? (tListing('searching', currentLang) || 'Aranıyor...') : tListing('searchThisArea', currentLang)}</span>
                             </button>
                         )}
 
-                        {/* Show "Haritayı kaydırdıkça ara" toggle when map has not moved or when searchOnMapMove is already on */}
-                        {(!mapMoved || searchOnMapMove) && (
-                            <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3.5 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
-                                <button
-                                    type="button"
-                                    onClick={handleToggleSearchOnMove}
-                                    className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 cursor-pointer ${searchOnMapMove
-                                            ? 'bg-[#1a73e8] border-[#1a73e8]'
-                                            : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
-                                        }`}
-                                >
-                                    {searchOnMapMove && (
-                                        <span className="material-symbols-outlined text-white text-[12px] font-bold">check</span>
-                                    )}
-                                </button>
-                                <span
-                                    onClick={handleToggleSearchOnMove}
-                                    className="text-[12px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
-                                >
-                                    {tListing('searchMapMoves', currentLang)}
-                                </span>
-                            </div>
-                        )}
+                        {/* Always visible "Haritayı kaydırdıkça ara" toggle */}
+                        <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3.5 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+                            <button
+                                type="button"
+                                onClick={handleToggleSearchOnMove}
+                                className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 cursor-pointer ${searchOnMapMove
+                                        ? 'bg-[#1a73e8] border-[#1a73e8]'
+                                        : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
+                                    }`}
+                            >
+                                {searchOnMapMove && (
+                                    <span className="material-symbols-outlined text-white text-[12px] font-bold">check</span>
+                                )}
+                            </button>
+                            <span
+                                onClick={handleToggleSearchOnMove}
+                                className="text-[12px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
+                            >
+                                {tListing('searchMapMoves', currentLang)}
+                            </span>
+                        </div>
                     </div>
 
                     {/* Bottom-left: Map layer switcher (Google Maps style) */}

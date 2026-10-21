@@ -442,7 +442,7 @@ export const PROPERTY_CATEGORIES = {
     0: { id: 0, name: 'Property', icon: 'domain', tr: 'Tesis' },
     1: { id: 1, name: 'Hotel', icon: 'hotel', tr: 'Otel' },
     2: { id: 2, name: 'Motel', icon: 'hotel', tr: 'Motel' },
-    3: { id: 3, name: 'Resort', icon: 'resort', tr: 'Tatil Köyü / Resort' },
+    3: { id: 3, name: 'Resort', icon: 'holiday_village', tr: 'Tatil Köyü / Resort' },
     4: { id: 4, name: 'Inn', icon: 'night_shelter', tr: 'Han' },
     5: { id: 5, name: 'Bed & Breakfast', icon: 'bed', tr: 'Oda & Kahvaltı' },
     6: { id: 6, name: 'Guesthouse', icon: 'gite', tr: 'Konukevi' },

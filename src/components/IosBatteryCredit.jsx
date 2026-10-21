@@ -176,10 +176,10 @@ const IosBatteryCredit = ({
                 title={isLoading ? 'Kredi bilgileri yükleniyor...' : `Kredi Limiti: %${percentage} (${currencySymbol} ${formatNumber(availableLimit)} kullanılabilir) - Detaylar için tıklayın`}
                 aria-label="Kredi Durumu"
             >
-                {/* iOS Battery Capsule with Inner Percentage */}
+                {/* iOS Battery with rounded rect corners (no border, compact size) */}
                 <div className="relative flex items-center shrink-0">
                     <div
-                        className={`relative flex items-center justify-center rounded-full overflow-hidden transition-all duration-300 w-[42px] h-[19px] ${
+                        className={`relative flex items-center justify-center rounded-[3.5px] overflow-hidden transition-all duration-300 w-[33px] h-[15px] ${
                             isLoading
                                 ? 'bg-slate-200 dark:bg-slate-700 animate-pulse'
                                 : batteryTier === 'green'
@@ -189,7 +189,7 @@ const IosBatteryCredit = ({
                                 : 'bg-[#8E8E93] dark:bg-[#48484A]'
                         }`}
                     >
-                        {/* Red emergency fill strip for critical battery tier (< 10%) as in screenshot */}
+                        {/* Red emergency fill strip for critical battery tier (< 10%) */}
                         {batteryTier === 'red' && !isLoading && (
                             <div
                                 className="absolute inset-y-0 left-0 bg-[#FF3B30] transition-all duration-300"
@@ -199,7 +199,7 @@ const IosBatteryCredit = ({
 
                         {/* Centered Percentage Number Inside Battery */}
                         <span
-                            className={`relative z-10 font-bold text-[11px] tracking-tight leading-none tabular-nums flex items-center justify-center gap-0.5 select-none ${
+                            className={`relative z-10 font-bold text-[9.5px] tracking-tight leading-none tabular-nums flex items-center justify-center gap-0.5 select-none ${
                                 isLoading
                                     ? 'text-slate-400 dark:text-slate-500'
                                     : batteryTier === 'yellow'
@@ -213,7 +213,7 @@ const IosBatteryCredit = ({
                                 <>
                                     <span>{percentage}</span>
                                     {isFullyCharged && (
-                                        <svg className="w-[7px] h-[9px] fill-current -mr-0.5" viewBox="0 0 8 10">
+                                        <svg className="w-[6px] h-[7.5px] fill-current -mr-0.5" viewBox="0 0 8 10">
                                             <path d="M4.5 0L0.5 5.5H4L3.5 10L7.5 4.5H4L4.5 0Z" />
                                         </svg>
                                     )}
@@ -224,7 +224,7 @@ const IosBatteryCredit = ({
 
                     {/* Battery Positive Terminal (Nub on Right) */}
                     <div
-                        className={`w-[2.5px] h-[7px] ml-[1.5px] rounded-r-full transition-colors duration-300 shrink-0 ${
+                        className={`w-[2px] h-[5.5px] ml-[1px] rounded-r-[1.5px] transition-colors duration-300 shrink-0 ${
                             isLoading
                                 ? 'bg-slate-200 dark:bg-slate-700 animate-pulse'
                                 : batteryTier === 'green'

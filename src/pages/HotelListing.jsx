@@ -47,7 +47,7 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
     React.useEffect(() => {
         const lat = parseFloat(searchParams?.get('lat'));
         const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
-        const targetId = searchParams?.get('regionId') || searchParams?.get('togId') || searchParams?.get('locationId') || searchParams?.get('hotelId') || '';
+        const targetId = searchParams?.get('poiId') || searchParams?.get('regionId') || searchParams?.get('togId') || searchParams?.get('locationId') || searchParams?.get('hotelId') || '';
         const currentQ = searchParams?.get('q') || q || '';
         const searchTargetKey = `${slug || ''}_${targetId}_${lat}_${lng}_${currentQ}`;
 
@@ -61,20 +61,56 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
                 // If map is not already centered on this target city (e.g. > 500m away)
                 if (dist > 500) {
                     if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
-                    map.flyTo([lat, lng], 11, { duration: 0.9 });
+                    const isPoi = searchParams?.get('type') === 'POI' || Boolean(searchParams?.get('poiId'));
+                    map.flyTo([lat, lng], isPoi ? 12 : 11, { duration: 0.9 });
                     setTimeout(() => {
                         if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
                     }, 1000);
                 }
             }
         }
-    }, [slug, q, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('regionId'), searchParams?.get('togId'), searchParams?.get('locationId'), searchParams?.get('q'), map, isProgrammaticMoveRef]);
+    }, [slug, q, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('poiId'), searchParams?.get('regionId'), searchParams?.get('togId'), searchParams?.get('locationId'), searchParams?.get('q'), map, isProgrammaticMoveRef]);
 
     // 2. Auto-fit bounds once hotels are loaded and shouldRefit is true
     React.useEffect(() => {
         if (isLoading || !shouldRefit || !map) return;
 
-        if (hotels && hotels.length > 0) {
+        const isPoi = searchParams?.get('type') === 'POI' || Boolean(searchParams?.get('poiId'));
+        const lat = parseFloat(searchParams?.get('lat'));
+        const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
+        const hasCoords = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+
+        if (isPoi && hasCoords) {
+            // For POI search, keep map strictly focused around the POI coordinates.
+            // Never zoom out to show the whole country or city.
+            const valid = (hotels || []).filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
+            const closeHotels = valid.filter(h => map.distance([lat, lng], [parseFloat(h.lat), parseFloat(h.lng)]) < 25000);
+
+            if (closeHotels.length > 0) {
+                try {
+                    const points = closeHotels.map(h => [parseFloat(h.lat), parseFloat(h.lng)]);
+                    points.push([lat, lng]);
+                    const bounds = L.latLngBounds(points);
+                    if (bounds.isValid()) {
+                        const boundsKey = `poi_${closeHotels.length}_${bounds.getNorthEast().lat.toFixed(3)}_${bounds.getSouthWest().lng.toFixed(3)}`;
+                        if (lastFittedBoundsRef.current !== boundsKey) {
+                            lastFittedBoundsRef.current = boundsKey;
+                            if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+                            map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 13, duration: 1.0 });
+                            if (onRefitDone) onRefitDone();
+                            setTimeout(() => {
+                                if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                            }, 1100);
+                            return;
+                        }
+                    }
+                } catch (_e) { }
+            } else {
+                map.setView([lat, lng], 12);
+                if (onRefitDone) onRefitDone();
+                return;
+            }
+        } else if (hotels && hotels.length > 0) {
             const valid = hotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
             if (valid.length > 0) {
                 try {
@@ -97,7 +133,7 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
         }
 
         if (onRefitDone) onRefitDone();
-    }, [hotels, isLoading, shouldRefit, map, onRefitDone, isProgrammaticMoveRef]);
+    }, [hotels, isLoading, shouldRefit, map, onRefitDone, isProgrammaticMoveRef, searchParams]);
 
     return null;
 };
@@ -2182,6 +2218,27 @@ const HotelListing = () => {
     const togId = searchParams.get('togId') || searchParams.get('hotelId') || '';
     const regionId = searchParams.get('regionId') || searchParams.get('locationId') || '';
     const locationId = regionId;
+    const poiId = searchParams.get('poiId') || '';
+    const isPoiSearch = searchParams.get('type') === 'POI' || Boolean(poiId);
+    const paramLat = parseFloat(searchParams.get('lat'));
+    const paramLng = parseFloat(searchParams.get('lng') || searchParams.get('lon'));
+    const hasValidCoords = !isNaN(paramLat) && !isNaN(paramLng) && paramLat !== 0 && paramLng !== 0;
+
+    // Build initial geographic bounding box for POI or coordinate-based searches (~10-15km radius)
+    const initialPoiBounds = React.useMemo(() => {
+        if ((isPoiSearch || poiId || !regionId) && hasValidCoords) {
+            const latDelta = 0.08;
+            const lonDelta = 0.12;
+            return {
+                bounds: {
+                    topLeft: { lat: paramLat + latDelta, lon: paramLng - lonDelta },
+                    bottomRight: { lat: paramLat - latDelta, lon: paramLng + lonDelta }
+                },
+                zoom: 12
+            };
+        }
+        return null;
+    }, [isPoiSearch, poiId, regionId, hasValidCoords, paramLat, paramLng]);
 
     // Resolve initial map center immediately so Turkey is not displayed needlessly
     const initialMapState = React.useMemo(() => {
@@ -2543,7 +2600,7 @@ const HotelListing = () => {
 
     // Dedicated Map Search: Fetches 100+ priced markers without clearing existing points (zero flicker)
     const fetchMapMarkers = React.useCallback(async (geoBounds = null, isReset = false) => {
-        const bounds = geoBounds || mapBoundsRef.current;
+        const bounds = geoBounds || mapBoundsRef.current || initialPoiBounds;
         if (!bounds || !bounds.bounds) return;
 
         if (!isReset && !isSignificantPan(bounds, lastFetchedBoundsRef.current)) {
@@ -2569,8 +2626,8 @@ const HotelListing = () => {
 
         try {
             const res = await hotelService.searchHotelMapMarkers({
-                locationId: regionId || locationId || null,
-                regionId: regionId || null,
+                locationId: isPoiSearch ? null : (regionId || locationId || null),
+                regionId: isPoiSearch ? null : (regionId || null),
                 geo: bounds.bounds,
                 zoom: bounds.zoom || 12,
                 limit: 100,
@@ -2631,7 +2688,7 @@ const HotelListing = () => {
                 setIsMapMarkersLoading(false);
             }
         }
-    }, [regionId, locationId, roomState, searchParams]);
+    }, [regionId, locationId, isPoiSearch, initialPoiBounds, roomState, searchParams]);
 
     const handleClusterClick = React.useCallback((cluster) => {
         if (!mapInstance || !cluster.lat || !cluster.lng) return;
@@ -2653,7 +2710,7 @@ const HotelListing = () => {
             setMapMarkers([]);
         }
 
-        const activeGeoBounds = geoBounds || (isReset ? null : mapBoundsRef.current);
+        const activeGeoBounds = geoBounds || (isReset ? (initialPoiBounds || null) : (mapBoundsRef.current || initialPoiBounds || null));
         if (activeGeoBounds) {
             setShouldRefitMap(false);
         }
@@ -2774,7 +2831,7 @@ const HotelListing = () => {
                 isFetchingRef.current = false;
             }
         }
-    }, [locationId, regionId, togId, mapApiHotelToModel, roomState, searchParams, sortConfig, fetchMapMarkers]);
+    }, [locationId, regionId, togId, isPoiSearch, initialPoiBounds, mapApiHotelToModel, roomState, searchParams, sortConfig, fetchMapMarkers]);
 
     // Infinite scroll observer for loading more hotel cards on scroll
     React.useEffect(() => {
@@ -3080,7 +3137,8 @@ const HotelListing = () => {
         return () => { if (abortControllerRef.current) abortControllerRef.current.abort(); };
     }, [
         slug, locationId, sortConfig,
-        searchParams.get('q'),
+        searchParams.get('q'), searchParams.get('poiId'), searchParams.get('type'),
+        searchParams.get('lat'), searchParams.get('lng'),
         location.state?.searchTimestamp,
         searchParams.get('checkin'), searchParams.get('checkout'),
         searchParams.get('guests'), searchParams.get('nationality'),

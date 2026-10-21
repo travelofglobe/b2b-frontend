@@ -493,7 +493,9 @@ const HeaderSearch = () => {
             const savedParam = localStorage.getItem('dashboard_last_search_param');
             const savedId = localStorage.getItem('dashboard_last_search_id');
             const savedTogId = localStorage.getItem('dashboard_last_togId');
+            const savedPoiId = localStorage.getItem('dashboard_last_poiId');
             const savedRegionId = localStorage.getItem('dashboard_last_regionId');
+            const savedType = localStorage.getItem('dashboard_last_type');
             const savedLat = localStorage.getItem('dashboard_last_lat');
             const savedLng = localStorage.getItem('dashboard_last_lng');
 
@@ -502,10 +504,13 @@ const HeaderSearch = () => {
                 targetIdParam = `&${savedParam}=${savedId}`;
             } else if (savedTogId) {
                 targetIdParam = `&togId=${savedTogId}`;
+            } else if (savedPoiId) {
+                targetIdParam = `&poiId=${savedPoiId}`;
             } else if (savedRegionId) {
                 targetIdParam = `&regionId=${savedRegionId}`;
             }
 
+            const typeParam = (savedType === 'POI' || savedPoiId) ? '&type=POI' : '';
             const geoParam = (savedLat && savedLng) ? `&lat=${savedLat}&lng=${savedLng}` : '';
 
             // Build hierarchical slug if possible
@@ -517,7 +522,7 @@ const HeaderSearch = () => {
                 slug = reversed.slice(1).join('/');
             }
 
-            const searchParamsString = getUrlParams() + targetIdParam + geoParam;
+            const searchParamsString = getUrlParams() + targetIdParam + typeParam + geoParam;
 
             localStorage.setItem('last_hotel_search_slug', slug);
             localStorage.setItem('last_hotel_search_params', searchParamsString);
@@ -534,8 +539,9 @@ const HeaderSearch = () => {
         const fullName = formatLocationFullName(location, currentLang);
         const sub = getRegionSubtitle(location, currentLang);
 
+        const isPoi = isPoiItem(location);
         const { param: targetParam, id: targetId } = resolveSearchTargetId(location);
-        const locType = location.type || (location.poiId ? 'POI' : 'GEOGRAPHY_REGION');
+        const locType = isPoi ? 'POI' : (location.type || 'GEOGRAPHY_REGION');
         saveSearchHistoryItem(fullName, locType, targetId, getRegionName(location));
 
         const slug = buildLocationSlug(location, currentLang);
@@ -547,21 +553,39 @@ const HeaderSearch = () => {
         setQuery(fullName);
         localStorage.setItem('dashboard_last_search', fullName);
         localStorage.setItem('dashboard_last_type', locType);
-        if (targetParam && targetId) {
+
+        if (isPoi) {
+            const poiIdVal = targetId || location.poiId || location.id;
+            localStorage.setItem('dashboard_last_search_param', 'poiId');
+            localStorage.setItem('dashboard_last_search_id', poiIdVal);
+            localStorage.setItem('dashboard_last_poiId', poiIdVal);
+            localStorage.removeItem('dashboard_last_togId');
+            localStorage.removeItem('dashboard_last_regionId');
+        } else if (targetParam && targetId) {
             localStorage.setItem('dashboard_last_search_param', targetParam);
             localStorage.setItem('dashboard_last_search_id', targetId);
             if (targetParam === 'togId') {
                 localStorage.setItem('dashboard_last_togId', targetId);
                 localStorage.removeItem('dashboard_last_regionId');
+                localStorage.removeItem('dashboard_last_poiId');
             } else {
                 localStorage.setItem('dashboard_last_regionId', targetId);
                 localStorage.removeItem('dashboard_last_togId');
+                localStorage.removeItem('dashboard_last_poiId');
             }
         }
         localStorage.removeItem('dashboard_last_locationId');
 
         let latVal = location.geoCoordinate?.lat || location.geoCoordinate?.latitude || location.lat || location.latitude;
         let lngVal = location.geoCoordinate?.lon || location.geoCoordinate?.lng || location.geoCoordinate?.longitude || location.lng || location.lon || location.longitude;
+
+        if (!latVal || !lngVal) {
+            const fallbackCoords = resolveKnownCoordinates(fullName) || resolveKnownCoordinates(location.name?.searchName || '') || resolveKnownCoordinates(location.locationPath);
+            if (fallbackCoords) {
+                latVal = fallbackCoords.lat;
+                lngVal = fallbackCoords.lng;
+            }
+        }
 
         if (latVal && lngVal) {
             localStorage.setItem('dashboard_last_lat', latVal);
@@ -578,7 +602,9 @@ const HeaderSearch = () => {
         }
 
         if (!isMapPage) {
-            const targetIdParam = (targetParam && targetId) ? `&${targetParam}=${targetId}` : '';
+            const targetIdParam = isPoi
+                ? `&poiId=${targetId || location.poiId || location.id}&type=POI`
+                : ((targetParam && targetId) ? `&${targetParam}=${targetId}` : '');
             const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
             const searchParamsString = getUrlParams(fullName) + targetIdParam + geoParam;
 

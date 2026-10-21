@@ -540,9 +540,14 @@ const ListingSearch = ({ isCompact = false }) => {
                 targetIdParam = `&${savedParam}=${savedId}`;
             } else if (savedTogId) {
                 targetIdParam = `&togId=${savedTogId}`;
+            } else if (savedPoiId) {
+                targetIdParam = `&poiId=${savedPoiId}`;
             } else if (savedRegionId) {
                 targetIdParam = `&regionId=${savedRegionId}`;
             }
+
+            const savedType = localStorage.getItem('dashboard_last_type');
+            const typeParam = (savedType === 'POI' || savedPoiId) ? '&type=POI' : '';
 
             let latVal = opts.lat || (isSameQuery ? localStorage.getItem('dashboard_last_lat') : null);
             let lngVal = opts.lng || (isSameQuery ? localStorage.getItem('dashboard_last_lng') : null);
@@ -561,14 +566,14 @@ const ListingSearch = ({ isCompact = false }) => {
             }
 
             const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
-            const searchParamsString = getUrlParams(opts) + targetIdParam + geoParam;
+            const searchParamsString = getUrlParams(opts) + targetIdParam + typeParam + geoParam;
 
             // Guard: If we are already on the exact same search URL and nothing changed, don't re-navigate!
             const currentUrlSlug = decodeURIComponent(window.location.pathname.replace('/travel/hotels/search/', '').split('?')[0]);
             if (window.location.pathname.startsWith('/travel/hotels/search/') && currentUrlSlug.toLowerCase() === slug.toLowerCase()) {
                 const currentParams = new URLSearchParams(window.location.search);
                 const targetParams = new URLSearchParams(searchParamsString);
-                const keysToCheck = ['checkin', 'checkout', 'guests', 'nationality', 'q', 'togId', 'regionId', 'locationId', 'lat', 'lng'];
+                const keysToCheck = ['checkin', 'checkout', 'guests', 'nationality', 'q', 'togId', 'regionId', 'poiId', 'locationId', 'type', 'lat', 'lng'];
                 const isIdentical = keysToCheck.every(key => (currentParams.get(key) || '') === (targetParams.get(key) || ''));
                 if (isIdentical) {
                     return;
@@ -586,22 +591,32 @@ const ListingSearch = ({ isCompact = false }) => {
         const fullName = formatLocationFullName(location, currentLang);
         const sub = getRegionSubtitle(location, currentLang);
 
+        const isPoi = isPoiItem(location);
         const { param: targetParam, id: targetId } = resolveSearchTargetId(location);
-        const locType = location.type || (location.poiId ? 'POI' : 'GEOGRAPHY_REGION');
+        const locType = isPoi ? 'POI' : (location.type || 'GEOGRAPHY_REGION');
         saveSearchHistoryItem(fullName, locType, targetId, getRegionName(location));
 
         localStorage.setItem('dashboard_last_search', fullName);
         localStorage.setItem('dashboard_last_type', locType);
 
-        if (targetParam && targetId) {
+        if (isPoi) {
+            const poiIdVal = targetId || location.poiId || location.id;
+            localStorage.setItem('dashboard_last_search_param', 'poiId');
+            localStorage.setItem('dashboard_last_search_id', poiIdVal);
+            localStorage.setItem('dashboard_last_poiId', poiIdVal);
+            localStorage.removeItem('dashboard_last_togId');
+            localStorage.removeItem('dashboard_last_regionId');
+        } else if (targetParam && targetId) {
             localStorage.setItem('dashboard_last_search_param', targetParam);
             localStorage.setItem('dashboard_last_search_id', targetId);
             if (targetParam === 'togId') {
                 localStorage.setItem('dashboard_last_togId', targetId);
                 localStorage.removeItem('dashboard_last_regionId');
+                localStorage.removeItem('dashboard_last_poiId');
             } else {
                 localStorage.setItem('dashboard_last_regionId', targetId);
                 localStorage.removeItem('dashboard_last_togId');
+                localStorage.removeItem('dashboard_last_poiId');
             }
         }
         localStorage.removeItem('dashboard_last_locationId');
@@ -641,8 +656,9 @@ const ListingSearch = ({ isCompact = false }) => {
         setQuery(fullName);
         
         const targetIdParam = (targetParam && targetId) ? `&${targetParam}=${targetId}` : '';
+        const typeParam = isPoi ? '&type=POI' : '';
         const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
-        const searchParamsString = getUrlParams({ query: fullName }) + targetIdParam + geoParam;
+        const searchParamsString = getUrlParams({ query: fullName }) + targetIdParam + typeParam + geoParam;
 
         localStorage.setItem('last_hotel_search_slug', slug);
         localStorage.setItem('last_hotel_search_params', searchParamsString);

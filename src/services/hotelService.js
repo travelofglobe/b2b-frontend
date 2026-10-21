@@ -122,7 +122,7 @@ export const hotelService = {
     /**
      * Search for lightweight map markers and clusters.
      */
-    searchHotelMapMarkers: async ({ locationId, regionId, regionIds, geo = null, zoom = 12, limit = 60, filters = {}, searchCriteria = null, forceMarkers = false, signal = null }) => {
+    searchHotelMapMarkers: async ({ locationId, regionId, regionIds, geo = null, zoom = 12, limit = 100, excludeHotelIds = null, filters = {}, searchCriteria = null, forceMarkers = true, signal = null }) => {
         const defaults = getDefaultRequestDates();
         const effectiveRegionId = regionId || filters.regionId || (locationId ? String(locationId) : null);
         const effectiveRegionIds = filters.regionIds?.length > 0
@@ -134,6 +134,7 @@ export const hotelService = {
             zoom: zoom,
             limit: limit,
             forceMarkers: forceMarkers,
+            excludeHotelIds: excludeHotelIds?.length > 0 ? excludeHotelIds : null,
             searchCriteria: searchCriteria
                 ? {
                     ...searchCriteria,

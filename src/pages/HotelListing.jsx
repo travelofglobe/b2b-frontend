@@ -461,7 +461,7 @@ const PriceMarker = React.memo(({
 
     const formattedRating = (parseFloat(hotel.rating) || 4.2).toFixed(1).replace('.', ',');
     const reviewCount = hotel.reviewCount || (hotel.stars ? hotel.stars * 115 + 42 : 432);
-    const imageUrl = (hotel.images && hotel.images.length > 0) ? hotel.images[0] : (hotel.image || placeholderHotel);
+    const imageUrl = (hotel.images && hotel.images.length > 0) ? hotel.images[0] : (hotel.image || hotel.thumbnail || placeholderHotel);
 
     const showPricesText = {
         tr: 'Fiyatları göster',
@@ -2494,8 +2494,115 @@ const HotelListing = () => {
         if (currentParams) localStorage.setItem('last_hotel_search_params', currentParams);
     }, [slug, searchParams]);
 
-    // Map points are provided directly by search results without extra /map request
-    const fetchMapMarkers = React.useCallback(() => {}, []);
+    // Client-side marker pool to accumulate map pins without flickering
+    const markerPoolRef = React.useRef(new Map());
+    const lastFetchedBoundsRef = React.useRef(null);
+    const mapFetchDebounceRef = React.useRef(null);
+
+    // Pan threshold check: skips re-fetch if movement is less than 15% of viewport width/height
+    const isSignificantPan = (newBounds, oldBounds) => {
+        if (!oldBounds || !newBounds || !oldBounds.bounds || !newBounds.bounds) return true;
+        if (newBounds.zoom !== oldBounds.zoom) return true;
+        const oldLat = (oldBounds.bounds.topLeft.lat + oldBounds.bounds.bottomRight.lat) / 2;
+        const oldLng = (oldBounds.bounds.topLeft.lon + oldBounds.bounds.bottomRight.lon) / 2;
+        const newLat = (newBounds.bounds.topLeft.lat + newBounds.bounds.bottomRight.lat) / 2;
+        const newLng = (newBounds.bounds.topLeft.lon + newBounds.bounds.bottomRight.lon) / 2;
+        const latSpan = Math.abs(newBounds.bounds.topLeft.lat - newBounds.bounds.bottomRight.lat);
+        const lngSpan = Math.abs(newBounds.bounds.bottomRight.lon - newBounds.bounds.topLeft.lon);
+        return Math.abs(newLat - oldLat) > latSpan * 0.15 || Math.abs(newLng - oldLng) > lngSpan * 0.15;
+    };
+
+    // Dedicated Map Search: Fetches 100+ priced markers without clearing existing points (zero flicker)
+    const fetchMapMarkers = React.useCallback(async (geoBounds = null, isReset = false) => {
+        const bounds = geoBounds || mapBoundsRef.current;
+        if (!bounds || !bounds.bounds) return;
+
+        if (!isReset && !isSignificantPan(bounds, lastFetchedBoundsRef.current)) {
+            return;
+        }
+
+        if (isReset) {
+            markerPoolRef.current.clear();
+            setMapMarkers([]);
+        }
+
+        lastFetchedBoundsRef.current = bounds;
+
+        if (mapAbortControllerRef.current) {
+            mapAbortControllerRef.current.abort();
+        }
+        const controller = new AbortController();
+        mapAbortControllerRef.current = controller;
+        setIsMapMarkersLoading(true);
+
+        const filters = getSearchParams();
+        const existingIds = Array.from(markerPoolRef.current.keys());
+
+        try {
+            const res = await hotelService.searchHotelMapMarkers({
+                locationId: regionId || locationId || null,
+                regionId: regionId || null,
+                geo: bounds.bounds,
+                zoom: bounds.zoom || 12,
+                limit: 100,
+                excludeHotelIds: existingIds,
+                filters: {
+                    togIds: filters.hotelIds || null,
+                    stars: filters.stars || null,
+                    preferred: filters.recommended ?? null,
+                    hasFreeCancellation: filters.freeCancellation ?? null,
+                    hasPrePayment: filters.prePayment ?? null,
+                    facilities: filters.facilities || null
+                },
+                searchCriteria: (() => {
+                    const sanitized = validateAndSanitizeDates(searchParams.get('checkin'), searchParams.get('checkout'));
+                    return {
+                        checkin: formatDateForUrl(sanitized.checkInDate),
+                        checkout: formatDateForUrl(sanitized.checkOutDate),
+                        nationality: searchParams.get('nationality') || 'TR',
+                        rooms: roomState
+                    };
+                })(),
+                forceMarkers: true,
+                signal: controller.signal
+            });
+
+            if (res && Array.isArray(res.markers)) {
+                let hasNew = false;
+                res.markers.forEach(m => {
+                    if (m && m.id && m.lat && m.lng && m.price && Number(m.price) > 0) {
+                        markerPoolRef.current.set(m.id, {
+                            id: m.id,
+                            hotelId: m.id,
+                            name: m.name,
+                            lat: m.lat,
+                            lng: m.lng,
+                            price: m.price,
+                            currency: m.currency || 'TRY',
+                            rating: m.rating,
+                            stars: m.stars,
+                            thumbnail: m.thumbnail,
+                            image: m.thumbnail,
+                            city: m.city,
+                            isRecommended: m.isRecommended
+                        });
+                        hasNew = true;
+                    }
+                });
+                if (hasNew || isReset) {
+                    setMapMarkers(Array.from(markerPoolRef.current.values()));
+                }
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('Error fetching map markers:', err);
+            }
+        } finally {
+            if (mapAbortControllerRef.current === controller) {
+                setIsMapMarkersLoading(false);
+            }
+        }
+    }, [regionId, locationId, roomState, searchParams]);
 
     const handleClusterClick = React.useCallback((cluster) => {
         if (!mapInstance || !cluster.lat || !cluster.lng) return;
@@ -2513,6 +2620,8 @@ const HotelListing = () => {
             mapBoundsRef.current = null;
             setMapMoved(false);
             setShouldRefitMap(true);
+            markerPoolRef.current.clear();
+            setMapMarkers([]);
         }
 
         const activeGeoBounds = geoBounds || (isReset ? null : mapBoundsRef.current);
@@ -2609,6 +2718,15 @@ const HotelListing = () => {
                     }
                 });
                 if (Object.keys(newLocationNames).length > 0) setLocationNames(prev => ({ ...prev, ...newLocationNames }));
+                if (currentPage === 0) {
+                    setTimeout(() => {
+                        if (mapBoundsRef.current) {
+                            fetchMapMarkers(mapBoundsRef.current, false);
+                        } else if (activeGeoBounds) {
+                            fetchMapMarkers(activeGeoBounds, false);
+                        }
+                    }, 600);
+                }
             } else {
                 setHasMore(false);
                 hasMoreRef.current = false;
@@ -2649,21 +2767,47 @@ const HotelListing = () => {
         };
     }, [loadMoreHotels, isLoading]);
 
-    // Map markers derived directly from loaded search results with real room prices and coordinates
+    // Map markers derived from the accumulated map marker pool + current page hotels with valid prices
     const effectiveMapMarkers = React.useMemo(() => {
-        return displayedHotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
-    }, [displayedHotels]);
+        if (displayedHotels && displayedHotels.length > 0) {
+            displayedHotels.forEach(h => {
+                const hid = h.id || h.hotelId;
+                if (hid && h.lat && h.lng && h.price && Number(h.price) > 0 && !markerPoolRef.current.has(hid)) {
+                    markerPoolRef.current.set(hid, h);
+                }
+            });
+        }
+        return Array.from(markerPoolRef.current.values())
+            .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)) && h.price && Number(h.price) > 0);
+    }, [mapMarkers, displayedHotels]);
 
     const handleMapBoundsChange = React.useCallback((boundsData) => {
         mapBoundsRef.current = boundsData;
         setMapMoved(false);
-        loadMoreHotels(true, boundsData);
-    }, [loadMoreHotels]);
+
+        if (mapFetchDebounceRef.current) {
+            clearTimeout(mapFetchDebounceRef.current);
+        }
+        mapFetchDebounceRef.current = setTimeout(() => {
+            fetchMapMarkers(boundsData, false);
+        }, 350);
+
+        if (searchOnMapMove) {
+            loadMoreHotels(true, boundsData);
+        }
+    }, [fetchMapMarkers, searchOnMapMove, loadMoreHotels]);
 
     const handleMapMoved = React.useCallback((boundsData) => {
         mapBoundsRef.current = boundsData;
         setMapMoved(true);
-    }, []);
+
+        if (mapFetchDebounceRef.current) {
+            clearTimeout(mapFetchDebounceRef.current);
+        }
+        mapFetchDebounceRef.current = setTimeout(() => {
+            fetchMapMarkers(boundsData, false);
+        }, 350);
+    }, [fetchMapMarkers]);
 
     const handleToggleSearchOnMove = React.useCallback(() => {
         setSearchOnMapMove(prev => {

@@ -6,6 +6,7 @@ import Sidebar from '../components/Sidebar';
 import { parseGuestsParam, validateAndSanitizeDates, formatDateForUrl } from '../utils/searchParamsUtils';
 import { hotelService } from '../services/hotelService';
 import { geographyService } from '../services/geographyService';
+import { poiService } from '../services/poiService';
 import ListingSearch from '../components/ListingSearch';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
 import { useFavorites } from '../context/FavoritesContext';
@@ -27,10 +28,112 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 import { LISTING_LOCALES, AMENITY_LOCALES, getAmenityText, getLayerLabel, tListing } from '../utils/hotelListingLocales';
-import { MAP_POIS } from '../data/mapPoiData';
 import PoiMarker from '../components/PoiMarker';
 import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
 import { resolveFacility } from '../utils/facilityUtils';
+
+export const POI_CATEGORIES = [
+    {
+        key: 'transit',
+        labelTr: 'Ulaşım & Taşıma',
+        labelEn: 'Transit & Transport',
+        icon: 'directions_transit',
+        color: '#1a73e8',
+        activeClass: 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 ring-2 ring-[#1a73e8]/30 shadow-xs',
+        esCategories: ['AIRPORT', 'TRAIN_STATION', 'METRO_STATION', 'SUBWAY_STATION', 'BUS_STATION', 'TRANSIT', 'FERRY', 'STATION', 'PORT'],
+        isPrimary: true
+    },
+    {
+        key: 'restaurants',
+        labelTr: 'Restoranlar & Yeme-İçme',
+        labelEn: 'Restaurants & Dining',
+        icon: 'restaurant',
+        color: '#ea4335',
+        activeClass: 'bg-[#fce8e6] dark:bg-red-900/40 text-[#ea4335] dark:text-red-300 ring-2 ring-[#ea4335]/30 shadow-xs',
+        esCategories: ['RESTAURANT', 'DINING', 'CAFE', 'BAR', 'FOOD', 'BAKERY'],
+        isPrimary: true
+    },
+    {
+        key: 'tourist',
+        labelTr: 'Turistik Yerler & Gezi',
+        labelEn: 'Attractions & Sights',
+        icon: 'photo_camera',
+        color: '#9333ea',
+        activeClass: 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs',
+        esCategories: ['ATTRACTION', 'TOURIST', 'POINT_OF_INTEREST', 'LANDMARK', 'MONUMENT', 'HISTORIC'],
+        isPrimary: true
+    },
+    {
+        key: 'shopping',
+        labelTr: 'Alışveriş & Çarşılar',
+        labelEn: 'Shopping & Malls',
+        icon: 'shopping_bag',
+        color: '#e91e63',
+        activeClass: 'bg-[#fce4ec] dark:bg-pink-900/40 text-[#e91e63] dark:text-pink-300 ring-2 ring-[#e91e63]/30 shadow-xs',
+        esCategories: ['SHOPPING', 'SHOPPING_MALL', 'SHOPPING_CENTER', 'MARKET', 'BAZAAR'],
+        isPrimary: true
+    },
+    {
+        key: 'museum',
+        labelTr: 'Müzeler & Sanat',
+        labelEn: 'Museums & Art',
+        icon: 'museum',
+        color: '#8e24aa',
+        activeClass: 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#8e24aa] dark:text-purple-300 ring-2 ring-[#8e24aa]/30 shadow-xs',
+        esCategories: ['MUSEUM', 'GALLERY'],
+        isPrimary: false
+    },
+    {
+        key: 'park',
+        labelTr: 'Parklar & Doğa',
+        labelEn: 'Parks & Nature',
+        icon: 'park',
+        color: '#2e7d32',
+        activeClass: 'bg-[#e8f5e9] dark:bg-green-900/40 text-[#2e7d32] dark:text-green-300 ring-2 ring-[#2e7d32]/30 shadow-xs',
+        esCategories: ['PARK', 'GARDEN', 'NATURE'],
+        isPrimary: false
+    },
+    {
+        key: 'beach',
+        labelTr: 'Plajlar & Sahiller',
+        labelEn: 'Beaches & Coast',
+        icon: 'beach_access',
+        color: '#0288d1',
+        activeClass: 'bg-[#e1f5fe] dark:bg-sky-900/40 text-[#0288d1] dark:text-sky-300 ring-2 ring-[#0288d1]/30 shadow-xs',
+        esCategories: ['BEACH', 'COAST'],
+        isPrimary: false
+    },
+    {
+        key: 'stadium',
+        labelTr: 'Stadyum & Spor',
+        labelEn: 'Stadiums & Sports',
+        icon: 'stadium',
+        color: '#d32f2f',
+        activeClass: 'bg-[#ffebee] dark:bg-red-900/40 text-[#d32f2f] dark:text-red-300 ring-2 ring-[#d32f2f]/30 shadow-xs',
+        esCategories: ['STADIUM', 'ARENA', 'SPORT'],
+        isPrimary: false
+    },
+    {
+        key: 'theater',
+        labelTr: 'Tiyatro & Kültür',
+        labelEn: 'Theaters & Shows',
+        icon: 'theater_comedy',
+        color: '#7b1fa2',
+        activeClass: 'bg-[#f3e5f5] dark:bg-purple-900/40 text-[#7b1fa2] dark:text-purple-300 ring-2 ring-[#7b1fa2]/30 shadow-xs',
+        esCategories: ['THEATER', 'CINEMA', 'ENTERTAINMENT', 'OPERA'],
+        isPrimary: false
+    },
+    {
+        key: 'historic',
+        labelTr: 'Tarihi & Dini Yerler',
+        labelEn: 'Historic & Religious',
+        icon: 'account_balance',
+        color: '#f57c00',
+        activeClass: 'bg-[#fff3e0] dark:bg-amber-900/40 text-[#f57c00] dark:text-amber-300 ring-2 ring-[#f57c00]/30 shadow-xs',
+        esCategories: ['RELIGIOUS', 'MOSQUE', 'CHURCH', 'TEMPLE', 'CASTLE'],
+        isPrimary: false
+    }
+];
 
 // ═══════════════════════════════════════════════
 // ═══════════════════════════════════════════════
@@ -1057,7 +1160,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                 <div className="flex-1 min-w-0 flex flex-col gap-1">
                     {/* Name */}
                     <Link
-                        to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
+                        to={`/travel/hotels/detail/${hotel.togId || hotel.hotelId || hotel.id}?${searchParams.toString()}`}
                         target="_blank"
                         className="text-[20px] font-normal text-[#202124] dark:text-slate-100 hover:underline leading-[1.3] line-clamp-2"
                         onClick={e => e.stopPropagation()}
@@ -1065,18 +1168,21 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         {hotel.name}
                     </Link>
 
-                    {/* Google-style Rating line: 4,8 ★ (485) */}
-                    {displayRating && (
-                        <div className="flex items-center gap-1 mt-0.5 text-[13px]">
-                            <span className="font-bold text-[#202124] dark:text-slate-100 font-roboto">
-                                {displayRating}
+                    {/* Star Rating line (Google style) */}
+                    {hotel.stars > 0 ? (
+                        <div className="flex items-center gap-1.5 mt-0.5 text-[13px]">
+                            <span className="font-medium text-[#5f6368] dark:text-slate-300 font-roboto">
+                                {starLabel}
                             </span>
-                            <span className="text-[#fabb05] text-[13px] leading-none select-none">★</span>
-                            {hotel.reviewsCount > 0 && (
-                                <span className="text-[#1a73e8] dark:text-blue-400 font-normal hover:underline cursor-pointer">
-                                    ({hotel.reviewsCount.toLocaleString(currentLang === 'tr' ? 'tr-TR' : 'en-US')})
-                                </span>
-                            )}
+                            <div className="flex items-center text-[#fabb05] text-[12px] tracking-tight">
+                                {[...Array(Math.min(5, Math.max(1, Math.round(hotel.stars))))].map((_, i) => (
+                                    <span key={i} className="leading-none select-none">★</span>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-[13px] text-[#5f6368] dark:text-slate-400 font-roboto mt-0.5">
+                            {starLabel}
                         </div>
                     )}
 
@@ -1850,6 +1956,13 @@ const HotelListing = () => {
     const [isMapMarkersLoading, setIsMapMarkersLoading] = React.useState(false);
     const mapAbortControllerRef = React.useRef(null);
 
+    // POI Map Markers state & pool (Elasticsearch geography_poi)
+    const [poiMarkers, setPoiMarkers] = React.useState([]);
+    const [isPoiLoading, setIsPoiLoading] = React.useState(false);
+    const poiPoolRef = React.useRef(new Map());
+    const lastPoiFetchedBoundsRef = React.useRef(null);
+    const poiAbortControllerRef = React.useRef(null);
+
     const [hoveredHotel, setHoveredHotel] = React.useState(null);
     const [shouldRefitMap, setShouldRefitMap] = React.useState(true);
     const [isSortOpen, setIsSortOpen] = React.useState(false);
@@ -1866,11 +1979,19 @@ const HotelListing = () => {
     // Map expansion & POI category states
     const [isMapExpanded, setIsMapExpanded] = React.useState(false);
     const [activePoiCategories, setActivePoiCategories] = React.useState({
-        tourist: false,
         transit: false,
         restaurants: false,
-        shopping: false
+        tourist: false,
+        shopping: false,
+        museum: false,
+        park: false,
+        beach: false,
+        stadium: false,
+        theater: false,
+        historic: false
     });
+    const [isPoiMenuOpen, setIsPoiMenuOpen] = React.useState(false);
+    const poiMenuRef = React.useRef(null);
 
     const togglePoiCategory = React.useCallback((categoryKey) => {
         setActivePoiCategories(prev => ({
@@ -1878,6 +1999,56 @@ const HotelListing = () => {
             [categoryKey]: !prev[categoryKey]
         }));
     }, []);
+
+    const clearAllPoiCategories = React.useCallback(() => {
+        setActivePoiCategories({
+            transit: false,
+            restaurants: false,
+            tourist: false,
+            shopping: false,
+            museum: false,
+            park: false,
+            beach: false,
+            stadium: false,
+            theater: false,
+            historic: false
+        });
+    }, []);
+
+    const hasAnyActivePoiCategories = React.useMemo(() => {
+        return Object.values(activePoiCategories).some(Boolean);
+    }, [activePoiCategories]);
+
+    const hasActiveSecondaryPoiCategories = React.useMemo(() => {
+        return POI_CATEGORIES.filter(c => !c.isPrimary).some(c => activePoiCategories[c.key]);
+    }, [activePoiCategories]);
+
+    const activeEsCategories = React.useMemo(() => {
+        const list = [];
+        POI_CATEGORIES.forEach(cat => {
+            if (activePoiCategories[cat.key] && Array.isArray(cat.esCategories)) {
+                list.push(...cat.esCategories);
+            }
+        });
+        return Array.from(new Set(list));
+    }, [activePoiCategories]);
+
+    const activeEsCategoriesRef = React.useRef(activeEsCategories);
+    React.useEffect(() => {
+        activeEsCategoriesRef.current = activeEsCategories;
+    }, [activeEsCategories]);
+
+    // Click outside to close POI flyout menu
+    React.useEffect(() => {
+        if (!isPoiMenuOpen) return;
+        const handleClickOutside = (e) => {
+            if (poiMenuRef.current && !poiMenuRef.current.contains(e.target)) {
+                setIsPoiMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isPoiMenuOpen]);
 
     const toggleMapExpand = React.useCallback(() => {
         setIsMapExpanded(prev => !prev);
@@ -2293,134 +2464,6 @@ const HotelListing = () => {
         return filtered;
     }, [hotels, selectedAmenities, isPriceActive, priceRange, maxHotelPrice]);
 
-    // Active POIs to render on the map (combines static curated MAP_POIS + dynamic POIs for any region)
-    const activePois = React.useMemo(() => {
-        const enabledCategories = Object.keys(activePoiCategories).filter(cat => activePoiCategories[cat]);
-        if (enabledCategories.length === 0) return [];
-
-        const staticMatches = MAP_POIS.filter(poi => activePoiCategories[poi.category]);
-
-        // Calculate center of current hotels or map
-        const validHotels = displayedHotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
-        let centerLat = null;
-        let centerLng = null;
-
-        if (validHotels.length > 0) {
-            centerLat = validHotels.reduce((acc, h) => acc + parseFloat(h.lat), 0) / validHotels.length;
-            centerLng = validHotels.reduce((acc, h) => acc + parseFloat(h.lng), 0) / validHotels.length;
-        } else if (mapInstance) {
-            try {
-                const c = mapInstance.getCenter();
-                centerLat = c.lat;
-                centerLng = c.lng;
-            } catch (_) { }
-        }
-
-        if (centerLat === null || centerLng === null) return staticMatches;
-
-        // Check if any static POI is within ~50km of center
-        const nearbyStatic = staticMatches.filter(poi => {
-            const dLat = poi.lat - centerLat;
-            const dLng = poi.lng - centerLng;
-            return (dLat * dLat + dLng * dLng) < 0.25;
-        });
-
-        if (nearbyStatic.length > 0) {
-            return nearbyStatic;
-        }
-
-        // Dynamic Fallback POI Generator for regions without static MAP_POIS entries:
-        const dynamicPois = [];
-        const locationName = hotels[0]?.location?.split(',')[0] || 'Bölge';
-
-        enabledCategories.forEach((cat) => {
-            if (cat === 'transit') {
-                dynamicPois.push({
-                    id: `dyn-transit-1`,
-                    name: `${locationName} Ulaşım & Transfer Merkezi`,
-                    category: 'transit',
-                    lat: centerLat + 0.008,
-                    lng: centerLng + 0.012,
-                    icon: 'directions_transit',
-                    color: '#1a73e8',
-                    labelColor: '#1558d6',
-                    description: `${locationName} bölgesel ulaşım ve otobüs/metro transfer noktası.`
-                });
-                dynamicPois.push({
-                    id: `dyn-transit-2`,
-                    name: `${locationName} Ana İstasyonu`,
-                    category: 'transit',
-                    lat: centerLat - 0.011,
-                    lng: centerLng - 0.009,
-                    icon: 'subway',
-                    color: '#1a73e8',
-                    labelColor: '#1558d6',
-                    description: `Toplu taşıma ve şehir bağlantı durağı.`
-                });
-            } else if (cat === 'restaurants') {
-                dynamicPois.push({
-                    id: `dyn-rest-1`,
-                    name: `${locationName} Gurme Restoranlar Bölgesi`,
-                    category: 'restaurants',
-                    lat: centerLat + 0.005,
-                    lng: centerLng - 0.007,
-                    icon: 'restaurant',
-                    color: '#ea4335',
-                    labelColor: '#c5221f',
-                    description: `${locationName} popüler yemek ve lezzet mekanları.`
-                });
-                dynamicPois.push({
-                    id: `dyn-rest-2`,
-                    name: `${locationName} Sahil & Çarşı Kafeleri`,
-                    category: 'restaurants',
-                    lat: centerLat - 0.006,
-                    lng: centerLng + 0.008,
-                    icon: 'restaurant',
-                    color: '#ea4335',
-                    labelColor: '#c5221f',
-                    description: `Açık hava kafeleri ve yerel lezzet alanları.`
-                });
-            } else if (cat === 'tourist') {
-                dynamicPois.push({
-                    id: `dyn-tourist-1`,
-                    name: `${locationName} Tarihi Şehir Merkezi`,
-                    category: 'tourist',
-                    lat: centerLat - 0.004,
-                    lng: centerLng + 0.005,
-                    icon: 'attractions',
-                    color: '#9333ea',
-                    labelColor: '#7e22ce',
-                    description: `${locationName} öne çıkan tarihi ve gezilecek alanı.`
-                });
-                dynamicPois.push({
-                    id: `dyn-tourist-2`,
-                    name: `${locationName} Manzara & Gezi Terası`,
-                    category: 'tourist',
-                    lat: centerLat + 0.010,
-                    lng: centerLng - 0.004,
-                    icon: 'park',
-                    color: '#0f9d58',
-                    labelColor: '#137333',
-                    description: `Panoramik gezi ve doğa noktası.`
-                });
-            } else if (cat === 'shopping') {
-                dynamicPois.push({
-                    id: `dyn-shop-1`,
-                    name: `${locationName} Alışveriş & Çarşı Caddesi`,
-                    category: 'shopping',
-                    lat: centerLat + 0.003,
-                    lng: centerLng + 0.009,
-                    icon: 'shopping_bag',
-                    color: '#e91e63',
-                    labelColor: '#ad1457',
-                    description: `${locationName} mağazalar ve butik alışveriş caddesi.`
-                });
-            }
-        });
-
-        return [...nearbyStatic, ...dynamicPois];
-    }, [activePoiCategories, displayedHotels, mapInstance, hotels]);
-
     // Results count text
     const resultsText = useMemo(() => {
         if (isLoading && totalProperties === 0) return tListing('searching', currentLang);
@@ -2549,11 +2592,13 @@ const HotelListing = () => {
         const hasFreeCancellation = hubRate?.refundable === true || selectedRoom?.refundable === true || (cancellationPolicies && cancellationPolicies.length > 0 && cancellationPolicies.some(cp => cp.amount === 0 || cp.penaltyAmount === 0)) || (!isNonRefundable && cancellationPolicies?.length > 0);
         const strikethroughPrice = ratePrice?.strikethroughPrice || ratePrice?.originalPrice || (priceValue > 0 ? priceValue * 1.15 : 0);
 
+        const hotelIdentifier = apiHotel.togId || apiHotel.id || apiHotel.hotelId;
+
         return {
-            id: apiHotel.id, hotelId: apiHotel.hotelId, name, type: starLabel || 'Hotel',
+            id: hotelIdentifier, hotelId: hotelIdentifier, togId: hotelIdentifier, name, type: starLabel || 'Hotel',
             stars: starCount, location: locationString || 'Unknown Location',
-            image: imagesToMap[0], images: imagesToMap, rating, ratingLabel,
-            ratingColor: 'bg-primary/10 text-primary', price: priceValue, currency: currencyCode,
+            image: imagesToMap[0], images: imagesToMap,
+            price: priceValue, currency: currencyCode,
             lat: apiHotel.coordinates?.lat, lng: apiHotel.coordinates?.lon,
             amenities, transportations: apiHotel.transportations || [],
             badges: [], roomName: selectedRoom?.name || selectedRoom?.roomName,
@@ -2563,7 +2608,6 @@ const HotelListing = () => {
             isRecommended: Boolean(apiHotel.isRecommended || apiHotel.preferred || apiHotel.is_recommended || apiHotel.recommended || apiHotel.isPreferred),
             locationBreadcrumbs: apiHotel.locationBreadcrumbs,
             ancestors: apiHotel.ancestors,
-            reviewsCount: apiHotel.guestCount || apiHotel.votesCount || 0,
             checkinBeginTime: apiHotel.checkinBeginTime || apiHotel.checkIn,
             checkoutTime: apiHotel.checkoutTime || apiHotel.checkOut,
             checkinMinAge: apiHotel.checkinMinAge || apiHotel.minAge,
@@ -2690,6 +2734,106 @@ const HotelListing = () => {
         }
     }, [regionId, locationId, isPoiSearch, initialPoiBounds, roomState, searchParams]);
 
+    // Dedicated POI Map Search: Fetches POIs from Elasticsearch geography_poi via b2b-backend
+    const fetchPoiMarkers = React.useCallback(async (geoBounds = null, isReset = false) => {
+        const currentCats = activeEsCategoriesRef.current;
+        if (!currentCats || currentCats.length === 0) {
+            if (poiAbortControllerRef.current) {
+                poiAbortControllerRef.current.abort();
+            }
+            poiPoolRef.current.clear();
+            setPoiMarkers([]);
+            setIsPoiLoading(false);
+            return;
+        }
+
+        const bounds = geoBounds || mapBoundsRef.current || initialPoiBounds;
+        if (!bounds || !bounds.bounds) return;
+
+        if (!isReset && !isSignificantPan(bounds, lastPoiFetchedBoundsRef.current)) {
+            return;
+        }
+
+        if (isReset) {
+            poiPoolRef.current.clear();
+            setPoiMarkers([]);
+        }
+
+        lastPoiFetchedBoundsRef.current = bounds;
+
+        if (poiAbortControllerRef.current) {
+            poiAbortControllerRef.current.abort();
+        }
+        const controller = new AbortController();
+        poiAbortControllerRef.current = controller;
+
+        try {
+            setIsPoiLoading(true);
+            const currentZoom = bounds.zoom || (mapInstance && typeof mapInstance.getZoom === 'function' ? mapInstance.getZoom() : 12);
+            const res = await poiService.searchPoiMapMarkers({
+                geo: bounds.bounds,
+                zoom: currentZoom,
+                categories: currentCats,
+                limit: 120,
+                signal: controller.signal
+            });
+
+            if (res && res.pois && Array.isArray(res.pois)) {
+                res.pois.forEach(poi => {
+                    const pid = poi.id || poi.poiId;
+                    if (pid && !poiPoolRef.current.has(pid)) {
+                        poiPoolRef.current.set(pid, poi);
+                    }
+                });
+                setPoiMarkers(Array.from(poiPoolRef.current.values()));
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('Error fetching POI markers:', err);
+            }
+        } finally {
+            if (poiAbortControllerRef.current === controller) {
+                setIsPoiLoading(false);
+            }
+        }
+    }, [initialPoiBounds, mapInstance]);
+
+    // Whenever active POI categories change, refetch POIs matching the active categories
+    React.useEffect(() => {
+        if (activeEsCategories.length > 0) {
+            const bounds = mapBoundsRef.current || initialPoiBounds;
+            if (bounds) {
+                fetchPoiMarkers(bounds, true);
+            }
+        } else {
+            if (poiAbortControllerRef.current) {
+                poiAbortControllerRef.current.abort();
+            }
+            poiPoolRef.current.clear();
+            setPoiMarkers([]);
+            setIsPoiLoading(false);
+        }
+    }, [activeEsCategories, fetchPoiMarkers, initialPoiBounds]);
+
+    // Initial fetch when map is ready and any category is selected
+    React.useEffect(() => {
+        if (isMapReady && mapInstance && activeEsCategories.length > 0 && poiMarkers.length === 0) {
+            try {
+                const bounds = mapInstance.getBounds();
+                const nw = bounds.getNorthWest();
+                const se = bounds.getSouthEast();
+                const boundsData = {
+                    bounds: {
+                        topLeft: { lat: nw.lat, lon: nw.lng },
+                        bottomRight: { lat: se.lat, lon: se.lng }
+                    },
+                    zoom: Math.round(mapInstance.getZoom())
+                };
+                fetchPoiMarkers(boundsData, true);
+            } catch (_) {}
+        }
+    }, [isMapReady, mapInstance, activeEsCategories.length, poiMarkers.length, fetchPoiMarkers]);
+
     const handleClusterClick = React.useCallback((cluster) => {
         if (!mapInstance || !cluster.lat || !cluster.lng) return;
         const currentZoom = typeof mapInstance.getZoom === 'function' ? mapInstance.getZoom() : 11;
@@ -2787,12 +2931,20 @@ const HotelListing = () => {
                 });
                 setTotalProperties(pageData.totalElements || 0);
                 if (currentPage === 0 && filtersData) setDynamicFilters(filtersData);
-                const nextHasMore = !pageData.last && content.length >= 20;
+                const nextHasMore = Boolean(!pageData.last && (pageData.totalPages ? (currentPage + 1 < pageData.totalPages) : true));
                 setHasMore(nextHasMore);
                 hasMoreRef.current = nextHasMore;
                 const nextPage = currentPage + 1;
                 setPage(nextPage);
                 pageRef.current = nextPage;
+
+                // If page had no priced hotels but there are more pages, automatically load next page
+                if (mappedHotels.length === 0 && nextHasMore) {
+                    setTimeout(() => {
+                        loadMoreHotels(false);
+                    }, 50);
+                }
+
                 const newLocationNames = {};
                 content.forEach(hotel => {
                     if (hotel.locationBreadcrumbs) {
@@ -2840,7 +2992,7 @@ const HotelListing = () => {
             if (first.isIntersecting && hasMoreRef.current && !isFetchingRef.current && !isLoading) {
                 loadMoreHotels(false);
             }
-        }, { threshold: 0.1, rootMargin: '250px' });
+        }, { threshold: 0.1, rootMargin: '300px' });
 
         const currentLoader = loaderRef.current;
         if (currentLoader) {
@@ -2851,7 +3003,7 @@ const HotelListing = () => {
             if (currentLoader) observer.unobserve(currentLoader);
             observer.disconnect();
         };
-    }, [loadMoreHotels, isLoading]);
+    }, [loadMoreHotels, isLoading, hasMore, hotels.length]);
 
     // Map markers derived from the accumulated map marker pool + current page hotels with valid prices
     const effectiveMapMarkers = React.useMemo(() => {
@@ -2871,11 +3023,27 @@ const HotelListing = () => {
         if (!boundsData) return;
         mapBoundsRef.current = boundsData;
         try {
-            await loadMoreHotels(true, boundsData);
+            const hotelPromise = loadMoreHotels(true, boundsData);
+            const poiPromise = (activeEsCategoriesRef.current && activeEsCategoriesRef.current.length > 0)
+                ? fetchPoiMarkers(boundsData, false)
+                : Promise.resolve();
+            await Promise.all([hotelPromise, poiPromise]);
         } finally {
             setMapMoved(false);
         }
-    }, [loadMoreHotels]);
+    }, [loadMoreHotels, fetchPoiMarkers]);
+
+    const handleSelectPoiFromMap = React.useCallback((poi) => {
+        if (!poi || !poi.lat || !poi.lng) return;
+        if (mapInstance) {
+            mapInstance.flyTo([parseFloat(poi.lat), parseFloat(poi.lng)], 13, { duration: 0.8 });
+        }
+        setTimeout(() => {
+            if (mapBoundsRef.current) {
+                handleMapBoundsChange(mapBoundsRef.current);
+            }
+        }, 850);
+    }, [mapInstance, handleMapBoundsChange]);
 
     const handleMapMoved = React.useCallback((boundsData) => {
         mapBoundsRef.current = boundsData;
@@ -3987,9 +4155,14 @@ const HotelListing = () => {
                                 isProgrammaticMoveRef={isProgrammaticMoveRef}
                             />
 
-                            {/* Points of interest for selected categories */}
-                            {activePois.map(poi => (
-                                <PoiMarker key={poi.id} poi={poi} currentLang={currentLang} />
+                            {/* Dynamic POI markers from Elasticsearch geography_poi */}
+                            {poiMarkers.map(poi => (
+                                <PoiMarker
+                                    key={poi.id || poi.poiId}
+                                    poi={poi}
+                                    currentLang={currentLang}
+                                    onSelectPoi={handleSelectPoiFromMap}
+                                />
                             ))}
 
 
@@ -4038,8 +4211,8 @@ const HotelListing = () => {
                             </span>
                         </button>
 
-                        {/* 4 Category Icons: Transit, Restaurants, Attractions, Shopping */}
-                        <div className="bg-white dark:bg-[#303134] rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex flex-col items-center py-2 px-1 gap-1">
+                        {/* POI Category Icons: 4 Primary + Expandable More Menu */}
+                        <div className="relative bg-white dark:bg-[#303134] rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex flex-col items-center py-2 px-1 gap-1">
                             {/* 1. Public Transport */}
                             <button
                                 type="button"
@@ -4091,6 +4264,90 @@ const HotelListing = () => {
                             >
                                 <span className="material-symbols-outlined text-[19px]">shopping_bag</span>
                             </button>
+
+                            {/* Divider line */}
+                            <div className="w-5 h-[1px] bg-gray-200 dark:bg-slate-600 my-0.5" />
+
+                            {/* 5. More Categories Toggle Button */}
+                            <button
+                                type="button"
+                                onClick={() => setIsPoiMenuOpen(v => !v)}
+                                className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                                    isPoiMenuOpen
+                                        ? 'bg-[#f1f3f4] dark:bg-slate-700 text-[#1a73e8] dark:text-blue-400'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                }`}
+                                title={currentLang === 'tr' ? 'Daha Fazla Kategori' : 'More Categories'}
+                            >
+                                <span className={`material-symbols-outlined text-[19px] ${isPoiLoading ? 'animate-spin text-amber-500' : ''}`}>
+                                    {isPoiLoading ? 'progress_activity' : 'more_horiz'}
+                                </span>
+                                {hasActiveSecondaryPoiCategories && !isPoiLoading && (
+                                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#1a73e8] ring-1 ring-white dark:ring-[#303134]" />
+                                )}
+                            </button>
+
+                            {/* Expandable POI Categories Flyout Menu */}
+                            {isPoiMenuOpen && (
+                                <div
+                                    ref={poiMenuRef}
+                                    className="absolute left-[48px] top-12 z-[1010] bg-white dark:bg-[#303134] rounded-2xl shadow-[0_8px_28px_rgba(0,0,0,0.22)] dark:shadow-[0_8px_28px_rgba(0,0,0,0.65)] border border-gray-100 dark:border-slate-700/80 p-3 min-w-[240px] pointer-events-auto transition-all animate-in fade-in zoom-in-95"
+                                >
+                                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-gray-100 dark:border-slate-700">
+                                        <div className="flex items-center gap-1.5 text-[12px] font-semibold text-gray-700 dark:text-gray-200">
+                                            <span className="material-symbols-outlined text-[16px] text-gray-500 dark:text-gray-400">category</span>
+                                            <span>{currentLang === 'tr' ? 'POI Kategorileri' : 'POI Categories'}</span>
+                                        </div>
+                                        {hasAnyActivePoiCategories && (
+                                            <button
+                                                type="button"
+                                                onClick={clearAllPoiCategories}
+                                                className="text-[11px] font-medium text-[#1a73e8] hover:text-[#1558d6] dark:text-blue-400 hover:underline cursor-pointer"
+                                            >
+                                                {currentLang === 'tr' ? 'Temizle' : 'Clear'}
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto pr-1">
+                                        {POI_CATEGORIES.filter(c => !c.isPrimary).map(cat => {
+                                            const isActive = activePoiCategories[cat.key];
+                                            return (
+                                                <button
+                                                    key={cat.key}
+                                                    type="button"
+                                                    onClick={() => togglePoiCategory(cat.key)}
+                                                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer group ${
+                                                        isActive
+                                                            ? 'bg-gray-100 dark:bg-slate-700/70 font-medium'
+                                                            : 'hover:bg-gray-50 dark:hover:bg-slate-700/40 text-gray-700 dark:text-slate-200'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <span
+                                                            className="w-6 h-6 rounded-md flex items-center justify-center text-white shrink-0"
+                                                            style={{ backgroundColor: cat.color }}
+                                                        >
+                                                            <span className="material-symbols-outlined text-[15px]">{cat.icon}</span>
+                                                        </span>
+                                                        <span className="text-[12px] select-none text-gray-800 dark:text-gray-200">
+                                                            {currentLang === 'tr' ? cat.labelTr : cat.labelEn}
+                                                        </span>
+                                                    </div>
+                                                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ml-3 ${
+                                                        isActive
+                                                            ? 'bg-[#1a73e8] border-[#1a73e8]'
+                                                            : 'bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 group-hover:border-gray-400'
+                                                    }`}>
+                                                        {isActive && (
+                                                            <span className="material-symbols-outlined text-white text-[12px] font-bold">check</span>
+                                                        )}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -4126,7 +4383,7 @@ const HotelListing = () => {
                                     setShouldRefitMap(false);
                                     handleMapBoundsChange(mapBoundsRef.current);
                                 }}
-                                className="flex items-center gap-1.5 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#1a73e8] dark:text-blue-400 font-semibold rounded-full px-4 py-2 text-[13px] shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all cursor-pointer active:scale-95 border border-[#1a73e8]/30 whitespace-nowrap disabled:opacity-70 disabled:cursor-not-allowed"
+                                className="flex items-center gap-1.5 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#1a73e8] dark:text-blue-400 font-semibold rounded-full px-4 py-2 text-[13px] shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all cursor-pointer active:scale-95 border border-[#1a73e8]/30 whitespace-nowrap disabled:opacity-100 disabled:cursor-wait"
                             >
                                 <span className={`material-symbols-outlined text-[18px] ${isLoading ? 'animate-spin' : ''}`}>refresh</span>
                                 <span>{isLoading ? (tListing('searching', currentLang) || 'Aranıyor...') : tListing('searchThisArea', currentLang)}</span>

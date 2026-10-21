@@ -71,6 +71,7 @@ const DashboardSearch = () => {
     const [showDropdown, setShowDropdown] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const [searchHistory, setSearchHistory] = useState([]);
+    const [isClearingHistory, setIsClearingHistory] = useState(false);
 
     const fetchSearchHistory = async () => {
         try {
@@ -90,11 +91,18 @@ const DashboardSearch = () => {
 
     const handleClearHistory = async (e) => {
         if (e) e.stopPropagation();
+        if (isClearingHistory) return;
+        setIsClearingHistory(true);
         try {
-            await autocompleteService.clearSearchHistory();
+            await Promise.all([
+                autocompleteService.clearSearchHistory(),
+                new Promise(resolve => setTimeout(resolve, 350))
+            ]);
             setSearchHistory([]);
         } catch (err) {
             console.error("Error clearing search history:", err);
+        } finally {
+            setIsClearingHistory(false);
         }
     };
 
@@ -435,11 +443,13 @@ const DashboardSearch = () => {
                 slug = reversed.slice(1).join('/');
             }
 
-            // Retrieve target parameter (togId or regionId) & coordinates
+            // Retrieve target parameter (togId, poiId, or regionId) & coordinates
             const savedParam = localStorage.getItem('dashboard_last_search_param');
             const savedId = localStorage.getItem('dashboard_last_search_id');
             const savedTogId = localStorage.getItem('dashboard_last_togId');
+            const savedPoiId = localStorage.getItem('dashboard_last_poiId');
             const savedRegionId = localStorage.getItem('dashboard_last_regionId');
+            const savedType = localStorage.getItem('dashboard_last_type');
             const savedLat = localStorage.getItem('dashboard_last_lat');
             const savedLng = localStorage.getItem('dashboard_last_lng');
 
@@ -448,12 +458,15 @@ const DashboardSearch = () => {
                 targetIdParam = `&${savedParam}=${savedId}`;
             } else if (savedTogId) {
                 targetIdParam = `&togId=${savedTogId}`;
+            } else if (savedPoiId) {
+                targetIdParam = `&poiId=${savedPoiId}`;
             } else if (savedRegionId) {
                 targetIdParam = `&regionId=${savedRegionId}`;
             }
 
+            const typeParam = (savedType === 'POI' || savedPoiId) ? '&type=POI' : '';
             const geoParam = (savedLat && savedLng) ? `&lat=${savedLat}&lng=${savedLng}` : '';
-            const searchParamsString = getUrlParams() + targetIdParam + geoParam;
+            const searchParamsString = getUrlParams() + targetIdParam + typeParam + geoParam;
 
             localStorage.setItem('last_hotel_search_slug', slug);
             localStorage.setItem('last_hotel_search_params', searchParamsString);
@@ -466,22 +479,32 @@ const DashboardSearch = () => {
         const fullName = formatLocationFullName(location, currentLang);
         const sub = getRegionSubtitle(location, currentLang);
 
+        const isPoi = isPoiItem(location);
         const { param: targetParam, id: targetId } = resolveSearchTargetId(location);
-        const locType = location.type || (location.poiId ? 'POI' : 'GEOGRAPHY_REGION');
+        const locType = isPoi ? 'POI' : (location.type || 'GEOGRAPHY_REGION');
         saveSearchHistoryItem(fullName, locType, targetId, getRegionName(location));
 
         localStorage.setItem('dashboard_last_search', fullName);
         localStorage.setItem('dashboard_last_type', locType);
 
-        if (targetParam && targetId) {
+        if (isPoi) {
+            const poiIdVal = targetId || location.poiId || location.id;
+            localStorage.setItem('dashboard_last_search_param', 'poiId');
+            localStorage.setItem('dashboard_last_search_id', poiIdVal);
+            localStorage.setItem('dashboard_last_poiId', poiIdVal);
+            localStorage.removeItem('dashboard_last_togId');
+            localStorage.removeItem('dashboard_last_regionId');
+        } else if (targetParam && targetId) {
             localStorage.setItem('dashboard_last_search_param', targetParam);
             localStorage.setItem('dashboard_last_search_id', targetId);
             if (targetParam === 'togId') {
                 localStorage.setItem('dashboard_last_togId', targetId);
                 localStorage.removeItem('dashboard_last_regionId');
+                localStorage.removeItem('dashboard_last_poiId');
             } else {
                 localStorage.setItem('dashboard_last_regionId', targetId);
                 localStorage.removeItem('dashboard_last_togId');
+                localStorage.removeItem('dashboard_last_poiId');
             }
         }
         localStorage.removeItem('dashboard_last_locationId');
@@ -521,8 +544,9 @@ const DashboardSearch = () => {
         setQuery(fullName);
         
         const targetIdParam = (targetParam && targetId) ? `&${targetParam}=${targetId}` : '';
+        const typeParam = isPoi ? '&type=POI' : '';
         const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
-        const searchParamsString = getUrlParams(fullName) + targetIdParam + geoParam;
+        const searchParamsString = getUrlParams(fullName) + targetIdParam + typeParam + geoParam;
 
         localStorage.setItem('last_hotel_search_slug', slug);
         localStorage.setItem('last_hotel_search_params', searchParamsString);
@@ -903,11 +927,25 @@ const DashboardSearch = () => {
                             <div className="max-h-[460px] overflow-y-auto py-1 scrollbar-thin">
                                 {/* 1. Past Searches Section */}
                                 {matchingHistory.length > 0 && (
-                                    <div>
+                                    <div className={isClearingHistory ? 'opacity-40 pointer-events-none transition-opacity duration-200' : 'transition-opacity duration-200'}>
                                         <div className="flex items-center justify-between px-4 py-2 border-b border-[#f1f3f4] dark:border-[#3c4043] mb-1">
                                             <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">Son Aramalar</span>
                                             {!query.trim() && (
-                                                <button onClick={handleClearHistory} className="text-[11px] font-medium text-[#1a73e8] hover:underline transition-colors">Temizle</button>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleClearHistory}
+                                                    disabled={isClearingHistory}
+                                                    className="text-[11px] font-medium text-[#1a73e8] hover:underline transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-70"
+                                                >
+                                                    {isClearingHistory ? (
+                                                        <>
+                                                            <span className="material-symbols-outlined text-[13px] animate-spin">progress_activity</span>
+                                                            <span>Temizleniyor...</span>
+                                                        </>
+                                                    ) : (
+                                                        <span>Temizle</span>
+                                                    )}
+                                                </button>
                                             )}
                                         </div>
                                         <div>

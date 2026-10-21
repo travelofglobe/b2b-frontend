@@ -57,3 +57,86 @@ export const FACILITY_ICON_MAP = {
     639: { icon: 'kitchen', label: 'Kitchenette' },
     98425: { icon: 'balcony', label: 'Balcony' }
 };
+
+export const resolveFacility = (f, currentLang = 'tr') => {
+    if (!f) return null;
+    let label = '';
+    let id = null;
+
+    if (typeof f === 'string') {
+        label = f.trim();
+    } else if (typeof f === 'number') {
+        id = f;
+    } else if (typeof f === 'object') {
+        id = f.facilityId || f.id || f.value;
+        label = f.names?.[currentLang] || f.name || f.names?.tr || f.names?.en || f.label || '';
+        if (Array.isArray(label)) label = label[0] || '';
+    }
+
+    if (!label && id && FACILITY_ICON_MAP[Number(id)]) {
+        label = FACILITY_ICON_MAP[Number(id)].label;
+    }
+
+    if (!label && id) {
+        label = `Facility #${id}`;
+    }
+
+    if (!label) return null;
+
+    // Detect icon from ID first if matched
+    let icon = (id && FACILITY_ICON_MAP[Number(id)]?.icon) || null;
+
+    // If icon not found by ID, infer by keyword
+    if (!icon) {
+        const lower = label.toLowerCase();
+        if (lower.includes('wifi') || lower.includes('wi-fi') || lower.includes('internet') || lower.includes('kablosuz')) {
+            icon = 'wifi';
+        } else if (lower.includes('otopark') || lower.includes('park') || lower.includes('garaj') || lower.includes('valet')) {
+            icon = 'local_parking';
+        } else if (lower.includes('klima') || lower.includes('air condition') || lower.includes('havalandırma') || lower.includes('ac')) {
+            icon = 'ac_unit';
+        } else if (lower.includes('kahvaltı') || lower.includes('breakfast') || lower.includes('coffee') || lower.includes('çay') || lower.includes('cafe')) {
+            icon = 'free_breakfast';
+        } else if (lower.includes('restoran') || lower.includes('restaurant') || lower.includes('yemek') || lower.includes('büfe') || lower.includes('dining')) {
+            icon = 'restaurant';
+        } else if (lower.includes('havuz') || lower.includes('pool') || lower.includes('yüzme')) {
+            icon = 'pool';
+        } else if (lower.includes('spa') || lower.includes('sauna') || lower.includes('masaj') || lower.includes('hamam') || lower.includes('buhar')) {
+            icon = 'spa';
+        } else if (lower.includes('fitness') || lower.includes('spor') || lower.includes('gym') || lower.includes('egzersiz')) {
+            icon = 'fitness_center';
+        } else if (lower.includes('bar') || lower.includes('lounge') || lower.includes('gece')) {
+            icon = 'local_bar';
+        } else if (lower.includes('transfer') || lower.includes('shuttle') || lower.includes('servis') || lower.includes('havaalan') || lower.includes('havaliman')) {
+            icon = 'airport_shuttle';
+        } else if (lower.includes('mutfak') || lower.includes('kitchen') || lower.includes('ocak') || lower.includes('fırın') || lower.includes('mikrodalga')) {
+            icon = 'kitchen';
+        } else if (lower.includes('plaj') || lower.includes('beach') || lower.includes('sahil') || lower.includes('deniz')) {
+            icon = 'beach_access';
+        } else if (lower.includes('çamaşır') || lower.includes('laundry') || lower.includes('kuru temizleme') || lower.includes('ütü')) {
+            icon = 'local_laundry_service';
+        } else if (lower.includes('resepsiyon') || lower.includes('front desk') || lower.includes('danışma') || lower.includes('concierge') || lower.includes('24 saat')) {
+            icon = 'support_agent';
+        } else if (lower.includes('asansör') || lower.includes('elevator') || lower.includes('lift')) {
+            icon = 'elevator';
+        } else if (lower.includes('evcil') || lower.includes('pet')) {
+            icon = 'pets';
+        } else if (lower.includes('sigara') || lower.includes('smoke')) {
+            icon = lower.includes('içilmeyen') || lower.includes('free') ? 'smoke_free' : 'smoking_rooms';
+        } else if (lower.includes('çocuk') || lower.includes('bebek') || lower.includes('kids') || lower.includes('child')) {
+            icon = 'child_friendly';
+        } else if (lower.includes('bahçe') || lower.includes('garden') || lower.includes('teras') || lower.includes('balkon') || lower.includes('balcony')) {
+            icon = 'deck';
+        } else if (lower.includes('kasa') || lower.includes('safe') || lower.includes('güvenlik') || lower.includes('lock')) {
+            icon = 'lock';
+        } else if (lower.includes('tv') || lower.includes('televizyon') || lower.includes('uydu')) {
+            icon = 'tv';
+        } else if (lower.includes('oda servisi') || lower.includes('room service')) {
+            icon = 'room_service';
+        } else {
+            icon = 'check_circle';
+        }
+    }
+
+    return { icon, label };
+};

@@ -140,6 +140,7 @@ const HeaderSearch = () => {
     const [loading, setLoading] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const [searchHistory, setSearchHistory] = useState([]);
+    const [isClearingHistory, setIsClearingHistory] = useState(false);
 
     const fetchSearchHistory = async () => {
         try {
@@ -159,11 +160,18 @@ const HeaderSearch = () => {
 
     const handleClearHistory = async (e) => {
         if (e) e.stopPropagation();
+        if (isClearingHistory) return;
+        setIsClearingHistory(true);
         try {
-            await autocompleteService.clearSearchHistory();
+            await Promise.all([
+                autocompleteService.clearSearchHistory(),
+                new Promise(resolve => setTimeout(resolve, 350))
+            ]);
             setSearchHistory([]);
         } catch (err) {
             console.error("Error clearing search history in HeaderSearch:", err);
+        } finally {
+            setIsClearingHistory(false);
         }
     };
 
@@ -493,7 +501,9 @@ const HeaderSearch = () => {
             const savedParam = localStorage.getItem('dashboard_last_search_param');
             const savedId = localStorage.getItem('dashboard_last_search_id');
             const savedTogId = localStorage.getItem('dashboard_last_togId');
+            const savedPoiId = localStorage.getItem('dashboard_last_poiId');
             const savedRegionId = localStorage.getItem('dashboard_last_regionId');
+            const savedType = localStorage.getItem('dashboard_last_type');
             const savedLat = localStorage.getItem('dashboard_last_lat');
             const savedLng = localStorage.getItem('dashboard_last_lng');
 
@@ -502,10 +512,13 @@ const HeaderSearch = () => {
                 targetIdParam = `&${savedParam}=${savedId}`;
             } else if (savedTogId) {
                 targetIdParam = `&togId=${savedTogId}`;
+            } else if (savedPoiId) {
+                targetIdParam = `&poiId=${savedPoiId}`;
             } else if (savedRegionId) {
                 targetIdParam = `&regionId=${savedRegionId}`;
             }
 
+            const typeParam = (savedType === 'POI' || savedPoiId) ? '&type=POI' : '';
             const geoParam = (savedLat && savedLng) ? `&lat=${savedLat}&lng=${savedLng}` : '';
 
             // Build hierarchical slug if possible
@@ -517,7 +530,7 @@ const HeaderSearch = () => {
                 slug = reversed.slice(1).join('/');
             }
 
-            const searchParamsString = getUrlParams() + targetIdParam + geoParam;
+            const searchParamsString = getUrlParams() + targetIdParam + typeParam + geoParam;
 
             localStorage.setItem('last_hotel_search_slug', slug);
             localStorage.setItem('last_hotel_search_params', searchParamsString);
@@ -534,8 +547,9 @@ const HeaderSearch = () => {
         const fullName = formatLocationFullName(location, currentLang);
         const sub = getRegionSubtitle(location, currentLang);
 
+        const isPoi = isPoiItem(location);
         const { param: targetParam, id: targetId } = resolveSearchTargetId(location);
-        const locType = location.type || (location.poiId ? 'POI' : 'GEOGRAPHY_REGION');
+        const locType = isPoi ? 'POI' : (location.type || 'GEOGRAPHY_REGION');
         saveSearchHistoryItem(fullName, locType, targetId, getRegionName(location));
 
         const slug = buildLocationSlug(location, currentLang);
@@ -547,21 +561,39 @@ const HeaderSearch = () => {
         setQuery(fullName);
         localStorage.setItem('dashboard_last_search', fullName);
         localStorage.setItem('dashboard_last_type', locType);
-        if (targetParam && targetId) {
+
+        if (isPoi) {
+            const poiIdVal = targetId || location.poiId || location.id;
+            localStorage.setItem('dashboard_last_search_param', 'poiId');
+            localStorage.setItem('dashboard_last_search_id', poiIdVal);
+            localStorage.setItem('dashboard_last_poiId', poiIdVal);
+            localStorage.removeItem('dashboard_last_togId');
+            localStorage.removeItem('dashboard_last_regionId');
+        } else if (targetParam && targetId) {
             localStorage.setItem('dashboard_last_search_param', targetParam);
             localStorage.setItem('dashboard_last_search_id', targetId);
             if (targetParam === 'togId') {
                 localStorage.setItem('dashboard_last_togId', targetId);
                 localStorage.removeItem('dashboard_last_regionId');
+                localStorage.removeItem('dashboard_last_poiId');
             } else {
                 localStorage.setItem('dashboard_last_regionId', targetId);
                 localStorage.removeItem('dashboard_last_togId');
+                localStorage.removeItem('dashboard_last_poiId');
             }
         }
         localStorage.removeItem('dashboard_last_locationId');
 
         let latVal = location.geoCoordinate?.lat || location.geoCoordinate?.latitude || location.lat || location.latitude;
         let lngVal = location.geoCoordinate?.lon || location.geoCoordinate?.lng || location.geoCoordinate?.longitude || location.lng || location.lon || location.longitude;
+
+        if (!latVal || !lngVal) {
+            const fallbackCoords = resolveKnownCoordinates(fullName) || resolveKnownCoordinates(location.name?.searchName || '') || resolveKnownCoordinates(location.locationPath);
+            if (fallbackCoords) {
+                latVal = fallbackCoords.lat;
+                lngVal = fallbackCoords.lng;
+            }
+        }
 
         if (latVal && lngVal) {
             localStorage.setItem('dashboard_last_lat', latVal);
@@ -578,7 +610,9 @@ const HeaderSearch = () => {
         }
 
         if (!isMapPage) {
-            const targetIdParam = (targetParam && targetId) ? `&${targetParam}=${targetId}` : '';
+            const targetIdParam = isPoi
+                ? `&poiId=${targetId || location.poiId || location.id}&type=POI`
+                : ((targetParam && targetId) ? `&${targetParam}=${targetId}` : '');
             const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
             const searchParamsString = getUrlParams(fullName) + targetIdParam + geoParam;
 
@@ -702,15 +736,24 @@ const HeaderSearch = () => {
                     <div className="absolute top-full left-0 w-[480px] mt-2 bg-white dark:bg-[#202124] rounded-lg border border-[#dadce0] dark:border-[#3c4043] shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] max-h-[440px] overflow-y-auto z-[1200] py-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
                         {/* 1. Past Searches Section */}
                         {matchingHistory.length > 0 && (
-                            <div>
+                            <div className={isClearingHistory ? 'opacity-40 pointer-events-none transition-opacity duration-200' : 'transition-opacity duration-200'}>
                                 <div className="flex items-center justify-between px-4 py-2 border-b border-[#f1f3f4] dark:border-[#3c4043] mb-1">
                                     <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">Son Aramalar</span>
                                     {!query.trim() && (
                                         <button
+                                            type="button"
                                             onClick={handleClearHistory}
-                                            className="text-[11px] font-medium text-[#1a73e8] hover:underline transition-colors"
+                                            disabled={isClearingHistory}
+                                            className="text-[11px] font-medium text-[#1a73e8] hover:underline transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-70"
                                         >
-                                            Temizle
+                                            {isClearingHistory ? (
+                                                <>
+                                                    <span className="material-symbols-outlined text-[13px] animate-spin">progress_activity</span>
+                                                    <span>Temizleniyor...</span>
+                                                </>
+                                            ) : (
+                                                <span>Temizle</span>
+                                            )}
                                         </button>
                                     )}
                                 </div>

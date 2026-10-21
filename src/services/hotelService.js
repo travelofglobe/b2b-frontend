@@ -55,9 +55,16 @@ export const hotelService = {
     searchHotels: async ({ locationId, regionId, regionIds, page = 0, size = 20, geo = null, zoom = null, filters = {}, searchCriteria = null, sort = null, signal = null }) => {
         const defaults = getDefaultRequestDates();
         const effectiveRegionId = regionId || filters.regionId || (locationId ? String(locationId) : null);
-        const effectiveRegionIds = filters.regionIds?.length > 0
-            ? filters.regionIds
-            : (regionIds?.length > 0 ? regionIds : (filters.locationIds?.length > 0 ? filters.locationIds : (effectiveRegionId ? [effectiveRegionId] : null)));
+        let effectiveRegionIds = null;
+        if (Array.isArray(filters.regionIds)) {
+            effectiveRegionIds = filters.regionIds.length > 0 ? filters.regionIds : null;
+        } else if (Array.isArray(regionIds)) {
+            effectiveRegionIds = regionIds.length > 0 ? regionIds : null;
+        } else if (filters.locationIds?.length > 0) {
+            effectiveRegionIds = filters.locationIds;
+        } else if (!geo) {
+            effectiveRegionIds = effectiveRegionId ? [effectiveRegionId] : null;
+        }
 
         const body = {
             geo: geo || null,
@@ -122,18 +129,26 @@ export const hotelService = {
     /**
      * Search for lightweight map markers and clusters.
      */
-    searchHotelMapMarkers: async ({ locationId, regionId, regionIds, geo = null, zoom = 12, limit = 60, filters = {}, searchCriteria = null, forceMarkers = false, signal = null }) => {
+    searchHotelMapMarkers: async ({ locationId, regionId, regionIds, geo = null, zoom = 12, limit = 100, excludeHotelIds = null, filters = {}, searchCriteria = null, forceMarkers = true, signal = null }) => {
         const defaults = getDefaultRequestDates();
         const effectiveRegionId = regionId || filters.regionId || (locationId ? String(locationId) : null);
-        const effectiveRegionIds = filters.regionIds?.length > 0
-            ? filters.regionIds
-            : (regionIds?.length > 0 ? regionIds : (filters.locationIds?.length > 0 ? filters.locationIds : (effectiveRegionId ? [effectiveRegionId] : null)));
+        let effectiveRegionIds = null;
+        if (Array.isArray(filters.regionIds)) {
+            effectiveRegionIds = filters.regionIds.length > 0 ? filters.regionIds : null;
+        } else if (Array.isArray(regionIds)) {
+            effectiveRegionIds = regionIds.length > 0 ? regionIds : null;
+        } else if (filters.locationIds?.length > 0) {
+            effectiveRegionIds = filters.locationIds;
+        } else if (!geo) {
+            effectiveRegionIds = effectiveRegionId ? [effectiveRegionId] : null;
+        }
 
         const body = {
             geo: geo || null,
             zoom: zoom,
             limit: limit,
             forceMarkers: forceMarkers,
+            excludeHotelIds: excludeHotelIds?.length > 0 ? excludeHotelIds : null,
             searchCriteria: searchCriteria
                 ? {
                     ...searchCriteria,

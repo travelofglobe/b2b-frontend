@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
@@ -84,15 +84,17 @@ const IosBatteryCredit = ({
     // Is it fully charged and never used?
     const isFullyCharged = !isLoading && creditLimit > 0 && usedLimit <= 0.01 && availableLimit >= creditLimit;
 
-    // Battery Color Rules:
-    let batteryState = 'normal';
-    if (isFullyCharged) {
-        batteryState = 'charging';
-    } else if (percentage <= 20) {
-        batteryState = 'critical';
-    } else if (percentage <= 35) {
-        batteryState = 'low-power';
+    // Battery Color Rules requested by user:
+    // >= 50: Yeşil, 10 - 49: Sarı, < 10: Kırmızı
+    let batteryTier = 'green';
+    if (percentage < 10) {
+        batteryTier = 'red';
+    } else if (percentage < 50) {
+        batteryTier = 'yellow';
+    } else {
+        batteryTier = 'green';
     }
+    const batteryState = batteryTier;
 
     const formatNumber = (num) => {
         return Number(num || 0).toLocaleString('tr-TR', {
@@ -139,134 +141,105 @@ const IosBatteryCredit = ({
         }
     };
 
-    // Color definitions
-    const fillColors = {
-        charging: '#34C759',    // Apple Green
-        normal: '#34C759',      // Apple Green (iOS Healthy Level)
-        'low-power': '#FFCC00', // Apple Yellow (Low Power Mode)
-        critical: '#FF3B30'     // Apple Red (Low Battery)
-    };
-
-    const textColors = {
-        charging: 'text-emerald-600 dark:text-emerald-400',
-        normal: 'text-slate-800 dark:text-slate-100',
-        'low-power': 'text-amber-600 dark:text-amber-400',
-        critical: 'text-rose-600 dark:text-rose-400'
-    };
-
     // Concept text based on credit health
     const creditHealthBadge = {
-        charging: {
-            title: 'Kredi Kapasitesi: %100',
-            subtitle: 'Tam Dolu • Kullanıma Hazır',
-            dotColor: 'bg-[#34C759]',
-            icon: 'bolt'
-        },
-        normal: {
+        green: {
             title: `Kredi Sağlığı: %${percentage}`,
-            subtitle: 'Güvenli ve Sağlıklı Seviye',
+            subtitle: 'Güvenli ve Sağlıklı Seviye (Yeşil)',
             dotColor: 'bg-[#34C759]',
             icon: 'verified_user'
         },
-        'low-power': {
+        yellow: {
             title: `Kredi Uyarısı: %${percentage}`,
-            subtitle: 'Limit Azalıyor (Düşük Güç)',
+            subtitle: 'Limit Azalıyor (Sarı)',
             dotColor: 'bg-[#FFCC00]',
             icon: 'warning'
         },
-        critical: {
+        red: {
             title: `Kritik Limit: %${percentage}`,
-            subtitle: 'Kredi Tükenmek Üzere',
+            subtitle: 'Kredi Tükenmek Üzere (Kırmızı)',
             dotColor: 'bg-[#FF3B30]',
             icon: 'error'
         }
-    }[batteryState];
+    }[batteryTier];
 
     return (
         <div className="relative select-none">
-            {/* ── Trigger Button: Ultra-Compact iOS Battery with Credit Micro-Badge & Stacked Label ── */}
+            {/* ── Trigger Button: iOS Battery with Centered Percentage & Credit Label ── */}
             <button
                 ref={buttonRef}
                 onClick={toggleOpen}
-                className={`flex items-center gap-2 px-2 py-1 rounded-xl transition-colors duration-150 cursor-pointer outline-none focus:outline-none select-none border-0 ${isOpen
+                className={`flex items-center gap-1.5 px-2 py-1 rounded-xl transition-colors duration-150 cursor-pointer outline-none focus:outline-none select-none border-0 ${isOpen
                     ? 'bg-slate-200/80 dark:bg-slate-800 text-slate-900 dark:text-white'
                     : 'hover:bg-slate-100 dark:hover:bg-slate-800/60'
                     }`}
                 title={isLoading ? 'Kredi bilgileri yükleniyor...' : `Kredi Limiti: %${percentage} (${currencySymbol} ${formatNumber(availableLimit)} kullanılabilir) - Detaylar için tıklayın`}
                 aria-label="Kredi Durumu"
             >
-                {/* iPhone Battery Icon with Micro Wallet Badge */}
-                <div className="relative flex items-center text-slate-900 dark:text-white shrink-0">
-                    <svg
-                        className="w-[28px] h-[14px] shrink-0"
-                        viewBox="0 0 28 14"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                {/* iOS Battery with rounded rect corners (no border, compact size) */}
+                <div className="relative flex items-center shrink-0">
+                    <div
+                        className={`relative flex items-center justify-center rounded-[3.5px] overflow-hidden transition-all duration-300 w-[33px] h-[15px] ${
+                            isLoading
+                                ? 'bg-slate-200 dark:bg-slate-700 animate-pulse'
+                                : batteryTier === 'green'
+                                ? 'bg-[#34C759]'
+                                : batteryTier === 'yellow'
+                                ? 'bg-[#FFCC00]'
+                                : 'bg-[#8E8E93] dark:bg-[#48484A]'
+                        }`}
                     >
-                        {/* Battery Outer Frame */}
-                        <rect
-                            x="0.75"
-                            y="0.75"
-                            width="23.5"
-                            height="12.5"
-                            rx="4"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                        />
-                        {/* Battery Positive Terminal (Nub on right) */}
-                        <path
-                            d="M25.5 4.75C26.19 4.75 26.75 5.31 26.75 6V8C26.75 8.69 26.19 9.25 25.5 9.25V4.75Z"
-                            fill="currentColor"
-                        />
-                        {/* Battery Inner Fill Level (with subtle shimmer when loading) */}
-                        {isLoading ? (
-                            <rect
-                                x="2.5"
-                                y="2.5"
-                                width="12"
-                                height="9"
-                                rx="2"
-                                fill="currentColor"
-                                className="opacity-30 animate-pulse"
-                            />
-                        ) : percentage > 0 ? (
-                            <rect
-                                x="2.5"
-                                y="2.5"
-                                width={Math.max(1.5, ((percentage / 100) * 20))}
-                                height="9"
-                                rx="2"
-                                fill={fillColors[batteryState]}
-                                className="transition-all duration-300 ease-out"
-                            />
-                        ) : null}
-
-                        {/* Charging Lightning Bolt Icon inside Battery when fully charged & unused */}
-                        {isFullyCharged && (
-                            <path
-                                d="M13 2.5L8.5 7.5H12L11 11.5L16 6.5H12.5L13 2.5Z"
-                                fill="white"
-                                className="drop-shadow-xs"
+                        {/* Red emergency fill strip for critical battery tier (< 10%) */}
+                        {batteryTier === 'red' && !isLoading && (
+                            <div
+                                className="absolute inset-y-0 left-0 bg-[#FF3B30] transition-all duration-300"
+                                style={{ width: `${Math.max(8, percentage)}%` }}
                             />
                         )}
-                    </svg>
+
+                        {/* Centered Percentage Number Inside Battery */}
+                        <span
+                            className={`relative z-10 font-bold text-[9.5px] tracking-tight leading-none tabular-nums flex items-center justify-center gap-0.5 select-none ${
+                                isLoading
+                                    ? 'text-slate-400 dark:text-slate-500'
+                                    : batteryTier === 'yellow'
+                                    ? 'text-[#1C1C1E]'
+                                    : 'text-white'
+                            }`}
+                        >
+                            {isLoading ? (
+                                '...'
+                            ) : (
+                                <>
+                                    <span>{percentage}</span>
+                                    {isFullyCharged && (
+                                        <svg className="w-[6px] h-[7.5px] fill-current -mr-0.5" viewBox="0 0 8 10">
+                                            <path d="M4.5 0L0.5 5.5H4L3.5 10L7.5 4.5H4L4.5 0Z" />
+                                        </svg>
+                                    )}
+                                </>
+                            )}
+                        </span>
+                    </div>
+
+                    {/* Battery Positive Terminal (Nub on Right) */}
+                    <div
+                        className={`w-[2px] h-[5.5px] ml-[1px] rounded-r-[1.5px] transition-colors duration-300 shrink-0 ${
+                            isLoading
+                                ? 'bg-slate-200 dark:bg-slate-700 animate-pulse'
+                                : batteryTier === 'green'
+                                ? 'bg-[#34C759]'
+                                : batteryTier === 'yellow'
+                                ? 'bg-[#FFCC00]'
+                                : 'bg-[#8E8E93] dark:bg-[#48484A]'
+                        }`}
+                    />
                 </div>
 
-                {/* Compact Stacked Percentage & Credit Label (Zero horizontal bloating) */}
-                <div className="flex flex-col items-start leading-none shrink-0">
-                    {isLoading ? (
-                        <span className="text-[11px] font-bold tracking-tight tabular-nums text-slate-400 dark:text-slate-500 animate-pulse">
-                            ...
-                        </span>
-                    ) : (
-                        <span className={`text-[11px] font-bold tracking-tight tabular-nums ${textColors[batteryState]}`}>
-                            %{percentage}
-                        </span>
-                    )}
-                    <span className="text-[7.5px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 mt-0.5">
-                        {creditLabel}
-                    </span>
-                </div>
+                {/* Compact Credit Label Beside Battery */}
+                <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 shrink-0">
+                    {creditLabel}
+                </span>
             </button>
 
             {/* ── Right Slide-over Sidebar Drawer (Slides in underneath header like left sidebar) ── */}
@@ -340,13 +313,13 @@ const IosBatteryCredit = ({
 
                                     {/* Minimalist Progress Line */}
                                     <div className="mt-3.5 space-y-1.5">
-                                        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                        <div className="w-full bg-[#E5E5EA] dark:bg-[#3A3A3C] rounded-full h-1.5 overflow-hidden">
                                             <div
                                                 className={`h-full rounded-full transition-all duration-300 ${
                                                     isLoading ? 'w-1/3 bg-slate-300 dark:bg-slate-700 animate-pulse' :
-                                                    batteryState === 'critical' ? 'bg-rose-500' :
-                                                    batteryState === 'low-power' ? 'bg-amber-500' :
-                                                    'bg-blue-600'
+                                                    batteryTier === 'red' ? 'bg-[#FF3B30]' :
+                                                    batteryTier === 'yellow' ? 'bg-[#FFCC00]' :
+                                                    'bg-[#34C759]'
                                                 }`}
                                                 style={isLoading ? {} : { width: `${percentage}%` }}
                                             />

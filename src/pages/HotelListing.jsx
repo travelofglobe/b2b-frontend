@@ -30,6 +30,7 @@ import { LISTING_LOCALES, AMENITY_LOCALES, getAmenityText, getLayerLabel, tListi
 import { MAP_POIS } from '../data/mapPoiData';
 import PoiMarker from '../components/PoiMarker';
 import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
+import { resolveFacility } from '../utils/facilityUtils';
 
 // ═══════════════════════════════════════════════
 // ═══════════════════════════════════════════════
@@ -46,7 +47,7 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
     React.useEffect(() => {
         const lat = parseFloat(searchParams?.get('lat'));
         const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
-        const targetId = searchParams?.get('regionId') || searchParams?.get('togId') || searchParams?.get('locationId') || searchParams?.get('hotelId') || '';
+        const targetId = searchParams?.get('poiId') || searchParams?.get('regionId') || searchParams?.get('togId') || searchParams?.get('locationId') || searchParams?.get('hotelId') || '';
         const currentQ = searchParams?.get('q') || q || '';
         const searchTargetKey = `${slug || ''}_${targetId}_${lat}_${lng}_${currentQ}`;
 
@@ -60,20 +61,56 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
                 // If map is not already centered on this target city (e.g. > 500m away)
                 if (dist > 500) {
                     if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
-                    map.flyTo([lat, lng], 11, { duration: 0.9 });
+                    const isPoi = searchParams?.get('type') === 'POI' || Boolean(searchParams?.get('poiId'));
+                    map.flyTo([lat, lng], isPoi ? 12 : 11, { duration: 0.9 });
                     setTimeout(() => {
                         if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
                     }, 1000);
                 }
             }
         }
-    }, [slug, q, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('regionId'), searchParams?.get('togId'), searchParams?.get('locationId'), searchParams?.get('q'), map, isProgrammaticMoveRef]);
+    }, [slug, q, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('poiId'), searchParams?.get('regionId'), searchParams?.get('togId'), searchParams?.get('locationId'), searchParams?.get('q'), map, isProgrammaticMoveRef]);
 
     // 2. Auto-fit bounds once hotels are loaded and shouldRefit is true
     React.useEffect(() => {
         if (isLoading || !shouldRefit || !map) return;
 
-        if (hotels && hotels.length > 0) {
+        const isPoi = searchParams?.get('type') === 'POI' || Boolean(searchParams?.get('poiId'));
+        const lat = parseFloat(searchParams?.get('lat'));
+        const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
+        const hasCoords = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+
+        if (isPoi && hasCoords) {
+            // For POI search, keep map strictly focused around the POI coordinates.
+            // Never zoom out to show the whole country or city.
+            const valid = (hotels || []).filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
+            const closeHotels = valid.filter(h => map.distance([lat, lng], [parseFloat(h.lat), parseFloat(h.lng)]) < 25000);
+
+            if (closeHotels.length > 0) {
+                try {
+                    const points = closeHotels.map(h => [parseFloat(h.lat), parseFloat(h.lng)]);
+                    points.push([lat, lng]);
+                    const bounds = L.latLngBounds(points);
+                    if (bounds.isValid()) {
+                        const boundsKey = `poi_${closeHotels.length}_${bounds.getNorthEast().lat.toFixed(3)}_${bounds.getSouthWest().lng.toFixed(3)}`;
+                        if (lastFittedBoundsRef.current !== boundsKey) {
+                            lastFittedBoundsRef.current = boundsKey;
+                            if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+                            map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 13, duration: 1.0 });
+                            if (onRefitDone) onRefitDone();
+                            setTimeout(() => {
+                                if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                            }, 1100);
+                            return;
+                        }
+                    }
+                } catch (_e) { }
+            } else {
+                map.setView([lat, lng], 12);
+                if (onRefitDone) onRefitDone();
+                return;
+            }
+        } else if (hotels && hotels.length > 0) {
             const valid = hotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
             if (valid.length > 0) {
                 try {
@@ -96,7 +133,7 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
         }
 
         if (onRefitDone) onRefitDone();
-    }, [hotels, isLoading, shouldRefit, map, onRefitDone, isProgrammaticMoveRef]);
+    }, [hotels, isLoading, shouldRefit, map, onRefitDone, isProgrammaticMoveRef, searchParams]);
 
     return null;
 };
@@ -461,7 +498,7 @@ const PriceMarker = React.memo(({
 
     const formattedRating = (parseFloat(hotel.rating) || 4.2).toFixed(1).replace('.', ',');
     const reviewCount = hotel.reviewCount || (hotel.stars ? hotel.stars * 115 + 42 : 432);
-    const imageUrl = (hotel.images && hotel.images.length > 0) ? hotel.images[0] : (hotel.image || placeholderHotel);
+    const imageUrl = (hotel.images && hotel.images.length > 0) ? hotel.images[0] : (hotel.image || hotel.thumbnail || placeholderHotel);
 
     const showPricesText = {
         tr: 'Fiyatları göster',
@@ -794,15 +831,79 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
     const currencySymbol = getCurrencySymbol(hotel.currency);
     const formattedPrice = hotel.price ? Math.round(hotel.price).toLocaleString('tr-TR') : '';
 
-    const starTypeLabelMap = {
-        tr: 'Yıldızlı Otel', en: 'Star Hotel', ar: 'نجوم', de: 'Sterne Hotel',
-        fr: 'Étoiles', ru: 'Звезд', zh: '星酒店', es: 'Estrellas', it: 'Stelle', ja: '星ホテル'
-    };
-    const typeLabel = hotel.stars > 0
-        ? `${hotel.stars} ${starTypeLabelMap[currentLang] || starTypeLabelMap.en}`
-        : (hotel.type || 'Hotel');
+    const starLabel = React.useMemo(() => {
+        const count = Math.round(Number(hotel.stars) || 0);
+        if (count > 0) {
+            const labels = {
+                tr: `${count} yıldızlı otel`,
+                en: `${count}-star hotel`,
+                de: `${count}-Sterne-Hotel`,
+                ar: `فندق ${count} نجوم`,
+                fr: `Hôtel ${count} étoiles`,
+                es: `Hotel de ${count} estrellas`,
+                ru: `${count}-звездочный отель`
+            };
+            return labels[currentLang] || labels.en;
+        }
+        return hotel.type || (currentLang === 'tr' ? 'Otel' : 'Hotel');
+    }, [hotel.stars, hotel.type, currentLang]);
 
     const ratingNum = parseFloat(hotel.rating) || 0;
+    const displayRating = React.useMemo(() => {
+        if (!ratingNum || ratingNum <= 0) return null;
+        let val = ratingNum;
+        if (val > 5.0) {
+            val = val / 2; // Normalize 10-point scale to Google's 5.0 scale
+        }
+        const str = val.toFixed(1);
+        return currentLang === 'tr' ? str.replace('.', ',') : str;
+    }, [ratingNum, currentLang]);
+
+    const displayAmenities = React.useMemo(() => {
+        const items = [];
+
+        // 1. Star / Category info is ALWAYS the 1st item in Google
+        items.push({ icon: 'hotel', label: starLabel });
+
+        // 2. Meal / Board (e.g. Kahvaltı ($), Kahvaltı Dahil, Sadece Oda)
+        if (hotel.boardName) {
+            const bLower = hotel.boardName.toLowerCase();
+            const isBreakfast = bLower.includes('breakfast') || bLower.includes('kahvalt');
+            const icon = isBreakfast ? 'free_breakfast' : 'restaurant';
+            items.push({ icon, label: hotel.boardName });
+        }
+
+        // 3. Hotel facilities/amenities
+        if (Array.isArray(hotel.amenities)) {
+            hotel.amenities.forEach(a => {
+                const label = typeof a === 'object' ? (Array.isArray(a.label) ? a.label[0] : a.label) : String(a);
+                const icon = (typeof a === 'object' && a.icon) ? a.icon : 'check_circle';
+                if (label && label.toLowerCase() !== starLabel.toLowerCase()) {
+                    items.push({ icon, label });
+                }
+            });
+        }
+
+        // Deduplicate
+        const seen = new Set();
+        const unique = [];
+        items.forEach(item => {
+            const key = (item.label || '').trim().toLowerCase();
+            if (key && !seen.has(key)) {
+                seen.add(key);
+                unique.push(item);
+            }
+        });
+
+        const sliced = unique.slice(0, 9);
+        if (unique.length > 9 && sliced.length === 9) {
+            sliced[8] = {
+                icon: 'checklist',
+                label: currentLang === 'tr' ? 'Tüm özelliklere sahip' : 'All amenities'
+            };
+        }
+        return sliced;
+    }, [starLabel, hotel.boardName, hotel.amenities, currentLang]);
 
     const showPricesLabel = {
         tr: 'Fiyatları göster', en: 'Show prices', ar: 'عرض الأسعار', de: 'Preise anzeigen',
@@ -817,12 +918,11 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
         fr: 'Annulation gratuite', ru: 'Бесплатная отмена', zh: '免费取消', es: 'Cancelación gratuita', it: 'Cancellazione gratuita'
     };
     const hasPriceDrop = hotel.strikethroughPrice && hotel.strikethroughPrice > hotel.price;
-    const hasMeal = hotel.boardName && !hotel.boardName.toLowerCase().includes('room only') && !hotel.boardName.toLowerCase().includes('sadece oda');
-    const isGreatDeal = hasPriceDrop && hasMeal && hotel.hasFreeCancellation;
-    const discountPercent = hasPriceDrop ? Math.round(((hotel.strikethroughPrice - hotel.price) / hotel.strikethroughPrice) * 100) : 0;
+    const isGreatDeal = hasPriceDrop || Boolean(hotel.isRecommended);
+    const discountPercent = hasPriceDrop ? Math.round(((hotel.strikethroughPrice - hotel.price) / hotel.strikethroughPrice) * 100) : 20;
 
     const greatDealLabel = {
-        tr: 'HARİKA FIRSAT', en: 'GREAT DEAL', ar: 'عرض رائع', de: 'TOLLES ANGEBOT',
+        tr: 'FIRSAT', en: 'DEAL', ar: 'عرض', de: 'ANGEBOT',
         fr: 'SUPER OFFRE', ru: 'ОТЛИЧНОЕ ПРЕДЛОЖЕНИЕ', zh: '超值特价', es: 'GRAN OFERTA', it: 'OTTIMO AFFARE'
     };
 
@@ -965,66 +1065,36 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         {hotel.name}
                     </Link>
 
-                    {/* Classification & Guest Rating */}
-                    <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                        {hotel.stars > 0 && (
-                            <div className="flex items-center gap-1">
-                                <div className="flex">
-                                    {[...Array(Math.min(5, Math.floor(hotel.stars)))].map((_, i) => (
-                                        <span key={i} style={{ fontSize: '12px', color: '#fabb05' }}>★</span>
-                                    ))}
-                                </div>
-                                <span className="text-[12px] text-[#5f6368] dark:text-slate-400 font-medium">
-                                    {typeLabel}
+                    {/* Google-style Rating line: 4,8 ★ (485) */}
+                    {displayRating && (
+                        <div className="flex items-center gap-1 mt-0.5 text-[13px]">
+                            <span className="font-bold text-[#202124] dark:text-slate-100 font-roboto">
+                                {displayRating}
+                            </span>
+                            <span className="text-[#fabb05] text-[13px] leading-none select-none">★</span>
+                            {hotel.reviewsCount > 0 && (
+                                <span className="text-[#1a73e8] dark:text-blue-400 font-normal hover:underline cursor-pointer">
+                                    ({hotel.reviewsCount.toLocaleString(currentLang === 'tr' ? 'tr-TR' : 'en-US')})
                                 </span>
-                            </div>
-                        )}
+                            )}
+                        </div>
+                    )}
 
-                        {hotel.stars > 0 && ratingNum > 0 && (
-                            <span className="text-[#dadce0] dark:text-slate-600 text-[12px]">•</span>
-                        )}
-
-                        {ratingNum > 0 && (
-                            <div className="flex items-center gap-1.5">
-                                <span className="inline-flex items-center justify-center bg-[#1a73e8] text-white text-[11px] font-bold px-1.5 py-0.5 rounded-sm">
-                                    {ratingNum.toFixed(1)}
-                                </span>
-                                <span className="text-[12px] text-[#3c4043] dark:text-slate-200 font-medium">
-                                    {hotel.ratingLabel}
-                                </span>
-                                {hotel.reviewsCount > 0 && (
-                                    <span className="text-[12px] text-[#70757a] dark:text-slate-400">
-                                        ({hotel.reviewsCount.toLocaleString('tr-TR')})
+                    {/* Google-style Amenities grid (3x3 - 9 items) */}
+                    {displayAmenities.length > 0 && (
+                        <div className="grid grid-cols-3 gap-x-3 gap-y-1 mt-2">
+                            {displayAmenities.map((amenity, i) => (
+                                <div key={i} className="flex items-center gap-1.5 text-[12.5px] text-[#3c4043] dark:text-slate-300 min-w-0 font-roboto" title={amenity.label}>
+                                    <span className="material-symbols-outlined text-[#5f6368] dark:text-slate-400 shrink-0" style={{ fontSize: '17px' }}>
+                                        {amenity.icon}
                                     </span>
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Amenities grid (3x3 - 9 items) */}
-                    {(() => {
-                        const displayAmenities = [
-                            ...(typeLabel ? [{ icon: 'hotel', label: typeLabel }] : []),
-                            ...(hotel.boardName ? [{ icon: 'local_cafe', label: hotel.boardName }] : []),
-                            ...(hotel.amenities || []).filter(a => {
-                                const lbl = Array.isArray(a.label) ? a.label[0] : a.label;
-                                return lbl && lbl !== typeLabel;
-                            })
-                        ].slice(0, 9);
-
-                        return displayAmenities.length > 0 ? (
-                            <div className="grid grid-cols-3 gap-x-3 gap-y-1 mt-2">
-                                {displayAmenities.map((amenity, i) => (
-                                    <div key={i} className="flex items-center gap-1.5 text-[13px] text-[#5f6368] dark:text-slate-300 min-w-0 font-roboto">
-                                        <span className="material-symbols-outlined text-[#70757a] dark:text-slate-400 shrink-0" style={{ fontSize: '18px' }}>{amenity.icon}</span>
-                                        <span className="truncate">
-                                            {Array.isArray(amenity.label) ? amenity.label[0] : amenity.label}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : null;
-                    })()}
+                                    <span className="truncate">
+                                        {amenity.label}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Bottom row: free cancel + board Name */}
                     <div className="flex items-center gap-2 min-w-0 mt-auto pt-4">
@@ -2148,6 +2218,27 @@ const HotelListing = () => {
     const togId = searchParams.get('togId') || searchParams.get('hotelId') || '';
     const regionId = searchParams.get('regionId') || searchParams.get('locationId') || '';
     const locationId = regionId;
+    const poiId = searchParams.get('poiId') || '';
+    const isPoiSearch = searchParams.get('type') === 'POI' || Boolean(poiId);
+    const paramLat = parseFloat(searchParams.get('lat'));
+    const paramLng = parseFloat(searchParams.get('lng') || searchParams.get('lon'));
+    const hasValidCoords = !isNaN(paramLat) && !isNaN(paramLng) && paramLat !== 0 && paramLng !== 0;
+
+    // Build initial geographic bounding box for POI or coordinate-based searches (~10-15km radius)
+    const initialPoiBounds = React.useMemo(() => {
+        if ((isPoiSearch || poiId || !regionId) && hasValidCoords) {
+            const latDelta = 0.08;
+            const lonDelta = 0.12;
+            return {
+                bounds: {
+                    topLeft: { lat: paramLat + latDelta, lon: paramLng - lonDelta },
+                    bottomRight: { lat: paramLat - latDelta, lon: paramLng + lonDelta }
+                },
+                zoom: 12
+            };
+        }
+        return null;
+    }, [isPoiSearch, poiId, regionId, hasValidCoords, paramLat, paramLng]);
 
     // Resolve initial map center immediately so Turkey is not displayed needlessly
     const initialMapState = React.useMemo(() => {
@@ -2384,25 +2475,20 @@ const HotelListing = () => {
         else if (ratingVal >= 7) ratingLabel = 'Very Good';
 
         let amenities = [];
-        const rawFacs = apiHotel.hotelFacilityIds || apiHotel.facilities || apiHotel.facilityIds || apiHotel.hotelFacilities;
+        const rawFacs = apiHotel.facilities || apiHotel.hotelFacilityIds || apiHotel.facilityIds || apiHotel.hotelFacilities || apiHotel.amenities;
         if (rawFacs && Array.isArray(rawFacs)) {
-            const iconGroups = {};
+            const seenLabels = new Set();
             rawFacs.forEach(f => {
-                const id = typeof f === 'object' ? (f.facilityId || f.id || f.value) : f;
-                const match = FACILITY_ICON_MAP[Number(id)];
-                if (match) {
-                    const localizedLabel = typeof f === 'object' && f.names
-                        ? (f.names[currentLang] || f.names.en || match.label) : match.label;
-                    if (!iconGroups[match.icon]) {
-                        iconGroups[match.icon] = { ...match, labels: [localizedLabel] };
-                    } else if (!iconGroups[match.icon].labels.includes(localizedLabel)) {
-                        iconGroups[match.icon].labels.push(localizedLabel);
+                const resolved = resolveFacility(f, currentLang);
+                if (resolved && resolved.label) {
+                    const norm = resolved.label.trim().toLowerCase();
+                    if (!seenLabels.has(norm)) {
+                        seenLabels.add(norm);
+                        amenities.push(resolved);
                     }
                 }
             });
-            amenities = Object.values(iconGroups).map(g => ({ icon: g.icon, label: g.labels })).slice(0, 20);
         }
-        if (amenities.length === 0) amenities = [{ icon: 'info', label: ['Details'] }];
 
         let imagesToMap = [];
         const seen = new Set();
@@ -2494,8 +2580,115 @@ const HotelListing = () => {
         if (currentParams) localStorage.setItem('last_hotel_search_params', currentParams);
     }, [slug, searchParams]);
 
-    // Map points are provided directly by search results without extra /map request
-    const fetchMapMarkers = React.useCallback(() => {}, []);
+    // Client-side marker pool to accumulate map pins without flickering
+    const markerPoolRef = React.useRef(new Map());
+    const lastFetchedBoundsRef = React.useRef(null);
+    const mapFetchDebounceRef = React.useRef(null);
+
+    // Pan threshold check: skips re-fetch if movement is less than 15% of viewport width/height
+    const isSignificantPan = (newBounds, oldBounds) => {
+        if (!oldBounds || !newBounds || !oldBounds.bounds || !newBounds.bounds) return true;
+        if (newBounds.zoom !== oldBounds.zoom) return true;
+        const oldLat = (oldBounds.bounds.topLeft.lat + oldBounds.bounds.bottomRight.lat) / 2;
+        const oldLng = (oldBounds.bounds.topLeft.lon + oldBounds.bounds.bottomRight.lon) / 2;
+        const newLat = (newBounds.bounds.topLeft.lat + newBounds.bounds.bottomRight.lat) / 2;
+        const newLng = (newBounds.bounds.topLeft.lon + newBounds.bounds.bottomRight.lon) / 2;
+        const latSpan = Math.abs(newBounds.bounds.topLeft.lat - newBounds.bounds.bottomRight.lat);
+        const lngSpan = Math.abs(newBounds.bounds.bottomRight.lon - newBounds.bounds.topLeft.lon);
+        return Math.abs(newLat - oldLat) > latSpan * 0.15 || Math.abs(newLng - oldLng) > lngSpan * 0.15;
+    };
+
+    // Dedicated Map Search: Fetches 100+ priced markers without clearing existing points (zero flicker)
+    const fetchMapMarkers = React.useCallback(async (geoBounds = null, isReset = false) => {
+        const bounds = geoBounds || mapBoundsRef.current || initialPoiBounds;
+        if (!bounds || !bounds.bounds) return;
+
+        if (!isReset && !isSignificantPan(bounds, lastFetchedBoundsRef.current)) {
+            return;
+        }
+
+        if (isReset) {
+            markerPoolRef.current.clear();
+            setMapMarkers([]);
+        }
+
+        lastFetchedBoundsRef.current = bounds;
+
+        if (mapAbortControllerRef.current) {
+            mapAbortControllerRef.current.abort();
+        }
+        const controller = new AbortController();
+        mapAbortControllerRef.current = controller;
+        setIsMapMarkersLoading(true);
+
+        const filters = getSearchParams();
+        const existingIds = Array.from(markerPoolRef.current.keys());
+
+        try {
+            const res = await hotelService.searchHotelMapMarkers({
+                locationId: isPoiSearch ? null : (regionId || locationId || null),
+                regionId: isPoiSearch ? null : (regionId || null),
+                geo: bounds.bounds,
+                zoom: bounds.zoom || 12,
+                limit: 100,
+                excludeHotelIds: existingIds,
+                filters: {
+                    togIds: filters.hotelIds || null,
+                    stars: filters.stars || null,
+                    preferred: filters.recommended ?? null,
+                    hasFreeCancellation: filters.freeCancellation ?? null,
+                    hasPrePayment: filters.prePayment ?? null,
+                    facilities: filters.facilities || null
+                },
+                searchCriteria: (() => {
+                    const sanitized = validateAndSanitizeDates(searchParams.get('checkin'), searchParams.get('checkout'));
+                    return {
+                        checkin: formatDateForUrl(sanitized.checkInDate),
+                        checkout: formatDateForUrl(sanitized.checkOutDate),
+                        nationality: searchParams.get('nationality') || 'TR',
+                        rooms: roomState
+                    };
+                })(),
+                forceMarkers: true,
+                signal: controller.signal
+            });
+
+            if (res && Array.isArray(res.markers)) {
+                let hasNew = false;
+                res.markers.forEach(m => {
+                    if (m && m.id && m.lat && m.lng && m.price && Number(m.price) > 0) {
+                        markerPoolRef.current.set(m.id, {
+                            id: m.id,
+                            hotelId: m.id,
+                            name: m.name,
+                            lat: m.lat,
+                            lng: m.lng,
+                            price: m.price,
+                            currency: m.currency || 'TRY',
+                            rating: m.rating,
+                            stars: m.stars,
+                            thumbnail: m.thumbnail,
+                            image: m.thumbnail,
+                            city: m.city,
+                            isRecommended: m.isRecommended
+                        });
+                        hasNew = true;
+                    }
+                });
+                if (hasNew || isReset) {
+                    setMapMarkers(Array.from(markerPoolRef.current.values()));
+                }
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('Error fetching map markers:', err);
+            }
+        } finally {
+            if (mapAbortControllerRef.current === controller) {
+                setIsMapMarkersLoading(false);
+            }
+        }
+    }, [regionId, locationId, isPoiSearch, initialPoiBounds, roomState, searchParams]);
 
     const handleClusterClick = React.useCallback((cluster) => {
         if (!mapInstance || !cluster.lat || !cluster.lng) return;
@@ -2513,9 +2706,11 @@ const HotelListing = () => {
             mapBoundsRef.current = null;
             setMapMoved(false);
             setShouldRefitMap(true);
+            markerPoolRef.current.clear();
+            setMapMarkers([]);
         }
 
-        const activeGeoBounds = geoBounds || (isReset ? null : mapBoundsRef.current);
+        const activeGeoBounds = geoBounds || (isReset ? (initialPoiBounds || null) : (mapBoundsRef.current || initialPoiBounds || null));
         if (activeGeoBounds) {
             setShouldRefitMap(false);
         }
@@ -2609,6 +2804,15 @@ const HotelListing = () => {
                     }
                 });
                 if (Object.keys(newLocationNames).length > 0) setLocationNames(prev => ({ ...prev, ...newLocationNames }));
+                if (currentPage === 0) {
+                    setTimeout(() => {
+                        if (mapBoundsRef.current) {
+                            fetchMapMarkers(mapBoundsRef.current, false);
+                        } else if (activeGeoBounds) {
+                            fetchMapMarkers(activeGeoBounds, false);
+                        }
+                    }, 600);
+                }
             } else {
                 setHasMore(false);
                 hasMoreRef.current = false;
@@ -2627,7 +2831,7 @@ const HotelListing = () => {
                 isFetchingRef.current = false;
             }
         }
-    }, [locationId, regionId, togId, mapApiHotelToModel, roomState, searchParams, sortConfig, fetchMapMarkers]);
+    }, [locationId, regionId, togId, isPoiSearch, initialPoiBounds, mapApiHotelToModel, roomState, searchParams, sortConfig, fetchMapMarkers]);
 
     // Infinite scroll observer for loading more hotel cards on scroll
     React.useEffect(() => {
@@ -2649,15 +2853,28 @@ const HotelListing = () => {
         };
     }, [loadMoreHotels, isLoading]);
 
-    // Map markers derived directly from loaded search results with real room prices and coordinates
+    // Map markers derived from the accumulated map marker pool + current page hotels with valid prices
     const effectiveMapMarkers = React.useMemo(() => {
-        return displayedHotels.filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)));
-    }, [displayedHotels]);
+        if (displayedHotels && displayedHotels.length > 0) {
+            displayedHotels.forEach(h => {
+                const hid = h.id || h.hotelId;
+                if (hid && h.lat && h.lng && h.price && Number(h.price) > 0 && !markerPoolRef.current.has(hid)) {
+                    markerPoolRef.current.set(hid, h);
+                }
+            });
+        }
+        return Array.from(markerPoolRef.current.values())
+            .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)) && h.price && Number(h.price) > 0);
+    }, [mapMarkers, displayedHotels]);
 
-    const handleMapBoundsChange = React.useCallback((boundsData) => {
+    const handleMapBoundsChange = React.useCallback(async (boundsData) => {
+        if (!boundsData) return;
         mapBoundsRef.current = boundsData;
-        setMapMoved(false);
-        loadMoreHotels(true, boundsData);
+        try {
+            await loadMoreHotels(true, boundsData);
+        } finally {
+            setMapMoved(false);
+        }
     }, [loadMoreHotels]);
 
     const handleMapMoved = React.useCallback((boundsData) => {
@@ -2920,7 +3137,8 @@ const HotelListing = () => {
         return () => { if (abortControllerRef.current) abortControllerRef.current.abort(); };
     }, [
         slug, locationId, sortConfig,
-        searchParams.get('q'),
+        searchParams.get('q'), searchParams.get('poiId'), searchParams.get('type'),
+        searchParams.get('lat'), searchParams.get('lng'),
         location.state?.searchTimestamp,
         searchParams.get('checkin'), searchParams.get('checkout'),
         searchParams.get('guests'), searchParams.get('nationality'),
@@ -3897,26 +4115,23 @@ const HotelListing = () => {
                         </button>
                     </div>
 
-                    {/* Top center: Search-on-move toggle OR "Bu alanda ara" button */}
-                    <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center justify-center">
-                        {/* Show manual search button when map moved and searchOnMapMove is off */}
-                        {mapMoved && !searchOnMapMove && (
+                    {/* Top center: Either "Listeyi güncelle" (when map moved & manual mode) OR "Harita hareket ettiğinde listeyi güncelle" toggle */}
+                    <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2">
+                        {mapMoved && !searchOnMapMove ? (
                             <button
                                 type="button"
+                                disabled={isLoading}
                                 onClick={() => {
                                     isUserPanRef.current = false;
                                     setShouldRefitMap(false);
                                     handleMapBoundsChange(mapBoundsRef.current);
                                 }}
-                                className="flex items-center gap-1.5 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#1a73e8] dark:text-blue-400 font-semibold rounded-full px-4 py-2 text-[13px] shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all cursor-pointer active:scale-95 border border-[#1a73e8]/30 whitespace-nowrap"
+                                className="flex items-center gap-1.5 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#1a73e8] dark:text-blue-400 font-semibold rounded-full px-4 py-2 text-[13px] shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all cursor-pointer active:scale-95 border border-[#1a73e8]/30 whitespace-nowrap disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                <span className={`material-symbols-outlined text-[18px] ${isLoading || isMapMarkersLoading ? 'animate-spin' : ''}`}>refresh</span>
-                                <span>{tListing('searchThisArea', currentLang)}</span>
+                                <span className={`material-symbols-outlined text-[18px] ${isLoading ? 'animate-spin' : ''}`}>refresh</span>
+                                <span>{isLoading ? (tListing('searching', currentLang) || 'Aranıyor...') : tListing('searchThisArea', currentLang)}</span>
                             </button>
-                        )}
-
-                        {/* Show "Haritayı kaydırdıkça ara" toggle when map has not moved or when searchOnMapMove is already on */}
-                        {(!mapMoved || searchOnMapMove) && (
+                        ) : (
                             <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3.5 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
                                 <button
                                     type="button"

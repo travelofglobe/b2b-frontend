@@ -230,13 +230,23 @@ export const KNOWN_DESTINATIONS = {
 
 export const resolveKnownCoordinates = (str) => {
     if (!str) return null;
-    const clean = str.toLowerCase()
+    const lower = str.toLowerCase();
+    // Guard: If query is specifically an airport, station, hotel or POI, do not fallback to generic city center!
+    if (
+        lower.includes('saw') || lower.includes('ist-') || lower.includes('airport') ||
+        lower.includes('havaliman') || lower.includes('havaalan') || lower.includes('station') ||
+        lower.includes('istasyon') || lower.includes('hotel') || lower.includes('otel') ||
+        lower.includes('museum') || lower.includes('muze')
+    ) {
+        return null;
+    }
+    const clean = lower
         .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
         .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
         .replace(/[^a-z0-9]/g, '');
     if (!clean) return null;
     for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
-        if (clean.includes(key) || key.includes(clean)) {
+        if (clean === key || (clean.startsWith(key) && clean.length <= key.length + 3)) {
             return val;
         }
     }
@@ -247,10 +257,10 @@ export const resolveKnownCoordinates = (str) => {
  * Resolves the appropriate search ID parameter and value for an autocomplete item:
  * - PROPERTY / HOTEL -> { param: 'togId', id: togId }
  * - GEOGRAPHY_REGION / LOCATION -> { param: 'regionId', id: regionId }
- * - POI -> { param: 'regionId', id: regionId } (uses POI's parent regionId)
+ * - POI -> { param: 'poiId', id: poiId, type: 'POI', regionId: regionId }
  *
  * @param {Object} item
- * @returns {{ param: 'togId'|'regionId'|null, id: string|number|null }}
+ * @returns {{ param: 'togId'|'regionId'|'poiId'|null, id: string|number|null, type?: string, regionId?: string|number|null }}
  */
 export const resolveSearchTargetId = (item) => {
     if (!item) return { param: null, id: null };
@@ -264,15 +274,15 @@ export const resolveSearchTargetId = (item) => {
         return { param: 'togId', id: togId || null };
     }
 
-    // 2. POI
-    if (type === 'POI' || item.poiId) {
-        // For POI, send its regionId (parent region)
-        let regionId = item.regionId;
-        if (!regionId && Array.isArray(item.ancestors)) {
+    // 2. POI (Point of Interest / Airport / Station)
+    if (type === 'POI' || item.poiId || item.category === 'AIRPORT') {
+        const poiId = item.poiId || (typeof item.id === 'string' ? item.id.replace('poi_', '') : item.id);
+        let parentRegionId = item.regionId;
+        if (!parentRegionId && Array.isArray(item.ancestors)) {
             const parent = item.ancestors.find(a => a.type === 'neighborhood' || a.type === 'city' || a.type === 'province_state' || a.type === 'country');
-            if (parent) regionId = parent.regionId || parent.id;
+            if (parent) parentRegionId = parent.regionId || parent.id;
         }
-        return { param: 'regionId', id: regionId || null };
+        return { param: 'poiId', id: poiId || null, type: 'POI', regionId: parentRegionId || null };
     }
 
     // 3. GEOGRAPHY_REGION / LOCATION
@@ -291,6 +301,7 @@ export const isPoiItem = (item) => {
     if (!item) return false;
     return item.type === 'POI' ||
         Boolean(item.poiId) ||
+        item.category === 'AIRPORT' ||
         (item.locationType && String(item.locationType).toLowerCase().includes('poi')) ||
         (item.locationType && String(item.locationType).toLowerCase().includes('point_of_interest'));
 };

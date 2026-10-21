@@ -4115,10 +4115,9 @@ const HotelListing = () => {
                         </button>
                     </div>
 
-                    {/* Top center: Search-on-move toggle & "Bu alanda ara" button */}
+                    {/* Top center: Either "Listeyi güncelle" (when map moved & manual mode) OR "Harita hareket ettiğinde listeyi güncelle" toggle */}
                     <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2">
-                        {/* Show manual search button when map moved and searchOnMapMove is off */}
-                        {mapMoved && !searchOnMapMove && (
+                        {mapMoved && !searchOnMapMove ? (
                             <button
                                 type="button"
                                 disabled={isLoading}
@@ -4132,29 +4131,28 @@ const HotelListing = () => {
                                 <span className={`material-symbols-outlined text-[18px] ${isLoading ? 'animate-spin' : ''}`}>refresh</span>
                                 <span>{isLoading ? (tListing('searching', currentLang) || 'Aranıyor...') : tListing('searchThisArea', currentLang)}</span>
                             </button>
+                        ) : (
+                            <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3.5 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+                                <button
+                                    type="button"
+                                    onClick={handleToggleSearchOnMove}
+                                    className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 cursor-pointer ${searchOnMapMove
+                                            ? 'bg-[#1a73e8] border-[#1a73e8]'
+                                            : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
+                                        }`}
+                                >
+                                    {searchOnMapMove && (
+                                        <span className="material-symbols-outlined text-white text-[12px] font-bold">check</span>
+                                    )}
+                                </button>
+                                <span
+                                    onClick={handleToggleSearchOnMove}
+                                    className="text-[12px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
+                                >
+                                    {tListing('searchMapMoves', currentLang)}
+                                </span>
+                            </div>
                         )}
-
-                        {/* Always visible "Haritayı kaydırdıkça ara" toggle */}
-                        <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3.5 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
-                            <button
-                                type="button"
-                                onClick={handleToggleSearchOnMove}
-                                className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 cursor-pointer ${searchOnMapMove
-                                        ? 'bg-[#1a73e8] border-[#1a73e8]'
-                                        : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
-                                    }`}
-                            >
-                                {searchOnMapMove && (
-                                    <span className="material-symbols-outlined text-white text-[12px] font-bold">check</span>
-                                )}
-                            </button>
-                            <span
-                                onClick={handleToggleSearchOnMove}
-                                className="text-[12px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
-                            >
-                                {tListing('searchMapMoves', currentLang)}
-                            </span>
-                        </div>
                     </div>
 
                     {/* Bottom-left: Map layer switcher (Google Maps style) */}

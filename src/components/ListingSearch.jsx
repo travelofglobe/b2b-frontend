@@ -81,6 +81,7 @@ const ListingSearch = ({ isCompact = false }) => {
     const [showDropdown, setShowDropdown] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const [searchHistory, setSearchHistory] = useState([]);
+    const [isClearingHistory, setIsClearingHistory] = useState(false);
 
     const fetchSearchHistory = async () => {
         try {
@@ -100,11 +101,18 @@ const ListingSearch = ({ isCompact = false }) => {
 
     const handleClearHistory = async (e) => {
         if (e) e.stopPropagation();
+        if (isClearingHistory) return;
+        setIsClearingHistory(true);
         try {
-            await autocompleteService.clearSearchHistory();
+            await Promise.all([
+                autocompleteService.clearSearchHistory(),
+                new Promise(resolve => setTimeout(resolve, 350))
+            ]);
             setSearchHistory([]);
         } catch (err) {
             console.error("Error clearing search history:", err);
+        } finally {
+            setIsClearingHistory(false);
         }
     };
 
@@ -950,16 +958,24 @@ const ListingSearch = ({ isCompact = false }) => {
                             <div className="max-h-[460px] overflow-y-auto py-1 scrollbar-thin">
                                 {/* 1. Search History Items */}
                                 {matchingHistory.length > 0 && (
-                                    <div>
+                                    <div className={isClearingHistory ? 'opacity-40 pointer-events-none transition-opacity duration-200' : 'transition-opacity duration-200'}>
                                         <div className="flex items-center justify-between px-4 py-2 border-b border-[#f1f3f4] dark:border-[#3c4043] mb-1">
                                             <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">Son Aramalar</span>
                                             {!query.trim() && (
                                                 <button
                                                     type="button"
                                                     onClick={handleClearHistory}
-                                                    className="text-[11px] font-medium text-[#1a73e8] hover:underline transition-colors cursor-pointer"
+                                                    disabled={isClearingHistory}
+                                                    className="text-[11px] font-medium text-[#1a73e8] hover:underline transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-70"
                                                 >
-                                                    Temizle
+                                                    {isClearingHistory ? (
+                                                        <>
+                                                            <span className="material-symbols-outlined text-[13px] animate-spin">progress_activity</span>
+                                                            <span>Temizleniyor...</span>
+                                                        </>
+                                                    ) : (
+                                                        <span>Temizle</span>
+                                                    )}
                                                 </button>
                                             )}
                                         </div>

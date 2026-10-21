@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
@@ -139,17 +139,13 @@ const IosBatteryCredit = ({
         }
     };
 
-    // Color definitions
-    const fillColors = {
-        charging: '#34C759',    // Apple Green
-        normal: '#34C759',      // Apple Green (iOS Healthy Level)
-        'low-power': '#FFCC00', // Apple Yellow (Low Power Mode)
-        critical: '#FF3B30'     // Apple Red (Low Battery)
-    };
+    const rawId = useId();
+    const clipId = `ios27-battery-${rawId.replace(/[^a-zA-Z0-9_-]/g, '')}`;
 
+    // Color definitions
     const textColors = {
-        charging: 'text-emerald-600 dark:text-emerald-400',
-        normal: 'text-slate-800 dark:text-slate-100',
+        charging: 'text-slate-900 dark:text-white',
+        normal: 'text-slate-900 dark:text-white',
         'low-power': 'text-amber-600 dark:text-amber-400',
         critical: 'text-rose-600 dark:text-rose-400'
     };
@@ -159,13 +155,13 @@ const IosBatteryCredit = ({
         charging: {
             title: 'Kredi Kapasitesi: %100',
             subtitle: 'Tam Dolu • Kullanıma Hazır',
-            dotColor: 'bg-[#34C759]',
-            icon: 'bolt'
+            dotColor: 'bg-slate-900 dark:bg-white',
+            icon: 'verified_user'
         },
         normal: {
             title: `Kredi Sağlığı: %${percentage}`,
             subtitle: 'Güvenli ve Sağlıklı Seviye',
-            dotColor: 'bg-[#34C759]',
+            dotColor: 'bg-slate-900 dark:bg-white',
             icon: 'verified_user'
         },
         'low-power': {
@@ -184,7 +180,7 @@ const IosBatteryCredit = ({
 
     return (
         <div className="relative select-none">
-            {/* ── Trigger Button: Ultra-Compact iOS Battery with Credit Micro-Badge & Stacked Label ── */}
+            {/* ── Trigger Button: Ultra-Compact iOS 27 Battery with Credit Label ── */}
             <button
                 ref={buttonRef}
                 onClick={toggleOpen}
@@ -195,64 +191,74 @@ const IosBatteryCredit = ({
                 title={isLoading ? 'Kredi bilgileri yükleniyor...' : `Kredi Limiti: %${percentage} (${currencySymbol} ${formatNumber(availableLimit)} kullanılabilir) - Detaylar için tıklayın`}
                 aria-label="Kredi Durumu"
             >
-                {/* iPhone Battery Icon with Micro Wallet Badge */}
-                <div className="relative flex items-center text-slate-900 dark:text-white shrink-0">
+                {/* iOS 27 Minimalist Pill Battery Indicator */}
+                <div className="relative flex items-center shrink-0">
                     <svg
-                        className="w-[28px] h-[14px] shrink-0"
-                        viewBox="0 0 28 14"
+                        className="w-[29px] h-[13px] shrink-0"
+                        viewBox="0 0 31 13"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
                     >
-                        {/* Battery Outer Frame */}
-                        <rect
-                            x="0.75"
-                            y="0.75"
-                            width="23.5"
-                            height="12.5"
-                            rx="4"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                        />
-                        {/* Battery Positive Terminal (Nub on right) */}
-                        <path
-                            d="M25.5 4.75C26.19 4.75 26.75 5.31 26.75 6V8C26.75 8.69 26.19 9.25 25.5 9.25V4.75Z"
-                            fill="currentColor"
-                        />
-                        {/* Battery Inner Fill Level (with subtle shimmer when loading) */}
-                        {isLoading ? (
-                            <rect
-                                x="2.5"
-                                y="2.5"
-                                width="12"
-                                height="9"
-                                rx="2"
-                                fill="currentColor"
-                                className="opacity-30 animate-pulse"
-                            />
-                        ) : percentage > 0 ? (
-                            <rect
-                                x="2.5"
-                                y="2.5"
-                                width={Math.max(1.5, ((percentage / 100) * 20))}
-                                height="9"
-                                rx="2"
-                                fill={fillColors[batteryState]}
-                                className="transition-all duration-300 ease-out"
-                            />
-                        ) : null}
+                        <defs>
+                            <clipPath id={clipId}>
+                                <rect x="0" y="0" width="26" height="13" rx="6.5" />
+                            </clipPath>
+                        </defs>
 
-                        {/* Charging Lightning Bolt Icon inside Battery when fully charged & unused */}
-                        {isFullyCharged && (
-                            <path
-                                d="M13 2.5L8.5 7.5H12L11 11.5L16 6.5H12.5L13 2.5Z"
-                                fill="white"
-                                className="drop-shadow-xs"
-                            />
-                        )}
+                        {/* Battery Main Body Pill Track (Gray) */}
+                        <rect
+                            x="0"
+                            y="0"
+                            width="26"
+                            height="13"
+                            rx="6.5"
+                            className="fill-[#C7C7CC] dark:fill-[#3A3A3C] transition-colors"
+                        />
+
+                        {/* Battery Inner Fill Level (Clipped to Pill) */}
+                        <g clipPath={`url(#${clipId})`}>
+                            {isLoading ? (
+                                <rect
+                                    x="0"
+                                    y="0"
+                                    width="13"
+                                    height="13"
+                                    className="fill-slate-400 dark:fill-slate-500 opacity-50 animate-pulse"
+                                />
+                            ) : percentage > 0 ? (
+                                <rect
+                                    x="0"
+                                    y="0"
+                                    width={Math.max(1, (percentage / 100) * 26)}
+                                    height="13"
+                                    className={`transition-all duration-500 ease-out ${
+                                        batteryState === 'critical'
+                                            ? 'fill-[#FF3B30] dark:fill-[#FF453A]'
+                                            : batteryState === 'low-power'
+                                            ? 'fill-[#FFCC00] dark:fill-[#FFD60A]'
+                                            : 'fill-[#1C1C1E] dark:fill-white'
+                                    }`}
+                                />
+                            ) : null}
+                        </g>
+
+                        {/* Battery Positive Terminal (Nub on Right) */}
+                        <path
+                            d="M 27.5 3.75 H 28.5 C 29.8 3.75 30.5 4.7 30.5 6.5 C 30.5 8.3 29.8 9.25 28.5 9.25 H 27.5 Z"
+                            className={`transition-colors duration-300 ${
+                                percentage >= 99
+                                    ? (batteryState === 'critical'
+                                        ? 'fill-[#FF3B30] dark:fill-[#FF453A]'
+                                        : batteryState === 'low-power'
+                                        ? 'fill-[#FFCC00] dark:fill-[#FFD60A]'
+                                        : 'fill-[#1C1C1E] dark:fill-white')
+                                    : 'fill-[#C7C7CC] dark:fill-[#3A3A3C]'
+                            }`}
+                        />
                     </svg>
                 </div>
 
-                {/* Compact Stacked Percentage & Credit Label (Zero horizontal bloating) */}
+                {/* Compact Stacked Percentage & Credit Label */}
                 <div className="flex flex-col items-start leading-none shrink-0">
                     {isLoading ? (
                         <span className="text-[11px] font-bold tracking-tight tabular-nums text-slate-400 dark:text-slate-500 animate-pulse">
@@ -340,13 +346,13 @@ const IosBatteryCredit = ({
 
                                     {/* Minimalist Progress Line */}
                                     <div className="mt-3.5 space-y-1.5">
-                                        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                        <div className="w-full bg-[#E5E5EA] dark:bg-[#3A3A3C] rounded-full h-1.5 overflow-hidden">
                                             <div
                                                 className={`h-full rounded-full transition-all duration-300 ${
                                                     isLoading ? 'w-1/3 bg-slate-300 dark:bg-slate-700 animate-pulse' :
-                                                    batteryState === 'critical' ? 'bg-rose-500' :
-                                                    batteryState === 'low-power' ? 'bg-amber-500' :
-                                                    'bg-blue-600'
+                                                    batteryState === 'critical' ? 'bg-[#FF3B30]' :
+                                                    batteryState === 'low-power' ? 'bg-[#FFCC00]' :
+                                                    'bg-slate-900 dark:bg-white'
                                                 }`}
                                                 style={isLoading ? {} : { width: `${percentage}%` }}
                                             />

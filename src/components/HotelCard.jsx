@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
 import Tooltip from '../components/Tooltip';
 import { useFavorites } from '../context/FavoritesContext';
+import { getPropertyCategoryMeta } from '../utils/searchParamsUtils';
 
 const starSuffixes = {
     en: { star: 'Star', stars: 'Stars' },
@@ -183,6 +184,10 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
         return `${hotel.stars} ${suffix}`;
     };
 
+    const categoryMeta = React.useMemo(() => {
+        return getPropertyCategoryMeta(hotel, currentLang);
+    }, [hotel, currentLang]);
+
     const isList = viewMode === 'list';
     const [currentImg, setCurrentImg] = React.useState(0);
     const [isHovered, setIsHovered] = React.useState(false);
@@ -355,11 +360,23 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                 <div>
                     <div className="flex justify-between items-start mb-1">
                         <div>
-                            <div className="flex items-center gap-1 text-amber-400 mb-1">
-                                {[...Array(hotel.stars || 0)].map((_, i) => (
-                                    <span key={i} className="material-symbols-outlined text-[10px] fill-1">star</span>
-                                ))}
-                                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider ml-1">{getStarLabel()}</span>
+                            <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                                {categoryMeta && (
+                                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 dark:text-slate-300 mr-0.5" title={categoryMeta.name}>
+                                        <span className="material-symbols-outlined text-[13px] text-[#f06293]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                            {categoryMeta.icon}
+                                        </span>
+                                        <span>{categoryMeta.name}</span>
+                                    </span>
+                                )}
+                                {hotel.stars > 0 && (
+                                    <div className="flex items-center gap-0.5 text-amber-400">
+                                        {[...Array(hotel.stars || 0)].map((_, i) => (
+                                            <span key={i} className="material-symbols-outlined text-[10px] fill-1">star</span>
+                                        ))}
+                                        <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider ml-1">{getStarLabel()}</span>
+                                    </div>
+                                )}
                             </div>
                             <h3 className={`font-semibold leading-tight group-hover:text-primary transition-colors ${isList ? 'text-base sm:text-lg' : 'text-xs sm:text-sm'}`}>{hotel.name}</h3>
                             <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 mt-1 relative">

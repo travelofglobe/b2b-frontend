@@ -31,6 +31,7 @@ import { LISTING_LOCALES, AMENITY_LOCALES, getAmenityText, getLayerLabel, tListi
 import PoiMarker from '../components/PoiMarker';
 import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
 import { resolveFacility } from '../utils/facilityUtils';
+import { getPropertyCategoryMeta } from '../utils/searchParamsUtils';
 
 export const POI_CATEGORIES = [
     {
@@ -534,14 +535,18 @@ const PriceMarker = React.memo(({
         const centerX = Math.round(W / 2);
         const tailTipX = centerX; // Pointer tail tip X coordinate exactly centered
 
-        // Colors & styles matching Rose/Raspberry #F75270 theme
-        const bgFill = isSelected ? '#F75270' : '#ffffff';
-        const borderColor = isSelected ? '#df3d5a' : '#dadce0';
+        const catMeta = getPropertyCategoryMeta(hotel, currentLang);
+        const catIcon = catMeta?.icon || 'hotel';
+        const pinkCircleColor = '#f06293';
+
+        // Colors & styles matching Rose/Pink #f06293 theme
+        const bgFill = isSelected ? '#f06293' : '#ffffff';
+        const borderColor = isSelected ? '#e91e63' : '#dadce0';
         const textColor = isSelected ? '#ffffff' : '#202124';
         const textWeight = isSelected ? '700' : '600';
         const scale = isSelected ? 'scale(1.22)' : 'scale(1)';
         const shadow = isSelected 
-            ? 'drop-shadow(0 4px 12px rgba(247,82,112,0.45)) drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+            ? 'drop-shadow(0 4px 12px rgba(240,98,147,0.45)) drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
             : 'drop-shadow(0 1.5px 3px rgba(0,0,0,0.1)) drop-shadow(0 0.5px 1.5px rgba(0,0,0,0.06))';
 
         // Unified SVG path: fully rounded pill / capsule with smooth centered curved tail
@@ -570,14 +575,22 @@ const PriceMarker = React.memo(({
         ` : '';
 
         const iconGroup = isSelected ? `
-            <g transform="translate(7.75, 7.75) scale(0.44)">
-                <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" fill="#ffffff"/>
-            </g>
+            <foreignObject x="4" y="4" width="18" height="18" style="overflow:visible;pointer-events:none;">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#ffffff;line-height:1;">
+                    <span class="material-symbols-outlined" style="font-size:12px;line-height:1;font-variation-settings:'FILL' 1;color:#ffffff;">
+                        ${catIcon}
+                    </span>
+                </div>
+            </foreignObject>
         ` : `
-            <circle class="marker-circle" cx="13" cy="13" r="9" fill="#F75270" style="transition:fill 0.35s ease;"/>
-            <g transform="translate(7.75, 7.75) scale(0.44)">
-                <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z" fill="#ffffff"/>
-            </g>
+            <circle class="marker-circle" cx="13" cy="13" r="9" fill="${pinkCircleColor}" style="transition:fill 0.35s ease;"/>
+            <foreignObject x="4" y="4" width="18" height="18" style="overflow:visible;pointer-events:none;">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:#ffffff;line-height:1;">
+                    <span class="material-symbols-outlined" style="font-size:12px;line-height:1;font-variation-settings:'FILL' 1;color:#ffffff;">
+                        ${catIcon}
+                    </span>
+                </div>
+            </foreignObject>
         `;
 
         const html = `
@@ -597,7 +610,7 @@ const PriceMarker = React.memo(({
             iconSize: [W, 34],
             iconAnchor: [tailTipX, 32],
         });
-    }, [isSelected, isFav, priceDisplay]);
+    }, [isSelected, isFav, priceDisplay, hotel, currentLang]);
 
     const formattedRating = (parseFloat(hotel.rating) || 4.2).toFixed(1).replace('.', ',');
     const reviewCount = hotel.reviewCount || (hotel.stars ? hotel.stars * 115 + 42 : 432);
@@ -2596,6 +2609,8 @@ const HotelListing = () => {
 
         return {
             id: hotelIdentifier, hotelId: hotelIdentifier, togId: hotelIdentifier, name, type: starLabel || 'Hotel',
+            categoryId: apiHotel.categoryId ?? apiHotel.category?.id ?? apiHotel.category,
+            categoryName: apiHotel.categoryName ?? apiHotel.category?.name,
             stars: starCount, location: locationString || 'Unknown Location',
             image: imagesToMap[0], images: imagesToMap,
             price: priceValue, currency: currencyCode,
@@ -2714,7 +2729,9 @@ const HotelListing = () => {
                             thumbnail: m.thumbnail,
                             image: m.thumbnail,
                             city: m.city,
-                            isRecommended: m.isRecommended
+                            isRecommended: m.isRecommended,
+                            categoryId: m.categoryId,
+                            categoryName: m.categoryName
                         });
                         hasNew = true;
                     }

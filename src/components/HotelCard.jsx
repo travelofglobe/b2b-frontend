@@ -192,6 +192,8 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
     const [currentImg, setCurrentImg] = React.useState(0);
     const [isHovered, setIsHovered] = React.useState(false);
     const [showAllTransports, setShowAllTransports] = React.useState(false);
+    const [loadedIndices, setLoadedIndices] = React.useState(() => new Set([0]));
+
     const images = React.useMemo(() => {
         const raw = hotel.images?.length > 0 ? hotel.images : (hotel.image ? [hotel.image] : []);
         const clean = raw.map(img => {
@@ -207,16 +209,45 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
         return clean.length > 0 ? clean : [placeholderHotel];
     }, [hotel.images, hotel.image]);
 
+    // Preload next image on hover
+    React.useEffect(() => {
+        if (isHovered && images.length > 1) {
+            setLoadedIndices(prev => {
+                const nextIdx = (currentImg + 1) % images.length;
+                if (prev.has(nextIdx)) return prev;
+                const updated = new Set(prev);
+                updated.add(nextIdx);
+                return updated;
+            });
+        }
+    }, [isHovered, currentImg, images.length]);
+
     const nextImg = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        setCurrentImg((prev) => (prev + 1) % images.length);
+        const next = (currentImg + 1) % images.length;
+        const upcoming = (next + 1) % images.length;
+        setLoadedIndices(prev => {
+            const updated = new Set(prev);
+            updated.add(next);
+            updated.add(upcoming);
+            return updated;
+        });
+        setCurrentImg(next);
     };
 
     const prevImg = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        setCurrentImg((prev) => (prev - 1 + images.length) % images.length);
+        const prev = (currentImg - 1 + images.length) % images.length;
+        const upcoming = (prev - 1 + images.length) % images.length;
+        setLoadedIndices(s => {
+            const updated = new Set(s);
+            updated.add(prev);
+            updated.add(upcoming);
+            return updated;
+        });
+        setCurrentImg(prev);
     };
 
     // Auto-slide effect on hover
@@ -224,13 +255,21 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
         let intervalId;
         if (isHovered && images.length > 1) {
             intervalId = setInterval(() => {
-                setCurrentImg((prev) => (prev + 1) % images.length);
+                setCurrentImg((prev) => {
+                    const next = (prev + 1) % images.length;
+                    const upcoming = (next + 1) % images.length;
+                    setLoadedIndices(s => {
+                        const updated = new Set(s);
+                        updated.add(next);
+                        updated.add(upcoming);
+                        return updated;
+                    });
+                    return next;
+                });
             }, 3500); // Rotate every 3.5 seconds
         }
         return () => {
             if (intervalId) clearInterval(intervalId);
-            // Optionally reset to first image on leave, but usually keeping current is fine
-            // if (!isHovered) setCurrentImg(0);
         };
     }, [isHovered, images.length]);
 
@@ -273,25 +312,33 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
             >
                 {/* Image Crossfade Slider */}
                 <div className="w-full h-full relative overflow-hidden bg-slate-100 dark:bg-slate-800">
-                    {images.map((img, idx) => (
-                        <div
-                            key={idx}
-                            className={`absolute inset-0 w-full h-full overflow-hidden transition-opacity duration-700 ease-in-out ${
-                                idx === currentImg ? 'opacity-100 z-[2]' : 'opacity-0 z-[1] pointer-events-none'
-                            }`}
-                        >
-                            <img
-                                src={img || placeholderHotel}
-                                alt={`${hotel.name} ${idx + 1}`}
-                                onError={handleImageError}
-                                className={`w-full h-full object-cover select-none will-change-transform transition-transform duration-[3800ms] ease-out ${
-                                    isHovered && idx === currentImg ? 'scale-[1.08]' : 'scale-100'
+                    {images.map((img, idx) => {
+                        const shouldRenderImg = loadedIndices.has(idx);
+                        return (
+                            <div
+                                key={idx}
+                                className={`absolute inset-0 w-full h-full overflow-hidden transition-opacity duration-700 ease-in-out ${
+                                    idx === currentImg ? 'opacity-100 z-[2]' : 'opacity-0 z-[1] pointer-events-none'
                                 }`}
-                                loading={idx === 0 ? 'eager' : 'lazy'}
-                                decoding="async"
-                            />
-                        </div>
-                    ))}
+                            >
+                                {shouldRenderImg ? (
+                                    <img
+                                        src={img || placeholderHotel}
+                                        alt={`${hotel.name} ${idx + 1}`}
+                                        onError={handleImageError}
+                                        className={`w-full h-full object-cover select-none will-change-transform transition-transform duration-[3800ms] ease-out ${
+                                            isHovered && idx === currentImg ? 'scale-[1.08]' : 'scale-100'
+                                        }`}
+                                        loading={idx === 0 ? 'lazy' : 'lazy'}
+                                        decoding="async"
+                                        fetchPriority={idx === 0 ? 'high' : 'low'}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-slate-100 dark:bg-slate-800" />
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
 
                     {/* Navigation Arrows */}

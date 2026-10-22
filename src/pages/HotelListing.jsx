@@ -2832,7 +2832,63 @@ const HotelListing = () => {
         return Math.abs(newLat - oldLat) > latSpan * 0.15 || Math.abs(newLng - oldLng) > lngSpan * 0.15;
     };
 
-    // Dedicated Map Search: Fetches 150+ priced markers without clearing existing points (zero flicker)
+    // Calculate buffered bounds around visible map viewport.
+    // bufferFactor = 0.6 means 60% extra margin on each side (top, bottom, left, right).
+    const getBufferedBounds = React.useCallback((boundsData, bufferFactor = 0.6) => {
+        if (!boundsData || !boundsData.bounds) return null;
+        const { topLeft, bottomRight } = boundsData.bounds;
+        const minLat = Math.min(topLeft.lat, bottomRight.lat);
+        const maxLat = Math.max(topLeft.lat, bottomRight.lat);
+        const minLon = Math.min(topLeft.lon, bottomRight.lon);
+        const maxLon = Math.max(topLeft.lon, bottomRight.lon);
+        const latSpan = Math.max(maxLat - minLat, 0.001);
+        const lonSpan = Math.max(maxLon - minLon, 0.001);
+
+        return {
+            minLat: minLat - latSpan * bufferFactor,
+            maxLat: maxLat + latSpan * bufferFactor,
+            minLon: minLon - lonSpan * bufferFactor,
+            maxLon: maxLon + lonSpan * bufferFactor
+        };
+    }, []);
+
+    const isPointInBufferedBounds = React.useCallback((lat, lngOrLon, buffered) => {
+        if (!buffered) return true;
+        const pLat = parseFloat(lat);
+        const pLng = parseFloat(lngOrLon);
+        if (isNaN(pLat) || isNaN(pLng)) return false;
+        return pLat >= buffered.minLat && pLat <= buffered.maxLat && pLng >= buffered.minLon && pLng <= buffered.maxLon;
+    }, []);
+
+    // Culls markers and POIs outside the visible map viewport + buffer to maintain peak performance and avoid DOM bloat
+    const cullOutOfViewMarkers = React.useCallback((boundsData, bufferFactor = 0.6) => {
+        const buffered = getBufferedBounds(boundsData, bufferFactor);
+        if (!buffered) return;
+
+        let prunedHotels = false;
+        for (const [id, marker] of markerPoolRef.current.entries()) {
+            if (!isPointInBufferedBounds(marker.lat, marker.lng ?? marker.lon, buffered)) {
+                markerPoolRef.current.delete(id);
+                prunedHotels = true;
+            }
+        }
+        if (prunedHotels) {
+            setMapMarkers(Array.from(markerPoolRef.current.values()));
+        }
+
+        let prunedPois = false;
+        for (const [id, poi] of poiPoolRef.current.entries()) {
+            if (!isPointInBufferedBounds(poi.lat, poi.lng ?? poi.lon, buffered)) {
+                poiPoolRef.current.delete(id);
+                prunedPois = true;
+            }
+        }
+        if (prunedPois) {
+            setPoiMarkers(Array.from(poiPoolRef.current.values()));
+        }
+    }, [getBufferedBounds, isPointInBufferedBounds]);
+
+    // Dedicated Map Search: Fetches priced markers with viewport buffer and dynamic zoom density
     const fetchMapMarkers = React.useCallback(async (geoBounds = null, isReset = false, forceFetch = false) => {
         const bounds = geoBounds || mapBoundsRef.current || initialPoiBounds;
         if (!bounds || !bounds.bounds) return;
@@ -2841,10 +2897,17 @@ const HotelListing = () => {
             return;
         }
 
+        // Cull markers outside the buffered viewport before querying new ones
+        cullOutOfViewMarkers(bounds, 0.6);
+
         if (isReset) {
             markerPoolRef.current.clear();
             setMapMarkers([]);
         }
+
+        const prevZoom = lastFetchedBoundsRef.current?.zoom || 0;
+        const currentZoom = bounds.zoom || (mapInstance && typeof mapInstance.getZoom === 'function' ? Math.round(mapInstance.getZoom()) : 12);
+        const isZoomIn = prevZoom > 0 && currentZoom > prevZoom;
 
         lastFetchedBoundsRef.current = bounds;
 
@@ -2856,17 +2919,30 @@ const HotelListing = () => {
         setIsMapMarkersLoading(true);
 
         const filters = getSearchParams();
-        const existingIds = Array.from(markerPoolRef.current.keys());
+        // When zooming in or resetting, do not exclude hotel IDs so denser hotels in the focused view are loaded
+        const existingIds = (isZoomIn || isReset) ? null : Array.from(markerPoolRef.current.keys());
+
+        // Dynamic density: load more hotels as user zooms in deeper
+        let dynamicLimit = 150;
+        if (currentZoom >= 16) {
+            dynamicLimit = 300;
+        } else if (currentZoom >= 14) {
+            dynamicLimit = 250;
+        } else if (currentZoom >= 12) {
+            dynamicLimit = 180;
+        } else {
+            dynamicLimit = 120;
+        }
 
         try {
             const res = await hotelService.searchHotelMapMarkers({
                 locationId: (isPoiSearch || bounds?.bounds) ? null : (regionId || locationId || null),
                 regionId: (isPoiSearch || bounds?.bounds) ? null : (regionId || null),
                 geo: bounds.bounds,
-                zoom: bounds.zoom || 12,
-                limit: 150,
+                zoom: currentZoom,
+                limit: dynamicLimit,
                 forceMarkers: true,
-                excludeHotelIds: isReset ? null : existingIds,
+                excludeHotelIds: existingIds,
                 filters: {
                     togIds: filters.hotelIds || null,
                     stars: filters.stars || null,
@@ -2889,26 +2965,30 @@ const HotelListing = () => {
 
             if (res && Array.isArray(res.markers)) {
                 let hasNew = false;
+                const buffered = getBufferedBounds(bounds, 0.6);
                 res.markers.forEach(m => {
                     if (m && m.id && m.lat && m.lng && m.price && Number(m.price) > 0) {
-                        markerPoolRef.current.set(m.id, {
-                            id: m.id,
-                            hotelId: m.id,
-                            name: m.name,
-                            lat: m.lat,
-                            lng: m.lng,
-                            price: m.price,
-                            currency: m.currency || 'TRY',
-                            rating: m.rating,
-                            stars: m.stars,
-                            thumbnail: m.thumbnail,
-                            image: m.thumbnail,
-                            city: m.city,
-                            isRecommended: m.isRecommended,
-                            categoryId: m.categoryId,
-                            categoryName: m.categoryName
-                        });
-                        hasNew = true;
+                        // Only retain markers inside the buffered viewport
+                        if (isPointInBufferedBounds(m.lat, m.lng, buffered)) {
+                            markerPoolRef.current.set(m.id, {
+                                id: m.id,
+                                hotelId: m.id,
+                                name: m.name,
+                                lat: m.lat,
+                                lng: m.lng,
+                                price: m.price,
+                                currency: m.currency || 'TRY',
+                                rating: m.rating,
+                                stars: m.stars,
+                                thumbnail: m.thumbnail,
+                                image: m.thumbnail,
+                                city: m.city,
+                                isRecommended: m.isRecommended,
+                                categoryId: m.categoryId,
+                                categoryName: m.categoryName
+                            });
+                            hasNew = true;
+                        }
                     }
                 });
                 if (hasNew || isReset || markerPoolRef.current.size > 0) {
@@ -2924,9 +3004,10 @@ const HotelListing = () => {
                 setIsMapMarkersLoading(false);
             }
         }
-    }, [regionId, locationId, isPoiSearch, initialPoiBounds, roomState, searchParams]);
+    }, [regionId, locationId, isPoiSearch, initialPoiBounds, roomState, searchParams, cullOutOfViewMarkers, mapInstance, getBufferedBounds, isPointInBufferedBounds]);
 
     // Dedicated POI Map Search: Fetches POIs from Elasticsearch geography_poi via b2b-backend
+    // Dedicated POI Map Search: Fetches POIs without clearing existing points (zero flicker / persistent)
     const fetchPoiMarkers = React.useCallback(async (geoBounds = null, isReset = false) => {
         const currentCats = activeEsCategoriesRef.current;
         if (!currentCats || currentCats.length === 0) {
@@ -2942,13 +3023,18 @@ const HotelListing = () => {
         const bounds = geoBounds || mapBoundsRef.current || initialPoiBounds;
         if (!bounds || !bounds.bounds) return;
 
+        // Skip redundant requests if movement is insignificant
         if (!isReset && !isSignificantPan(bounds, lastPoiFetchedBoundsRef.current)) {
             return;
         }
 
+        // Only clear the pool if user explicitly changed category (isReset = true)
         if (isReset) {
             poiPoolRef.current.clear();
             setPoiMarkers([]);
+        } else {
+            // Prune only POIs far outside a generous buffer (+100% margin) to keep memory clean
+            cullOutOfViewMarkers(bounds, 1.0);
         }
 
         lastPoiFetchedBoundsRef.current = bounds;
@@ -2961,23 +3047,28 @@ const HotelListing = () => {
 
         try {
             setIsPoiLoading(true);
-            const currentZoom = bounds.zoom || (mapInstance && typeof mapInstance.getZoom === 'function' ? mapInstance.getZoom() : 12);
+            const currentZoom = bounds.zoom || (mapInstance && typeof mapInstance.getZoom === 'function' ? Math.round(mapInstance.getZoom()) : 12);
             const res = await poiService.searchPoiMapMarkers({
                 geo: bounds.bounds,
                 zoom: currentZoom,
                 categories: currentCats,
-                limit: 120,
+                limit: currentZoom >= 14 ? 150 : 100,
                 signal: controller.signal
             });
 
             if (res && res.pois && Array.isArray(res.pois)) {
+                const buffered = getBufferedBounds(bounds, 1.0);
+                let hasNew = false;
                 res.pois.forEach(poi => {
                     const pid = poi.id || poi.poiId;
-                    if (pid && !poiPoolRef.current.has(pid)) {
+                    if (pid && !poiPoolRef.current.has(pid) && isPointInBufferedBounds(poi.lat, poi.lng ?? poi.lon, buffered)) {
                         poiPoolRef.current.set(pid, poi);
+                        hasNew = true;
                     }
                 });
-                setPoiMarkers(Array.from(poiPoolRef.current.values()));
+                if (hasNew || isReset) {
+                    setPoiMarkers(Array.from(poiPoolRef.current.values()));
+                }
             }
         } catch (err) {
             if (err.name !== 'AbortError') {
@@ -2988,10 +3079,15 @@ const HotelListing = () => {
                 setIsPoiLoading(false);
             }
         }
-    }, [initialPoiBounds, mapInstance]);
+    }, [initialPoiBounds, mapInstance, cullOutOfViewMarkers, getBufferedBounds, isPointInBufferedBounds]);
 
     // Whenever active POI categories change, refetch POIs matching the active categories
+    const prevEsCategoriesKeyRef = React.useRef(null);
     React.useEffect(() => {
+        const key = (activeEsCategories || []).slice().sort().join(',');
+        if (key === prevEsCategoriesKeyRef.current) return;
+        prevEsCategoriesKeyRef.current = key;
+
         if (activeEsCategories.length > 0) {
             const bounds = mapBoundsRef.current || initialPoiBounds;
             if (bounds) {
@@ -3006,25 +3102,6 @@ const HotelListing = () => {
             setIsPoiLoading(false);
         }
     }, [activeEsCategories, fetchPoiMarkers, initialPoiBounds]);
-
-    // Initial fetch when map is ready and any category is selected
-    React.useEffect(() => {
-        if (isMapReady && mapInstance && activeEsCategories.length > 0 && poiMarkers.length === 0) {
-            try {
-                const bounds = mapInstance.getBounds();
-                const nw = bounds.getNorthWest();
-                const se = bounds.getSouthEast();
-                const boundsData = {
-                    bounds: {
-                        topLeft: { lat: nw.lat, lon: nw.lng },
-                        bottomRight: { lat: se.lat, lon: se.lng }
-                    },
-                    zoom: Math.round(mapInstance.getZoom())
-                };
-                fetchPoiMarkers(boundsData, true);
-            } catch (_) {}
-        }
-    }, [isMapReady, mapInstance, activeEsCategories.length, poiMarkers.length, fetchPoiMarkers]);
 
     const handleClusterClick = React.useCallback((cluster) => {
         if (!mapInstance || !cluster.lat || !cluster.lng) return;
@@ -3206,18 +3283,34 @@ const HotelListing = () => {
     }, [loadMoreHotels, isLoading, hasMore, hotels.length]);
 
     // Map markers derived from the accumulated map marker pool + current page hotels with valid prices
+    // Filtered by visible bounds + buffer to prevent off-screen markers from cluttering the DOM
     const effectiveMapMarkers = React.useMemo(() => {
+        const currentBounds = mapBoundsRef.current;
+        const buffered = currentBounds ? getBufferedBounds(currentBounds, 0.6) : null;
+
         if (displayedHotels && displayedHotels.length > 0) {
             displayedHotels.forEach(h => {
                 const hid = h.id || h.hotelId;
                 if (hid && h.lat && h.lng && h.price && Number(h.price) > 0 && !markerPoolRef.current.has(hid)) {
-                    markerPoolRef.current.set(hid, h);
+                    if (isPointInBufferedBounds(h.lat, h.lng, buffered)) {
+                        markerPoolRef.current.set(hid, h);
+                    }
                 }
             });
         }
         return Array.from(markerPoolRef.current.values())
-            .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)) && h.price && Number(h.price) > 0);
-    }, [mapMarkers, displayedHotels]);
+            .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)) && h.price && Number(h.price) > 0)
+            .filter(h => isPointInBufferedBounds(h.lat, h.lng, buffered));
+    }, [mapMarkers, displayedHotels, getBufferedBounds, isPointInBufferedBounds]);
+
+    // Filtered POIs that stay persistent in memory and never flicker or disappear while panning
+    const effectivePoiMarkers = React.useMemo(() => {
+        const currentBounds = mapBoundsRef.current;
+        const buffered = currentBounds ? getBufferedBounds(currentBounds, 0.8) : null;
+        return Array.from(poiPoolRef.current.values())
+            .filter(p => p.lat && p.lng && !isNaN(parseFloat(p.lat)) && !isNaN(parseFloat(p.lng)))
+            .filter(p => isPointInBufferedBounds(p.lat, p.lng ?? p.lon, buffered));
+    }, [poiMarkers, getBufferedBounds, isPointInBufferedBounds]);
 
     const updateUrlWithMapBounds = React.useCallback((boundsData) => {
         if (!boundsData || !boundsData.bounds) return;
@@ -3254,8 +3347,11 @@ const HotelListing = () => {
         isSyncingQRef.current = true;
         updateUrlWithMapBounds(boundsData);
 
+        // Immediately cull markers outside the new viewport + buffer
+        cullOutOfViewMarkers(boundsData, 0.6);
+
         try {
-            // DO NOT clear markerPoolRef! Existing points must remain on the map without flickering.
+            // Existing points in view remain on the map without flickering, while out-of-buffer markers are culled
             const hotelPromise = loadMoreHotels(true, boundsData);
             const mapMarkerPromise = fetchMapMarkers(boundsData, false, true);
             const poiPromise = (activeEsCategoriesRef.current && activeEsCategoriesRef.current.length > 0)
@@ -3269,7 +3365,7 @@ const HotelListing = () => {
                 isSyncingQRef.current = false;
             }, 250);
         }
-    }, [loadMoreHotels, fetchMapMarkers, fetchPoiMarkers, updateUrlWithMapBounds]);
+    }, [loadMoreHotels, fetchMapMarkers, fetchPoiMarkers, updateUrlWithMapBounds, cullOutOfViewMarkers]);
 
     const handleSelectPoiFromMap = React.useCallback((poi) => {
         if (!poi || !poi.lat || !poi.lng) return;
@@ -3334,29 +3430,14 @@ const HotelListing = () => {
                     }
                 });
 
-                // Fallback to any hotel with breadcrumbs if coordinates are missing on all
+                // Fallback to any hotel with location data if closest has no breadcrumbs
                 if (!closestHotel) {
-                    closestHotel = hotels.find(h => Array.isArray(h.locationBreadcrumbs) && h.locationBreadcrumbs.length > 0);
+                    closestHotel = hotels.find(h => (Array.isArray(h.locationBreadcrumbs) && h.locationBreadcrumbs.length > 0) || (Array.isArray(h.ancestors) && h.ancestors.length > 0) || h.city || h.location);
                 }
 
-                if (!closestHotel || !Array.isArray(closestHotel.locationBreadcrumbs) || closestHotel.locationBreadcrumbs.length === 0) {
+                if (!closestHotel) {
                     return;
                 }
-
-                const breadcrumbs = closestHotel.locationBreadcrumbs.filter(Boolean);
-
-                // Analyze visible districts and cities across all loaded hotels
-                const distinctDistricts = new Set();
-                const distinctCities = new Set();
-                hotels.forEach(h => {
-                    if (Array.isArray(h.locationBreadcrumbs)) {
-                        h.locationBreadcrumbs.forEach(b => {
-                            const bId = b.locationId ?? b.id;
-                            if (b.locationType === 'DISTRICT' && bId) distinctDistricts.add(String(bId));
-                            if (b.locationType === 'CITY' && bId) distinctCities.add(String(bId));
-                        });
-                    }
-                });
 
                 // Helper to extract localized name from name object or string
                 const getLocalizedCrumbName = (nameObj) => {
@@ -3372,28 +3453,72 @@ const HotelListing = () => {
                     );
                 };
 
-                // Find available crumb types from closest hotel
-                const countryCrumb = breadcrumbs.find(b => b.locationType === 'COUNTRY');
-                const cityCrumb = breadcrumbs.find(b => b.locationType === 'CITY');
-                const districtCrumb = breadcrumbs.find(b => b.locationType === 'DISTRICT' || b.locationType === 'SUBDIVISION' || b.locationType === 'NEIGHBORHOOD');
-                const townCrumb = breadcrumbs.find(b => b.locationType === 'TOWN' || b.locationType === 'NEIGHBORHOOD');
+                // Helper to detect if a crumb represents Country or Continent
+                const isCountryOrContinent = (crumb) => {
+                    if (!crumb) return false;
+                    const t = (crumb.locationType || crumb.type || '').toUpperCase();
+                    const n = getLocalizedCrumbName(crumb.name).toLowerCase();
+                    return t.includes('COUNTRY') || t.includes('CONTINENT') || n === 'türkiye' || n === 'turkey';
+                };
 
-                // Determine appropriate target level according to zoom level & geographic span
+                // Build normalized breadcrumb array
+                let rawBreadcrumbs = [];
+                if (Array.isArray(closestHotel.locationBreadcrumbs) && closestHotel.locationBreadcrumbs.length > 0) {
+                    rawBreadcrumbs = closestHotel.locationBreadcrumbs.filter(Boolean);
+                } else if (Array.isArray(closestHotel.ancestors) && closestHotel.ancestors.length > 0) {
+                    rawBreadcrumbs = closestHotel.ancestors.map(a => ({
+                        locationId: a.regionId,
+                        id: a.regionId,
+                        locationType: a.type || '',
+                        name: a.name
+                    }));
+                }
+
+                let breadcrumbs = [...rawBreadcrumbs];
+                // If breadcrumbs is ordered Leaf-to-Root, normalize to Root-to-Leaf (Country first)
+                if (breadcrumbs.length > 1 && isCountryOrContinent(breadcrumbs[breadcrumbs.length - 1])) {
+                    breadcrumbs.reverse();
+                }
+
+                // Append hotel city if not already present in breadcrumbs
+                const hotelCity = closestHotel.city || closestHotel.address?.cityName;
+                if (hotelCity && !breadcrumbs.some(b => getLocalizedCrumbName(b.name).toLowerCase() === hotelCity.toLowerCase())) {
+                    breadcrumbs.push({
+                        locationId: null,
+                        locationType: 'CITY',
+                        name: hotelCity
+                    });
+                }
+
+                // Append district if available from hotel location string (e.g. "Beylikdüzü, Istanbul")
+                if (closestHotel.location && typeof closestHotel.location === 'string') {
+                    const parts = closestHotel.location.split(',').map(p => p.trim()).filter(Boolean);
+                    if (parts.length > 1) {
+                        const districtPart = parts[0];
+                        if (districtPart && !breadcrumbs.some(b => getLocalizedCrumbName(b.name).toLowerCase() === districtPart.toLowerCase())) {
+                            breadcrumbs.push({
+                                locationId: null,
+                                locationType: 'DISTRICT',
+                                name: districtPart
+                            });
+                        }
+                    }
+                }
+
+                // Filter out Country crumbs to isolate sub-regions (neighborhood, district, city, province)
+                const subRegionCrumbs = breadcrumbs.filter(b => !isCountryOrContinent(b));
+                const countryCrumb = breadcrumbs.find(b => isCountryOrContinent(b)) || { name: 'Türkiye', locationType: 'COUNTRY' };
+
+                // "En alt bölgeyi set edebilirsin"
+                // Pick the lowest (most granular) sub-region crumb
                 let targetCrumb = null;
-                if (currentZoom < 7 && countryCrumb) {
+                if (subRegionCrumbs.length > 0) {
+                    // Lowest sub-region is the leaf element (e.g. District / Neighborhood)
+                    targetCrumb = subRegionCrumbs[subRegionCrumbs.length - 1];
+                } else if (currentZoom < 6) {
                     targetCrumb = countryCrumb;
-                } else if (distinctDistricts.size > 1 && cityCrumb) {
-                    // Multiple districts are visible across the map -> View is at CITY level
-                    targetCrumb = cityCrumb;
-                } else if (currentZoom < 13) {
-                    // Metropolitan / City zoom (typically 7 <= zoom < 13)
-                    targetCrumb = cityCrumb || breadcrumbs.find(b => b.locationType !== 'COUNTRY') || breadcrumbs[breadcrumbs.length - 1];
-                } else if (currentZoom >= 15) {
-                    // Deep neighborhood / town zoom
-                    targetCrumb = townCrumb || districtCrumb || cityCrumb || breadcrumbs[breadcrumbs.length - 1];
                 } else {
-                    // District zoom (13 <= zoom < 15) when focused on a single district
-                    targetCrumb = districtCrumb || cityCrumb || breadcrumbs[breadcrumbs.length - 1];
+                    targetCrumb = { name: hotelCity || 'Istanbul', locationType: 'CITY' };
                 }
 
                 if (!targetCrumb) return;
@@ -3401,52 +3526,29 @@ const HotelListing = () => {
                 const targetLocId = String(targetCrumb.locationId ?? targetCrumb.id ?? '');
                 const isBoundsSearch = Boolean(searchParams.get('bounds'));
 
-                // Check if current search location already covers the current view
-                if (!isBoundsSearch) {
-                    if (currentLocationId) {
-                        const currentCrumb = breadcrumbs.find(b => String(b.locationId ?? b.id ?? '') === String(currentLocationId));
-                        if (currentCrumb) {
-                            if (currentCrumb.locationType === 'CITY') {
-                                // Current search is City: retain it unless user explicitly zoomed into a single district
-                                if (currentZoom < 13 || distinctDistricts.size > 1) {
-                                    return;
-                                }
-                            } else if (currentCrumb.locationType === 'COUNTRY') {
-                                // Current search is Country: retain it if still at country zoom
-                                if (currentZoom < 7) {
-                                    return;
-                                }
-                            } else if (currentCrumb.locationType === 'DISTRICT' || currentCrumb.locationType === 'SUBDIVISION') {
-                                // Current search is District: retain it if target is the same district
-                                if (targetLocId === String(currentLocationId)) {
-                                    return;
-                                }
-                            }
-                        }
-
-                        // If targetCrumb matches current locationId, keep current state intact
-                        if (targetLocId && targetLocId === String(currentLocationId)) {
-                            return;
-                        }
-                    } else if (currentQ && !isGenericAreaText(currentQ)) {
-                        // If no locationId in URL but q is set (e.g., 'Istanbul, Republic of Türkiye')
-                        const targetName = getLocalizedCrumbName(targetCrumb.name);
-                        if (targetName && currentQ.toLowerCase().includes(targetName.toLowerCase())) {
-                            if (currentZoom < 13 || distinctDistricts.size > 1) {
-                                return;
-                            }
-                        }
+                // Construct full hierarchical label starting with the lowest sub-region:
+                // e.g. "Beylikdüzü, Istanbul, Türkiye" or "Istanbul, Türkiye"
+                const uniqueNames = [];
+                const addUniqueName = (name) => {
+                    const trimmed = (name || '').trim();
+                    if (trimmed && !uniqueNames.some(existing => existing.toLowerCase() === trimmed.toLowerCase())) {
+                        uniqueNames.push(trimmed);
                     }
+                };
+
+                // Add lowest sub-region first
+                addUniqueName(getLocalizedCrumbName(targetCrumb.name));
+
+                // Add intermediate regions/cities (reversed from leaf to root)
+                const intermediate = [...subRegionCrumbs].reverse();
+                intermediate.forEach(c => addUniqueName(getLocalizedCrumbName(c.name)));
+
+                // Finally add country
+                if (countryCrumb) {
+                    addUniqueName(getLocalizedCrumbName(countryCrumb.name));
                 }
 
-                // Construct hierarchical full name (e.g., "District, City, Country" or "City, Country")
-                const targetIdx = breadcrumbs.findIndex(b => String(b.locationId ?? b.id ?? '') === targetLocId);
-                const slice = targetIdx !== -1 ? breadcrumbs.slice(0, targetIdx + 1) : [targetCrumb];
-                const fullName = slice
-                    .map(b => getLocalizedCrumbName(b.name))
-                    .filter(Boolean)
-                    .reverse()
-                    .join(', ');
+                const fullName = uniqueNames.join(', ');
 
                 if (fullName) {
                     localStorage.setItem('dashboard_last_search', fullName);
@@ -4437,7 +4539,7 @@ const HotelListing = () => {
                             />
 
                             {/* Dynamic POI markers from Elasticsearch geography_poi */}
-                            {poiMarkers.map(poi => (
+                            {effectivePoiMarkers.map(poi => (
                                 <PoiMarker
                                     key={poi.id || poi.poiId}
                                     poi={poi}

@@ -19,7 +19,8 @@ export const LISTING_LOCALES = {
         publicTransport: "Public transport", restaurants: "Restaurant areas",
         touristAttractions: "Touristic places", shoppingAreas: "Shopping areas",
         zoomIn: "Zoom in", zoomOut: "Zoom out",
-        quickLook: "Quick look"
+        quickLook: "Quick look",
+        loadingMore: "Loading more properties..."
     },
     tr: {
         room: "Oda", rooms: "Oda", guest: "Misafir", guests: "Misafir",
@@ -41,7 +42,8 @@ export const LISTING_LOCALES = {
         publicTransport: "Toplu taşıma", restaurants: "Restoran bölgeleri",
         touristAttractions: "Turistik yerler", shoppingAreas: "Alışveriş bölgeleri",
         zoomIn: "Yakınlaştır", zoomOut: "Uzaklaştır",
-        quickLook: "Hızlı Bakış"
+        quickLook: "Hızlı Bakış",
+        loadingMore: "Daha fazla otel yükleniyor..."
     },
     ar: {
         room: "غرفة", rooms: "غرف", guest: "نزيل", guests: "نزلاء",

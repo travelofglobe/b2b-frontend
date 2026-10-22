@@ -1980,6 +1980,7 @@ const HotelListing = () => {
     const [hotels, setHotels] = React.useState([]);
     const [page, setPage] = React.useState(0);
     const [isLoading, setIsLoading] = React.useState(true);
+    const [isLoadingMore, setIsLoadingMore] = React.useState(false);
     const [hasMore, setHasMore] = React.useState(true);
     const [totalProperties, setTotalProperties] = React.useState(0);
     const [dynamicFilters, setDynamicFilters] = React.useState(null);
@@ -2455,9 +2456,98 @@ const HotelListing = () => {
         const lower = txt.trim().toLowerCase();
         return lower === 'this area' || lower === 'bu alan' || lower === 'search this area' || lower === 'listeyi güncelle';
     };
-    const locationName = queryLocation && !isGenericAreaText(queryLocation)
-        ? queryLocation.split(',')[0].trim()
-        : slug ? getSlugDisplayName(slug) : '';
+
+    const activeMapArea = React.useMemo(() => {
+        const boundsParam = searchParams.get('bounds');
+        if (!boundsParam || !hotels || hotels.length === 0) return null;
+
+        let centerLat = null;
+        let centerLng = null;
+        if (mapInstance && typeof mapInstance.getCenter === 'function') {
+            const c = mapInstance.getCenter();
+            centerLat = c.lat;
+            centerLng = c.lng;
+        } else {
+            const parts = boundsParam.split(',').map(Number);
+            if (parts.length === 4 && parts.every(p => !isNaN(p))) {
+                centerLat = (parts[0] + parts[2]) / 2;
+                centerLng = (parts[1] + parts[3]) / 2;
+            }
+        }
+
+        let closest = null;
+        let minDist = Infinity;
+        for (const h of hotels) {
+            if (h.lat != null && h.lng != null && centerLat != null && centerLng != null) {
+                const d = Math.pow(h.lat - centerLat, 2) + Math.pow(h.lng - centerLng, 2);
+                if (d < minDist) {
+                    minDist = d;
+                    closest = h;
+                }
+            }
+        }
+        if (!closest) closest = hotels[0];
+        if (!closest) return null;
+
+        // 1. Check ancestors
+        if (Array.isArray(closest.ancestors) && closest.ancestors.length > 0) {
+            const nonCountry = closest.ancestors.filter(a => {
+                const t = (a.type || '').toLowerCase();
+                return t !== 'country' && t !== 'continent' && t !== 'world';
+            });
+            if (nonCountry.length > 0) {
+                const specific = nonCountry[0];
+                const cityNode = nonCountry.find(a => (a.type || '').toLowerCase() === 'city');
+                if (cityNode && specific && specific !== cityNode && specific.name && cityNode.name) {
+                    return `${specific.name}, ${cityNode.name}`;
+                }
+                if (specific && specific.name) {
+                    return specific.name;
+                }
+            }
+        }
+
+        // 2. Check locationBreadcrumbs
+        if (Array.isArray(closest.locationBreadcrumbs) && closest.locationBreadcrumbs.length > 0) {
+            const nonCountry = closest.locationBreadcrumbs.filter(b => {
+                const t = (b.locationType || '').toUpperCase();
+                return t !== 'COUNTRY' && t !== 'CONTINENT' && t !== 'WORLD';
+            });
+            if (nonCountry.length > 0) {
+                const getCrumbName = (c) => {
+                    if (!c) return '';
+                    if (typeof c.name === 'string') return c.name;
+                    return c.name?.translations?.[currentLang] || c.name?.translations?.en || c.name?.defaultName || '';
+                };
+                const specificName = getCrumbName(nonCountry[0]);
+                const cityName = getCrumbName(nonCountry.find(b => (b.locationType || '').toUpperCase() === 'CITY'));
+                if (specificName && cityName && specificName !== cityName) {
+                    return `${specificName}, ${cityName}`;
+                }
+                if (specificName) return specificName;
+            }
+        }
+
+        // 3. Check city / address
+        if (closest.city) return closest.city;
+        if (closest.address?.cityName) return closest.address.cityName;
+
+        return null;
+    }, [searchParams, hotels, mapInstance, currentLang]);
+
+    const locationName = React.useMemo(() => {
+        const boundsParam = searchParams.get('bounds');
+        if (boundsParam && activeMapArea) {
+            return activeMapArea;
+        }
+        if (queryLocation && !isGenericAreaText(queryLocation)) {
+            return queryLocation.split(',')[0].trim();
+        }
+        if (slug) {
+            return getSlugDisplayName(slug);
+        }
+        return '';
+    }, [searchParams, activeMapArea, queryLocation, slug]);
 
     const themeName = theme ? theme.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
     const campaignName = campaign ? campaign.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : null;
@@ -2488,7 +2578,7 @@ const HotelListing = () => {
                 };
             }
         }
-        if ((isPoiSearch || poiId || searchParams.get('lat') || !regionId) && hasValidCoords) {
+        if ((isPoiSearch || poiId || !regionId) && hasValidCoords) {
             const latDelta = 0.08;
             const lonDelta = 0.12;
             return {
@@ -2699,8 +2789,15 @@ const HotelListing = () => {
             strikethroughPrice: strikethroughPrice > priceValue ? strikethroughPrice : null,
             availableRoomsCount: apiHotel.rooms?.length || 0,
             isRecommended: Boolean(apiHotel.isRecommended || apiHotel.preferred || apiHotel.is_recommended || apiHotel.recommended || apiHotel.isPreferred),
-            locationBreadcrumbs: apiHotel.locationBreadcrumbs,
+            locationBreadcrumbs: apiHotel.locationBreadcrumbs || (Array.isArray(apiHotel.ancestors) ? apiHotel.ancestors.map(a => ({
+                locationId: a.regionId,
+                id: a.regionId,
+                locationType: (a.type || '').toUpperCase(),
+                name: a.name
+            })) : []),
             ancestors: apiHotel.ancestors,
+            address: apiHotel.address,
+            city: apiHotel.address?.cityName || apiHotel.citySlug,
             checkinBeginTime: apiHotel.checkinBeginTime || apiHotel.checkIn,
             checkoutTime: apiHotel.checkoutTime || apiHotel.checkOut,
             checkinMinAge: apiHotel.checkinMinAge || apiHotel.minAge,
@@ -2969,12 +3066,15 @@ const HotelListing = () => {
         isFetchingRef.current = true;
         if (isReset) {
             setIsLoading(true);
+            setIsLoadingMore(false);
             setHotels([]);
             setTotalProperties(0);
             pageRef.current = 0;
             hasMoreRef.current = true;
             setPage(0);
             setHasMore(true);
+        } else {
+            setIsLoadingMore(true);
         }
         const controller = new AbortController();
         abortControllerRef.current = controller;
@@ -2991,17 +3091,12 @@ const HotelListing = () => {
                 size: 20,
                 filters: {
                     togIds: activeGeoBounds ? (filters.hotelIds || null) : (togId ? [parseInt(togId)] : (filters.hotelIds || null)),
-                    hotelIds: activeGeoBounds ? (filters.hotelIds || null) : (togId ? [parseInt(togId)] : (filters.hotelIds || null)),
                     regionIds: activeGeoBounds
                         ? []
                         : (filters.regionIds?.length > 0 ? filters.regionIds : (filters.locations?.length > 0 ? filters.locations : (regionId ? [String(regionId)] : null))),
                     stars: filters.stars,
                     hasFreeCancellation: filters.freeCancellation,
                     hasPrePayment: filters.prePayment,
-                    roomTwin: filters.roomTwin,
-                    roomMaxAdult: filters.roomMaxAdult,
-                    roomMaxChildren: filters.roomMaxChildren,
-                    roomMaxExtraBed: filters.roomMaxExtraBed,
                     facilities: filters.facilities,
                     isRecommended: filters.recommended,
                     preferred: filters.recommended
@@ -3038,11 +3133,12 @@ const HotelListing = () => {
                 setPage(nextPage);
                 pageRef.current = nextPage;
 
-                // If page had no priced hotels but there are more pages, automatically load next page
-                if (mappedHotels.length === 0 && nextHasMore) {
+                // Auto-fetch if page returned 0 priced hotels OR if list has fewer than 8 cards to enable continuous scrolling
+                const totalLoaded = (currentPage === 0 ? mappedHotels.length : (hotels.length + mappedHotels.length));
+                if ((mappedHotels.length === 0 || totalLoaded < 8) && nextHasMore) {
                     setTimeout(() => {
-                        loadMoreHotels(false);
-                    }, 50);
+                        loadMoreHotels(false, mapBoundsRef.current || activeGeoBounds);
+                    }, 80);
                 }
 
                 const newLocationNames = {};
@@ -3074,25 +3170,29 @@ const HotelListing = () => {
                 console.log('Search request cancelled');
             } else {
                 console.error('Error fetching hotels:', error);
-                setHasMore(false);
-                hasMoreRef.current = false;
+                // Do not permanently kill pagination on transient network errors
             }
         } finally {
+            isFetchingRef.current = false;
+            setIsLoadingMore(false);
             if (abortControllerRef.current === controller) {
                 setIsLoading(false);
-                isFetchingRef.current = false;
             }
         }
-    }, [locationId, regionId, togId, isPoiSearch, initialPoiBounds, mapApiHotelToModel, roomState, searchParams, sortConfig, fetchMapMarkers]);
+    }, [locationId, regionId, togId, isPoiSearch, initialPoiBounds, mapApiHotelToModel, roomState, searchParams, sortConfig, fetchMapMarkers, hotels.length]);
 
     // Infinite scroll observer for loading more hotel cards on scroll
     React.useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
             const first = entries[0];
             if (first.isIntersecting && hasMoreRef.current && !isFetchingRef.current && !isLoading) {
-                loadMoreHotels(false);
+                loadMoreHotels(false, mapBoundsRef.current);
             }
-        }, { threshold: 0.1, rootMargin: '300px' });
+        }, {
+            root: listScrollRef.current,
+            threshold: 0.1,
+            rootMargin: '400px'
+        });
 
         const currentLoader = loaderRef.current;
         if (currentLoader) {
@@ -3275,8 +3375,8 @@ const HotelListing = () => {
                 // Find available crumb types from closest hotel
                 const countryCrumb = breadcrumbs.find(b => b.locationType === 'COUNTRY');
                 const cityCrumb = breadcrumbs.find(b => b.locationType === 'CITY');
-                const districtCrumb = breadcrumbs.find(b => b.locationType === 'DISTRICT');
-                const townCrumb = breadcrumbs.find(b => b.locationType === 'TOWN');
+                const districtCrumb = breadcrumbs.find(b => b.locationType === 'DISTRICT' || b.locationType === 'SUBDIVISION' || b.locationType === 'NEIGHBORHOOD');
+                const townCrumb = breadcrumbs.find(b => b.locationType === 'TOWN' || b.locationType === 'NEIGHBORHOOD');
 
                 // Determine appropriate target level according to zoom level & geographic span
                 let targetCrumb = null;
@@ -3299,39 +3399,42 @@ const HotelListing = () => {
                 if (!targetCrumb) return;
 
                 const targetLocId = String(targetCrumb.locationId ?? targetCrumb.id ?? '');
+                const isBoundsSearch = Boolean(searchParams.get('bounds'));
 
                 // Check if current search location already covers the current view
-                if (currentLocationId) {
-                    const currentCrumb = breadcrumbs.find(b => String(b.locationId ?? b.id ?? '') === String(currentLocationId));
-                    if (currentCrumb) {
-                        if (currentCrumb.locationType === 'CITY') {
-                            // Current search is City: retain it unless user explicitly zoomed into a single district
+                if (!isBoundsSearch) {
+                    if (currentLocationId) {
+                        const currentCrumb = breadcrumbs.find(b => String(b.locationId ?? b.id ?? '') === String(currentLocationId));
+                        if (currentCrumb) {
+                            if (currentCrumb.locationType === 'CITY') {
+                                // Current search is City: retain it unless user explicitly zoomed into a single district
+                                if (currentZoom < 13 || distinctDistricts.size > 1) {
+                                    return;
+                                }
+                            } else if (currentCrumb.locationType === 'COUNTRY') {
+                                // Current search is Country: retain it if still at country zoom
+                                if (currentZoom < 7) {
+                                    return;
+                                }
+                            } else if (currentCrumb.locationType === 'DISTRICT' || currentCrumb.locationType === 'SUBDIVISION') {
+                                // Current search is District: retain it if target is the same district
+                                if (targetLocId === String(currentLocationId)) {
+                                    return;
+                                }
+                            }
+                        }
+
+                        // If targetCrumb matches current locationId, keep current state intact
+                        if (targetLocId && targetLocId === String(currentLocationId)) {
+                            return;
+                        }
+                    } else if (currentQ && !isGenericAreaText(currentQ)) {
+                        // If no locationId in URL but q is set (e.g., 'Istanbul, Republic of Türkiye')
+                        const targetName = getLocalizedCrumbName(targetCrumb.name);
+                        if (targetName && currentQ.toLowerCase().includes(targetName.toLowerCase())) {
                             if (currentZoom < 13 || distinctDistricts.size > 1) {
                                 return;
                             }
-                        } else if (currentCrumb.locationType === 'COUNTRY') {
-                            // Current search is Country: retain it if still at country zoom
-                            if (currentZoom < 7) {
-                                return;
-                            }
-                        } else if (currentCrumb.locationType === 'DISTRICT') {
-                            // Current search is District: retain it if target is the same district
-                            if (targetLocId === String(currentLocationId)) {
-                                return;
-                            }
-                        }
-                    }
-
-                    // If targetCrumb matches current locationId, keep current state intact
-                    if (targetLocId && targetLocId === String(currentLocationId)) {
-                        return;
-                    }
-                } else if (currentQ && !isGenericAreaText(currentQ)) {
-                    // If no locationId in URL but q is set (e.g., 'Istanbul, Republic of Türkiye')
-                    const targetName = getLocalizedCrumbName(targetCrumb.name);
-                    if (targetName && currentQ.toLowerCase().includes(targetName.toLowerCase())) {
-                        if (currentZoom < 13 || distinctDistricts.size > 1) {
-                            return;
                         }
                     }
                 }
@@ -3347,7 +3450,7 @@ const HotelListing = () => {
 
                 if (fullName) {
                     localStorage.setItem('dashboard_last_search', fullName);
-                    if (targetLocId) {
+                    if (targetLocId && !isBoundsSearch) {
                         localStorage.setItem('dashboard_last_search_param', 'regionId');
                         localStorage.setItem('dashboard_last_search_id', targetLocId);
                         localStorage.setItem('dashboard_last_regionId', targetLocId);
@@ -3355,7 +3458,7 @@ const HotelListing = () => {
                         localStorage.removeItem('dashboard_last_togId');
                     }
                     const currentTargetLoc = searchParams.get('regionId') || searchParams.get('locationId');
-                    if (searchParams.get('q') !== fullName || (targetLocId && currentTargetLoc !== targetLocId)) {
+                    if (searchParams.get('q') !== fullName || (!isBoundsSearch && targetLocId && currentTargetLoc !== targetLocId)) {
                         isSyncingQRef.current = true;
                         const newParams = new URLSearchParams(searchParams);
                         newParams.set('q', fullName);
@@ -3363,7 +3466,7 @@ const HotelListing = () => {
                             newParams.set('lat', center.lat.toFixed(4));
                             newParams.set('lng', center.lng.toFixed(4));
                         }
-                        if (targetLocId) {
+                        if (targetLocId && !isBoundsSearch) {
                             newParams.set('regionId', targetLocId);
                             newParams.delete('locationId');
                             newParams.delete('togId');
@@ -3383,6 +3486,24 @@ const HotelListing = () => {
         const timer = setTimeout(syncAutocompleteWithCenter, 400);
         return () => clearTimeout(timer);
     }, [hotels, mapInstance, currentLang, searchParams, setSearchParams]);
+
+    // Pre-populate location names from hotel ancestors to reduce redundant network calls
+    React.useEffect(() => {
+        if (!hotels || hotels.length === 0) return;
+        const extracted = {};
+        hotels.forEach(h => {
+            if (Array.isArray(h.ancestors)) {
+                h.ancestors.forEach(a => {
+                    if (a.regionId && a.name && !locationNames[a.regionId]) {
+                        extracted[a.regionId] = a.name;
+                    }
+                });
+            }
+        });
+        if (Object.keys(extracted).length > 0) {
+            setLocationNames(prev => ({ ...prev, ...extracted }));
+        }
+    }, [hotels, locationNames]);
 
     // Fetch missing location names
     React.useEffect(() => {
@@ -4217,13 +4338,21 @@ const HotelListing = () => {
                     ))}
 
                     {/* Loading more */}
-                    {isLoading && hotels.length > 0 && (
-                        <>{[...Array(3)].map((_, i) => <GoogleCardSkeleton key={`more-${i}`} />)}</>
+                    {(isLoadingMore || (isLoading && hotels.length > 0)) && (
+                        <div className="py-4 space-y-4">
+                            <div className="flex items-center justify-center gap-2.5 py-3 px-4 bg-blue-50/90 dark:bg-slate-800/90 rounded-2xl mx-4 border border-blue-200/60 dark:border-slate-700 shadow-sm animate-pulse">
+                                <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400 animate-spin">progress_activity</span>
+                                <span className="text-[13px] font-medium text-[#1a73e8] dark:text-blue-300">
+                                    {tListing('loadingMore', currentLang) || 'Daha fazla otel yükleniyor...'}
+                                </span>
+                            </div>
+                            {[...Array(2)].map((_, i) => <GoogleCardSkeleton key={`more-${i}`} isCompact={isMapExpanded} />)}
+                        </div>
                     )}
 
                     {/* Sentinel + end state */}
                     <div ref={loaderRef} className="py-4 flex items-center justify-center">
-                        {!hasMore && hotels.length > 0 && (
+                        {!hasMore && hotels.length > 0 && !isLoadingMore && (
                             <div className="flex items-center gap-3 text-[12px] text-[#70757a] dark:text-slate-400 w-full px-4">
                                 <div className="flex-1 h-px bg-[#e8eaed] dark:bg-slate-700" />
                                 {tListing('reachedEnd', currentLang)}

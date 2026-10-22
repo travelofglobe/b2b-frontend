@@ -3007,6 +3007,7 @@ const HotelListing = () => {
     }, [regionId, locationId, isPoiSearch, initialPoiBounds, roomState, searchParams, cullOutOfViewMarkers, mapInstance, getBufferedBounds, isPointInBufferedBounds]);
 
     // Dedicated POI Map Search: Fetches POIs from Elasticsearch geography_poi via b2b-backend
+    // Dedicated POI Map Search: Fetches POIs without clearing existing points (zero flicker / persistent)
     const fetchPoiMarkers = React.useCallback(async (geoBounds = null, isReset = false) => {
         const currentCats = activeEsCategoriesRef.current;
         if (!currentCats || currentCats.length === 0) {
@@ -3022,16 +3023,18 @@ const HotelListing = () => {
         const bounds = geoBounds || mapBoundsRef.current || initialPoiBounds;
         if (!bounds || !bounds.bounds) return;
 
+        // Skip redundant requests if movement is insignificant
         if (!isReset && !isSignificantPan(bounds, lastPoiFetchedBoundsRef.current)) {
             return;
         }
 
-        // Cull out-of-view POIs outside buffer
-        cullOutOfViewMarkers(bounds, 0.6);
-
+        // Only clear the pool if user explicitly changed category (isReset = true)
         if (isReset) {
             poiPoolRef.current.clear();
             setPoiMarkers([]);
+        } else {
+            // Prune only POIs far outside a generous buffer (+100% margin) to keep memory clean
+            cullOutOfViewMarkers(bounds, 1.0);
         }
 
         lastPoiFetchedBoundsRef.current = bounds;
@@ -3054,11 +3057,11 @@ const HotelListing = () => {
             });
 
             if (res && res.pois && Array.isArray(res.pois)) {
-                const buffered = getBufferedBounds(bounds, 0.6);
+                const buffered = getBufferedBounds(bounds, 1.0);
                 let hasNew = false;
                 res.pois.forEach(poi => {
                     const pid = poi.id || poi.poiId;
-                    if (pid && isPointInBufferedBounds(poi.lat, poi.lng ?? poi.lon, buffered)) {
+                    if (pid && !poiPoolRef.current.has(pid) && isPointInBufferedBounds(poi.lat, poi.lng ?? poi.lon, buffered)) {
                         poiPoolRef.current.set(pid, poi);
                         hasNew = true;
                     }
@@ -3079,7 +3082,12 @@ const HotelListing = () => {
     }, [initialPoiBounds, mapInstance, cullOutOfViewMarkers, getBufferedBounds, isPointInBufferedBounds]);
 
     // Whenever active POI categories change, refetch POIs matching the active categories
+    const prevEsCategoriesKeyRef = React.useRef(null);
     React.useEffect(() => {
+        const key = (activeEsCategories || []).slice().sort().join(',');
+        if (key === prevEsCategoriesKeyRef.current) return;
+        prevEsCategoriesKeyRef.current = key;
+
         if (activeEsCategories.length > 0) {
             const bounds = mapBoundsRef.current || initialPoiBounds;
             if (bounds) {
@@ -3094,25 +3102,6 @@ const HotelListing = () => {
             setIsPoiLoading(false);
         }
     }, [activeEsCategories, fetchPoiMarkers, initialPoiBounds]);
-
-    // Initial fetch when map is ready and any category is selected
-    React.useEffect(() => {
-        if (isMapReady && mapInstance && activeEsCategories.length > 0 && poiMarkers.length === 0) {
-            try {
-                const bounds = mapInstance.getBounds();
-                const nw = bounds.getNorthWest();
-                const se = bounds.getSouthEast();
-                const boundsData = {
-                    bounds: {
-                        topLeft: { lat: nw.lat, lon: nw.lng },
-                        bottomRight: { lat: se.lat, lon: se.lng }
-                    },
-                    zoom: Math.round(mapInstance.getZoom())
-                };
-                fetchPoiMarkers(boundsData, true);
-            } catch (_) {}
-        }
-    }, [isMapReady, mapInstance, activeEsCategories.length, poiMarkers.length, fetchPoiMarkers]);
 
     const handleClusterClick = React.useCallback((cluster) => {
         if (!mapInstance || !cluster.lat || !cluster.lng) return;
@@ -3314,6 +3303,15 @@ const HotelListing = () => {
             .filter(h => isPointInBufferedBounds(h.lat, h.lng, buffered));
     }, [mapMarkers, displayedHotels, getBufferedBounds, isPointInBufferedBounds]);
 
+    // Filtered POIs that stay persistent in memory and never flicker or disappear while panning
+    const effectivePoiMarkers = React.useMemo(() => {
+        const currentBounds = mapBoundsRef.current;
+        const buffered = currentBounds ? getBufferedBounds(currentBounds, 0.8) : null;
+        return Array.from(poiPoolRef.current.values())
+            .filter(p => p.lat && p.lng && !isNaN(parseFloat(p.lat)) && !isNaN(parseFloat(p.lng)))
+            .filter(p => isPointInBufferedBounds(p.lat, p.lng ?? p.lon, buffered));
+    }, [poiMarkers, getBufferedBounds, isPointInBufferedBounds]);
+
     const updateUrlWithMapBounds = React.useCallback((boundsData) => {
         if (!boundsData || !boundsData.bounds) return;
         const nw = boundsData.bounds.topLeft;
@@ -3385,9 +3383,6 @@ const HotelListing = () => {
         mapBoundsRef.current = boundsData;
         setMapMoved(true);
 
-        // Cull markers outside the viewport buffer when panning
-        cullOutOfViewMarkers(boundsData, 0.6);
-
         if (mapMoveDebounceRef.current) {
             clearTimeout(mapMoveDebounceRef.current);
         }
@@ -3396,7 +3391,7 @@ const HotelListing = () => {
             isSyncingQRef.current = true;
             updateUrlWithMapBounds(boundsData);
         }, 400);
-    }, [updateUrlWithMapBounds, cullOutOfViewMarkers]);
+    }, [updateUrlWithMapBounds]);
 
     const handleToggleSearchOnMove = React.useCallback(() => {
         setSearchOnMapMove(prev => {
@@ -4544,7 +4539,7 @@ const HotelListing = () => {
                             />
 
                             {/* Dynamic POI markers from Elasticsearch geography_poi */}
-                            {poiMarkers.map(poi => (
+                            {effectivePoiMarkers.map(poi => (
                                 <PoiMarker
                                     key={poi.id || poi.poiId}
                                     poi={poi}

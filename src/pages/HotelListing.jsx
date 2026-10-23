@@ -149,11 +149,17 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
 
     // 1. Immediately pan/fly map to target search city when search parameters change (even during isLoading)
     React.useEffect(() => {
+        // If the URL already has custom map bounds, user is navigating/browsing the map! DO NOT flyTo or override zoom!
+        if (searchParams?.get('bounds')) {
+            return;
+        }
+
         const lat = parseFloat(searchParams?.get('lat'));
         const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
         const targetId = searchParams?.get('poiId') || searchParams?.get('regionId') || searchParams?.get('togId') || searchParams?.get('locationId') || searchParams?.get('hotelId') || '';
         const currentQ = searchParams?.get('q') || q || '';
-        const searchTargetKey = `${slug || ''}_${targetId}_${lat}_${lng}_${currentQ}`;
+        // Only trigger when target destination ID or slug or primary search query changes (NOT on map-derived center lat/lng)
+        const searchTargetKey = `${slug || ''}_${targetId}_${currentQ}`;
 
         if (searchTargetKey !== lastTargetLocationRef.current) {
             lastTargetLocationRef.current = searchTargetKey;
@@ -179,11 +185,16 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
                 }
             }
         }
-    }, [slug, q, searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('lon'), searchParams?.get('poiId'), searchParams?.get('regionId'), searchParams?.get('togId'), searchParams?.get('locationId'), searchParams?.get('q'), map, isProgrammaticMoveRef]);
+    }, [slug, q, searchParams?.get('poiId'), searchParams?.get('regionId'), searchParams?.get('togId'), searchParams?.get('locationId'), searchParams?.get('hotelId'), searchParams?.get('q'), searchParams?.get('bounds'), map, isProgrammaticMoveRef]);
 
     // 2. Auto-fit bounds once hotels are loaded and shouldRefit is true
     React.useEffect(() => {
         if (isLoading || !shouldRefit || !map) return;
+        // Never auto-fit bounds if viewing custom map bounds
+        if (searchParams?.get('bounds')) {
+            if (onRefitDone) onRefitDone();
+            return;
+        }
 
         const isPoi = searchParams?.get('type') === 'POI' || Boolean(searchParams?.get('poiId'));
         const isHotel = searchParams?.get('type') === 'HOTEL' || Boolean(searchParams?.get('hotelId') || searchParams?.get('togId'));
@@ -2561,7 +2572,16 @@ const HotelListing = () => {
     const paramLng = parseFloat(searchParams.get('lng') || searchParams.get('lon'));
     const hasValidCoords = !isNaN(paramLat) && !isNaN(paramLng) && paramLat !== 0 && paramLng !== 0;
 
-    // Build initial geographic bounding box for POI, URL bounds, or coordinate-based searches (~10-15km radius)
+    // Resolve initial map center immediately so Turkey is not displayed needlessly
+    const initialMapState = React.useMemo(() => {
+        return resolveInitialLocation(slug, searchParams.get('q'), searchParams) || {
+            center: [39.9, 32.8],
+            zoom: 6,
+            label: ''
+        };
+    }, [slug, searchParams]);
+
+    // Build initial geographic bounding box for instant map marker fetching (~10-15km radius)
     const initialPoiBounds = React.useMemo(() => {
         const boundsParam = searchParams.get('bounds');
         if (boundsParam) {
@@ -2578,28 +2598,32 @@ const HotelListing = () => {
                 };
             }
         }
-        if ((isPoiSearch || poiId || !regionId) && hasValidCoords) {
-            const latDelta = 0.08;
-            const lonDelta = 0.12;
+        if (hasValidCoords) {
+            const zoomVal = parseInt(searchParams.get('zoom')) || 12;
+            const latDelta = zoomVal >= 13 ? 0.05 : 0.08;
+            const lonDelta = zoomVal >= 13 ? 0.07 : 0.12;
             return {
                 bounds: {
                     topLeft: { lat: paramLat + latDelta, lon: paramLng - lonDelta },
                     bottomRight: { lat: paramLat - latDelta, lon: paramLng + lonDelta }
                 },
-                zoom: parseInt(searchParams.get('zoom')) || 12
+                zoom: zoomVal
             };
         }
+        if (initialMapState?.center && Array.isArray(initialMapState.center)) {
+            const [cLat, cLng] = initialMapState.center;
+            if (!isNaN(cLat) && !isNaN(cLng) && cLat !== 39.9) {
+                return {
+                    bounds: {
+                        topLeft: { lat: cLat + 0.08, lon: cLng - 0.12 },
+                        bottomRight: { lat: cLat - 0.08, lon: cLng + 0.12 }
+                    },
+                    zoom: initialMapState.zoom || 11
+                };
+            }
+        }
         return null;
-    }, [isPoiSearch, poiId, regionId, hasValidCoords, paramLat, paramLng, searchParams]);
-
-    // Resolve initial map center immediately so Turkey is not displayed needlessly
-    const initialMapState = React.useMemo(() => {
-        return resolveInitialLocation(slug, searchParams.get('q'), searchParams) || {
-            center: [39.9, 32.8],
-            zoom: 6,
-            label: ''
-        };
-    }, []);
+    }, [hasValidCoords, paramLat, paramLng, searchParams, initialMapState]);
 
     // Date formatting - Google Hotels style
     const formatDateShort = (dateStr) => {
@@ -3006,6 +3030,9 @@ const HotelListing = () => {
         }
     }, [regionId, locationId, isPoiSearch, initialPoiBounds, roomState, searchParams, cullOutOfViewMarkers, mapInstance, getBufferedBounds, isPointInBufferedBounds]);
 
+    const fetchMapMarkersRef = React.useRef(fetchMapMarkers);
+    fetchMapMarkersRef.current = fetchMapMarkers;
+
     // Dedicated POI Map Search: Fetches POIs from Elasticsearch geography_poi via b2b-backend
     // Dedicated POI Map Search: Fetches POIs without clearing existing points (zero flicker / persistent)
     const fetchPoiMarkers = React.useCallback(async (geoBounds = null, isReset = false) => {
@@ -3117,8 +3144,6 @@ const HotelListing = () => {
         // Reset search clears previous results; only clear marker pool if this is a brand new location search (not map bounds search)
         if (isReset) {
             if (!geoBounds && !searchParams.get('bounds') && !mapBoundsRef.current) {
-                markerPoolRef.current.clear();
-                setMapMarkers([]);
                 mapBoundsRef.current = null;
                 setMapMoved(false);
                 setShouldRefitMap(true);
@@ -3229,15 +3254,6 @@ const HotelListing = () => {
                     }
                 });
                 if (Object.keys(newLocationNames).length > 0) setLocationNames(prev => ({ ...prev, ...newLocationNames }));
-                if (currentPage === 0) {
-                    setTimeout(() => {
-                        if (mapBoundsRef.current) {
-                            fetchMapMarkers(mapBoundsRef.current, false);
-                        } else if (activeGeoBounds) {
-                            fetchMapMarkers(activeGeoBounds, false);
-                        }
-                    }, 600);
-                }
             } else {
                 setHasMore(false);
                 hasMoreRef.current = false;
@@ -3285,7 +3301,7 @@ const HotelListing = () => {
     // Map markers derived from the accumulated map marker pool + current page hotels with valid prices
     // Filtered by visible bounds + buffer to prevent off-screen markers from cluttering the DOM
     const effectiveMapMarkers = React.useMemo(() => {
-        const currentBounds = mapBoundsRef.current;
+        const currentBounds = mapBoundsRef.current || initialPoiBounds;
         const buffered = currentBounds ? getBufferedBounds(currentBounds, 0.6) : null;
 
         if (displayedHotels && displayedHotels.length > 0) {
@@ -3301,11 +3317,11 @@ const HotelListing = () => {
         return Array.from(markerPoolRef.current.values())
             .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)) && h.price && Number(h.price) > 0)
             .filter(h => isPointInBufferedBounds(h.lat, h.lng, buffered));
-    }, [mapMarkers, displayedHotels, getBufferedBounds, isPointInBufferedBounds]);
+    }, [mapMarkers, displayedHotels, getBufferedBounds, isPointInBufferedBounds, initialPoiBounds]);
 
     // Filtered POIs that stay persistent in memory and never flicker or disappear while panning
     const effectivePoiMarkers = React.useMemo(() => {
-        const currentBounds = mapBoundsRef.current;
+        const currentBounds = mapBoundsRef.current || initialPoiBounds;
         const buffered = currentBounds ? getBufferedBounds(currentBounds, 0.8) : null;
         return Array.from(poiPoolRef.current.values())
             .filter(p => p.lat && p.lng && !isNaN(parseFloat(p.lat)) && !isNaN(parseFloat(p.lng)))
@@ -3382,16 +3398,10 @@ const HotelListing = () => {
     const handleMapMoved = React.useCallback((boundsData) => {
         mapBoundsRef.current = boundsData;
         setMapMoved(true);
-
         if (mapMoveDebounceRef.current) {
             clearTimeout(mapMoveDebounceRef.current);
         }
-        mapMoveDebounceRef.current = setTimeout(() => {
-            isMapBoundsSyncRef.current = true;
-            isSyncingQRef.current = true;
-            updateUrlWithMapBounds(boundsData);
-        }, 400);
-    }, [updateUrlWithMapBounds]);
+    }, []);
 
     const handleToggleSearchOnMove = React.useCallback(() => {
         setSearchOnMapMove(prev => {
@@ -3435,7 +3445,8 @@ const HotelListing = () => {
                     closestHotel = hotels.find(h => (Array.isArray(h.locationBreadcrumbs) && h.locationBreadcrumbs.length > 0) || (Array.isArray(h.ancestors) && h.ancestors.length > 0) || h.city || h.location);
                 }
 
-                if (!closestHotel) {
+                // If map center is too far from hotels (e.g. > 35 km away in another city like Bursa before new hotels load), don't falsely sync old city
+                if (!closestHotel || (minDistance !== Infinity && minDistance > 35000)) {
                     return;
                 }
 
@@ -3562,9 +3573,10 @@ const HotelListing = () => {
                     const currentTargetLoc = searchParams.get('regionId') || searchParams.get('locationId');
                     if (searchParams.get('q') !== fullName || (!isBoundsSearch && targetLocId && currentTargetLoc !== targetLocId)) {
                         isSyncingQRef.current = true;
+                        isMapBoundsSyncRef.current = true;
                         const newParams = new URLSearchParams(searchParams);
                         newParams.set('q', fullName);
-                        if (center && center.lat && center.lng) {
+                        if (!isBoundsSearch && center && center.lat && center.lng) {
                             newParams.set('lat', center.lat.toFixed(4));
                             newParams.set('lng', center.lng.toFixed(4));
                         }
@@ -3673,6 +3685,18 @@ const HotelListing = () => {
         setMapMoved(false);
         if (listScrollRef.current) listScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
         loadMoreHotels(true);
+
+        const targetBounds = initialPoiBounds || (mapInstance ? {
+            bounds: {
+                topLeft: { lat: mapInstance.getBounds().getNorthWest().lat, lon: mapInstance.getBounds().getNorthWest().lng },
+                bottomRight: { lat: mapInstance.getBounds().getSouthEast().lat, lon: mapInstance.getBounds().getSouthEast().lng }
+            },
+            zoom: Math.round(mapInstance.getZoom())
+        } : null);
+        if (targetBounds) {
+            fetchMapMarkersRef.current(targetBounds, true, true);
+        }
+
         return () => {
             if (!isMapBoundsSyncRef.current && !isSyncingQRef.current && abortControllerRef.current) {
                 abortControllerRef.current.abort();
@@ -3687,8 +3711,27 @@ const HotelListing = () => {
         searchParams.get('guests'), searchParams.get('nationality'),
         searchParams.get('stars'), searchParams.get('freeCancellation'), searchParams.get('prePayment'),
         searchParams.get('locations'), searchParams.get('roomTwin'), searchParams.get('roomMaxAdult'),
-        searchParams.get('roomMaxChildren'), searchParams.get('roomMaxExtraBed'), searchParams.get('facilities')
+        searchParams.get('roomMaxChildren'), searchParams.get('roomMaxExtraBed'), searchParams.get('facilities'),
+        initialPoiBounds, mapInstance
     ]);
+
+    // Fast initial map marker fetch as soon as Leaflet map mounts if markers not yet populated
+    React.useEffect(() => {
+        if (isMapReady && mapInstance && markerPoolRef.current.size === 0 && !isMapMarkersLoading) {
+            try {
+                const nw = mapInstance.getBounds().getNorthWest();
+                const se = mapInstance.getBounds().getSouthEast();
+                const currentBounds = {
+                    bounds: {
+                        topLeft: { lat: nw.lat, lon: nw.lng },
+                        bottomRight: { lat: se.lat, lon: se.lng }
+                    },
+                    zoom: Math.round(mapInstance.getZoom())
+                };
+                fetchMapMarkersRef.current(currentBounds, false, true);
+            } catch (_) {}
+        }
+    }, [isMapReady, mapInstance, isMapMarkersLoading]);
 
     // Close sort, layer, amenities, star, and price dropdowns on outside click
     React.useEffect(() => {

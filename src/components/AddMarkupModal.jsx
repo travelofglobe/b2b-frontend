@@ -43,7 +43,9 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
         checkinStartDate: '',
         checkoutEndDate: '',
         locationIds: [],
-        hotelIds: []
+        hotelIds: [],
+        cancelPolicy: '',
+        priceRanges: []
     });
 
     // Selection helper states
@@ -83,7 +85,15 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                 checkinStartDate: editData.checkinStartDate || '',
                 checkoutEndDate: editData.checkoutEndDate || '',
                 locationIds: editData.locations?.map(l => l.locationId) || editData.regions?.map(r => r.locationId) || editData.locationIds || [],
-                hotelIds: editData.hotels?.map(h => h.hotelId || h.id) || []
+                hotelIds: editData.hotels?.map(h => h.hotelId || h.id) || [],
+                cancelPolicy: editData.cancelPolicy || '',
+                priceRanges: editData.priceRanges
+                    ? editData.priceRanges.map(pr => ({
+                        minPrice: pr.minPrice ?? '',
+                        maxPrice: pr.maxPrice ?? '',
+                        value: pr.value ?? ''
+                    }))
+                    : []
             });
 
             // Populate selection helpers
@@ -113,13 +123,40 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
             checkinStartDate: '',
             checkoutEndDate: '',
             locationIds: [],
-            hotelIds: []
+            hotelIds: [],
+            cancelPolicy: '',
+            priceRanges: []
         });
         setSelectedHotels([]);
         setSelectedNationalities([]);
         setHotelSearch('');
         setNationalitySearch('');
         setLocationSearch('');
+    };
+
+    // Price range helpers
+    const addPriceRange = () => {
+        setFormData(prev => ({
+            ...prev,
+            priceRanges: [...prev.priceRanges, { minPrice: '', maxPrice: '', value: '' }]
+        }));
+    };
+
+    const removePriceRange = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            priceRanges: prev.priceRanges.filter((_, i) => i !== index)
+        }));
+    };
+
+    const updatePriceRange = (index, field, val) => {
+        // Allow only valid decimal numbers (BigDecimal compatible)
+        if (val !== '' && !/^\d*\.?\d*$/.test(val)) return;
+        setFormData(prev => {
+            const updated = [...prev.priceRanges];
+            updated[index] = { ...updated[index], [field]: val };
+            return { ...prev, priceRanges: updated };
+        });
     };
 
     const fetchInitialData = async () => {
@@ -236,7 +273,15 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                 checkoutEndDate: formData.checkoutEndDate || null,
                 hotelIds: formData.hotelIds,
                 locationIds: formData.locationIds,
-                status: editData ? editData.status : "ACTIVE"
+                status: editData ? editData.status : "ACTIVE",
+                cancelPolicy: formData.cancelPolicy || null,
+                priceRanges: formData.priceRanges.length > 0
+                    ? formData.priceRanges.map(pr => ({
+                        minPrice: pr.minPrice !== '' ? Number(pr.minPrice) : null,
+                        maxPrice: pr.maxPrice !== '' ? Number(pr.maxPrice) : null,
+                        value: pr.value !== '' ? Number(pr.value) : null
+                    }))
+                    : null
             };
 
             if (editData) {
@@ -619,6 +664,129 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                     </div>
                                 </>
                             )}
+                        </div>
+                    </div>
+
+                    {/* 6. Price Ranges */}
+                    <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="size-6 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-500">
+                                    <span className="material-icons-round text-sm">price_change</span>
+                                </div>
+                                <h3 className="text-xs font-semibold text-slate-800 dark:text-white">Price Ranges</h3>
+                                <span className="text-[10px] font-medium text-slate-400">(optional)</span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={addPriceRange}
+                                className="h-7 px-2.5 rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 text-[11px] font-semibold flex items-center gap-1 hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-all"
+                            >
+                                <span className="material-icons-round text-sm">add</span>
+                                Add Range
+                            </button>
+                        </div>
+
+                        {formData.priceRanges.length === 0 ? (
+                            <div className="flex items-center justify-center gap-2 py-4 border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
+                                <span className="material-icons-round text-slate-300 text-lg">tune</span>
+                                <span className="text-[11px] font-medium text-slate-400">No price ranges defined — markup applies to all prices</span>
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                {/* Header row */}
+                                <div className="grid grid-cols-[1fr_1fr_1fr_32px] gap-2 px-1">
+                                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Min Price</span>
+                                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Max Price</span>
+                                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Markup Value (%)</span>
+                                    <span />
+                                </div>
+                                {formData.priceRanges.map((range, idx) => (
+                                    <div key={idx} className="grid grid-cols-[1fr_1fr_1fr_32px] gap-2 items-center">
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={range.minPrice}
+                                                onChange={(e) => updatePriceRange(idx, 'minPrice', e.target.value)}
+                                                placeholder="0"
+                                                className="w-full h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 text-xs font-medium outline-none focus:border-teal-400 transition-all"
+                                            />
+                                        </div>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={range.maxPrice}
+                                                onChange={(e) => updatePriceRange(idx, 'maxPrice', e.target.value)}
+                                                placeholder="0"
+                                                className="w-full h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 text-xs font-medium outline-none focus:border-teal-400 transition-all"
+                                            />
+                                        </div>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={range.value}
+                                                onChange={(e) => updatePriceRange(idx, 'value', e.target.value)}
+                                                placeholder="0.0"
+                                                className="w-full h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 pr-7 text-xs font-medium outline-none focus:border-teal-400 transition-all"
+                                            />
+                                            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] font-semibold">%</span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => removePriceRange(idx)}
+                                            className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-500 transition-all"
+                                        >
+                                            <span className="material-icons-round text-sm">delete_outline</span>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 7. Cancel Policy */}
+                    <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
+                        <div className="flex items-center gap-2">
+                            <div className="size-6 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
+                                <span className="material-icons-round text-sm">policy</span>
+                            </div>
+                            <h3 className="text-xs font-semibold text-slate-800 dark:text-white">Cancel Policy</h3>
+                            <span className="text-[10px] font-medium text-slate-400">(optional)</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            {[
+                                { value: 'FREE_CANCELLATION', label: 'Free Cancellation', icon: 'check_circle', color: 'emerald' },
+                                { value: 'NON_REFUNDABLE',    label: 'Non-Refundable',    icon: 'cancel',       color: 'rose'    },
+                            ].map(opt => {
+                                const isSelected = formData.cancelPolicy === opt.value;
+                                return (
+                                    <button
+                                        key={opt.value}
+                                        type="button"
+                                        onClick={() => setFormData(p => ({
+                                            ...p,
+                                            cancelPolicy: p.cancelPolicy === opt.value ? '' : opt.value
+                                        }))}
+                                        className={`flex-1 h-10 rounded-xl border-2 flex items-center justify-center gap-2 text-xs font-semibold transition-all ${
+                                            isSelected
+                                                ? opt.color === 'emerald'
+                                                    ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400'
+                                                    : 'border-rose-400 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'
+                                                : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-white dark:hover:bg-slate-800'
+                                        }`}
+                                    >
+                                        <span className={`material-icons-round text-base ${
+                                            isSelected
+                                                ? opt.color === 'emerald' ? 'text-emerald-500' : 'text-rose-500'
+                                                : 'text-slate-400'
+                                        }`}>{opt.icon}</span>
+                                        {opt.label}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 

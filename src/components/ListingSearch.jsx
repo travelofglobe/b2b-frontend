@@ -330,6 +330,46 @@ const ListingSearch = ({ isCompact = false }) => {
         }
     }, [searchParams.get('q')]);
 
+    // Keep nationality synced when URL parameter changes externally
+    useEffect(() => {
+        const natParam = searchParams.get('nationality');
+        if (natParam && natParam !== nationality) {
+            setNationality(natParam);
+        }
+    }, [searchParams.get('nationality')]);
+
+    // Keep roomState synced when URL parameter changes externally
+    useEffect(() => {
+        const guestsParam = searchParams.get('guests');
+        if (guestsParam) {
+            try {
+                const parsed = parseGuestsParam(guestsParam);
+                if (serializeGuestsParam(parsed) !== serializeGuestsParam(roomState)) {
+                    setRoomState(parsed);
+                }
+            } catch (e) {
+                console.error("Error parsing guests param:", e);
+            }
+        }
+    }, [searchParams.get('guests')]);
+
+    // Auto-search after 600ms debounce when user changes adults/children in roomState
+    const isFirstGuestRender = useRef(true);
+    useEffect(() => {
+        if (isFirstGuestRender.current) {
+            isFirstGuestRender.current = false;
+            return;
+        }
+        const currentGuestParam = searchParams.get('guests');
+        const newGuestParam = serializeGuestsParam(roomState);
+        if (currentGuestParam && newGuestParam && currentGuestParam !== newGuestParam) {
+            const timer = setTimeout(() => {
+                handleSearch({ roomState });
+            }, 600);
+            return () => clearTimeout(timer);
+        }
+    }, [roomState]);
+
     // Debounce search
     useEffect(() => {
         // Only trigger search if user has interacted with the input
@@ -455,7 +495,9 @@ const ListingSearch = ({ isCompact = false }) => {
     };
 
     const formatDateForUrl = (date) => {
+        if (!date) return '';
         const d = new Date(date);
+        if (isNaN(d.getTime())) return '';
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
@@ -475,6 +517,17 @@ const ListingSearch = ({ isCompact = false }) => {
 
         if (queryOverride) {
             params += `&q=${encodeURIComponent(queryOverride)}`;
+        }
+
+        // If on hotel search page, preserve active filter parameters
+        if (window.location.pathname.startsWith('/travel/hotels/search/')) {
+            const filterKeys = ['facilities', 'stars', 'categories', 'chains', 'guestRating', 'recommended', 'roomMaxAdult', 'roomMaxChildren', 'bounds', 'zoom'];
+            filterKeys.forEach(k => {
+                const v = searchParams.get(k);
+                if (v && !params.includes(`&${k}=`)) {
+                    params += `&${k}=${encodeURIComponent(v)}`;
+                }
+            });
         }
         return params;
     };
@@ -536,12 +589,14 @@ const ListingSearch = ({ isCompact = false }) => {
             // Retrieve target parameter (togId or regionId) & coordinates
             const currentUrlTogId = searchParams.get('togId');
             const currentUrlRegionId = searchParams.get('regionId') || searchParams.get('locationId');
+            const currentUrlPoiId = searchParams.get('poiId');
             const isSameQuery = (activeQuery === (currentQ || query));
 
             const savedParam = opts.searchParam || (isSameQuery ? (localStorage.getItem('dashboard_last_search_param') || (currentUrlTogId ? 'togId' : (currentUrlRegionId ? 'regionId' : null))) : null);
             const savedId = opts.searchId !== undefined ? opts.searchId : (isSameQuery ? (localStorage.getItem('dashboard_last_search_id') || currentUrlTogId || currentUrlRegionId) : null);
             const savedTogId = opts.togId || (isSameQuery ? (localStorage.getItem('dashboard_last_togId') || currentUrlTogId) : null);
             const savedRegionId = opts.regionId || (isSameQuery ? (localStorage.getItem('dashboard_last_regionId') || currentUrlRegionId) : null);
+            const savedPoiId = opts.poiId || (isSameQuery ? (localStorage.getItem('dashboard_last_poiId') || currentUrlPoiId) : null);
 
             let targetIdParam = '';
             if (savedParam && savedId) {
@@ -557,8 +612,8 @@ const ListingSearch = ({ isCompact = false }) => {
             const savedType = localStorage.getItem('dashboard_last_type');
             const typeParam = (savedType === 'POI' || savedPoiId) ? '&type=POI' : '';
 
-            let latVal = opts.lat || (isSameQuery ? localStorage.getItem('dashboard_last_lat') : null);
-            let lngVal = opts.lng || (isSameQuery ? localStorage.getItem('dashboard_last_lng') : null);
+            let latVal = opts.lat || (isSameQuery ? (searchParams.get('lat') || localStorage.getItem('dashboard_last_lat')) : null);
+            let lngVal = opts.lng || (isSameQuery ? (searchParams.get('lng') || localStorage.getItem('dashboard_last_lng')) : null);
 
             if (!latVal || !lngVal) {
                 const known = resolveKnownCoordinates(activeQuery);
@@ -1374,16 +1429,27 @@ const ListingSearch = ({ isCompact = false }) => {
                         {/* Google Flights 2-Month Datepicker Popover */}
                         <GoogleFlightDatePicker
                             isOpen={isDatePickerOpen}
-                            onClose={() => {
+                            onClose={(inDate, outDate) => {
                                 setIsDatePickerOpen(false);
+                                const finalIn = inDate || checkInDate;
+                                const finalOut = outDate || checkOutDate;
+                                if (finalIn) setCheckInDate(finalIn);
+                                if (finalOut) setCheckOutDate(finalOut);
+                                const currentInStr = searchParams.get('checkin') || '';
+                                const currentOutStr = searchParams.get('checkout') || '';
+                                const newInStr = formatDateForUrl(finalIn);
+                                const newOutStr = formatDateForUrl(finalOut);
+                                if (currentInStr !== newInStr || currentOutStr !== newOutStr) {
+                                    handleSearch({ checkInDate: finalIn, checkOutDate: finalOut });
+                                }
                             }}
                             onApply={(inDate, outDate) => {
                                 setIsDatePickerOpen(false);
                                 const finalIn = inDate || checkInDate;
                                 const finalOut = outDate || checkOutDate;
                                 
-                                const currentInStr = searchParams.get('checkin') || formatDateForUrl(checkInDate);
-                                const currentOutStr = searchParams.get('checkout') || formatDateForUrl(checkOutDate);
+                                const currentInStr = searchParams.get('checkin') || '';
+                                const currentOutStr = searchParams.get('checkout') || '';
                                 const newInStr = formatDateForUrl(finalIn);
                                 const newOutStr = formatDateForUrl(finalOut);
                                 
@@ -1411,8 +1477,15 @@ const ListingSearch = ({ isCompact = false }) => {
                             onClick={() => {
                                 if (!showGuestDropdown) {
                                     initialGuestStateRef.current = serializeGuestsParam(roomState);
+                                    setShowGuestDropdown(true);
+                                } else {
+                                    setShowGuestDropdown(false);
+                                    const currentGuestParam = searchParams.get('guests') || initialGuestStateRef.current;
+                                    const newGuestParam = serializeGuestsParam(roomState);
+                                    if (currentGuestParam !== newGuestParam) {
+                                        handleSearch({ roomState });
+                                    }
                                 }
-                                setShowGuestDropdown(!showGuestDropdown);
                             }}
                             className={`flex items-center ${isCompact ? "gap-1 px-2.5" : "gap-1.5 px-3.5"} border h-12 rounded-[4px] transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer bg-white dark:bg-[#303134] ${
                                 showGuestDropdown

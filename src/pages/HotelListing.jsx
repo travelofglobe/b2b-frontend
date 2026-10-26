@@ -2042,6 +2042,8 @@ const HotelListing = () => {
         };
     }, [isPriceOpen, updatePricePosition]);
 
+    const [locationNames, setLocationNames] = React.useState({});
+    const [facilityNames, setFacilityNames] = React.useState({});
     const [amenitySearch, setAmenitySearch] = React.useState('');
 
     const selectedFacilities = React.useMemo(() => {
@@ -2133,8 +2135,7 @@ const HotelListing = () => {
         };
     }, [isAmenitiesOpen, updateAmenitiesPosition]);
 
-    const [locationNames, setLocationNames] = React.useState({});
-    const [facilityNames, setFacilityNames] = React.useState({});
+
 
     const getDefaultDates = () => {
         const checkin = new Date();
@@ -3446,6 +3447,8 @@ const HotelListing = () => {
         searchParams.get('lat'), searchParams.get('lng'),
         location.state?.searchTimestamp,
         searchParams.get('checkin'), searchParams.get('checkout'),
+        searchParams.get('nationality'), searchParams.get('guests'),
+        searchParams.get('adults'), searchParams.get('children'),
         searchParams.get('stars'), searchParams.get('locations'), searchParams.get('categories'),
         searchParams.get('chains'), searchParams.get('guestRating'),
         searchParams.get('roomMaxAdult'), searchParams.get('roomMaxChildren'), searchParams.get('facilities'),

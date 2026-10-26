@@ -149,21 +149,40 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
 
     // 1. Immediately pan/fly map to target search city when search parameters change (even during isLoading)
     React.useEffect(() => {
-        // If the URL already has custom map bounds, user is navigating/browsing the map! DO NOT flyTo or override zoom!
-        if (searchParams?.get('bounds')) {
-            return;
-        }
-
-        const lat = parseFloat(searchParams?.get('lat'));
-        const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
         const targetId = searchParams?.get('poiId') || searchParams?.get('regionId') || searchParams?.get('togId') || searchParams?.get('locationId') || searchParams?.get('hotelId') || '';
         const currentQ = searchParams?.get('q') || q || '';
         // Only trigger when target destination ID or slug or primary search query changes (NOT on map-derived center lat/lng)
         const searchTargetKey = `${slug || ''}_${targetId}_${currentQ}`;
 
-        if (searchTargetKey !== lastTargetLocationRef.current) {
+        // If target destination changed, we MUST fly to the new destination regardless of previous bounds!
+        const isDestinationChanged = searchTargetKey !== lastTargetLocationRef.current;
+        if (!isDestinationChanged && searchParams?.get('bounds')) {
+            return;
+        }
+
+        if (isDestinationChanged) {
             lastTargetLocationRef.current = searchTargetKey;
             lastFittedBoundsRef.current = '';
+
+            let lat = parseFloat(searchParams?.get('lat'));
+            let lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
+            let targetZoom = null;
+
+            if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+                const initialLoc = resolveInitialLocation(slug, currentQ, searchParams);
+                if (initialLoc?.center && Array.isArray(initialLoc.center) && initialLoc.center[0] !== 39.9) {
+                    lat = initialLoc.center[0];
+                    lng = initialLoc.center[1];
+                    targetZoom = initialLoc.zoom;
+                } else {
+                    const known = resolveKnownCoordinates(currentQ) || resolveKnownCoordinates(slug);
+                    if (known) {
+                        lat = known.lat;
+                        lng = known.lng;
+                        targetZoom = known.zoom;
+                    }
+                }
+            }
 
             if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0 && map) {
                 const center = map.getCenter();
@@ -173,19 +192,19 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
                     if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
                     const isPoi = searchParams?.get('type') === 'POI' || Boolean(searchParams?.get('poiId'));
                     const isHotel = searchParams?.get('type') === 'HOTEL' || Boolean(searchParams?.get('hotelId') || searchParams?.get('togId'));
-                    let targetZoom = isHotel ? 15 : (isPoi ? 12 : 11);
+                    let flyZoom = targetZoom || (isHotel ? 15 : (isPoi ? 12 : 11));
                     const cleanSlug = normalizeLoc(slug);
                     if (cleanSlug && KNOWN_DESTINATIONS[cleanSlug]?.zoom) {
-                        targetZoom = KNOWN_DESTINATIONS[cleanSlug].zoom;
+                        flyZoom = KNOWN_DESTINATIONS[cleanSlug].zoom;
                     }
-                    map.flyTo([lat, lng], targetZoom, { duration: 0.9 });
+                    map.flyTo([lat, lng], flyZoom, { duration: 0.9 });
                     setTimeout(() => {
                         if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
                     }, 1000);
                 }
             }
         }
-    }, [slug, q, searchParams?.get('poiId'), searchParams?.get('regionId'), searchParams?.get('togId'), searchParams?.get('locationId'), searchParams?.get('hotelId'), searchParams?.get('q'), searchParams?.get('bounds'), map, isProgrammaticMoveRef]);
+    }, [slug, q, searchParams?.get('poiId'), searchParams?.get('regionId'), searchParams?.get('togId'), searchParams?.get('locationId'), searchParams?.get('hotelId'), searchParams?.get('q'), searchParams?.get('lat'), searchParams?.get('lng'), searchParams?.get('bounds'), map, isProgrammaticMoveRef]);
 
     // 2. Auto-fit bounds once hotels are loaded and shouldRefit is true
     React.useEffect(() => {
@@ -2873,7 +2892,7 @@ const HotelListing = () => {
     const loadMoreHotels = React.useCallback(async (isReset = false, geoBounds = null) => {
         // Reset search clears previous results; only clear marker pool if this is a brand new location search (not map bounds search)
         if (isReset) {
-            if (!geoBounds && !searchParams.get('bounds') && !mapBoundsRef.current) {
+            if (!geoBounds && !searchParams.get('bounds')) {
                 mapBoundsRef.current = null;
                 setMapMoved(false);
                 setShouldRefitMap(true);

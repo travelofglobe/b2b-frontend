@@ -519,9 +519,9 @@ const ListingSearch = ({ isCompact = false }) => {
             params += `&q=${encodeURIComponent(queryOverride)}`;
         }
 
-        // If on hotel search page, preserve active filter parameters
+        // If on hotel search page, preserve active filter parameters (but NEVER viewport bounds/zoom)
         if (window.location.pathname.startsWith('/travel/hotels/search/')) {
-            const filterKeys = ['facilities', 'stars', 'categories', 'chains', 'guestRating', 'recommended', 'roomMaxAdult', 'roomMaxChildren', 'bounds', 'zoom'];
+            const filterKeys = ['facilities', 'stars', 'categories', 'chains', 'guestRating', 'recommended', 'roomMaxAdult', 'roomMaxChildren'];
             filterKeys.forEach(k => {
                 const v = searchParams.get(k);
                 if (v && !params.includes(`&${k}=`)) {
@@ -535,6 +535,9 @@ const ListingSearch = ({ isCompact = false }) => {
 
 
     const handleSearch = (overrides = {}) => {
+        isUserInteraction.current = false;
+        setShowDropdown(false);
+
         const opts = typeof overrides === 'string' ? { query: overrides } : (overrides || {});
         const activeQuery = opts.query !== undefined ? opts.query : query;
         
@@ -607,6 +610,16 @@ const ListingSearch = ({ isCompact = false }) => {
                 targetIdParam = `&poiId=${savedPoiId}`;
             } else if (savedRegionId) {
                 targetIdParam = `&regionId=${savedRegionId}`;
+            } else if (results.regions && results.regions.length > 0) {
+                const topRegion = results.regions[0];
+                const { param: rParam, id: rId } = resolveSearchTargetId(topRegion);
+                if (rParam && rId) {
+                    targetIdParam = `&${rParam}=${rId}`;
+                    if (!latVal || !lngVal) {
+                        latVal = topRegion.geoCoordinate?.lat || topRegion.geoCoordinate?.latitude || topRegion.lat;
+                        lngVal = topRegion.geoCoordinate?.lon || topRegion.geoCoordinate?.lng || topRegion.lng;
+                    }
+                }
             }
 
             const savedType = localStorage.getItem('dashboard_last_type');

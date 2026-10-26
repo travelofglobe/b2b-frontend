@@ -12,7 +12,7 @@ export const ENV = {
     IS_DEV: import.meta.env.DEV,
     IS_PROD: import.meta.env.PROD,
     APP_ENV: import.meta.env.VITE_APP_ENV || import.meta.env.MODE || 'development',
-    API_GATEWAY_URL: (import.meta.env.VITE_API_GATEWAY_URL || 'http://localhost:8000').replace(/\/+$/, ''),
+    API_GATEWAY_URL: (import.meta.env.VITE_API_GATEWAY_URL || '').replace(/\/+$/, ''),
 };
 
 export default ENV;

@@ -3388,15 +3388,26 @@ const HotelListing = () => {
         return () => { isMounted = false; };
     }, [dynamicFilters, locationNames]);
 
-    // Fetch missing facility names
+    // Seed facility names from dynamicFilters and fetch only truly missing ones
     React.useEffect(() => {
         if (!dynamicFilters || !dynamicFilters.hotelFacilityIds) return;
-        const missingFacIds = dynamicFilters.hotelFacilityIds.map(f => f.value).filter(id => !facilityNames[id]);
-        if (missingFacIds.length === 0) return;
+        const availableFromDynamic = {};
+        const trulyMissing = [];
+        dynamicFilters.hotelFacilityIds.forEach(f => {
+            if (f.label && f.label !== String(f.value)) {
+                availableFromDynamic[f.value] = f.label;
+            } else if (!facilityNames[f.value]) {
+                trulyMissing.push(f.value);
+            }
+        });
+        if (Object.keys(availableFromDynamic).length > 0) {
+            setFacilityNames(prev => ({ ...prev, ...availableFromDynamic }));
+        }
+        if (trulyMissing.length === 0) return;
         let isMounted = true;
         const fetchMissingNames = async () => {
             try {
-                const data = await hotelService.fetchFacilityNames(missingFacIds);
+                const data = await hotelService.fetchFacilityNames(trulyMissing);
                 if (isMounted && data && Array.isArray(data)) {
                     const newNames = {};
                     data.forEach(fac => { newNames[fac.facilityId] = fac.nameEn || fac.nameTr || fac.nameDe || `Facility ${fac.facilityId}`; });
@@ -3406,7 +3417,7 @@ const HotelListing = () => {
         };
         fetchMissingNames();
         return () => { isMounted = false; };
-    }, [dynamicFilters, facilityNames]);
+    }, [dynamicFilters]);
 
     // Reset on filter/location change
     React.useEffect(() => {
@@ -3453,7 +3464,7 @@ const HotelListing = () => {
         searchParams.get('chains'), searchParams.get('guestRating'),
         searchParams.get('roomMaxAdult'), searchParams.get('roomMaxChildren'), searchParams.get('facilities'),
         searchParams.get('recommended'),
-        initialPoiBounds, mapInstance
+        initialPoiBounds
     ]);
 
     // Fast initial map marker fetch as soon as Leaflet map mounts if markers not yet populated

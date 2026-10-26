@@ -513,7 +513,7 @@ const DashboardSearch = () => {
         let lngVal = location.geoCoordinate?.lon || location.geoCoordinate?.lng || location.geoCoordinate?.longitude || location.lng || location.lon || location.longitude;
 
         if (!latVal || !lngVal) {
-            const fallbackCoords = resolveKnownCoordinates(fullName) || resolveKnownCoordinates(name) || resolveKnownCoordinates(location.locationPath);
+            const fallbackCoords = resolveKnownCoordinates(fullName) || resolveKnownCoordinates(location.name?.searchName || (typeof location.name === 'string' ? location.name : '')) || resolveKnownCoordinates(location.locationPath);
             if (fallbackCoords) {
                 latVal = fallbackCoords.lat;
                 lngVal = fallbackCoords.lng;

@@ -56,14 +56,14 @@ export const hotelService = {
         const defaults = getDefaultRequestDates();
         const effectiveRegionId = regionId || filters.regionId || (locationId ? String(locationId) : null);
         let effectiveRegionIds = null;
-        if (Array.isArray(filters.regionIds)) {
-            effectiveRegionIds = filters.regionIds.length > 0 ? filters.regionIds : null;
-        } else if (Array.isArray(regionIds)) {
-            effectiveRegionIds = regionIds.length > 0 ? regionIds : null;
+        if (Array.isArray(filters.regionIds) && filters.regionIds.length > 0) {
+            effectiveRegionIds = filters.regionIds;
+        } else if (Array.isArray(regionIds) && regionIds.length > 0) {
+            effectiveRegionIds = regionIds;
         } else if (filters.locationIds?.length > 0) {
             effectiveRegionIds = filters.locationIds;
-        } else if (!geo) {
-            effectiveRegionIds = effectiveRegionId ? [effectiveRegionId] : null;
+        } else if (effectiveRegionId) {
+            effectiveRegionIds = [effectiveRegionId];
         }
 
         const body = {
@@ -125,14 +125,14 @@ export const hotelService = {
         const defaults = getDefaultRequestDates();
         const effectiveRegionId = regionId || filters.regionId || (locationId ? String(locationId) : null);
         let effectiveRegionIds = null;
-        if (Array.isArray(filters.regionIds)) {
-            effectiveRegionIds = filters.regionIds.length > 0 ? filters.regionIds : null;
-        } else if (Array.isArray(regionIds)) {
-            effectiveRegionIds = regionIds.length > 0 ? regionIds : null;
+        if (Array.isArray(filters.regionIds) && filters.regionIds.length > 0) {
+            effectiveRegionIds = filters.regionIds;
+        } else if (Array.isArray(regionIds) && regionIds.length > 0) {
+            effectiveRegionIds = regionIds;
         } else if (filters.locationIds?.length > 0) {
             effectiveRegionIds = filters.locationIds;
-        } else if (!geo) {
-            effectiveRegionIds = effectiveRegionId ? [effectiveRegionId] : null;
+        } else if (effectiveRegionId) {
+            effectiveRegionIds = [effectiveRegionId];
         }
 
         const body = {

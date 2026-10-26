@@ -240,13 +240,29 @@ export const resolveKnownCoordinates = (str) => {
     ) {
         return null;
     }
+
+    // Check primary part before comma first (e.g. "Antalya, Türkiye" -> "Antalya")
+    const primaryPart = lower.split(',')[0].trim();
+    const cleanPrimary = primaryPart
+        .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+        .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
+        .replace(/[^a-z0-9]/g, '');
+
+    if (cleanPrimary) {
+        for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
+            if (cleanPrimary === key || (cleanPrimary.startsWith(key) && cleanPrimary.length <= key.length + 3)) {
+                return val;
+            }
+        }
+    }
+
     const clean = lower
         .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
         .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
         .replace(/[^a-z0-9]/g, '');
     if (!clean) return null;
     for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
-        if (clean === key || (clean.startsWith(key) && clean.length <= key.length + 3)) {
+        if (clean === key || (clean.startsWith(key) && clean.length <= key.length + 3) || clean.includes(key)) {
             return val;
         }
     }

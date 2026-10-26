@@ -12,7 +12,24 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       port: 3000,
-      strictPort: true
+      strictPort: true,
+      proxy: {
+        '/auth': {
+          target: apiGateway,
+          changeOrigin: true,
+          secure: false,
+        },
+        '/b2b': {
+          target: apiGateway,
+          changeOrigin: true,
+          secure: false,
+        },
+        '/b2b-backend': {
+          target: apiGateway,
+          changeOrigin: true,
+          secure: false,
+        },
+      },
     }
   };
 });

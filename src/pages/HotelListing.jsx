@@ -27,7 +27,7 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-import { LISTING_LOCALES, AMENITY_LOCALES, getAmenityText, getLayerLabel, tListing } from '../utils/hotelListingLocales';
+import { LISTING_LOCALES, AMENITY_LOCALES, getAmenityText, getLayerLabel, tListing, getAmenityIcon } from '../utils/hotelListingLocales';
 import PoiMarker from '../components/PoiMarker';
 import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
 import { resolveFacility } from '../utils/facilityUtils';
@@ -1591,302 +1591,8 @@ const resolveInitialLocation = (slug, q, searchParams) => {
 };
 
 // ═══════════════════════════════════════════════
-// Quick Amenities Filter List (Google Hotels Style)
-// ═══════════════════════════════════════════════
-export const QUICK_AMENITIES = [
-    {
-        id: 'free_wifi',
-        labelTr: 'Ücretsiz kablosuz bağlantı',
-        labelEn: 'Free Wi-Fi',
-        labelAr: 'واي فاي مجاني',
-        icon: 'wifi',
-        match: (h) => {
-            if (h.amenities?.some(a => a.icon === 'wifi')) return true;
-            if (h.facilityIds?.some(id => [98445, 48325, 3664, 334].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('wifi') || text.includes('wi-fi') || text.includes('kablosuz') || text.includes('internet');
-        }
-    },
-    {
-        id: 'free_breakfast',
-        labelTr: 'Ücretsiz kahvaltı',
-        labelEn: 'Free breakfast',
-        labelAr: 'إفطار مجاني',
-        icon: 'coffee',
-        match: (h) => {
-            const bName = (h.boardName || '').toLowerCase();
-            if (bName.includes('breakfast') || bName.includes('kahvaltı') || bName.includes('bb') || bName.includes('bed & breakfast') || bName.includes('bed and breakfast') || bName.includes('half board') || bName.includes('all inclusive') || bName.includes('tam pansiyon') || bName.includes('yarım pansiyon')) return true;
-            if (h.amenities?.some(a => ['coffee', 'free_breakfast', 'local_cafe'].includes(a.icon))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('breakfast') || text.includes('kahvaltı');
-        }
-    },
-    {
-        id: 'restaurant',
-        labelTr: 'Restoran',
-        labelEn: 'Restaurant',
-        labelAr: 'مطعم',
-        icon: 'restaurant',
-        match: (h) => {
-            if (h.amenities?.some(a => a.icon === 'restaurant')) return true;
-            if (h.facilityIds?.some(id => [641].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('restaurant') || text.includes('restoran') || text.includes('dining');
-        }
-    },
-    {
-        id: 'bar',
-        labelTr: 'Bar',
-        labelEn: 'Bar',
-        labelAr: 'بار',
-        icon: 'local_bar',
-        match: (h) => {
-            if (h.amenities?.some(a => a.icon === 'local_bar')) return true;
-            if (h.facilityIds?.some(id => [3134].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('bar') || text.includes('lounge');
-        }
-    },
-    {
-        id: 'kid_friendly',
-        labelTr: 'Çocuklar için uygun',
-        labelEn: 'Kid-friendly',
-        labelAr: 'مناسب للأطفال',
-        icon: 'stroller',
-        match: (h) => {
-            if (h.amenities?.some(a => ['child_friendly', 'child_care', 'stroller'].includes(a.icon))) return true;
-            if (h.facilityIds?.some(id => [603, 1981, 1685].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('kid') || text.includes('child') || text.includes('çocuk') || text.includes('bebek') || text.includes('family') || text.includes('aile');
-        }
-    },
-    {
-        id: 'pets',
-        labelTr: 'Evcil hayvan kabul ediliyor',
-        labelEn: 'Pet-friendly',
-        labelAr: 'يسمح بالحيوانات الأليفة',
-        icon: 'pets',
-        match: (h) => {
-            if (h.amenities?.some(a => a.icon === 'pets')) return true;
-            if (h.facilityIds?.some(id => [606].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('pet') || text.includes('evcil') || text.includes('hayvan');
-        }
-    },
-    {
-        id: 'free_parking',
-        labelTr: 'Ücretsiz park alanı',
-        labelEn: 'Free parking',
-        labelAr: 'موقف سيارات مجاني',
-        icon: 'local_parking',
-        match: (h) => {
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('ücretsiz park') || text.includes('free park') || text.includes('ücretsiz otopark') || text.includes('free self parking');
-        }
-    },
-    {
-        id: 'parking',
-        labelTr: 'Park Alanı',
-        labelEn: 'Parking',
-        labelAr: 'موقف سيارات',
-        icon: 'local_parking',
-        match: (h) => {
-            if (h.amenities?.some(a => a.icon === 'local_parking')) return true;
-            if (h.facilityIds?.some(id => [610].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('park') || text.includes('otopark') || text.includes('garage') || text.includes('valet');
-        }
-    },
-    {
-        id: 'ev_charging',
-        labelTr: 'EV şarj noktası',
-        labelEn: 'EV charger',
-        labelAr: 'شاحن المركبات الكهربائية',
-        icon: 'bolt',
-        match: (h) => {
-            if (h.amenities?.some(a => ['bolt', 'ev_station'].includes(a.icon))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('ev ') || text.includes('electric') || text.includes('şarj') || text.includes('charger');
-        }
-    },
-    {
-        id: 'room_service',
-        labelTr: 'Oda servisi',
-        labelEn: 'Room service',
-        labelAr: 'خدمة الغرف',
-        icon: 'room_service',
-        match: (h) => {
-            if (h.amenities?.some(a => a.icon === 'room_service')) return true;
-            if (h.facilityIds?.some(id => [611].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('room service') || text.includes('oda servisi');
-        }
-    },
-    {
-        id: 'gym',
-        labelTr: 'Spor salonu',
-        labelEn: 'Fitness center',
-        labelAr: 'صالة رياضية',
-        icon: 'fitness_center',
-        match: (h) => {
-            if (h.amenities?.some(a => a.icon === 'fitness_center')) return true;
-            if (h.facilityIds?.some(id => [1978, 98455, 47935].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('gym') || text.includes('fitness') || text.includes('spor salonu') || text.includes('sağlık kulübü');
-        }
-    },
-    {
-        id: 'spa',
-        labelTr: 'Spa',
-        labelEn: 'Spa',
-        labelAr: 'سبا',
-        icon: 'spa',
-        match: (h) => {
-            if (h.amenities?.some(a => ['spa', 'hot_tub'].includes(a.icon))) return true;
-            if (h.facilityIds?.some(id => [1985, 650, 3891].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('spa') || text.includes('sauna') || text.includes('masaj') || text.includes('wellness') || text.includes('hamam') || text.includes('jakuzi');
-        }
-    },
-    {
-        id: 'pool',
-        labelTr: 'Havuz',
-        labelEn: 'Pool',
-        labelAr: 'مسبح',
-        icon: 'pool',
-        match: (h) => {
-            if (h.amenities?.some(a => a.icon === 'pool')) return true;
-            if (h.facilityIds?.some(id => [616, 649, 1685].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('pool') || text.includes('havuz');
-        }
-    },
-    {
-        id: 'indoor_pool',
-        labelTr: 'Kapalı havuz',
-        labelEn: 'Indoor pool',
-        labelAr: 'مسبح داخلي',
-        icon: 'pool',
-        match: (h) => {
-            if (h.facilityIds?.some(id => [649].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('indoor pool') || text.includes('kapalı havuz');
-        }
-    },
-    {
-        id: 'outdoor_pool',
-        labelTr: 'Açık havuz',
-        labelEn: 'Outdoor pool',
-        labelAr: 'مسبح خارجي',
-        icon: 'pool',
-        match: (h) => {
-            if (h.facilityIds?.some(id => [616].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('outdoor pool') || text.includes('açık havuz');
-        }
-    },
-    {
-        id: 'ac',
-        labelTr: 'Klimalı',
-        labelEn: 'Air conditioning',
-        labelAr: 'تكييف هواء',
-        icon: 'ac_unit',
-        match: (h) => {
-            if (h.amenities?.some(a => a.icon === 'ac_unit')) return true;
-            if (h.facilityIds?.some(id => [719].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('klima') || text.includes('air condition');
-        }
-    },
-    {
-        id: 'wheelchair',
-        labelTr: 'Tekerlekli sandalyeye uygun',
-        labelEn: 'Wheelchair accessible',
-        labelAr: 'مناسب للكراسي المتحركة',
-        icon: 'accessible',
-        match: (h) => {
-            if (h.amenities?.some(a => ['accessible', 'wheelchair_pickup'].includes(a.icon))) return true;
-            if (h.facilityIds?.some(id => [1995].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('wheelchair') || text.includes('engelli') || text.includes('tekerlekli sandalye');
-        }
-    },
-    {
-        id: 'beach',
-        labelTr: 'Plaj',
-        labelEn: 'Beach',
-        labelAr: 'شاطئ',
-        icon: 'beach_access',
-        match: (h) => {
-            if (h.amenities?.some(a => a.icon === 'beach_access')) return true;
-            if (h.facilityIds?.some(id => [3724].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('beach') || text.includes('plaj');
-        }
-    },
-    {
-        id: 'all_inclusive',
-        labelTr: 'Her şey dahil',
-        labelEn: 'All-inclusive',
-        labelAr: 'شامل كلياً',
-        icon: 'all_inclusive',
-        match: (h) => {
-            const bName = (h.boardName || '').toLowerCase();
-            return bName.includes('all inclusive') || bName.includes('her şey dahil') || bName.includes('ai') || JSON.stringify(h.amenities || []).toLowerCase().includes('all inclusive');
-        }
-    },
-    {
-        id: 'hot_tub',
-        labelTr: 'Jakuzi',
-        labelEn: 'Hot tub / Jacuzzi',
-        labelAr: 'جاكوزي',
-        icon: 'hot_tub',
-        match: (h) => {
-            if (h.amenities?.some(a => a.icon === 'hot_tub')) return true;
-            if (h.facilityIds?.some(id => [3891].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('jakuzi') || text.includes('jacuzzi') || text.includes('hot tub');
-        }
-    },
-    {
-        id: 'airport_shuttle',
-        labelTr: 'Havalimanı servisi',
-        labelEn: 'Airport shuttle',
-        labelAr: 'خدمة نقل المطار',
-        icon: 'airport_shuttle',
-        match: (h) => {
-            if (h.amenities?.some(a => a.icon === 'airport_shuttle')) return true;
-            if (h.facilityIds?.some(id => [98415].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('airport') || text.includes('havalimanı') || text.includes('havaalanı');
-        }
-    },
-    {
-        id: 'business_center',
-        labelTr: 'İş merkezi',
-        labelEn: 'Business center',
-        labelAr: 'مركز أعمال',
-        icon: 'business_center',
-        match: (h) => {
-            if (h.amenities?.some(a => ['business_center', 'meeting_room'].includes(a.icon))) return true;
-            if (h.facilityIds?.some(id => [18006, 1991].includes(Number(id)))) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('business') || text.includes('iş merkezi') || text.includes('toplantı');
-        }
-    },
-    {
-        id: 'smoke_free',
-        labelTr: 'Sigara içilmeyen otel',
-        labelEn: 'Smoke-free hotel',
-        labelAr: 'فندق خالي من التدخين',
-        icon: 'smoke_free',
-        match: (h) => {
-            if (h.amenities?.some(a => a.icon === 'smoke_free')) return true;
-            const text = JSON.stringify(h.amenities || []).toLowerCase();
-            return text.includes('smoke free') || text.includes('sigara içilmez') || text.includes('non-smoking');
-        }
-    }
-];
+// Legacy quick amenities export for backwards compatibility
+export const QUICK_AMENITIES = [];
 
 // ═══════════════════════════════════════════════
 // Main HotelListing Component
@@ -2336,32 +2042,60 @@ const HotelListing = () => {
         };
     }, [isPriceOpen, updatePricePosition]);
 
-    const selectedAmenities = React.useMemo(() => {
-        const p = searchParams.get('amenities');
-        return p ? p.split(',').filter(Boolean) : [];
+    const [amenitySearch, setAmenitySearch] = React.useState('');
+
+    const selectedFacilities = React.useMemo(() => {
+        const p = searchParams.get('facilities');
+        return p ? p.split(',').map(Number).filter(Boolean) : [];
     }, [searchParams]);
 
-    const handleToggleAmenity = (amenityId) => {
+    const handleToggleFacility = (facilityId) => {
+        const idNum = Number(facilityId);
         const newParams = new URLSearchParams(searchParams);
         let nextList;
-        if (selectedAmenities.includes(amenityId)) {
-            nextList = selectedAmenities.filter(id => id !== amenityId);
+        if (selectedFacilities.includes(idNum)) {
+            nextList = selectedFacilities.filter(id => id !== idNum);
         } else {
-            nextList = [...selectedAmenities, amenityId];
+            nextList = [...selectedFacilities, idNum];
         }
         if (nextList.length > 0) {
-            newParams.set('amenities', nextList.join(','));
+            newParams.set('facilities', nextList.join(','));
         } else {
-            newParams.delete('amenities');
+            newParams.delete('facilities');
         }
-        setSearchParams(newParams);
-    };
-
-    const handleClearAmenities = () => {
-        const newParams = new URLSearchParams(searchParams);
         newParams.delete('amenities');
         setSearchParams(newParams);
     };
+
+    const handleClearFacilities = () => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('facilities');
+        newParams.delete('amenities');
+        setSearchParams(newParams);
+    };
+
+    const availableFacilities = React.useMemo(() => {
+        const raw = dynamicFilters?.hotelFacilityIds || [];
+        return raw.map(fac => {
+            const facId = Number(fac.value);
+            const label = fac.label || facilityNames[facId] || facilityNames[fac.value] || ('Facility ' + facId);
+            return {
+                id: facId,
+                label: label,
+                count: fac.count || 0,
+                icon: getAmenityIcon(label)
+            };
+        });
+    }, [dynamicFilters?.hotelFacilityIds, facilityNames]);
+
+    const filteredFacilities = React.useMemo(() => {
+        let list = [...availableFacilities].sort((a, b) => (b.count || 0) - (a.count || 0));
+        if (amenitySearch.trim()) {
+            const q = amenitySearch.toLowerCase();
+            list = list.filter(f => f.label.toLowerCase().includes(q));
+        }
+        return list;
+    }, [availableFacilities, amenitySearch]);
 
     const updateAmenitiesPosition = React.useCallback(() => {
         if (amenitiesBtnRef.current) {
@@ -2649,6 +2383,7 @@ const HotelListing = () => {
     }, [totalGuests, totalRooms, currentLang]);
 
     // Filtered hotels based on selected quick amenities & price range
+    // Filtered hotels based on selected price range & client-side overrides
     const displayedHotels = React.useMemo(() => {
         let filtered = hotels;
 
@@ -2656,14 +2391,6 @@ const HotelListing = () => {
             filtered = filtered.filter(hotel => hotel.isRecommended === true);
         }
 
-        if (selectedAmenities.length > 0) {
-            filtered = filtered.filter(hotel => {
-                return selectedAmenities.every(amenityId => {
-                    const def = QUICK_AMENITIES.find(a => a.id === amenityId);
-                    return def ? def.match(hotel) : true;
-                });
-            });
-        }
         if (isPriceActive) {
             filtered = filtered.filter(hotel => {
                 if (!hotel.price || hotel.price <= 0) return true;
@@ -2673,23 +2400,21 @@ const HotelListing = () => {
             });
         }
         return filtered;
-    }, [hotels, selectedAmenities, isPriceActive, priceRange, maxHotelPrice]);
+    }, [hotels, searchParams, isPriceActive, priceRange, maxHotelPrice]);
 
     // Results count text
     const resultsText = useMemo(() => {
         if (isLoading && totalProperties === 0) return tListing('searching', currentLang);
-        const isCustomFiltered = selectedAmenities.length > 0 || isPriceActive;
-        const count = isCustomFiltered ? displayedHotels.length : (totalProperties || hotels.length || 0);
+        const count = isPriceActive ? displayedHotels.length : (totalProperties || hotels.length || 0);
         return `${locationName || ''} · ${count} ${tListing('results', currentLang)}`;
-    }, [isLoading, totalProperties, locationName, currentLang, selectedAmenities.length, isPriceActive, displayedHotels.length, hotels.length]);
+    }, [isLoading, totalProperties, locationName, currentLang, isPriceActive, displayedHotels.length, hotels.length]);
 
     // Active filter count for badge
     const activeFilterCount = React.useMemo(() => {
         const count = [
             searchParams.get('stars'), searchParams.get('locations'), searchParams.get('categories'),
             searchParams.get('chains'), searchParams.get('guestRating'), searchParams.get('roomMaxAdult'),
-            searchParams.get('roomMaxChildren'), searchParams.get('facilities'), searchParams.get('recommended'),
-            searchParams.get('amenities')
+            searchParams.get('roomMaxChildren'), searchParams.get('facilities'), searchParams.get('recommended')
         ].filter(Boolean).length;
         return count + (isPriceActive ? 1 : 0);
     }, [searchParams, isPriceActive]);
@@ -3986,23 +3711,23 @@ const HotelListing = () => {
                             ref={amenitiesBtnRef}
                             type="button"
                             onClick={handleToggleAmenities}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${selectedAmenities.length > 0
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${selectedFacilities.length > 0
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                     : isAmenitiesOpen
                                         ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
                                         : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
                                 }`}
                         >
-                            <span className={`material-symbols-outlined text-[18px] ${selectedAmenities.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
+                            <span className={`material-symbols-outlined text-[18px] ${selectedFacilities.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
                                 room_service
                             </span>
                             <span>{tListing('amenities', currentLang)}</span>
-                            {selectedAmenities.length > 0 && (
+                            {selectedFacilities.length > 0 && (
                                 <span className="bg-[#1a73e8] text-white text-[10px] font-bold rounded-lg min-w-[16px] h-4 flex items-center justify-center px-1">
-                                    {selectedAmenities.length}
+                                    {selectedFacilities.length}
                                 </span>
                             )}
-                            <span className={`material-symbols-outlined text-[18px] ${selectedAmenities.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                            <span className={`material-symbols-outlined text-[18px] ${selectedFacilities.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
                                 {isAmenitiesOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
                             </span>
                         </button>
@@ -4318,54 +4043,89 @@ const HotelListing = () => {
                                     </button>
                                 </div>
 
-                                {/* 2-Column Grid */}
-                                <div className="px-5 py-2 max-h-[420px] overflow-y-auto custom-scrollbar">
-                                    <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-lg overflow-hidden">
-                                        {QUICK_AMENITIES.map((amenity, index) => {
-                                            const isSelected = selectedAmenities.includes(amenity.id);
-                                            const label = getAmenityText(amenity.id, currentLang) || amenity.labelEn || amenity.labelTr;
-                                            const isLeftCol = index % 2 === 0;
-                                            const totalRows = Math.ceil(QUICK_AMENITIES.length / 2);
-                                            const currentRow = Math.floor(index / 2);
-                                            const isLastRow = currentRow === totalRows - 1;
-
-                                            return (
+                                {/* Search Bar (if more than 6 amenities) */}
+                                {availableFacilities.length > 6 && (
+                                    <div className="px-5 pt-2 pb-1 shrink-0">
+                                        <div className="relative group/search">
+                                            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] transition-colors">
+                                                search
+                                            </span>
+                                            <input
+                                                type="text"
+                                                placeholder={tListing('searchAmenities', currentLang)}
+                                                value={amenitySearch}
+                                                onChange={(e) => setAmenitySearch(e.target.value)}
+                                                className="w-full pl-8 pr-7 py-1.5 bg-[#f1f3f4] dark:bg-slate-700/60 border border-transparent focus:border-blue-500 rounded-lg text-xs text-[#202124] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-all font-roboto"
+                                            />
+                                            {amenitySearch && (
                                                 <button
-                                                    key={amenity.id}
                                                     type="button"
-                                                    onClick={() => handleToggleAmenity(amenity.id)}
-                                                    className={`flex flex-col items-center justify-center py-3 px-2 text-center cursor-pointer transition-colors select-none ${isLeftCol ? 'border-r border-[#dadce0] dark:border-slate-700' : ''
-                                                        } ${!isLastRow ? 'border-b border-[#dadce0] dark:border-slate-700' : ''
-                                                        } ${isSelected
-                                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 font-medium'
-                                                            : 'bg-white dark:bg-[#303134] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700/60'
-                                                        }`}
+                                                    onClick={() => setAmenitySearch('')}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
                                                 >
-                                                    <span
-                                                        className={`material-symbols-outlined text-[22px] mb-1 transition-colors ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'
+                                                    <span className="material-symbols-outlined text-[14px]">close</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 2-Column Grid */}
+                                <div className="px-5 py-2 max-h-[380px] overflow-y-auto custom-scrollbar">
+                                    {filteredFacilities.length === 0 ? (
+                                        <div className="py-8 text-center text-[#5f6368] dark:text-slate-400 text-xs font-roboto">
+                                            {amenitySearch ? tListing('noAmenitiesFound', currentLang) : (isLoading ? tListing('searching', currentLang) : tListing('noAmenitiesFound', currentLang))}
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-lg overflow-hidden">
+                                            {filteredFacilities.map((amenity, index) => {
+                                                const isSelected = selectedFacilities.includes(amenity.id);
+                                                const isLeftCol = index % 2 === 0;
+                                                const totalRows = Math.ceil(filteredFacilities.length / 2);
+                                                const currentRow = Math.floor(index / 2);
+                                                const isLastRow = currentRow === totalRows - 1;
+
+                                                return (
+                                                    <button
+                                                        key={amenity.id}
+                                                        type="button"
+                                                        onClick={() => handleToggleFacility(amenity.id)}
+                                                        className={`flex flex-col items-center justify-center py-2.5 px-2 text-center cursor-pointer transition-colors select-none min-h-[72px] ${isLeftCol ? 'border-r border-[#dadce0] dark:border-slate-700' : ''
+                                                            } ${!isLastRow ? 'border-b border-[#dadce0] dark:border-slate-700' : ''
+                                                            } ${isSelected
+                                                                ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                                                : 'bg-white dark:bg-[#303134] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700/60'
                                                             }`}
                                                     >
-                                                        {amenity.icon}
-                                                    </span>
-                                                    <span className="text-[12.5px] leading-tight font-roboto">
-                                                        {label}
-                                                    </span>
-                                                </button>
-                                            );
-                                        })}
-                                        {QUICK_AMENITIES.length % 2 !== 0 && (
-                                            <div className="bg-white dark:bg-[#303134]" />
-                                        )}
-                                    </div>
+                                                        <span
+                                                            className={`material-symbols-outlined text-[20px] mb-1 transition-colors ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'
+                                                                }`}
+                                                        >
+                                                            {amenity.icon}
+                                                        </span>
+                                                        <span className="text-[12px] leading-snug font-roboto line-clamp-2 px-1">
+                                                            {amenity.label}
+                                                        </span>
+                                                        <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                                                            ({amenity.count})
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                            {filteredFacilities.length % 2 !== 0 && (
+                                                <div className="bg-white dark:bg-[#303134]" />
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Footer with Temizle */}
-                                <div className="px-5 pb-3 pt-0 flex justify-end items-center shrink-0">
+                                <div className="px-5 pb-3 pt-1 flex justify-end items-center shrink-0">
                                     <button
                                         type="button"
-                                        onClick={handleClearAmenities}
-                                        disabled={selectedAmenities.length === 0}
-                                        className={`text-[13px] font-medium font-roboto transition-colors select-none ${selectedAmenities.length > 0
+                                        onClick={handleClearFacilities}
+                                        disabled={selectedFacilities.length === 0}
+                                        className={`text-[13px] font-medium font-roboto transition-colors select-none ${selectedFacilities.length > 0
                                                 ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded px-2 py-0.5 cursor-pointer'
                                                 : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
                                             }`}

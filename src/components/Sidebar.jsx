@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import FilterSection from './FilterSection';
 import { tFilter } from '../utils/filterLocales';
-import { tListing } from '../utils/hotelListingLocales';
+import { tListing, getAmenityIcon } from '../utils/hotelListingLocales';
 
 const Sidebar = ({
     filters,
@@ -771,7 +771,7 @@ const Sidebar = ({
                                                         className={`flex flex-col items-center justify-center p-2.5 rounded-lg border cursor-pointer transition-colors text-center min-h-[75px] ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/20 border-[#1a73e8] dark:border-blue-500' : 'bg-white dark:bg-[#303134] border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
                                                     >
                                                         <span className={`material-symbols-outlined text-[22px] mb-1 ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                            room_service
+                                                            {getAmenityIcon(facName)}
                                                         </span>
                                                         <span className={`text-[12px] font-medium leading-tight line-clamp-2 ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-200'}`}>
                                                             {facName}

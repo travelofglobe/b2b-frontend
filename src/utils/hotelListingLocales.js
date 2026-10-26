@@ -20,7 +20,9 @@ export const LISTING_LOCALES = {
         touristAttractions: "Touristic places", shoppingAreas: "Shopping areas",
         zoomIn: "Zoom in", zoomOut: "Zoom out",
         quickLook: "Quick look",
-        loadingMore: "Loading more properties..."
+        loadingMore: "Loading more properties...",
+        searchAmenities: "Search amenities...",
+        noAmenitiesFound: "No amenities found"
     },
     tr: {
         room: "Oda", rooms: "Oda", guest: "Misafir", guests: "Misafir",
@@ -43,7 +45,9 @@ export const LISTING_LOCALES = {
         touristAttractions: "Turistik yerler", shoppingAreas: "Alışveriş bölgeleri",
         zoomIn: "Yakınlaştır", zoomOut: "Uzaklaştır",
         quickLook: "Hızlı Bakış",
-        loadingMore: "Daha fazla otel yükleniyor..."
+        loadingMore: "Daha fazla otel yükleniyor...",
+        searchAmenities: "Olanak ara...",
+        noAmenitiesFound: "Olanak bulunamadı"
     },
     ar: {
         room: "غرفة", rooms: "غرف", guest: "نزيل", guests: "نزلاء",
@@ -327,3 +331,35 @@ export const tListing = (key, lang = 'en') => {
     const l = (lang || 'en').split('-')[0].toLowerCase();
     return LISTING_LOCALES[l]?.[key] || LISTING_LOCALES['en']?.[key] || key;
 };
+
+export const getAmenityIcon = (label = '') => {
+    if (!label) return 'room_service';
+    const l = String(label).toLowerCase();
+    if (l.includes('wifi') || l.includes('wi-fi') || l.includes('kablosuz') || l.includes('internet')) return 'wifi';
+    if (l.includes('kahvaltı') || l.includes('breakfast') || l.includes('kahve') || l.includes('coffee') || l.includes('çay') || l.includes('tea')) return 'coffee';
+    if (l.includes('otopark') || l.includes('park') || l.includes('garage') || l.includes('garaj') || l.includes('valet') || l.includes('vale')) return 'local_parking';
+    if (l.includes('havuz') || l.includes('pool') || l.includes('yüzme') || l.includes('swimming')) return 'pool';
+    if (l.includes('spa') || l.includes('sauna') || l.includes('masaj') || l.includes('massage') || l.includes('hamam') || l.includes('wellness') || l.includes('buhar') || l.includes('steam') || l.includes('jakuzi') || l.includes('hot tub') || l.includes('jacuzzi')) return 'spa';
+    if (l.includes('fitness') || l.includes('gym') || l.includes('spor') || l.includes('egzersiz') || l.includes('antrenman')) return 'fitness_center';
+    if (l.includes('restoran') || l.includes('restaurant') || l.includes('yemek') || l.includes('dining') || l.includes('mutfak') || l.includes('buffet') || l.includes('büfe')) return 'restaurant';
+    if (l.includes('bar') || l.includes('lounge') || l.includes('kokteyl') || l.includes('pub') || l.includes('şarap') || l.includes('wine')) return 'local_bar';
+    if (l.includes('oda servisi') || l.includes('room service')) return 'room_service';
+    if (l.includes('klima') || l.includes('air cond') || l.includes('climate') || l.includes('havalandırma')) return 'ac_unit';
+    if (l.includes('evcil') || l.includes('pet') || l.includes('hayvan') || l.includes('kedi') || l.includes('köpek')) return 'pets';
+    if (l.includes('çocuk') || l.includes('kid') || l.includes('child') || l.includes('bebek') || l.includes('baby') || l.includes('family') || l.includes('aile')) return 'child_care';
+    if (l.includes('şarj') || l.includes('charger') || l.includes('ev station') || l.includes('elektrikli araç')) return 'ev_station';
+    if (l.includes('resepsiyon') || l.includes('front desk') || l.includes('24 saat') || l.includes('24-hour') || l.includes('concierge') || l.includes('danışma')) return 'support_agent';
+    if (l.includes('plaj') || l.includes('beach') || l.includes('deniz') || l.includes('kum')) return 'beach_access';
+    if (l.includes('asansör') || l.includes('elevator') || l.includes('lift')) return 'elevator';
+    if (l.includes('kuru temizleme') || l.includes('çamaşır') || l.includes('laundry') || l.includes('dry clean') || l.includes('ütü') || l.includes('iron')) return 'local_laundry_service';
+    if (l.includes('sigara içilmez') || l.includes('non-smoking')) return 'smoke_free';
+    if (l.includes('sigara') || l.includes('smoking')) return 'smoking_rooms';
+    if (l.includes('toplantı') || l.includes('konferans') || l.includes('meeting') || l.includes('business') || l.includes('iş merkezi')) return 'meeting_room';
+    if (l.includes('transfer') || l.includes('servis') || l.includes('shuttle') || l.includes('havaalanı') || l.includes('airport')) return 'airport_shuttle';
+    if (l.includes('kasa') || l.includes('safe') || l.includes('emanet') || l.includes('güvenlik') || l.includes('security')) return 'lock';
+    if (l.includes('balkon') || l.includes('teras') || l.includes('balcony') || l.includes('terrace') || l.includes('veranda')) return 'balcony';
+    if (l.includes('bahçe') || l.includes('garden')) return 'yard';
+    if (l.includes('tv') || l.includes('televizyon') || l.includes('uydu') || l.includes('satellite')) return 'tv';
+    return 'room_service';
+};
+

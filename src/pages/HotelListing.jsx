@@ -2418,24 +2418,30 @@ const HotelListing = () => {
 
     const getSearchParams = () => {
         const starsParam = searchParams.get('stars');
-        const freeCancellationParam = searchParams.get('freeCancellation');
-        const prePaymentParam = searchParams.get('prePayment');
         const locationsParam = searchParams.get('locations');
-        const roomTwinParam = searchParams.get('roomTwin');
+        const categoriesParam = searchParams.get('categories');
+        const chainsParam = searchParams.get('chains');
+        const guestRatingParam = searchParams.get('guestRating');
         const roomMaxAdultParam = searchParams.get('roomMaxAdult');
         const roomMaxChildrenParam = searchParams.get('roomMaxChildren');
-        const roomMaxExtraBedParam = searchParams.get('roomMaxExtraBed');
         const facilitiesParam = searchParams.get('facilities');
         const recommendedParam = searchParams.get('recommended');
+
+        let minGuestRating = null;
+        if (guestRatingParam) {
+            const parsed = parseFloat(guestRatingParam);
+            if (!isNaN(parsed)) minGuestRating = parsed;
+        }
+
         return {
             stars: starsParam ? starsParam.split(',').map(Number) : [],
-            freeCancellation: freeCancellationParam === 'true' ? true : freeCancellationParam === 'false' ? false : null,
-            prePayment: prePaymentParam === 'true' ? true : prePaymentParam === 'false' ? false : null,
-            locations: locationsParam ? locationsParam.split(',').map(Number) : [],
-            roomTwin: roomTwinParam === 'true' ? true : roomTwinParam === 'false' ? false : null,
+            locations: locationsParam ? locationsParam.split(',').map(decodeURIComponent).filter(Boolean) : [],
+            categories: categoriesParam ? categoriesParam.split(',').map(decodeURIComponent).filter(Boolean) : [],
+            chains: chainsParam ? chainsParam.split(',').map(decodeURIComponent).filter(Boolean) : [],
+            guestRating: guestRatingParam || null,
+            minGuestRating: minGuestRating,
             roomMaxAdult: roomMaxAdultParam ? roomMaxAdultParam.split(',').map(Number) : null,
             roomMaxChildren: roomMaxChildrenParam ? roomMaxChildrenParam.split(',').map(Number) : null,
-            roomMaxExtraBed: roomMaxExtraBedParam ? roomMaxExtraBedParam.split(',').map(Number) : null,
             facilities: facilitiesParam ? facilitiesParam.split(',').map(Number) : [],
             recommended: recommendedParam === 'true' ? true : null
         };
@@ -2680,9 +2686,9 @@ const HotelListing = () => {
     // Active filter count for badge
     const activeFilterCount = React.useMemo(() => {
         const count = [
-            searchParams.get('stars'), searchParams.get('locations'), searchParams.get('freeCancellation'),
-            searchParams.get('prePayment'), searchParams.get('roomTwin'), searchParams.get('roomMaxAdult'),
-            searchParams.get('roomMaxChildren'), searchParams.get('roomMaxExtraBed'), searchParams.get('facilities'),
+            searchParams.get('stars'), searchParams.get('locations'), searchParams.get('categories'),
+            searchParams.get('chains'), searchParams.get('guestRating'), searchParams.get('roomMaxAdult'),
+            searchParams.get('roomMaxChildren'), searchParams.get('facilities'), searchParams.get('recommended'),
             searchParams.get('amenities')
         ].filter(Boolean).length;
         return count + (isPriceActive ? 1 : 0);
@@ -2969,11 +2975,14 @@ const HotelListing = () => {
                 excludeHotelIds: existingIds,
                 filters: {
                     togIds: filters.hotelIds || null,
-                    stars: filters.stars || null,
+                    stars: filters.stars?.length > 0 ? filters.stars : null,
+                    categoryNames: filters.categories?.length > 0 ? filters.categories : null,
+                    chainNames: filters.chains?.length > 0 ? filters.chains : null,
+                    guestRatings: filters.guestRating ? [filters.guestRating] : null,
+                    minGuestRating: filters.minGuestRating || null,
                     preferred: filters.recommended ?? null,
-                    hasFreeCancellation: filters.freeCancellation ?? null,
-                    hasPrePayment: filters.prePayment ?? null,
-                    facilities: filters.facilities || null
+                    isRecommended: filters.recommended ?? null,
+                    facilities: filters.facilities?.length > 0 ? filters.facilities : null
                 },
                 searchCriteria: (() => {
                     const sanitized = validateAndSanitizeDates(searchParams.get('checkin'), searchParams.get('checkout'));
@@ -3196,12 +3205,16 @@ const HotelListing = () => {
                     regionIds: activeGeoBounds
                         ? []
                         : (filters.regionIds?.length > 0 ? filters.regionIds : (filters.locations?.length > 0 ? filters.locations : (regionId ? [String(regionId)] : null))),
-                    stars: filters.stars,
-                    hasFreeCancellation: filters.freeCancellation,
-                    hasPrePayment: filters.prePayment,
-                    facilities: filters.facilities,
+                    stars: filters.stars?.length > 0 ? filters.stars : null,
+                    categoryNames: filters.categories?.length > 0 ? filters.categories : null,
+                    chainNames: filters.chains?.length > 0 ? filters.chains : null,
+                    guestRatings: filters.guestRating ? [filters.guestRating] : null,
+                    minGuestRating: filters.minGuestRating || null,
+                    facilities: filters.facilities?.length > 0 ? filters.facilities : null,
                     isRecommended: filters.recommended,
-                    preferred: filters.recommended
+                    preferred: filters.recommended,
+                    roomMaxAdult: filters.roomMaxAdult,
+                    roomMaxChildren: filters.roomMaxChildren
                 },
                 searchCriteria: (() => {
                     const sanitized = validateAndSanitizeDates(searchParams.get('checkin'), searchParams.get('checkout'));
@@ -3708,10 +3721,10 @@ const HotelListing = () => {
         searchParams.get('lat'), searchParams.get('lng'),
         location.state?.searchTimestamp,
         searchParams.get('checkin'), searchParams.get('checkout'),
-        searchParams.get('guests'), searchParams.get('nationality'),
-        searchParams.get('stars'), searchParams.get('freeCancellation'), searchParams.get('prePayment'),
-        searchParams.get('locations'), searchParams.get('roomTwin'), searchParams.get('roomMaxAdult'),
-        searchParams.get('roomMaxChildren'), searchParams.get('roomMaxExtraBed'), searchParams.get('facilities'),
+        searchParams.get('stars'), searchParams.get('locations'), searchParams.get('categories'),
+        searchParams.get('chains'), searchParams.get('guestRating'),
+        searchParams.get('roomMaxAdult'), searchParams.get('roomMaxChildren'), searchParams.get('facilities'),
+        searchParams.get('recommended'),
         initialPoiBounds, mapInstance
     ]);
 
@@ -3795,11 +3808,11 @@ const HotelListing = () => {
         else newParams.delete('stars');
         setSearchParams(newParams);
     };
-    const handleFreeCancelChip = () => {
-        const current = searchParams.get('freeCancellation');
+    const handleRatingChip = () => {
+        const current = searchParams.get('guestRating');
         const newParams = new URLSearchParams(searchParams);
-        if (current === 'true') newParams.delete('freeCancellation');
-        else newParams.set('freeCancellation', 'true');
+        if (current === '4.0+') newParams.delete('guestRating');
+        else newParams.set('guestRating', '4.0+');
         setSearchParams(newParams);
     };
 
@@ -3932,22 +3945,19 @@ const HotelListing = () => {
                             <span>{tListing('recommended', currentLang)}</span>
                         </button>
 
-                        {/* 4. Offers / Deals (Teklifler) */}
+                        {/* 4. Guest Rating 4.0+ */}
                         <button
                             type="button"
-                            onClick={handleFreeCancelChip}
-                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${searchParams.get('freeCancellation') === 'true'
+                            onClick={handleRatingChip}
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${searchParams.get('guestRating') === '4.0+'
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
                                     : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
                                 }`}
                         >
-                            <span className={`material-symbols-outlined text-[18px] ${searchParams.get('freeCancellation') === 'true' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
-                                sell
+                            <span className={`material-symbols-outlined text-[18px] ${searchParams.get('guestRating') === '4.0+' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-amber-500'}`}>
+                                grade
                             </span>
-                            <span>{tListing('deals', currentLang)}</span>
-                            <span className={`material-symbols-outlined text-[18px] ${searchParams.get('freeCancellation') === 'true' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                arrow_drop_down
-                            </span>
+                            <span>4.0+ {currentLang === 'tr' ? 'Puan' : 'Rating'}</span>
                         </button>
 
                         {/* 4. Hotel Star Rating Quick Filter Chip */}

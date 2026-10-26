@@ -16,44 +16,50 @@ const FilterPanel = ({
     const { i18n } = useTranslation();
     const currentLang = (i18n.language || localStorage.getItem('language') || 'en').split('-')[0].toLowerCase();
 
-    // Parse current URL stars
+    // 1. Star Rating
     const currentStarsStr = searchParams.get('stars');
     const urlStars = currentStarsStr ? currentStarsStr.split(',').map(Number) : [];
-
-    // Maintain local state for checkboxes before Apply
     const [selectedStars, setSelectedStars] = useState(urlStars);
 
-    // Parse current URL locations
+    // 2. Locations
     const currentLocationsStr = searchParams.get('locations');
-    const urlLocations = currentLocationsStr ? currentLocationsStr.split(',').map(Number) : [];
-    
-    // Maintain local state for locations
+    const urlLocations = currentLocationsStr ? currentLocationsStr.split(',').map(decodeURIComponent).filter(Boolean) : [];
     const [selectedLocations, setSelectedLocations] = useState(urlLocations);
 
-    // Free Cancellation filter
-    const parseBool = (val) => val === 'true' ? true : val === 'false' ? false : null;
-    const [freeCancellation, setFreeCancellation] = useState(parseBool(searchParams.get('freeCancellation')));
+    // 3. Property Type
+    const currentCategoriesStr = searchParams.get('categories');
+    const urlCategories = currentCategoriesStr ? currentCategoriesStr.split(',').map(decodeURIComponent).filter(Boolean) : [];
+    const [selectedCategories, setSelectedCategories] = useState(urlCategories);
 
-    // Pre-Payment filter
-    const [prePayment, setPrePayment] = useState(parseBool(searchParams.get('prePayment')));
+    // 4. Hotel Chains
+    const currentChainsStr = searchParams.get('chains');
+    const urlChains = currentChainsStr ? currentChainsStr.split(',').map(decodeURIComponent).filter(Boolean) : [];
+    const [selectedChains, setSelectedChains] = useState(urlChains);
 
-    // Room Twin
-    const [roomTwin, setRoomTwin] = useState(parseBool(searchParams.get('roomTwin')));
+    // 5. Guest Rating
+    const currentGuestRating = searchParams.get('guestRating') || '';
+    const [selectedGuestRating, setSelectedGuestRating] = useState(currentGuestRating);
 
-    // Capacity filters
-    const [selectedMaxAdult, setSelectedMaxAdult] = useState(searchParams.get('roomMaxAdult') ? searchParams.get('roomMaxAdult').split(',').map(Number) : []);
-    const [selectedMaxChildren, setSelectedMaxChildren] = useState(searchParams.get('roomMaxChildren') ? searchParams.get('roomMaxChildren').split(',').map(Number) : []);
-    const [selectedMaxExtraBed, setSelectedMaxExtraBed] = useState(searchParams.get('roomMaxExtraBed') ? searchParams.get('roomMaxExtraBed').split(',').map(Number) : []);
-
-    // Facility filter
+    // 6. Facilities
     const currentFacilitiesStr = searchParams.get('facilities');
     const [selectedFacilities, setSelectedFacilities] = useState(currentFacilitiesStr ? currentFacilitiesStr.split(',').map(Number) : []);
 
+    // 7. Capacities
+    const [selectedMaxAdult, setSelectedMaxAdult] = useState(searchParams.get('roomMaxAdult') ? searchParams.get('roomMaxAdult').split(',').map(Number) : []);
+    const [selectedMaxChildren, setSelectedMaxChildren] = useState(searchParams.get('roomMaxChildren') ? searchParams.get('roomMaxChildren').split(',').map(Number) : []);
+
     // Search and Expand states
-    const [isFacilitiesExpanded, setIsFacilitiesExpanded] = useState(false);
-    const [facilitySearch, setFacilitySearch] = useState('');
     const [isLocationsExpanded, setIsLocationsExpanded] = useState(false);
     const [locationSearch, setLocationSearch] = useState('');
+
+    const [isCategoriesExpanded, setIsCategoriesExpanded] = useState(false);
+    const [categorySearch, setCategorySearch] = useState('');
+
+    const [isChainsExpanded, setIsChainsExpanded] = useState(false);
+    const [chainSearch, setChainSearch] = useState('');
+
+    const [isFacilitiesExpanded, setIsFacilitiesExpanded] = useState(false);
+    const [facilitySearch, setFacilitySearch] = useState('');
 
     // Sync local state when searchParams change externally
     useEffect(() => {
@@ -61,32 +67,31 @@ const FilterPanel = ({
     }, [searchParams.get('stars')]);
 
     useEffect(() => {
-        setSelectedLocations(searchParams.get('locations') ? searchParams.get('locations').split(',').map(Number) : []);
+        setSelectedLocations(searchParams.get('locations') ? searchParams.get('locations').split(',').map(decodeURIComponent).filter(Boolean) : []);
     }, [searchParams.get('locations')]);
 
     useEffect(() => {
-        setFreeCancellation(parseBool(searchParams.get('freeCancellation')));
-        setPrePayment(parseBool(searchParams.get('prePayment')));
-        setRoomTwin(parseBool(searchParams.get('roomTwin')));
-    }, [searchParams.get('freeCancellation'), searchParams.get('prePayment'), searchParams.get('roomTwin')]);
+        setSelectedCategories(searchParams.get('categories') ? searchParams.get('categories').split(',').map(decodeURIComponent).filter(Boolean) : []);
+    }, [searchParams.get('categories')]);
+
+    useEffect(() => {
+        setSelectedChains(searchParams.get('chains') ? searchParams.get('chains').split(',').map(decodeURIComponent).filter(Boolean) : []);
+    }, [searchParams.get('chains')]);
+
+    useEffect(() => {
+        setSelectedGuestRating(searchParams.get('guestRating') || '');
+    }, [searchParams.get('guestRating')]);
+
+    useEffect(() => {
+        setSelectedFacilities(searchParams.get('facilities') ? searchParams.get('facilities').split(',').map(Number) : []);
+    }, [searchParams.get('facilities')]);
 
     useEffect(() => {
         setSelectedMaxAdult(searchParams.get('roomMaxAdult') ? searchParams.get('roomMaxAdult').split(',').map(Number) : []);
         setSelectedMaxChildren(searchParams.get('roomMaxChildren') ? searchParams.get('roomMaxChildren').split(',').map(Number) : []);
-        setSelectedMaxExtraBed(searchParams.get('roomMaxExtraBed') ? searchParams.get('roomMaxExtraBed').split(',').map(Number) : []);
-        setSelectedFacilities(searchParams.get('facilities') ? searchParams.get('facilities').split(',').map(Number) : []);
-    }, [
-        searchParams.get('roomMaxAdult'), 
-        searchParams.get('roomMaxChildren'), 
-        searchParams.get('roomMaxExtraBed'), 
-        searchParams.get('facilities')
-    ]);
+    }, [searchParams.get('roomMaxAdult'), searchParams.get('roomMaxChildren')]);
 
     // Handlers
-    const handleBoolToggle = (setter, current, clickedValue) => {
-        setter(current === clickedValue ? null : clickedValue);
-    };
-
     const handleToggle = (setter, val) => {
         setter(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
     };
@@ -95,7 +100,7 @@ const FilterPanel = ({
         const newParams = new URLSearchParams(searchParams);
         
         const setOrDelete = (key, value) => {
-            if (value && (Array.isArray(value) ? value.length > 0 : value !== null)) {
+            if (value && (Array.isArray(value) ? value.length > 0 : String(value).length > 0)) {
                 newParams.set(key, Array.isArray(value) ? value.join(',') : String(value));
             } else {
                 newParams.delete(key);
@@ -104,13 +109,17 @@ const FilterPanel = ({
 
         setOrDelete('stars', selectedStars);
         setOrDelete('locations', selectedLocations);
-        setOrDelete('freeCancellation', freeCancellation);
-        setOrDelete('prePayment', prePayment);
-        setOrDelete('roomTwin', roomTwin);
+        setOrDelete('categories', selectedCategories);
+        setOrDelete('chains', selectedChains);
+        setOrDelete('guestRating', selectedGuestRating);
+        setOrDelete('facilities', selectedFacilities);
         setOrDelete('roomMaxAdult', selectedMaxAdult);
         setOrDelete('roomMaxChildren', selectedMaxChildren);
-        setOrDelete('roomMaxExtraBed', selectedMaxExtraBed);
-        setOrDelete('facilities', selectedFacilities);
+
+        newParams.delete('freeCancellation');
+        newParams.delete('prePayment');
+        newParams.delete('roomTwin');
+        newParams.delete('roomMaxExtraBed');
 
         setSearchParams(newParams);
         if (onApply) onApply();
@@ -119,16 +128,15 @@ const FilterPanel = ({
     const handleClear = () => {
         setSelectedStars([]);
         setSelectedLocations([]);
-        setFreeCancellation(null);
-        setPrePayment(null);
-        setRoomTwin(null);
+        setSelectedCategories([]);
+        setSelectedChains([]);
+        setSelectedGuestRating('');
+        setSelectedFacilities([]);
         setSelectedMaxAdult([]);
         setSelectedMaxChildren([]);
-        setSelectedMaxExtraBed([]);
-        setSelectedFacilities([]);
 
         const newParams = new URLSearchParams(searchParams);
-        ['stars', 'locations', 'freeCancellation', 'prePayment', 'roomTwin', 'roomMaxAdult', 'roomMaxChildren', 'roomMaxExtraBed', 'facilities'].forEach(k => newParams.delete(k));
+        ['stars', 'locations', 'categories', 'chains', 'guestRating', 'facilities', 'roomMaxAdult', 'roomMaxChildren', 'freeCancellation', 'prePayment', 'roomTwin', 'roomMaxExtraBed'].forEach(k => newParams.delete(k));
         
         setSearchParams(newParams);
         if (onClearAll) onClearAll();
@@ -137,18 +145,27 @@ const FilterPanel = ({
     const activeFilterCount = [
         selectedStars.length > 0,
         selectedLocations.length > 0,
-        freeCancellation !== null,
-        prePayment !== null,
-        roomTwin !== null,
+        selectedCategories.length > 0,
+        selectedChains.length > 0,
+        Boolean(selectedGuestRating),
+        selectedFacilities.length > 0,
         selectedMaxAdult.length > 0,
-        selectedMaxChildren.length > 0,
-        selectedMaxExtraBed.length > 0,
-        selectedFacilities.length > 0
+        selectedMaxChildren.length > 0
     ].filter(Boolean).length;
+
+    const locationItems = (filters?.city && filters.city.length > 0)
+        ? filters.city
+        : ((filters?.regionId && filters.regionId.length > 0)
+            ? filters.regionId
+            : (filters?.locationId || []));
+
+    const categoryItems = filters?.categoryName || [];
+    const chainItems = filters?.chainName || [];
+    const guestRatingItems = filters?.guestRating || [];
 
     return (
         <div className="flex flex-col h-full overflow-hidden">
-            {/* Sticky Header with Actions */}
+            {/* Header with Actions */}
             <div className="flex-shrink-0 px-4 py-3.5 bg-white dark:bg-[#111a22] border-b border-slate-100/50 dark:border-slate-800/50 flex items-center justify-between z-10">
                 <h2 className="text-xs font-semibold tracking-tight text-slate-800 dark:text-slate-100" lang={currentLang}>
                     {tFilter('filters', currentLang)}
@@ -189,19 +206,10 @@ const FilterPanel = ({
 
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-6 pt-1">
-                {/* Price Range Slider (Disabled) */}
-                <FilterSection title={tFilter('pricePerNight', currentLang)} icon="payments" disabled>
-                    <div className="px-2 pt-2">
-                        <div className="relative h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full mb-6 mt-2">
-                            <div className="absolute left-1/4 right-1/4 h-full bg-primary rounded-full"></div>
-                        </div>
-                    </div>
-                </FilterSection>
-
                 {/* Locations */}
                 <FilterSection title={tFilter('locations', currentLang)} icon="location_on">
                     <div className="space-y-2">
-                        {filters?.locationId && filters.locationId.length > 0 ? (
+                        {locationItems && locationItems.length > 0 ? (
                             <>
                                 <div className="relative mb-2 group/search">
                                     <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/search:text-primary text-xs transition-colors">search</span>
@@ -219,37 +227,39 @@ const FilterPanel = ({
                                     )}
                                 </div>
 
-                                {[...filters.locationId]
+                                {[...locationItems]
                                     .filter(loc => {
-                                        const name = locationNames[loc.value];
+                                        const name = loc.label || locationNames[loc.value] || String(loc.value || '');
                                         if (!name || name.startsWith('Location ') || name.startsWith('Location')) return false;
                                         if (locationSearch && !name.toLowerCase().includes(locationSearch.toLowerCase())) return false;
                                         return true;
                                     })
                                     .sort((a, b) => b.count - a.count)
                                     .slice(0, (locationSearch || isLocationsExpanded) ? undefined : 10)
-                                    .map(locFilter => (
-                                        <label key={locFilter.value} className="flex items-center justify-between cursor-pointer group animate-in fade-in duration-200 py-0.5">
-                                            <div className="flex items-center gap-2 overflow-hidden">
-                                                <input
-                                                    checked={selectedLocations.includes(locFilter.value)}
-                                                    onChange={() => handleToggle(setSelectedLocations, locFilter.value)}
-                                                    className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0"
-                                                    type="checkbox"
-                                                />
-                                                <div className="flex items-center gap-1.5 overflow-hidden">
-                                                    <span className="material-symbols-outlined text-sm text-slate-400 group-hover:text-primary transition-colors flex-shrink-0">location_on</span>
-                                                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate" title={locationNames[locFilter.value] || ''}>
-                                                        {locationNames[locFilter.value] || ''}
-                                                    </span>
+                                    .map(locFilter => {
+                                        const locName = locFilter.label || locationNames[locFilter.value] || String(locFilter.value);
+                                        return (
+                                            <label key={locFilter.value} className="flex items-center justify-between cursor-pointer group animate-in fade-in duration-200 py-0.5">
+                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                    <input
+                                                        checked={selectedLocations.includes(String(locFilter.value))}
+                                                        onChange={() => handleToggle(setSelectedLocations, String(locFilter.value))}
+                                                        className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0"
+                                                        type="checkbox"
+                                                    />
+                                                    <div className="flex items-center gap-1.5 overflow-hidden">
+                                                        <span className="material-symbols-outlined text-sm text-slate-400 group-hover:text-primary transition-colors flex-shrink-0">location_on</span>
+                                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate" title={locName}>
+                                                            {locName}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap ml-1.5">({locFilter.count})</span>
-                                        </label>
-                                    ))}
-
+                                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap ml-1.5">({locFilter.count})</span>
+                                            </label>
+                                        );
+                                    })}
                                 
-                                {!locationSearch && filters.locationId.length > 10 && (
+                                {!locationSearch && locationItems.length > 10 && (
                                     <button 
                                         onClick={() => setIsLocationsExpanded(!isLocationsExpanded)} 
                                         className="text-xs font-bold text-primary hover:text-primary-hover flex items-center gap-1 mt-2 transition-colors uppercase tracking-wider pl-8"
@@ -258,7 +268,7 @@ const FilterPanel = ({
                                         {isLocationsExpanded ? (
                                             <>{tFilter('showLess', currentLang)} <span className="material-symbols-outlined text-sm">expand_less</span></>
                                         ) : (
-                                            <>{tFilter('showMore', currentLang)} ({filters.locationId.length - 10} {tFilter('showMore', currentLang).toLowerCase().includes('more') ? 'more' : ''}) <span className="material-symbols-outlined text-sm">expand_more</span></>
+                                            <>{tFilter('showMore', currentLang)} ({locationItems.length - 10} {tFilter('showMore', currentLang).toLowerCase().includes('more') ? 'more' : ''}) <span className="material-symbols-outlined text-sm">expand_more</span></>
                                         )}
                                     </button>
                                 )}
@@ -274,164 +284,150 @@ const FilterPanel = ({
                 {/* Star Rating */}
                 <FilterSection title={tFilter('starRating', currentLang)} icon="star">
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        {filters?.hotelStarCategoryId?.sort((a, b) => b.value - a.value).map(starFilter => (
-                            <label key={starFilter.value} className="flex items-center justify-between cursor-pointer group py-0.5">
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        checked={selectedStars.includes(starFilter.value)}
-                                        onChange={() => handleToggle(setSelectedStars, starFilter.value)}
-                                        className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
-                                        type="checkbox"
-                                    />
-                                    <div className="flex items-center gap-1">
-                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300" lang={currentLang}>
-                                            {starFilter.value === 0 ? tFilter('unrated', currentLang) : `${starFilter.value}*`}
-                                        </span>
-                                        {starFilter.value > 0 && (
+                        {[5, 4, 3, 2].map(star => {
+                            const match = (filters?.hotelStarCategoryId || []).find(b => Number(b.value) === star);
+                            const count = match ? match.count : 0;
+                            return (
+                                <label key={star} className="flex items-center justify-between cursor-pointer group py-0.5">
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            checked={selectedStars.includes(star)}
+                                            onChange={() => handleToggle(setSelectedStars, star)}
+                                            className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                            type="checkbox"
+                                        />
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                                                {star}*
+                                            </span>
                                             <div className="flex text-amber-400">
                                                 <span className="material-symbols-outlined text-[9px] fill-1">star</span>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
-                                </div>
-                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({starFilter.count})</span>
-                            </label>
-                        ))}
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({count})</span>
+                                </label>
+                            );
+                        })}
                     </div>
                 </FilterSection>
 
-                {/* Free Cancellation */}
-                <FilterSection title={tFilter('freeCancellation', currentLang)} icon="event_available">
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        {(filters?.hasFreeCancellation || [{ value: true, count: null }, { value: false, count: null }]).sort((a,b) => (b.value === true ? 1 : -1)).map(f => (
-                            <label key={String(f.value)} className="flex items-center justify-between cursor-pointer group py-0.5">
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={freeCancellation === f.value}
-                                        onChange={() => handleBoolToggle(setFreeCancellation, freeCancellation, f.value)}
-                                        className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
-                                    />
-                                    <div className="flex items-center gap-1.5">
-                                        <span className={`material-symbols-outlined text-sm transition-colors ${f.value ? 'text-emerald-500' : 'text-slate-400'}`}>{f.value ? 'verified' : 'info'}</span>
-                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap" lang={currentLang}>
-                                            {f.value ? tFilter('freeCancel', currentLang) : tFilter('nonRefundable', currentLang)}
+                {/* Property Type */}
+                {categoryItems.length > 0 && (
+                    <FilterSection title={tFilter('propertyType', currentLang)} icon="apartment">
+                        <div className="space-y-1.5">
+                            {categoryItems.map(cat => (
+                                <label key={cat.value} className="flex items-center justify-between cursor-pointer group py-0.5">
+                                    <div className="flex items-center gap-2 overflow-hidden">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedCategories.includes(cat.value)}
+                                            onChange={() => handleToggle(setSelectedCategories, cat.value)}
+                                            className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                        />
+                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
+                                            {cat.label || cat.value}
                                         </span>
                                     </div>
-                                </div>
-                                {f.count !== null && <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>}
-                            </label>
-                        ))}
-                    </div>
-                </FilterSection>
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({cat.count})</span>
+                                </label>
+                            ))}
+                        </div>
+                    </FilterSection>
+                )}
 
-                {/* Pre-Payment */}
-                <FilterSection title={tFilter('prePayment', currentLang)} icon="credit_card">
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        {(filters?.hasPrePayment || [{ value: true, count: null }, { value: false, count: null }]).sort((a,b) => (b.value === true ? 1 : -1)).map(f => (
-                            <label key={String(f.value)} className="flex items-center justify-between cursor-pointer group py-0.5">
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={prePayment === f.value}
-                                        onChange={() => handleBoolToggle(setPrePayment, prePayment, f.value)}
-                                        className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
-                                    />
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="material-symbols-outlined text-sm text-slate-400">{f.value ? 'credit_card' : 'payments'}</span>
-                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap" lang={currentLang}>
-                                            {f.value ? tFilter('prePayment', currentLang) : tFilter('payLater', currentLang)}
-                                        </span>
-                                    </div>
-                                </div>
-                                {f.count !== null && <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>}
-                            </label>
-                        ))}
-                    </div>
-                </FilterSection>
+                {/* Guest Rating */}
+                {guestRatingItems.length > 0 && (
+                    <FilterSection title={tFilter('guestRating', currentLang)} icon="grade">
+                        <div className="space-y-1.5">
+                            {guestRatingItems.map(item => {
+                                const isSelected = selectedGuestRating === item.value;
+                                return (
+                                    <button
+                                        key={item.value}
+                                        type="button"
+                                        onClick={() => setSelectedGuestRating(isSelected ? '' : item.value)}
+                                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md border text-left text-xs transition-colors ${
+                                            isSelected
+                                                ? 'bg-primary/10 border-primary text-primary font-medium'
+                                                : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                        }`}
+                                    >
+                                        <span>{item.label || item.value}</span>
+                                        <span className="text-[10px] text-slate-400">({item.count})</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </FilterSection>
+                )}
 
-                {/* Room Twin */}
-                <FilterSection title={tFilter('twinRoom', currentLang)} icon="bed">
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        {(filters?.roomTwin || [{ value: true, count: null }, { value: false, count: null }]).sort((a,b) => (b.value === true ? 1 : -1)).map(f => (
-                            <label key={String(f.value)} className="flex items-center justify-between cursor-pointer group py-0.5">
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={roomTwin === f.value}
-                                        onChange={() => handleBoolToggle(setRoomTwin, roomTwin, f.value)}
-                                        className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
-                                    />
-                                    <div className="flex items-center gap-1.5 text-slate-500">
-                                        <span className="material-symbols-outlined text-sm">bed</span>
-                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap" lang={currentLang}>
-                                            {f.value ? tFilter('twinAvailable', currentLang) : tFilter('noTwin', currentLang)}
+                {/* Hotel Chains */}
+                {chainItems.length > 0 && (
+                    <FilterSection title={tFilter('hotelChains', currentLang)} icon="domain">
+                        <div className="space-y-1.5">
+                            {chainItems.slice(0, (chainSearch || isChainsExpanded) ? undefined : 6).map(ch => (
+                                <label key={ch.value} className="flex items-center justify-between cursor-pointer group py-0.5">
+                                    <div className="flex items-center gap-2 overflow-hidden">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedChains.includes(ch.value)}
+                                            onChange={() => handleToggle(setSelectedChains, ch.value)}
+                                            className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick"
+                                        />
+                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
+                                            {ch.label || ch.value}
                                         </span>
                                     </div>
-                                </div>
-                                {f.count !== null && <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>}
-                            </label>
-                        ))}
-                    </div>
-                </FilterSection>
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({ch.count})</span>
+                                </label>
+                            ))}
+                        </div>
+                    </FilterSection>
+                )}
 
                 {/* Capacities */}
-                <FilterSection title={tFilter('maxAdult', currentLang)} icon="person" defaultOpen={false}>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        {filters?.roomMaxAdult?.sort((a, b) => a.value - b.value).map(f => (
-                            <label key={f.value} className="flex items-center justify-between cursor-pointer group py-0.5">
-                                <div className="flex items-center gap-2">
-                                    <input checked={selectedMaxAdult.includes(f.value)} onChange={() => handleToggle(setSelectedMaxAdult, f.value)} className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="material-symbols-outlined text-sm text-slate-400">person</span>
-                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300" lang={currentLang}>
-                                            {f.value} {tFilter('adults', currentLang)}
-                                        </span>
+                {filters?.roomMaxAdult?.length > 0 && (
+                    <FilterSection title={tFilter('maxAdult', currentLang)} icon="person" defaultOpen={false}>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                            {filters.roomMaxAdult.slice().sort((a, b) => a.value - b.value).map(f => (
+                                <label key={f.value} className="flex items-center justify-between cursor-pointer group py-0.5">
+                                    <div className="flex items-center gap-2">
+                                        <input checked={selectedMaxAdult.includes(f.value)} onChange={() => handleToggle(setSelectedMaxAdult, f.value)} className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-sm text-slate-400">person</span>
+                                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300" lang={currentLang}>
+                                                {f.value} {tFilter('adults', currentLang)}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
-                            </label>
-                        ))}
-                    </div>
-                </FilterSection>
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
+                                </label>
+                            ))}
+                        </div>
+                    </FilterSection>
+                )}
 
-                <FilterSection title={tFilter('maxChildren', currentLang)} icon="child_care" defaultOpen={false}>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        {filters?.roomMaxChildren?.sort((a, b) => a.value - b.value).map(f => (
-                            <label key={f.value} className="flex items-center justify-between cursor-pointer group py-0.5">
-                                <div className="flex items-center gap-2">
-                                    <input checked={selectedMaxChildren.includes(f.value)} onChange={() => handleToggle(setSelectedMaxChildren, f.value)} className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="material-symbols-outlined text-sm text-slate-400">child_care</span>
-                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300" lang={currentLang}>
-                                            {f.value === 0 ? tFilter('noChildren', currentLang) : `${f.value} ${tFilter('children', currentLang)}`}
-                                        </span>
+                {filters?.roomMaxChildren?.length > 0 && (
+                    <FilterSection title={tFilter('maxChildren', currentLang)} icon="child_care" defaultOpen={false}>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                            {filters.roomMaxChildren.slice().sort((a, b) => a.value - b.value).map(f => (
+                                <label key={f.value} className="flex items-center justify-between cursor-pointer group py-0.5">
+                                    <div className="flex items-center gap-2">
+                                        <input checked={selectedMaxChildren.includes(f.value)} onChange={() => handleToggle(setSelectedMaxChildren, f.value)} className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-sm text-slate-400">child_care</span>
+                                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300" lang={currentLang}>
+                                                {f.value === 0 ? tFilter('noChildren', currentLang) : `${f.value} ${tFilter('children', currentLang)}`}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
-                            </label>
-                        ))}
-                    </div>
-                </FilterSection>
-
-                <FilterSection title={tFilter('maxExtraBed', currentLang)} icon="hotel_class" defaultOpen={false}>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        {filters?.roomMaxExtraBed?.sort((a, b) => a.value - b.value).map(f => (
-                            <label key={f.value} className="flex items-center justify-between cursor-pointer group py-0.5">
-                                <div className="flex items-center gap-2">
-                                    <input checked={selectedMaxExtraBed.includes(f.value)} onChange={() => handleToggle(setSelectedMaxExtraBed, f.value)} className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick" type="checkbox" />
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="material-symbols-outlined text-sm text-slate-400">hotel_class</span>
-                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300" lang={currentLang}>
-                                            {f.value === 0 ? tFilter('noExtraBed', currentLang) : `${f.value} ${f.value === 1 ? tFilter('extraBed', currentLang) : tFilter('extraBeds', currentLang)}`}
-                                        </span>
-                                    </div>
-                                </div>
-                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
-                            </label>
-                        ))}
-                    </div>
-                </FilterSection>
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">({f.count})</span>
+                                </label>
+                            ))}
+                        </div>
+                    </FilterSection>
+                )}
 
                 {/* Hotel Facilities */}
                 <FilterSection title={tFilter('hotelFacilities', currentLang)} icon="pool">
@@ -456,25 +452,28 @@ const FilterPanel = ({
 
                                 {[...filters.hotelFacilityIds]
                                     .filter(fac => {
-                                        const name = facilityNames[fac.value];
-                                        if (!name || name.startsWith('Facility ') || name.startsWith('Facility')) return false;
+                                        const name = fac.label || facilityNames[fac.value] || ('Facility ' + fac.value);
+                                        if (!name) return false;
                                         if (facilitySearch && !name.toLowerCase().includes(facilitySearch.toLowerCase())) return false;
                                         return true;
                                     })
                                     .sort((a, b) => b.count - a.count)
                                     .slice(0, (facilitySearch || isFacilitiesExpanded) ? undefined : 10)
-                                    .map(facFilter => (
-                                        <label key={facFilter.value} className="flex items-center justify-between cursor-pointer group animate-in fade-in duration-200 py-0.5">
-                                            <div className="flex items-center gap-2 overflow-hidden">
-                                                <input checked={selectedFacilities.includes(facFilter.value)} onChange={() => handleToggle(setSelectedFacilities, facFilter.value)} className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0" type="checkbox" />
-                                                <div className="flex items-center gap-1.5 overflow-hidden">
-                                                    <span className="material-symbols-outlined text-sm text-slate-400 group-hover:text-primary flex-shrink-0">business_center</span>
-                                                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate" title={facilityNames[facFilter.value] || ''}>{facilityNames[facFilter.value] || ''}</span>
+                                    .map(facFilter => {
+                                        const name = facFilter.label || facilityNames[facFilter.value] || ('Facility ' + facFilter.value);
+                                        return (
+                                            <label key={facFilter.value} className="flex items-center justify-between cursor-pointer group animate-in fade-in duration-200 py-0.5">
+                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                    <input checked={selectedFacilities.includes(facFilter.value)} onChange={() => handleToggle(setSelectedFacilities, facFilter.value)} className="h-3.5 w-3.5 rounded border-slate-300 dark:border-[#324d67] bg-transparent text-primary focus:ring-primary focus:ring-offset-0 checkbox-tick flex-shrink-0" type="checkbox" />
+                                                    <div className="flex items-center gap-1.5 overflow-hidden">
+                                                        <span className="material-symbols-outlined text-sm text-slate-400 group-hover:text-primary flex-shrink-0">business_center</span>
+                                                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate" title={name}>{name}</span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap ml-1.5">({facFilter.count})</span>
-                                        </label>
-                                    ))}
+                                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap ml-1.5">({facFilter.count})</span>
+                                            </label>
+                                        );
+                                    })}
                                 
                                 {!facilitySearch && filters.hotelFacilityIds.length > 10 && (
                                     <button 

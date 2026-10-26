@@ -97,6 +97,27 @@ export const FILTER_LOCALES = {
     },
     pricePerNight: {
         en: "Price per night", tr: "Gecelik Fiyat", ar: "السعر لليلة الواحدة", es: "Precio por noche", ru: "Цена за ночь", zh: "每晚价格", ja: "1泊あたりの料金", fa: "قیمت هر شب", fr: "Prix par nuit", it: "Prezzo per notte", el: "Τιμή ανά διανυκτέρευση", pt: "Preço por noite"
+    },
+    propertyType: {
+        en: "Property Type", tr: "Konaklama Türü", ar: "نوع مكان الإقامة", es: "Tipo de propiedad", ru: "Тип размещения", zh: "住宿类型", ja: "宿泊施設のタイプ", fa: "نوع اقامتگاه", fr: "Type d'hébergement", it: "Tipo di struttura", el: "Τύπος Καταλύματος", pt: "Tipo de propriedade"
+    },
+    searchPropertyTypes: {
+        en: "Search property types...", tr: "Konaklama türü ara...", ar: "البحث عن نوع مكان الإقامة...", es: "Buscar tipos de propiedad...", ru: "Поиск типов размещения...", zh: "搜索住宿类型...", ja: "宿泊タイプを検索...", fa: "جستجوی نوع اقامتگاه...", fr: "Rechercher des types d'hébergement...", it: "Cerca tipo di struttura...", el: "Αναζήτηση τύπων καταλύματος...", pt: "Pesquisar tipos de propriedade..."
+    },
+    guestRating: {
+        en: "Guest Rating", tr: "Konuk Puanı", ar: "تقييم النزلاء", es: "Puntuación de los clientes", ru: "Оценка гостей", zh: "住客评分", ja: "クチコミスコア", fa: "امتیاز مهمانان", fr: "Note des clients", it: "Giudizio degli ospiti", el: "Βαθμολογία επισκεπτών", pt: "Avaliação dos hóspedes"
+    },
+    hotelChains: {
+        en: "Hotel Chains & Brands", tr: "Otel Zincirleri ve Markalar", ar: "سلاسل الفنادق", es: "Cadenas hoteleras", ru: "Сети отелей", zh: "连锁酒店", ja: "ホテルチェーン", fa: "هتل‌های زنجیره‌ای", fr: "Chaînes hôtelières", it: "Catene alberghiere", el: "Αλυσίδες Ξενοδοχείων", pt: "Redes de hotéis"
+    },
+    searchChains: {
+        en: "Search chains...", tr: "Zincir ara...", ar: "البحث عن سلاسل الفنادق...", es: "Buscar cadenas...", ru: "Поиск сетей...", zh: "搜索连锁品牌...", ja: "チェーンを検索...", fa: "جستجوی هتل‌های زنجیره‌ای...", fr: "Rechercher des chaînes...", it: "Cerca catene...", el: "Αναζήτηση αλυσίδων...", pt: "Pesquisar redes..."
+    },
+    noChains: {
+        en: "No chains found", tr: "Zincir bulunamadı", ar: "لم يتم العثور على سلاسل", es: "No se encontraron cadenas", ru: "Сети не найдены", zh: "未找到连锁品牌", ja: "チェーンが見つかりません", fa: "هیچ زنجیره‌ای یافت نشد", fr: "Aucune chaîne trouvée", it: "Nessuna catena trovata", el: "Δεν βρέθηκαν αλυσίδες", pt: "Nenhuma rede encontrada"
+    },
+    anyRating: {
+        en: "Any Rating", tr: "Tüm Puanlar", ar: "أي تقييم", es: "Cualquier puntuación", ru: "Любая оценка", zh: "任意评分", ja: "すべての評価", fa: "هر امتیازی", fr: "Toutes les notes", it: "Qualsiasi punteggio", el: "Οποιαδήποτε βαθμολογία", pt: "Qualquer avaliação"
     }
 };
 

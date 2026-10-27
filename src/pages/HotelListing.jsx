@@ -4625,7 +4625,7 @@ const HotelListing = () => {
                     </div>
 
                     {/* Top center: Either "Listeyi güncelle" (when map moved & manual mode) OR "Harita hareket ettiğinde listeyi güncelle" toggle */}
-                    <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2">
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2">
                         {mapMoved && !searchOnMapMove ? (
                             <button
                                 type="button"

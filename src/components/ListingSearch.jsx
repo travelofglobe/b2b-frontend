@@ -1048,7 +1048,7 @@ const ListingSearch = ({ isCompact = false }) => {
                     <div
                         className={`w-full transition-all ${
                             showDropdown && hasAnyResults
-                                ? 'absolute top-0 left-0 w-full min-w-[360px] sm:min-w-[480px] md:min-w-[540px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] z-[300] overflow-hidden'
+                                ? 'absolute top-0 left-0 w-full min-w-[320px] sm:min-w-[380px] md:min-w-[420px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] z-[300] overflow-hidden'
                                 : 'h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg shadow-2xs bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-2 focus-within:ring-[#1a73e8]/20'
                         }`}
                     >

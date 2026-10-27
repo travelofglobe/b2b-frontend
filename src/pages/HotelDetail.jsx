@@ -26,6 +26,7 @@ import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import HotelReservationSummaryCard from '../components/HotelReservationSummaryCard';
 import RoomGalleryModal from '../components/RoomGalleryModal';
 import GoogleFilterDropdown from '../components/GoogleFilterDropdown';
+import { sortImagesWithThumbnailFirst, getImageUrl } from '../utils/imageUtils';
 import { MapContainer, Marker, Popup, useMap } from 'react-leaflet';
 import OpenFreeMapLayer from '../components/OpenFreeMapLayer';
 import SmoothWheelZoom from '../components/SmoothWheelZoom';
@@ -1681,7 +1682,17 @@ const HotelDetail = () => {
     const [error, setError] = useState(null);
     const [visibleMonth, setVisibleMonth] = useState(new Date());
 
-    const images = dynamicHotel?.images?.map(img => img.url) || (dynamicHotel?.image ? [dynamicHotel.image] : []);
+    const images = React.useMemo(() => {
+        if (!dynamicHotel) return [];
+        let list = [];
+        if (dynamicHotel.images && dynamicHotel.images.length > 0) {
+            const sorted = sortImagesWithThumbnailFirst(dynamicHotel.images, dynamicHotel.thumbnail || dynamicHotel.heroImage);
+            list = sorted.map(img => getImageUrl(img)).filter(Boolean);
+        } else if (dynamicHotel.image) {
+            list = [getImageUrl(dynamicHotel.image)];
+        }
+        return list;
+    }, [dynamicHotel]);
 
     // -- Lightbox State --
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -1835,9 +1846,12 @@ const HotelDetail = () => {
         const groups = hotel.rooms.reduce((acc, room) => {
             const key = room.names?.tr || room.names?.en || room.names?.defaultName || 'Standard Room';
             if (!acc[key]) {
+                const sortedRoomImages = sortImagesWithThumbnailFirst(room.images || [], room.thumbImage);
+                const primaryThumb = sortedRoomImages[0]?.url || (typeof sortedRoomImages[0] === 'string' ? sortedRoomImages[0] : null) || room.thumbImage;
                 acc[key] = {
                     name: key,
-                    images: room.images || [],
+                    images: sortedRoomImages,
+                    thumbImage: primaryThumb,
                     attributes: room.attributes || [],
                     maxAdult: room.maxAdult,
                     maxChildren: room.maxChildren,
@@ -2779,7 +2793,7 @@ const HotelDetail = () => {
                                                                         setIsRoomGalleryOpen(true);
                                                                     }}
                                                                 >
-                                                                    <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={roomGroup.images?.[0]?.url || images[roomIndex % images.length]} alt="" loading="lazy" decoding="async" />
+                                                                    <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={roomGroup.thumbImage || (typeof roomGroup.images?.[0] === 'string' ? roomGroup.images[0] : roomGroup.images?.[0]?.url) || images[roomIndex % images.length]} alt="" loading="lazy" decoding="async" />
                                                                     {roomGroup.images?.length > 0 && (
                                                                         <div className="absolute bottom-3 left-3 bg-black/65 backdrop-blur-md text-white text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-xs">
                                                                             <span className="material-symbols-outlined text-[14px]">photo_library</span> {roomGroup.images.length} {tLocal('photos')}
@@ -3288,7 +3302,7 @@ const HotelDetail = () => {
                 isOpen={isRoomGalleryOpen}
                 onClose={() => setIsRoomGalleryOpen(false)}
                 roomName={selectedRoomGroup?.name}
-                images={selectedRoomGroup?.images?.length > 0 ? selectedRoomGroup.images.map(img => img.url) : images}
+                images={selectedRoomGroup?.images?.length > 0 ? selectedRoomGroup.images.map(img => (typeof img === 'object' ? (img.url || img.originalUrl) : img)) : images}
                 description={selectedRoomGroup?.rates?.[0]?.description}
                 attributes={selectedRoomGroup?.attributes}
                 maxAdult={selectedRoomGroup?.maxAdult}

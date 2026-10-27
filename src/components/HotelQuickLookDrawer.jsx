@@ -7,6 +7,7 @@ import { FACILITY_ICON_MAP } from '../utils/facilityUtils';
 import RefundPolicyTooltip from './RefundPolicyTooltip';
 import GoogleFilterDropdown from './GoogleFilterDropdown';
 import { useToast } from '../context/ToastContext';
+import { sortImagesWithThumbnailFirst, getImageUrl, normalizeUrlKey } from '../utils/imageUtils';
 
 const DRAWER_LOCALES = {
     tr: {
@@ -855,23 +856,19 @@ const HotelQuickLookDrawer = ({
         const initialImages = cachedHotel?.images || [];
         const detailImages = detailData?.images || [];
 
-        if (initialImages.length > 0) {
-            rawList = initialImages.map(img => (typeof img === 'object' ? (img.url || img.originalUrl) : img)).filter(Boolean);
-            if (detailImages.length > 0) {
-                const extraList = detailImages.map(img => (typeof img === 'object' ? (img.url || img.originalUrl) : img)).filter(Boolean);
-                rawList = [...rawList, ...extraList];
-            }
-        } else if (detailImages.length > 0) {
-            rawList = detailImages.map(img => (typeof img === 'object' ? (img.url || img.originalUrl) : img)).filter(Boolean);
+        const combined = [...detailImages, ...initialImages];
+        if (combined.length > 0) {
+            rawList = sortImagesWithThumbnailFirst(combined, currentHotel.thumbnail || currentHotel.image);
         } else if (currentHotel.image) {
             rawList = [currentHotel.image];
         }
 
         const unique = [];
         const seen = new Set();
-        for (const url of rawList) {
-            if (!url || typeof url !== 'string') continue;
-            const norm = url.split('?')[0].split('#')[0].replace(/\/+$/, '').toLowerCase();
+        for (const item of rawList) {
+            const url = getImageUrl(item);
+            if (!url) continue;
+            const norm = normalizeUrlKey(url);
             if (!seen.has(norm)) {
                 seen.add(norm);
                 unique.push(url);
@@ -882,7 +879,7 @@ const HotelQuickLookDrawer = ({
             return [placeholderHotel, placeholderHotel, placeholderHotel];
         }
         return unique;
-    }, [cachedHotel?.images, detailData?.images, currentHotel.image]);
+    }, [cachedHotel?.images, detailData?.images, currentHotel.image, currentHotel.thumbnail]);
 
     const openLightbox = React.useCallback((index, contextImages = null, title = '') => {
         const list = (contextImages && contextImages.length > 0)
@@ -982,9 +979,12 @@ const HotelQuickLookDrawer = ({
         const groups = filtered.reduce((acc, r) => {
             const key = r.names?.tr || r.names?.en || r.names?.defaultName || r.name || 'Standart Oda';
             if (!acc[key]) {
+                const sortedRoomImages = sortImagesWithThumbnailFirst(r.images || [], r.thumbImage);
+                const primaryThumb = sortedRoomImages[0]?.url || (typeof sortedRoomImages[0] === 'string' ? sortedRoomImages[0] : null) || r.thumbImage;
                 acc[key] = {
                     name: key,
-                    images: r.images || [],
+                    images: sortedRoomImages,
+                    thumbImage: primaryThumb,
                     squareMeter: r.squareMeter,
                     roomPaxCapacity: r.roomPaxCapacity,
                     maxAdult: r.maxAdult || 2,
@@ -1784,7 +1784,7 @@ const HotelQuickLookDrawer = ({
                                                     }}
                                                 >
                                                     <img 
-                                                        src={group.images?.[0]?.url || images[gIdx % images.length]} 
+                                                        src={group.thumbImage || (typeof group.images?.[0] === 'string' ? group.images[0] : group.images?.[0]?.url) || images[gIdx % images.length]} 
                                                         alt={group.name}
                                                         loading="lazy"
                                                         decoding="async"

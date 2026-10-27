@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { FACILITY_ICON_MAP } from '../utils/facilityUtils';
+import { sortImagesWithThumbnailFirst, getImageUrl } from '../utils/imageUtils';
 
 const PLACEHOLDER_IMG = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800';
 
@@ -51,8 +52,13 @@ const RoomGalleryModal = ({
     const [showFullDesc, setShowFullDesc] = useState(false);
     const touchStartX = useRef(null);
     
-    // Ensure we always have an array of at least 1 image
-    const validImages = images?.length > 0 ? images : [PLACEHOLDER_IMG];
+    // Ensure we always have an array of at least 1 image, with thumbnail first
+    const validImages = useMemo(() => {
+        if (!images || images.length === 0) return [PLACEHOLDER_IMG];
+        const sorted = sortImagesWithThumbnailFirst(images);
+        const clean = sorted.map(img => getImageUrl(img)).filter(Boolean);
+        return clean.length > 0 ? clean : [PLACEHOLDER_IMG];
+    }, [images]);
     
     // Reset state when modal opens
     useEffect(() => {

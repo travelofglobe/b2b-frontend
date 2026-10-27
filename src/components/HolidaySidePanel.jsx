@@ -170,7 +170,7 @@ const HolidaySidePanel = ({ holidays, visibleMonth, className = '' }) => {
         : "border-l border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] p-4";
 
     return (
-        <div className={`holiday-side-panel min-w-[210px] w-[240px] flex flex-col gap-3.5 overflow-visible font-roboto ${baseWrapperClass}`}>
+        <div className={`holiday-side-panel min-w-[170px] w-[190px] flex flex-col gap-2.5 overflow-visible font-roboto ${baseWrapperClass}`}>
             {/* Header */}
             <div className="flex items-center gap-2 pb-2.5 border-b border-[#dadce0] dark:border-slate-700">
                 <span className="material-symbols-outlined text-[18px] text-[#1a73e8]">event</span>

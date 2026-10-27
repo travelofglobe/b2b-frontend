@@ -1140,9 +1140,9 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
             onClick={() => onSelect(hotel)}
         >
             {/* Image */}
-            <div className={`relative ${isCompact ? "w-[190px] h-[145px] mr-3.5" : "w-[260px] h-[175px] mr-5"} rounded-lg overflow-hidden shrink-0 bg-[#f1f3f4] transition-all duration-300`}>
+            <div className={`relative ${isCompact ? "w-[190px] h-[145px] mr-3.5" : "w-[260px] h-[175px] mr-5"} rounded-xl overflow-hidden shrink-0 bg-[#f1f3f4] transition-all duration-300 shadow-2xs`}>
                 {isGreatDeal && (
-                    <div className="absolute top-2 left-2 z-10 bg-[#e6f4ea] text-[#137333] text-[11px] font-bold px-2 py-1 rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.15)] truncate max-w-[85%] border border-[#137333]/10">
+                    <div className="absolute top-2 left-2 z-10 bg-[#e6f4ea] text-[#137333] text-[11px] font-bold px-2 py-1 rounded-lg shadow-xs truncate max-w-[85%] border border-[#137333]/10">
                         {greatDealLabel[currentLang] || greatDealLabel.en}
                     </div>
                 )}
@@ -1324,10 +1324,10 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                                 e.stopPropagation();
                                 onSelect(hotel);
                             }}
-                            className="inline-flex items-center justify-center gap-1.5 border border-[#dadce0] dark:border-slate-600 hover:border-[#1a73e8] dark:hover:border-blue-400 bg-white dark:bg-[#303134] hover:bg-[#f8fafd] dark:hover:bg-blue-900/20 text-[#1a73e8] dark:text-blue-400 text-[13px] font-medium h-[31px] px-3 rounded-full transition-all whitespace-nowrap font-roboto cursor-pointer shadow-xs active:scale-[0.98]"
+                            className="inline-flex items-center justify-center gap-1.5 border border-[#dadce0] dark:border-slate-600 hover:border-[#1a73e8] dark:hover:border-blue-400 bg-white dark:bg-[#303134] hover:bg-[#f8fafd] dark:hover:bg-blue-900/20 text-[#1a73e8] dark:text-blue-400 text-xs font-semibold h-8 px-3.5 rounded-lg transition-all whitespace-nowrap font-roboto cursor-pointer shadow-2xs active:scale-[0.98]"
                             title={quickLookLabel[currentLang] || quickLookLabel.en}
                         >
-                            <span className="material-symbols-outlined text-[17px]">visibility</span>
+                            <span className="material-symbols-outlined text-[16px]">visibility</span>
                             <span>{quickLookLabel[currentLang] || quickLookLabel.en}</span>
                         </button>
 
@@ -1335,7 +1335,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                             to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
                             target="_blank"
                             onClick={e => e.stopPropagation()}
-                            className="inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-[13.5px] font-medium h-[31px] px-3.5 rounded-full transition-colors whitespace-nowrap font-roboto shadow-[0_1px_2px_rgba(60,64,67,0.3)] hover:shadow-[0_1px_3px_1px_rgba(60,64,67,0.15)] active:scale-[0.98]"
+                            className="inline-flex items-center justify-center bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-xs font-semibold h-8 px-4 rounded-lg transition-colors whitespace-nowrap font-roboto shadow-xs hover:shadow active:scale-[0.98]"
                         >
                             {showPricesLabel[currentLang] || showPricesLabel.en}
                         </Link>
@@ -1351,8 +1351,8 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
 // ═══════════════════════════════════════════════
 const GoogleCardSkeleton = ({ isCompact = false }) => (
     <div className="flex py-4 pl-6 pr-4 border-b border-[#e8eaed] dark:border-slate-700 animate-pulse bg-white dark:bg-[#303134]">
-        {/* Image skeleton: mirrors w-[260px] h-[175px] rounded-lg mr-5 */}
-        <div className={`relative ${isCompact ? "w-[190px] h-[145px] mr-3.5" : "w-[260px] h-[175px] mr-5"} rounded-lg bg-[#f1f3f4] dark:bg-slate-700/80 shrink-0 overflow-hidden transition-all duration-300`}>
+        {/* Image skeleton: mirrors w-[260px] h-[175px] rounded-xl mr-5 */}
+        <div className={`relative ${isCompact ? "w-[190px] h-[145px] mr-3.5" : "w-[260px] h-[175px] mr-5"} rounded-xl bg-[#f1f3f4] dark:bg-slate-700/80 shrink-0 overflow-hidden transition-all duration-300`}>
             <div className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/10 dark:bg-black/25" />
         </div>
 
@@ -1400,8 +1400,8 @@ const GoogleCardSkeleton = ({ isCompact = false }) => (
                     <div className="h-3.5 w-20 bg-[#f1f3f4] dark:bg-slate-700/50 rounded-full" />
                 </div>
                 <div className="shrink-0 flex items-center gap-2">
-                    <div className="h-[31px] w-24 bg-[#e8eaed] dark:bg-slate-700/60 rounded-full" />
-                    <div className="h-[31px] w-28 bg-[#e8eaed] dark:bg-slate-700 rounded-full" />
+                    <div className="h-8 w-24 bg-[#e8eaed] dark:bg-slate-700/60 rounded-lg" />
+                    <div className="h-8 w-28 bg-[#e8eaed] dark:bg-slate-700 rounded-lg" />
                 </div>
             </div>
         </div>
@@ -3832,11 +3832,11 @@ const HotelListing = () => {
                                     left: `${starPosition.left}px`,
                                     zIndex: 9999
                                 }}
-                                className="w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
+                                className="w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-xl shadow-xl border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
                             >
                                 {/* Header */}
                                 <div className="flex items-center justify-between pt-3.5 px-5 pb-1 shrink-0">
-                                    <h3 className="text-[16px] font-medium text-[#202124] dark:text-slate-100 font-roboto">
+                                    <h3 className="text-[16px] font-semibold text-[#202124] dark:text-slate-100 font-roboto">
                                         {tListing('hotelClass', currentLang)}
                                     </h3>
                                     <button
@@ -3850,7 +3850,7 @@ const HotelListing = () => {
 
                                 {/* 2x2 Grid */}
                                 <div className="px-5 py-2">
-                                    <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-lg overflow-hidden">
+                                    <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-xl overflow-hidden">
                                         {[2, 3, 4, 5].map((star, index, arr) => {
                                             const isSelected = urlStars.includes(star);
                                             let desc = '';
@@ -3886,8 +3886,8 @@ const HotelListing = () => {
                                         onClick={handleClearStars}
                                         disabled={urlStars.length === 0}
                                         className={`text-[13px] font-medium font-roboto transition-colors select-none ${urlStars.length > 0
-                                                ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded px-2 py-0.5 cursor-pointer'
-                                                : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
+                                                ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg px-2.5 py-1 cursor-pointer'
+                                                : 'text-[#bdc1c6] dark:text-slate-600 px-2.5 py-1 cursor-default'
                                             }`}
                                     >
                                         {tListing('clear', currentLang)}
@@ -3912,11 +3912,11 @@ const HotelListing = () => {
                                     left: `${pricePosition.left}px`,
                                     zIndex: 9999
                                 }}
-                                className="w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
+                                className="w-[340px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-xl shadow-xl border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
                             >
                                 {/* Header */}
                                 <div className="flex items-center justify-between pt-3.5 px-5 pb-1 shrink-0">
-                                    <h3 className="text-[16px] font-medium text-[#202124] dark:text-slate-100 font-roboto">
+                                    <h3 className="text-[16px] font-semibold text-[#202124] dark:text-slate-100 font-roboto">
                                         {tListing('price', currentLang)}
                                     </h3>
                                     <button
@@ -4114,7 +4114,7 @@ const HotelListing = () => {
                                             {amenitySearch ? tListing('noAmenitiesFound', currentLang) : (isLoading ? tListing('searching', currentLang) : tListing('noAmenitiesFound', currentLang))}
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-lg overflow-hidden">
+                                        <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-xl overflow-hidden">
                                             {filteredFacilities.map((amenity, index) => {
                                                 const isSelected = selectedFacilities.includes(amenity.id);
                                                 const isLeftCol = index % 2 === 0;
@@ -4163,8 +4163,8 @@ const HotelListing = () => {
                                         onClick={handleClearFacilities}
                                         disabled={selectedFacilities.length === 0}
                                         className={`text-[13px] font-medium font-roboto transition-colors select-none ${selectedFacilities.length > 0
-                                                ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded px-2 py-0.5 cursor-pointer'
-                                                : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
+                                                ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg px-2.5 py-1 cursor-pointer'
+                                                : 'text-[#bdc1c6] dark:text-slate-600 px-2.5 py-1 cursor-default'
                                             }`}
                                     >
                                         {tListing('clear', currentLang)}
@@ -4178,7 +4178,7 @@ const HotelListing = () => {
                     {isFilterDrawerOpen && (
                         <>
                             <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsFilterDrawerOpen(false)} />
-                            <div className="absolute top-full left-6 mt-0 w-[360px] max-w-[90vw] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+                            <div className="absolute top-full left-6 mt-0 w-[360px] max-w-[90vw] bg-white dark:bg-[#303134] rounded-2xl shadow-2xl border border-[#dadce0] dark:border-slate-700 z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2" style={{ maxHeight: 'calc(100vh - 200px)' }}>
                                 <div className="flex items-center justify-center relative px-5 py-4 border-b border-[#e8eaed] dark:border-slate-700 shrink-0">
                                     <h2 className="text-[16px] font-medium text-[#202124] dark:text-slate-100">
                                         {tListing('filters', currentLang)}
@@ -4336,13 +4336,32 @@ const HotelListing = () => {
                     {/* Empty state when no hotels returned from search */}
                     {hotels.length === 0 && !isLoading && (
                         <div className="flex flex-col items-center justify-center py-20 text-center px-8">
-                            <span className="material-symbols-outlined text-5xl text-[#dadce0] dark:text-slate-600 mb-4">search_off</span>
-                            <h3 className="text-[16px] font-medium text-[#3c4043] dark:text-slate-300 mb-2">
+                            <div className="size-16 rounded-2xl bg-[#f1f3f4] dark:bg-slate-800 flex items-center justify-center text-[#5f6368] dark:text-slate-400 mb-4 shadow-2xs border border-[#dadce0] dark:border-slate-700">
+                                <span className="material-symbols-outlined text-[32px]">search_off</span>
+                            </div>
+                            <h3 className="text-base font-semibold text-[#202124] dark:text-slate-100 mb-1.5 font-roboto">
                                 {tListing('noProperties', currentLang)}
                             </h3>
-                            <p className="text-[13px] text-[#70757a] dark:text-slate-400">
+                            <p className="text-xs text-[#5f6368] dark:text-slate-400 max-w-sm mb-5 leading-relaxed font-roboto">
                                 {tListing('tryAdjusting', currentLang)}
                             </p>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const params = new URLSearchParams(window.location.search);
+                                    params.delete('guestRating');
+                                    params.delete('stars');
+                                    params.delete('facilities');
+                                    params.delete('recommended');
+                                    params.delete('priceMin');
+                                    params.delete('priceMax');
+                                    setSearchParams(params);
+                                }}
+                                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-lg border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#303134] text-xs font-semibold text-[#1a73e8] dark:text-blue-400 hover:bg-[#f8f9fa] dark:hover:bg-slate-800 shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+                                <span>{tListing('clearAll', currentLang) || 'Filtreleri Temizle'}</span>
+                            </button>
                         </div>
                     )}
                 </div>

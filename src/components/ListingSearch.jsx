@@ -969,8 +969,8 @@ const ListingSearch = ({ isCompact = false }) => {
                     <div
                         className={`w-full transition-all ${
                             showDropdown && hasAnyResults
-                                ? 'absolute top-0 left-0 w-full min-w-[320px] bg-white dark:bg-[#202124] rounded-[4px] border border-[#dadce0] dark:border-[#3c4043] shadow-[0_4px_24px_rgba(0,0,0,0.18),0_1px_4px_rgba(0,0,0,0.06)] z-[300] overflow-hidden'
-                                : 'h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8]'
+                                ? 'absolute top-0 left-0 w-full min-w-[320px] bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_4px_24px_rgba(0,0,0,0.18),0_1px_4px_rgba(0,0,0,0.06)] z-[300] overflow-hidden'
+                                : 'h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg shadow-2xs bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-2 focus-within:ring-[#1a73e8]/20'
                         }`}
                     >
                         <div className={`flex items-center ${isCompact && !(showDropdown && hasAnyResults) ? "gap-2 px-2.5" : "gap-3 px-4"} h-12 w-full ${showDropdown && hasAnyResults ? 'border-b border-[#dadce0] dark:border-[#3c4043]' : ''}`}>
@@ -1341,7 +1341,7 @@ const ListingSearch = ({ isCompact = false }) => {
                 </div>
 
                 {/* Twin Datepicker Container */}
-                    <div className={`${isCompact ? "w-[220px]" : "w-full md:w-[330px] lg:w-[350px]"} flex-shrink-0 relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto transition-all duration-300 rounded-[4px] overflow-hidden ${
+                    <div className={`${isCompact ? "w-[220px]" : "w-full md:w-[330px] lg:w-[350px]"} flex-shrink-0 relative h-12 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto transition-all duration-300 rounded-lg shadow-2xs overflow-hidden ${
                         isDatePickerOpen
                             ? 'border-2 border-[#1a73e8]'
                             : 'border border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
@@ -1500,7 +1500,7 @@ const ListingSearch = ({ isCompact = false }) => {
                                     }
                                 }
                             }}
-                            className={`flex items-center ${isCompact ? "gap-1 px-2.5" : "gap-1.5 px-3.5"} border h-12 rounded-[4px] transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer bg-white dark:bg-[#303134] ${
+                            className={`flex items-center ${isCompact ? "gap-1 px-2.5" : "gap-1.5 px-3.5"} border h-12 rounded-lg shadow-2xs transition-colors text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer bg-white dark:bg-[#303134] ${
                                 showGuestDropdown
                                     ? 'border-[#1a73e8]'
                                     : 'border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
@@ -1516,7 +1516,7 @@ const ListingSearch = ({ isCompact = false }) => {
 
                         {/* Guest Dropdown - Google Flights Style */}
                         {showGuestDropdown && (
-                            <div className="absolute top-full right-0 w-[320px] sm:w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-[4px] border border-[#dadce0] dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08)] p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="absolute top-full right-0 w-[320px] sm:w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-slate-700 shadow-xl p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
                                 <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-3 -mr-3">
                                     {roomState.map((room, index) => (
                                         <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 last:mb-0">
@@ -1535,7 +1535,7 @@ const ListingSearch = ({ isCompact = false }) => {
                                                         <button 
                                                             onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} 
                                                             disabled={room.adults <= 1}
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                            className="w-8 h-8 rounded-lg bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer disabled:cursor-not-allowed"
                                                         >
                                                             <span className="material-symbols-outlined text-[20px]">remove</span>
                                                         </button>
@@ -1543,7 +1543,7 @@ const ListingSearch = ({ isCompact = false }) => {
                                                         <button 
                                                             onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} 
                                                             disabled={room.adults >= 6} 
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                            className="w-8 h-8 rounded-lg bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer disabled:cursor-not-allowed"
                                                         >
                                                             <span className="material-symbols-outlined text-[20px]">add</span>
                                                         </button>
@@ -1560,7 +1560,7 @@ const ListingSearch = ({ isCompact = false }) => {
                                                         <button 
                                                             onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} 
                                                             disabled={room.children <= 0}
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                            className="w-8 h-8 rounded-lg bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer disabled:cursor-not-allowed"
                                                         >
                                                             <span className="material-symbols-outlined text-[20px]">remove</span>
                                                         </button>
@@ -1568,7 +1568,7 @@ const ListingSearch = ({ isCompact = false }) => {
                                                         <button 
                                                             onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} 
                                                             disabled={room.children >= 4} 
-                                                            className="w-8 h-8 rounded bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors"
+                                                            className="w-8 h-8 rounded-lg bg-[#e8f0fe] text-[#1a73e8] disabled:bg-slate-100 disabled:text-slate-400 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center transition-colors cursor-pointer disabled:cursor-not-allowed"
                                                         >
                                                             <span className="material-symbols-outlined text-[20px]">add</span>
                                                         </button>
@@ -1579,12 +1579,12 @@ const ListingSearch = ({ isCompact = false }) => {
                                                 {room.children > 0 && (
                                                     <div className="grid grid-cols-2 gap-3 mt-1">
                                                         {room.childAges.map((age, ageIdx) => (
-                                                             <div key={ageIdx} className="flex flex-col gap-1">
+                                                            <div key={ageIdx} className="flex flex-col gap-1">
                                                                 <span className="text-[12px] text-slate-500">{ls.children} {ageIdx + 1} {ls.years}</span>
                                                                 <select
                                                                     value={age}
                                                                     onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
-                                                                    className="w-full h-8 bg-white dark:bg-slate-800 rounded border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-0 outline-none text-[#3c4043] dark:text-white"
+                                                                    className="w-full h-8 bg-white dark:bg-slate-800 rounded-lg border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]/30 outline-none text-[#3c4043] dark:text-white"
                                                                 >
                                                                     {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {ls.years}</option>)}
                                                                 </select>
@@ -1650,7 +1650,7 @@ const ListingSearch = ({ isCompact = false }) => {
                             }} 
                             inputStyle={true} 
                             compact={true}
-                            rounded="rounded-[4px]"
+                            rounded="rounded-lg shadow-2xs"
                             onToggle={(isOpen) => {
                                 if (isOpen) {
                                     setShowDropdown(false);

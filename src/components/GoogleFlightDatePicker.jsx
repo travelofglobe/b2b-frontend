@@ -415,7 +415,7 @@ const GoogleFlightDatePicker = ({
             {/* Datepicker Popover */}
             <div
                 ref={popoverRef}
-                className="fixed left-1/2 bottom-3 z-[1000] bg-white dark:bg-[#202124] rounded-[4px] shadow-[0_6px_24px_rgba(0,0,0,0.09),0_1px_3px_rgba(60,64,67,0.1)] border border-[#dadce0] dark:border-slate-700 p-5 sm:p-6 max-w-[96vw] max-h-[calc(100vh-24px)] overflow-y-auto font-roboto transition-all duration-300 ease-out pointer-events-auto"
+                className="fixed left-1/2 bottom-3 z-[1000] bg-white dark:bg-[#202124] rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.15),0_2px_8px_rgba(60,64,67,0.1)] border border-[#dadce0] dark:border-slate-700 p-5 sm:p-6 max-w-[96vw] max-h-[calc(100vh-24px)] overflow-y-auto font-roboto transition-all duration-300 ease-out pointer-events-auto"
                 style={{
                     width: 'max-content',
                     transform: isMounted && !isClosing ? 'translate(-50%, 0)' : 'translate(-50%, 48px)',
@@ -440,24 +440,24 @@ const GoogleFlightDatePicker = ({
                             <div className={`relative flex items-center h-10 bg-white dark:bg-[#303134] font-roboto ${
                                 activeField === 'checkIn' || activeField === 'checkOut'
                                     ? ''
-                                    : 'border border-[#dadce0] dark:border-slate-600 rounded-[4px]'
+                                    : 'border border-[#dadce0] dark:border-slate-600 rounded-lg'
                             }`}>
                                 {/* Check-In Cell */}
                                 <div
                                     onClick={() => setActiveField('checkIn')}
                                     className={`relative flex items-center gap-2 px-3 h-full cursor-pointer transition-colors ${
                                         activeField === 'checkIn'
-                                            ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                            ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
                                             : activeField === 'checkOut'
-                                            ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-[4px] hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
-                                            : 'rounded-l-[4px] hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                            ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-lg hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                            : 'rounded-l-lg hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 >
                                     <span className="material-symbols-outlined text-[18px] text-[#1a73e8] dark:text-[#8ab4f8] flex-shrink-0">
                                         calendar_today
                                     </span>
                                     <span className={`text-[13.5px] font-medium text-[#3c4043] dark:text-white truncate ${
-                                        activeField === 'checkIn' ? 'bg-[#d2e3fc] dark:bg-blue-900/60 px-1 rounded-[2px]' : ''
+                                        activeField === 'checkIn' ? 'bg-[#d2e3fc] dark:bg-blue-900/60 px-1 rounded-md' : ''
                                     }`}>
                                         {formatGoogleFlightDate(checkInDate, currentLang) || t('dashboard.checkIn', 'Giriş')}
                                     </span>
@@ -493,14 +493,14 @@ const GoogleFlightDatePicker = ({
                                     onClick={() => setActiveField('checkOut')}
                                     className={`relative flex items-center gap-2 px-3 h-full cursor-pointer transition-colors ${
                                         activeField === 'checkOut'
-                                            ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                            ? 'border-2 border-[#1a73e8] rounded-lg z-10 bg-white dark:bg-[#303134]'
                                             : activeField === 'checkIn'
-                                            ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-[4px] hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
-                                            : 'rounded-r-[4px] hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                            ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-lg hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                            : 'rounded-r-lg hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 >
                                     <span className={`text-[13.5px] font-medium text-[#3c4043] dark:text-white truncate ${
-                                        activeField === 'checkOut' ? 'bg-[#d2e3fc] dark:bg-blue-900/60 px-1 rounded-[2px]' : ''
+                                        activeField === 'checkOut' ? 'bg-[#d2e3fc] dark:bg-blue-900/60 px-1 rounded-md' : ''
                                     }`}>
                                         {formatGoogleFlightDate(checkOutDate, currentLang) || t('dashboard.checkOut', 'Çıkış')}
                                     </span>
@@ -534,14 +534,14 @@ const GoogleFlightDatePicker = ({
                             <button
                                 type="button"
                                 onClick={handlePrevMonth}
-                                className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md hover:shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 active:scale-95 cursor-pointer"
+                                className="absolute left-1.5 sm:left-3 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md hover:shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 active:scale-95 cursor-pointer"
                                 aria-label="Previous Month"
                             >
                                 <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                             </button>
 
                             {/* Two Month Grids */}
-                            <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 justify-center px-6 sm:px-8">
+                            <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 justify-center px-12 sm:px-16">
                                 {renderCalendarMonth(leftMonth, leftDays)}
                                 <div className="hidden sm:block">
                                     {renderCalendarMonth(rightMonth, rightDays)}
@@ -552,7 +552,7 @@ const GoogleFlightDatePicker = ({
                             <button
                                 type="button"
                                 onClick={handleNextMonth}
-                                className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md hover:shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 active:scale-95 cursor-pointer"
+                                className="absolute right-1.5 sm:right-3 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 shadow-md hover:shadow-lg flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 z-20 transition-all text-[#5f6368] dark:text-slate-300 active:scale-95 cursor-pointer"
                                 aria-label="Next Month"
                             >
                                 <span className="material-symbols-outlined text-[20px]">chevron_right</span>
@@ -587,7 +587,7 @@ const GoogleFlightDatePicker = ({
                     <button
                         type="button"
                         onClick={() => handleCloseWithAnimation(checkInDate, checkOutDate, true)}
-                        className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[14px] px-7 py-2 transition-all shadow-none hover:shadow active:scale-95 cursor-pointer"
+                        className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-lg font-semibold text-xs sm:text-sm h-10 px-6 transition-all shadow-xs hover:shadow active:scale-95 cursor-pointer flex items-center justify-center"
                     >
                         {t('common.done', 'Bitti')}
                     </button>

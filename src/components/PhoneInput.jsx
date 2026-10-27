@@ -114,14 +114,14 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                 </label>
             )}
             <div className="relative" ref={dropdownRef}>
-                <div className={`flex items-stretch h-10 bg-white dark:bg-[#303134] border rounded-[4px] transition-all ${
+                <div className={`flex items-stretch h-10 bg-white dark:bg-[#303134] border rounded-lg transition-all ${
                     error ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600 focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8]'
                 }`}>
                     <button
                         type="button"
                         ref={buttonRef}
                         onClick={toggleOpen}
-                        className="flex items-center gap-1.5 px-2.5 border-r border-[#dadce0] dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors rounded-l-[4px] shrink-0 cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 border-r border-[#dadce0] dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors rounded-l-lg shrink-0 cursor-pointer"
                     >
                         <CountryFlag code={selectedCountry.code || selectedCountry.id} name={selectedCountry.name} fallbackEmoji={selectedCountry.flag || selectedCountry.emoji} size="sm" />
                         <span className="text-xs font-normal text-[#202124] dark:text-white">{selectedCountry.code}</span>
@@ -135,14 +135,14 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                         type="text"
                         value={phoneNumber}
                         onChange={handlePhoneChange}
-                        className="flex-1 bg-transparent px-3 outline-none text-xs text-[#202124] dark:text-white placeholder:text-[#70757a]"
+                        className="flex-1 bg-transparent px-3 outline-none text-xs sm:text-sm text-[#202124] dark:text-white placeholder:text-[#70757a]"
                         placeholder="5__ ___ __ __"
                     />
                 </div>
 
                 {/* Dropdown */}
                 {isOpen && (
-                    <div className={`absolute left-0 mt-1 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[4px] shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200`}>
+                    <div className={`absolute left-0 mt-1.5 w-64 bg-white dark:bg-slate-900 border border-[#dadce0] dark:border-slate-800 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200`}>
                         <div className="p-2 border-b border-slate-100 dark:border-slate-800">
                             <div className="relative">
                                 <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
@@ -151,7 +151,7 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                                     placeholder="Search country..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 pl-8 pr-3 py-1.5 rounded-[4px] text-xs focus:outline-none focus:border-primary"
+                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-[#dadce0] dark:border-slate-700 pl-8 pr-3 py-1.5 rounded-lg text-xs focus:outline-none focus:border-[#1a73e8]"
                                     autoFocus
                                 />
                             </div>
@@ -162,8 +162,8 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                                     key={country.id}
                                     type="button"
                                     onClick={() => handleCountrySelect(country)}
-                                    className={`w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs cursor-pointer ${
-                                        (selectedCountry.id === country.id) ? 'bg-primary/5 dark:bg-primary/10' : ''
+                                    className={`w-[calc(100%-8px)] mx-1 flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-xs cursor-pointer ${
+                                        (selectedCountry.id === country.id) ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] font-medium' : ''
                                     } ${activeIndex === index ? 'bg-slate-100 dark:bg-slate-800' : ''}`}
                                 >
                                     <div className="flex items-center gap-2">
@@ -172,7 +172,7 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                                         <span className="font-medium text-slate-500 dark:text-slate-400">{country.name}</span>
                                     </div>
                                     {selectedCountry.id === country.id && (
-                                        <span className="material-symbols-outlined text-primary text-sm">check</span>
+                                        <span className="material-symbols-outlined text-[#1a73e8] text-sm">check</span>
                                     )}
                                 </button>
                             ))}

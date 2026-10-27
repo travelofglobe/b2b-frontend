@@ -1452,8 +1452,8 @@ const CheckoutGuestDetails = () => {
                     onSelect={handleCrmGuestSelect}
                 />
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    <div className="lg:col-span-7 space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <div className="lg:col-span-8 space-y-5">
                         {/* Multiple Rooms Tab Navigation (Only shown when there are 2+ rooms) */}
                         {roomsData.length > 1 && (
                             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5" lang={currentLang}>
@@ -1468,7 +1468,7 @@ const CheckoutGuestDetails = () => {
                                             key={idx}
                                             type="button"
                                             onClick={() => isDone && setActiveRoomIdx(idx)}
-                                            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                                            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                                                 isCurrent
                                                     ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-xs cursor-default'
                                                     : isDone
@@ -1480,7 +1480,7 @@ const CheckoutGuestDetails = () => {
                                                 {isDone ? 'check_circle' : 'bed'}
                                             </span>
                                             <span>{tSummary('room', currentLang)} {idx + 1}</span>
-                                            <span className={`text-[10px] font-normal px-1.5 py-0.5 rounded ${
+                                            <span className={`text-[10px] font-normal px-1.5 py-0.5 rounded-md ${
                                                 isCurrent ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-slate-800 text-current'
                                             }`}>
                                                 {adultCount} {tSummary('adult', currentLang)}
@@ -1493,7 +1493,7 @@ const CheckoutGuestDetails = () => {
                         )}
 
                         {/* Room Title Header */}
-                        <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl px-4 py-2.5 h-[58px] min-h-[58px] shadow-xs flex items-center justify-between gap-3" lang={currentLang}>
+                        <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl px-4 py-3 shadow-xs flex items-center justify-between gap-3" lang={currentLang}>
                             <div className="min-w-0 flex items-center gap-2.5">
                                 <span className="size-8 rounded-lg bg-[#e8f0fe] dark:bg-slate-800 text-[#1a73e8] dark:text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">
                                     {activeRoomIdx + 1}
@@ -1502,7 +1502,7 @@ const CheckoutGuestDetails = () => {
                                     {currentRoom.roomName}
                                 </h2>
                             </div>
-                            <span className="px-2.5 py-1 rounded-md bg-[#e8f0fe] dark:bg-slate-800 text-[#1a73e8] dark:text-blue-400 border border-[#d2e3fc] dark:border-slate-700 text-xs font-medium shrink-0">
+                            <span className="px-2.5 py-1 rounded-lg bg-[#f1f3f4] dark:bg-slate-800 text-[#3c4043] dark:text-slate-300 border border-[#dadce0] dark:border-slate-700 text-xs font-medium shrink-0">
                                 {currentRoom.guests.filter(g => g.type === 'Adult').length} {tSummary('adult', currentLang)}
                                 {currentRoom.guests.filter(g => g.type === 'Child').length > 0 && `, ${currentRoom.guests.filter(g => g.type === 'Child').length} ${tSummary('child', currentLang)}`}
                             </span>
@@ -1522,7 +1522,7 @@ const CheckoutGuestDetails = () => {
                                                         ? tSummary('leadGuest', currentLang) 
                                                         : `${guest.type === 'Adult' ? tSummary('adult', currentLang) : tSummary('child', currentLang)} ${tSummary('traveler', currentLang)} ${gIdx + 1}`}
                                                 </h3>
-                                                <p className="text-[10px] text-[#5f6368] dark:text-slate-400">
+                                                <p className="text-[11px] text-[#5f6368] dark:text-slate-400">
                                                     {guest.type === 'Adult' 
                                                         ? tSummary('standardPolicy', currentLang) 
                                                         : `${tSummary('childPassenger', currentLang)} • ${tSummary('age', currentLang)} ${guest.age}`}
@@ -1535,7 +1535,7 @@ const CheckoutGuestDetails = () => {
                                                 setTargetGuestIndex({ roomIdx: activeRoomIdx, guestIdx: gIdx });
                                                 setIsCrmModalOpen(true);
                                             }}
-                                            className="h-8 flex items-center gap-1.5 px-3 text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                                            className="h-8 flex items-center gap-1.5 px-3 text-[#1a73e8] dark:text-blue-300 bg-[#e8f0fe] hover:bg-[#d2e3fc] dark:bg-blue-900/30 dark:border-blue-800 border border-[#d2e3fc] rounded-lg text-xs font-medium transition-colors cursor-pointer"
                                         >
                                             <span className="material-symbols-outlined text-sm">contact_page</span>
                                             <span className="hidden sm:inline">{crmText}</span>
@@ -1543,24 +1543,24 @@ const CheckoutGuestDetails = () => {
                                         </button>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block">{tSummary('firstName', currentLang)}</label>
+                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block">{tSummary('firstName', currentLang)}</label>
                                             <input
                                                 data-field={`${activeRoomIdx}-${gIdx}-firstName`}
                                                 required
-                                                className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3 rounded-[4px] outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
+                                                className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3.5 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs sm:text-sm text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400`}
                                                 placeholder={tSummary('enterFirstName', currentLang)}
                                                 value={guest.firstName}
                                                 onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'firstName', e.target.value)}
                                             />
                                         </div>
                                         <div>
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block">{tSummary('lastName', currentLang)}</label>
+                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block">{tSummary('lastName', currentLang)}</label>
                                             <input
                                                 data-field={`${activeRoomIdx}-${gIdx}-lastName`}
                                                 required
-                                                className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3 rounded-[4px] outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
+                                                className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3.5 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs sm:text-sm text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400`}
                                                 placeholder={tSummary('enterLastName', currentLang)}
                                                 value={guest.lastName}
                                                 onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'lastName', e.target.value)}
@@ -1569,11 +1569,11 @@ const CheckoutGuestDetails = () => {
 
                                         {/* Birth Date and Gender */}
                                         <div>
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block">{tSummary('birthDate', currentLang)}</label>
+                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block">{tSummary('birthDate', currentLang)}</label>
                                             <input
                                                 data-field={`${activeRoomIdx}-${gIdx}-birthDate`}
                                                 type="date"
-                                                className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3 rounded-[4px] outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
+                                                className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3.5 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs sm:text-sm text-[#202124] dark:text-white`}
                                                 value={guest.birthDate}
                                                 min="1900-01-01"
                                                 max={new Date().toISOString().split('T')[0]}
@@ -1601,19 +1601,19 @@ const CheckoutGuestDetails = () => {
                                         </div>
 
                                         <div>
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block">{tSummary('gender', currentLang)}</label>
+                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block">{tSummary('gender', currentLang)}</label>
                                             <div
                                                 data-field={`${activeRoomIdx}-${gIdx}-gender`}
-                                                className={`p-0.5 rounded-[4px] h-10 flex items-center border ${
+                                                className={`p-1 rounded-lg h-10 flex items-center gap-1 border ${
                                                     errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'
-                                                } bg-[#f1f3f4] dark:bg-slate-800`}
+                                                } bg-[#f1f3f4] dark:bg-slate-800/80`}
                                             >
                                                 <button
                                                     type="button"
                                                     onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'male')}
-                                                    className={`flex-1 h-full flex items-center justify-center gap-1.5 rounded-[4px] text-xs font-medium transition-all cursor-pointer ${
+                                                    className={`flex-1 h-full flex items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
                                                         guest.gender === 'male'
-                                                            ? 'bg-[#1a73e8] text-white shadow-xs'
+                                                            ? 'bg-[#1a73e8] text-white shadow-xs font-semibold'
                                                             : 'text-[#5f6368] dark:text-slate-400 hover:text-[#202124]'
                                                     }`}
                                                 >
@@ -1624,9 +1624,9 @@ const CheckoutGuestDetails = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'female')}
-                                                    className={`flex-1 h-full flex items-center justify-center gap-1.5 rounded-[4px] text-xs font-medium transition-all cursor-pointer ${
+                                                    className={`flex-1 h-full flex items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
                                                         guest.gender === 'female'
-                                                            ? 'bg-[#1a73e8] text-white shadow-xs'
+                                                            ? 'bg-[#1a73e8] text-white shadow-xs font-semibold'
                                                             : 'text-[#5f6368] dark:text-slate-400 hover:text-[#202124]'
                                                     }`}
                                                 >
@@ -1639,12 +1639,12 @@ const CheckoutGuestDetails = () => {
                                         {gIdx === 0 && guest.type === 'Adult' && (
                                             <>
                                                 <div>
-                                                    <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block">{tSummary('emailAddress', currentLang)}</label>
+                                                    <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block">{tSummary('emailAddress', currentLang)}</label>
                                                     <input
                                                         data-field={`${activeRoomIdx}-${gIdx}-email`}
                                                         required
                                                         type="email"
-                                                        className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3 rounded-[4px] outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white`}
+                                                        className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3.5 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs sm:text-sm text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400`}
                                                         placeholder={tSummary('enterEmail', currentLang)}
                                                         value={guest.email}
                                                         onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'email', e.target.value)}
@@ -1668,7 +1668,7 @@ const CheckoutGuestDetails = () => {
                             {activeRoomIdx === roomsData.length - 1 && (
                                 <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-xs">
                                     <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-[#dadce0] dark:border-slate-700">
-                                        <div className="size-7 rounded-[4px] bg-[#e8f0fe] flex items-center justify-center text-[#1a73e8]">
+                                        <div className="size-7 rounded-lg bg-[#e8f0fe] dark:bg-blue-900/30 flex items-center justify-center text-[#1a73e8] dark:text-blue-400">
                                             <span className="material-symbols-outlined text-base">receipt_long</span>
                                         </div>
                                         <div>
@@ -1677,20 +1677,20 @@ const CheckoutGuestDetails = () => {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block" lang={currentLang}>{tSummary('clientReferenceId', currentLang)}</label>
+                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block" lang={currentLang}>{tSummary('clientReferenceId', currentLang)}</label>
                                             <input
-                                                className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 px-3 rounded-[4px] outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white"
+                                                className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 px-3.5 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs sm:text-sm text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400"
                                                 placeholder={tSummary('internalReferenceNumber', currentLang)}
                                                 value={clientReferenceId}
                                                 onChange={(e) => setClientReferenceId(e.target.value)}
                                             />
                                         </div>
                                         <div>
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block" lang={currentLang}>{tSummary('specialRemarks', currentLang)}</label>
+                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block" lang={currentLang}>{tSummary('specialRemarks', currentLang)}</label>
                                             <input
-                                                className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 px-3 rounded-[4px] outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs text-[#202124] dark:text-white"
+                                                className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 px-3.5 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs sm:text-sm text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400"
                                                 placeholder={tSummary('enterRemarks', currentLang)}
                                                 value={remark}
                                                 onChange={(e) => setRemark(e.target.value)}
@@ -1705,7 +1705,7 @@ const CheckoutGuestDetails = () => {
                                 <button
                                     type="button"
                                     onClick={() => activeRoomIdx > 0 ? setActiveRoomIdx(prev => prev - 1) : navigate(-1)}
-                                    className="px-5 py-2.5 rounded-[4px] border border-[#dadce0] dark:border-slate-700 font-medium text-xs text-[#1a73e8] hover:bg-white dark:hover:bg-slate-800 transition-colors flex items-center gap-2 cursor-pointer"
+                                    className="h-10 px-5 rounded-lg border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#303134] font-medium text-xs sm:text-sm text-[#1a73e8] dark:text-blue-400 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors flex items-center gap-2 cursor-pointer shadow-2xs"
                                     lang={currentLang}
                                 >
                                     <span className="material-symbols-outlined text-[16px]">arrow_back</span>
@@ -1714,7 +1714,7 @@ const CheckoutGuestDetails = () => {
                                 <button
                                     type="button"
                                     onClick={handleNext}
-                                    className="px-6 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-[4px] font-medium text-xs shadow-xs transition-all flex items-center gap-2 cursor-pointer"
+                                    className="h-10 px-6 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-lg font-medium text-xs sm:text-sm shadow-xs hover:shadow transition-all flex items-center gap-2 cursor-pointer active:scale-[0.98]"
                                     lang={currentLang}
                                 >
                                     {activeRoomIdx < roomsData.length - 1 ? (
@@ -1728,7 +1728,7 @@ const CheckoutGuestDetails = () => {
                     </div>
 
                     {/* Google Travel Sticky Reservation Summary Sidebar */}
-                    <div className="lg:col-span-5 lg:sticky lg:top-4 space-y-4">
+                    <div className="lg:col-span-4 lg:sticky lg:top-4 space-y-4">
                         {expireAt && <CheckoutTimer expireAt={expireAt} />}
                         <HotelReservationSummaryCard
                             hotel={{

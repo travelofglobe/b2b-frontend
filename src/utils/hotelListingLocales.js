@@ -309,22 +309,22 @@ export const getLayerLabel = (layer, lang = 'en') => {
     const key = (lang || 'en').split('-')[0].toLowerCase();
     if (layer.id === 'auto') {
         const autoLabels = {
-            en: 'Auto (Liberty / Dark)',
-            tr: 'Otomatik (Liberty / Koyu)',
-            ar: 'تلقائي (Liberty / داكن)',
-            es: 'Automático (Liberty / Oscuro)',
-            ru: 'Авто (Liberty / Темная)',
-            zh: '自动 (浅色 / 深色)',
-            ja: '自動 (Liberty / ダーク)',
-            fa: 'خودکار (Liberty / تیره)',
-            fr: 'Auto (Liberty / Sombre)',
-            it: 'Automatico (Liberty / Scuro)',
-            el: 'Αυτόματο (Liberty / Σκούρο)',
-            pt: 'Automático (Liberty / Escuro)'
+            en: 'Auto (Default / Dark)',
+            tr: 'Otomatik (Default / Koyu)',
+            ar: 'تلقائي (Default / داكن)',
+            es: 'Automático (Default / Oscuro)',
+            ru: 'Авто (Default / Темная)',
+            zh: '自动 (Default / 深色)',
+            ja: '自動 (Default / ダーク)',
+            fa: 'خودکار (Default / تیره)',
+            fr: 'Auto (Default / Sombre)',
+            it: 'Automatico (Default / Scuro)',
+            el: 'Αυτόματο (Default / Σκούρο)',
+            pt: 'Automático (Default / Escuro)'
         };
         return autoLabels[key] || autoLabels.en;
     }
-    return layer.labelEn || layer.label;
+    return (key === 'tr' ? layer.label : (layer.labelEn || layer.label)) || layer.label;
 };
 
 export const tListing = (key, lang = 'en') => {

@@ -1408,9 +1408,9 @@ const GoogleCardSkeleton = ({ isCompact = false }) => (
 const MAP_LAYERS = {
     google: {
         id: 'google',
-        label: 'Google Maps Stili',
-        labelEn: 'Google Maps Style',
-        desc: 'Google Maps renk paletiyle optimize edilmiş modern vektör harita',
+        label: 'Default',
+        labelEn: 'Default',
+        desc: 'Optimize edilmiş modern vektör harita',
         icon: 'map'
     },
     liberty: {
@@ -1450,9 +1450,9 @@ const MAP_LAYERS = {
     },
     auto: {
         id: 'auto',
-        label: 'Otomatik (Google / Koyu)',
-        labelEn: 'Auto (Google / Dark)',
-        desc: 'Aydınlık modda Google Maps, karanlık modda Dark stile geçer',
+        label: 'Otomatik (Default / Koyu)',
+        labelEn: 'Auto (Default / Dark)',
+        desc: 'Aydınlık modda Default, karanlık modda Dark stile geçer',
         icon: 'brightness_auto'
     }
 };

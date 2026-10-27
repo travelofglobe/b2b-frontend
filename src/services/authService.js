@@ -27,10 +27,16 @@ export const authService = {
                 body: JSON.stringify({ emailAddress, password }),
             });
 
-            const data = await response.json();
+            const text = await response.text();
+            let data = {};
+            try {
+                data = text ? JSON.parse(text) : {};
+            } catch {
+                // Server returned a non-JSON or empty body (e.g. 500 with no content)
+            }
 
             if (!response.ok) {
-                throw new Error(data.message || 'Authentication failed');
+                throw new Error(data.message || `Authentication failed (${response.status})`);
             }
 
             // Store tokens in localStorage

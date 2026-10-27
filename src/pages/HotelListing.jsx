@@ -1775,6 +1775,7 @@ const HotelListing = () => {
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false);
     const [searchOnMapMove, setSearchOnMapMove] = React.useState(false);
     const [mapMoved, setMapMoved] = React.useState(false);
+    const [isSearchingMapArea, setIsSearchingMapArea] = React.useState(false);
     const [mapInstance, setMapInstance] = React.useState(null);
     const [isMapReady, setIsMapReady] = React.useState(false);
     const isDark = useDarkMode();
@@ -3024,6 +3025,10 @@ const HotelListing = () => {
             setIsLoadingMore(false);
             if (abortControllerRef.current === controller) {
                 setIsLoading(false);
+                if (geoBounds) {
+                    setMapMoved(false);
+                    setIsSearchingMapArea(false);
+                }
             }
         }
     }, [locationId, regionId, togId, isPoiSearch, initialPoiBounds, mapApiHotelToModel, roomState, searchParams, sortConfig, fetchMapMarkers, hotels.length]);
@@ -3115,6 +3120,7 @@ const HotelListing = () => {
         mapBoundsRef.current = boundsData;
         isMapBoundsSyncRef.current = true;
         isSyncingQRef.current = true;
+        setIsSearchingMapArea(true);
         updateUrlWithMapBounds(boundsData);
 
         // Immediately cull markers outside the new viewport + buffer
@@ -3127,9 +3133,13 @@ const HotelListing = () => {
             const poiPromise = (activeEsCategoriesRef.current && activeEsCategoriesRef.current.length > 0)
                 ? fetchPoiMarkers(boundsData, false)
                 : Promise.resolve();
-            await Promise.all([hotelPromise, mapMarkerPromise, poiPromise]);
+            await hotelPromise;
+            setMapMoved(false);
+            setIsSearchingMapArea(false);
+            await Promise.all([mapMarkerPromise, poiPromise]);
         } finally {
             setMapMoved(false);
+            setIsSearchingMapArea(false);
             setTimeout(() => {
                 isMapBoundsSyncRef.current = false;
                 isSyncingQRef.current = false;
@@ -4625,11 +4635,11 @@ const HotelListing = () => {
                     </div>
 
                     {/* Top center: Either "Listeyi güncelle" (when map moved & manual mode) OR "Harita hareket ettiğinde listeyi güncelle" toggle */}
-                    <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2">
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2">
                         {mapMoved && !searchOnMapMove ? (
                             <button
                                 type="button"
-                                disabled={isLoading}
+                                disabled={isLoading || isSearchingMapArea}
                                 onClick={() => {
                                     isUserPanRef.current = false;
                                     setShouldRefitMap(false);
@@ -4637,8 +4647,8 @@ const HotelListing = () => {
                                 }}
                                 className="flex items-center gap-1.5 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#1a73e8] dark:text-blue-400 font-semibold rounded-full px-4 py-2 text-[13px] shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all cursor-pointer active:scale-95 border border-[#1a73e8]/30 whitespace-nowrap disabled:opacity-100 disabled:cursor-wait"
                             >
-                                <span className={`material-symbols-outlined text-[18px] ${isLoading ? 'animate-spin' : ''}`}>refresh</span>
-                                <span>{isLoading ? (tListing('searching', currentLang) || 'Aranıyor...') : tListing('searchThisArea', currentLang)}</span>
+                                <span className={`material-symbols-outlined text-[18px] ${(isLoading || isSearchingMapArea) ? 'animate-spin' : ''}`}>refresh</span>
+                                <span>{(isLoading || isSearchingMapArea) ? (tListing('searching', currentLang) || 'Aranıyor...') : tListing('searchThisArea', currentLang)}</span>
                             </button>
                         ) : (
                             <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3.5 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">

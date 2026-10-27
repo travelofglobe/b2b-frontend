@@ -957,7 +957,8 @@ const CheckoutPayment = () => {
                     }))
                 })),
                 clientReferenceId: clientReferenceId || '',
-                remark: remark || ''
+                remark: remark || '',
+                paymentType: paymentMethod === 'credit_card' ? 'CREDIT_CARD' : 'CARI'
             };
 
             const response = await hotelService.book(requestBody);

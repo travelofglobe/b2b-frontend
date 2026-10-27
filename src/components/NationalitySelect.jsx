@@ -160,24 +160,14 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
     const showPopover = (isOpen || isClosing) && canUseDOM;
 
     const popoverContent = (
-        <>
-            {/* Spotlight Backdrop Dimming Overlay */}
-            <div
-                onClick={() => handleCloseWithAnimation()}
-                className="fixed inset-0 z-[999] bg-black/10 transition-opacity duration-300 pointer-events-auto"
-                style={{
-                    opacity: isMounted && !isClosing ? 1 : 0
-                }}
-            />
-
-            <div
-                ref={popoverRef}
-                className="fixed left-1/2 bottom-3 sm:bottom-4 z-[1000] bg-white dark:bg-[#202124] rounded-[4px] shadow-[0_6px_24px_rgba(0,0,0,0.09),0_1px_3px_rgba(60,64,67,0.1)] border border-[#dadce0] dark:border-slate-700 p-4 sm:p-5 w-[94vw] max-w-[420px] max-h-[calc(100vh-24px)] flex flex-col font-roboto transition-all duration-300 ease-out pointer-events-auto"
-                style={{
-                    transform: isMounted && !isClosing ? 'translate(-50%, 0)' : 'translate(-50%, 48px)',
-                    opacity: isMounted && !isClosing ? 1 : 0
-                }}
-            >
+        <div
+            ref={popoverRef}
+            className="absolute top-full right-0 mt-2 z-[1000] bg-white dark:bg-[#202124] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3)] border border-[#dadce0] dark:border-slate-700 p-4 w-[320px] sm:w-[360px] max-h-[460px] flex flex-col font-roboto transition-all duration-200 ease-out pointer-events-auto"
+            style={{
+                transform: isMounted && !isClosing ? 'translateY(0)' : 'translateY(-8px)',
+                opacity: isMounted && !isClosing ? 1 : 0
+            }}
+        >
             {/* --- Top Header Bar --- */}
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#dadce0] dark:border-slate-700">
                 <div className="flex items-center gap-2">
@@ -198,7 +188,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
 
             {/* --- Search Input Box --- */}
             <div className="pb-3">
-                <div className="flex items-center gap-2 h-10 px-3 bg-[#f1f3f4] dark:bg-slate-800 rounded-[4px] border border-transparent focus-within:border-[#1a73e8] focus-within:bg-white dark:focus-within:bg-slate-900 transition-colors">
+                <div className="flex items-center gap-2 h-10 px-3 bg-[#f1f3f4] dark:bg-slate-800 rounded-lg border border-transparent focus-within:border-[#1a73e8] focus-within:bg-white dark:focus-within:bg-slate-900 transition-colors">
                     <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 shrink-0">search</span>
                     <input
                         ref={searchInputRef}
@@ -228,7 +218,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
             <div className="flex-1 overflow-y-auto max-h-[320px] sm:max-h-[360px] -mx-1 px-1 scrollbar-thin">
                 {!searchTerm.trim() ? (
                     <>
-                        <div className="px-3 py-1.5 text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider bg-slate-50/80 dark:bg-slate-800/60 rounded-[4px] mb-1">
+                        <div className="px-3 py-1.5 text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider bg-slate-50/80 dark:bg-slate-800/60 rounded-lg mb-1">
                             {t('common.suggestedCountries', 'Önerilen Ülkeler')}
                         </div>
                         {topSectionList.map(country => {
@@ -238,7 +228,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                                     key={country.code}
                                     type="button"
                                     onClick={() => handleSelectCountry(country.code)}
-                                    className={`w-full flex items-center px-3 py-2 rounded-[4px] text-left transition-colors cursor-pointer ${
+                                    className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors cursor-pointer ${
                                         isSelected 
                                             ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-200 font-medium' 
                                             : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200 font-normal'
@@ -262,7 +252,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
 
                         <div className="h-[1px] bg-[#dadce0] dark:bg-slate-700 my-2" />
 
-                        <div className="px-3 py-1.5 text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider bg-slate-50/80 dark:bg-slate-800/60 rounded-[4px] mb-1">
+                        <div className="px-3 py-1.5 text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider bg-slate-50/80 dark:bg-slate-800/60 rounded-lg mb-1">
                             {t('common.allCountries', 'Tüm Ülkeler')}
                         </div>
                         {otherCountries.map(country => {
@@ -272,7 +262,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                                     key={country.code}
                                     type="button"
                                     onClick={() => handleSelectCountry(country.code)}
-                                    className={`w-full flex items-center px-3 py-2 rounded-[4px] text-left transition-colors cursor-pointer ${
+                                    className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors cursor-pointer ${
                                         isSelected 
                                             ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-200 font-medium' 
                                             : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200 font-normal'
@@ -303,7 +293,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                                     key={country.code}
                                     type="button"
                                     onClick={() => handleSelectCountry(country.code)}
-                                    className={`w-full flex items-center px-3 py-2 rounded-[4px] text-left transition-colors cursor-pointer ${
+                                    className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors cursor-pointer ${
                                         isSelected 
                                             ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-200 font-medium' 
                                             : 'hover:bg-[#f1f3f4] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200 font-normal'
@@ -343,13 +333,12 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                 <button
                     type="button"
                     onClick={() => handleCloseWithAnimation()}
-                    className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[13px] px-6 py-1.5 transition-all shadow-none hover:shadow active:scale-95 cursor-pointer shrink-0 ml-2"
+                    className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-lg font-semibold text-xs sm:text-sm h-9 px-5 transition-all shadow-xs hover:shadow active:scale-95 cursor-pointer shrink-0 ml-2"
                 >
                     {t('common.done', 'Bitti')}
                 </button>
             </div>
         </div>
-        </>
     );
 
     return (
@@ -359,12 +348,11 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                     ref={triggerRef}
                     type="button"
                     onClick={toggleOpen}
-                    className={`nationality-trigger w-full h-full flex items-center ${compact ? 'justify-center px-2' : 'justify-between px-3.5 sm:px-4'} border ${rounded} bg-white dark:bg-[#303134] transition-colors text-left focus:outline-none font-roboto cursor-pointer ${
+                    className={`nationality-trigger w-full h-full flex items-center ${compact ? 'justify-center px-2' : 'justify-between px-3.5 sm:px-4'} border ${rounded} bg-white dark:bg-[#303134] transition-colors duration-200 text-left focus:outline-none font-roboto cursor-pointer ${
                         isOpen 
-                            ? 'border-[#1a73e8]' 
-                            : 'border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
+                            ? 'border border-[#1a73e8] ring-2 ring-[#1a73e8]/20 shadow-[0_4px_20px_rgba(26,115,232,0.12)]' 
+                            : 'border border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
                     }`}
-                    style={isOpen ? { boxShadow: '0 0 0 1px #1a73e8' } : { boxShadow: 'none' }}
                     title={t('common.nationality', 'Vatandaşlık')}
                 >
                     <div className={`flex items-center ${compact ? 'gap-1.5' : 'gap-2.5 sm:gap-3'} min-w-0 flex-1`}>
@@ -408,7 +396,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                 </button>
             )}
 
-            {showPopover && createPortal(popoverContent, document.body)}
+            {showPopover && popoverContent}
         </div>
     );
 };

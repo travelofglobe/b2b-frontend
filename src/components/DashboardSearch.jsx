@@ -746,7 +746,7 @@ const DashboardSearch = () => {
 
                         {/* Guest Dropdown - Google Flights Style */}
                         {showGuestDropdown && (
-                            <div className="absolute top-full left-0 mt-0 w-80 sm:w-[340px] bg-white dark:bg-[#202124] rounded-[4px] border border-[#dadce0] dark:border-[#3c4043] shadow-[0_2px_6px_2px_rgba(60,64,67,0.15),0_1px_2px_0_rgba(60,64,67,0.3)] p-4 sm:p-5 z-[200] animate-in fade-in duration-150">
+                            <div className="absolute top-full left-0 mt-1 w-80 sm:w-[340px] bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3)] p-4 sm:p-5 z-[200] animate-in fade-in duration-150">
                                 <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-2 -mr-2 space-y-4">
                                     {roomState.map((room, index) => (
                                         <div key={index} className="pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
@@ -870,7 +870,7 @@ const DashboardSearch = () => {
                         <div
                             className={`w-full transition-all ${
                                 showDropdown && hasAnyResults
-                                    ? 'absolute top-0 left-0 w-full min-w-[320px] bg-white dark:bg-[#202124] rounded-[4px] border border-[#dadce0] dark:border-[#3c4043] shadow-[0_4px_24px_rgba(0,0,0,0.18),0_1px_4px_rgba(0,0,0,0.06)] z-[300] overflow-hidden'
+                                    ? 'absolute top-0 left-0 w-full min-w-[360px] sm:min-w-[480px] md:min-w-[540px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] z-[300] overflow-hidden'
                                     : 'h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-[4px] bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8]'
                             }`}
                         >
@@ -1187,19 +1187,19 @@ const DashboardSearch = () => {
                                                                 {hotelMeta.icon}
                                                             </span>
                                                             <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate flex items-center gap-1.5">
+                                                                <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate">
                                                                     <span className="truncate">{hotelTitle}</span>
+                                                                </div>
+                                                                <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate flex items-center gap-2">
+                                                                    {hotelSubtitle && (
+                                                                        <span className="truncate">{hotelSubtitle}</span>
+                                                                    )}
                                                                     {hotelMeta.id !== 1 && (
                                                                         <span className="text-[9px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/70 dark:border-blue-800/60 uppercase shrink-0">
                                                                             {hotelMeta.name}
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                                {hotelSubtitle && (
-                                                                    <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
-                                                                        {hotelSubtitle}
-                                                                    </div>
-                                                                )}
                                                             </div>
                                                         </div>
                                                     </button>
@@ -1215,7 +1215,7 @@ const DashboardSearch = () => {
 
 
                     {/* Twin Datepicker Container (Fixed clean width, guaranteed single line) */}
-                    <div className={`w-full md:w-[330px] lg:w-[350px] flex-shrink-0 relative h-14 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
+                    <div className={`w-full md:w-[350px] lg:w-[370px] flex-shrink-0 relative h-14 bg-white dark:bg-[#303134] flex items-center google-flight-date-trigger font-roboto ${
                         isDatePickerOpen && (activeDateField === 'checkIn' || activeDateField === 'checkOut')
                             ? ''
                             : 'border border-[#dadce0] dark:border-slate-600 rounded-[4px] hover:border-[#bdc1c6] transition-all overflow-hidden'
@@ -1230,7 +1230,7 @@ const DashboardSearch = () => {
                             }}
                             className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkIn'
-                                    ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                    ? 'border-2 border-[#1a73e8] ring-2 ring-[#1a73e8]/20 shadow-[0_4px_20px_rgba(26,115,232,0.12)] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
                                     : isDatePickerOpen && activeDateField === 'checkOut'
                                     ? 'border border-[#dadce0] dark:border-slate-600 border-r-0 rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
                                     : 'rounded-l-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
@@ -1241,7 +1241,7 @@ const DashboardSearch = () => {
                                     calendar_today
                                 </span>
                                 <span className="text-[13.5px] font-medium text-[#3c4043] dark:text-white truncate">
-                                    {formatGoogleFlightDate(checkInDate) || ls.checkIn || 'Check-in'}
+                                    {formatGoogleFlightDate(checkInDate, currentLang) || ls.checkIn || 'Check-in'}
                                 </span>
                             </div>
 
@@ -1280,7 +1280,7 @@ const DashboardSearch = () => {
                             }}
                             className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
                                 isDatePickerOpen && activeDateField === 'checkOut'
-                                    ? 'border-2 border-[#1a73e8] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
+                                    ? 'border-2 border-[#1a73e8] ring-2 ring-[#1a73e8]/20 shadow-[0_4px_20px_rgba(26,115,232,0.12)] rounded-[4px] z-10 bg-white dark:bg-[#303134]'
                                     : isDatePickerOpen && activeDateField === 'checkIn'
                                     ? 'border border-[#dadce0] dark:border-slate-600 border-l-0 rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
                                     : 'rounded-r-[4px] hover:bg-slate-50 dark:hover:bg-slate-700/40'
@@ -1288,7 +1288,7 @@ const DashboardSearch = () => {
                         >
                             <div className="flex items-center min-w-0 flex-1">
                                 <span className="text-[13.5px] font-medium text-[#3c4043] dark:text-white truncate">
-                                    {formatGoogleFlightDate(checkOutDate) || ls.checkOut || 'Check-out'}
+                                    {formatGoogleFlightDate(checkOutDate, currentLang) || ls.checkOut || 'Check-out'}
                                 </span>
                             </div>
 

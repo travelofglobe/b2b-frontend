@@ -32,6 +32,7 @@ import PoiMarker from '../components/PoiMarker';
 import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
 import { resolveFacility } from '../utils/facilityUtils';
 import { getPropertyCategoryMeta } from '../utils/searchParamsUtils';
+import { sortImagesWithThumbnailFirst, isThumbnailImage, getImageUrl } from '../utils/imageUtils';
 
 export const POI_CATEGORIES = [
     {
@@ -980,18 +981,11 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
     const [imgIdx, setImgIdx] = React.useState(0);
     const images = React.useMemo(() => {
         const raw = hotel.images?.length > 0 ? hotel.images : (hotel.image ? [hotel.image] : []);
-        const clean = raw.map(img => {
-            if (!img) return null;
-            let u = typeof img === 'object' ? (img.url || img.originalUrl || img.path || img.src || img.href) : String(img);
-            if (!u || typeof u !== 'string') return null;
-            u = u.trim();
-            if (u.startsWith('http://')) u = 'https://' + u.slice(7);
-            else if (u.startsWith('//')) u = 'https:' + u;
-            return u;
-        }).filter(Boolean);
+        const sorted = sortImagesWithThumbnailFirst(raw, hotel.thumbnail || hotel.image);
+        const clean = sorted.map(img => getImageUrl(img)).filter(Boolean);
 
         return clean.length > 0 ? clean : [placeholderHotel];
-    }, [hotel.images, hotel.image]);
+    }, [hotel.images, hotel.image, hotel.thumbnail]);
 
     const getCurrencySymbol = (code) => {
         const sym = { USD: '$', EUR: '€', GBP: '£', TRY: '₺', AED: 'د.إ', SAR: 'ر.س', JPY: '¥', CNY: '¥', RUB: '₽' };
@@ -1414,9 +1408,9 @@ const GoogleCardSkeleton = ({ isCompact = false }) => (
 const MAP_LAYERS = {
     google: {
         id: 'google',
-        label: 'Google Maps Stili',
-        labelEn: 'Google Maps Style',
-        desc: 'Google Maps renk paletiyle optimize edilmiş modern vektör harita',
+        label: 'Default',
+        labelEn: 'Default',
+        desc: 'Optimize edilmiş modern vektör harita',
         icon: 'map'
     },
     liberty: {
@@ -1456,9 +1450,9 @@ const MAP_LAYERS = {
     },
     auto: {
         id: 'auto',
-        label: 'Otomatik (Google / Koyu)',
-        labelEn: 'Auto (Google / Dark)',
-        desc: 'Aydınlık modda Google Maps, karanlık modda Dark stile geçer',
+        label: 'Otomatik (Default / Koyu)',
+        labelEn: 'Auto (Default / Dark)',
+        desc: 'Aydınlık modda Default, karanlık modda Dark stile geçer',
         icon: 'brightness_auto'
     }
 };
@@ -2483,15 +2477,8 @@ const HotelListing = () => {
         const seen = new Set();
 
         const addImage = (rawUrl) => {
-            if (!rawUrl) return;
-            let url = typeof rawUrl === 'object' ? (rawUrl.url || rawUrl.originalUrl || rawUrl.path || rawUrl.src || rawUrl.href || '') : String(rawUrl);
-            if (!url || typeof url !== 'string') return;
-            url = url.trim();
-            if (url.startsWith('http://')) {
-                url = 'https://' + url.slice(7);
-            } else if (url.startsWith('//')) {
-                url = 'https:' + url;
-            }
+            const url = getImageUrl(rawUrl);
+            if (!url) return;
             const norm = url.split('?')[0].split('#')[0].replace(/\/+$/, '').toLowerCase();
             if (!seen.has(norm)) {
                 seen.add(norm);
@@ -2499,17 +2486,45 @@ const HotelListing = () => {
             }
         };
 
-        if (apiHotel.image) addImage(apiHotel.image);
-        if (apiHotel.mainImage) addImage(apiHotel.mainImage);
+        // 1. Prioritize thumbnail images from apiHotel.images (isThumbnail: true)
+        if (apiHotel.images && apiHotel.images.length > 0) {
+            apiHotel.images.forEach(img => {
+                if (isThumbnailImage(img)) addImage(img);
+            });
+        }
+
+        // 2. Explicit thumbnail / hero fields
         if (apiHotel.thumbnail) addImage(apiHotel.thumbnail);
         if (apiHotel.heroImage) addImage(apiHotel.heroImage);
+        if (apiHotel.mainImage) addImage(apiHotel.mainImage);
 
+        // 3. All other images from apiHotel.images
         if (apiHotel.images && apiHotel.images.length > 0) {
             apiHotel.images.forEach(img => addImage(img));
         }
 
-        if (apiHotel.rooms && apiHotel.rooms.length > 0) {
-            apiHotel.rooms.forEach(r => {
+        // 4. apiHotel.image fallback
+        if (apiHotel.image) addImage(apiHotel.image);
+
+        // 5. Map and sort room images with isThumbnail : true first
+        const mappedRooms = (apiHotel.rooms || []).map(r => {
+            if (!r) return r;
+            const sortedRoomImgs = sortImagesWithThumbnailFirst(r.images || [], r.thumbImage);
+            const primaryThumb = sortedRoomImgs[0]?.url || (typeof sortedRoomImgs[0] === 'string' ? sortedRoomImgs[0] : null) || r.thumbImage;
+            return {
+                ...r,
+                images: sortedRoomImgs,
+                thumbImage: primaryThumb
+            };
+        });
+
+        // 6. Add room images (room thumbnails first, then remaining)
+        if (mappedRooms.length > 0) {
+            mappedRooms.forEach(r => {
+                if (r.thumbImage) addImage(r.thumbImage);
+                if (r.images?.[0]) addImage(r.images[0]);
+            });
+            mappedRooms.forEach(r => {
                 if (r.images && Array.isArray(r.images)) {
                     r.images.forEach(img => addImage(img));
                 }
@@ -2520,14 +2535,14 @@ const HotelListing = () => {
 
         let lowestRoom = null;
         let lowestPrice = Infinity;
-        if (apiHotel.rooms && apiHotel.rooms.length > 0) {
-            apiHotel.rooms.forEach(room => {
+        if (mappedRooms && mappedRooms.length > 0) {
+            mappedRooms.forEach(room => {
                 const ratePrice = room?.hubRateModel?.price;
                 const priceValue = ratePrice?.calculatedAmount || ratePrice?.totalPaymentAmount || ratePrice?.markupCalculatedPrice?.holder?.saleAmount || 0;
                 if (priceValue > 0 && priceValue < lowestPrice) { lowestPrice = priceValue; lowestRoom = room; }
             });
         }
-        const selectedRoom = lowestRoom || apiHotel.rooms?.[0];
+        const selectedRoom = lowestRoom || mappedRooms?.[0];
         const hubRate = selectedRoom?.hubRateModel;
         const ratePrice = hubRate?.price;
         const priceValue = lowestPrice !== Infinity ? lowestPrice : (ratePrice?.calculatedAmount || ratePrice?.totalPaymentAmount || ratePrice?.markupCalculatedPrice?.holder?.saleAmount || 0);
@@ -2546,13 +2561,14 @@ const HotelListing = () => {
             categoryName: apiHotel.categoryName ?? apiHotel.category?.name,
             stars: starCount, location: locationString || 'Unknown Location',
             image: imagesToMap[0], images: imagesToMap,
+            rooms: mappedRooms,
             price: priceValue, currency: currencyCode,
             lat: apiHotel.coordinates?.lat, lng: apiHotel.coordinates?.lon,
             amenities, transportations: apiHotel.transportations || [],
             badges: [], roomName: selectedRoom?.name || selectedRoom?.roomName,
             boardName, isNonRefundable, hasFreeCancellation,
             strikethroughPrice: strikethroughPrice > priceValue ? strikethroughPrice : null,
-            availableRoomsCount: apiHotel.rooms?.length || 0,
+            availableRoomsCount: mappedRooms?.length || 0,
             isRecommended: Boolean(apiHotel.isRecommended || apiHotel.preferred || apiHotel.is_recommended || apiHotel.recommended || apiHotel.isPreferred),
             locationBreadcrumbs: apiHotel.locationBreadcrumbs || (Array.isArray(apiHotel.ancestors) ? apiHotel.ancestors.map(a => ({
                 locationId: a.regionId,

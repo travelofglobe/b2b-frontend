@@ -5,6 +5,7 @@ import placeholderHotel from '../assets/placeholder-hotel.svg';
 import Tooltip from '../components/Tooltip';
 import { useFavorites } from '../context/FavoritesContext';
 import { getPropertyCategoryMeta } from '../utils/searchParamsUtils';
+import { sortImagesWithThumbnailFirst, getImageUrl } from '../utils/imageUtils';
 
 const starSuffixes = {
     en: { star: 'Star', stars: 'Stars' },
@@ -196,18 +197,11 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
 
     const images = React.useMemo(() => {
         const raw = hotel.images?.length > 0 ? hotel.images : (hotel.image ? [hotel.image] : []);
-        const clean = raw.map(img => {
-            if (!img) return null;
-            let u = typeof img === 'object' ? (img.url || img.originalUrl || img.path || img.src || img.href) : String(img);
-            if (!u || typeof u !== 'string') return null;
-            u = u.trim();
-            if (u.startsWith('http://')) u = 'https://' + u.slice(7);
-            else if (u.startsWith('//')) u = 'https:' + u;
-            return u;
-        }).filter(Boolean);
+        const sorted = sortImagesWithThumbnailFirst(raw, hotel.thumbnail || hotel.image);
+        const clean = sorted.map(img => getImageUrl(img)).filter(Boolean);
 
         return clean.length > 0 ? clean : [placeholderHotel];
-    }, [hotel.images, hotel.image]);
+    }, [hotel.images, hotel.image, hotel.thumbnail]);
 
     // Preload next image on hover
     React.useEffect(() => {

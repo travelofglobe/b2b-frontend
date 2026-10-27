@@ -10,6 +10,7 @@ import "../datepicker-custom.css";
 import { useHolidays } from '../utils/useHolidays';
 import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, resolveKnownCoordinates, getLocationIconMeta, buildLocationTree, getPropertyCategoryMeta, isPoiItem, resolveSearchTargetId, getItemPrimaryName, getLocationHierarchyParts, getRegionSubtitle, formatLocationFullName, buildLocationSlug } from '../utils/searchParamsUtils';
 import { useTranslation } from 'react-i18next';
+import { sortImagesWithThumbnailFirst, getImageUrl, isThumbnailImage } from '../utils/imageUtils';
 
 import { getUserCountryCode } from '../utils/geoUtils';
 import NationalitySelect from './NationalitySelect';
@@ -1148,7 +1149,8 @@ const ListingSearch = ({ isCompact = false }) => {
                                                 else if (itemType === 'AIRPORT') icon = 'flight';
 
                                                 const isActive = activeIndex === index;
-                                                const thumbnail = item.thumbnailUrl || item.imageUrl || item.image || item.photo || null;
+                                                const thumbFromImages = item.images?.find(img => isThumbnailImage(img))?.url || getImageUrl(item.images?.[0]);
+                                                const thumbnail = thumbFromImages || item.thumbnailUrl || item.imageUrl || item.image || item.photo || null;
 
                                                 return (
                                                     <div
@@ -1371,7 +1373,8 @@ const ListingSearch = ({ isCompact = false }) => {
 
                                                 const itemIndex = matchingHistory.length + flatRegionsList.length + index;
                                                 const isActive = activeIndex === itemIndex;
-                                                const thumbnail = hotel.imageUrl || hotel.thumbnailUrl || hotel.image || hotel.heroImage || hotel.photos?.[0] || hotel.images?.[0] || null;
+                                                const thumbFromImages = hotel.images?.find(img => isThumbnailImage(img))?.url || getImageUrl(hotel.images?.[0]);
+                                                const thumbnail = thumbFromImages || hotel.thumbnailUrl || hotel.imageUrl || hotel.image || hotel.heroImage || hotel.photos?.[0] || null;
 
                                                 return (
                                                     <div

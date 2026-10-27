@@ -1141,8 +1141,8 @@ const CheckoutPayment = () => {
                     confirmText={cl.confirm}
                 />
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    <div className="lg:col-span-7 space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <div className="lg:col-span-8 space-y-6">
                         {/* Unified Clean Payment Card */}
                         <div className="bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-slate-700 shadow-xs overflow-hidden" lang={currentLang}>
                             {/* Payment Method Selector Header */}
@@ -1155,7 +1155,7 @@ const CheckoutPayment = () => {
                                     <button
                                         type="button"
                                         onClick={() => setPaymentMethod('deposit')}
-                                        className={`relative p-3 rounded-xl transition-all duration-200 text-left flex items-center justify-between cursor-pointer ${
+                                        className={`relative p-3.5 rounded-xl transition-all duration-200 text-left flex items-center justify-between cursor-pointer ${
                                             paymentMethod === 'deposit' 
                                                 ? 'bg-white dark:bg-[#202124] text-[#1a73e8] shadow-xs border-2 border-[#1a73e8]' 
                                                 : 'bg-white/60 dark:bg-slate-800/60 border border-[#dadce0] dark:border-slate-700 text-[#5f6368] hover:bg-white'
@@ -1187,7 +1187,7 @@ const CheckoutPayment = () => {
                                     </button>
 
                                     {/* Credit Card Tab */}
-                                    <div className="relative p-3 rounded-xl text-left border border-dashed border-[#dadce0] dark:border-slate-700 bg-gray-100/50 dark:bg-slate-800/30 opacity-60 cursor-not-allowed select-none flex items-center justify-between">
+                                    <div className="relative p-3.5 rounded-xl text-left border border-dashed border-[#dadce0] dark:border-slate-700 bg-gray-100/50 dark:bg-slate-800/30 opacity-60 cursor-not-allowed select-none flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="size-8 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-slate-700 text-gray-400">
                                                 <span className="material-symbols-outlined text-lg">credit_card</span>
@@ -1277,7 +1277,7 @@ const CheckoutPayment = () => {
                                                     value={cardDetails.number}
                                                     onChange={handleCardInputChange}
                                                     onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
-                                                    className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
+                                                    className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 px-3.5 py-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs sm:text-sm font-mono text-[#202124] dark:text-white"
                                                     placeholder="••••  ••••  ••••  ••••"
                                                 />
                                             </div>
@@ -1288,7 +1288,7 @@ const CheckoutPayment = () => {
                                                     value={cardDetails.holder}
                                                     onChange={handleCardInputChange}
                                                     onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
-                                                    className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs uppercase"
+                                                    className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 px-3.5 py-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs sm:text-sm uppercase text-[#202124] dark:text-white"
                                                     placeholder="FULL NAME AS PRINTED ON CARD"
                                                 />
                                             </div>
@@ -1301,7 +1301,7 @@ const CheckoutPayment = () => {
                                                         value={cardDetails.expiry}
                                                         onChange={handleCardInputChange}
                                                         onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
-                                                        className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
+                                                        className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 px-3.5 py-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs sm:text-sm font-mono text-[#202124] dark:text-white"
                                                         placeholder="MM / YY"
                                                     />
                                                 </div>
@@ -1315,7 +1315,7 @@ const CheckoutPayment = () => {
                                                         onFocus={() => setCardDetails(prev => ({ ...prev, cvvFocused: true }))}
                                                         onBlur={() => setCardDetails(prev => ({ ...prev, cvvFocused: false }))}
                                                         type="password"
-                                                        className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 p-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs font-mono"
+                                                        className="w-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 px-3.5 py-2.5 rounded-lg focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] outline-none text-xs sm:text-sm font-mono text-[#202124] dark:text-white"
                                                         placeholder="•••"
                                                     />
                                                 </div>
@@ -1340,10 +1340,10 @@ const CheckoutPayment = () => {
                                                 </div>
                                             </div>
 
-                                            <span className={`px-2.5 py-1 text-[11px] font-medium rounded-md flex items-center gap-1.5 ${
+                                            <span className={`px-2.5 py-1 text-xs font-medium rounded-lg flex items-center gap-1.5 ${
                                                 isInsufficientBalance 
-                                                    ? 'bg-[#fce8e6] text-[#d93025]' 
-                                                    : 'bg-[#e6f4ea] text-[#137333] dark:bg-emerald-950/50 dark:text-emerald-300'
+                                                    ? 'bg-[#fce8e6] text-[#d93025] border border-[#fce8e6]' 
+                                                    : 'bg-[#e6f4ea] text-[#137333] dark:bg-emerald-950/50 dark:text-emerald-300 border border-[#ceead6]'
                                             }`}>
                                                 <span className="size-1.5 rounded-full bg-current"></span>
                                                 {isInsufficientBalance ? tSummary('insufficientFunds', currentLang) : tSummary('activeReady', currentLang)}
@@ -1394,7 +1394,7 @@ const CheckoutPayment = () => {
 
                                         {/* Insufficient Balance Alert */}
                                         {isInsufficientBalance && (
-                                            <div className="p-3 rounded-lg bg-[#fce8e6] dark:bg-red-950/40 text-[#d93025] dark:text-red-200 flex items-center gap-2.5 text-xs">
+                                            <div className="p-3.5 rounded-lg bg-[#fce8e6] dark:bg-red-950/40 text-[#d93025] dark:text-red-200 flex items-center gap-2.5 text-xs font-medium">
                                                 <span className="material-symbols-outlined text-base shrink-0">warning</span>
                                                 <span>{tSummary('topUpPrompt', currentLang)}</span>
                                             </div>
@@ -1406,7 +1406,7 @@ const CheckoutPayment = () => {
                     </div>
 
                     {/* Google Style Sticky Reservation Summary Sidebar */}
-                    <div className="lg:col-span-5 lg:sticky lg:top-6 space-y-4">
+                    <div className="lg:col-span-4 lg:sticky lg:top-4 space-y-4">
                         {expireAt && <CheckoutTimer expireAt={expireAt} />}
                         <HotelReservationSummaryCard
                             hotel={{
@@ -1430,7 +1430,7 @@ const CheckoutPayment = () => {
                                 <button
                                     onClick={handlePayment}
                                     disabled={isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv))}
-                                    className={`w-full py-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-[4px] font-medium text-xs shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer mb-2 ${
+                                    className={`w-full h-11 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-lg font-medium text-xs sm:text-sm shadow-xs hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer mb-2 active:scale-[0.98] ${
                                         isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv)) 
                                             ? 'opacity-50 cursor-not-allowed' 
                                             : ''

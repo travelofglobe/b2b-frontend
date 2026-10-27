@@ -689,7 +689,7 @@ const HotelReservationSummaryCard = ({
 
     return (
         <div className="space-y-3 font-roboto">
-            <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-xs">
                 {/* Instant Confirmation Header */}
                 <div className="flex items-center gap-2 text-[#137333] dark:text-emerald-300 font-medium text-xs mb-3.5 bg-[#e6f4ea] dark:bg-emerald-950/40 p-2.5 rounded-lg border border-[#ceead6] dark:border-emerald-800" lang={currentLang}>
                     <span className="material-symbols-outlined text-base fill-1">bolt</span>
@@ -702,14 +702,14 @@ const HotelReservationSummaryCard = ({
                         <span className="material-symbols-outlined text-sm text-[#1a73e8]">auto_awesome</span>
                         {t('reservationSummary')}
                     </h3>
-                    <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                    <span className="text-xs font-medium px-2.5 py-0.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300">
                         {selectedRooms.length} / {totalRoomsCount} {t('room')}
                     </span>
                 </div>
 
                 {/* Hotel Preview Mini Card */}
-                <div className="mb-3.5 rounded-xl overflow-hidden border border-[#dadce0] dark:border-slate-700 shadow-xs">
-                    <div className="relative h-24 overflow-hidden bg-gray-100 dark:bg-slate-800">
+                <div className="mb-3.5 rounded-xl overflow-hidden border border-[#dadce0] dark:border-slate-700 shadow-2xs">
+                    <div className="relative h-28 overflow-hidden bg-gray-100 dark:bg-slate-800">
                         <img
                             src={hotelImage}
                             alt={hotelName}
@@ -717,39 +717,39 @@ const HotelReservationSummaryCard = ({
                             loading="lazy"
                             decoding="async"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
-                        <div className="absolute bottom-2 left-3 right-3">
-                            <div className="flex items-center gap-0.5 mb-0.5">
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                        <div className="absolute bottom-2.5 left-3 right-3">
+                            <div className="flex items-center gap-0.5 mb-1">
                                 {[...Array(hotelStars)].map((_, i) => (
-                                    <span key={i} className="material-symbols-outlined text-[11px] text-[#fbbc04] fill-1">star</span>
+                                    <span key={i} className="material-symbols-outlined text-[12px] text-[#fbbc04] fill-1">star</span>
                                 ))}
                                 {hotel?.isRecommended && (
-                                    <span className="ml-1 bg-[#1a73e8] text-white text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md shadow-xs flex items-center gap-0.5">
+                                    <span className="ml-1 bg-[#1a73e8] text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shadow-xs flex items-center gap-0.5">
                                         <span className="material-symbols-outlined text-[10px] fill-1">thumb_up</span>
                                         REC
                                     </span>
                                 )}
                             </div>
-                            <h4 className="font-semibold text-white text-xs uppercase tracking-tight leading-tight line-clamp-1">{hotelName}</h4>
+                            <h4 className="font-semibold text-white text-xs sm:text-sm uppercase tracking-tight leading-tight line-clamp-1 drop-shadow-sm">{hotelName}</h4>
                         </div>
                     </div>
-                    <div className="p-2.5 bg-[#f8f9fa] dark:bg-[#303134] space-y-1.5 border-t border-[#dadce0] dark:border-slate-700">
+                    <div className="p-3 bg-[#f8f9fa] dark:bg-[#303134] space-y-2 border-t border-[#dadce0] dark:border-slate-700 text-xs">
                         {hotelAddress && (
                             <div className="flex items-center gap-1.5">
                                 <span className="material-symbols-outlined text-xs text-[#1a73e8] shrink-0">location_on</span>
-                                <p className="text-[10px] font-normal text-[#5f6368] dark:text-slate-300 truncate">{hotelAddress}</p>
+                                <p className="text-[11px] font-normal text-[#5f6368] dark:text-slate-300 truncate">{hotelAddress}</p>
                             </div>
                         )}
                         <div className="flex gap-4" lang={currentLang}>
                             <div className="flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[11px] text-[#1a73e8]">login</span>
-                                <span className="text-[9px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
+                                <span className="material-symbols-outlined text-[12px] text-[#1a73e8]">login</span>
+                                <span className="text-[10px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
                                     {t('in')}: {hotel?.checkIn || '15:00'}
                                 </span>
                             </div>
                             <div className="flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[11px] text-[#1a73e8]">logout</span>
-                                <span className="text-[9px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
+                                <span className="material-symbols-outlined text-[12px] text-[#1a73e8]">logout</span>
+                                <span className="text-[10px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
                                     {t('out')}: {hotel?.checkOut || '11:00'}
                                 </span>
                             </div>
@@ -760,23 +760,23 @@ const HotelReservationSummaryCard = ({
                 {/* Dates & Guests Stay Box */}
                 <div className="grid grid-cols-2 gap-2 mb-3.5">
                     <div className="p-2.5 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
-                        <p className="text-[8px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>{t('checkIn')}</p>
-                        <p className="text-xs font-semibold text-[#1a73e8] leading-tight">{startDate}</p>
+                        <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>{t('checkIn')}</p>
+                        <p className="text-xs sm:text-sm font-semibold text-[#1a73e8] dark:text-blue-400 leading-tight">{startDate}</p>
                     </div>
                     <div className="p-2.5 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
-                        <p className="text-[8px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>{t('checkOut')}</p>
-                        <p className="text-xs font-semibold text-[#1a73e8] leading-tight">{endDate}</p>
+                        <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>{t('checkOut')}</p>
+                        <p className="text-xs sm:text-sm font-semibold text-[#1a73e8] dark:text-blue-400 leading-tight">{endDate}</p>
                     </div>
-                    <div className="col-span-2 p-2.5 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 flex justify-between items-center">
+                    <div className="col-span-2 p-2.5 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 flex justify-between items-center text-xs font-medium text-[#5f6368] dark:text-slate-300">
                         <div className="flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-xs text-[#1a73e8]">nights_stay</span>
-                            <span className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-300 uppercase tracking-wider" lang={currentLang}>
+                            <span className="material-symbols-outlined text-sm text-[#1a73e8]">nights_stay</span>
+                            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider" lang={currentLang}>
                                 {`${nights} ${nights > 1 ? t('nights') : t('night')} ${t('stay')}`}
                             </span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-xs text-[#1a73e8]">group</span>
-                            <span className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-300 uppercase tracking-wider" lang={currentLang}>
+                            <span className="material-symbols-outlined text-sm text-[#1a73e8]">group</span>
+                            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider" lang={currentLang}>
                                 {getGuestsSummaryText()}
                             </span>
                         </div>
@@ -785,7 +785,7 @@ const HotelReservationSummaryCard = ({
 
                 {/* Selected Rooms Breakdown */}
                 <div className="space-y-2 mb-3.5">
-                    <p className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider" lang={currentLang}>
+                    <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider" lang={currentLang}>
                         {t('selectedRooms')}
                     </p>
                     {selectedRooms && selectedRooms.length > 0 ? (
@@ -825,14 +825,14 @@ const HotelReservationSummaryCard = ({
                             const roomName = decodeHTMLEntities(room.name || `Room ${idx + 1}`);
 
                             return (
-                                <div key={idx} className="relative p-3 rounded-xl bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                                <div key={idx} className="relative p-3 sm:p-3.5 rounded-xl bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
                                     {onRemoveRoom && (
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 onRemoveRoom(idx);
                                             }}
-                                            className="absolute top-2 right-2 size-6 text-[#5f6368] hover:text-[#d93025] flex items-center justify-center rounded-md hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                            className="absolute top-2.5 right-2.5 size-6 text-[#5f6368] hover:text-[#d93025] flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors cursor-pointer"
                                             title={t('remove')}
                                         >
                                             <span className="material-symbols-outlined text-[16px]">close</span>
@@ -840,33 +840,33 @@ const HotelReservationSummaryCard = ({
                                     )}
                                     <div className={`${onRemoveRoom ? 'pr-6' : 'pr-2'} mb-1.5`}>
                                         <div className="flex items-start gap-1.5">
-                                            <div className="size-4 rounded-md bg-[#e8f0fe] text-[#1a73e8] text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                            <div className="size-5 rounded-md bg-[#e8f0fe] text-[#1a73e8] text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                                                 {idx + 1}
                                             </div>
-                                            <span className="font-medium text-[#202124] dark:text-white text-xs line-clamp-2">
+                                            <span className="font-semibold text-[#202124] dark:text-white text-xs sm:text-sm line-clamp-2">
                                                 {roomName}
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#dadce0] dark:border-slate-700">
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="bg-white dark:bg-slate-800 border border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-300 text-[10px] px-1.5 py-0.5 rounded-md font-normal">
+                                    <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-[#dadce0] dark:border-slate-700">
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="bg-white dark:bg-slate-800 border border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-300 text-xs px-2 py-0.5 rounded-md font-medium">
                                                 {boardLabel}
                                             </span>
                                             {refundable !== undefined && (
                                                 <RefundPolicyTooltip
                                                     isRefundable={refundable}
                                                     textOverride={refundable ? t('freeCancel') : t('nonRefundable')}
-                                                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded-md ${refundable ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#f1f3f4] text-[#5f6368]'}`}
+                                                    className={`text-xs font-medium px-2 py-0.5 rounded-md ${refundable ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]'}`}
                                                 />
                                             )}
                                         </div>
                                         <div className="text-right">
-                                            <span className="text-xs font-bold text-[#202124] dark:text-white">
+                                            <span className="text-xs sm:text-sm font-bold text-[#202124] dark:text-white">
                                                 {getCurrencySymbol(roomCurr, authCurrencyMap)} {roomPrice.toFixed(2)}
                                             </span>
-                                            <p className="text-[9px] text-[#70757a]">
+                                            <p className="text-[10px] text-[#70757a]">
                                                 {nights} {nights > 1 ? t('nights') : t('night')}
                                             </p>
                                         </div>
@@ -876,11 +876,11 @@ const HotelReservationSummaryCard = ({
                                     <div className="mt-2 pt-1.5 border-t border-dashed border-[#dadce0] dark:border-slate-700">
                                         {policies && policies.length > 0 ? (
                                             <div className="space-y-1">
-                                                <p className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>
+                                                <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>
                                                     {t('cancellationPolicy')}
                                                 </p>
                                                 {policies.map((policy, pIdx) => (
-                                                    <div key={pIdx} className="flex justify-between items-center text-[10px]">
+                                                    <div key={pIdx} className="flex justify-between items-center text-[11px]">
                                                         <span className="text-[#5f6368] dark:text-slate-400">
                                                             {policy.fromDate 
                                                                 ? (policy.fromDate.includes('[') 
@@ -889,7 +889,7 @@ const HotelReservationSummaryCard = ({
                                                                 : (policy.amount === 0 ? t('flexible') : t('cancellationPenalty'))
                                                             }
                                                         </span>
-                                                        <span className={`font-medium px-1.5 py-0.5 rounded-md text-[9px] ${
+                                                        <span className={`font-medium px-2 py-0.5 rounded-md text-[10px] ${
                                                             policy.amount === 0 ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
                                                         }`}>
                                                             {policy.amount === 0 ? t('freeCancel') : `${getCurrencySymbol(policy.currency || roomCurr, authCurrencyMap)} ${policy.amount.toFixed(2)}`}
@@ -898,8 +898,8 @@ const HotelReservationSummaryCard = ({
                                                 ))}
                                             </div>
                                         ) : (
-                                            <span className="text-[10px] text-[#70757a] flex items-center gap-1" lang={currentLang}>
-                                                <span className="material-symbols-outlined text-[11px]">info</span>
+                                            <span className="text-xs text-[#70757a] flex items-center gap-1" lang={currentLang}>
+                                                <span className="material-symbols-outlined text-[13px]">info</span>
                                                 {t('standardCancellation')}
                                             </span>
                                         )}
@@ -908,9 +908,9 @@ const HotelReservationSummaryCard = ({
                             );
                         })
                     ) : (
-                        <div className="p-4 rounded-xl bg-[#f8f9fa] dark:bg-[#303134] border border-dashed border-[#dadce0] dark:border-slate-700 text-center">
+                        <div className="p-5 rounded-xl bg-[#f8f9fa] dark:bg-[#303134] border border-dashed border-[#dadce0] dark:border-slate-700 text-center">
                             <span className="material-symbols-outlined text-2xl text-[#70757a] mb-1">bed</span>
-                            <p className="text-xs text-[#5f6368] dark:text-slate-400">
+                            <p className="text-xs text-[#5f6368] dark:text-slate-400 font-medium">
                                 {t('pleaseSelectARoom')}
                             </p>
                         </div>
@@ -919,8 +919,8 @@ const HotelReservationSummaryCard = ({
 
                 {/* Daily Prices Breakdown (If Available) */}
                 {selectedRooms && selectedRooms.length > 0 && selectedRooms.some(r => (r.dailyPrices && r.dailyPrices.length > 0) || (r.hubRateModel?.price?.dailyPrices && r.hubRateModel?.price?.dailyPrices.length > 0)) && (
-                    <div className="mb-3.5 p-2.5 rounded-xl bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
-                        <p className="text-[9px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5" lang={currentLang}>
+                    <div className="mb-3.5 p-3 rounded-xl bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                        <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5" lang={currentLang}>
                             <span className="material-symbols-outlined text-xs text-[#1a73e8]">calendar_month</span>
                             {t('dailyRates')}
                         </p>
@@ -932,13 +932,13 @@ const HotelReservationSummaryCard = ({
                             return (
                                 <div key={idx} className="mb-2 last:mb-0">
                                     {selectedRooms.length > 1 && (
-                                        <p className="text-[8px] font-semibold text-[#70757a] uppercase tracking-wider mb-1" lang={currentLang}>
+                                        <p className="text-[9px] font-semibold text-[#70757a] uppercase tracking-wider mb-1" lang={currentLang}>
                                             {t('room')} {idx + 1}
                                         </p>
                                     )}
                                     <div className="space-y-1">
                                         {dpList.map((dp, dpIdx) => (
-                                            <div key={dpIdx} className="flex justify-between items-center text-[10px]">
+                                            <div key={dpIdx} className="flex justify-between items-center text-xs">
                                                 <span className="text-[#5f6368] dark:text-slate-400">
                                                     {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })}
                                                 </span>
@@ -955,13 +955,13 @@ const HotelReservationSummaryCard = ({
                 )}
 
                 {/* Grand Total */}
-                <div className="pt-3 border-t border-[#dadce0] dark:border-slate-700 mb-3" lang={currentLang}>
+                <div className="pt-3.5 border-t border-[#dadce0] dark:border-slate-700 mb-3.5" lang={currentLang}>
                     <div className="flex items-baseline justify-between mb-1">
                         <div>
                             <span className="text-xs text-[#5f6368] dark:text-slate-400 font-medium block">{t('totalStayPrice')}</span>
-                            <span className="text-[10px] text-[#70757a]">{displayCurrency} · {t('taxesIncl')}</span>
+                            <span className="text-[11px] text-[#70757a]">{displayCurrency} · {t('taxesIncl')}</span>
                         </div>
-                        <span className="text-xl font-bold text-[#1a73e8] dark:text-blue-400">
+                        <span className="text-xl sm:text-2xl font-bold text-[#1a73e8] dark:text-blue-400 tracking-tight">
                             {getCurrencySymbol(displayCurrency, authCurrencyMap)} {isLoadingRates ? '...' : grandTotal.toFixed(2)}
                         </span>
                     </div>
@@ -969,13 +969,13 @@ const HotelReservationSummaryCard = ({
 
                 {/* Rate Notes */}
                 {rateNotesList && rateNotesList.length > 0 && (
-                    <div className="mb-3 p-2.5 rounded-xl bg-[#fef7e0] dark:bg-amber-950/30 border border-[#fce8e6] dark:border-amber-900/50" lang={currentLang}>
-                        <p className="text-[9px] font-semibold text-amber-800 dark:text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[12px]">info</span>
+                    <div className="mb-3.5 p-3 rounded-xl bg-[#fef7e0] dark:bg-amber-950/30 border border-[#fce8e6] dark:border-amber-900/50" lang={currentLang}>
+                        <p className="text-[10px] font-semibold text-amber-800 dark:text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[13px]">info</span>
                             {t('rateNotes')}
                         </p>
                         <div 
-                            className="text-[10px] font-normal text-amber-900 dark:text-amber-200 space-y-1 max-h-32 overflow-y-auto pr-2 custom-scrollbar html-content"
+                            className="text-xs font-normal text-amber-900 dark:text-amber-200 space-y-1 max-h-32 overflow-y-auto pr-2 custom-scrollbar html-content"
                             dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(rateNotesList.join('<br/>')) }}
                         />
                     </div>
@@ -987,10 +987,10 @@ const HotelReservationSummaryCard = ({
                     <button
                         onClick={actionConfig.onClick}
                         disabled={actionConfig.disabled}
-                        className={`w-full font-medium py-3 rounded-[4px] transition-all text-sm shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] mb-2 ${
+                        className={`w-full h-11 font-medium rounded-lg transition-all text-xs sm:text-sm shadow-xs hover:shadow flex items-center justify-center gap-2 active:scale-[0.98] mb-2 cursor-pointer ${
                             !actionConfig.disabled
                                 ? 'bg-[#1a73e8] hover:bg-[#1557b0] text-white cursor-pointer'
-                                : 'bg-[#f1f3f4] dark:bg-slate-800 text-[#70757a] cursor-not-allowed'
+                                : 'bg-[#f1f3f4] dark:bg-slate-800 text-[#70757a] cursor-not-allowed opacity-60'
                         } ${actionConfig.loading ? 'animate-pulse' : ''}`}
                         lang={currentLang}
                     >
@@ -1010,14 +1010,14 @@ const HotelReservationSummaryCard = ({
                     </button>
                 )}
 
-                <p className="text-[10px] text-center text-[#70757a] dark:text-slate-500 font-medium" lang={currentLang}>
+                <p className="text-[10px] sm:text-[11px] text-center text-[#70757a] dark:text-slate-500 font-medium" lang={currentLang}>
                     {t('b2bRates')}
                 </p>
             </div>
 
             {/* Security Badge */}
             {showSecurityBadge && (
-                <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-3.5 flex items-center gap-3" lang={currentLang}>
+                <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-3.5 flex items-center gap-3 shadow-xs" lang={currentLang}>
                     <div className="size-9 rounded-lg bg-[#e8f0fe] dark:bg-slate-800 flex items-center justify-center text-[#1a73e8] shrink-0">
                         <span className="material-symbols-outlined text-lg">verified_user</span>
                     </div>

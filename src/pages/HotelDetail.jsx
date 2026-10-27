@@ -2759,15 +2759,21 @@ const HotelDetail = () => {
                                                 const isGroupExpanded = expandedRates[roomName];
                                                 const ratesToShow = isGroupExpanded ? roomGroup.rates : roomGroup.rates.slice(0, 4);
                                                 const hasMoreRates = roomGroup.rates.length > 4;
+                                                const rawCapacity = roomGroup.roomPaxCapacity;
+                                                const displayAdults = (roomGroup.maxAdult && roomGroup.maxAdult > 0 && roomGroup.maxAdult <= 10) ? roomGroup.maxAdult : 2;
+                                                const displayChildren = (roomGroup.maxChildren && roomGroup.maxChildren > 0 && roomGroup.maxChildren <= 10) ? roomGroup.maxChildren : 0;
+                                                const safeCapacity = (rawCapacity && rawCapacity > 0 && rawCapacity <= 10) 
+                                                    ? rawCapacity 
+                                                    : (displayAdults + displayChildren);
 
                                                 return (
                                                     <div key={roomIndex} className="relative group transition-all duration-300 mb-6">
-                                                        <div className="relative flex flex-col rounded-xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] shadow-none hover:shadow-md transition-shadow overflow-hidden">
+                                                        <div className="relative flex flex-col rounded-xl border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124] shadow-xs hover:shadow-md transition-shadow overflow-hidden">
                                                             {/* Room Top Section */}
                                                             <div className="flex flex-col md:flex-row">
                                                                 {/* Image Section */}
                                                                 <div
-                                                                    className="md:w-72 h-56 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room"
+                                                                    className="md:w-72 h-52 sm:h-56 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room"
                                                                     onClick={() => {
                                                                         setSelectedRoomGroup(roomGroup);
                                                                         setIsRoomGalleryOpen(true);
@@ -2775,7 +2781,7 @@ const HotelDetail = () => {
                                                                 >
                                                                     <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={roomGroup.images?.[0]?.url || images[roomIndex % images.length]} alt="" loading="lazy" decoding="async" />
                                                                     {roomGroup.images?.length > 0 && (
-                                                                        <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md text-white text-[11px] font-medium px-2.5 py-1 rounded-[4px] flex items-center gap-1.5">
+                                                                        <div className="absolute bottom-3 left-3 bg-black/65 backdrop-blur-md text-white text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-xs">
                                                                             <span className="material-symbols-outlined text-[14px]">photo_library</span> {roomGroup.images.length} {tLocal('photos')}
                                                                         </div>
                                                                     )}
@@ -2784,26 +2790,26 @@ const HotelDetail = () => {
                                                                 {/* Details Section */}
                                                                 <div className="flex-1 p-5 flex flex-col min-w-0">
                                                                     <div className="flex items-start justify-between gap-3 mb-2">
-                                                                        <h3 className="text-base sm:text-lg font-medium text-[#202124] dark:text-white leading-tight truncate" lang="en">{roomName}</h3>
+                                                                        <h3 className="text-base sm:text-lg font-semibold text-[#202124] dark:text-white leading-tight truncate" lang="en">{roomName}</h3>
                                                                         <div className="flex items-center gap-1.5 shrink-0">
                                                                             {roomGroup.squareMeter && (
-                                                                                <span className="bg-[#f1f3f4] dark:bg-slate-700 text-[#3c4043] dark:text-slate-300 text-xs font-normal px-2.5 py-0.5 rounded-[4px]">
+                                                                                <span className="bg-[#f1f3f4] dark:bg-slate-700 text-[#3c4043] dark:text-slate-300 text-xs font-medium px-2.5 py-1 rounded-lg">
                                                                                     {roomGroup.squareMeter}
                                                                                 </span>
                                                                             )}
-                                                                            <span className="bg-[#f1f3f4] dark:bg-slate-700 text-[#3c4043] dark:text-slate-300 text-xs font-normal px-2.5 py-0.5 rounded-[4px]" lang="en">
-                                                                                {roomGroup.roomPaxCapacity || roomGroup.maxAdult} Pax
+                                                                            <span className="bg-[#f1f3f4] dark:bg-slate-700 text-[#3c4043] dark:text-slate-300 text-xs font-medium px-2.5 py-1 rounded-lg" lang="en">
+                                                                                {safeCapacity} {tLocal('guests') || 'Pax'}
                                                                             </span>
                                                                         </div>
                                                                     </div>
 
                                                                     <div className="flex gap-4 text-[#5f6368] dark:text-slate-400 text-xs mb-4">
                                                                         <span className="flex items-center gap-1">
-                                                                            <span className="material-symbols-outlined text-[16px] text-[#5f6368]">group</span> {roomGroup.maxAdult} {roomGroup.maxAdult > 1 ? tLocal('adults') : tLocal('adult')}
+                                                                            <span className="material-symbols-outlined text-[16px] text-[#5f6368]">group</span> {displayAdults} {displayAdults > 1 ? tLocal('adults') : tLocal('adult')}
                                                                         </span>
-                                                                        {roomGroup.maxChildren > 0 && (
+                                                                        {displayChildren > 0 && (
                                                                             <span className="flex items-center gap-1">
-                                                                                <span className="material-symbols-outlined text-[16px] text-[#5f6368]">child_care</span> {roomGroup.maxChildren} {roomGroup.maxChildren > 1 ? tLocal('children') : tLocal('child')}
+                                                                                <span className="material-symbols-outlined text-[16px] text-[#5f6368]">child_care</span> {displayChildren} {displayChildren > 1 ? tLocal('children') : tLocal('child')}
                                                                             </span>
                                                                         )}
                                                                     </div>
@@ -2854,7 +2860,7 @@ const HotelDetail = () => {
                                                                                 <>
                                                                                     {visibleItems.map((item, i) => (
                                                                                         <div key={i} className="group/attr relative" title={Array.from(item.labels).join(', ')}>
-                                                                                            <div className="size-8 rounded-[4px] bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 flex items-center justify-center text-[#5f6368] dark:text-slate-300 hover:text-[#1a73e8] hover:border-[#1a73e8] transition-colors cursor-help">
+                                                                                            <div className="size-8 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 flex items-center justify-center text-[#5f6368] dark:text-slate-300 hover:text-[#1a73e8] hover:border-[#1a73e8] hover:bg-[#e8f0fe]/40 transition-all cursor-help shadow-2xs">
                                                                                                 <span className="material-symbols-outlined text-[17px]">
                                                                                                     {item.icon}
                                                                                                 </span>
@@ -2862,7 +2868,7 @@ const HotelDetail = () => {
                                                                                         </div>
                                                                                     ))}
                                                                                     {remainingCount > 0 && (
-                                                                                        <div className="size-8 rounded-[4px] bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 flex items-center justify-center text-xs text-[#5f6368] font-normal">
+                                                                                        <div className="h-8 px-2.5 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 flex items-center justify-center text-xs text-[#5f6368] dark:text-slate-300 font-medium">
                                                                                             +{remainingCount}
                                                                                         </div>
                                                                                     )}
@@ -2894,29 +2900,29 @@ const HotelDetail = () => {
                                                                                 if (ratePrice <= 0 && !isSelected) return;
                                                                                 toggleRoomSelection(roomName, ratePrice, roomName, rateItem);
                                                                             }}
-                                                                            className={`relative p-3.5 sm:p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 transition-all duration-200 border ${
+                                                                            className={`relative p-3.5 sm:p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition-all duration-200 border ${
                                                                                 ratePrice > 0 ? 'cursor-pointer' : 'cursor-not-allowed opacity-80'
                                                                             } ${
                                                                                 isSelected 
-                                                                                    ? 'bg-[#e8f0fe] dark:bg-blue-950/40 border-[#1a73e8] shadow-sm' 
-                                                                                    : 'bg-white dark:bg-[#202124] border-[#dadce0] dark:border-slate-700 hover:border-[#bdc1c6] shadow-none'
+                                                                                    ? 'bg-[#e8f0fe] dark:bg-blue-950/40 border-[#1a73e8] shadow-xs' 
+                                                                                    : 'bg-white dark:bg-[#202124] border-[#dadce0] dark:border-slate-700 hover:border-[#bdc1c6] dark:hover:border-slate-600 shadow-2xs'
                                                                             }`}
                                                                         >
-                                                                            <div className="flex items-center gap-3 w-full sm:w-auto">
-                                                                                <div className={`size-9 rounded-[4px] flex items-center justify-center shrink-0 transition-colors ${
+                                                                            <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
+                                                                                <div className={`size-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                                                                                     isSelected 
-                                                                                        ? 'bg-[#1a73e8] text-white' 
+                                                                                        ? 'bg-[#1a73e8] text-white shadow-xs' 
                                                                                         : 'bg-[#f1f3f4] dark:bg-slate-700 text-[#5f6368] dark:text-slate-300'
                                                                                 }`}>
-                                                                                    <span className="material-symbols-outlined text-[18px]">{isSelected ? 'check' : 'add'}</span>
+                                                                                    <span className="material-symbols-outlined text-[18px]">{isSelected ? 'check' : 'hotel_class'}</span>
                                                                                 </div>
                                                                                 <div className="flex-1 min-w-0">
-                                                                                    <div className="flex items-center gap-2 mb-1">
-                                                                                        <p className="font-medium text-sm text-[#202124] dark:text-white">
+                                                                                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                                                                                        <p className="font-semibold text-sm text-[#202124] dark:text-white leading-tight">
                                                                                             {rateItem.hubRateModel?.boardName || getBoardTypeLabel(boardType, currentLang)}
                                                                                         </p>
                                                                                         {isSelected && (
-                                                                                            <span className="bg-[#1a73e8] text-white text-[10px] font-medium px-2 py-0.5 rounded-[4px] uppercase" lang="en">
+                                                                                            <span className="bg-[#1a73e8] text-white text-[10px] font-semibold px-2 py-0.5 rounded-md uppercase tracking-wider" lang="en">
                                                                                                 {tLocal('selected')}
                                                                                             </span>
                                                                                         )}
@@ -2925,17 +2931,18 @@ const HotelDetail = () => {
                                                                                         <RefundPolicyTooltip
                                                                                             isRefundable={isFreeCancel}
                                                                                             textOverride={isFreeCancel ? tLocal('freeCancellation') : tLocal('nonRefundable')}
-                                                                                            className={`text-[11px] font-medium px-2 py-0.5 rounded-[4px] ${
+                                                                                            className={`text-[11px] font-medium px-2 py-0.5 rounded-md ${
                                                                                                 isFreeCancel 
                                                                                                     ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800' 
                                                                                                     : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
                                                                                             }`}
                                                                                         />
                                                                                         <div className="group/cancel relative">
-                                                                                            <span className="text-xs text-[#1a73e8] hover:underline cursor-pointer">
+                                                                                            <span className="text-xs text-[#1a73e8] hover:underline cursor-pointer font-medium flex items-center gap-0.5">
+                                                                                                <span className="material-symbols-outlined text-[13px]">info</span>
                                                                                                 {tLocal('viewPolicies')}
                                                                                             </span>
-                                                                                            <div className="absolute bottom-full left-0 mb-2 w-72 p-4 bg-white dark:bg-[#202124] text-[#202124] dark:text-white rounded-[4px] shadow-xl opacity-0 invisible group-hover/cancel:opacity-100 group-hover/cancel:visible transition-all z-[100] border border-[#dadce0] dark:border-slate-700 duration-200">
+                                                                                            <div className="absolute bottom-full left-0 mb-2 w-72 p-4 bg-white dark:bg-[#202124] text-[#202124] dark:text-white rounded-xl shadow-xl opacity-0 invisible group-hover/cancel:opacity-100 group-hover/cancel:visible transition-all z-[100] border border-[#dadce0] dark:border-slate-700 duration-200">
                                                                                                 <div className="flex items-center gap-2 mb-3 border-b border-[#dadce0] dark:border-slate-700 pb-2">
                                                                                                     <span className="material-symbols-outlined text-base text-[#1a73e8]">event_busy</span>
                                                                                                     <p className="text-xs font-semibold uppercase tracking-wider">{tLocal('cancellationTimeline')}</p>
@@ -2961,20 +2968,27 @@ const HotelDetail = () => {
                                                                                 </div>
                                                                             </div>
 
-                                                                            <div className="flex items-center gap-4 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-[#dadce0] dark:border-slate-700 pt-3 sm:pt-0 sm:pl-4 justify-between sm:justify-end">
+                                                                            <div className="flex items-center gap-4 w-full sm:w-auto border-t sm:border-t-0 sm:border-l border-[#dadce0] dark:border-slate-700 pt-3 sm:pt-0 sm:pl-5 justify-between sm:justify-end shrink-0">
                                                                                 <div className="text-right">
+                                                                                    {nights > 1 && (
+                                                                                        <p className="text-[11px] text-[#5f6368] dark:text-slate-400 font-normal">
+                                                                                            {getCurrencySymbol(currency, currencySymbolMap)}{(ratePrice / nights).toFixed(2)} / {tLocal('night') || 'gece'}
+                                                                                        </p>
+                                                                                    )}
                                                                                     <div className="flex items-baseline justify-end gap-1">
                                                                                         <span className="text-xs font-normal text-[#1a73e8]">{getCurrencySymbol(currency, currencySymbolMap)}</span>
-                                                                                        <p className="text-xl font-medium text-[#1a73e8] dark:text-blue-400 leading-none">
+                                                                                        <p className="text-xl sm:text-2xl font-bold text-[#1a73e8] dark:text-blue-400 leading-none">
                                                                                             {ratePrice.toFixed(2)}
                                                                                         </p>
                                                                                     </div>
-                                                                                    <p className="text-[11px] text-[#5f6368] dark:text-slate-400 font-normal mt-0.5">Toplam Tutar</p>
+                                                                                    <p className="text-[10px] text-[#5f6368] dark:text-slate-400 font-medium uppercase tracking-wider mt-0.5">
+                                                                                        {nights > 1 ? `${nights} ${tLocal('nights') || 'Gece'} ${tLocal('stay') || 'Konaklama'}` : (tLocal('totalStayPrice') || 'Toplam Tutar')}
+                                                                                    </p>
                                                                                 </div>
-                                                                                <div className={`px-4 py-2 rounded-[4px] font-medium text-xs uppercase tracking-wider transition-colors cursor-pointer ${
+                                                                                <div className={`h-10 px-5 rounded-lg font-semibold text-xs uppercase tracking-wider transition-colors cursor-pointer flex items-center justify-center shrink-0 shadow-xs ${
                                                                                     isSelected 
-                                                                                        ? 'bg-[#202124] dark:bg-white text-white dark:text-[#202124]' 
-                                                                                        : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-none'
+                                                                                        ? 'bg-[#202124] dark:bg-white text-white dark:text-[#202124] hover:bg-[#3c4043] dark:hover:bg-slate-200' 
+                                                                                        : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white hover:shadow'
                                                                                 }`}>
                                                                                     {isSelected ? tLocal('remove') : tLocal('selectRate')}
                                                                                 </div>
@@ -2986,7 +3000,7 @@ const HotelDetail = () => {
                                                                 {hasMoreRates && (
                                                                     <button
                                                                         onClick={() => setExpandedRates(prev => ({ ...prev, [roomName]: !prev[roomName] }))}
-                                                                        className="w-full py-2.5 rounded-[4px] bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 text-xs font-medium text-[#1a73e8] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                                                                        className="w-full py-2.5 rounded-lg bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 text-xs font-semibold text-[#1a73e8] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                                                                     >
                                                                         <span className="material-symbols-outlined text-[18px]">{isGroupExpanded ? 'keyboard_arrow_up' : 'expand_more'}</span>
                                                                         {isGroupExpanded ? (tLocal('showLessRates') || 'Daha Az Fiyat Göster') : `${roomGroup.rates.length - 4} ${tLocal('moreRates') || 'Daha Fazla Fiyat'}`}

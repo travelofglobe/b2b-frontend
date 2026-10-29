@@ -176,35 +176,56 @@ const IosBatteryCredit = ({
                 title={isLoading ? 'Kredi bilgileri yükleniyor...' : `Kredi Limiti: %${percentage} (${currencySymbol} ${formatNumber(availableLimit)} kullanılabilir) - Detaylar için tıklayın`}
                 aria-label="Kredi Durumu"
             >
-                {/* iOS Battery with rounded rect corners (no border, compact size) */}
+                {/* iOS Battery with dynamic fill level matching credit percentage */}
                 <div className="relative flex items-center shrink-0">
                     <div
                         className={`relative flex items-center justify-center rounded-[3.5px] overflow-hidden transition-all duration-300 w-[33px] h-[15px] ${
                             isLoading
                                 ? 'bg-slate-200 dark:bg-slate-700 animate-pulse'
-                                : batteryTier === 'green'
-                                ? 'bg-[#34C759]'
-                                : batteryTier === 'yellow'
-                                ? 'bg-[#FFCC00]'
-                                : 'bg-[#8E8E93] dark:bg-[#48484A]'
+                                : 'bg-slate-200 dark:bg-slate-700'
                         }`}
                     >
-                        {/* Red emergency fill strip for critical battery tier (< 10%) */}
-                        {batteryTier === 'red' && !isLoading && (
+                        {/* Dynamic Fill Level Bar */}
+                        {!isLoading && percentage > 0 && (
                             <div
-                                className="absolute inset-y-0 left-0 bg-[#FF3B30] transition-all duration-300"
-                                style={{ width: `${Math.max(8, percentage)}%` }}
-                            />
+                                className="absolute inset-y-0 left-0 overflow-hidden transition-all duration-300 z-[1]"
+                                style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
+                            >
+                                {/* Fill background color */}
+                                <div
+                                    className={`absolute inset-0 ${
+                                        batteryTier === 'green'
+                                            ? 'bg-[#34C759]'
+                                            : batteryTier === 'yellow'
+                                            ? 'bg-[#FFCC00]'
+                                            : 'bg-[#FF3B30]'
+                                    }`}
+                                />
+
+                                {/* Clipped Text Over Fill */}
+                                <span
+                                    className={`absolute inset-y-0 left-0 w-[33px] flex items-center justify-center gap-0.5 font-bold text-[9.5px] tracking-tight leading-none tabular-nums select-none ${
+                                        batteryTier === 'yellow'
+                                            ? 'text-[#1C1C1E]'
+                                            : 'text-white'
+                                    }`}
+                                >
+                                    <span>{percentage}</span>
+                                    {isFullyCharged && (
+                                        <svg className="w-[6px] h-[7.5px] fill-current -mr-0.5" viewBox="0 0 8 10">
+                                            <path d="M4.5 0L0.5 5.5H4L3.5 10L7.5 4.5H4L4.5 0Z" />
+                                        </svg>
+                                    )}
+                                </span>
+                            </div>
                         )}
 
-                        {/* Centered Percentage Number Inside Battery */}
+                        {/* Base Text Over Unfilled Track */}
                         <span
-                            className={`relative z-10 font-bold text-[9.5px] tracking-tight leading-none tabular-nums flex items-center justify-center gap-0.5 select-none ${
+                            className={`relative z-0 font-bold text-[9.5px] tracking-tight leading-none tabular-nums flex items-center justify-center gap-0.5 select-none ${
                                 isLoading
                                     ? 'text-slate-400 dark:text-slate-500'
-                                    : batteryTier === 'yellow'
-                                    ? 'text-[#1C1C1E]'
-                                    : 'text-white'
+                                    : 'text-slate-700 dark:text-slate-300'
                             }`}
                         >
                             {isLoading ? (
@@ -227,11 +248,13 @@ const IosBatteryCredit = ({
                         className={`w-[2px] h-[5.5px] ml-[1px] rounded-r-[1.5px] transition-colors duration-300 shrink-0 ${
                             isLoading
                                 ? 'bg-slate-200 dark:bg-slate-700 animate-pulse'
-                                : batteryTier === 'green'
-                                ? 'bg-[#34C759]'
-                                : batteryTier === 'yellow'
-                                ? 'bg-[#FFCC00]'
-                                : 'bg-[#8E8E93] dark:bg-[#48484A]'
+                                : percentage >= 98
+                                ? (batteryTier === 'green'
+                                    ? 'bg-[#34C759]'
+                                    : batteryTier === 'yellow'
+                                    ? 'bg-[#FFCC00]'
+                                    : 'bg-[#FF3B30]')
+                                : 'bg-slate-300 dark:bg-slate-600'
                         }`}
                     />
                 </div>

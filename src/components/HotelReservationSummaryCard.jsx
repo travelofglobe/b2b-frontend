@@ -636,10 +636,10 @@ const HotelReservationSummaryCard = ({
         : (hotel?.address || hotel?.location || '');
 
     // Currency determination
-    const displayCurrency = currency 
-        || checkRatesData?.currency 
-        || selectedRooms?.[0]?.hubRateModel?.price?.currency 
-        || selectedRooms?.[0]?.currency 
+    const displayCurrency = currency
+        || checkRatesData?.currency
+        || selectedRooms?.[0]?.hubRateModel?.price?.currency
+        || selectedRooms?.[0]?.currency
         || 'EUR';
 
     // Total Amount Calculation
@@ -678,10 +678,10 @@ const HotelReservationSummaryCard = ({
     };
 
     // Target room count badge
-    const totalRoomsCount = totalRoomsRequested 
-        || (Array.isArray(roomState) ? roomState.length : null) 
-        || (checkRatesData?.rooms ? checkRatesData.rooms.length : null) 
-        || selectedRooms.length 
+    const totalRoomsCount = totalRoomsRequested
+        || (Array.isArray(roomState) ? roomState.length : null)
+        || (checkRatesData?.rooms ? checkRatesData.rooms.length : null)
+        || selectedRooms.length
         || 1;
 
     // Rate notes
@@ -799,27 +799,29 @@ const HotelReservationSummaryCard = ({
                             const boardLabel = getBoardLabel(rawBoard, t, currentLang);
 
                             // Refundable & Cancellation
-                            const refundable = checkRatesRate?.refundable !== undefined 
-                                ? checkRatesRate.refundable 
+                            const refundable = checkRatesRate?.refundable !== undefined
+                                ? checkRatesRate.refundable
                                 : (hubRate.refundable ?? (room.isRefundable ?? true));
 
-                            const policies = checkRatesRate?.price?.cancellationPolicies 
-                                || hubRate.price?.cancellationPolicies 
-                                || room.cancellationPolicies 
+                            const policies = checkRatesRate?.price?.cancellationPolicies
+                                || hubRate.price?.cancellationPolicies
+                                || room.cancellationPolicies
                                 || [];
 
                             // Price
-                            const roomPrice = checkRatesRate?.price?.calculatedAmount 
-                                || checkRatesRate?.price?.totalPaymentAmount 
-                                || hubRate.price?.calculatedAmount 
-                                || hubRate.price?.netTotal 
-                                || hubRate.price?.grossTotal 
-                                || room.rate 
-                                || 0;
+                            const roomPrice = Number(
+                                checkRatesRate?.price?.calculatedAmount
+                                || checkRatesRate?.price?.totalPaymentAmount
+                                || hubRate.price?.calculatedAmount
+                                || hubRate.price?.netTotal
+                                || hubRate.price?.grossTotal
+                                || room.rate
+                                || 0
+                            ) || 0;
 
-                            const roomCurr = checkRatesRate?.price?.currency 
-                                || hubRate.price?.currency 
-                                || room.currency 
+                            const roomCurr = checkRatesRate?.price?.currency
+                                || hubRate.price?.currency
+                                || room.currency
                                 || displayCurrency;
 
                             const roomName = decodeHTMLEntities(room.name || `Room ${idx + 1}`);
@@ -879,23 +881,32 @@ const HotelReservationSummaryCard = ({
                                                 <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>
                                                     {t('cancellationPolicy')}
                                                 </p>
-                                                {policies.map((policy, pIdx) => (
-                                                    <div key={pIdx} className="flex justify-between items-center text-[11px]">
-                                                        <span className="text-[#5f6368] dark:text-slate-400">
-                                                            {policy.fromDate 
-                                                                ? (policy.fromDate.includes('[') 
-                                                                    ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
-                                                                    : new Date(policy.fromDate).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' }))
-                                                                : (policy.amount === 0 ? t('flexible') : t('cancellationPenalty'))
-                                                            }
-                                                        </span>
-                                                        <span className={`font-medium px-2 py-0.5 rounded-md text-[10px] ${
-                                                            policy.amount === 0 ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
-                                                        }`}>
-                                                            {policy.amount === 0 ? t('freeCancel') : `${getCurrencySymbol(policy.currency || roomCurr, authCurrencyMap)} ${policy.amount.toFixed(2)}`}
-                                                        </span>
-                                                    </div>
-                                                ))}
+                                                {policies.map((policy, pIdx) => {
+                                                    const rawAmt = policy?.calculatedAmount ?? policy?.amount;
+                                                    const policyAmount = rawAmt != null && !isNaN(Number(rawAmt)) ? Number(rawAmt) : null;
+                                                    const isFree = policyAmount === 0;
+
+                                                    return (
+                                                        <div key={pIdx} className="flex justify-between items-center text-[11px]">
+                                                            <span className="text-[#5f6368] dark:text-slate-400">
+                                                                {policy?.fromDate
+                                                                    ? (policy.fromDate.includes('[')
+                                                                        ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
+                                                                        : new Date(policy.fromDate).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' }))
+                                                                    : (isFree ? t('flexible') : t('cancellationPenalty'))
+                                                                }
+                                                            </span>
+                                                            <span className={`font-medium px-2 py-0.5 rounded-md text-[10px] ${isFree ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
+                                                                }`}>
+                                                                {isFree
+                                                                    ? t('freeCancel')
+                                                                    : (policyAmount != null
+                                                                        ? `${getCurrencySymbol(policy?.currency || roomCurr, authCurrencyMap)} ${policyAmount.toFixed(2)}`
+                                                                        : t('cancellationPenalty'))}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         ) : (
                                             <span className="text-xs text-[#70757a] flex items-center gap-1" lang={currentLang}>
@@ -962,7 +973,7 @@ const HotelReservationSummaryCard = ({
                             <span className="text-[11px] text-[#70757a]">{displayCurrency} · {t('taxesIncl')}</span>
                         </div>
                         <span className="text-xl sm:text-2xl font-bold text-[#1a73e8] dark:text-blue-400 tracking-tight">
-                            {getCurrencySymbol(displayCurrency, authCurrencyMap)} {isLoadingRates ? '...' : grandTotal.toFixed(2)}
+                            {getCurrencySymbol(displayCurrency, authCurrencyMap)} {isLoadingRates ? '...' : (Number(grandTotal) || 0).toFixed(2)}
                         </span>
                     </div>
                 </div>
@@ -974,7 +985,7 @@ const HotelReservationSummaryCard = ({
                             <span className="material-symbols-outlined text-[13px]">info</span>
                             {t('rateNotes')}
                         </p>
-                        <div 
+                        <div
                             className="text-xs font-normal text-amber-900 dark:text-amber-200 space-y-1 max-h-32 overflow-y-auto pr-2 custom-scrollbar html-content"
                             dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(rateNotesList.join('<br/>')) }}
                         />
@@ -987,11 +998,10 @@ const HotelReservationSummaryCard = ({
                     <button
                         onClick={actionConfig.onClick}
                         disabled={actionConfig.disabled}
-                        className={`w-full h-11 font-medium rounded-lg transition-all text-xs sm:text-sm shadow-xs hover:shadow flex items-center justify-center gap-2 active:scale-[0.98] mb-2 cursor-pointer ${
-                            !actionConfig.disabled
+                        className={`w-full h-11 font-medium rounded-lg transition-all text-xs sm:text-sm shadow-xs hover:shadow flex items-center justify-center gap-2 active:scale-[0.98] mb-2 cursor-pointer ${!actionConfig.disabled
                                 ? 'bg-[#1a73e8] hover:bg-[#1557b0] text-white cursor-pointer'
                                 : 'bg-[#f1f3f4] dark:bg-slate-800 text-[#70757a] cursor-not-allowed opacity-60'
-                        } ${actionConfig.loading ? 'animate-pulse' : ''}`}
+                            } ${actionConfig.loading ? 'animate-pulse' : ''}`}
                         lang={currentLang}
                     >
                         {actionConfig.loading ? (

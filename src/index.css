@@ -230,4 +230,33 @@ body {
   .dark .imessage-bubble.from-them::after {
     background-color: var(--chat-bg-dark, #202124);
   }
+
+  .imessage-bubble.has-image {
+    padding: 0 !important;
+    background-color: transparent !important;
+    white-space: normal;
+    width: 280px;
+    max-width: 100%;
+  }
+
+  @media (min-width: 640px) {
+    .imessage-bubble.has-image {
+      width: 300px;
+    }
+  }
+
+  .imessage-bubble.from-me .imessage-bubble-caption {
+    background-color: #0b93f6;
+    color: #ffffff;
+  }
+
+  .imessage-bubble.from-them .imessage-bubble-caption {
+    background-color: #e5e5ea;
+    color: #000000;
+  }
+
+  .dark .imessage-bubble.from-them .imessage-bubble-caption {
+    background-color: #2c2c2e;
+    color: #ffffff;
+  }
 }

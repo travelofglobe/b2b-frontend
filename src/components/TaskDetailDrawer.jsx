@@ -44,7 +44,7 @@ const isImageAttachment = (att) => {
     return /\.(jpg|jpeg|png|webp|gif|svg|bmp)$/i.test(name);
 };
 
-const ImageAttachmentPreview = ({ attachment, isFromMe = false, onPreview }) => {
+const WhatsAppImageItem = ({ attachment, isFromMe = false, radiusClass = 'rounded-[18px]', onPreview }) => {
     const [blobUrl, setBlobUrl] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -87,18 +87,18 @@ const ImageAttachmentPreview = ({ attachment, isFromMe = false, onPreview }) => 
             <button
                 type="button"
                 onClick={() => taskManagementService.downloadAttachment(attachment.id, fileName)}
-                className={`w-full min-w-[200px] max-w-full flex items-center gap-2.5 p-2 px-3 rounded-xl ${
+                className={`w-full flex items-center gap-2.5 p-3 ${radiusClass} ${
                     isFromMe
-                        ? 'bg-white/15 hover:bg-white/25 text-white border border-white/20'
-                        : 'bg-white dark:bg-[#1C1C1E] hover:bg-slate-50 dark:hover:bg-[#2C2C2E] text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/10'
-                } text-[12px] font-medium transition-all cursor-pointer shadow-xs text-left group`}
+                        ? 'bg-[#0b93f6] text-white'
+                        : 'bg-[#e5e5ea] dark:bg-[#2c2c2e] text-slate-800 dark:text-slate-100'
+                } text-[12px] font-medium transition-all cursor-pointer text-left group`}
             >
-                <div className="size-7 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-[17px]">image</span>
+                <div className="size-8 rounded-lg bg-black/10 dark:bg-white/10 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[18px]">broken_image</span>
                 </div>
                 <div className="flex-1 min-w-0">
                     <span className="block truncate font-semibold leading-tight text-[12px]">{fileName}</span>
-                    <span className="text-[10px] opacity-75 block mt-0.5">İndirmek için tıklayın</span>
+                    <span className="text-[10px] opacity-75 block mt-0.5">Görsel yüklenemedi. İndirmek için tıklayın</span>
                 </div>
                 <span className="material-symbols-outlined text-[16px] opacity-80 group-hover:opacity-100 group-hover:translate-y-0.5 transition-all shrink-0">download</span>
             </button>
@@ -106,44 +106,148 @@ const ImageAttachmentPreview = ({ attachment, isFromMe = false, onPreview }) => 
     }
 
     return (
-        <div className="relative group/img rounded-xl overflow-hidden max-w-[280px] w-full border border-black/10 dark:border-white/15 bg-black/5 dark:bg-white/5 my-1 shadow-xs">
+        <div className={`relative group/img overflow-hidden w-full select-none m-0 p-0 border-0 ${radiusClass}`}>
             {loading ? (
-                <div className="w-[220px] h-[130px] flex flex-col items-center justify-center gap-2 text-slate-400 text-xs">
-                    <span className="material-symbols-outlined text-[22px] animate-spin text-blue-500">progress_activity</span>
-                    <span className="text-[11px]">Görsel yükleniyor...</span>
+                <div className={`w-full aspect-[4/3] max-h-[300px] bg-slate-100 dark:bg-slate-800 ${radiusClass} flex flex-col items-center justify-center gap-2 text-slate-400 text-xs animate-pulse`}>
+                    <span className="material-symbols-outlined text-[24px] animate-spin text-blue-500">progress_activity</span>
+                    <span className="text-[11px] font-medium">Görsel yükleniyor...</span>
                 </div>
             ) : (
                 <div 
-                    className="relative cursor-pointer group"
+                    className={`relative cursor-pointer group overflow-hidden w-full m-0 p-0 border-0 ${radiusClass}`}
                     onClick={() => onPreview({ url: blobUrl, name: fileName, id: attachment.id })}
                 >
                     <img
                         src={blobUrl}
                         alt={fileName}
-                        className="w-full max-h-[220px] object-cover rounded-xl transition-transform duration-200 group-hover:scale-[1.02]"
+                        className={`w-full max-h-[360px] sm:max-h-[400px] object-cover block m-0 p-0 border-0 ${radiusClass}`}
                     />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <div className="size-10 rounded-full bg-black/70 text-white flex items-center justify-center shadow-lg backdrop-blur-xs">
-                            <span className="material-symbols-outlined text-[20px]">zoom_in</span>
+
+                    {/* Subtle hover zoom overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 pointer-events-none">
+                        <div className="size-11 rounded-full bg-black/60 backdrop-blur-md text-white flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-all">
+                            <span className="material-symbols-outlined text-[22px]">zoom_in</span>
                         </div>
                     </div>
-                    {/* Caption Bar */}
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent p-2 pt-4 flex items-center justify-between text-white text-[11px]">
-                        <span className="truncate max-w-[180px] font-medium drop-shadow-xs">{fileName}</span>
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                taskManagementService.downloadAttachment(attachment.id, fileName);
-                            }}
-                            className="p-1 rounded-md bg-white/20 hover:bg-white/40 text-white transition-colors ml-1 shrink-0"
-                            title="İndir"
-                        >
-                            <span className="material-symbols-outlined text-[14px]">download</span>
-                        </button>
-                    </div>
+
+                    {/* Quick download button on hover */}
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            taskManagementService.downloadAttachment(attachment.id, fileName);
+                        }}
+                        className="absolute top-2 right-2 size-8 rounded-full bg-black/50 hover:bg-black/75 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer shadow-md hover:scale-105"
+                        title={`${fileName} - İndir`}
+                    >
+                        <span className="material-symbols-outlined text-[17px]">download</span>
+                    </button>
                 </div>
             )}
+        </div>
+    );
+};
+
+const AttachmentSquareCard = ({ attachment, onPreview, t }) => {
+    const [blobUrl, setBlobUrl] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const fileName = attachment.fileOriginalName || attachment.fileName || 'Görsel';
+
+    useEffect(() => {
+        let active = true;
+        let objectUrl = null;
+
+        const loadBlob = async () => {
+            try {
+                setLoading(true);
+                const url = await taskManagementService.getAttachmentBlobUrl(attachment.id);
+                if (active) {
+                    objectUrl = url;
+                    setBlobUrl(url);
+                    setLoading(false);
+                }
+            } catch (err) {
+                if (active) {
+                    console.error('Failed to load attachment thumbnail:', err);
+                    setError(true);
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadBlob();
+
+        return () => {
+            active = false;
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
+        };
+    }, [attachment.id]);
+
+    return (
+        <div className="group flex flex-col rounded-2xl bg-white dark:bg-[#202124] border border-slate-200 dark:border-slate-700/80 overflow-hidden shadow-xs hover:border-blue-500 transition-all">
+            {/* Square Thumbnail Preview */}
+            <div
+                onClick={() => {
+                    if (blobUrl && !error) {
+                        onPreview({ url: blobUrl, name: fileName, id: attachment.id });
+                    } else {
+                        taskManagementService.downloadAttachment(attachment.id, fileName);
+                    }
+                }}
+                className="relative aspect-square w-full bg-slate-100 dark:bg-[#28292c] overflow-hidden cursor-pointer flex items-center justify-center"
+            >
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center gap-1.5 text-slate-400">
+                        <span className="material-symbols-outlined text-[22px] animate-spin text-blue-500">progress_activity</span>
+                    </div>
+                ) : (error || !blobUrl) ? (
+                    <div className="flex flex-col items-center justify-center gap-1 text-slate-400 p-2 text-center">
+                        <span className="material-symbols-outlined text-[28px] text-slate-300 dark:text-slate-600">broken_image</span>
+                        <span className="text-[10px] leading-tight">Önizleme yok</span>
+                    </div>
+                ) : (
+                    <>
+                        <img
+                            src={blobUrl}
+                            alt={fileName}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <div className="size-9 rounded-full bg-black/60 backdrop-blur-xs text-white flex items-center justify-center shadow-md">
+                                <span className="material-symbols-outlined text-[18px]">zoom_in</span>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            {/* Footer with File Info & Download Button */}
+            <div className="p-2.5 flex flex-col gap-1.5 border-t border-slate-100 dark:border-slate-800">
+                <div className="min-w-0">
+                    <strong
+                        title={fileName}
+                        className="block text-[11.5px] font-semibold text-slate-900 dark:text-white truncate leading-tight"
+                    >
+                        {fileName}
+                    </strong>
+                    <span className="block text-[10px] text-slate-400 truncate mt-0.5">
+                        {attachment.uploadedBy ? `${attachment.uploadedBy} • ` : ''}
+                        {attachment.createdAt ? new Date(attachment.createdAt).toLocaleDateString() : ''}
+                    </span>
+                </div>
+
+                <button
+                    type="button"
+                    onClick={() => taskManagementService.downloadAttachment(attachment.id, fileName)}
+                    className="w-full py-1.5 px-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white font-bold text-[11px] transition-all flex items-center justify-center gap-1 cursor-pointer"
+                >
+                    <span className="material-symbols-outlined text-[15px]">download</span>
+                    <span>{t ? t('common.download', 'İndir') : 'İndir'}</span>
+                </button>
+            </div>
         </div>
     );
 };
@@ -764,6 +868,12 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                 const isAgency = msg.senderType === 'AGENCY_USER';
                                                 const isSystem = msg.messageType === 'STATUS_CHANGE' || msg.messageType === 'SYSTEM';
                                                 const isPriceOffer = msg.messageType === 'PRICE_OFFER';
+                                                const timeFormatted = msg.createdAt 
+                                                    ? new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) 
+                                                    : '';
+                                                const imageAttachments = (msg.attachments || []).filter(isImageAttachment);
+                                                const fileAttachments = (msg.attachments || []).filter(a => !isImageAttachment(a));
+                                                const hasImages = imageAttachments.length > 0;
 
                                                 if (isSystem) {
                                                     const statusMatch = msg.message?.match(/Durum güncellendi:\s*([A-Z_]+)\s*->\s*([A-Z_]+)(?:\.\s*Not:\s*(.*))?/i);
@@ -836,45 +946,97 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                             </div>
                                                         ) : isAgency ? (
                                                             <div className="flex flex-col items-end max-w-[85%] sm:max-w-[75%] min-w-0">
-                                                                <div className="imessage-bubble from-me">
-                                                                    {msg.message && (
-                                                                        <div className="whitespace-pre-wrap select-text leading-relaxed break-normal">
-                                                                            {msg.message}
-                                                                        </div>
-                                                                    )}
+                                                                <div className={`imessage-bubble from-me ${hasImages ? 'has-image' : ''}`}>
+                                                                    {hasImages ? (
+                                                                        <>
+                                                                            <div className="flex flex-col w-full">
+                                                                                {imageAttachments.map((a, idx) => {
+                                                                                    const isFirst = idx === 0;
+                                                                                    const isLast = idx === imageAttachments.length - 1;
+                                                                                    const hasBottomContent = Boolean(msg.message) || fileAttachments.length > 0;
+                                                                                    const radiusClass = isFirst && isLast
+                                                                                        ? (hasBottomContent ? 'rounded-t-[18px] rounded-b-none' : 'rounded-[18px]')
+                                                                                        : isFirst
+                                                                                            ? 'rounded-t-[18px] rounded-b-none'
+                                                                                            : (isLast && !hasBottomContent ? 'rounded-t-none rounded-b-[18px]' : 'rounded-none');
 
-                                                                    {msg.attachments && msg.attachments.length > 0 && (
-                                                                        <div className={`${msg.message ? 'mt-2 pt-2 border-t border-white/25' : ''} space-y-1.5 w-full`}>
-                                                                            {msg.attachments.map(a => isImageAttachment(a) ? (
-                                                                                <ImageAttachmentPreview
-                                                                                    key={a.id}
-                                                                                    attachment={a}
-                                                                                    isFromMe={true}
-                                                                                    onPreview={setPreviewImage}
-                                                                                />
-                                                                            ) : (
-                                                                                <button
-                                                                                    key={a.id}
-                                                                                    type="button"
-                                                                                    title={a.fileOriginalName || a.fileName}
-                                                                                    onClick={() => taskManagementService.downloadAttachment(a.id, a.fileOriginalName || a.fileName)}
-                                                                                    className="w-full min-w-[200px] max-w-full flex items-center gap-2.5 p-2 px-3 rounded-xl bg-white/15 hover:bg-white/25 text-white text-[12px] font-medium transition-all cursor-pointer border border-white/20 text-left group"
-                                                                                >
-                                                                                    <div className="size-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-                                                                                        <span className="material-symbols-outlined text-[17px]">description</span>
-                                                                                    </div>
-                                                                                    <div className="flex-1 min-w-0">
-                                                                                        <span className="block truncate font-semibold leading-tight text-[12px]">{a.fileOriginalName || a.fileName}</span>
-                                                                                        <span className="text-[10px] opacity-75 block mt-0.5">{t('taskManagement.drawer.downloadPrompt', 'İndirmek için tıklayın')}</span>
-                                                                                    </div>
-                                                                                    <span className="material-symbols-outlined text-[16px] opacity-80 group-hover:opacity-100 group-hover:translate-y-0.5 transition-all shrink-0">download</span>
-                                                                                </button>
-                                                                            ))}
-                                                                        </div>
+                                                                                    return (
+                                                                                        <WhatsAppImageItem
+                                                                                            key={a.id}
+                                                                                            attachment={a}
+                                                                                            isFromMe={true}
+                                                                                            radiusClass={radiusClass}
+                                                                                            onPreview={setPreviewImage}
+                                                                                        />
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                            {(msg.message || fileAttachments.length > 0) && (
+                                                                                <div className="imessage-bubble-caption rounded-b-[18px] px-4 py-2.5">
+                                                                                    {msg.message && (
+                                                                                        <div className="whitespace-pre-wrap select-text leading-relaxed break-normal">
+                                                                                            {msg.message}
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {fileAttachments.length > 0 && (
+                                                                                        <div className={`${msg.message ? 'mt-2 pt-2 border-t border-white/25' : ''} space-y-1.5 w-full`}>
+                                                                                            {fileAttachments.map(a => (
+                                                                                                <button
+                                                                                                    key={a.id}
+                                                                                                    type="button"
+                                                                                                    title={a.fileOriginalName || a.fileName}
+                                                                                                    onClick={() => taskManagementService.downloadAttachment(a.id, a.fileOriginalName || a.fileName)}
+                                                                                                    className="w-full min-w-[200px] max-w-full flex items-center gap-2.5 p-2 px-3 rounded-xl bg-white/15 hover:bg-white/25 text-white text-[12px] font-medium transition-all cursor-pointer border border-white/20 text-left group"
+                                                                                                >
+                                                                                                    <div className="size-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                                                                                                        <span className="material-symbols-outlined text-[17px]">description</span>
+                                                                                                    </div>
+                                                                                                    <div className="flex-1 min-w-0">
+                                                                                                        <span className="block truncate font-semibold leading-tight text-[12px]">{a.fileOriginalName || a.fileName}</span>
+                                                                                                        <span className="text-[10px] opacity-75 block mt-0.5">{t('taskManagement.drawer.downloadPrompt', 'İndirmek için tıklayın')}</span>
+                                                                                                    </div>
+                                                                                                    <span className="material-symbols-outlined text-[16px] opacity-80 group-hover:opacity-100 group-hover:translate-y-0.5 transition-all shrink-0">download</span>
+                                                                                                </button>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            {msg.message && (
+                                                                                <div className="whitespace-pre-wrap select-text leading-relaxed break-normal">
+                                                                                    {msg.message}
+                                                                                </div>
+                                                                            )}
+                                                                            {fileAttachments.length > 0 && (
+                                                                                <div className={`${msg.message ? 'mt-2 pt-2 border-t border-white/25' : ''} space-y-1.5 w-full`}>
+                                                                                    {fileAttachments.map(a => (
+                                                                                        <button
+                                                                                            key={a.id}
+                                                                                            type="button"
+                                                                                            title={a.fileOriginalName || a.fileName}
+                                                                                            onClick={() => taskManagementService.downloadAttachment(a.id, a.fileOriginalName || a.fileName)}
+                                                                                            className="w-full min-w-[200px] max-w-full flex items-center gap-2.5 p-2 px-3 rounded-xl bg-white/15 hover:bg-white/25 text-white text-[12px] font-medium transition-all cursor-pointer border border-white/20 text-left group"
+                                                                                        >
+                                                                                            <div className="size-7 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                                                                                                <span className="material-symbols-outlined text-[17px]">description</span>
+                                                                                            </div>
+                                                                                            <div className="flex-1 min-w-0">
+                                                                                                <span className="block truncate font-semibold leading-tight text-[12px]">{a.fileOriginalName || a.fileName}</span>
+                                                                                                <span className="text-[10px] opacity-75 block mt-0.5">{t('taskManagement.drawer.downloadPrompt', 'İndirmek için tıklayın')}</span>
+                                                                                            </div>
+                                                                                            <span className="material-symbols-outlined text-[16px] opacity-80 group-hover:opacity-100 group-hover:translate-y-0.5 transition-all shrink-0">download</span>
+                                                                                        </button>
+                                                                                    ))}
+                                                                                </div>
+                                                                            )}
+                                                                        </>
                                                                     )}
                                                                 </div>
                                                                 <span className="text-[10px] text-slate-400 mt-1 px-1 font-medium">
-                                                                    {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                                    {timeFormatted}
                                                                 </span>
                                                             </div>
                                                         ) : (
@@ -882,45 +1044,97 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
                                                                 <span className="text-[11px] text-slate-400 font-semibold mb-1 px-1">
                                                                     {msg.senderName || 'TOG Operasyon'}
                                                                 </span>
-                                                                <div className="imessage-bubble from-them">
-                                                                    {msg.message && (
-                                                                        <div className="whitespace-pre-wrap select-text leading-relaxed break-normal">
-                                                                            {msg.message}
-                                                                        </div>
-                                                                    )}
+                                                                <div className={`imessage-bubble from-them ${hasImages ? 'has-image' : ''}`}>
+                                                                    {hasImages ? (
+                                                                        <>
+                                                                            <div className="flex flex-col w-full">
+                                                                                {imageAttachments.map((a, idx) => {
+                                                                                    const isFirst = idx === 0;
+                                                                                    const isLast = idx === imageAttachments.length - 1;
+                                                                                    const hasBottomContent = Boolean(msg.message) || fileAttachments.length > 0;
+                                                                                    const radiusClass = isFirst && isLast
+                                                                                        ? (hasBottomContent ? 'rounded-t-[18px] rounded-b-none' : 'rounded-[18px]')
+                                                                                        : isFirst
+                                                                                            ? 'rounded-t-[18px] rounded-b-none'
+                                                                                            : (isLast && !hasBottomContent ? 'rounded-t-none rounded-b-[18px]' : 'rounded-none');
 
-                                                                    {msg.attachments && msg.attachments.length > 0 && (
-                                                                        <div className={`${msg.message ? 'mt-2 pt-2 border-t border-black/10 dark:border-white/10' : ''} space-y-1.5 w-full`}>
-                                                                            {msg.attachments.map(a => isImageAttachment(a) ? (
-                                                                                <ImageAttachmentPreview
-                                                                                    key={a.id}
-                                                                                    attachment={a}
-                                                                                    isFromMe={false}
-                                                                                    onPreview={setPreviewImage}
-                                                                                />
-                                                                            ) : (
-                                                                                <button
-                                                                                    key={a.id}
-                                                                                    type="button"
-                                                                                    title={a.fileOriginalName || a.fileName}
-                                                                                    onClick={() => taskManagementService.downloadAttachment(a.id, a.fileOriginalName || a.fileName)}
-                                                                                    className="w-full min-w-[200px] max-w-full flex items-center gap-2.5 p-2 px-3 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-slate-50 dark:hover:bg-[#2C2C2E] text-slate-800 dark:text-slate-100 text-[12px] font-medium transition-all cursor-pointer border border-slate-200/80 dark:border-white/10 shadow-xs text-left group"
-                                                                                >
-                                                                                    <div className="size-7 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                                                                                        <span className="material-symbols-outlined text-[17px]">description</span>
-                                                                                    </div>
-                                                                                    <div className="flex-1 min-w-0">
-                                                                                        <span className="block truncate font-semibold leading-tight text-slate-900 dark:text-white text-[12px]">{a.fileOriginalName || a.fileName}</span>
-                                                                                        <span className="text-[10px] text-slate-400 dark:text-slate-400 block mt-0.5">{t('taskManagement.drawer.downloadPrompt', 'İndirmek için tıklayın')}</span>
-                                                                                    </div>
-                                                                                    <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400 group-hover:translate-y-0.5 transition-all shrink-0">download</span>
-                                                                                </button>
-                                                                            ))}
-                                                                        </div>
+                                                                                    return (
+                                                                                        <WhatsAppImageItem
+                                                                                            key={a.id}
+                                                                                            attachment={a}
+                                                                                            isFromMe={false}
+                                                                                            radiusClass={radiusClass}
+                                                                                            onPreview={setPreviewImage}
+                                                                                        />
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                            {(msg.message || fileAttachments.length > 0) && (
+                                                                                <div className="imessage-bubble-caption rounded-b-[18px] px-4 py-2.5">
+                                                                                    {msg.message && (
+                                                                                        <div className="whitespace-pre-wrap select-text leading-relaxed break-normal">
+                                                                                            {msg.message}
+                                                                                        </div>
+                                                                                    )}
+                                                                                    {fileAttachments.length > 0 && (
+                                                                                        <div className={`${msg.message ? 'mt-2 pt-2 border-t border-black/10 dark:border-white/10' : ''} space-y-1.5 w-full`}>
+                                                                                            {fileAttachments.map(a => (
+                                                                                                <button
+                                                                                                    key={a.id}
+                                                                                                    type="button"
+                                                                                                    title={a.fileOriginalName || a.fileName}
+                                                                                                    onClick={() => taskManagementService.downloadAttachment(a.id, a.fileOriginalName || a.fileName)}
+                                                                                                    className="w-full min-w-[200px] max-w-full flex items-center gap-2.5 p-2 px-3 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-slate-50 dark:hover:bg-[#2C2C2E] text-slate-800 dark:text-slate-100 text-[12px] font-medium transition-all cursor-pointer border border-slate-200/80 dark:border-white/10 shadow-xs text-left group"
+                                                                                                >
+                                                                                                    <div className="size-7 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                                                                                        <span className="material-symbols-outlined text-[17px]">description</span>
+                                                                                                    </div>
+                                                                                                    <div className="flex-1 min-w-0">
+                                                                                                        <span className="block truncate font-semibold leading-tight text-slate-900 dark:text-white text-[12px]">{a.fileOriginalName || a.fileName}</span>
+                                                                                                        <span className="text-[10px] text-slate-400 dark:text-slate-400 block mt-0.5">{t('taskManagement.drawer.downloadPrompt', 'İndirmek için tıklayın')}</span>
+                                                                                                    </div>
+                                                                                                    <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400 group-hover:translate-y-0.5 transition-all shrink-0">download</span>
+                                                                                                </button>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            {msg.message && (
+                                                                                <div className="whitespace-pre-wrap select-text leading-relaxed break-normal">
+                                                                                    {msg.message}
+                                                                                </div>
+                                                                            )}
+                                                                            {fileAttachments.length > 0 && (
+                                                                                <div className={`${msg.message ? 'mt-2 pt-2 border-t border-black/10 dark:border-white/10' : ''} space-y-1.5 w-full`}>
+                                                                                    {fileAttachments.map(a => (
+                                                                                        <button
+                                                                                            key={a.id}
+                                                                                            type="button"
+                                                                                            title={a.fileOriginalName || a.fileName}
+                                                                                            onClick={() => taskManagementService.downloadAttachment(a.id, a.fileOriginalName || a.fileName)}
+                                                                                            className="w-full min-w-[200px] max-w-full flex items-center gap-2.5 p-2 px-3 rounded-xl bg-white dark:bg-[#1C1C1E] hover:bg-slate-50 dark:hover:bg-[#2C2C2E] text-slate-800 dark:text-slate-100 text-[12px] font-medium transition-all cursor-pointer border border-slate-200/80 dark:border-white/10 shadow-xs text-left group"
+                                                                                        >
+                                                                                            <div className="size-7 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                                                                                <span className="material-symbols-outlined text-[17px]">description</span>
+                                                                                            </div>
+                                                                                            <div className="flex-1 min-w-0">
+                                                                                                <span className="block truncate font-semibold leading-tight text-slate-900 dark:text-white text-[12px]">{a.fileOriginalName || a.fileName}</span>
+                                                                                                <span className="text-[10px] text-slate-400 dark:text-slate-400 block mt-0.5">{t('taskManagement.drawer.downloadPrompt', 'İndirmek için tıklayın')}</span>
+                                                                                            </div>
+                                                                                            <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400 group-hover:translate-y-0.5 transition-all shrink-0">download</span>
+                                                                                        </button>
+                                                                                    ))}
+                                                                                </div>
+                                                                            )}
+                                                                        </>
                                                                     )}
                                                                 </div>
                                                                 <span className="text-[10px] text-slate-400 mt-1 px-1 font-medium">
-                                                                    {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                                    {timeFormatted}
                                                                 </span>
                                                             </div>
                                                         )}
@@ -1192,39 +1406,61 @@ const TaskDetailDrawer = ({ taskId, initialTask = null, isOpen, onClose, onUpdat
 
                             {/* Tab 3: Attachments */}
                             {activeTab === 'attachments' && (
-                                <div className="flex-1 overflow-y-auto p-6 bg-[#f8f9fa] dark:bg-[#18191c]">
+                                <div className="flex-1 overflow-y-auto p-6 bg-[#f8f9fa] dark:bg-[#18191c] space-y-4">
                                     {(!task.attachments || task.attachments.length === 0) ? (
                                         <div className="text-center py-16 text-slate-400 text-xs">
                                             <span className="material-symbols-outlined text-[36px] text-slate-300 dark:text-slate-600 block mb-2">folder_off</span>
                                             {t('taskManagement.drawer.noAttachmentsYet', 'Bu talebe eklenmiş herhangi bir dosya bulunmamaktadır.')}
                                         </div>
-                                    ) : (
-                                        <div className="space-y-2.5">
-                                            {task.attachments.map(att => (
-                                                <button
-                                                    key={att.id}
-                                                    type="button"
-                                                    onClick={() => taskManagementService.downloadAttachment(att.id, att.fileOriginalName || att.fileName)}
-                                                    className="w-full flex items-center justify-between p-3.5 rounded-xl bg-white dark:bg-[#202124] hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-slate-700 transition-colors group cursor-pointer text-xs shadow-2xs text-left"
-                                                >
-                                                    <div className="flex items-center gap-3 truncate">
-                                                        <div className="size-9 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center shrink-0">
-                                                            <span className="material-symbols-outlined text-[20px]">description</span>
-                                                        </div>
-                                                        <div className="truncate">
-                                                            <span className="font-semibold text-slate-800 dark:text-slate-200 truncate group-hover:text-blue-600 block">
-                                                                {att.fileOriginalName || att.fileName}
-                                                            </span>
-                                                            <span className="text-[10px] text-slate-400">
-                                                                {att.createdAt ? new Date(att.createdAt).toLocaleString() : ''}
-                                                            </span>
-                                                        </div>
+                                    ) : (() => {
+                                        const imageAtts = task.attachments.filter(isImageAttachment);
+                                        const otherAtts = task.attachments.filter(a => !isImageAttachment(a));
+
+                                        return (
+                                            <>
+                                                {imageAtts.length > 0 && (
+                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                        {imageAtts.map(att => (
+                                                            <AttachmentSquareCard
+                                                                key={att.id}
+                                                                attachment={att}
+                                                                onPreview={setPreviewImage}
+                                                                t={t}
+                                                            />
+                                                        ))}
                                                     </div>
-                                                    <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-blue-600">download</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
+                                                )}
+
+                                                {otherAtts.length > 0 && (
+                                                    <div className="space-y-2.5">
+                                                        {otherAtts.map(att => (
+                                                            <button
+                                                                key={att.id}
+                                                                type="button"
+                                                                onClick={() => taskManagementService.downloadAttachment(att.id, att.fileOriginalName || att.fileName)}
+                                                                className="w-full flex items-center justify-between p-3.5 rounded-xl bg-white dark:bg-[#202124] hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-slate-700 transition-colors group cursor-pointer text-xs shadow-2xs text-left"
+                                                            >
+                                                                <div className="flex items-center gap-3 truncate">
+                                                                    <div className="size-9 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center shrink-0">
+                                                                        <span className="material-symbols-outlined text-[20px]">description</span>
+                                                                    </div>
+                                                                    <div className="truncate">
+                                                                        <span className="font-semibold text-slate-800 dark:text-slate-200 truncate group-hover:text-blue-600 block">
+                                                                            {att.fileOriginalName || att.fileName}
+                                                                        </span>
+                                                                        <span className="text-[10px] text-slate-400">
+                                                                            {att.createdAt ? new Date(att.createdAt).toLocaleString() : ''}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-blue-600">download</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             )}
                         </>

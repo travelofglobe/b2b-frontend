@@ -809,13 +809,15 @@ const HotelReservationSummaryCard = ({
                                 || [];
 
                             // Price
-                            const roomPrice = checkRatesRate?.price?.calculatedAmount 
+                            const roomPrice = Number(
+                                checkRatesRate?.price?.calculatedAmount 
                                 || checkRatesRate?.price?.totalPaymentAmount 
                                 || hubRate.price?.calculatedAmount 
                                 || hubRate.price?.netTotal 
                                 || hubRate.price?.grossTotal 
                                 || room.rate 
-                                || 0;
+                                || 0
+                            ) || 0;
 
                             const roomCurr = checkRatesRate?.price?.currency 
                                 || hubRate.price?.currency 
@@ -879,23 +881,33 @@ const HotelReservationSummaryCard = ({
                                                 <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>
                                                     {t('cancellationPolicy')}
                                                 </p>
-                                                {policies.map((policy, pIdx) => (
-                                                    <div key={pIdx} className="flex justify-between items-center text-[11px]">
-                                                        <span className="text-[#5f6368] dark:text-slate-400">
-                                                            {policy.fromDate 
-                                                                ? (policy.fromDate.includes('[') 
-                                                                    ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
-                                                                    : new Date(policy.fromDate).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' }))
-                                                                : (policy.amount === 0 ? t('flexible') : t('cancellationPenalty'))
-                                                            }
-                                                        </span>
-                                                        <span className={`font-medium px-2 py-0.5 rounded-md text-[10px] ${
-                                                            policy.amount === 0 ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
-                                                        }`}>
-                                                            {policy.amount === 0 ? t('freeCancel') : `${getCurrencySymbol(policy.currency || roomCurr, authCurrencyMap)} ${policy.amount.toFixed(2)}`}
-                                                        </span>
-                                                    </div>
-                                                ))}
+                                                {policies.map((policy, pIdx) => {
+                                                    const rawAmt = policy?.calculatedAmount ?? policy?.amount;
+                                                    const policyAmount = rawAmt != null && !isNaN(Number(rawAmt)) ? Number(rawAmt) : null;
+                                                    const isFree = policyAmount === 0;
+
+                                                    return (
+                                                        <div key={pIdx} className="flex justify-between items-center text-[11px]">
+                                                            <span className="text-[#5f6368] dark:text-slate-400">
+                                                                {policy?.fromDate 
+                                                                    ? (policy.fromDate.includes('[') 
+                                                                        ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
+                                                                        : new Date(policy.fromDate).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' }))
+                                                                    : (isFree ? t('flexible') : t('cancellationPenalty'))
+                                                                }
+                                                            </span>
+                                                            <span className={`font-medium px-2 py-0.5 rounded-md text-[10px] ${
+                                                                isFree ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
+                                                            }`}>
+                                                                {isFree 
+                                                                    ? t('freeCancel') 
+                                                                    : (policyAmount != null 
+                                                                        ? `${getCurrencySymbol(policy?.currency || roomCurr, authCurrencyMap)} ${policyAmount.toFixed(2)}` 
+                                                                        : t('cancellationPenalty'))}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         ) : (
                                             <span className="text-xs text-[#70757a] flex items-center gap-1" lang={currentLang}>
@@ -962,7 +974,7 @@ const HotelReservationSummaryCard = ({
                             <span className="text-[11px] text-[#70757a]">{displayCurrency} · {t('taxesIncl')}</span>
                         </div>
                         <span className="text-xl sm:text-2xl font-bold text-[#1a73e8] dark:text-blue-400 tracking-tight">
-                            {getCurrencySymbol(displayCurrency, authCurrencyMap)} {isLoadingRates ? '...' : grandTotal.toFixed(2)}
+                            {getCurrencySymbol(displayCurrency, authCurrencyMap)} {isLoadingRates ? '...' : (Number(grandTotal) || 0).toFixed(2)}
                         </span>
                     </div>
                 </div>

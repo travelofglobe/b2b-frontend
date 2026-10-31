@@ -229,8 +229,8 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
         }
     }, [isOpen]);
 
+    const selectedAgency = agencies.find((ag) => String(ag.id) === String(selectedAgencyId));
     const totalLimit = (Number(creditLimit) || 0) + (Number(additionLimit) || 0);
-    const availableLimit = totalLimit;
 
     const handleSubmit = async () => {
         setError(null);

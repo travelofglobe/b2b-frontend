@@ -2211,8 +2211,25 @@ const HotelDetail = () => {
                 const isoCheckIn = checkInDate instanceof Date ? checkInDate.toISOString() : new Date(checkInDate).toISOString();
                 const isoCheckOut = checkOutDate instanceof Date ? checkOutDate.toISOString() : new Date(checkOutDate).toISOString();
 
+                const updatedSelectedRooms = (selectedRooms || []).map((room, idx) => {
+                    const matchedRoom = firstHotel?.rooms?.[idx] || firstHotel?.rooms?.[0];
+                    const matchedRate = matchedRoom?.rates?.[0];
+                    if (matchedRate?.rateCode) {
+                        return {
+                            ...room,
+                            rateCode: matchedRate.rateCode,
+                            hubRateModel: {
+                                ...(room.hubRateModel || {}),
+                                rateCode: matchedRate.rateCode,
+                                price: matchedRate.price || room.hubRateModel?.price
+                            }
+                        };
+                    }
+                    return room;
+                });
+
                 const sessionData = {
-                    selectedRooms,
+                    selectedRooms: updatedSelectedRooms,
                     hotel,
                     roomState,
                     checkInDate: isoCheckIn,

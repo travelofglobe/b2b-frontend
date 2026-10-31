@@ -1072,12 +1072,17 @@ const HotelQuickLookDrawer = ({
 
             const currency = rateItem?.hubRateModel?.price?.currency || currentHotel.currency || 'EUR';
 
+            const freshRateCode = firstHotel?.rooms?.[0]?.rates?.[0]?.rateCode;
             const selectedRoom = {
                 type: roomName,
                 rate: price,
                 name: roomName,
                 currency: currency,
-                hubRateModel: rateItem?.hubRateModel,
+                rateCode: freshRateCode || rateCode,
+                hubRateModel: {
+                    ...(rateItem?.hubRateModel || {}),
+                    rateCode: freshRateCode || rateItem?.hubRateModel?.rateCode || rateCode
+                },
                 cancellationPolicies: rateItem?.hubRateModel?.price?.cancellationPolicies || [],
                 dailyPrices: rateItem?.hubRateModel?.price?.dailyPrices || []
             };

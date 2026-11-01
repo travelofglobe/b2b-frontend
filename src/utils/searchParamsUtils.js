@@ -586,7 +586,7 @@ export const getItemPrimaryName = (item, currentLang = 'tr') => {
     const nameObj = item.names || item.name;
     if (typeof nameObj === 'string') return nameObj.trim();
     if (nameObj && typeof nameObj === 'object') {
-        const val = nameObj.translations?.[currentLang]
+        const val = nameObj.translations?.[currentLang] 
             || nameObj.translations?.tr
             || nameObj.translations?.en
             || nameObj[currentLang]
@@ -631,7 +631,7 @@ export const getLocationHierarchyParts = (item, currentLang = 'tr') => {
     if (nodes.length > 0) {
         const firstType = (nodes[0]?.type || nodes[0]?.locationType || '').toLowerCase();
         const lastType = (nodes[nodes.length - 1]?.type || nodes[nodes.length - 1]?.locationType || '').toLowerCase();
-
+        
         let orderedNodes = [...nodes];
         // If the first item is country, then it is root-to-leaf (Country -> Province -> City), so reverse it to leaf-to-root
         if (firstType === 'country' && lastType !== 'country') {
@@ -643,8 +643,8 @@ export const getLocationHierarchyParts = (item, currentLang = 'tr') => {
             // Skip continents or high level world regions
             if (nodeType === 'continent' || nodeType === 'high_level_region') continue;
 
-            let nameStr = typeof node.name === 'string'
-                ? node.name
+            let nameStr = typeof node.name === 'string' 
+                ? node.name 
                 : (node.name?.translations?.[currentLang] || node.name?.translations?.tr || node.name?.translations?.en || node.name?.defaultName || '');
 
             if (!nameStr) continue;
@@ -726,7 +726,7 @@ export const buildLocationSlug = (item, currentLang = 'tr') => {
     if (!item) return 'destination';
     const primary = getItemPrimaryName(item, currentLang);
     const hierarchy = getLocationHierarchyParts(item, currentLang);
-
+    
     // Exclude country from slug if other parts exist
     const nonCountry = hierarchy.filter(h => {
         const lower = h.toLowerCase();

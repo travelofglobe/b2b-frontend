@@ -558,7 +558,7 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                     </div>
                 </div>
             </div>
-        </Link >
+        </Link>
     );
 };
 

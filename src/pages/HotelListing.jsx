@@ -779,6 +779,41 @@ const PriceMarker = React.memo(({
                                 onError={e => { e.target.src = placeholderHotel; e.target.onerror = null; }}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                             />
+                            {/* Property Type Badge on Image */}
+                            {catMeta?.name && (
+                                <div
+                                    style={{
+                                        position: 'absolute',
+                                        top: '8px',
+                                        left: '8px',
+                                        background: 'rgba(32, 33, 36, 0.78)',
+                                        backdropFilter: 'blur(4px)',
+                                        color: '#ffffff',
+                                        borderRadius: '4px',
+                                        padding: '2.5px 7px',
+                                        fontSize: '10.5px',
+                                        fontWeight: 600,
+                                        letterSpacing: '0.2px',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+                                        maxWidth: '140px',
+                                        zIndex: 2
+                                    }}
+                                    title={catMeta.name}
+                                >
+                                    <span
+                                        className="material-symbols-outlined"
+                                        style={{ fontSize: '12px', color: '#ff80ab', fontVariationSettings: "'FILL' 1", lineHeight: 1 }}
+                                    >
+                                        {catMeta.icon}
+                                    </span>
+                                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {catMeta.name}
+                                    </span>
+                                </div>
+                            )}
                             <div
                                 style={{
                                     position: 'absolute',
@@ -793,7 +828,8 @@ const PriceMarker = React.memo(({
                                     justifyContent: 'center',
                                     cursor: 'pointer',
                                     backdropFilter: 'blur(2px)',
-                                    transition: 'background 0.2s'
+                                    transition: 'background 0.2s',
+                                    zIndex: 2
                                 }}
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -831,10 +867,34 @@ const PriceMarker = React.memo(({
                             >
                                 {hotel.name}
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '3px', marginBottom: '10px', fontSize: '12px' }}>
-                                <span style={{ color: '#5f6368', fontWeight: 500 }}>{formattedRating}</span>
-                                <span style={{ color: '#fbbc04', fontSize: '11px' }}>★</span>
-                                <span style={{ color: '#1a73e8', textDecoration: 'none' }}>({reviewCount.toLocaleString('tr-TR')})</span>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px', marginBottom: '10px', fontSize: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                    <span style={{ color: '#202124', fontWeight: 600 }}>{formattedRating}</span>
+                                    <span style={{ color: '#fbbc04', fontSize: '11px' }}>★</span>
+                                    <span style={{ color: '#1a73e8', textDecoration: 'none' }}>({reviewCount.toLocaleString('tr-TR')})</span>
+                                </div>
+                                {catMeta?.name && (
+                                    <div
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '3px',
+                                            color: '#5f6368',
+                                            fontSize: '11px',
+                                            fontWeight: 500,
+                                            maxWidth: '105px',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                        title={catMeta.name}
+                                    >
+                                        <span>•</span>
+                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {catMeta.name}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                             <div style={{ display: 'flex', gap: '6px' }}>
                                 <button
@@ -994,22 +1054,26 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
     const currencySymbol = getCurrencySymbol(hotel.currency);
     const formattedPrice = hotel.price ? Math.round(hotel.price).toLocaleString('tr-TR') : '';
 
+    const categoryMeta = React.useMemo(() => {
+        return getPropertyCategoryMeta(hotel, currentLang);
+    }, [hotel, currentLang]);
+
     const starLabel = React.useMemo(() => {
         const count = Math.round(Number(hotel.stars) || 0);
         if (count > 0) {
             const labels = {
-                tr: `${count} yıldızlı otel`,
-                en: `${count}-star hotel`,
-                de: `${count}-Sterne-Hotel`,
+                tr: `${count} yıldızlı`,
+                en: `${count}-star`,
+                de: `${count}-Sterne`,
                 ar: `فندق ${count} نجوم`,
-                fr: `Hôtel ${count} étoiles`,
-                es: `Hotel de ${count} estrellas`,
-                ru: `${count}-звездочный отель`
+                fr: `${count} étoiles`,
+                es: `de ${count} estrellas`,
+                ru: `${count}-звездочный`
             };
             return labels[currentLang] || labels.en;
         }
-        return hotel.type || (currentLang === 'tr' ? 'Otel' : 'Hotel');
-    }, [hotel.stars, hotel.type, currentLang]);
+        return null;
+    }, [hotel.stars, currentLang]);
 
     const ratingNum = parseFloat(hotel.rating) || 0;
     const displayRating = React.useMemo(() => {
@@ -1026,7 +1090,9 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
         const items = [];
 
         // 1. Star / Category info is ALWAYS the 1st item in Google
-        items.push({ icon: 'hotel', label: starLabel });
+        const propertyTypeName = categoryMeta?.name || hotel.type || (currentLang === 'tr' ? 'Otel' : 'Hotel');
+        const firstAmenityText = starLabel ? `${starLabel} ${propertyTypeName.toLowerCase()}` : propertyTypeName;
+        items.push({ icon: categoryMeta?.icon || 'hotel', label: firstAmenityText });
 
         // 2. Meal / Board (e.g. Kahvaltı ($), Kahvaltı Dahil, Sadece Oda)
         if (hotel.boardName) {
@@ -1228,23 +1294,36 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                         {hotel.name}
                     </Link>
 
-                    {/* Star Rating line (Google style) */}
-                    {hotel.stars > 0 ? (
-                        <div className="flex items-center gap-1.5 mt-0.5 text-[13px]">
-                            <span className="font-medium text-[#5f6368] dark:text-slate-300 font-roboto">
-                                {starLabel}
+                    {/* Property Type Badge & Star Rating */}
+                    <div className="flex items-center gap-2 mt-1 mb-0.5 flex-wrap">
+                        {categoryMeta?.name && (
+                            <span
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#f1f3f4] dark:bg-slate-800 text-[#3c4043] dark:text-slate-200 border border-[#dadce0]/70 dark:border-slate-700/80 shadow-2xs"
+                                title={categoryMeta.name}
+                            >
+                                <span
+                                    className="material-symbols-outlined text-[13px] text-[#f06293]"
+                                    style={{ fontVariationSettings: "'FILL' 1" }}
+                                >
+                                    {categoryMeta.icon}
+                                </span>
+                                <span>{categoryMeta.name}</span>
                             </span>
-                            <div className="flex items-center text-[#fabb05] text-[12px] tracking-tight">
-                                {[...Array(Math.min(5, Math.max(1, Math.round(hotel.stars))))].map((_, i) => (
-                                    <span key={i} className="leading-none select-none">★</span>
-                                ))}
+                        )}
+
+                        {hotel.stars > 0 ? (
+                            <div className="flex items-center gap-1.5 text-[13px]">
+                                <span className="font-medium text-[#5f6368] dark:text-slate-300 font-roboto">
+                                    {starLabel} {currentLang === 'tr' ? 'otel' : 'hotel'}
+                                </span>
+                                <div className="flex items-center text-[#fabb05] text-[12px] tracking-tight">
+                                    {[...Array(Math.min(5, Math.max(1, Math.round(hotel.stars))))].map((_, i) => (
+                                        <span key={i} className="leading-none select-none">★</span>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="text-[13px] text-[#5f6368] dark:text-slate-400 font-roboto mt-0.5">
-                            {starLabel}
-                        </div>
-                    )}
+                        ) : null}
+                    </div>
 
                     {/* Google-style Amenities grid (3x3 - 9 items) */}
                     {displayAmenities.length > 0 && (
@@ -3082,9 +3161,14 @@ const HotelListing = () => {
         if (displayedHotels && displayedHotels.length > 0) {
             displayedHotels.forEach(h => {
                 const hid = h.id || h.hotelId;
-                if (hid && h.lat && h.lng && h.price && Number(h.price) > 0 && !markerPoolRef.current.has(hid)) {
+                if (hid && h.lat && h.lng && h.price && Number(h.price) > 0) {
                     if (isPointInBufferedBounds(h.lat, h.lng, buffered)) {
-                        markerPoolRef.current.set(hid, h);
+                        const existing = markerPoolRef.current.get(hid);
+                        if (!existing) {
+                            markerPoolRef.current.set(hid, h);
+                        } else if ((!existing.categoryName && h.categoryName) || (!existing.categoryId && h.categoryId)) {
+                            markerPoolRef.current.set(hid, { ...existing, ...h });
+                        }
                     }
                 }
             });

@@ -501,7 +501,9 @@ export const PROPERTY_CATEGORIES = {
  * Returns icon and localized category name for a property based on its categoryId or category name.
  */
 export const getPropertyCategoryMeta = (item, lang = 'tr') => {
-    let rawId = item?.categoryId ?? item?.category;
+    if (!item) return { id: 1, name: lang === 'tr' ? 'Otel' : 'Hotel', icon: 'hotel' };
+
+    let rawId = item?.categoryId ?? item?.category ?? item?.propertyTypeId ?? item?.propertyType;
     let numericId = null;
 
     if (typeof rawId === 'number') {
@@ -519,10 +521,48 @@ export const getPropertyCategoryMeta = (item, lang = 'tr') => {
         };
     }
 
-    // Fallback search by string name
-    const text = String(item?.category || item?.name?.searchName || item?.name || '').toLowerCase();
+    // Direct match or partial match on categoryName, category, propertyType
+    const candidateTexts = [
+        item?.categoryName,
+        typeof item?.category === 'string' ? item.category : null,
+        item?.propertyType,
+        item?.propertyTypeName,
+        item?.type
+    ].filter(Boolean);
+
+    for (const rawText of candidateTexts) {
+        const text = String(rawText).trim().toLowerCase();
+        for (const cat of Object.values(PROPERTY_CATEGORIES)) {
+            if (
+                text === cat.name.toLowerCase() ||
+                text === cat.tr.toLowerCase() ||
+                text.includes(cat.name.toLowerCase()) ||
+                text.includes(cat.tr.toLowerCase())
+            ) {
+                return {
+                    id: cat.id,
+                    name: lang === 'tr' ? cat.tr : cat.name,
+                    icon: cat.icon
+                };
+            }
+        }
+    }
+
+    // Fallback: If custom categoryName or propertyType exists, use it directly!
+    const customName = item?.categoryName || (typeof item?.category === 'string' && isNaN(item.category) ? item.category : null) || item?.propertyType;
+    if (customName && typeof customName === 'string' && customName.trim()) {
+        return {
+            id: numericId || 0,
+            name: customName.trim(),
+            icon: 'domain'
+        };
+    }
+
+    // Name-based inference fallback (e.g. "Taksim Suites Apartment", "Bodrum Villas")
+    const hotelName = String(item?.name?.searchName || item?.name || '').toLowerCase();
     for (const cat of Object.values(PROPERTY_CATEGORIES)) {
-        if (text.includes(cat.name.toLowerCase())) {
+        if (cat.id === 0 || cat.id === 1) continue; // Skip generic 'Property' and 'Hotel'
+        if (hotelName.includes(cat.name.toLowerCase()) || hotelName.includes(cat.tr.toLowerCase())) {
             return {
                 id: cat.id,
                 name: lang === 'tr' ? cat.tr : cat.name,

@@ -604,7 +604,7 @@ const PriceMarker = React.memo(({
         const textColor = isSelected ? '#ffffff' : '#202124';
         const textWeight = isSelected ? '700' : '600';
         const scale = isSelected ? 'scale(1.22)' : 'scale(1)';
-        const shadow = isSelected
+        const shadow = isSelected 
             ? 'drop-shadow(0 4px 12px rgba(240,98,147,0.45)) drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
             : 'drop-shadow(0 1.5px 3px rgba(0,0,0,0.1)) drop-shadow(0 0.5px 1.5px rgba(0,0,0,0.06))';
 
@@ -766,214 +766,214 @@ const PriceMarker = React.memo(({
                         display: none !important; 
                     }
                 `}</style>
-                <div
-                    onMouseEnter={handlePopupMouseEnter}
-                    onMouseLeave={handlePopupMouseLeave}
-                    style={{
-                        width: '220px',
-                        fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif",
-                        borderRadius: '6px',
-                        overflow: 'hidden',
-                        background: '#ffffff',
-                    }}
-                >
-                    <div style={{ position: 'relative', width: '100%', height: '118px', backgroundColor: '#f1f3f4' }}>
-                        <img
-                            src={imageUrl}
-                            alt={hotel.name}
-                            onError={e => { e.target.src = placeholderHotel; e.target.onerror = null; }}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                        />
-                        {/* Property Type Badge on Image */}
-                        {catMeta?.name && (
-                            <div
-                                style={{
-                                    position: 'absolute',
-                                    top: '8px',
-                                    left: '8px',
-                                    background: 'rgba(32, 33, 36, 0.78)',
-                                    backdropFilter: 'blur(4px)',
-                                    color: '#ffffff',
-                                    borderRadius: '4px',
-                                    padding: '2.5px 7px',
-                                    fontSize: '10.5px',
-                                    fontWeight: 600,
-                                    letterSpacing: '0.2px',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
-                                    maxWidth: '140px',
-                                    zIndex: 2
-                                }}
-                                title={catMeta.name}
-                            >
-                                <span
-                                    className="material-symbols-outlined"
-                                    style={{ fontSize: '12px', color: '#ff80ab', fontVariationSettings: "'FILL' 1", lineHeight: 1 }}
-                                >
-                                    {catMeta.icon}
-                                </span>
-                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {catMeta.name}
-                                </span>
-                            </div>
-                        )}
-                        <div
-                            style={{
-                                position: 'absolute',
-                                top: '8px',
-                                right: '8px',
-                                width: '28px',
-                                height: '28px',
-                                background: 'rgba(32,33,36,0.55)',
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                backdropFilter: 'blur(2px)',
-                                transition: 'background 0.2s',
-                                zIndex: 2
-                            }}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (onToggleFav) onToggleFav();
-                            }}
-                            onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(32,33,36,0.8)'}
-                            onMouseOut={e => e.currentTarget.style.backgroundColor = 'rgba(32,33,36,0.55)'}
-                        >
-                            <span
-                                className="material-symbols-outlined"
-                                style={{
-                                    color: isFav ? '#fb923c' : 'white',
-                                    fontSize: '16px',
-                                    fontVariationSettings: isFav ? "'FILL' 1" : "'FILL' 0",
-                                    lineHeight: 1
-                                }}
-                            >
-                                bookmark
-                            </span>
-                        </div>
-                    </div>
-                    <div style={{ padding: '10px 12px 12px 12px' }}>
-                        <div
-                            style={{
-                                fontSize: '14px',
-                                fontWeight: 500,
-                                color: '#202124',
-                                lineHeight: '1.25',
-                                marginBottom: '3px',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                            }}
-                            title={hotel.name}
-                        >
-                            {hotel.name}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px', marginBottom: '10px', fontSize: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                <span style={{ color: '#202124', fontWeight: 600 }}>{formattedRating}</span>
-                                <span style={{ color: '#fbbc04', fontSize: '11px' }}>★</span>
-                                <span style={{ color: '#1a73e8', textDecoration: 'none' }}>({reviewCount.toLocaleString('tr-TR')})</span>
-                            </div>
+                    <div
+                        onMouseEnter={handlePopupMouseEnter}
+                        onMouseLeave={handlePopupMouseLeave}
+                        style={{
+                            width: '220px',
+                            fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif",
+                            borderRadius: '6px',
+                            overflow: 'hidden',
+                            background: '#ffffff',
+                        }}
+                    >
+                        <div style={{ position: 'relative', width: '100%', height: '118px', backgroundColor: '#f1f3f4' }}>
+                            <img
+                                src={imageUrl}
+                                alt={hotel.name}
+                                onError={e => { e.target.src = placeholderHotel; e.target.onerror = null; }}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            />
+                            {/* Property Type Badge on Image */}
                             {catMeta?.name && (
                                 <div
                                     style={{
+                                        position: 'absolute',
+                                        top: '8px',
+                                        left: '8px',
+                                        background: 'rgba(32, 33, 36, 0.78)',
+                                        backdropFilter: 'blur(4px)',
+                                        color: '#ffffff',
+                                        borderRadius: '4px',
+                                        padding: '2.5px 7px',
+                                        fontSize: '10.5px',
+                                        fontWeight: 600,
+                                        letterSpacing: '0.2px',
                                         display: 'inline-flex',
                                         alignItems: 'center',
-                                        gap: '3px',
-                                        color: '#5f6368',
-                                        fontSize: '11px',
-                                        fontWeight: 500,
-                                        maxWidth: '105px',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap'
+                                        gap: '4px',
+                                        boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+                                        maxWidth: '140px',
+                                        zIndex: 2
                                     }}
                                     title={catMeta.name}
                                 >
-                                    <span>•</span>
+                                    <span
+                                        className="material-symbols-outlined"
+                                        style={{ fontSize: '12px', color: '#ff80ab', fontVariationSettings: "'FILL' 1", lineHeight: 1 }}
+                                    >
+                                        {catMeta.icon}
+                                    </span>
                                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                         {catMeta.name}
                                     </span>
                                 </div>
                             )}
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onSelect(hotel);
-                                }}
+                            <div
                                 style={{
-                                    flex: 1,
-                                    border: '1px solid #dadce0',
-                                    borderRadius: '18px',
-                                    padding: '6px 4px',
-                                    textAlign: 'center',
-                                    color: '#1a73e8',
-                                    fontSize: '12px',
-                                    fontWeight: 500,
-                                    cursor: 'pointer',
-                                    backgroundColor: '#ffffff',
+                                    position: 'absolute',
+                                    top: '8px',
+                                    right: '8px',
+                                    width: '28px',
+                                    height: '28px',
+                                    background: 'rgba(32,33,36,0.55)',
+                                    borderRadius: '50%',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    gap: '3px',
-                                    transition: 'all 0.15s ease',
-                                    boxSizing: 'border-box'
+                                    cursor: 'pointer',
+                                    backdropFilter: 'blur(2px)',
+                                    transition: 'background 0.2s',
+                                    zIndex: 2
                                 }}
-                                onMouseOver={e => {
-                                    e.currentTarget.style.backgroundColor = '#f8fafd';
-                                    e.currentTarget.style.borderColor = '#1a73e8';
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onToggleFav) onToggleFav();
                                 }}
-                                onMouseOut={e => {
-                                    e.currentTarget.style.backgroundColor = '#ffffff';
-                                    e.currentTarget.style.borderColor = '#dadce0';
-                                }}
+                                onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(32,33,36,0.8)'}
+                                onMouseOut={e => e.currentTarget.style.backgroundColor = 'rgba(32,33,36,0.55)'}
                             >
-                                <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
-                                <span>{quickLookText}</span>
-                            </button>
-                            <Link
-                                to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
-                                target="_blank"
-                                onClick={e => e.stopPropagation()}
+                                <span
+                                    className="material-symbols-outlined"
+                                    style={{
+                                        color: isFav ? '#fb923c' : 'white',
+                                        fontSize: '16px',
+                                        fontVariationSettings: isFav ? "'FILL' 1" : "'FILL' 0",
+                                        lineHeight: 1
+                                    }}
+                                >
+                                    bookmark
+                                </span>
+                            </div>
+                        </div>
+                        <div style={{ padding: '10px 12px 12px 12px' }}>
+                            <div
                                 style={{
-                                    flex: 1,
-                                    border: '1px solid #1a73e8',
-                                    borderRadius: '18px',
-                                    padding: '6px 4px',
-                                    textAlign: 'center',
-                                    color: '#ffffff',
-                                    fontSize: '12px',
+                                    fontSize: '14px',
                                     fontWeight: 500,
-                                    textDecoration: 'none',
-                                    transition: 'all 0.15s ease',
-                                    backgroundColor: '#1a73e8',
-                                    boxSizing: 'border-box',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
+                                    color: '#202124',
+                                    lineHeight: '1.25',
+                                    marginBottom: '3px',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
                                 }}
-                                onMouseOver={e => {
-                                    e.currentTarget.style.backgroundColor = '#1557b0';
-                                    e.currentTarget.style.borderColor = '#1557b0';
-                                }}
-                                onMouseOut={e => {
-                                    e.currentTarget.style.backgroundColor = '#1a73e8';
-                                    e.currentTarget.style.borderColor = '#1a73e8';
-                                }}
+                                title={hotel.name}
                             >
-                                {showPricesText}
-                            </Link>
+                                {hotel.name}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px', marginBottom: '10px', fontSize: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                    <span style={{ color: '#202124', fontWeight: 600 }}>{formattedRating}</span>
+                                    <span style={{ color: '#fbbc04', fontSize: '11px' }}>★</span>
+                                    <span style={{ color: '#1a73e8', textDecoration: 'none' }}>({reviewCount.toLocaleString('tr-TR')})</span>
+                                </div>
+                                {catMeta?.name && (
+                                    <div
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '3px',
+                                            color: '#5f6368',
+                                            fontSize: '11px',
+                                            fontWeight: 500,
+                                            maxWidth: '105px',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                        title={catMeta.name}
+                                    >
+                                        <span>•</span>
+                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {catMeta.name}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onSelect(hotel);
+                                    }}
+                                    style={{
+                                        flex: 1,
+                                        border: '1px solid #dadce0',
+                                        borderRadius: '18px',
+                                        padding: '6px 4px',
+                                        textAlign: 'center',
+                                        color: '#1a73e8',
+                                        fontSize: '12px',
+                                        fontWeight: 500,
+                                        cursor: 'pointer',
+                                        backgroundColor: '#ffffff',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '3px',
+                                        transition: 'all 0.15s ease',
+                                        boxSizing: 'border-box'
+                                    }}
+                                    onMouseOver={e => {
+                                        e.currentTarget.style.backgroundColor = '#f8fafd';
+                                        e.currentTarget.style.borderColor = '#1a73e8';
+                                    }}
+                                    onMouseOut={e => {
+                                        e.currentTarget.style.backgroundColor = '#ffffff';
+                                        e.currentTarget.style.borderColor = '#dadce0';
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
+                                    <span>{quickLookText}</span>
+                                </button>
+                                <Link
+                                    to={`/travel/hotels/detail/${hotel.hotelId}?${searchParams.toString()}`}
+                                    target="_blank"
+                                    onClick={e => e.stopPropagation()}
+                                    style={{
+                                        flex: 1,
+                                        border: '1px solid #1a73e8',
+                                        borderRadius: '18px',
+                                        padding: '6px 4px',
+                                        textAlign: 'center',
+                                        color: '#ffffff',
+                                        fontSize: '12px',
+                                        fontWeight: 500,
+                                        textDecoration: 'none',
+                                        transition: 'all 0.15s ease',
+                                        backgroundColor: '#1a73e8',
+                                        boxSizing: 'border-box',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                    onMouseOver={e => {
+                                        e.currentTarget.style.backgroundColor = '#1557b0';
+                                        e.currentTarget.style.borderColor = '#1557b0';
+                                    }}
+                                    onMouseOut={e => {
+                                        e.currentTarget.style.backgroundColor = '#1a73e8';
+                                        e.currentTarget.style.borderColor = '#1a73e8';
+                                    }}
+                                >
+                                    {showPricesText}
+                                </Link>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </Popup>
+                </Popup>
         </Marker>
     );
 });
@@ -1218,8 +1218,9 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                     {images.map((img, i) => (
                         <div
                             key={i}
-                            className={`absolute inset-0 w-full h-full overflow-hidden transition-opacity duration-700 ease-in-out ${i === imgIdx ? 'opacity-100 z-[2]' : 'opacity-0 z-[1] pointer-events-none'
-                                }`}
+                            className={`absolute inset-0 w-full h-full overflow-hidden transition-opacity duration-700 ease-in-out ${
+                                i === imgIdx ? 'opacity-100 z-[2]' : 'opacity-0 z-[1] pointer-events-none'
+                            }`}
                         >
                             <img
                                 src={img || placeholderHotel}
@@ -1230,8 +1231,9 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                                     }
                                     e.target.onerror = null;
                                 }}
-                                className={`w-full h-full object-cover select-none will-change-transform transition-transform duration-[3800ms] ease-out ${isCardHovered && i === imgIdx ? 'scale-[1.08]' : 'scale-100'
-                                    }`}
+                                className={`w-full h-full object-cover select-none will-change-transform transition-transform duration-[3800ms] ease-out ${
+                                    isCardHovered && i === imgIdx ? 'scale-[1.08]' : 'scale-100'
+                                }`}
                                 loading={i === 0 ? 'eager' : 'lazy'}
                                 decoding="async"
                             />
@@ -3641,7 +3643,7 @@ const HotelListing = () => {
                 } else if (regionId || locationId) {
                     fetchMapMarkersRef.current(null, false, true);
                 }
-            } catch (_) { }
+            } catch (_) {}
         }
     }, [isMapReady, mapInstance, isMapMarkersLoading, isPoiSearch, searchParams, regionId, locationId]);
 
@@ -3814,10 +3816,10 @@ const HotelListing = () => {
                             type="button"
                             onClick={handleTogglePrice}
                             className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${isPriceActive
-                                ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
-                                : isPriceOpen
-                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
-                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                    : isPriceOpen
+                                        ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
+                                        : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
                                 }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${isPriceActive ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
@@ -3834,8 +3836,8 @@ const HotelListing = () => {
                             type="button"
                             onClick={handleRecommendedChip}
                             className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${searchParams.get('recommended') === 'true'
-                                ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
-                                : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
                                 }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${searchParams.get('recommended') === 'true' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
@@ -3849,8 +3851,8 @@ const HotelListing = () => {
                             type="button"
                             onClick={handleRatingChip}
                             className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${searchParams.get('guestRating') === '4.0+'
-                                ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
-                                : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
                                 }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${searchParams.get('guestRating') === '4.0+' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-amber-500'}`}>
@@ -3865,10 +3867,10 @@ const HotelListing = () => {
                             type="button"
                             onClick={handleToggleStar}
                             className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${urlStars.length > 0
-                                ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
-                                : isStarOpen
-                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
-                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                    : isStarOpen
+                                        ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
+                                        : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
                                 }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${urlStars.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
@@ -3886,10 +3888,10 @@ const HotelListing = () => {
                             type="button"
                             onClick={handleToggleAmenities}
                             className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${selectedFacilities.length > 0
-                                ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
-                                : isAmenitiesOpen
-                                    ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
-                                    : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                    : isAmenitiesOpen
+                                        ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
+                                        : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
                                 }`}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${selectedFacilities.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
@@ -4023,8 +4025,8 @@ const HotelListing = () => {
                                         onClick={handleClearStars}
                                         disabled={urlStars.length === 0}
                                         className={`text-[13px] font-medium font-roboto transition-colors select-none ${urlStars.length > 0
-                                            ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg px-2.5 py-1 cursor-pointer'
-                                            : 'text-[#bdc1c6] dark:text-slate-600 px-2.5 py-1 cursor-default'
+                                                ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg px-2.5 py-1 cursor-pointer'
+                                                : 'text-[#bdc1c6] dark:text-slate-600 px-2.5 py-1 cursor-default'
                                             }`}
                                     >
                                         {tListing('clear', currentLang)}
@@ -4177,8 +4179,8 @@ const HotelListing = () => {
                                         onClick={handleClearPrice}
                                         disabled={!isPriceActive}
                                         className={`text-[13px] font-medium font-roboto transition-colors select-none ${isPriceActive
-                                            ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded px-2 py-0.5 cursor-pointer'
-                                            : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
+                                                ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded px-2 py-0.5 cursor-pointer'
+                                                : 'text-[#bdc1c6] dark:text-slate-600 px-2 py-0.5 cursor-default'
                                             }`}
                                     >
                                         {tListing('clear', currentLang)}
@@ -4300,8 +4302,8 @@ const HotelListing = () => {
                                         onClick={handleClearFacilities}
                                         disabled={selectedFacilities.length === 0}
                                         className={`text-[13px] font-medium font-roboto transition-colors select-none ${selectedFacilities.length > 0
-                                            ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg px-2.5 py-1 cursor-pointer'
-                                            : 'text-[#bdc1c6] dark:text-slate-600 px-2.5 py-1 cursor-default'
+                                                ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg px-2.5 py-1 cursor-pointer'
+                                                : 'text-[#bdc1c6] dark:text-slate-600 px-2.5 py-1 cursor-default'
                                             }`}
                                     >
                                         {tListing('clear', currentLang)}
@@ -4608,8 +4610,8 @@ const HotelListing = () => {
                                 type="button"
                                 onClick={() => togglePoiCategory('transit')}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.transit
-                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 ring-2 ring-[#1a73e8]/30 shadow-xs'
-                                    : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                        ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 ring-2 ring-[#1a73e8]/30 shadow-xs'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 title={tListing('publicTransport', currentLang)}
                             >
@@ -4621,8 +4623,8 @@ const HotelListing = () => {
                                 type="button"
                                 onClick={() => togglePoiCategory('restaurants')}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.restaurants
-                                    ? 'bg-[#fce8e6] dark:bg-red-900/40 text-[#ea4335] dark:text-red-300 ring-2 ring-[#ea4335]/30 shadow-xs'
-                                    : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                        ? 'bg-[#fce8e6] dark:bg-red-900/40 text-[#ea4335] dark:text-red-300 ring-2 ring-[#ea4335]/30 shadow-xs'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 title={tListing('restaurants', currentLang)}
                             >
@@ -4634,8 +4636,8 @@ const HotelListing = () => {
                                 type="button"
                                 onClick={() => togglePoiCategory('tourist')}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.tourist
-                                    ? 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs'
-                                    : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                        ? 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 title={tListing('touristAttractions', currentLang)}
                             >
@@ -4647,8 +4649,8 @@ const HotelListing = () => {
                                 type="button"
                                 onClick={() => togglePoiCategory('shopping')}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.shopping
-                                    ? 'bg-[#fce4ec] dark:bg-pink-900/40 text-[#e91e63] dark:text-pink-300 ring-2 ring-[#e91e63]/30 shadow-xs'
-                                    : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
+                                        ? 'bg-[#fce4ec] dark:bg-pink-900/40 text-[#e91e63] dark:text-pink-300 ring-2 ring-[#e91e63]/30 shadow-xs'
+                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 title={tListing('shoppingAreas', currentLang)}
                             >
@@ -4662,10 +4664,11 @@ const HotelListing = () => {
                             <button
                                 type="button"
                                 onClick={() => setIsPoiMenuOpen(v => !v)}
-                                className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${isPoiMenuOpen
+                                className={`relative w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                                    isPoiMenuOpen
                                         ? 'bg-[#f1f3f4] dark:bg-slate-700 text-[#1a73e8] dark:text-blue-400'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
-                                    }`}
+                                }`}
                                 title={currentLang === 'tr' ? 'Daha Fazla Kategori' : 'More Categories'}
                             >
                                 <span className={`material-symbols-outlined text-[19px] ${isPoiLoading ? 'animate-spin text-amber-500' : ''}`}>
@@ -4705,10 +4708,11 @@ const HotelListing = () => {
                                                     key={cat.key}
                                                     type="button"
                                                     onClick={() => togglePoiCategory(cat.key)}
-                                                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer group ${isActive
+                                                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer group ${
+                                                        isActive
                                                             ? 'bg-gray-100 dark:bg-slate-700/70 font-medium'
                                                             : 'hover:bg-gray-50 dark:hover:bg-slate-700/40 text-gray-700 dark:text-slate-200'
-                                                        }`}
+                                                    }`}
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         <span
@@ -4721,10 +4725,11 @@ const HotelListing = () => {
                                                             {currentLang === 'tr' ? cat.labelTr : cat.labelEn}
                                                         </span>
                                                     </div>
-                                                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ml-3 ${isActive
+                                                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 ml-3 ${
+                                                        isActive
                                                             ? 'bg-[#1a73e8] border-[#1a73e8]'
                                                             : 'bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 group-hover:border-gray-400'
-                                                        }`}>
+                                                    }`}>
                                                         {isActive && (
                                                             <span className="material-symbols-outlined text-white text-[12px] font-bold">check</span>
                                                         )}
@@ -4781,8 +4786,8 @@ const HotelListing = () => {
                                     type="button"
                                     onClick={handleToggleSearchOnMove}
                                     className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 cursor-pointer ${searchOnMapMove
-                                        ? 'bg-[#1a73e8] border-[#1a73e8]'
-                                        : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
+                                            ? 'bg-[#1a73e8] border-[#1a73e8]'
+                                            : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
                                         }`}
                                 >
                                     {searchOnMapMove && (
@@ -4832,8 +4837,8 @@ const HotelListing = () => {
                                                     setIsLayerMenuOpen(false);
                                                 }}
                                                 className={`w-full flex items-start gap-2.5 p-2 rounded-lg text-left transition-colors cursor-pointer ${isSelected
-                                                    ? 'bg-blue-50 dark:bg-blue-900/30 text-[#1a73e8] dark:text-[#8ab4f8]'
-                                                    : 'hover:bg-[#f8f9fa] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200'
+                                                        ? 'bg-blue-50 dark:bg-blue-900/30 text-[#1a73e8] dark:text-[#8ab4f8]'
+                                                        : 'hover:bg-[#f8f9fa] dark:hover:bg-slate-800 text-[#3c4043] dark:text-slate-200'
                                                     }`}
                                             >
                                                 <span className={`material-symbols-outlined text-[20px] mt-0.5 ${isSelected ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-gray-400'}`}>
@@ -4906,8 +4911,8 @@ const HotelListing = () => {
                 {/* Favorites Overlay Drawer (Floats over the map without changing map dimensions) */}
                 <div
                     className={`absolute top-0 right-0 h-full w-[380px] bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 flex flex-col z-[2010] transform transition-transform duration-300 ease-in-out ${isFavOpen
-                        ? 'translate-x-0 pointer-events-auto shadow-[-8px_0_24px_rgba(0,0,0,0.16),-2px_0_6px_rgba(0,0,0,0.08)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.6)]'
-                        : 'translate-x-full pointer-events-none'
+                            ? 'translate-x-0 pointer-events-auto shadow-[-8px_0_24px_rgba(0,0,0,0.16),-2px_0_6px_rgba(0,0,0,0.08)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.6)]'
+                            : 'translate-x-full pointer-events-none'
                         }`}
                     onMouseEnter={handleFavMouseEnter}
                     onMouseLeave={handleFavMouseLeave}

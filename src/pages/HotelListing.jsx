@@ -577,6 +577,10 @@ const PriceMarker = React.memo(({
         }
     }, [hotel, isSelected, onHover, onSelect]);
 
+    const catMeta = React.useMemo(() => {
+        return getPropertyCategoryMeta(hotel, currentLang);
+    }, [hotel, currentLang]);
+
     const icon = React.useMemo(() => {
         // Measure text width for perfect bubble sizing
         const textWidth = measurePriceText(priceDisplay);
@@ -589,7 +593,6 @@ const PriceMarker = React.memo(({
         const centerX = Math.round(W / 2);
         const tailTipX = centerX; // Pointer tail tip X coordinate exactly centered
 
-        const catMeta = getPropertyCategoryMeta(hotel, currentLang);
         const catIcon = catMeta?.icon || 'hotel';
         const pinkCircleColor = '#f06293';
 
@@ -664,7 +667,7 @@ const PriceMarker = React.memo(({
             iconSize: [W, 34],
             iconAnchor: [tailTipX, 32],
         });
-    }, [isSelected, isFav, priceDisplay, hotel, currentLang]);
+    }, [isSelected, isFav, priceDisplay, catMeta]);
 
     const formattedRating = (parseFloat(hotel.rating) || 4.2).toFixed(1).replace('.', ',');
     const reviewCount = hotel.reviewCount || (hotel.stars ? hotel.stars * 115 + 42 : 432);

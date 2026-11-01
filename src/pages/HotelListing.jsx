@@ -1094,12 +1094,12 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
 
         // 1. Star / Category info is ALWAYS the 1st item in Google
         const propertyTypeName = categoryMeta?.name || hotel.type || (currentLang === 'tr' ? 'Otel' : 'Hotel');
-        const firstAmenityText = starLabel ? `${starLabel} ${propertyTypeName.toLowerCase()}` : propertyTypeName;
+        const firstAmenityText = starLabel ? `${starLabel} ${(propertyTypeName || '').toLowerCase()}` : propertyTypeName;
         items.push({ icon: categoryMeta?.icon || 'hotel', label: firstAmenityText });
 
         // 2. Meal / Board (e.g. Kahvaltı ($), Kahvaltı Dahil, Sadece Oda)
         if (hotel.boardName) {
-            const bLower = hotel.boardName.toLowerCase();
+            const bLower = String(hotel.boardName).toLowerCase();
             const isBreakfast = bLower.includes('breakfast') || bLower.includes('kahvalt');
             const icon = isBreakfast ? 'free_breakfast' : 'restaurant';
             items.push({ icon, label: hotel.boardName });
@@ -1107,10 +1107,11 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
 
         // 3. Hotel facilities/amenities
         if (Array.isArray(hotel.amenities)) {
+            const lowerStarLabel = starLabel ? starLabel.toLowerCase() : null;
             hotel.amenities.forEach(a => {
-                const label = typeof a === 'object' ? (Array.isArray(a.label) ? a.label[0] : a.label) : String(a);
-                const icon = (typeof a === 'object' && a.icon) ? a.icon : 'check_circle';
-                if (label && label.toLowerCase() !== starLabel.toLowerCase()) {
+                const label = typeof a === 'object' ? (Array.isArray(a.label) ? a.label[0] : a.label) : (a != null ? String(a) : '');
+                const icon = (typeof a === 'object' && a?.icon) ? a.icon : 'check_circle';
+                if (label && (!lowerStarLabel || String(label).toLowerCase() !== lowerStarLabel)) {
                     items.push({ icon, label });
                 }
             });
@@ -2190,7 +2191,7 @@ const HotelListing = () => {
         let list = [...availableFacilities].sort((a, b) => (b.count || 0) - (a.count || 0));
         if (amenitySearch.trim()) {
             const q = amenitySearch.toLowerCase();
-            list = list.filter(f => f.label.toLowerCase().includes(q));
+            list = list.filter(f => (f.label || '').toLowerCase().includes(q));
         }
         return list;
     }, [availableFacilities, amenitySearch]);

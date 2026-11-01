@@ -260,3 +260,19 @@ body {
     color: #ffffff;
   }
 }
+/* Hotel listing map: compact, low-key attribution (OSM/OpenMapTiles licenses require it to stay visible) */
+.tog-listing-map .leaflet-control-attribution {
+  font-size: 9px;
+  line-height: 1.4;
+  padding: 0 4px;
+  background: rgba(255, 255, 255, 0.55) !important;
+  color: #80868b;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+.tog-listing-map .leaflet-control-attribution:hover {
+  opacity: 1;
+}
+.tog-listing-map .leaflet-control-attribution a {
+  color: #80868b;
+}

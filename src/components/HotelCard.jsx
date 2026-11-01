@@ -402,8 +402,8 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                     <div className="flex justify-between items-start mb-1">
                         <div>
                             <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                                {categoryMeta && (
-                                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 dark:text-slate-300 mr-0.5" title={categoryMeta.name}>
+                                {categoryMeta?.name && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#f1f3f4] dark:bg-slate-800 text-[#3c4043] dark:text-slate-200 border border-[#dadce0]/70 dark:border-slate-700/80 shadow-2xs mr-1" title={categoryMeta.name}>
                                         <span className="material-symbols-outlined text-[13px] text-[#f06293]" style={{ fontVariationSettings: "'FILL' 1" }}>
                                             {categoryMeta.icon}
                                         </span>
@@ -558,7 +558,7 @@ const HotelCard = ({ hotel, viewMode = 'list' }) => {
                     </div>
                 </div>
             </div>
-        </Link>
+        </Link >
     );
 };
 

@@ -34,6 +34,8 @@ import { resolveFacility } from '../utils/facilityUtils';
 import { getPropertyCategoryMeta } from '../utils/searchParamsUtils';
 import { sortImagesWithThumbnailFirst, isThumbnailImage, getImageUrl } from '../utils/imageUtils';
 
+// esCategories: lowercase keyword fragments. Backend matches them case-insensitively as substrings
+// against POI category/categories/tags and as tokens against localized POI names.
 export const POI_CATEGORIES = [
     {
         key: 'transit',
@@ -42,7 +44,7 @@ export const POI_CATEGORIES = [
         icon: 'directions_transit',
         color: '#1a73e8',
         activeClass: 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 ring-2 ring-[#1a73e8]/30 shadow-xs',
-        esCategories: ['AIRPORT', 'TRAIN_STATION', 'METRO_STATION', 'SUBWAY_STATION', 'BUS_STATION', 'TRANSIT', 'FERRY', 'STATION', 'PORT'],
+        esCategories: ['airport', 'train', 'metro', 'subway', 'railway', 'station', 'transit', 'ferry', 'tram', 'havalimanı', 'otogar', 'iskele'],
         isPrimary: true
     },
     {
@@ -52,7 +54,7 @@ export const POI_CATEGORIES = [
         icon: 'restaurant',
         color: '#ea4335',
         activeClass: 'bg-[#fce8e6] dark:bg-red-900/40 text-[#ea4335] dark:text-red-300 ring-2 ring-[#ea4335]/30 shadow-xs',
-        esCategories: ['RESTAURANT', 'DINING', 'CAFE', 'BAR', 'FOOD', 'BAKERY'],
+        esCategories: ['restaurant', 'dining', 'cafe', 'coffee', 'food', 'bakery', 'nightlife', 'restoran', 'lokanta', 'kafe'],
         isPrimary: true
     },
     {
@@ -62,7 +64,7 @@ export const POI_CATEGORIES = [
         icon: 'photo_camera',
         color: '#9333ea',
         activeClass: 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs',
-        esCategories: ['ATTRACTION', 'TOURIST', 'POINT_OF_INTEREST', 'LANDMARK', 'MONUMENT', 'HISTORIC'],
+        esCategories: ['attraction', 'tourist', 'sightseeing', 'landmark', 'monument', 'historic', 'lookout', 'palace', 'tower', 'zoo', 'aquarium', 'sarayı', 'kulesi'],
         isPrimary: true
     },
     {
@@ -72,7 +74,7 @@ export const POI_CATEGORIES = [
         icon: 'shopping_bag',
         color: '#e91e63',
         activeClass: 'bg-[#fce4ec] dark:bg-pink-900/40 text-[#e91e63] dark:text-pink-300 ring-2 ring-[#e91e63]/30 shadow-xs',
-        esCategories: ['SHOPPING', 'SHOPPING_MALL', 'SHOPPING_CENTER', 'MARKET', 'BAZAAR'],
+        esCategories: ['shopping', 'mall', 'market', 'bazaar', 'outlet', 'avm', 'çarşı', 'çarşısı'],
         isPrimary: true
     },
     {
@@ -82,7 +84,7 @@ export const POI_CATEGORIES = [
         icon: 'museum',
         color: '#8e24aa',
         activeClass: 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#8e24aa] dark:text-purple-300 ring-2 ring-[#8e24aa]/30 shadow-xs',
-        esCategories: ['MUSEUM', 'GALLERY'],
+        esCategories: ['museum', 'gallery', 'müze', 'müzesi'],
         isPrimary: false
     },
     {
@@ -92,7 +94,7 @@ export const POI_CATEGORIES = [
         icon: 'park',
         color: '#2e7d32',
         activeClass: 'bg-[#e8f5e9] dark:bg-green-900/40 text-[#2e7d32] dark:text-green-300 ring-2 ring-[#2e7d32]/30 shadow-xs',
-        esCategories: ['PARK', 'GARDEN', 'NATURE'],
+        esCategories: ['park', 'garden', 'nature', 'arboretum', 'forest', 'parkı', 'bahçe'],
         isPrimary: false
     },
     {
@@ -102,7 +104,7 @@ export const POI_CATEGORIES = [
         icon: 'beach_access',
         color: '#0288d1',
         activeClass: 'bg-[#e1f5fe] dark:bg-sky-900/40 text-[#0288d1] dark:text-sky-300 ring-2 ring-[#0288d1]/30 shadow-xs',
-        esCategories: ['BEACH', 'COAST'],
+        esCategories: ['beach', 'coast', 'plaj', 'sahil'],
         isPrimary: false
     },
     {
@@ -112,7 +114,7 @@ export const POI_CATEGORIES = [
         icon: 'stadium',
         color: '#d32f2f',
         activeClass: 'bg-[#ffebee] dark:bg-red-900/40 text-[#d32f2f] dark:text-red-300 ring-2 ring-[#d32f2f]/30 shadow-xs',
-        esCategories: ['STADIUM', 'ARENA', 'SPORT'],
+        esCategories: ['stadium', 'arena', 'sport', 'stadyum', 'stadı'],
         isPrimary: false
     },
     {
@@ -122,7 +124,7 @@ export const POI_CATEGORIES = [
         icon: 'theater_comedy',
         color: '#7b1fa2',
         activeClass: 'bg-[#f3e5f5] dark:bg-purple-900/40 text-[#7b1fa2] dark:text-purple-300 ring-2 ring-[#7b1fa2]/30 shadow-xs',
-        esCategories: ['THEATER', 'CINEMA', 'ENTERTAINMENT', 'OPERA'],
+        esCategories: ['theater', 'theatre', 'cinema', 'entertainment', 'opera', 'concert', 'tiyatro'],
         isPrimary: false
     },
     {
@@ -132,7 +134,7 @@ export const POI_CATEGORIES = [
         icon: 'account_balance',
         color: '#f57c00',
         activeClass: 'bg-[#fff3e0] dark:bg-amber-900/40 text-[#f57c00] dark:text-amber-300 ring-2 ring-[#f57c00]/30 shadow-xs',
-        esCategories: ['RELIGIOUS', 'MOSQUE', 'CHURCH', 'TEMPLE', 'CASTLE'],
+        esCategories: ['religious', 'worship', 'mosque', 'church', 'temple', 'synagogue', 'castle', 'cami', 'camii', 'kilise'],
         isPrimary: false
     }
 ];
@@ -2884,6 +2886,26 @@ const HotelListing = () => {
 
     // Dedicated POI Map Search: Fetches POIs from Elasticsearch geography_poi via b2b-backend
     // Dedicated POI Map Search: Fetches POIs without clearing existing points (zero flicker / persistent)
+    // Live viewport bounds straight from Leaflet. Needed for regular region/city searches where
+    // mapBoundsRef stays null until the user pans (otherwise POI toggles would never fetch anything).
+    const getLiveMapBounds = React.useCallback(() => {
+        if (!mapInstance || typeof mapInstance.getBounds !== 'function') return null;
+        try {
+            const b = mapInstance.getBounds();
+            const nw = b.getNorthWest();
+            const se = b.getSouthEast();
+            return {
+                bounds: {
+                    topLeft: { lat: nw.lat, lon: nw.lng },
+                    bottomRight: { lat: se.lat, lon: se.lng }
+                },
+                zoom: Math.round(mapInstance.getZoom())
+            };
+        } catch (_) {
+            return null;
+        }
+    }, [mapInstance]);
+
     const fetchPoiMarkers = React.useCallback(async (geoBounds = null, isReset = false) => {
         const currentCats = activeEsCategoriesRef.current;
         if (!currentCats || currentCats.length === 0) {
@@ -2896,7 +2918,7 @@ const HotelListing = () => {
             return;
         }
 
-        const bounds = geoBounds || mapBoundsRef.current || initialPoiBounds;
+        const bounds = geoBounds || mapBoundsRef.current || initialPoiBounds || getLiveMapBounds();
         if (!bounds || !bounds.bounds) return;
 
         // Skip redundant requests if movement is insignificant
@@ -2955,7 +2977,7 @@ const HotelListing = () => {
                 setIsPoiLoading(false);
             }
         }
-    }, [initialPoiBounds, mapInstance, cullOutOfViewMarkers, getBufferedBounds, isPointInBufferedBounds]);
+    }, [initialPoiBounds, mapInstance, cullOutOfViewMarkers, getBufferedBounds, isPointInBufferedBounds, getLiveMapBounds]);
 
     // Whenever active POI categories change, refetch POIs matching the active categories
     const prevEsCategoriesKeyRef = React.useRef(null);
@@ -2965,9 +2987,12 @@ const HotelListing = () => {
         prevEsCategoriesKeyRef.current = key;
 
         if (activeEsCategories.length > 0) {
-            const bounds = mapBoundsRef.current || initialPoiBounds;
+            const bounds = mapBoundsRef.current || initialPoiBounds || getLiveMapBounds();
             if (bounds) {
                 fetchPoiMarkers(bounds, true);
+            } else {
+                // Map not ready yet: allow the effect to retry once the map instance is available
+                prevEsCategoriesKeyRef.current = null;
             }
         } else {
             if (poiAbortControllerRef.current) {
@@ -2977,7 +3002,7 @@ const HotelListing = () => {
             setPoiMarkers([]);
             setIsPoiLoading(false);
         }
-    }, [activeEsCategories, fetchPoiMarkers, initialPoiBounds]);
+    }, [activeEsCategories, fetchPoiMarkers, initialPoiBounds, getLiveMapBounds]);
 
     const handleClusterClick = React.useCallback((cluster) => {
         if (!mapInstance || !cluster.lat || !cluster.lng) return;
@@ -4494,6 +4519,7 @@ const HotelListing = () => {
                             center={initialMapState.center}
                             zoom={initialMapState.zoom}
                             style={{ height: '100%', width: '100%' }}
+                            className="tog-listing-map"
                             zoomControl={false}
                             attributionControl={true}
                             zoomAnimation={true}
@@ -4884,8 +4910,8 @@ const HotelListing = () => {
 
                 {/* Favorites Overlay Drawer (Floats over the map without changing map dimensions) */}
                 <div
-                    className={`absolute top-0 right-0 h-full w-[380px] bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 shadow-[-8px_0_24px_rgba(0,0,0,0.16),-2px_0_6px_rgba(0,0,0,0.08)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.6)] flex flex-col z-[2010] transform transition-transform duration-300 ease-in-out ${isFavOpen
-                            ? 'translate-x-0 pointer-events-auto'
+                    className={`absolute top-0 right-0 h-full w-[380px] bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 flex flex-col z-[2010] transform transition-transform duration-300 ease-in-out ${isFavOpen
+                            ? 'translate-x-0 pointer-events-auto shadow-[-8px_0_24px_rgba(0,0,0,0.16),-2px_0_6px_rgba(0,0,0,0.08)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.6)]'
                             : 'translate-x-full pointer-events-none'
                         }`}
                     onMouseEnter={handleFavMouseEnter}

@@ -90,6 +90,10 @@ export const OpenFreeMapLayer = ({ style = 'auto', colorOverrides }) => {
                 attribution: '<a href="https://openfreemap.org" target="_blank">OpenFreeMap</a> &copy; <a href="https://www.openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>'
             });
 
+            // Drop the non-mandatory "🇺🇦 Leaflet |" prefix; keep only the license-required data attribution
+            if (map.attributionControl && typeof map.attributionControl.setPrefix === 'function') {
+                map.attributionControl.setPrefix(false);
+            }
             glLayer.addTo(map);
             glLayerRef.current = glLayer;
         } catch (err) {

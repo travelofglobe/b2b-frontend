@@ -8,7 +8,7 @@ import HolidaySidePanel from "./HolidaySidePanel";
 import "react-datepicker/dist/react-datepicker.css";
 import "../datepicker-custom.css";
 import { useHolidays } from '../utils/useHolidays';
-import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, formatDateForUrl, resolveKnownCoordinates, getLocationIconMeta, buildLocationTree, getPropertyCategoryMeta, isPoiItem, resolveSearchTargetId, getItemPrimaryName, getLocationHierarchyParts, getRegionSubtitle, formatLocationFullName, buildLocationSlug } from '../utils/searchParamsUtils';
+import { parseGuestsParam, serializeGuestsParam, convertOldParamsToRooms, validateAndSanitizeDates, formatDateForUrl, resolveKnownCoordinates, getLocationIconMeta, buildLocationTree, getPropertyCategoryMeta, isPoiItem, resolveSearchTargetId, getItemPrimaryName, getLocationHierarchyParts, getRegionSubtitle, formatLocationFullName, buildLocationSlug, stripAboveCountryFromText } from '../utils/searchParamsUtils';
 import NationalitySelect from './NationalitySelect';
 import { getUserCountryCode } from '../utils/geoUtils';
 import { useTranslation } from 'react-i18next';
@@ -768,13 +768,13 @@ const HeaderSearch = () => {
                                         else if (itemType === 'AIRPORT') icon = 'flight';
 
                                         let title = item.query || '';
-                                        let subtitle = item.subtitle || '';
+                                        let subtitle = stripAboveCountryFromText(item.subtitle || '');
 
                                         if (!subtitle || subtitle === title) {
                                             if (title.includes(',')) {
                                                 const parts = title.split(',').map(s => s.trim());
                                                 title = parts[0];
-                                                subtitle = parts.slice(1).join(', ');
+                                                subtitle = stripAboveCountryFromText(parts.slice(1).join(', '));
                                             }
                                         }
 
@@ -837,7 +837,7 @@ const HeaderSearch = () => {
                                             if (rawName.includes(',')) {
                                                 const parts = rawName.split(',').map(s => s.trim());
                                                 title = parts[0];
-                                                subtitle = parts.slice(1).join(', ');
+                                                subtitle = stripAboveCountryFromText(parts.slice(1).join(', '));
                                             } else {
                                                 subtitle = region.countryCode ? `${region.countryCode}` : (isPoi ? (ls.pointOfInterest || 'Point of Interest') : (ls.cityRegion || 'City / Region'));
                                             }
@@ -919,7 +919,7 @@ const HeaderSearch = () => {
                                                                 if (rawChildName.includes(',')) {
                                                                     const parts = rawChildName.split(',').map(s => s.trim());
                                                                     childTitle = parts[0];
-                                                                    childSubtitle = parts.slice(1).join(', ');
+                                                                    childSubtitle = stripAboveCountryFromText(parts.slice(1).join(', '));
                                                                 } else {
                                                                     childSubtitle = child.countryCode ? `${child.countryCode}` : (childIsPoi ? (ls.pointOfInterest || 'Point of Interest') : (ls.cityRegion || 'City / Region'));
                                                                 }

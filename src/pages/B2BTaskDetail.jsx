@@ -553,24 +553,21 @@ const B2BTaskDetail = () => {
 
     const isClosed = Boolean(task && ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(task.taskStatus));
 
-    const bookingData = useMemo(() => {
-        if (!task) return null;
-        return {
-            orderId: task.reservationNo || task.bookingId,
-            reservationNo: task.reservationNo,
-            id: task.bookingId,
-            productName: productDetail?.productName || task.title,
+    const bookingData = task ? {
+        orderId: task.reservationNo || task.bookingId,
+        reservationNo: task.reservationNo,
+        id: task.bookingId,
+        productName: productDetail?.productName || task.title,
+        supplierName: productDetail?.supplierName,
+        hotel: {
+            hotelName: productDetail?.productName,
             supplierName: productDetail?.supplierName,
-            hotel: {
-                hotelName: productDetail?.productName,
-                supplierName: productDetail?.supplierName,
-                checkIn: currentData?.checkIn,
-                checkOut: currentData?.checkOut,
-                roomName: currentData?.optionName
-            },
-            holderName: currentData?.primaryGuest
-        };
-    }, [task, productDetail, currentData]);
+            checkIn: currentData?.checkIn,
+            checkOut: currentData?.checkOut,
+            roomName: currentData?.optionName
+        },
+        holderName: currentData?.primaryGuest
+    } : null;
 
     return (
         <div className="flex-1 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto p-6 sm:p-10 lg:px-16 xl:px-20 py-8">

@@ -42,8 +42,8 @@ export const POI_CATEGORIES = [
         labelTr: 'Ulaşım & Taşıma',
         labelEn: 'Transit & Transport',
         icon: 'directions_transit',
-        color: '#1a73e8',
-        activeClass: 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 ring-2 ring-[#1a73e8]/30 shadow-xs',
+        color: '#2563eb',
+        activeClass: 'bg-[#eff6ff] dark:bg-blue-900/40 text-[#2563eb] dark:text-blue-300 ring-2 ring-[#2563eb]/30 shadow-xs',
         esCategories: ['airport', 'train', 'metro', 'subway', 'railway', 'station', 'transit', 'ferry', 'tram', 'havalimanı', 'otogar', 'iskele'],
         isPrimary: true
     },
@@ -52,8 +52,8 @@ export const POI_CATEGORIES = [
         labelTr: 'Restoranlar & Yeme-İçme',
         labelEn: 'Restaurants & Dining',
         icon: 'restaurant',
-        color: '#ea4335',
-        activeClass: 'bg-[#fce8e6] dark:bg-red-900/40 text-[#ea4335] dark:text-red-300 ring-2 ring-[#ea4335]/30 shadow-xs',
+        color: '#ea580c',
+        activeClass: 'bg-[#fff7ed] dark:bg-orange-900/40 text-[#ea580c] dark:text-orange-300 ring-2 ring-[#ea580c]/30 shadow-xs',
         esCategories: ['restaurant', 'dining', 'cafe', 'coffee', 'food', 'bakery', 'nightlife', 'restoran', 'lokanta', 'kafe'],
         isPrimary: true
     },
@@ -63,7 +63,7 @@ export const POI_CATEGORIES = [
         labelEn: 'Attractions & Sights',
         icon: 'photo_camera',
         color: '#9333ea',
-        activeClass: 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs',
+        activeClass: 'bg-[#faf5ff] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs',
         esCategories: ['attraction', 'tourist', 'sightseeing', 'landmark', 'monument', 'historic', 'lookout', 'palace', 'tower', 'zoo', 'aquarium', 'sarayı', 'kulesi'],
         isPrimary: true
     },
@@ -72,8 +72,8 @@ export const POI_CATEGORIES = [
         labelTr: 'Alışveriş & Çarşılar',
         labelEn: 'Shopping & Malls',
         icon: 'shopping_bag',
-        color: '#e91e63',
-        activeClass: 'bg-[#fce4ec] dark:bg-pink-900/40 text-[#e91e63] dark:text-pink-300 ring-2 ring-[#e91e63]/30 shadow-xs',
+        color: '#e11d48',
+        activeClass: 'bg-[#fff1f2] dark:bg-rose-900/40 text-[#e11d48] dark:text-rose-300 ring-2 ring-[#e11d48]/30 shadow-xs',
         esCategories: ['shopping', 'mall', 'market', 'bazaar', 'outlet', 'avm', 'çarşı', 'çarşısı'],
         isPrimary: true
     },
@@ -82,8 +82,8 @@ export const POI_CATEGORIES = [
         labelTr: 'Müzeler & Sanat',
         labelEn: 'Museums & Art',
         icon: 'museum',
-        color: '#8e24aa',
-        activeClass: 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#8e24aa] dark:text-purple-300 ring-2 ring-[#8e24aa]/30 shadow-xs',
+        color: '#6366f1',
+        activeClass: 'bg-[#eef2ff] dark:bg-indigo-900/40 text-[#6366f1] dark:text-indigo-300 ring-2 ring-[#6366f1]/30 shadow-xs',
         esCategories: ['museum', 'gallery', 'müze', 'müzesi'],
         isPrimary: false
     },
@@ -92,8 +92,8 @@ export const POI_CATEGORIES = [
         labelTr: 'Parklar & Doğa',
         labelEn: 'Parks & Nature',
         icon: 'park',
-        color: '#2e7d32',
-        activeClass: 'bg-[#e8f5e9] dark:bg-green-900/40 text-[#2e7d32] dark:text-green-300 ring-2 ring-[#2e7d32]/30 shadow-xs',
+        color: '#10b981',
+        activeClass: 'bg-[#ecfdf5] dark:bg-emerald-900/40 text-[#10b981] dark:text-emerald-300 ring-2 ring-[#10b981]/30 shadow-xs',
         esCategories: ['park', 'garden', 'nature', 'arboretum', 'forest', 'parkı', 'bahçe'],
         isPrimary: false
     },
@@ -102,8 +102,8 @@ export const POI_CATEGORIES = [
         labelTr: 'Plajlar & Sahiller',
         labelEn: 'Beaches & Coast',
         icon: 'beach_access',
-        color: '#0288d1',
-        activeClass: 'bg-[#e1f5fe] dark:bg-sky-900/40 text-[#0288d1] dark:text-sky-300 ring-2 ring-[#0288d1]/30 shadow-xs',
+        color: '#0284c7',
+        activeClass: 'bg-[#f0f9ff] dark:bg-sky-900/40 text-[#0284c7] dark:text-sky-300 ring-2 ring-[#0284c7]/30 shadow-xs',
         esCategories: ['beach', 'coast', 'plaj', 'sahil'],
         isPrimary: false
     },
@@ -111,9 +111,9 @@ export const POI_CATEGORIES = [
         key: 'stadium',
         labelTr: 'Stadyum & Spor',
         labelEn: 'Stadiums & Sports',
-        icon: 'stadium',
-        color: '#d32f2f',
-        activeClass: 'bg-[#ffebee] dark:bg-red-900/40 text-[#d32f2f] dark:text-red-300 ring-2 ring-[#d32f2f]/30 shadow-xs',
+        icon: 'sports_soccer',
+        color: '#ef4444',
+        activeClass: 'bg-[#fef2f2] dark:bg-red-900/40 text-[#ef4444] dark:text-red-300 ring-2 ring-[#ef4444]/30 shadow-xs',
         esCategories: ['stadium', 'arena', 'sport', 'stadyum', 'stadı'],
         isPrimary: false
     },
@@ -122,8 +122,8 @@ export const POI_CATEGORIES = [
         labelTr: 'Tiyatro & Kültür',
         labelEn: 'Theaters & Shows',
         icon: 'theater_comedy',
-        color: '#7b1fa2',
-        activeClass: 'bg-[#f3e5f5] dark:bg-purple-900/40 text-[#7b1fa2] dark:text-purple-300 ring-2 ring-[#7b1fa2]/30 shadow-xs',
+        color: '#c026d3',
+        activeClass: 'bg-[#fdf4ff] dark:bg-fuchsia-900/40 text-[#c026d3] dark:text-fuchsia-300 ring-2 ring-[#c026d3]/30 shadow-xs',
         esCategories: ['theater', 'theatre', 'cinema', 'entertainment', 'opera', 'concert', 'tiyatro'],
         isPrimary: false
     },
@@ -132,8 +132,8 @@ export const POI_CATEGORIES = [
         labelTr: 'Tarihi & Dini Yerler',
         labelEn: 'Historic & Religious',
         icon: 'account_balance',
-        color: '#f57c00',
-        activeClass: 'bg-[#fff3e0] dark:bg-amber-900/40 text-[#f57c00] dark:text-amber-300 ring-2 ring-[#f57c00]/30 shadow-xs',
+        color: '#d97706',
+        activeClass: 'bg-[#fffbeb] dark:bg-amber-900/40 text-[#d97706] dark:text-amber-300 ring-2 ring-[#d97706]/30 shadow-xs',
         esCategories: ['religious', 'worship', 'mosque', 'church', 'temple', 'synagogue', 'castle', 'cami', 'camii', 'kilise'],
         isPrimary: false
     }
@@ -4637,7 +4637,7 @@ const HotelListing = () => {
                                 type="button"
                                 onClick={() => togglePoiCategory('transit')}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.transit
-                                        ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 ring-2 ring-[#1a73e8]/30 shadow-xs'
+                                        ? 'bg-[#eff6ff] dark:bg-blue-900/40 text-[#2563eb] dark:text-blue-300 ring-2 ring-[#2563eb]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 title={tListing('publicTransport', currentLang)}
@@ -4650,7 +4650,7 @@ const HotelListing = () => {
                                 type="button"
                                 onClick={() => togglePoiCategory('restaurants')}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.restaurants
-                                        ? 'bg-[#fce8e6] dark:bg-red-900/40 text-[#ea4335] dark:text-red-300 ring-2 ring-[#ea4335]/30 shadow-xs'
+                                        ? 'bg-[#fff7ed] dark:bg-orange-900/40 text-[#ea580c] dark:text-orange-300 ring-2 ring-[#ea580c]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 title={tListing('restaurants', currentLang)}
@@ -4663,7 +4663,7 @@ const HotelListing = () => {
                                 type="button"
                                 onClick={() => togglePoiCategory('tourist')}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.tourist
-                                        ? 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs'
+                                        ? 'bg-[#faf5ff] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 title={tListing('touristAttractions', currentLang)}
@@ -4676,7 +4676,7 @@ const HotelListing = () => {
                                 type="button"
                                 onClick={() => togglePoiCategory('shopping')}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.shopping
-                                        ? 'bg-[#fce4ec] dark:bg-pink-900/40 text-[#e91e63] dark:text-pink-300 ring-2 ring-[#e91e63]/30 shadow-xs'
+                                        ? 'bg-[#fff1f2] dark:bg-rose-900/40 text-[#e11d48] dark:text-rose-300 ring-2 ring-[#e11d48]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 title={tListing('shoppingAreas', currentLang)}

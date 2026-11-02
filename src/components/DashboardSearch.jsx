@@ -38,7 +38,7 @@ const DashboardSearch = () => {
     const { i18n } = useTranslation();
     const currentLang = (i18n.language || 'en').split('-')[0].toLowerCase();
     const ls = getSearchLocale(currentLang);
-    
+
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
@@ -72,1376 +72,1377 @@ const DashboardSearch = () => {
     const [activeIndex, setActiveIndex] = useState(-1);
     const [searchHistory, setSearchHistory] = useState([]);
     const [isClearingHistory, setIsClearingHistory] = useState(false);
+    const historyLoadedRef = useRef(false);
 
     const fetchSearchHistory = async () => {
-        try {
-            const res = await autocompleteService.getSearchHistory();
-            const items = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
-            if (Array.isArray(items)) {
-                setSearchHistory(items);
-            }
-        } catch (err) {
-            console.error("Error fetching search history:", err);
-        }
-    };
-
-    useEffect(() => {
-        fetchSearchHistory();
-    }, []);
-
-    const handleClearHistory = async (e) => {
-        if (e) e.stopPropagation();
-        if (isClearingHistory) return;
-        setIsClearingHistory(true);
-        try {
-            await Promise.all([
-                autocompleteService.clearSearchHistory(),
-                new Promise(resolve => setTimeout(resolve, 350))
-            ]);
-            setSearchHistory([]);
-        } catch (err) {
-            console.error("Error clearing search history:", err);
-        } finally {
-            setIsClearingHistory(false);
-        }
-    };
-
-    const saveSearchHistoryItem = async (q, type, targetId, subtitle) => {
-        if (!q || !q.trim()) return;
-        try {
-            await autocompleteService.saveSearchHistory({
-                query: q.trim(),
-                searchType: type || 'SEARCH',
-                targetId: targetId ? String(targetId) : null,
-                subtitle: subtitle || null
-            });
-            fetchSearchHistory();
-        } catch (err) {
-            console.error("Error saving search history:", err);
-        }
-    };
-
-    const handleSelectHistoryItem = async (item) => {
-        const itemType = item.type || item.searchType || 'SEARCH';
-        setQuery(item.query);
-        setResults({ hotels: [], regions: [] });
-        isUserInteraction.current = false;
-        setShowDropdown(false);
-        saveSearchHistoryItem(item.query, itemType, item.targetId, item.subtitle);
-
-        localStorage.setItem('dashboard_last_search', item.query);
-        localStorage.setItem('dashboard_last_type', itemType);
-
-        let knownCoords = resolveKnownCoordinates(item.query) || resolveKnownCoordinates(item.subtitle);
-
-        if (!knownCoords && itemType !== 'HOTEL') {
+        const fetchSearchHistory = async (force = false) => {
+            if (historyLoadedRef.current && !force) return;
             try {
-                const res = await autocompleteService.search({ query: item.query, page: 0, size: 5 });
-                const content = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : []);
-                const match = content?.find(c => c.geoCoordinate?.lat && (c.geoCoordinate?.lon || c.geoCoordinate?.lng));
-                if (match) {
-                    const lat = match.geoCoordinate.lat;
-                    const lng = match.geoCoordinate.lon || match.geoCoordinate.lng;
-                    knownCoords = { lat, lng };
+                const res = await autocompleteService.getSearchHistory();
+                const items = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
+                if (Array.isArray(items)) {
+                    setSearchHistory(items);
+                    historyLoadedRef.current = true;
                 }
             } catch (err) {
-                console.error("Error fetching coordinates for history item:", err);
+                console.error("Error fetching search history:", err);
             }
-        }
+        };
 
-        if (knownCoords) {
-            localStorage.setItem('dashboard_last_lat', knownCoords.lat);
-            localStorage.setItem('dashboard_last_lng', knownCoords.lng);
-        } else {
-            localStorage.removeItem('dashboard_last_lat');
-            localStorage.removeItem('dashboard_last_lng');
-        }
+        useEffect(() => {
+            fetchSearchHistory();
+        }, []);
 
-        if (item.targetId) {
-            if (itemType === 'PROPERTY' || itemType === 'HOTEL') {
-                localStorage.setItem('dashboard_last_search_param', 'togId');
-                localStorage.setItem('dashboard_last_search_id', item.targetId);
-                localStorage.setItem('dashboard_last_togId', item.targetId);
-                localStorage.setItem('dashboard_last_hotelId', item.targetId);
-                localStorage.removeItem('dashboard_last_regionId');
-            } else {
-                localStorage.setItem('dashboard_last_search_param', 'regionId');
-                localStorage.setItem('dashboard_last_search_id', item.targetId);
-                localStorage.setItem('dashboard_last_regionId', item.targetId);
-                localStorage.removeItem('dashboard_last_togId');
+        const handleClearHistory = async (e) => {
+            if (e) e.stopPropagation();
+            if (isClearingHistory) return;
+            setIsClearingHistory(true);
+            try {
+                await Promise.all([
+                    autocompleteService.clearSearchHistory(),
+                    new Promise(resolve => setTimeout(resolve, 350))
+                ]);
+                setSearchHistory([]);
+                historyLoadedRef.current = true;
+            } catch (err) {
+                console.error("Error clearing search history:", err);
+            } finally {
+                setIsClearingHistory(false);
             }
-            localStorage.removeItem('dashboard_last_locationId');
-        }
-    };
+        };
 
-    const handleDeleteHistoryItem = async (e, id) => {
-        if (e) e.stopPropagation();
-        if (!id) return;
-        try {
-            await autocompleteService.deleteSearchHistoryItem(id);
-            setSearchHistory(prev => prev.filter(item => item.id !== id));
-        } catch (err) {
-            console.error("Error deleting search history item:", err);
-        }
-    };
+        const saveSearchHistoryItem = async (q, type, targetId, subtitle) => {
+            if (!q || !q.trim()) return;
+            try {
+                await autocompleteService.saveSearchHistory({
+                    query: q.trim(),
+                    searchType: type || 'SEARCH',
+                    targetId: targetId ? String(targetId) : null,
+                    subtitle: subtitle || null
+                });
+                fetchSearchHistory();
+                fetchSearchHistory(true);
+            } catch (err) {
+                console.error("Error saving search history:", err);
+            }
+        };
 
-    // Reset active index when results change
-    useEffect(() => {
-        setActiveIndex(-1);
-    }, [results]);
+        const handleSelectHistoryItem = async (item) => {
+            const itemType = item.type || item.searchType || 'SEARCH';
+            setQuery(item.query);
+            setResults({ hotels: [], regions: [] });
+            isUserInteraction.current = false;
+            setShowDropdown(false);
+            saveSearchHistoryItem(item.query, itemType, item.targetId, item.subtitle);
 
-    // Initialize & sanitize search dates (guarantees checkIn is not in the past and checkOut > checkIn)
-    const [checkInDate, setCheckInDate] = useState(() => {
-        const checkinParam = searchParams.get('checkin') || localStorage.getItem('dashboard_last_checkin');
-        const checkoutParam = searchParams.get('checkout') || localStorage.getItem('dashboard_last_checkout');
-        return validateAndSanitizeDates(checkinParam, checkoutParam).checkInDate;
-    });
+            localStorage.setItem('dashboard_last_search', item.query);
+            localStorage.setItem('dashboard_last_type', itemType);
 
-    const [checkOutDate, setCheckOutDate] = useState(() => {
-        const checkinParam = searchParams.get('checkin') || localStorage.getItem('dashboard_last_checkin');
-        const checkoutParam = searchParams.get('checkout') || localStorage.getItem('dashboard_last_checkout');
-        return validateAndSanitizeDates(checkinParam, checkoutParam).checkOutDate;
-    });
+            let knownCoords = resolveKnownCoordinates(item.query) || resolveKnownCoordinates(item.subtitle);
 
-    // -- Guest State --
-    const [roomState, setRoomState] = useState(() => {
-        const guestsParam = searchParams.get('guests') || localStorage.getItem('dashboard_last_guests');
-        if (guestsParam) {
-            return parseGuestsParam(guestsParam);
-        }
-        // Fallback to old params
-        const adults = searchParams.get('adult');
-        const children = searchParams.get('children');
-        const childAges = searchParams.get('child_ages');
+            if (!knownCoords && itemType !== 'HOTEL') {
+                try {
+                    const res = await autocompleteService.search({ query: item.query, page: 0, size: 5 });
+                    const content = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : []);
+                    const match = content?.find(c => c.geoCoordinate?.lat && (c.geoCoordinate?.lon || c.geoCoordinate?.lng));
+                    if (match) {
+                        const lat = match.geoCoordinate.lat;
+                        const lng = match.geoCoordinate.lon || match.geoCoordinate.lng;
+                        knownCoords = { lat, lng };
+                    }
+                } catch (err) {
+                    console.error("Error fetching coordinates for history item:", err);
+                }
+            }
 
-        if (adults || children) {
-            return convertOldParamsToRooms(adults, children, childAges);
-        }
-
-        // Default
-        return [{ adults: 2, children: 0, childAges: [] }];
-    });
-
-    // Computed totals for display
-    const totalAdults = roomState.reduce((sum, r) => sum + r.adults, 0);
-    const totalChildren = roomState.reduce((sum, r) => sum + r.children, 0);
-    const totalRooms = roomState.length;
-
-    const [showGuestDropdown, setShowGuestDropdown] = useState(false);
-    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-    const [activeDateField, setActiveDateField] = useState('checkIn'); // 'checkIn' | 'checkOut'
-
-    const stepCheckIn = (days) => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const target = new Date(checkInDate || today);
-        target.setDate(target.getDate() + days);
-        if (target < today) return;
-        setCheckInDate(target);
-        if (checkOutDate && target >= checkOutDate) {
-            const nextOut = new Date(target);
-            nextOut.setDate(nextOut.getDate() + 1);
-            setCheckOutDate(nextOut);
-        }
-    };
-
-    const stepCheckOut = (days) => {
-        const target = new Date(checkOutDate || new Date());
-        target.setDate(target.getDate() + days);
-        if (checkInDate && target <= checkInDate) return;
-        setCheckOutDate(target);
-    };
-
-    const searchWrapperRef = useRef(null);
-    const guestWrapperRef = useRef(null);
-    const datePickerRef = useRef(null);
-    const datePopoverRef = useRef(null);
-    const inputRef = useRef(null);
-
-    const [dateOffsetX, setDateOffsetX] = useState(0);
-
-    useLayoutEffect(() => {
-        if (!isDatePickerOpen) {
-            setDateOffsetX(0);
-            return;
-        }
-        const updateOffset = () => {
-            if (!datePopoverRef.current) return;
-            const rect = datePopoverRef.current.getBoundingClientRect();
-            const viewportWidth = window.innerWidth;
-            const naturalRight = rect.right - dateOffsetX;
-            const naturalLeft = rect.left - dateOffsetX;
-
-            if (naturalRight > viewportWidth - 20) {
-                const diff = naturalRight - (viewportWidth - 20);
-                setDateOffsetX(-Math.max(0, diff));
-            } else if (naturalLeft < 16) {
-                const diff = 16 - naturalLeft;
-                setDateOffsetX(Math.max(0, diff));
+            if (knownCoords) {
+                localStorage.setItem('dashboard_last_lat', knownCoords.lat);
+                localStorage.setItem('dashboard_last_lng', knownCoords.lng);
             } else {
+                localStorage.removeItem('dashboard_last_lat');
+                localStorage.removeItem('dashboard_last_lng');
+            }
+
+            if (item.targetId) {
+                if (itemType === 'PROPERTY' || itemType === 'HOTEL') {
+                    localStorage.setItem('dashboard_last_search_param', 'togId');
+                    localStorage.setItem('dashboard_last_search_id', item.targetId);
+                    localStorage.setItem('dashboard_last_togId', item.targetId);
+                    localStorage.setItem('dashboard_last_hotelId', item.targetId);
+                    localStorage.removeItem('dashboard_last_regionId');
+                } else {
+                    localStorage.setItem('dashboard_last_search_param', 'regionId');
+                    localStorage.setItem('dashboard_last_search_id', item.targetId);
+                    localStorage.setItem('dashboard_last_regionId', item.targetId);
+                    localStorage.removeItem('dashboard_last_togId');
+                }
+                localStorage.removeItem('dashboard_last_locationId');
+            }
+        };
+
+        const handleDeleteHistoryItem = async (e, id) => {
+            if (e) e.stopPropagation();
+            if (!id) return;
+            try {
+                await autocompleteService.deleteSearchHistoryItem(id);
+                setSearchHistory(prev => prev.filter(item => item.id !== id));
+            } catch (err) {
+                console.error("Error deleting search history item:", err);
+            }
+        };
+
+        // Reset active index when results change
+        useEffect(() => {
+            setActiveIndex(-1);
+        }, [results]);
+
+        // Initialize & sanitize search dates (guarantees checkIn is not in the past and checkOut > checkIn)
+        const [checkInDate, setCheckInDate] = useState(() => {
+            const checkinParam = searchParams.get('checkin') || localStorage.getItem('dashboard_last_checkin');
+            const checkoutParam = searchParams.get('checkout') || localStorage.getItem('dashboard_last_checkout');
+            return validateAndSanitizeDates(checkinParam, checkoutParam).checkInDate;
+        });
+
+        const [checkOutDate, setCheckOutDate] = useState(() => {
+            const checkinParam = searchParams.get('checkin') || localStorage.getItem('dashboard_last_checkin');
+            const checkoutParam = searchParams.get('checkout') || localStorage.getItem('dashboard_last_checkout');
+            return validateAndSanitizeDates(checkinParam, checkoutParam).checkOutDate;
+        });
+
+        // -- Guest State --
+        const [roomState, setRoomState] = useState(() => {
+            const guestsParam = searchParams.get('guests') || localStorage.getItem('dashboard_last_guests');
+            if (guestsParam) {
+                return parseGuestsParam(guestsParam);
+            }
+            // Fallback to old params
+            const adults = searchParams.get('adult');
+            const children = searchParams.get('children');
+            const childAges = searchParams.get('child_ages');
+
+            if (adults || children) {
+                return convertOldParamsToRooms(adults, children, childAges);
+            }
+
+            // Default
+            return [{ adults: 2, children: 0, childAges: [] }];
+        });
+
+        // Computed totals for display
+        const totalAdults = roomState.reduce((sum, r) => sum + r.adults, 0);
+        const totalChildren = roomState.reduce((sum, r) => sum + r.children, 0);
+        const totalRooms = roomState.length;
+
+        const [showGuestDropdown, setShowGuestDropdown] = useState(false);
+        const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+        const [activeDateField, setActiveDateField] = useState('checkIn'); // 'checkIn' | 'checkOut'
+
+        const stepCheckIn = (days) => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const target = new Date(checkInDate || today);
+            target.setDate(target.getDate() + days);
+            if (target < today) return;
+            setCheckInDate(target);
+            if (checkOutDate && target >= checkOutDate) {
+                const nextOut = new Date(target);
+                nextOut.setDate(nextOut.getDate() + 1);
+                setCheckOutDate(nextOut);
+            }
+        };
+
+        const stepCheckOut = (days) => {
+            const target = new Date(checkOutDate || new Date());
+            target.setDate(target.getDate() + days);
+            if (checkInDate && target <= checkInDate) return;
+            setCheckOutDate(target);
+        };
+
+        const searchWrapperRef = useRef(null);
+        const guestWrapperRef = useRef(null);
+        const datePickerRef = useRef(null);
+        const datePopoverRef = useRef(null);
+        const inputRef = useRef(null);
+
+        const [dateOffsetX, setDateOffsetX] = useState(0);
+
+        useLayoutEffect(() => {
+            if (!isDatePickerOpen) {
                 setDateOffsetX(0);
+                return;
             }
+            const updateOffset = () => {
+                if (!datePopoverRef.current) return;
+                const rect = datePopoverRef.current.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const naturalRight = rect.right - dateOffsetX;
+                const naturalLeft = rect.left - dateOffsetX;
+
+                if (naturalRight > viewportWidth - 20) {
+                    const diff = naturalRight - (viewportWidth - 20);
+                    setDateOffsetX(-Math.max(0, diff));
+                } else if (naturalLeft < 16) {
+                    const diff = 16 - naturalLeft;
+                    setDateOffsetX(Math.max(0, diff));
+                } else {
+                    setDateOffsetX(0);
+                }
+            };
+
+            updateOffset();
+            const timer = setTimeout(updateOffset, 40);
+            window.addEventListener('resize', updateOffset);
+            return () => {
+                clearTimeout(timer);
+                window.removeEventListener('resize', updateOffset);
+            };
+        }, [isDatePickerOpen]);
+
+        const handleResetDates = () => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const inD = new Date(today);
+            inD.setDate(inD.getDate() + 2);
+            const outD = new Date(inD);
+            outD.setDate(outD.getDate() + 1);
+            setCheckInDate(inD);
+            setCheckOutDate(outD);
+            setActiveDateField('checkIn');
         };
 
-        updateOffset();
-        const timer = setTimeout(updateOffset, 40);
-        window.addEventListener('resize', updateOffset);
-        return () => {
-            clearTimeout(timer);
-            window.removeEventListener('resize', updateOffset);
+        const [error, setError] = useState(false);
+
+        const isUserInteraction = useRef(false);
+        const activeQueryRef = useRef('');
+        const abortControllerRef = useRef(null);
+
+        const [expandedNodes, setExpandedNodes] = useState({});
+        const toggleExpand = (nodeId) => {
+            setExpandedNodes(prev => ({
+                ...prev,
+                [nodeId]: prev[nodeId] === false ? true : false
+            }));
         };
-    }, [isDatePickerOpen]);
 
-    const handleResetDates = () => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const inD = new Date(today);
-        inD.setDate(inD.getDate() + 2);
-        const outD = new Date(inD);
-        outD.setDate(outD.getDate() + 1);
-        setCheckInDate(inD);
-        setCheckOutDate(outD);
-        setActiveDateField('checkIn');
-    };
+        // Debounce search
+        useEffect(() => {
+            // Only trigger search if user has interacted with the input
+            if (!isUserInteraction.current) {
+                return;
+            }
 
-    const [error, setError] = useState(false);
+            const trimmed = query.trim();
+            if (trimmed.length < 3) {
+                if (abortControllerRef.current) {
+                    abortControllerRef.current.abort();
+                }
+                activeQueryRef.current = '';
+                setResults({ hotels: [], regions: [] });
+                return;
+            }
 
-    const isUserInteraction = useRef(false);
-    const activeQueryRef = useRef('');
-    const abortControllerRef = useRef(null);
+            // Clear stale results immediately when typing a new/different query
+            if (activeQueryRef.current && activeQueryRef.current !== trimmed) {
+                setResults({ hotels: [], regions: [] });
+            }
 
-    const [expandedNodes, setExpandedNodes] = useState({});
-    const toggleExpand = (nodeId) => {
-        setExpandedNodes(prev => ({
-            ...prev,
-            [nodeId]: prev[nodeId] === false ? true : false
-        }));
-    };
+            const timeoutId = setTimeout(() => {
+                fetchResults(trimmed);
+            }, 300);
 
-    // Debounce search
-    useEffect(() => {
-        // Only trigger search if user has interacted with the input
-        if (!isUserInteraction.current) {
-            return;
-        }
+            return () => clearTimeout(timeoutId);
+        }, [query]);
 
-        const trimmed = query.trim();
-        if (trimmed.length < 3) {
+        // Close dropdowns when clicking outside
+        useEffect(() => {
+            const handleClickOutside = (event) => {
+                if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target)) {
+                    setShowDropdown(false);
+                }
+                if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
+                    setIsDatePickerOpen(false);
+                }
+                if (guestWrapperRef.current && !guestWrapperRef.current.contains(event.target)) {
+                    setShowGuestDropdown(false);
+                }
+            };
+
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }, []);
+
+
+        // Save state to localStorage whenever it changes
+        useEffect(() => {
+            localStorage.setItem('dashboard_last_nationality', nationality);
+        }, [nationality]);
+
+        useEffect(() => {
+            if (checkInDate) {
+                localStorage.setItem('dashboard_last_checkin', `${checkInDate.getFullYear()}-${String(checkInDate.getMonth() + 1).padStart(2, '0')}-${String(checkInDate.getDate()).padStart(2, '0')}`);
+            }
+        }, [checkInDate]);
+
+        useEffect(() => {
+            if (checkOutDate) {
+                localStorage.setItem('dashboard_last_checkout', `${checkOutDate.getFullYear()}-${String(checkOutDate.getMonth() + 1).padStart(2, '0')}-${String(checkOutDate.getDate()).padStart(2, '0')}`);
+            }
+        }, [checkOutDate]);
+
+        useEffect(() => {
+            localStorage.setItem('dashboard_last_guests', serializeGuestsParam(roomState));
+        }, [roomState]);
+
+        const getCrumbsParts = (item) => {
+            return getLocationHierarchyParts(item, currentLang);
+        };
+
+        const fetchResults = async (targetQuery) => {
+            const q = (targetQuery !== undefined ? targetQuery : query).trim();
+            if (q.length < 3) {
+                setResults({ hotels: [], regions: [] });
+                return;
+            }
+
             if (abortControllerRef.current) {
                 abortControllerRef.current.abort();
             }
-            activeQueryRef.current = '';
+            const controller = new AbortController();
+            abortControllerRef.current = controller;
+            activeQueryRef.current = q;
+
+            setLoading(true);
+            // Ensure stale results are cleared when starting the new request
             setResults({ hotels: [], regions: [] });
-            return;
-        }
 
-        // Clear stale results immediately when typing a new/different query
-        if (activeQueryRef.current && activeQueryRef.current !== trimmed) {
-            setResults({ hotels: [], regions: [] });
-        }
+            try {
+                const data = await autocompleteService.search(
+                    { query: q, types: ['PROPERTY', 'GEOGRAPHY_REGION', 'POI'] },
+                    controller.signal
+                );
 
-        const timeoutId = setTimeout(() => {
-            fetchResults(trimmed);
-        }, 300);
+                // Ignore if active query changed while request was in-flight
+                if (activeQueryRef.current !== q) return;
 
-        return () => clearTimeout(timeoutId);
-    }, [query]);
-
-    // Close dropdowns when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target)) {
-                setShowDropdown(false);
-            }
-            if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
-                setIsDatePickerOpen(false);
-            }
-            if (guestWrapperRef.current && !guestWrapperRef.current.contains(event.target)) {
-                setShowGuestDropdown(false);
+                const resultsData = data?.data || data;
+                const items = resultsData?.content || (Array.isArray(resultsData) ? resultsData : []);
+                const hotels = items.filter(item => item.type === 'PROPERTY' || item.type === 'HOTEL');
+                const regions = items.filter(item => item.type === 'GEOGRAPHY_REGION' || item.type === 'POI' || item.type === 'LOCATION');
+                setResults({ hotels, regions });
+            } catch (error) {
+                if (error.name === 'AbortError') return;
+                // On error / 404, clear results so stale items never remain
+                if (activeQueryRef.current === q) {
+                    setResults({ hotels: [], regions: [] });
+                }
+                console.error("Autocomplete fetch error:", error);
+            } finally {
+                if (activeQueryRef.current === q) {
+                    setLoading(false);
+                }
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+        const formatDateForUrl = (date) => {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
 
+        const getUrlParams = (queryOverride) => {
+            const guestsParam = serializeGuestsParam(roomState);
+            let params = `checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&guests=${encodeURIComponent(guestsParam)}&nationality=${encodeURIComponent(nationality)}`;
 
-    // Save state to localStorage whenever it changes
-    useEffect(() => {
-        localStorage.setItem('dashboard_last_nationality', nationality);
-    }, [nationality]);
-
-    useEffect(() => {
-        if (checkInDate) {
-            localStorage.setItem('dashboard_last_checkin', `${checkInDate.getFullYear()}-${String(checkInDate.getMonth() + 1).padStart(2, '0')}-${String(checkInDate.getDate()).padStart(2, '0')}`);
-        }
-    }, [checkInDate]);
-
-    useEffect(() => {
-        if (checkOutDate) {
-            localStorage.setItem('dashboard_last_checkout', `${checkOutDate.getFullYear()}-${String(checkOutDate.getMonth() + 1).padStart(2, '0')}-${String(checkOutDate.getDate()).padStart(2, '0')}`);
-        }
-    }, [checkOutDate]);
-
-    useEffect(() => {
-        localStorage.setItem('dashboard_last_guests', serializeGuestsParam(roomState));
-    }, [roomState]);
-
-    const getCrumbsParts = (item) => {
-        return getLocationHierarchyParts(item, currentLang);
-    };
-
-    const fetchResults = async (targetQuery) => {
-        const q = (targetQuery !== undefined ? targetQuery : query).trim();
-        if (q.length < 3) {
-            setResults({ hotels: [], regions: [] });
-            return;
-        }
-
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
-        }
-        const controller = new AbortController();
-        abortControllerRef.current = controller;
-        activeQueryRef.current = q;
-
-        setLoading(true);
-        // Ensure stale results are cleared when starting the new request
-        setResults({ hotels: [], regions: [] });
-
-        try {
-            const data = await autocompleteService.search(
-                { query: q, types: ['PROPERTY', 'GEOGRAPHY_REGION', 'POI'] },
-                controller.signal
-            );
-
-            // Ignore if active query changed while request was in-flight
-            if (activeQueryRef.current !== q) return;
-
-            const resultsData = data?.data || data;
-            const items = resultsData?.content || (Array.isArray(resultsData) ? resultsData : []);
-            const hotels = items.filter(item => item.type === 'PROPERTY' || item.type === 'HOTEL');
-            const regions = items.filter(item => item.type === 'GEOGRAPHY_REGION' || item.type === 'POI' || item.type === 'LOCATION');
-            setResults({ hotels, regions });
-        } catch (error) {
-            if (error.name === 'AbortError') return;
-            // On error / 404, clear results so stale items never remain
-            if (activeQueryRef.current === q) {
-                setResults({ hotels: [], regions: [] });
+            const q = queryOverride !== undefined ? queryOverride : query;
+            if (q) {
+                params += `&q=${encodeURIComponent(q)}`;
             }
-            console.error("Autocomplete fetch error:", error);
-        } finally {
-            if (activeQueryRef.current === q) {
-                setLoading(false);
+            return params;
+        };
+
+
+
+        const handleSearch = () => {
+            if (!query.trim()) {
+                setError(true);
+                return;
             }
-        }
-    };
 
-    const formatDateForUrl = (date) => {
-        const d = new Date(date);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
+            if (query) {
+                const savedLastSearch = localStorage.getItem('dashboard_last_search');
+                const savedLastType = localStorage.getItem('dashboard_last_type');
+                const savedLastHotelId = localStorage.getItem('dashboard_last_hotelId');
 
-    const getUrlParams = (queryOverride) => {
-        const guestsParam = serializeGuestsParam(roomState);
-        let params = `checkin=${formatDateForUrl(checkInDate)}&checkout=${formatDateForUrl(checkOutDate)}&guests=${encodeURIComponent(guestsParam)}&nationality=${encodeURIComponent(nationality)}`;
+                if (query !== savedLastSearch) {
+                    saveSearchHistoryItem(query, 'SEARCH', null, null);
+                    localStorage.setItem('dashboard_last_search', query);
+                    localStorage.setItem('dashboard_last_type', 'SEARCH');
+                    localStorage.removeItem('dashboard_last_hotelId');
+                    localStorage.removeItem('dashboard_last_locationId');
+                    localStorage.removeItem('dashboard_last_search_param');
+                    localStorage.removeItem('dashboard_last_search_id');
+                    localStorage.removeItem('dashboard_last_togId');
+                    localStorage.removeItem('dashboard_last_regionId');
+                }
 
-        const q = queryOverride !== undefined ? queryOverride : query;
-        if (q) {
-            params += `&q=${encodeURIComponent(q)}`;
-        }
-        return params;
-    };
+                // If query contains commas, try to build a hierarchical slug
+                // e.g. "Üsküdar, İstanbul, Türkiye" -> ["Üsküdar", "İstanbul", "Türkiye"]
+                const queryParts = query.split(',').map(p => p.trim().toLowerCase());
+                let slug = query.toLowerCase();
 
+                if (queryParts.length >= 2) {
+                    // If 3 parts: [District, City, Country] -> slug "istanbul/uskudar"
+                    // If 2 parts: [City, Country] -> slug "istanbul"
+                    const reversed = queryParts.reverse(); // [Country, City, District]
+                    slug = reversed.slice(1).join('/');
+                }
 
+                // Retrieve target parameter (togId, poiId, or regionId) & coordinates
+                const savedParam = localStorage.getItem('dashboard_last_search_param');
+                const savedId = localStorage.getItem('dashboard_last_search_id');
+                const savedTogId = localStorage.getItem('dashboard_last_togId');
+                const savedPoiId = localStorage.getItem('dashboard_last_poiId');
+                const savedRegionId = localStorage.getItem('dashboard_last_regionId');
+                const savedType = localStorage.getItem('dashboard_last_type');
+                const savedLat = localStorage.getItem('dashboard_last_lat');
+                const savedLng = localStorage.getItem('dashboard_last_lng');
 
-    const handleSearch = () => {
-        if (!query.trim()) {
-            setError(true);
-            return;
-        }
+                let targetIdParam = '';
+                if (savedParam && savedId) {
+                    targetIdParam = `&${savedParam}=${savedId}`;
+                } else if (savedTogId) {
+                    targetIdParam = `&togId=${savedTogId}`;
+                } else if (savedPoiId) {
+                    targetIdParam = `&poiId=${savedPoiId}`;
+                } else if (savedRegionId) {
+                    targetIdParam = `&regionId=${savedRegionId}`;
+                }
 
-        if (query) {
-            const savedLastSearch = localStorage.getItem('dashboard_last_search');
-            const savedLastType = localStorage.getItem('dashboard_last_type');
-            const savedLastHotelId = localStorage.getItem('dashboard_last_hotelId');
+                const typeParam = (savedType === 'POI' || savedPoiId) ? '&type=POI' : '';
+                const geoParam = (savedLat && savedLng) ? `&lat=${savedLat}&lng=${savedLng}` : '';
+                const searchParamsString = getUrlParams() + targetIdParam + typeParam + geoParam;
 
-            if (query !== savedLastSearch) {
-                saveSearchHistoryItem(query, 'SEARCH', null, null);
-                localStorage.setItem('dashboard_last_search', query);
-                localStorage.setItem('dashboard_last_type', 'SEARCH');
-                localStorage.removeItem('dashboard_last_hotelId');
-                localStorage.removeItem('dashboard_last_locationId');
-                localStorage.removeItem('dashboard_last_search_param');
-                localStorage.removeItem('dashboard_last_search_id');
+                localStorage.setItem('last_hotel_search_slug', slug);
+                localStorage.setItem('last_hotel_search_params', searchParamsString);
+
+                navigate(`/travel/hotels/search/${slug}?${searchParamsString}`);
+            }
+        };
+
+        const handleSelectLocation = (location) => {
+            const fullName = formatLocationFullName(location, currentLang);
+            const sub = getRegionSubtitle(location, currentLang);
+
+            const isPoi = isPoiItem(location);
+            const { param: targetParam, id: targetId } = resolveSearchTargetId(location);
+            const locType = isPoi ? 'POI' : (location.type || 'GEOGRAPHY_REGION');
+            saveSearchHistoryItem(fullName, locType, targetId, getRegionName(location));
+
+            localStorage.setItem('dashboard_last_search', fullName);
+            localStorage.setItem('dashboard_last_type', locType);
+
+            if (isPoi) {
+                const poiIdVal = targetId || location.poiId || location.id;
+                localStorage.setItem('dashboard_last_search_param', 'poiId');
+                localStorage.setItem('dashboard_last_search_id', poiIdVal);
+                localStorage.setItem('dashboard_last_poiId', poiIdVal);
                 localStorage.removeItem('dashboard_last_togId');
                 localStorage.removeItem('dashboard_last_regionId');
+            } else if (targetParam && targetId) {
+                localStorage.setItem('dashboard_last_search_param', targetParam);
+                localStorage.setItem('dashboard_last_search_id', targetId);
+                if (targetParam === 'togId') {
+                    localStorage.setItem('dashboard_last_togId', targetId);
+                    localStorage.removeItem('dashboard_last_regionId');
+                    localStorage.removeItem('dashboard_last_poiId');
+                } else {
+                    localStorage.setItem('dashboard_last_regionId', targetId);
+                    localStorage.removeItem('dashboard_last_togId');
+                    localStorage.removeItem('dashboard_last_poiId');
+                }
+            }
+            localStorage.removeItem('dashboard_last_locationId');
+
+            let latVal = location.geoCoordinate?.lat || location.geoCoordinate?.latitude || location.lat || location.latitude;
+            let lngVal = location.geoCoordinate?.lon || location.geoCoordinate?.lng || location.geoCoordinate?.longitude || location.lng || location.lon || location.longitude;
+
+            if (!latVal || !lngVal) {
+                const fallbackCoords = resolveKnownCoordinates(fullName) || resolveKnownCoordinates(location.name?.searchName || (typeof location.name === 'string' ? location.name : '')) || resolveKnownCoordinates(location.locationPath);
+                if (fallbackCoords) {
+                    latVal = fallbackCoords.lat;
+                    lngVal = fallbackCoords.lng;
+                }
             }
 
-            // If query contains commas, try to build a hierarchical slug
-            // e.g. "Üsküdar, İstanbul, Türkiye" -> ["Üsküdar", "İstanbul", "Türkiye"]
-            const queryParts = query.split(',').map(p => p.trim().toLowerCase());
-            let slug = query.toLowerCase();
-            
-            if (queryParts.length >= 2) {
-                // If 3 parts: [District, City, Country] -> slug "istanbul/uskudar"
-                // If 2 parts: [City, Country] -> slug "istanbul"
-                const reversed = queryParts.reverse(); // [Country, City, District]
-                slug = reversed.slice(1).join('/');
+            if (latVal && lngVal) {
+                localStorage.setItem('dashboard_last_lat', latVal);
+                localStorage.setItem('dashboard_last_lng', lngVal);
+            } else {
+                localStorage.removeItem('dashboard_last_lat');
+                localStorage.removeItem('dashboard_last_lng');
             }
 
-            // Retrieve target parameter (togId, poiId, or regionId) & coordinates
-            const savedParam = localStorage.getItem('dashboard_last_search_param');
-            const savedId = localStorage.getItem('dashboard_last_search_id');
-            const savedTogId = localStorage.getItem('dashboard_last_togId');
-            const savedPoiId = localStorage.getItem('dashboard_last_poiId');
-            const savedRegionId = localStorage.getItem('dashboard_last_regionId');
-            const savedType = localStorage.getItem('dashboard_last_type');
-            const savedLat = localStorage.getItem('dashboard_last_lat');
-            const savedLng = localStorage.getItem('dashboard_last_lng');
-
-            let targetIdParam = '';
-            if (savedParam && savedId) {
-                targetIdParam = `&${savedParam}=${savedId}`;
-            } else if (savedTogId) {
-                targetIdParam = `&togId=${savedTogId}`;
-            } else if (savedPoiId) {
-                targetIdParam = `&poiId=${savedPoiId}`;
-            } else if (savedRegionId) {
-                targetIdParam = `&regionId=${savedRegionId}`;
+            const countryCode = location.countryCode || (location.ancestors?.find(b => b.type === 'country')?.name || location.locationBreadcrumbs?.find(b => b.locationType === 'COUNTRY')?.countryCode);
+            if (countryCode) {
+                setDestinationCountryCode(countryCode);
+                localStorage.setItem('dashboard_last_countryCode', countryCode);
             }
 
-            const typeParam = (savedType === 'POI' || savedPoiId) ? '&type=POI' : '';
-            const geoParam = (savedLat && savedLng) ? `&lat=${savedLat}&lng=${savedLng}` : '';
-            const searchParamsString = getUrlParams() + targetIdParam + typeParam + geoParam;
+            // Generate hierarchical slug
+            const slug = buildLocationSlug(location, currentLang);
+
+            isUserInteraction.current = false;
+            setResults({ hotels: [], regions: [] });
+            setShowDropdown(false);
+
+            setQuery(fullName);
+
+            const targetIdParam = (targetParam && targetId) ? `&${targetParam}=${targetId}` : '';
+            const typeParam = isPoi ? '&type=POI' : '';
+            const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
+            const searchParamsString = getUrlParams(fullName) + targetIdParam + typeParam + geoParam;
 
             localStorage.setItem('last_hotel_search_slug', slug);
             localStorage.setItem('last_hotel_search_params', searchParamsString);
+        };
 
-            navigate(`/travel/hotels/search/${slug}?${searchParamsString}`);
-        }
-    };
+        const handleSelectHotel = (hotel) => {
+            const fullName = formatLocationFullName(hotel, currentLang);
+            const locationContext = getRegionSubtitle(hotel, currentLang);
 
-    const handleSelectLocation = (location) => {
-        const fullName = formatLocationFullName(location, currentLang);
-        const sub = getRegionSubtitle(location, currentLang);
+            const { param: targetParam, id: targetId } = resolveSearchTargetId(hotel);
+            const hId = targetId || hotel.togId || hotel.propertyId || hotel.hotelId || hotel.id?.replace('hotel_', '').replace('property_', '');
+            saveSearchHistoryItem(fullName, hotel.type || 'PROPERTY', hId, locationContext);
 
-        const isPoi = isPoiItem(location);
-        const { param: targetParam, id: targetId } = resolveSearchTargetId(location);
-        const locType = isPoi ? 'POI' : (location.type || 'GEOGRAPHY_REGION');
-        saveSearchHistoryItem(fullName, locType, targetId, getRegionName(location));
+            localStorage.setItem('dashboard_last_search', fullName);
+            localStorage.setItem('dashboard_last_type', hotel.type || 'PROPERTY');
+            localStorage.setItem('dashboard_last_hotelId', hId);
 
-        localStorage.setItem('dashboard_last_search', fullName);
-        localStorage.setItem('dashboard_last_type', locType);
-
-        if (isPoi) {
-            const poiIdVal = targetId || location.poiId || location.id;
-            localStorage.setItem('dashboard_last_search_param', 'poiId');
-            localStorage.setItem('dashboard_last_search_id', poiIdVal);
-            localStorage.setItem('dashboard_last_poiId', poiIdVal);
-            localStorage.removeItem('dashboard_last_togId');
-            localStorage.removeItem('dashboard_last_regionId');
-        } else if (targetParam && targetId) {
-            localStorage.setItem('dashboard_last_search_param', targetParam);
-            localStorage.setItem('dashboard_last_search_id', targetId);
-            if (targetParam === 'togId') {
+            if (targetParam && targetId) {
+                localStorage.setItem('dashboard_last_search_param', targetParam);
+                localStorage.setItem('dashboard_last_search_id', targetId);
                 localStorage.setItem('dashboard_last_togId', targetId);
                 localStorage.removeItem('dashboard_last_regionId');
-                localStorage.removeItem('dashboard_last_poiId');
+            }
+            localStorage.removeItem('dashboard_last_locationId');
+
+            let latVal = hotel.geoCoordinate?.lat || hotel.geoCoordinate?.latitude || hotel.lat || hotel.latitude;
+            let lngVal = hotel.geoCoordinate?.lon || hotel.geoCoordinate?.lng || hotel.geoCoordinate?.longitude || hotel.lng || hotel.lon || hotel.longitude;
+            if (latVal && lngVal) {
+                localStorage.setItem('dashboard_last_lat', latVal);
+                localStorage.setItem('dashboard_last_lng', lngVal);
             } else {
-                localStorage.setItem('dashboard_last_regionId', targetId);
-                localStorage.removeItem('dashboard_last_togId');
-                localStorage.removeItem('dashboard_last_poiId');
+                localStorage.removeItem('dashboard_last_lat');
+                localStorage.removeItem('dashboard_last_lng');
             }
-        }
-        localStorage.removeItem('dashboard_last_locationId');
 
-        let latVal = location.geoCoordinate?.lat || location.geoCoordinate?.latitude || location.lat || location.latitude;
-        let lngVal = location.geoCoordinate?.lon || location.geoCoordinate?.lng || location.geoCoordinate?.longitude || location.lng || location.lon || location.longitude;
-
-        if (!latVal || !lngVal) {
-            const fallbackCoords = resolveKnownCoordinates(fullName) || resolveKnownCoordinates(location.name?.searchName || (typeof location.name === 'string' ? location.name : '')) || resolveKnownCoordinates(location.locationPath);
-            if (fallbackCoords) {
-                latVal = fallbackCoords.lat;
-                lngVal = fallbackCoords.lng;
+            const countryCode = hotel.countryCode || (hotel.ancestors?.find(b => b.type === 'country')?.name || hotel.locationBreadcrumbs?.find(b => b.locationType === 'COUNTRY')?.countryCode);
+            if (countryCode) {
+                setDestinationCountryCode(countryCode);
+                localStorage.setItem('dashboard_last_countryCode', countryCode);
             }
-        }
 
-        if (latVal && lngVal) {
-            localStorage.setItem('dashboard_last_lat', latVal);
-            localStorage.setItem('dashboard_last_lng', lngVal);
-        } else {
-            localStorage.removeItem('dashboard_last_lat');
-            localStorage.removeItem('dashboard_last_lng');
-        }
+            // Reset user interaction flag and close dropdown to prevent reopening
+            isUserInteraction.current = false;
+            setResults({ hotels: [], regions: [] });
+            setShowDropdown(false);
 
-        const countryCode = location.countryCode || (location.ancestors?.find(b => b.type === 'country')?.name || location.locationBreadcrumbs?.find(b => b.locationType === 'COUNTRY')?.countryCode);
-        if (countryCode) {
-            setDestinationCountryCode(countryCode);
-            localStorage.setItem('dashboard_last_countryCode', countryCode);
-        }
+            setQuery(fullName);
 
-        // Generate hierarchical slug
-        const slug = buildLocationSlug(location, currentLang);
+            const slug = buildLocationSlug(hotel, currentLang);
+            const targetIdParam = (targetParam && targetId) ? `&${targetParam}=${targetId}` : '';
+            const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
+            const searchParamsString = getUrlParams(fullName) + targetIdParam + geoParam;
 
-        isUserInteraction.current = false;
-        setResults({ hotels: [], regions: [] });
-        setShowDropdown(false);
+            localStorage.setItem('last_hotel_search_slug', slug);
+            localStorage.setItem('last_hotel_search_params', searchParamsString);
+        };
 
-        setQuery(fullName);
-        
-        const targetIdParam = (targetParam && targetId) ? `&${targetParam}=${targetId}` : '';
-        const typeParam = isPoi ? '&type=POI' : '';
-        const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
-        const searchParamsString = getUrlParams(fullName) + targetIdParam + typeParam + geoParam;
+        // Helper to get Hotel Name
+        const getHotelName = (hotel) => {
+            return hotel.name?.translations?.[currentLang] || hotel.name?.translations?.en || Object.values(hotel.name?.translations || {})[0] || 'Hotel';
+        };
 
-        localStorage.setItem('last_hotel_search_slug', slug);
-        localStorage.setItem('last_hotel_search_params', searchParamsString);
-    };
+        // Helper to get Region Name / Subtitle
+        const getRegionName = (region) => {
+            return getRegionSubtitle(region, currentLang);
+        };
 
-    const handleSelectHotel = (hotel) => {
-        const fullName = formatLocationFullName(hotel, currentLang);
-        const locationContext = getRegionSubtitle(hotel, currentLang);
+        const matchingHistory = query.trim()
+            ? searchHistory.filter(item => (item.query || '').toLowerCase().includes(query.toLowerCase().trim()))
+            : searchHistory;
 
-        const { param: targetParam, id: targetId } = resolveSearchTargetId(hotel);
-        const hId = targetId || hotel.togId || hotel.propertyId || hotel.hotelId || hotel.id?.replace('hotel_', '').replace('property_', '');
-        saveSearchHistoryItem(fullName, hotel.type || 'PROPERTY', hId, locationContext);
+        const treeRegions = useMemo(() => {
+            return buildLocationTree(results.regions);
+        }, [results.regions]);
 
-        localStorage.setItem('dashboard_last_search', fullName);
-        localStorage.setItem('dashboard_last_type', hotel.type || 'PROPERTY');
-        localStorage.setItem('dashboard_last_hotelId', hId);
-
-        if (targetParam && targetId) {
-            localStorage.setItem('dashboard_last_search_param', targetParam);
-            localStorage.setItem('dashboard_last_search_id', targetId);
-            localStorage.setItem('dashboard_last_togId', targetId);
-            localStorage.removeItem('dashboard_last_regionId');
-        }
-        localStorage.removeItem('dashboard_last_locationId');
-
-        let latVal = hotel.geoCoordinate?.lat || hotel.geoCoordinate?.latitude || hotel.lat || hotel.latitude;
-        let lngVal = hotel.geoCoordinate?.lon || hotel.geoCoordinate?.lng || hotel.geoCoordinate?.longitude || hotel.lng || hotel.lon || hotel.longitude;
-        if (latVal && lngVal) {
-            localStorage.setItem('dashboard_last_lat', latVal);
-            localStorage.setItem('dashboard_last_lng', lngVal);
-        } else {
-            localStorage.removeItem('dashboard_last_lat');
-            localStorage.removeItem('dashboard_last_lng');
-        }
-
-        const countryCode = hotel.countryCode || (hotel.ancestors?.find(b => b.type === 'country')?.name || hotel.locationBreadcrumbs?.find(b => b.locationType === 'COUNTRY')?.countryCode);
-        if (countryCode) {
-            setDestinationCountryCode(countryCode);
-            localStorage.setItem('dashboard_last_countryCode', countryCode);
-        }
-
-        // Reset user interaction flag and close dropdown to prevent reopening
-        isUserInteraction.current = false;
-        setResults({ hotels: [], regions: [] });
-        setShowDropdown(false);
-
-        setQuery(fullName);
-
-        const slug = buildLocationSlug(hotel, currentLang);
-        const targetIdParam = (targetParam && targetId) ? `&${targetParam}=${targetId}` : '';
-        const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
-        const searchParamsString = getUrlParams(fullName) + targetIdParam + geoParam;
-
-        localStorage.setItem('last_hotel_search_slug', slug);
-        localStorage.setItem('last_hotel_search_params', searchParamsString);
-    };
-
-    // Helper to get Hotel Name
-    const getHotelName = (hotel) => {
-        return hotel.name?.translations?.[currentLang] || hotel.name?.translations?.en || Object.values(hotel.name?.translations || {})[0] || 'Hotel';
-    };
-
-    // Helper to get Region Name / Subtitle
-    const getRegionName = (region) => {
-        return getRegionSubtitle(region, currentLang);
-    };
-
-    const matchingHistory = query.trim()
-        ? searchHistory.filter(item => (item.query || '').toLowerCase().includes(query.toLowerCase().trim()))
-        : searchHistory;
-
-    const treeRegions = useMemo(() => {
-        return buildLocationTree(results.regions);
-    }, [results.regions]);
-
-    const flatRegionsList = useMemo(() => {
-        const list = [];
-        treeRegions.forEach(parent => {
-            list.push({ item: parent, isChild: false });
-            const nodeId = String(parent.regionId || parent.poiId || parent.locationId || parent.id || '');
-            const isExp = expandedNodes[nodeId] !== false; // expanded by default
-            if (isExp && parent.children && parent.children.length > 0) {
-                parent.children.forEach(child => {
-                    list.push({ item: child, isChild: true, parentId: nodeId });
-                });
-            }
-        });
-        return list;
-    }, [treeRegions, expandedNodes]);
-
-    const handleKeyDown = (e) => {
-        const historyCount = matchingHistory.length;
-        const regionCount = flatRegionsList.length;
-        const hotelCount = results.hotels.length;
-        const totalItems = historyCount + regionCount + hotelCount;
-
-        // Allow Enter key to trigger search actions regardless of dropdown state
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            // If dropdown is open and we have an active item, select it
-            if (showDropdown && activeIndex >= 0 && activeIndex < totalItems) {
-                if (activeIndex < historyCount) {
-                    handleSelectHistoryItem(matchingHistory[activeIndex]);
-                } else if (activeIndex < historyCount + regionCount) {
-                    handleSelectLocation(flatRegionsList[activeIndex - historyCount].item);
-                } else {
-                    const hotelIdx = activeIndex - historyCount - regionCount;
-                    if (results.hotels[hotelIdx]) {
-                        handleSelectHotel(results.hotels[hotelIdx]);
-                    }
+        const flatRegionsList = useMemo(() => {
+            const list = [];
+            treeRegions.forEach(parent => {
+                list.push({ item: parent, isChild: false });
+                const nodeId = String(parent.regionId || parent.poiId || parent.locationId || parent.id || '');
+                const isExp = expandedNodes[nodeId] !== false; // expanded by default
+                if (isExp && parent.children && parent.children.length > 0) {
+                    parent.children.forEach(child => {
+                        list.push({ item: child, isChild: true, parentId: nodeId });
+                    });
                 }
-            } else {
-                // Otherwise, trigger the main search
-                handleSearch();
+            });
+            return list;
+        }, [treeRegions, expandedNodes]);
+
+        const handleKeyDown = (e) => {
+            const historyCount = matchingHistory.length;
+            const regionCount = flatRegionsList.length;
+            const hotelCount = results.hotels.length;
+            const totalItems = historyCount + regionCount + hotelCount;
+
+            // Allow Enter key to trigger search actions regardless of dropdown state
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                // If dropdown is open and we have an active item, select it
+                if (showDropdown && activeIndex >= 0 && activeIndex < totalItems) {
+                    if (activeIndex < historyCount) {
+                        handleSelectHistoryItem(matchingHistory[activeIndex]);
+                    } else if (activeIndex < historyCount + regionCount) {
+                        handleSelectLocation(flatRegionsList[activeIndex - historyCount].item);
+                    } else {
+                        const hotelIdx = activeIndex - historyCount - regionCount;
+                        if (results.hotels[hotelIdx]) {
+                            handleSelectHotel(results.hotels[hotelIdx]);
+                        }
+                    }
+                } else {
+                    // Otherwise, trigger the main search
+                    handleSearch();
+                }
+                return;
             }
-            return;
-        }
 
-        // For navigation keys, we need the dropdown to be open and have results
-        if (!showDropdown || totalItems === 0) return;
+            // For navigation keys, we need the dropdown to be open and have results
+            if (!showDropdown || totalItems === 0) return;
 
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            setActiveIndex((prev) => (prev < totalItems - 1 ? prev + 1 : prev));
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            setActiveIndex((prev) => (prev > 0 ? prev - 1 : -1));
-        }
-    };
-
-    // -- Room Manipulators --
-    const updateRoom = (index, field, value) => {
-        const newRooms = [...roomState];
-        newRooms[index] = { ...newRooms[index], [field]: value };
-
-        // Handle child count change special case to resize ages array
-        if (field === 'children') {
-            const diff = value - newRooms[index].childAges.length;
-            if (diff > 0) {
-                // Add children with default age 0
-                newRooms[index].childAges = [...newRooms[index].childAges, ...Array(diff).fill(0)];
-            } else if (diff < 0) {
-                // Remove children
-                newRooms[index].childAges = newRooms[index].childAges.slice(0, value);
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setActiveIndex((prev) => (prev < totalItems - 1 ? prev + 1 : prev));
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setActiveIndex((prev) => (prev > 0 ? prev - 1 : -1));
             }
-        }
+        };
 
-        setRoomState(newRooms);
-    };
+        // -- Room Manipulators --
+        const updateRoom = (index, field, value) => {
+            const newRooms = [...roomState];
+            newRooms[index] = { ...newRooms[index], [field]: value };
 
-    const updateChildAge = (roomIndex, childIndex, age) => {
-        const newRooms = [...roomState];
-        const newAges = [...newRooms[roomIndex].childAges];
-        newAges[childIndex] = parseInt(age);
-        newRooms[roomIndex].childAges = newAges;
-        setRoomState(newRooms);
-    };
+            // Handle child count change special case to resize ages array
+            if (field === 'children') {
+                const diff = value - newRooms[index].childAges.length;
+                if (diff > 0) {
+                    // Add children with default age 0
+                    newRooms[index].childAges = [...newRooms[index].childAges, ...Array(diff).fill(0)];
+                } else if (diff < 0) {
+                    // Remove children
+                    newRooms[index].childAges = newRooms[index].childAges.slice(0, value);
+                }
+            }
 
-    const addRoom = () => {
-        if (roomState.length < 5) {
-            setRoomState([...roomState, { adults: 2, children: 0, childAges: [] }]);
-        }
-    };
-
-    const removeRoom = (index) => {
-        if (roomState.length > 1) {
-            const newRooms = roomState.filter((_, i) => i !== index);
             setRoomState(newRooms);
-        }
-    };
+        };
 
-    const hasAnyResults = matchingHistory.length > 0 || flatRegionsList.length > 0 || results.hotels.length > 0 || loading;
+        const updateChildAge = (roomIndex, childIndex, age) => {
+            const newRooms = [...roomState];
+            const newAges = [...newRooms[roomIndex].childAges];
+            newAges[childIndex] = parseInt(age);
+            newRooms[roomIndex].childAges = newAges;
+            setRoomState(newRooms);
+        };
 
-    return (
-        <section className="relative group/search w-full flex flex-col items-center">
-            <div className="relative w-full max-w-[1024px] bg-white dark:bg-[#202124] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] px-4 pt-2 pb-10 border-none transition-all duration-300">
-                
-                {/* Top Options (Guests) - Google Flights style */}
-                <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-3 relative z-[60]">
-                    {/* Elegant Guest Selector */}
-                    <div className="relative group/field" ref={guestWrapperRef}>
-                        <button
-                            type="button"
-                            onClick={() => setShowGuestDropdown(!showGuestDropdown)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 font-medium text-[13.5px] transition-colors cursor-pointer select-none ${
-                                showGuestDropdown
-                                    ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] rounded-t-lg border-b-2 border-[#1a73e8]'
-                                    : 'text-[#3c4043] dark:text-slate-200 hover:text-[#202124] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] rounded-lg border-b-2 border-transparent'
-                            }`}
-                        >
-                            <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-[#8ab4f8]">person</span>
-                            <span>{totalAdults + totalChildren}</span>
-                            <span className={`material-symbols-outlined text-[19px] ${showGuestDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-300'}`}>
-                                {showGuestDropdown ? 'arrow_drop_up' : 'arrow_drop_down'}
-                            </span>
-                        </button>
+        const addRoom = () => {
+            if (roomState.length < 5) {
+                setRoomState([...roomState, { adults: 2, children: 0, childAges: [] }]);
+            }
+        };
 
-                        {/* Guest Dropdown - Google Flights Style */}
-                        {showGuestDropdown && (
-                            <div className="absolute top-full left-0 mt-1 w-80 sm:w-[340px] bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3)] p-4 sm:p-5 z-[200] animate-in fade-in duration-150">
-                                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-2 -mr-2 space-y-4">
-                                    {roomState.map((room, index) => (
-                                        <div key={index} className="pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
-                                            {roomState.length > 1 && (
-                                                <div className="flex justify-between items-center mb-3">
-                                                    <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.roomSingle} {index + 1}</span>
-                                                    <button type="button" onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-[12px] font-medium px-2 py-0.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer">{ls.remove}</button>
-                                                </div>
-                                            )}
-                                            
-                                            <div className="flex flex-col gap-4">
-                                                {/* Adults Row */}
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">{ls.adults}</div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <button 
-                                                            type="button"
-                                                            onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))} 
-                                                            disabled={room.adults <= 1}
-                                                            className="size-8 rounded-lg flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[18px]">remove</span>
-                                                        </button>
-                                                        <span className="w-8 text-center text-[13px] font-normal text-[#202124] dark:text-white">{room.adults}</span>
-                                                        <button 
-                                                            type="button"
-                                                            onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))} 
-                                                            disabled={room.adults >= 6} 
-                                                            className="size-8 rounded-lg flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[18px]">add</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
+        const removeRoom = (index) => {
+            if (roomState.length > 1) {
+                const newRooms = roomState.filter((_, i) => i !== index);
+                setRoomState(newRooms);
+            }
+        };
 
-                                                {/* Children Row */}
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <div className="text-[13px] font-normal text-[#202124] dark:text-white">{ls.children}</div>
-                                                        <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">{ls.childrenAge}</div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <button 
-                                                            type="button"
-                                                            onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))} 
-                                                            disabled={room.children <= 0}
-                                                            className="size-8 rounded-lg flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[18px]">remove</span>
-                                                        </button>
-                                                        <span className="w-8 text-center text-[13px] font-normal text-[#202124] dark:text-white">{room.children}</span>
-                                                        <button 
-                                                            type="button"
-                                                            onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))} 
-                                                            disabled={room.children >= 4} 
-                                                            className="size-8 rounded-lg flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[18px]">add</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
+        const hasAnyResults = matchingHistory.length > 0 || flatRegionsList.length > 0 || results.hotels.length > 0 || loading;
 
-                                                {/* Child Ages */}
-                                                {room.children > 0 && (
-                                                     <div className="grid grid-cols-2 gap-3 mt-1">
-                                                        {room.childAges.map((age, ageIdx) => (
-                                                            <div key={ageIdx} className="flex flex-col gap-1">
-                                                                <span className="text-[11px] text-[#70757a] dark:text-slate-400">{ls.children} {ageIdx + 1} {ls.years}</span>
-                                                                <select
-                                                                    value={age}
-                                                                    onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
-                                                                    className="w-full h-8 bg-white dark:bg-[#303134] rounded-lg border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]/30 outline-none text-[#202124] dark:text-white cursor-pointer"
-                                                                >
-                                                                    {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {ls.years}</option>)}
-                                                                </select>
-                                                            </div>
-                                                        ))}
+        return (
+            <section className="relative group/search w-full flex flex-col items-center">
+                <div className="relative w-full max-w-[1024px] bg-white dark:bg-[#202124] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] px-4 pt-2 pb-10 border-none transition-all duration-300">
+
+                    {/* Top Options (Guests) - Google Flights style */}
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-3 relative z-[60]">
+                        {/* Elegant Guest Selector */}
+                        <div className="relative group/field" ref={guestWrapperRef}>
+                            <button
+                                type="button"
+                                onClick={() => setShowGuestDropdown(!showGuestDropdown)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 font-medium text-[13.5px] transition-colors cursor-pointer select-none ${showGuestDropdown
+                                        ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] rounded-t-lg border-b-2 border-[#1a73e8]'
+                                        : 'text-[#3c4043] dark:text-slate-200 hover:text-[#202124] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] rounded-lg border-b-2 border-transparent'
+                                    }`}
+                            >
+                                <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-[#8ab4f8]">person</span>
+                                <span>{totalAdults + totalChildren}</span>
+                                <span className={`material-symbols-outlined text-[19px] ${showGuestDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-300'}`}>
+                                    {showGuestDropdown ? 'arrow_drop_up' : 'arrow_drop_down'}
+                                </span>
+                            </button>
+
+                            {/* Guest Dropdown - Google Flights Style */}
+                            {showGuestDropdown && (
+                                <div className="absolute top-full left-0 mt-1 w-80 sm:w-[340px] bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3)] p-4 sm:p-5 z-[200] animate-in fade-in duration-150">
+                                    <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-2 -mr-2 space-y-4">
+                                        {roomState.map((room, index) => (
+                                            <div key={index} className="pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0">
+                                                {roomState.length > 1 && (
+                                                    <div className="flex justify-between items-center mb-3">
+                                                        <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.roomSingle} {index + 1}</span>
+                                                        <button type="button" onClick={() => removeRoom(index)} className="text-red-500 hover:text-red-700 text-[12px] font-medium px-2 py-0.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer">{ls.remove}</button>
                                                     </div>
                                                 )}
-                                            </div>
-                                        </div>
-                                    ))}
 
-                                    {roomState.length < 5 && (
-                                        <button type="button" onClick={addRoom} className="mt-3 text-[13px] text-[#1a73e8] dark:text-[#8ab4f8] font-medium hover:underline flex items-center cursor-pointer">
-                                            <span className="material-symbols-outlined text-[18px] mr-1">add</span>
-                                            {ls.addRoom}
+                                                <div className="flex flex-col gap-4">
+                                                    {/* Adults Row */}
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <div className="text-[13px] font-normal text-[#202124] dark:text-white">{ls.adults}</div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateRoom(index, 'adults', Math.max(1, room.adults - 1))}
+                                                                disabled={room.adults <= 1}
+                                                                className="size-8 rounded-lg flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[18px]">remove</span>
+                                                            </button>
+                                                            <span className="w-8 text-center text-[13px] font-normal text-[#202124] dark:text-white">{room.adults}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateRoom(index, 'adults', Math.min(6, room.adults + 1))}
+                                                                disabled={room.adults >= 6}
+                                                                className="size-8 rounded-lg flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[18px]">add</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Children Row */}
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <div className="text-[13px] font-normal text-[#202124] dark:text-white">{ls.children}</div>
+                                                            <div className="text-[11px] text-[#70757a] dark:text-slate-400 leading-tight">{ls.childrenAge}</div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateRoom(index, 'children', Math.max(0, room.children - 1))}
+                                                                disabled={room.children <= 0}
+                                                                className="size-8 rounded-lg flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[18px]">remove</span>
+                                                            </button>
+                                                            <span className="w-8 text-center text-[13px] font-normal text-[#202124] dark:text-white">{room.children}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateRoom(index, 'children', Math.min(4, room.children + 1))}
+                                                                disabled={room.children >= 4}
+                                                                className="size-8 rounded-lg flex items-center justify-center transition-colors select-none disabled:bg-[#f1f3f4] disabled:text-[#bdc1c6] dark:disabled:bg-slate-800 dark:disabled:text-slate-600 disabled:cursor-not-allowed bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] cursor-pointer"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[18px]">add</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Child Ages */}
+                                                    {room.children > 0 && (
+                                                        <div className="grid grid-cols-2 gap-3 mt-1">
+                                                            {room.childAges.map((age, ageIdx) => (
+                                                                <div key={ageIdx} className="flex flex-col gap-1">
+                                                                    <span className="text-[11px] text-[#70757a] dark:text-slate-400">{ls.children} {ageIdx + 1} {ls.years}</span>
+                                                                    <select
+                                                                        value={age}
+                                                                        onChange={(e) => updateChildAge(index, ageIdx, e.target.value)}
+                                                                        className="w-full h-8 bg-white dark:bg-[#303134] rounded-lg border border-[#dadce0] dark:border-slate-600 text-[13px] px-2 focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]/30 outline-none text-[#202124] dark:text-white cursor-pointer"
+                                                                    >
+                                                                        {[...Array(18)].map((_, i) => <option key={i} value={i}>{i} {ls.years}</option>)}
+                                                                    </select>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        {roomState.length < 5 && (
+                                            <button type="button" onClick={addRoom} className="mt-3 text-[13px] text-[#1a73e8] dark:text-[#8ab4f8] font-medium hover:underline flex items-center cursor-pointer">
+                                                <span className="material-symbols-outlined text-[18px] mr-1">add</span>
+                                                {ls.addRoom}
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Google Flights Style Footer */}
+                                    <div className="flex items-center justify-end gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowGuestDropdown(false)}
+                                            className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] rounded-lg cursor-pointer transition-colors"
+                                        >
+                                            {ls.cancel || 'Cancel'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowGuestDropdown(false)}
+                                            className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] rounded-lg cursor-pointer transition-colors"
+                                        >
+                                            {ls.done || 'Done'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Main Search Input Row (Single Line: Destination Input + Nationality Input + Google Flights Twin Datepicker) */}
+                    <div className={`w-full flex flex-col md:flex-row items-stretch gap-2.5 sm:gap-3 relative ${isDatePickerOpen ? 'z-[100]' : 'z-50'}`}>
+
+                        {/* Destination Input (Flex-1 fills remaining space) */}
+                        <div className="flex-1 min-w-0 relative font-roboto h-14" ref={searchWrapperRef}>
+                            <div
+                                className={`w-full transition-all ${showDropdown && hasAnyResults
+                                        ? 'absolute top-0 left-0 w-full min-w-[320px] sm:min-w-[380px] md:min-w-[420px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] z-[300] overflow-hidden'
+                                        : 'h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg shadow-2xs bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-2 focus-within:ring-[#1a73e8]/20'
+                                    }`}
+                            >
+                                <div className={`flex items-center gap-3 px-3.5 sm:px-4 h-14 w-full ${showDropdown && hasAnyResults ? 'border-b border-[#dadce0] dark:border-[#3c4043]' : ''}`}>
+                                    <span className="material-symbols-outlined text-[22px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 600, 'opsz' 22" }}>
+                                        {error ? 'error' : 'search'}
+                                    </span>
+                                    <input
+                                        ref={inputRef}
+                                        className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[14px] font-normal text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate"
+                                        placeholder={ls.placeholder || "Nereye?"}
+                                        type="text"
+                                        value={query}
+                                        onChange={(e) => {
+                                            isUserInteraction.current = true;
+                                            setQuery(e.target.value);
+                                            if (error) setError(false);
+                                        }}
+                                        onClick={(e) => {
+                                            e.target.select();
+                                            fetchSearchHistory();
+                                            setShowDropdown(true);
+                                        }}
+                                        onFocus={() => {
+                                            fetchSearchHistory();
+                                            setShowDropdown(true);
+                                        }}
+                                        onKeyDown={handleKeyDown}
+                                    />
+                                    {loading && <div className="size-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>}
+                                    {query && !loading && (
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                e.preventDefault();
+                                                isUserInteraction.current = true;
+                                                setQuery('');
+                                                setResults({ hotels: [], regions: [] });
+                                                fetchSearchHistory();
+                                                setShowDropdown(true);
+                                                inputRef.current?.focus();
+                                            }}
+                                            className="w-8 h-8 rounded-full text-[#5f6368] dark:text-slate-400 hover:text-[#202124] dark:hover:text-white hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors flex items-center justify-center flex-shrink-0 -mr-1"
+                                            title="Temizle"
+                                        >
+                                            <span className="material-symbols-outlined text-[18px]">close</span>
                                         </button>
                                     )}
                                 </div>
 
-                                {/* Google Flights Style Footer */}
-                                <div className="flex items-center justify-end gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800">
-                                    <button 
-                                        type="button"
-                                        onClick={() => setShowGuestDropdown(false)} 
-                                        className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] rounded-lg cursor-pointer transition-colors"
-                                    >
-                                        {ls.cancel || 'Cancel'}
-                                    </button>
-                                    <button 
-                                        type="button"
-                                        onClick={() => setShowGuestDropdown(false)} 
-                                        className="px-4 py-1.5 text-[13px] font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] rounded-lg cursor-pointer transition-colors"
-                                    >
-                                        {ls.done || 'Done'}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Main Search Input Row (Single Line: Destination Input + Nationality Input + Google Flights Twin Datepicker) */}
-                <div className={`w-full flex flex-col md:flex-row items-stretch gap-2.5 sm:gap-3 relative ${isDatePickerOpen ? 'z-[100]' : 'z-50'}`}>
-                    
-                    {/* Destination Input (Flex-1 fills remaining space) */}
-                    <div className="flex-1 min-w-0 relative font-roboto h-14" ref={searchWrapperRef}>
-                        <div
-                            className={`w-full transition-all ${
-                                showDropdown && hasAnyResults
-                                    ? 'absolute top-0 left-0 w-full min-w-[320px] sm:min-w-[380px] md:min-w-[420px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] z-[300] overflow-hidden'
-                                    : 'h-14 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg shadow-2xs bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-2 focus-within:ring-[#1a73e8]/20'
-                            }`}
-                        >
-                        <div className={`flex items-center gap-3 px-3.5 sm:px-4 h-14 w-full ${showDropdown && hasAnyResults ? 'border-b border-[#dadce0] dark:border-[#3c4043]' : ''}`}>
-                            <span className="material-symbols-outlined text-[22px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 600, 'opsz' 22" }}>
-                                {error ? 'error' : 'search'}
-                            </span>
-                            <input
-                                ref={inputRef}
-                                className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[14px] font-normal text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate"
-                                placeholder={ls.placeholder || "Nereye?"}
-                                type="text"
-                                value={query}
-                                onChange={(e) => {
-                                    isUserInteraction.current = true;
-                                    setQuery(e.target.value);
-                                    if (error) setError(false);
-                                }}
-                                onClick={(e) => {
-                                    e.target.select();
-                                    fetchSearchHistory();
-                                    setShowDropdown(true);
-                                }}
-                                onFocus={() => {
-                                    fetchSearchHistory();
-                                    setShowDropdown(true);
-                                }}
-                                onKeyDown={handleKeyDown}
-                            />
-                            {loading && <div className="size-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>}
-                            {query && !loading && (
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        e.preventDefault();
-                                        isUserInteraction.current = true;
-                                        setQuery('');
-                                        setResults({ hotels: [], regions: [] });
-                                        fetchSearchHistory();
-                                        setShowDropdown(true);
-                                        inputRef.current?.focus();
-                                    }}
-                                    className="w-8 h-8 rounded-full text-[#5f6368] dark:text-slate-400 hover:text-[#202124] dark:hover:text-white hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors flex items-center justify-center flex-shrink-0 -mr-1"
-                                    title="Temizle"
-                                >
-                                    <span className="material-symbols-outlined text-[18px]">close</span>
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Autocomplete Dropdown - Google Travel Style */}
-                        {showDropdown && hasAnyResults && (
-                            <div className="max-h-[460px] overflow-y-auto py-1 scrollbar-thin">
-                                {/* 1. Past Searches Section */}
-                                {matchingHistory.length > 0 && (
-                                    <div className={isClearingHistory ? 'opacity-40 pointer-events-none transition-opacity duration-200' : 'transition-opacity duration-200'}>
-                                        <div className="flex items-center justify-between px-4 py-2 border-b border-[#f1f3f4] dark:border-[#3c4043] mb-1">
-                                            <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">Son Aramalar</span>
-                                            {!query.trim() && (
-                                                <button
-                                                    type="button"
-                                                    onClick={handleClearHistory}
-                                                    disabled={isClearingHistory}
-                                                    className="text-[11px] font-medium text-[#1a73e8] hover:underline transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-70"
-                                                >
-                                                    {isClearingHistory ? (
-                                                        <>
-                                                            <span className="material-symbols-outlined text-[13px] animate-spin">progress_activity</span>
-                                                            <span>Temizleniyor...</span>
-                                                        </>
-                                                    ) : (
-                                                        <span>Temizle</span>
+                                {/* Autocomplete Dropdown - Google Travel Style */}
+                                {showDropdown && hasAnyResults && (
+                                    <div className="max-h-[460px] overflow-y-auto py-1 scrollbar-thin">
+                                        {/* 1. Past Searches Section */}
+                                        {matchingHistory.length > 0 && (
+                                            <div className={isClearingHistory ? 'opacity-40 pointer-events-none transition-opacity duration-200' : 'transition-opacity duration-200'}>
+                                                <div className="flex items-center justify-between px-4 py-2 border-b border-[#f1f3f4] dark:border-[#3c4043] mb-1">
+                                                    <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">Son Aramalar</span>
+                                                    {!query.trim() && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleClearHistory}
+                                                            disabled={isClearingHistory}
+                                                            className="text-[11px] font-medium text-[#1a73e8] hover:underline transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-70"
+                                                        >
+                                                            {isClearingHistory ? (
+                                                                <>
+                                                                    <span className="material-symbols-outlined text-[13px] animate-spin">progress_activity</span>
+                                                                    <span>Temizleniyor...</span>
+                                                                </>
+                                                            ) : (
+                                                                <span>Temizle</span>
+                                                            )}
+                                                        </button>
                                                     )}
-                                                </button>
-                                            )}
-                                        </div>
-                                        <div>
-                                            {matchingHistory.map((item, index) => {
-                                                const itemType = item.type || item.searchType || 'SEARCH';
-                                                let icon = 'history';
-                                                const isHistoryPoi = itemType === 'POI';
-                                                if (isHistoryPoi) icon = 'attractions';
-                                                else if (itemType === 'LOCATION' || itemType === 'GEOGRAPHY_REGION') icon = 'location_on';
-                                                else if (itemType === 'HOTEL') icon = 'hotel';
-                                                else if (itemType === 'AIRPORT') icon = 'flight';
+                                                </div>
+                                                <div>
+                                                    {matchingHistory.map((item, index) => {
+                                                        const itemType = item.type || item.searchType || 'SEARCH';
+                                                        let icon = 'history';
+                                                        const isHistoryPoi = itemType === 'POI';
+                                                        if (isHistoryPoi) icon = 'attractions';
+                                                        else if (itemType === 'LOCATION' || itemType === 'GEOGRAPHY_REGION') icon = 'location_on';
+                                                        else if (itemType === 'HOTEL') icon = 'hotel';
+                                                        else if (itemType === 'AIRPORT') icon = 'flight';
 
-                                                let title = item.query || '';
-                                                let subtitle = stripAboveCountryFromText(item.subtitle || '');
+                                                        let title = item.query || '';
+                                                        let subtitle = stripAboveCountryFromText(item.subtitle || '');
 
-                                                if (!subtitle || subtitle === title) {
-                                                    if (title.includes(',')) {
-                                                        const parts = title.split(',').map(s => s.trim());
-                                                        title = parts[0];
-                                                        subtitle = stripAboveCountryFromText(parts.slice(1).join(', '));
-                                                    }
-                                                }
+                                                        if (!subtitle || subtitle === title) {
+                                                            if (title.includes(',')) {
+                                                                const parts = title.split(',').map(s => s.trim());
+                                                                title = parts[0];
+                                                                subtitle = stripAboveCountryFromText(parts.slice(1).join(', '));
+                                                            }
+                                                        }
 
-                                                return (
-                                                    <div
-                                                        key={item.id || index}
-                                                        onClick={() => handleSelectHistoryItem(item)}
-                                                        className="w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors group cursor-pointer"
-                                                    >
-                                                        <div className="flex items-center min-w-0 flex-1 mr-3">
-                                                            <span className={`material-symbols-outlined text-[19px] ${isHistoryPoi ? 'text-amber-600 dark:text-amber-400' : 'text-[#5f6368] dark:text-[#9aa0a6]'} mr-3.5 shrink-0 select-none`}>
-                                                                {icon}
-                                                            </span>
-                                                            <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate flex items-center gap-1.5">
-                                                                    <span className="truncate">{title}</span>
-                                                                    {isHistoryPoi && (
-                                                                        <span className="text-[9px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60 uppercase shrink-0">
-                                                                            POI
+                                                        return (
+                                                            <div
+                                                                key={item.id || index}
+                                                                onClick={() => handleSelectHistoryItem(item)}
+                                                                className="w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors group cursor-pointer"
+                                                            >
+                                                                <div className="flex items-center min-w-0 flex-1 mr-3">
+                                                                    <span className={`material-symbols-outlined text-[19px] ${isHistoryPoi ? 'text-amber-600 dark:text-amber-400' : 'text-[#5f6368] dark:text-[#9aa0a6]'} mr-3.5 shrink-0 select-none`}>
+                                                                        {icon}
+                                                                    </span>
+                                                                    <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                                                        <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate flex items-center gap-1.5">
+                                                                            <span className="truncate">{title}</span>
+                                                                            {isHistoryPoi && (
+                                                                                <span className="text-[9px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60 uppercase shrink-0">
+                                                                                    POI
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        {subtitle && (
+                                                                            <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
+                                                                                {subtitle}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => handleDeleteHistoryItem(e, item.id)}
+                                                                    className="opacity-0 group-hover:opacity-100 p-1.5 text-[#70757a] hover:text-[#d93025] dark:hover:text-red-400 rounded-full transition-all shrink-0 ml-2 cursor-pointer"
+                                                                    title="Sil"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[17px] leading-none block">close</span>
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* 2. Locations Section */}
+                                        {results.regions.length > 0 && (
+                                            <div className={matchingHistory.length > 0 ? "border-t border-[#f1f3f4] dark:border-[#3c4043] pt-1" : ""}>
+                                                <div className="px-4 pt-2 pb-1">
+                                                    <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.popularDestinations || 'Popüler Noktalar'}</span>
+                                                </div>
+                                                <div>
+                                                    {treeRegions.map((region) => {
+                                                        const rawName = region.name?.translations?.[currentLang] || region.name?.translations?.en || region.name?.defaultName || '';
+                                                        const rawSub = getRegionName(region);
+
+                                                        let title = rawName;
+                                                        let subtitle = rawSub;
+
+                                                        const isPoi = isPoiItem(region);
+
+                                                        if (rawSub === rawName) {
+                                                            if (rawName.includes(',')) {
+                                                                const parts = rawName.split(',').map(s => s.trim());
+                                                                title = parts[0];
+                                                                subtitle = stripAboveCountryFromText(parts.slice(1).join(', '));
+                                                            } else {
+                                                                subtitle = region.countryCode ? `${region.countryCode}` : (isPoi ? (ls.pointOfInterest || 'Point of Interest') : (ls.cityRegion || 'City / Region'));
+                                                            }
+                                                        } else if (rawSub.startsWith(rawName + ', ')) {
+                                                            subtitle = rawSub.slice(rawName.length + 2);
+                                                        }
+
+                                                        const { icon } = getLocationIconMeta(region, title, subtitle, false);
+
+                                                        const hasChildren = region.children && region.children.length > 0;
+                                                        const parentNodeId = String(region.regionId || region.poiId || region.locationId || region.id || title);
+                                                        const isExpanded = expandedNodes[parentNodeId] !== false; // expanded by default
+
+                                                        const parentFlatIdx = flatRegionsList.findIndex(f => f.item === region);
+                                                        const isParentActive = activeIndex === (matchingHistory.length + parentFlatIdx);
+
+                                                        return (
+                                                            <div key={parentNodeId} className="w-full">
+                                                                {/* Parent Row */}
+                                                                <div
+                                                                    onClick={() => handleSelectLocation(region)}
+                                                                    className={`w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isParentActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                                >
+                                                                    <div className="flex items-center min-w-0 flex-1">
+                                                                        <span className={`material-symbols-outlined text-[19px] ${isPoi ? 'text-amber-600 dark:text-amber-400' : 'text-[#5f6368] dark:text-[#9aa0a6]'} mr-3.5 shrink-0 select-none`}>
+                                                                            {icon}
                                                                         </span>
+                                                                        <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                                                            <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate flex items-center gap-1.5">
+                                                                                <span className="truncate">{title}</span>
+                                                                                {isPoi && (
+                                                                                    <span className="text-[9px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60 uppercase shrink-0">
+                                                                                        POI
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                            {subtitle && (
+                                                                                <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
+                                                                                    {subtitle}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Chevron Toggle Button if has children */}
+                                                                    {hasChildren && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                toggleExpand(parentNodeId);
+                                                                            }}
+                                                                            className="p-1 sm:p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-[#5f6368] dark:text-[#9aa0a6] transition-colors ml-2 shrink-0 cursor-pointer flex items-center gap-1.5"
+                                                                            title={isExpanded ? 'POI\'leri Gizle' : 'POI\'leri Göster'}
+                                                                        >
+                                                                            <span className="text-[10px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60 uppercase">
+                                                                                {region.children.length} POI
+                                                                            </span>
+                                                                            <span className="material-symbols-outlined text-[18px] leading-none">
+                                                                                {isExpanded ? 'expand_less' : 'expand_more'}
+                                                                            </span>
+                                                                        </button>
                                                                     )}
                                                                 </div>
-                                                                {subtitle && (
-                                                                    <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
-                                                                        {subtitle}
+
+                                                                {/* Sub-regions Tree Branch (Nested) */}
+                                                                {hasChildren && isExpanded && (
+                                                                    <div className="relative ml-6 sm:ml-7 pl-3 sm:pl-3.5 border-l-2 border-[#e8eaed] dark:border-[#3c4043] my-0.5 space-y-0.5">
+                                                                        {region.children.map((child) => {
+                                                                            const rawChildName = child.name?.translations?.[currentLang] || child.name?.translations?.en || child.name?.defaultName || '';
+                                                                            const rawChildSub = getRegionName(child);
+
+                                                                            let childTitle = rawChildName;
+                                                                            let childSubtitle = rawChildSub;
+
+                                                                            const childIsPoi = isPoiItem(child);
+
+                                                                            if (rawChildSub === rawChildName) {
+                                                                                if (rawChildName.includes(',')) {
+                                                                                    const parts = rawChildName.split(',').map(s => s.trim());
+                                                                                    childTitle = parts[0];
+                                                                                    childSubtitle = stripAboveCountryFromText(parts.slice(1).join(', '));
+                                                                                } else {
+                                                                                    childSubtitle = child.countryCode ? `${child.countryCode}` : (childIsPoi ? (ls.pointOfInterest || 'Point of Interest') : (ls.cityRegion || 'City / Region'));
+                                                                                }
+                                                                            } else if (rawChildSub.startsWith(rawChildName + ', ')) {
+                                                                                childSubtitle = rawChildSub.slice(rawChildName.length + 2);
+                                                                            }
+
+                                                                            const { icon: childIcon } = getLocationIconMeta(child, childTitle, childSubtitle, true);
+
+                                                                            const childFlatIdx = flatRegionsList.findIndex(f => f.item === child);
+                                                                            const isChildActive = activeIndex === (matchingHistory.length + childFlatIdx);
+
+                                                                            return (
+                                                                                <div
+                                                                                    key={child.regionId || child.poiId || child.locationId || child.id || childTitle}
+                                                                                    onClick={() => handleSelectLocation(child)}
+                                                                                    className={`w-full text-left px-3.5 py-2.5 min-h-[46px] rounded hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group/child ${isChildActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                                                >
+                                                                                    <div className="flex items-center min-w-0 flex-1">
+                                                                                        <span className={`material-symbols-outlined text-[18px] ${childIsPoi ? 'text-amber-600 dark:text-amber-400' : 'text-[#70757a] dark:text-[#9aa0a6]'} mr-3 shrink-0 select-none`}>
+                                                                                            {childIcon}
+                                                                                        </span>
+                                                                                        <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                                                                            <div className="text-[13.5px] font-normal text-[#202124] dark:text-white leading-tight truncate flex items-center gap-1.5">
+                                                                                                <span className="truncate">{childTitle}</span>
+                                                                                                {childIsPoi && (
+                                                                                                    <span className="text-[8.5px] font-semibold tracking-wider px-1 py-0.2 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60 uppercase shrink-0">
+                                                                                                        POI
+                                                                                                    </span>
+                                                                                                )}
+                                                                                            </div>
+                                                                                            {childSubtitle && (
+                                                                                                <div className="text-[11.5px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
+                                                                                                    {childSubtitle}
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        })}
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => handleDeleteHistoryItem(e, item.id)}
-                                                            className="opacity-0 group-hover:opacity-100 p-1.5 text-[#70757a] hover:text-[#d93025] dark:hover:text-red-400 rounded-full transition-all shrink-0 ml-2 cursor-pointer"
-                                                            title="Sil"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[17px] leading-none block">close</span>
-                                                        </button>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
 
-                                {/* 2. Locations Section */}
-                                {results.regions.length > 0 && (
-                                    <div className={matchingHistory.length > 0 ? "border-t border-[#f1f3f4] dark:border-[#3c4043] pt-1" : ""}>
-                                        <div className="px-4 pt-2 pb-1">
-                                            <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.popularDestinations || 'Popüler Noktalar'}</span>
-                                        </div>
-                                        <div>
-                                            {treeRegions.map((region) => {
-                                                const rawName = region.name?.translations?.[currentLang] || region.name?.translations?.en || region.name?.defaultName || '';
-                                                const rawSub = getRegionName(region);
+                                        {/* 3. Hotels Section */}
+                                        {results.hotels.length > 0 && (
+                                            <div className={(matchingHistory.length > 0 || results.regions.length > 0) ? "border-t border-[#f1f3f4] dark:border-[#3c4043] pt-1" : ""}>
+                                                <div className="px-4 pt-2 pb-1">
+                                                    <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.featuredHotels || 'Oteller'}</span>
+                                                </div>
+                                                <div>
+                                                    {results.hotels.map((hotel, index) => {
+                                                        const hotelTitle = getHotelName(hotel);
+                                                        const hotelMeta = getPropertyCategoryMeta(hotel, currentLang);
+                                                        const hotelSubtitle = getRegionSubtitle(hotel, currentLang);
 
-                                                let title = rawName;
-                                                let subtitle = rawSub;
-
-                                                const isPoi = isPoiItem(region);
-
-                                                if (rawSub === rawName) {
-                                                    if (rawName.includes(',')) {
-                                                        const parts = rawName.split(',').map(s => s.trim());
-                                                        title = parts[0];
-                                                        subtitle = stripAboveCountryFromText(parts.slice(1).join(', '));
-                                                    } else {
-                                                        subtitle = region.countryCode ? `${region.countryCode}` : (isPoi ? (ls.pointOfInterest || 'Point of Interest') : (ls.cityRegion || 'City / Region'));
-                                                    }
-                                                } else if (rawSub.startsWith(rawName + ', ')) {
-                                                    subtitle = rawSub.slice(rawName.length + 2);
-                                                }
-
-                                                const { icon } = getLocationIconMeta(region, title, subtitle, false);
-
-                                                const hasChildren = region.children && region.children.length > 0;
-                                                const parentNodeId = String(region.regionId || region.poiId || region.locationId || region.id || title);
-                                                const isExpanded = expandedNodes[parentNodeId] !== false; // expanded by default
-
-                                                const parentFlatIdx = flatRegionsList.findIndex(f => f.item === region);
-                                                const isParentActive = activeIndex === (matchingHistory.length + parentFlatIdx);
-
-                                                return (
-                                                    <div key={parentNodeId} className="w-full">
-                                                        {/* Parent Row */}
-                                                        <div
-                                                            onClick={() => handleSelectLocation(region)}
-                                                            className={`w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${isParentActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
-                                                        >
-                                                            <div className="flex items-center min-w-0 flex-1">
-                                                                <span className={`material-symbols-outlined text-[19px] ${isPoi ? 'text-amber-600 dark:text-amber-400' : 'text-[#5f6368] dark:text-[#9aa0a6]'} mr-3.5 shrink-0 select-none`}>
-                                                                    {icon}
-                                                                </span>
-                                                                <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                    <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate flex items-center gap-1.5">
-                                                                        <span className="truncate">{title}</span>
-                                                                        {isPoi && (
-                                                                            <span className="text-[9px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60 uppercase shrink-0">
-                                                                                POI
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                    {subtitle && (
-                                                                        <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
-                                                                            {subtitle}
+                                                        return (
+                                                            <button
+                                                                key={hotel.togId || hotel.propertyId || hotel.hotelId || hotel.id || index}
+                                                                type="button"
+                                                                onClick={() => handleSelectHotel(hotel)}
+                                                                className={`w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${activeIndex === (matchingHistory.length + flatRegionsList.length + index) ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
+                                                            >
+                                                                <div className="flex items-center min-w-0 flex-1">
+                                                                    <span className="material-symbols-outlined text-[19px] text-[#5f6368] dark:text-[#9aa0a6] mr-3.5 shrink-0 select-none">
+                                                                        {hotelMeta.icon}
+                                                                    </span>
+                                                                    <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                                                        <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate">
+                                                                            <span className="truncate">{hotelTitle}</span>
                                                                         </div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Chevron Toggle Button if has children */}
-                                                            {hasChildren && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        toggleExpand(parentNodeId);
-                                                                    }}
-                                                                    className="p-1 sm:p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-[#5f6368] dark:text-[#9aa0a6] transition-colors ml-2 shrink-0 cursor-pointer flex items-center gap-1.5"
-                                                                    title={isExpanded ? 'POI\'leri Gizle' : 'POI\'leri Göster'}
-                                                                >
-                                                                    <span className="text-[10px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60 uppercase">
-                                                                        {region.children.length} POI
-                                                                    </span>
-                                                                    <span className="material-symbols-outlined text-[18px] leading-none">
-                                                                        {isExpanded ? 'expand_less' : 'expand_more'}
-                                                                    </span>
-                                                                </button>
-                                                            )}
-                                                        </div>
-
-                                                        {/* Sub-regions Tree Branch (Nested) */}
-                                                        {hasChildren && isExpanded && (
-                                                            <div className="relative ml-6 sm:ml-7 pl-3 sm:pl-3.5 border-l-2 border-[#e8eaed] dark:border-[#3c4043] my-0.5 space-y-0.5">
-                                                                {region.children.map((child) => {
-                                                                    const rawChildName = child.name?.translations?.[currentLang] || child.name?.translations?.en || child.name?.defaultName || '';
-                                                                    const rawChildSub = getRegionName(child);
-
-                                                                    let childTitle = rawChildName;
-                                                                    let childSubtitle = rawChildSub;
-
-                                                                    const childIsPoi = isPoiItem(child);
-
-                                                                    if (rawChildSub === rawChildName) {
-                                                                        if (rawChildName.includes(',')) {
-                                                                            const parts = rawChildName.split(',').map(s => s.trim());
-                                                                            childTitle = parts[0];
-                                                                            childSubtitle = stripAboveCountryFromText(parts.slice(1).join(', '));
-                                                                        } else {
-                                                                            childSubtitle = child.countryCode ? `${child.countryCode}` : (childIsPoi ? (ls.pointOfInterest || 'Point of Interest') : (ls.cityRegion || 'City / Region'));
-                                                                        }
-                                                                    } else if (rawChildSub.startsWith(rawChildName + ', ')) {
-                                                                        childSubtitle = rawChildSub.slice(rawChildName.length + 2);
-                                                                    }
-
-                                                                    const { icon: childIcon } = getLocationIconMeta(child, childTitle, childSubtitle, true);
-
-                                                                    const childFlatIdx = flatRegionsList.findIndex(f => f.item === child);
-                                                                    const isChildActive = activeIndex === (matchingHistory.length + childFlatIdx);
-
-                                                                    return (
-                                                                        <div
-                                                                            key={child.regionId || child.poiId || child.locationId || child.id || childTitle}
-                                                                            onClick={() => handleSelectLocation(child)}
-                                                                            className={`w-full text-left px-3.5 py-2.5 min-h-[46px] rounded hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group/child ${isChildActive ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
-                                                                        >
-                                                                            <div className="flex items-center min-w-0 flex-1">
-                                                                                <span className={`material-symbols-outlined text-[18px] ${childIsPoi ? 'text-amber-600 dark:text-amber-400' : 'text-[#70757a] dark:text-[#9aa0a6]'} mr-3 shrink-0 select-none`}>
-                                                                                    {childIcon}
+                                                                        <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate flex items-center gap-2">
+                                                                            {hotelSubtitle && (
+                                                                                <span className="truncate">{hotelSubtitle}</span>
+                                                                            )}
+                                                                            {hotelMeta.id !== 1 && (
+                                                                                <span className="text-[9px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/70 dark:border-blue-800/60 uppercase shrink-0">
+                                                                                    {hotelMeta.name}
                                                                                 </span>
-                                                                                <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                                    <div className="text-[13.5px] font-normal text-[#202124] dark:text-white leading-tight truncate flex items-center gap-1.5">
-                                                                                        <span className="truncate">{childTitle}</span>
-                                                                                        {childIsPoi && (
-                                                                                            <span className="text-[8.5px] font-semibold tracking-wider px-1 py-0.2 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60 uppercase shrink-0">
-                                                                                                POI
-                                                                                            </span>
-                                                                                        )}
-                                                                                    </div>
-                                                                                    {childSubtitle && (
-                                                                                        <div className="text-[11.5px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate">
-                                                                                            {childSubtitle}
-                                                                                        </div>
-                                                                                    )}
-                                                                                </div>
-                                                                            </div>
+                                                                            )}
                                                                         </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* 3. Hotels Section */}
-                                {results.hotels.length > 0 && (
-                                    <div className={(matchingHistory.length > 0 || results.regions.length > 0) ? "border-t border-[#f1f3f4] dark:border-[#3c4043] pt-1" : ""}>
-                                        <div className="px-4 pt-2 pb-1">
-                                            <span className="text-[11px] font-medium text-[#70757a] dark:text-slate-400 uppercase tracking-wider">{ls.featuredHotels || 'Oteller'}</span>
-                                        </div>
-                                        <div>
-                                            {results.hotels.map((hotel, index) => {
-                                                const hotelTitle = getHotelName(hotel);
-                                                const hotelMeta = getPropertyCategoryMeta(hotel, currentLang);
-                                                const hotelSubtitle = getRegionSubtitle(hotel, currentLang);
-
-                                                return (
-                                                    <button
-                                                        key={hotel.togId || hotel.propertyId || hotel.hotelId || hotel.id || index}
-                                                        type="button"
-                                                        onClick={() => handleSelectHotel(hotel)}
-                                                        className={`w-full text-left px-4 py-3 min-h-[52px] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-between transition-colors cursor-pointer group ${activeIndex === (matchingHistory.length + flatRegionsList.length + index) ? 'bg-[#f1f3f4] dark:bg-[#303134]' : ''}`}
-                                                    >
-                                                        <div className="flex items-center min-w-0 flex-1">
-                                                            <span className="material-symbols-outlined text-[19px] text-[#5f6368] dark:text-[#9aa0a6] mr-3.5 shrink-0 select-none">
-                                                                {hotelMeta.icon}
-                                                            </span>
-                                                            <div className="min-w-0 flex-1 flex flex-col justify-center">
-                                                                <div className="text-[14px] font-normal text-[#202124] dark:text-white leading-tight truncate">
-                                                                    <span className="truncate">{hotelTitle}</span>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="text-[12px] font-normal text-[#70757a] dark:text-[#9aa0a6] leading-normal mt-0.5 truncate flex items-center gap-2">
-                                                                    {hotelSubtitle && (
-                                                                        <span className="truncate">{hotelSubtitle}</span>
-                                                                    )}
-                                                                    {hotelMeta.id !== 1 && (
-                                                                        <span className="text-[9px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/70 dark:border-blue-800/60 uppercase shrink-0">
-                                                                            {hotelMeta.name}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
-                        )}
                         </div>
-                    </div>
 
 
-                    {/* Twin Datepicker Container - Transforms like Autocomplete */}
-                    <div
-                        ref={datePickerRef}
-                        className="w-full md:w-[350px] lg:w-[370px] flex-shrink-0 relative h-14 font-roboto"
-                    >
+                        {/* Twin Datepicker Container - Transforms like Autocomplete */}
                         <div
-                            ref={datePopoverRef}
-                            className={`transition-all duration-200 ${
-                                isDatePickerOpen
-                                    ? 'absolute top-0 left-0 bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] z-[300] overflow-hidden max-w-[calc(100vw-24px)]'
-                                    : 'h-14 w-full bg-white dark:bg-[#303134] flex items-center rounded-lg shadow-2xs border border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6] overflow-hidden'
-                            }`}
-                            style={isDatePickerOpen ? { width: 'max-content', transform: dateOffsetX ? `translateX(${dateOffsetX}px)` : undefined } : undefined}
+                            ref={datePickerRef}
+                            className="w-full md:w-[350px] lg:w-[370px] flex-shrink-0 relative h-14 font-roboto"
                         >
-                            {/* Top Bar / Trigger Row */}
-                            <div className={`flex items-center justify-between h-14 ${isDatePickerOpen ? 'border-b border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124]' : 'w-full'}`}>
-                                {/* Check-In & Check-Out Half */}
-                                <div className={`${!isDatePickerOpen ? "w-full" : "w-[350px] lg:w-[370px]"} h-full flex items-center flex-shrink-0`}>
-                                    {/* Check-In Half */}
-                                    <div
-                                        onClick={() => {
-                                            setActiveDateField('checkIn');
-                                            setIsDatePickerOpen(true);
-                                            setShowDropdown(false);
-                                            setShowGuestDropdown(false);
-                                        }}
-                                        className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
-                                            isDatePickerOpen && activeDateField === 'checkIn'
-                                                ? 'bg-blue-50/80 dark:bg-blue-950/50 text-[#1a73e8] dark:text-blue-400 font-medium'
-                                                : 'hover:bg-slate-50 dark:hover:bg-slate-700/40 text-[#3c4043] dark:text-white'
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                                            <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 500, 'opsz' 20" }}>
-                                                calendar_today
-                                            </span>
-                                            <span className="text-[13.5px] font-medium truncate">
-                                                {formatGoogleFlightDate(checkInDate, currentLang) || ls.checkIn || 'Giriş'}
-                                            </span>
+                            <div
+                                ref={datePopoverRef}
+                                className={`transition-all duration-200 ${isDatePickerOpen
+                                        ? 'absolute top-0 left-0 bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] z-[300] overflow-hidden max-w-[calc(100vw-24px)]'
+                                        : 'h-14 w-full bg-white dark:bg-[#303134] flex items-center rounded-lg shadow-2xs border border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6] overflow-hidden'
+                                    }`}
+                                style={isDatePickerOpen ? { width: 'max-content', transform: dateOffsetX ? `translateX(${dateOffsetX}px)` : undefined } : undefined}
+                            >
+                                {/* Top Bar / Trigger Row */}
+                                <div className={`flex items-center justify-between h-14 ${isDatePickerOpen ? 'border-b border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124]' : 'w-full'}`}>
+                                    {/* Check-In & Check-Out Half */}
+                                    <div className={`${!isDatePickerOpen ? "w-full" : "w-[350px] lg:w-[370px]"} h-full flex items-center flex-shrink-0`}>
+                                        {/* Check-In Half */}
+                                        <div
+                                            onClick={() => {
+                                                setActiveDateField('checkIn');
+                                                setIsDatePickerOpen(true);
+                                                setShowDropdown(false);
+                                                setShowGuestDropdown(false);
+                                            }}
+                                            className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${isDatePickerOpen && activeDateField === 'checkIn'
+                                                    ? 'bg-blue-50/80 dark:bg-blue-950/50 text-[#1a73e8] dark:text-blue-400 font-medium'
+                                                    : 'hover:bg-slate-50 dark:hover:bg-slate-700/40 text-[#3c4043] dark:text-white'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                                                <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 500, 'opsz' 20" }}>
+                                                    calendar_today
+                                                </span>
+                                                <span className="text-[13.5px] font-medium truncate">
+                                                    {formatGoogleFlightDate(checkInDate, currentLang) || ls.checkIn || 'Giriş'}
+                                                </span>
+                                            </div>
+
+                                            {/* Quick 1-day step buttons */}
+                                            <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
+                                                    className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                                    title={ls.dayBack || '1 day earlier'}
+                                                >
+                                                    <span className="material-symbols-outlined text-[15px]">chevron_left</span>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); stepCheckIn(1); }}
+                                                    className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                                    title={ls.dayForward || '1 day later'}
+                                                >
+                                                    <span className="material-symbols-outlined text-[15px]">chevron_right</span>
+                                                </button>
+                                            </div>
                                         </div>
 
-                                        {/* Quick 1-day step buttons */}
-                                        <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-1">
-                                            <button
-                                                type="button"
-                                                onClick={(e) => { e.stopPropagation(); stepCheckIn(-1); }}
-                                                className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
-                                                title={ls.dayBack || '1 day earlier'}
-                                            >
-                                                <span className="material-symbols-outlined text-[15px]">chevron_left</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={(e) => { e.stopPropagation(); stepCheckIn(1); }}
-                                                className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
-                                                title={ls.dayForward || '1 day later'}
-                                            >
-                                                <span className="material-symbols-outlined text-[15px]">chevron_right</span>
-                                            </button>
+                                        {/* Middle Divider */}
+                                        <div className="w-[1px] h-6 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
+
+                                        {/* Check-Out Half */}
+                                        <div
+                                            onClick={() => {
+                                                setActiveDateField('checkOut');
+                                                setIsDatePickerOpen(true);
+                                                setShowDropdown(false);
+                                                setShowGuestDropdown(false);
+                                            }}
+                                            className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${isDatePickerOpen && activeDateField === 'checkOut'
+                                                    ? 'bg-blue-50/80 dark:bg-blue-950/50 text-[#1a73e8] dark:text-blue-400 font-medium'
+                                                    : 'hover:bg-slate-50 dark:hover:bg-slate-700/40 text-[#3c4043] dark:text-white'
+                                                }`}
+                                        >
+                                            <div className="flex items-center min-w-0 flex-1">
+                                                <span className="text-[13.5px] font-medium truncate">
+                                                    {formatGoogleFlightDate(checkOutDate, currentLang) || ls.checkOut || 'Çıkış'}
+                                                </span>
+                                            </div>
+
+                                            {/* Quick 1-day step buttons */}
+                                            <div className="flex items-center text-[#5f6368] dark:text-slate-300 shrink-0 ml-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
+                                                    className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                                    title={ls.dayBack || '1 day earlier'}
+                                                >
+                                                    <span className="material-symbols-outlined text-[15px]">chevron_left</span>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); stepCheckOut(1); }}
+                                                    className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
+                                                    title={ls.dayForward || '1 day later'}
+                                                >
+                                                    <span className="material-symbols-outlined text-[15px]">chevron_right</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    {/* Middle Divider */}
-                                    <div className="w-[1px] h-6 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
-
-                                    {/* Check-Out Half */}
-                                    <div
-                                        onClick={() => {
-                                            setActiveDateField('checkOut');
-                                            setIsDatePickerOpen(true);
-                                            setShowDropdown(false);
-                                            setShowGuestDropdown(false);
-                                        }}
-                                        className={`relative flex-1 h-full flex items-center justify-between px-3 sm:px-3.5 cursor-pointer transition-colors min-w-0 ${
-                                            isDatePickerOpen && activeDateField === 'checkOut'
-                                                ? 'bg-blue-50/80 dark:bg-blue-950/50 text-[#1a73e8] dark:text-blue-400 font-medium'
-                                                : 'hover:bg-slate-50 dark:hover:bg-slate-700/40 text-[#3c4043] dark:text-white'
-                                        }`}
-                                    >
-                                        <div className="flex items-center min-w-0 flex-1">
-                                            <span className="text-[13.5px] font-medium truncate">
-                                                {formatGoogleFlightDate(checkOutDate, currentLang) || ls.checkOut || 'Çıkış'}
-                                            </span>
-                                        </div>
-
-                                        {/* Quick 1-day step buttons */}
-                                        <div className="flex items-center text-[#5f6368] dark:text-slate-300 shrink-0 ml-1">
+                                    {/* Right side of Top Bar (Visible when open) */}
+                                    {isDatePickerOpen && (
+                                        <div className="flex items-center gap-2 sm:gap-3 pr-3 sm:pr-4 pl-2">
+                                            {checkInDate && checkOutDate && (
+                                                <span className="text-[12.5px] font-medium text-[#5f6368] dark:text-slate-400 hidden sm:inline">
+                                                    {Math.max(1, Math.round((new Date(checkOutDate) - new Date(checkInDate)) / (1000 * 60 * 60 * 24)))} {ls.night || 'gece'}
+                                                </span>
+                                            )}
                                             <button
                                                 type="button"
-                                                onClick={(e) => { e.stopPropagation(); stepCheckOut(-1); }}
-                                                className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
-                                                title={ls.dayBack || '1 day earlier'}
+                                                onClick={handleResetDates}
+                                                className="text-[13px] text-[#1a73e8] hover:text-[#1557b0] font-medium px-2.5 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors cursor-pointer"
                                             >
-                                                <span className="material-symbols-outlined text-[15px]">chevron_left</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={(e) => { e.stopPropagation(); stepCheckOut(1); }}
-                                                className="hover:bg-slate-200 dark:hover:bg-slate-600 p-0.5 rounded transition-colors"
-                                                title={ls.dayForward || '1 day later'}
-                                            >
-                                                <span className="material-symbols-outlined text-[15px]">chevron_right</span>
+                                                {ls.reset || 'Sıfırla'}
                                             </button>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
 
-                                {/* Right side of Top Bar (Visible when open) */}
+                                {/* Expanded Calendars & Holidays (Visible when open) */}
                                 {isDatePickerOpen && (
-                                    <div className="flex items-center gap-2 sm:gap-3 pr-3 sm:pr-4 pl-2">
-                                        {checkInDate && checkOutDate && (
-                                            <span className="text-[12.5px] font-medium text-[#5f6368] dark:text-slate-400 hidden sm:inline">
-                                                {Math.max(1, Math.round((new Date(checkOutDate) - new Date(checkInDate)) / (1000 * 60 * 60 * 24)))} {ls.night || 'gece'}
-                                            </span>
-                                        )}
-                                        <button
-                                            type="button"
-                                            onClick={handleResetDates}
-                                            className="text-[13px] text-[#1a73e8] hover:text-[#1557b0] font-medium px-2.5 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors cursor-pointer"
-                                        >
-                                            {ls.reset || 'Sıfırla'}
-                                        </button>
-                                    </div>
+                                    <GoogleFlightDatePickerBody
+                                        checkInDate={checkInDate}
+                                        checkOutDate={checkOutDate}
+                                        onCheckInChange={setCheckInDate}
+                                        onCheckOutChange={setCheckOutDate}
+                                        activeField={activeDateField}
+                                        setActiveField={setActiveDateField}
+                                        holidays={holidays}
+                                        countryCode={holidayCountryCode}
+                                        onApply={() => setIsDatePickerOpen(false)}
+                                    />
                                 )}
                             </div>
+                        </div>
 
-                            {/* Expanded Calendars & Holidays (Visible when open) */}
-                            {isDatePickerOpen && (
-                                <GoogleFlightDatePickerBody
-                                    checkInDate={checkInDate}
-                                    checkOutDate={checkOutDate}
-                                    onCheckInChange={setCheckInDate}
-                                    onCheckOutChange={setCheckOutDate}
-                                    activeField={activeDateField}
-                                    setActiveField={setActiveDateField}
-                                    holidays={holidays}
-                                    countryCode={holidayCountryCode}
-                                    onApply={() => setIsDatePickerOpen(false)}
-                                />
-                            )}
+                        {/* Nationality Selector (Far Right) */}
+                        <div className="flex-shrink-0 relative h-14 w-full md:w-[155px] lg:w-[170px] transition-all duration-300">
+                            <NationalitySelect
+                                value={nationality}
+                                onChange={(newNat) => {
+                                    setNationality(newNat);
+                                }}
+                                inputStyle={true}
+                                compact={false}
+                                rounded="rounded-lg shadow-2xs"
+                                onToggle={(isOpen) => {
+                                    if (isOpen) {
+                                        setShowDropdown(false);
+                                        setIsDatePickerOpen(false);
+                                        setShowGuestDropdown(false);
+                                    }
+                                }}
+                            />
                         </div>
                     </div>
 
-                    {/* Nationality Selector (Far Right) */}
-                    <div className="flex-shrink-0 relative h-14 w-full md:w-[155px] lg:w-[170px] transition-all duration-300">
-                        <NationalitySelect 
-                            value={nationality} 
-                            onChange={(newNat) => {
-                                setNationality(newNat);
-                            }} 
-                            inputStyle={true} 
-                            compact={false}
-                            rounded="rounded-lg shadow-2xs"
-                            onToggle={(isOpen) => {
-                                if (isOpen) {
-                                    setShowDropdown(false);
-                                    setIsDatePickerOpen(false);
-                                    setShowGuestDropdown(false);
-                                }
-                            }}
-                        />
+                    {/* Overlapping Blue Search Button */}
+                    <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 z-[30]">
+                        <button
+                            type="button"
+                            onClick={handleSearch}
+                            className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[14px] px-7 py-2.5 flex items-center justify-center gap-2 shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] hover:shadow-lg transition-all active:scale-95 cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">search</span>
+                            <span>{ls.searchBtn}</span>
+                        </button>
                     </div>
                 </div>
+            </section>
+        );
+    };
 
-                {/* Overlapping Blue Search Button */}
-                <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 z-[30]">
-                    <button
-                        type="button"
-                        onClick={handleSearch}
-                        className="bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-medium text-[14px] px-7 py-2.5 flex items-center justify-center gap-2 shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] hover:shadow-lg transition-all active:scale-95 cursor-pointer"
-                    >
-                        <span className="material-symbols-outlined text-[18px]">search</span>
-                        <span>{ls.searchBtn}</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-    );
-};
-
-export default DashboardSearch;
+    export default DashboardSearch;

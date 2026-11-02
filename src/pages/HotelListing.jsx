@@ -1094,12 +1094,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
     const displayAmenities = React.useMemo(() => {
         const items = [];
 
-        // 1. Star / Category info is ALWAYS the 1st item in Google
-        const propertyTypeName = categoryMeta?.name || hotel.type || (currentLang === 'tr' ? 'Otel' : 'Hotel');
-        const firstAmenityText = starLabel ? `${starLabel} ${(propertyTypeName || '').toLowerCase()}` : propertyTypeName;
-        items.push({ icon: categoryMeta?.icon || 'hotel', label: firstAmenityText });
-
-        // 2. Meal / Board (e.g. Kahvaltı ($), Kahvaltı Dahil, Sadece Oda)
+        // 1. Meal / Board (e.g. Kahvaltı ($), Kahvaltı Dahil, Sadece Oda)
         if (hotel.boardName) {
             const bLower = String(hotel.boardName).toLowerCase();
             const isBreakfast = bLower.includes('breakfast') || bLower.includes('kahvalt');
@@ -1107,13 +1102,24 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
             items.push({ icon, label: hotel.boardName });
         }
 
-        // 3. Hotel facilities/amenities
+        // 2. Hotel facilities/amenities (excluding property type & star label as property badge already exists)
         if (Array.isArray(hotel.amenities)) {
             const lowerStarLabel = starLabel ? starLabel.toLowerCase() : null;
+            const lowerCategoryName = categoryMeta?.name ? categoryMeta.name.toLowerCase() : null;
+            const lowerType = hotel.type ? String(hotel.type).toLowerCase() : null;
+
             hotel.amenities.forEach(a => {
                 const label = typeof a === 'object' ? (Array.isArray(a.label) ? a.label[0] : a.label) : (a != null ? String(a) : '');
                 const icon = (typeof a === 'object' && a?.icon) ? a.icon : 'check_circle';
-                if (label && (!lowerStarLabel || String(label).toLowerCase() !== lowerStarLabel)) {
+                const lowerLabel = String(label).trim().toLowerCase();
+                if (
+                    label &&
+                    (!lowerStarLabel || lowerLabel !== lowerStarLabel) &&
+                    (!lowerCategoryName || lowerLabel !== lowerCategoryName) &&
+                    (!lowerType || lowerLabel !== lowerType) &&
+                    lowerLabel !== 'hotel' &&
+                    lowerLabel !== 'otel'
+                ) {
                     items.push({ icon, label });
                 }
             });
@@ -1138,7 +1144,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
             };
         }
         return sliced;
-    }, [starLabel, hotel.boardName, hotel.amenities, currentLang]);
+    }, [categoryMeta, starLabel, hotel.boardName, hotel.amenities, currentLang]);
 
     const showPricesLabel = {
         tr: 'Fiyatları göster', en: 'Show prices', ar: 'عرض الأسعار', de: 'Preise anzeigen',
@@ -3042,6 +3048,7 @@ const HotelListing = () => {
         }
         isFetchingRef.current = true;
         if (isReset) {
+            lastFetchTimeRef.current = 0;
             setIsLoading(true);
             setIsLoadingMore(false);
             setHotels([]);
@@ -3107,20 +3114,14 @@ const HotelListing = () => {
                 });
                 setTotalProperties(pageData.totalElements || 0);
                 if (currentPage === 0 && filtersData) setDynamicFilters(filtersData);
-                const nextHasMore = Boolean(!pageData.last && (pageData.totalPages ? (currentPage + 1 < pageData.totalPages) : true));
+                const isBackendLast = Boolean(pageData.last || (pageData.totalPages ? (currentPage + 1 >= pageData.totalPages) : false));
+
+                const nextHasMore = !isBackendLast;
                 setHasMore(nextHasMore);
                 hasMoreRef.current = nextHasMore;
                 const nextPage = currentPage + 1;
                 setPage(nextPage);
                 pageRef.current = nextPage;
-
-                // Auto-fetch if page returned 0 priced hotels OR if list has fewer than 8 cards to enable continuous scrolling
-                const totalLoaded = (currentPage === 0 ? mappedHotels.length : (hotels.length + mappedHotels.length));
-                if ((mappedHotels.length === 0 || totalLoaded < 8) && nextHasMore) {
-                    setTimeout(() => {
-                        loadMoreHotels(false, mapBoundsRef.current || activeGeoBounds);
-                    }, 80);
-                }
 
                 const newLocationNames = {};
                 content.forEach(hotel => {
@@ -3155,31 +3156,64 @@ const HotelListing = () => {
                 }
             }
         }
-    }, [locationId, regionId, togId, isPoiSearch, initialPoiBounds, mapApiHotelToModel, roomState, searchParams, sortConfig, fetchMapMarkers, hotels.length]);
+    }, [locationId, regionId, togId, isPoiSearch, initialPoiBounds, mapApiHotelToModel, roomState, searchParams, sortConfig, fetchMapMarkers]);
+
+    const loadMoreHotelsRef = React.useRef(loadMoreHotels);
+    React.useEffect(() => {
+        loadMoreHotelsRef.current = loadMoreHotels;
+    }, [loadMoreHotels]);
+
+    const lastFetchTimeRef = React.useRef(0);
+
+    // Smooth scroll-based infinite loading trigger (complements IntersectionObserver)
+    const handleListScroll = React.useCallback((e) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.target;
+        const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+        const now = Date.now();
+        if (
+            distanceFromBottom < 300 &&
+            hasMoreRef.current &&
+            !isFetchingRef.current &&
+            !isLoading &&
+            now - lastFetchTimeRef.current > 800
+        ) {
+            lastFetchTimeRef.current = now;
+            loadMoreHotelsRef.current(false, mapBoundsRef.current);
+        }
+    }, [isLoading]);
 
     // Infinite scroll observer for loading more hotel cards on scroll
     React.useEffect(() => {
-        const observer = new IntersectionObserver((entries) => {
-            const first = entries[0];
-            if (first.isIntersecting && hasMoreRef.current && !isFetchingRef.current && !isLoading) {
-                loadMoreHotels(false, mapBoundsRef.current);
-            }
-        }, {
-            root: listScrollRef.current,
-            threshold: 0.1,
-            rootMargin: '400px'
-        });
+        if (!hasMore) return;
 
         const currentLoader = loaderRef.current;
-        if (currentLoader) {
-            observer.observe(currentLoader);
-        }
+        if (!currentLoader) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            const first = entries[0];
+            const now = Date.now();
+            if (
+                first.isIntersecting &&
+                hasMoreRef.current &&
+                !isFetchingRef.current &&
+                !isLoading &&
+                now - lastFetchTimeRef.current > 800
+            ) {
+                lastFetchTimeRef.current = now;
+                loadMoreHotelsRef.current(false, mapBoundsRef.current);
+            }
+        }, {
+            root: listScrollRef.current || null,
+            threshold: 0,
+            rootMargin: '100px'
+        });
+
+        observer.observe(currentLoader);
 
         return () => {
-            if (currentLoader) observer.unobserve(currentLoader);
             observer.disconnect();
         };
-    }, [loadMoreHotels, isLoading, hasMore, hotels.length]);
+    }, [isLoading, hasMore]);
 
     // Map markers derived from the accumulated map marker pool + current page hotels with valid prices
     // Filtered by visible bounds + buffer to prevent off-screen markers from cluttering the DOM
@@ -3724,14 +3758,6 @@ const HotelListing = () => {
         else newParams.set('recommended', 'true');
         setSearchParams(newParams);
     };
-
-    // Scroll-based infinite loading
-    const handleListScroll = React.useCallback((e) => {
-        const { scrollTop, scrollHeight, clientHeight } = e.target;
-        if (scrollHeight - scrollTop - clientHeight < 2500 && hasMoreRef.current && !isFetchingRef.current && hotels.length > 0) {
-            loadMoreHotels(false, mapBoundsRef.current);
-        }
-    }, [loadMoreHotels, hotels.length]);
 
     // Currency symbols
     const getCurrencySymbol = (code) => {
@@ -4404,6 +4430,7 @@ const HotelListing = () => {
                 <div
                     ref={listScrollRef}
                     className="flex-1 overflow-y-auto"
+                    style={{ overflowAnchor: 'none' }}
                     onScroll={handleListScroll}
                 >
                     {/* Initial skeleton */}

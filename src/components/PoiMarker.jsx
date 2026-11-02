@@ -15,116 +15,91 @@ const POI_GLOBAL_STYLES = `
     overflow: visible !important;
 }
 
-/* Master wrapper: pointer events are disabled on container, enabled on children */
-.poi-marker-wrapper {
-    display: flex;
-    flex-direction: column;
+/* Master inline container: Circular icon badge on the left + clean typography label on the right */
+.poi-marker-container {
+    display: inline-flex;
     align-items: center;
     position: relative;
     cursor: pointer;
     user-select: none;
-    pointer-events: none;
-    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), z-index 0.1s ease;
+    pointer-events: auto;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), z-index 0.1s ease;
+    transform-origin: 11px 11px;
 }
 
 .poi-custom-marker:hover {
     z-index: 9999 !important;
 }
 
-/* Pin head & SVG teardrop */
-.poi-pin-head {
-    position: relative;
-    width: 32px;
-    height: 38px;
-    pointer-events: auto;
-    transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform-origin: 16px 37px;
-    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.22));
-}
-
-.poi-marker-wrapper:hover .poi-pin-head {
-    transform: translateY(-4px) scale(1.14);
-    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.32));
-}
-
-.poi-pin-svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-}
-
-/* Centered Material Symbol Icon inside Pin head */
-.poi-pin-glyph {
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    width: 20px;
-    height: 20px;
+/* Circular icon badge */
+.poi-marker-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ffffff !important;
-    font-size: 15px !important;
-    line-height: 1 !important;
-    font-variation-settings: 'FILL' 1, 'wght' 500;
-    pointer-events: none;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    flex-shrink: 0;
+    color: #ffffff;
+    border: 1.5px solid #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
 }
 
-/* Sleek Floating Name Tag below Pin needle */
-.poi-pin-label {
-    pointer-events: auto;
-    display: inline-flex;
+.dark .poi-marker-badge {
+    border-color: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.poi-marker-badge .material-symbols-outlined {
+    font-size: 13.5px !important;
+    line-height: 1 !important;
+    display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 3px;
-    padding: 2px 8.5px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(15, 23, 42, 0.09);
-    border-radius: 9999px;
-    box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.16), 0 1px 2px rgba(15, 23, 42, 0.08);
-    transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
-    white-space: nowrap;
-    max-width: 125px;
+    font-variation-settings: 'FILL' 1, 'wght' 500;
 }
 
-.dark .poi-pin-label {
-    background: rgba(24, 27, 36, 0.95);
-    border-color: rgba(255, 255, 255, 0.14);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
-}
-
-.poi-pin-label-text {
+/* High-definition, clean map typography with sharp vector stroke */
+.poi-marker-label {
+    margin-left: 5px;
     font-family: 'Plus Jakarta Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 1.25;
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1.2;
     color: #0f172a;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
+    max-width: 135px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    paint-order: stroke fill;
+    -webkit-text-stroke: 3px #ffffff;
+    text-stroke: 3px #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+    transition: max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease;
 }
 
-.dark .poi-pin-label-text {
-    color: #f1f5f9;
+.dark .poi-marker-label {
+    color: #f8fafc;
+    -webkit-text-stroke: 3px #0f172a;
+    text-stroke: 3px #0f172a;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
-/* Label hover expansion */
-.poi-marker-wrapper:hover .poi-pin-label {
-    max-width: 250px;
-    background: #ffffff;
-    box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.22);
-    border-color: rgba(15, 23, 42, 0.18);
+/* Hover effects */
+.poi-marker-container:hover .poi-marker-badge {
+    transform: scale(1.18);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.32), 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.dark .poi-marker-wrapper:hover .poi-pin-label {
-    background: #1e293b;
-    border-color: rgba(255, 255, 255, 0.22);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+.poi-marker-container:hover .poi-marker-label {
+    max-width: 260px;
+    color: #0284c7;
+}
+
+.dark .poi-marker-container:hover .poi-marker-label {
+    color: #38bdf8;
 }
 
 /* Luxury Leaflet POI Popup */
@@ -134,7 +109,7 @@ const POI_GLOBAL_STYLES = `
 
 .google-poi-popup .leaflet-popup-content-wrapper {
     padding: 0 !important;
-    border-radius: 20px !important;
+    border-radius: 18px !important;
     overflow: hidden !important;
     background: #ffffff !important;
     box-shadow: 0 20px 45px -8px rgba(15, 23, 42, 0.24), 0 8px 18px -4px rgba(15, 23, 42, 0.1) !important;
@@ -149,7 +124,7 @@ const POI_GLOBAL_STYLES = `
 
 .google-poi-popup .leaflet-popup-content {
     margin: 0 !important;
-    width: 270px !important;
+    width: 265px !important;
     line-height: normal !important;
 }
 
@@ -188,8 +163,8 @@ const escapeHtml = (str) => {
 };
 
 /**
- * Intelligent POI categorization with Apple Maps & Google Maps-inspired
- * rich color gradients and high-fidelity semantic icons.
+ * Intelligent POI categorization with rich, harmonious gradients
+ * and high-fidelity semantic icons.
  */
 const getCategoryMeta = (poi = {}) => {
     const rawCategories = Array.isArray(poi?.categories) ? poi.categories.join(' ').toLowerCase() : '';
@@ -202,17 +177,14 @@ const getCategoryMeta = (poi = {}) => {
     // 1. Mosque / Church / Synagogue / Place of Worship
     if (allText.includes('mosque') || allText.includes('cami') || allText.includes('placeofworship') || allText.includes('church') || allText.includes('kilise') || allText.includes('synagogue') || allText.includes('havra') || allText.includes('temple')) {
         let subIcon = 'account_balance';
-        if (allText.includes('mosque') || allText.includes('cami')) subIcon = 'account_balance';
-        else if (allText.includes('church') || allText.includes('kilise')) subIcon = 'church';
+        if (allText.includes('church') || allText.includes('kilise')) subIcon = 'church';
 
         return {
-            colorTop: '#f59e0b',
-            colorBottom: '#d97706',
+            gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
             color: '#d97706',
-            shadowColor: '#d97706',
             icon: subIcon,
             labelTr: 'Tarihi / Dini Yapı',
-            labelEn: 'Historic Place of Worship'
+            labelEn: 'Place of Worship'
         };
     }
 
@@ -222,10 +194,8 @@ const getCategoryMeta = (poi = {}) => {
         if (allText.includes('kale') || allText.includes('hisar') || allText.includes('fort')) subIcon = 'fort';
 
         return {
-            colorTop: '#ea580c',
-            colorBottom: '#9a3412',
+            gradient: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)',
             color: '#ea580c',
-            shadowColor: '#ea580c',
             icon: subIcon,
             labelTr: 'Saray & Tarihi Anıt',
             labelEn: 'Palace & Castle'
@@ -235,10 +205,8 @@ const getCategoryMeta = (poi = {}) => {
     // 3. Museum / Art Gallery / Cultural Center
     if (allText.includes('museum') || allText.includes('müze') || allText.includes('gallery') || allText.includes('galeri') || allText.includes('art') || allText.includes('sanat') || allText.includes('cultural')) {
         return {
-            colorTop: '#a855f7',
-            colorBottom: '#6b21a8',
-            color: '#8b5cf6',
-            shadowColor: '#8b5cf6',
+            gradient: 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)',
+            color: '#9333ea',
             icon: 'museum',
             labelTr: 'Müze & Sanat',
             labelEn: 'Museum & Art'
@@ -255,10 +223,8 @@ const getCategoryMeta = (poi = {}) => {
         else if (allText.includes('bus') || allText.includes('otogar') || allText.includes('otobüs')) subIcon = 'directions_bus';
 
         return {
-            colorTop: '#38bdf8',
-            colorBottom: '#0284c7',
+            gradient: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
             color: '#0284c7',
-            shadowColor: '#0284c7',
             icon: subIcon,
             labelTr: 'Ulaşım & Taşıma',
             labelEn: 'Transit & Transport'
@@ -273,10 +239,8 @@ const getCategoryMeta = (poi = {}) => {
         else if (allText.includes('bar') || allText.includes('pub')) subIcon = 'local_bar';
 
         return {
-            colorTop: '#fb923c',
-            colorBottom: '#ea580c',
+            gradient: 'linear-gradient(135deg, #fb923c 0%, #ea580c 100%)',
             color: '#ea580c',
-            shadowColor: '#ea580c',
             icon: subIcon,
             labelTr: 'Restoran & Yeme-İçme',
             labelEn: 'Restaurant & Dining'
@@ -289,10 +253,8 @@ const getCategoryMeta = (poi = {}) => {
         if (allText.includes('bazaar') || allText.includes('çarşı') || allText.includes('market')) subIcon = 'storefront';
 
         return {
-            colorTop: '#fb7185',
-            colorBottom: '#e11d48',
+            gradient: 'linear-gradient(135deg, #fb7185 0%, #e11d48 100%)',
             color: '#e11d48',
-            shadowColor: '#e11d48',
             icon: subIcon,
             labelTr: 'Alışveriş & Çarşı',
             labelEn: 'Shopping & Malls'
@@ -305,10 +267,8 @@ const getCategoryMeta = (poi = {}) => {
         if (allText.includes('forest') || allText.includes('orman')) subIcon = 'forest';
 
         return {
-            colorTop: '#34d399',
-            colorBottom: '#059669',
+            gradient: 'linear-gradient(135deg, #34d399 0%, #059669 100%)',
             color: '#059669',
-            shadowColor: '#059669',
             icon: subIcon,
             labelTr: 'Park & Doğa',
             labelEn: 'Park & Nature'
@@ -322,10 +282,8 @@ const getCategoryMeta = (poi = {}) => {
         else if (allText.includes('lake') || allText.includes('göl')) subIcon = 'water';
 
         return {
-            colorTop: '#2dd4bf',
-            colorBottom: '#0f766e',
+            gradient: 'linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%)',
             color: '#0f766e',
-            shadowColor: '#0f766e',
             icon: subIcon,
             labelTr: 'Plaj & Sahil',
             labelEn: 'Beach & Coast'
@@ -335,10 +293,8 @@ const getCategoryMeta = (poi = {}) => {
     // 9. Tourist Attraction / Lookout / Tower
     if (allText.includes('tourist') || allText.includes('attraction') || allText.includes('sight') || allText.includes('lookout') || allText.includes('tower') || allText.includes('kule') || allText.includes('seyir')) {
         return {
-            colorTop: '#c084fc',
-            colorBottom: '#7e22ce',
+            gradient: 'linear-gradient(135deg, #c084fc 0%, #7e22ce 100%)',
             color: '#9333ea',
-            shadowColor: '#9333ea',
             icon: 'photo_camera',
             labelTr: 'Turistik Yer & Gezi',
             labelEn: 'Attraction & Sight'
@@ -348,10 +304,8 @@ const getCategoryMeta = (poi = {}) => {
     // 10. Stadium / Sports
     if (allText.includes('stadium') || allText.includes('stad') || allText.includes('sports') || allText.includes('arena') || allText.includes('spor') || allText.includes('karting') || allText.includes('bowling')) {
         return {
-            colorTop: '#f87171',
-            colorBottom: '#dc2626',
+            gradient: 'linear-gradient(135deg, #f87171 0%, #dc2626 100%)',
             color: '#dc2626',
-            shadowColor: '#dc2626',
             icon: 'sports_soccer',
             labelTr: 'Spor & Aktivite',
             labelEn: 'Sports & Stadium'
@@ -361,10 +315,8 @@ const getCategoryMeta = (poi = {}) => {
     // 11. Hospital / Clinic / Medical
     if (allText.includes('hospital') || allText.includes('hastane') || allText.includes('medical') || allText.includes('klinik') || allText.includes('saglik') || allText.includes('sağlık')) {
         return {
-            colorTop: '#38bdf8',
-            colorBottom: '#0369a1',
+            gradient: 'linear-gradient(135deg, #38bdf8 0%, #0369a1 100%)',
             color: '#0284c7',
-            shadowColor: '#0284c7',
             icon: 'local_hospital',
             labelTr: 'Sağlık / Hastane',
             labelEn: 'Hospital / Medical'
@@ -374,10 +326,8 @@ const getCategoryMeta = (poi = {}) => {
     // 12. University / College / Education
     if (allText.includes('university') || allText.includes('üniversite') || allText.includes('college') || allText.includes('education') || allText.includes('okul') || allText.includes('kolej') || allText.includes('campus')) {
         return {
-            colorTop: '#818cf8',
-            colorBottom: '#4338ca',
+            gradient: 'linear-gradient(135deg, #818cf8 0%, #4338ca 100%)',
             color: '#4f46e5',
-            shadowColor: '#4f46e5',
             icon: 'school',
             labelTr: 'Üniversite & Eğitim',
             labelEn: 'University & Campus'
@@ -387,10 +337,8 @@ const getCategoryMeta = (poi = {}) => {
     // 13. Theater / Cinema / Show / Entertainment
     if (allText.includes('theater') || allText.includes('theatre') || allText.includes('cinema') || allText.includes('entertainment') || allText.includes('opera') || allText.includes('tiyatro') || allText.includes('sahne')) {
         return {
-            colorTop: '#e879f9',
-            colorBottom: '#a21caf',
+            gradient: 'linear-gradient(135deg, #e879f9 0%, #a21caf 100%)',
             color: '#c026d3',
-            shadowColor: '#c026d3',
             icon: 'theater_comedy',
             labelTr: 'Tiyatro & Sahne',
             labelEn: 'Theater & Shows'
@@ -399,10 +347,8 @@ const getCategoryMeta = (poi = {}) => {
 
     // Refined Slate default
     return {
-        colorTop: '#94a3b8',
-        colorBottom: '#475569',
+        gradient: 'linear-gradient(135deg, #94a3b8 0%, #475569 100%)',
         color: '#64748b',
-        shadowColor: '#64748b',
         icon: 'place',
         labelTr: 'Önemli Nokta',
         labelEn: 'Point of Interest'
@@ -410,9 +356,9 @@ const getCategoryMeta = (poi = {}) => {
 };
 
 /**
- * Modern Apple Maps & Google Maps-styled POI Marker.
- * Features an iconic teardrop pin with vector-sharp gradients, crisp white glyph,
- * and a floating typography chip centered below the anchor needle.
+ * Modern Google Maps-styled POI Marker.
+ * Compact, elegant, and non-intrusive inline layout:
+ * [ (Circular Icon Badge)  Clean Typography Label ]
  */
 const PoiMarker = React.memo(({ poi, currentLang = 'tr', onSelectPoi }) => {
     const markerRef = useRef(null);
@@ -423,54 +369,32 @@ const PoiMarker = React.memo(({ poi, currentLang = 'tr', onSelectPoi }) => {
         return getCategoryMeta(poi);
     }, [poi]);
 
-    const colorTop = poi.colorTop || meta.colorTop;
-    const colorBottom = poi.colorBottom || meta.colorBottom;
+    const badgeGradient = poi.gradient || (poi.color ? `linear-gradient(135deg, ${poi.color} 0%, ${poi.color} 100%)` : meta.gradient);
     const badgeColor = poi.color || meta.color;
     const iconName = poi.icon || poi.iconName || meta.icon;
     const displayName = poi.name || '';
     const escapedName = escapeHtml(displayName);
-    const uniqueGradId = useMemo(() => `poi-grad-${Math.random().toString(36).substring(2, 9)}`, []);
 
     const icon = useMemo(() => {
         const html = `
-            <div class="poi-marker-wrapper" title="${escapedName}">
-                <!-- Teardrop Pin Body -->
-                <div class="poi-pin-head">
-                    <svg class="poi-pin-svg" viewBox="0 0 32 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="${uniqueGradId}" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="${colorTop}" />
-                                <stop offset="100%" stop-color="${colorBottom}" />
-                            </linearGradient>
-                        </defs>
-                        <!-- Teardrop Pin Shape: exactly 32x38, tip at (16, 37) -->
-                        <path d="M16 1.5 C7.716 1.5 1 8.216 1 16.5 C1 24.8 14.5 35.8 15.35 36.5 C15.75 36.85 16.25 36.85 16.65 36.5 C17.5 35.8 31 24.8 31 16.5 C31 8.216 24.284 1.5 16 1.5 Z"
-                              fill="url(#${uniqueGradId})"
-                              stroke="#ffffff"
-                              stroke-width="2"
-                              stroke-linejoin="round" />
-                        <!-- Inner subtle translucent disc for icon depth -->
-                        <circle cx="16" cy="16.5" r="10.5" fill="rgba(255, 255, 255, 0.2)" />
-                    </svg>
-                    <!-- White Centered Icon Glyph -->
-                    <span class="material-symbols-outlined poi-pin-glyph">${iconName}</span>
+            <div class="poi-marker-container" title="${escapedName}">
+                <!-- Subtle, high-definition circular icon badge (22px) -->
+                <div class="poi-marker-badge" style="background: ${badgeGradient};">
+                    <span class="material-symbols-outlined">${iconName}</span>
                 </div>
-
-                <!-- Floating Label Tag Underneath -->
-                <div class="poi-pin-label">
-                    <span class="poi-pin-label-text">${escapedName}</span>
-                </div>
+                <!-- Clean, crisp vector-stroked label -->
+                <span class="poi-marker-label">${escapedName}</span>
             </div>
         `;
 
         return L.divIcon({
             html,
             className: 'poi-custom-marker',
-            iconSize: [150, 64],
-            iconAnchor: [75, 37],
-            popupAnchor: [0, -40]
+            iconSize: [160, 26],
+            iconAnchor: [11, 13],
+            popupAnchor: [0, -15]
         });
-    }, [colorTop, colorBottom, iconName, escapedName, uniqueGradId]);
+    }, [badgeGradient, iconName, escapedName]);
 
     if (isNaN(lat) || isNaN(lng)) return null;
 
@@ -496,7 +420,7 @@ const PoiMarker = React.memo(({ poi, currentLang = 'tr', onSelectPoi }) => {
                         <div className="flex items-center gap-2 min-w-0">
                             <div
                                 className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
-                                style={{ background: `linear-gradient(135deg, ${colorTop} 0%, ${colorBottom} 100%)` }}
+                                style={{ background: badgeGradient }}
                             >
                                 <span className="material-symbols-outlined text-[17px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                                     {iconName}

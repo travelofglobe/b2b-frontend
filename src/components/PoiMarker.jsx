@@ -1,10 +1,10 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 
 /**
  * Global CSS styles for POI markers and Leaflet popups.
- * Injected once into document.head to ensure crisp rendering,
+ * Injected once into document.head to ensure vector-crisp rendering,
  * smooth hover transitions, and seamless dark mode support.
  */
 const POI_GLOBAL_STYLES = `
@@ -15,6 +15,7 @@ const POI_GLOBAL_STYLES = `
     overflow: visible !important;
 }
 
+/* Master inline container: Circular icon badge on the left + clean typography label on the right */
 .poi-marker-container {
     display: inline-flex;
     align-items: center;
@@ -22,57 +23,36 @@ const POI_GLOBAL_STYLES = `
     cursor: pointer;
     user-select: none;
     pointer-events: auto;
-    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), z-index 0.1s ease;
-    transform-origin: 12px 14px;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), z-index 0.1s ease;
+    transform-origin: 11px 11px;
 }
 
 .poi-custom-marker:hover {
     z-index: 9999 !important;
 }
 
-/* Floating capsule pill */
-.poi-marker-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6.5px;
-    padding: 2.5px 10px 2.5px 2.5px;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(15, 23, 42, 0.09);
-    border-radius: 9999px;
-    box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.14), 0 1px 3px rgba(15, 23, 42, 0.08);
-    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.22s ease;
-    white-space: nowrap;
-}
-
-/* Dark mode pill */
-.dark .poi-marker-pill {
-    background: rgba(30, 41, 59, 0.98);
-    border-color: rgba(255, 255, 255, 0.12);
-    box-shadow: 0 3px 10px -1px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Subtle icon circle badge */
+/* Circular icon badge */
 .poi-marker-badge {
-    width: 23px;
-    height: 23px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     color: #ffffff;
-    box-shadow: 0 1.5px 3.5px rgba(0, 0, 0, 0.2);
-    border: 1.5px solid rgba(255, 255, 255, 0.85);
+    border: 1.5px solid #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
 }
 
 .dark .poi-marker-badge {
-    border-color: rgba(255, 255, 255, 0.35);
+    border-color: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
 }
 
 .poi-marker-badge .material-symbols-outlined {
-    font-size: 13px !important;
+    font-size: 13.5px !important;
     line-height: 1 !important;
     display: flex;
     align-items: center;
@@ -80,64 +60,70 @@ const POI_GLOBAL_STYLES = `
     font-variation-settings: 'FILL' 1, 'wght' 500;
 }
 
-/* Crisp typography */
-.poi-marker-title {
+/* High-definition, clean map typography with soft, elegant vector stroke */
+.poi-marker-label {
+    margin-left: 5px;
     font-family: 'Plus Jakarta Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 11.5px;
-    font-weight: 600;
-    line-height: 1.2;
-    color: #0f172a;
-    letter-spacing: -0.012em;
-    max-width: 130px;
+    font-weight: 550;
+    line-height: 1.25;
+    color: #475569;
+    letter-spacing: -0.005em;
+    max-width: 135px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    transition: max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    paint-order: stroke fill;
+    -webkit-text-stroke: 2.2px rgba(255, 255, 255, 0.96);
+    text-stroke: 2.2px rgba(255, 255, 255, 0.96);
+    transition: max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.18s ease;
 }
 
-.dark .poi-marker-title {
-    color: #f8fafc;
+.dark .poi-marker-label {
+    color: #cbd5e1;
+    -webkit-text-stroke: 2.2px #18191c;
+    text-stroke: 2.2px #18191c;
 }
 
 /* Hover effects */
-.poi-marker-container:hover .poi-marker-pill {
-    transform: translateY(-2px) scale(1.04);
-    box-shadow: 0 8px 22px -3px rgba(15, 23, 42, 0.24), 0 3px 8px -1px rgba(15, 23, 42, 0.12);
-    border-color: rgba(15, 23, 42, 0.18);
+.poi-marker-container:hover .poi-marker-badge {
+    transform: scale(1.18);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.32), 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.dark .poi-marker-container:hover .poi-marker-pill {
-    box-shadow: 0 8px 24px -2px rgba(0, 0, 0, 0.7), 0 3px 8px rgba(0, 0, 0, 0.4);
-    border-color: rgba(255, 255, 255, 0.25);
-}
-
-.poi-marker-container:hover .poi-marker-title {
+.poi-marker-container:hover .poi-marker-label {
     max-width: 260px;
+    color: #1a73e8;
+    font-weight: 600;
 }
 
-/* Modern POI Popup */
+.dark .poi-marker-container:hover .poi-marker-label {
+    color: #60a5fa;
+}
+
+/* Luxury Leaflet POI Popup */
 .leaflet-popup.google-poi-popup {
     margin-bottom: 8px !important;
 }
 
 .google-poi-popup .leaflet-popup-content-wrapper {
     padding: 0 !important;
-    border-radius: 16px !important;
+    border-radius: 18px !important;
     overflow: hidden !important;
     background: #ffffff !important;
-    box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.22), 0 6px 14px -3px rgba(15, 23, 42, 0.08) !important;
+    box-shadow: 0 20px 45px -8px rgba(15, 23, 42, 0.24), 0 8px 18px -4px rgba(15, 23, 42, 0.1) !important;
     border: 1px solid rgba(15, 23, 42, 0.08) !important;
 }
 
 .dark .google-poi-popup .leaflet-popup-content-wrapper {
     background: #1e293b !important;
     border-color: rgba(255, 255, 255, 0.12) !important;
-    box-shadow: 0 18px 42px -4px rgba(0, 0, 0, 0.7) !important;
+    box-shadow: 0 22px 50px -6px rgba(0, 0, 0, 0.75) !important;
 }
 
 .google-poi-popup .leaflet-popup-content {
     margin: 0 !important;
-    width: 250px !important;
+    width: 265px !important;
     line-height: normal !important;
 }
 
@@ -150,7 +136,7 @@ const POI_GLOBAL_STYLES = `
 }
 
 .google-poi-popup-card {
-    padding: 14px;
+    padding: 16px;
     font-family: 'Plus Jakarta Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 `;
@@ -176,8 +162,8 @@ const escapeHtml = (str) => {
 };
 
 /**
- * Intelligent POI categorization with Google Maps & Apple Maps-inspired
- * harmonious gradients and rich semantic icons.
+ * Intelligent POI categorization with rich, harmonious gradients
+ * and high-fidelity semantic icons.
  */
 const getCategoryMeta = (poi = {}) => {
     const rawCategories = Array.isArray(poi?.categories) ? poi.categories.join(' ').toLowerCase() : '';
@@ -187,36 +173,64 @@ const getCategoryMeta = (poi = {}) => {
     const name = (poi?.name || '').toLowerCase();
     const allText = `${rawCategories} ${rawTags} ${category} ${icon} ${name}`;
 
-    // 1. Hospital / Clinic / Medical
-    if (allText.includes('hospital') || allText.includes('hastane') || allText.includes('medical') || allText.includes('klinik') || allText.includes('saglik') || allText.includes('sağlık')) {
+    // 1. Mosque / Church / Synagogue / Place of Worship
+    if (allText.includes('mosque') || allText.includes('cami') || allText.includes('placeofworship') || allText.includes('church') || allText.includes('kilise') || allText.includes('synagogue') || allText.includes('havra') || allText.includes('temple')) {
+        let subIcon = 'account_balance';
+        if (allText.includes('church') || allText.includes('kilise')) subIcon = 'church';
+
         return {
-            color: '#0284c7',
-            gradient: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-            icon: 'local_hospital',
-            labelTr: 'Sağlık / Hastane',
-            labelEn: 'Hospital / Medical'
+            gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            color: '#d97706',
+            icon: subIcon,
+            labelTr: 'Tarihi / Dini Yapı',
+            labelEn: 'Place of Worship'
         };
     }
 
-    // 2. Airport / Transit / Train / Metro / Bus / Ferry
+    // 2. Palace / Castle / Fortress / Historical Monument
+    if (allText.includes('saray') || allText.includes('palace') || allText.includes('castle') || allText.includes('kale') || allText.includes('hisar') || allText.includes('fort') || allText.includes('monument') || allText.includes('anıt') || allText.includes('historic')) {
+        let subIcon = 'castle';
+        if (allText.includes('kale') || allText.includes('hisar') || allText.includes('fort')) subIcon = 'fort';
+
+        return {
+            gradient: 'linear-gradient(135deg, #f97316 0%, #c2410c 100%)',
+            color: '#ea580c',
+            icon: subIcon,
+            labelTr: 'Saray & Tarihi Anıt',
+            labelEn: 'Palace & Castle'
+        };
+    }
+
+    // 3. Museum / Art Gallery / Cultural Center
+    if (allText.includes('museum') || allText.includes('müze') || allText.includes('gallery') || allText.includes('galeri') || allText.includes('art') || allText.includes('sanat') || allText.includes('cultural')) {
+        return {
+            gradient: 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)',
+            color: '#9333ea',
+            icon: 'museum',
+            labelTr: 'Müze & Sanat',
+            labelEn: 'Museum & Art'
+        };
+    }
+
+    // 4. Airport / Metro / Train / Ferry / Transit
     if (allText.includes('airport') || allText.includes('havalimanı') || allText.includes('flight') || allText.includes('metro') || allText.includes('subway') || allText.includes('train') || allText.includes('transit') || allText.includes('station') || allText.includes('istasyon') || allText.includes('ferry') || allText.includes('otogar') || allText.includes('bus') || allText.includes('iskele')) {
         let subIcon = 'directions_transit';
         if (allText.includes('airport') || allText.includes('havalimanı') || allText.includes('flight')) subIcon = 'flight';
         else if (allText.includes('metro') || allText.includes('subway')) subIcon = 'subway';
         else if (allText.includes('train') || allText.includes('tren') || allText.includes('rail')) subIcon = 'train';
-        else if (allText.includes('bus') || allText.includes('otogar') || allText.includes('otobüs')) subIcon = 'directions_bus';
         else if (allText.includes('ferry') || allText.includes('iskele') || allText.includes('vapur')) subIcon = 'directions_boat';
+        else if (allText.includes('bus') || allText.includes('otogar') || allText.includes('otobüs')) subIcon = 'directions_bus';
 
         return {
-            color: '#2563eb',
-            gradient: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            gradient: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
+            color: '#0284c7',
             icon: subIcon,
             labelTr: 'Ulaşım & Taşıma',
             labelEn: 'Transit & Transport'
         };
     }
 
-    // 3. Restaurant / Dining / Cafe / Food
+    // 5. Restaurant / Dining / Cafe / Food
     if (allText.includes('restaurant') || allText.includes('dining') || allText.includes('cafe') || allText.includes('kafe') || allText.includes('coffee') || allText.includes('kahve') || allText.includes('food') || allText.includes('lokanta') || allText.includes('mutfak') || allText.includes('bakery') || allText.includes('fırın') || allText.includes('bar') || allText.includes('pub')) {
         let subIcon = 'restaurant';
         if (allText.includes('cafe') || allText.includes('kafe') || allText.includes('coffee') || allText.includes('kahve')) subIcon = 'local_cafe';
@@ -224,123 +238,95 @@ const getCategoryMeta = (poi = {}) => {
         else if (allText.includes('bar') || allText.includes('pub')) subIcon = 'local_bar';
 
         return {
+            gradient: 'linear-gradient(135deg, #fb923c 0%, #ea580c 100%)',
             color: '#ea580c',
-            gradient: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
             icon: subIcon,
             labelTr: 'Restoran & Yeme-İçme',
             labelEn: 'Restaurant & Dining'
         };
     }
 
-    // 4. Mosque / Place of Worship / Church / Synagogue
-    if (allText.includes('mosque') || allText.includes('cami') || allText.includes('placeofworship') || allText.includes('church') || allText.includes('kilise') || allText.includes('synagogue') || allText.includes('havra') || allText.includes('temple')) {
-        let subIcon = 'account_balance';
-        if (allText.includes('church') || allText.includes('kilise')) subIcon = 'church';
-
-        return {
-            color: '#d97706',
-            gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-            icon: subIcon,
-            labelTr: 'Tarihi / Dini Yapı',
-            labelEn: 'Place of Worship'
-        };
-    }
-
-    // 5. Museum / Art Gallery / Cultural
-    if (allText.includes('museum') || allText.includes('müze') || allText.includes('gallery') || allText.includes('galeri') || allText.includes('art') || allText.includes('sanat')) {
-        return {
-            color: '#6366f1',
-            gradient: 'linear-gradient(135deg, #818cf8 0%, #4f46e5 100%)',
-            icon: 'museum',
-            labelTr: 'Müze & Sanat',
-            labelEn: 'Museum & Art'
-        };
-    }
-
-    // 6. Shopping Mall / Center / Bazaar
+    // 6. Shopping Mall / Bazaar / Market
     if (allText.includes('shopping') || allText.includes('mall') || allText.includes('avm') || allText.includes('bazaar') || allText.includes('çarşı') || allText.includes('market') || allText.includes('outlet')) {
         let subIcon = 'shopping_bag';
         if (allText.includes('bazaar') || allText.includes('çarşı') || allText.includes('market')) subIcon = 'storefront';
 
         return {
-            color: '#e11d48',
             gradient: 'linear-gradient(135deg, #fb7185 0%, #e11d48 100%)',
+            color: '#e11d48',
             icon: subIcon,
             labelTr: 'Alışveriş & Çarşı',
             labelEn: 'Shopping & Malls'
         };
     }
 
-    // 7. Park / Nature / Arboretum / Forest
+    // 7. Park / Nature / Forest / Garden
     if (allText.includes('park') || allText.includes('garden') || allText.includes('bahçe') || allText.includes('arboretum') || allText.includes('nature') || allText.includes('doğa') || allText.includes('forest') || allText.includes('orman')) {
         let subIcon = 'park';
         if (allText.includes('forest') || allText.includes('orman')) subIcon = 'forest';
 
         return {
-            color: '#10b981',
             gradient: 'linear-gradient(135deg, #34d399 0%, #059669 100%)',
+            color: '#059669',
             icon: subIcon,
             labelTr: 'Park & Doğa',
             labelEn: 'Park & Nature'
         };
     }
 
-    // 8. Lake / Waterbody / Beach / Coast
-    if (allText.includes('beach') || allText.includes('sahil') || allText.includes('plaj') || allText.includes('coast') || allText.includes('lake') || allText.includes('göl') || allText.includes('water') || allText.includes('şelale') || allText.includes('waterfall')) {
+    // 8. Beach / Coast / Marina / Sea
+    if (allText.includes('beach') || allText.includes('sahil') || allText.includes('plaj') || allText.includes('coast') || allText.includes('lake') || allText.includes('göl') || allText.includes('water') || allText.includes('waterfall') || allText.includes('marina')) {
         let subIcon = 'beach_access';
-        if (allText.includes('waterfall') || allText.includes('şelale')) subIcon = 'water_drop';
+        if (allText.includes('marina') || allText.includes('yat')) subIcon = 'sailing';
         else if (allText.includes('lake') || allText.includes('göl')) subIcon = 'water';
 
         return {
-            color: '#0284c7',
-            gradient: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
+            gradient: 'linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%)',
+            color: '#0f766e',
             icon: subIcon,
             labelTr: 'Plaj & Sahil',
             labelEn: 'Beach & Coast'
         };
     }
 
-    // 9. Historic Landmark / Castle / Palace / Monument
-    if (allText.includes('historic') || allText.includes('landmark') || allText.includes('monument') || allText.includes('anıt') || allText.includes('castle') || allText.includes('kale') || allText.includes('saray') || allText.includes('palace') || allText.includes('hisar')) {
-        let subIcon = 'fort';
-        if (allText.includes('saray') || allText.includes('palace')) subIcon = 'castle';
-
-        return {
-            color: '#b45309',
-            gradient: 'linear-gradient(135deg, #d97706 0%, #92400e 100%)',
-            icon: subIcon,
-            labelTr: 'Tarihi Yer & Anıt',
-            labelEn: 'Historical Landmark'
-        };
-    }
-
-    // 10. Tourist Attraction / Lookout / Tower
+    // 9. Tourist Attraction / Lookout / Tower
     if (allText.includes('tourist') || allText.includes('attraction') || allText.includes('sight') || allText.includes('lookout') || allText.includes('tower') || allText.includes('kule') || allText.includes('seyir')) {
         return {
+            gradient: 'linear-gradient(135deg, #c084fc 0%, #7e22ce 100%)',
             color: '#9333ea',
-            gradient: 'linear-gradient(135deg, #c084fc 0%, #9333ea 100%)',
             icon: 'photo_camera',
             labelTr: 'Turistik Yer & Gezi',
             labelEn: 'Attraction & Sight'
         };
     }
 
-    // 11. Stadium / Sports Facility / Arena
+    // 10. Stadium / Sports
     if (allText.includes('stadium') || allText.includes('stad') || allText.includes('sports') || allText.includes('arena') || allText.includes('spor') || allText.includes('karting') || allText.includes('bowling')) {
         return {
-            color: '#ef4444',
             gradient: 'linear-gradient(135deg, #f87171 0%, #dc2626 100%)',
+            color: '#dc2626',
             icon: 'sports_soccer',
             labelTr: 'Spor & Aktivite',
             labelEn: 'Sports & Stadium'
         };
     }
 
+    // 11. Hospital / Clinic / Medical
+    if (allText.includes('hospital') || allText.includes('hastane') || allText.includes('medical') || allText.includes('klinik') || allText.includes('saglik') || allText.includes('sağlık')) {
+        return {
+            gradient: 'linear-gradient(135deg, #38bdf8 0%, #0369a1 100%)',
+            color: '#0284c7',
+            icon: 'local_hospital',
+            labelTr: 'Sağlık / Hastane',
+            labelEn: 'Hospital / Medical'
+        };
+    }
+
     // 12. University / College / Education
     if (allText.includes('university') || allText.includes('üniversite') || allText.includes('college') || allText.includes('education') || allText.includes('okul') || allText.includes('kolej') || allText.includes('campus')) {
         return {
+            gradient: 'linear-gradient(135deg, #818cf8 0%, #4338ca 100%)',
             color: '#4f46e5',
-            gradient: 'linear-gradient(135deg, #6366f1 0%, #3730a3 100%)',
             icon: 'school',
             labelTr: 'Üniversite & Eğitim',
             labelEn: 'University & Campus'
@@ -350,8 +336,8 @@ const getCategoryMeta = (poi = {}) => {
     // 13. Theater / Cinema / Show / Entertainment
     if (allText.includes('theater') || allText.includes('theatre') || allText.includes('cinema') || allText.includes('entertainment') || allText.includes('opera') || allText.includes('tiyatro') || allText.includes('sahne')) {
         return {
-            color: '#c026d3',
             gradient: 'linear-gradient(135deg, #e879f9 0%, #a21caf 100%)',
+            color: '#c026d3',
             icon: 'theater_comedy',
             labelTr: 'Tiyatro & Sahne',
             labelEn: 'Theater & Shows'
@@ -360,8 +346,8 @@ const getCategoryMeta = (poi = {}) => {
 
     // Refined Slate default
     return {
-        color: '#64748b',
         gradient: 'linear-gradient(135deg, #94a3b8 0%, #475569 100%)',
+        color: '#64748b',
         icon: 'place',
         labelTr: 'Önemli Nokta',
         labelEn: 'Point of Interest'
@@ -369,8 +355,9 @@ const getCategoryMeta = (poi = {}) => {
 };
 
 /**
- * Modern Google Maps & Apple Maps-styled POI Marker.
- * Sleek, elegant floating pill with smooth typography and vibrant iconography.
+ * Modern Google Maps-styled POI Marker.
+ * Compact, elegant, and non-intrusive inline layout:
+ * [ (Circular Icon Badge)  Clean Typography Label ]
  */
 const PoiMarker = React.memo(({ poi, currentLang = 'tr', onSelectPoi }) => {
     const markerRef = useRef(null);
@@ -390,21 +377,21 @@ const PoiMarker = React.memo(({ poi, currentLang = 'tr', onSelectPoi }) => {
     const icon = useMemo(() => {
         const html = `
             <div class="poi-marker-container" title="${escapedName}">
-                <div class="poi-marker-pill">
-                    <div class="poi-marker-badge" style="background: ${badgeGradient};">
-                        <span class="material-symbols-outlined">${iconName}</span>
-                    </div>
-                    <span class="poi-marker-title">${escapedName}</span>
+                <!-- Subtle, high-definition circular icon badge (22px) -->
+                <div class="poi-marker-badge" style="background: ${badgeGradient};">
+                    <span class="material-symbols-outlined">${iconName}</span>
                 </div>
+                <!-- Clean, crisp vector-stroked label -->
+                <span class="poi-marker-label">${escapedName}</span>
             </div>
         `;
 
         return L.divIcon({
             html,
             className: 'poi-custom-marker',
-            iconSize: [24, 28],
-            iconAnchor: [12, 14],
-            popupAnchor: [0, -16]
+            iconSize: [160, 26],
+            iconAnchor: [11, 13],
+            popupAnchor: [0, -15]
         });
     }, [badgeGradient, iconName, escapedName]);
 
@@ -428,18 +415,18 @@ const PoiMarker = React.memo(({ poi, currentLang = 'tr', onSelectPoi }) => {
             >
                 <div className="google-poi-popup-card">
                     {/* Header: Icon, Category Badge & Custom Close Button */}
-                    <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center justify-between gap-2 mb-2.5">
                         <div className="flex items-center gap-2 min-w-0">
                             <div
-                                className="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 shadow-xs"
+                                className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
                                 style={{ background: badgeGradient }}
                             >
-                                <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                <span className="material-symbols-outlined text-[17px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                                     {iconName}
                                 </span>
                             </div>
                             <span
-                                className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase truncate"
+                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold tracking-wide uppercase truncate"
                                 style={{ backgroundColor: `${badgeColor}18`, color: badgeColor }}
                             >
                                 {categoryLabel}
@@ -448,28 +435,28 @@ const PoiMarker = React.memo(({ poi, currentLang = 'tr', onSelectPoi }) => {
                         <button
                             type="button"
                             onClick={() => markerRef.current?.closePopup()}
-                            className="w-6 h-6 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0"
+                            className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0"
                             title="Kapat"
                         >
-                            <span className="material-symbols-outlined text-[16px]">close</span>
+                            <span className="material-symbols-outlined text-[17px]">close</span>
                         </button>
                     </div>
 
                     {/* Title */}
-                    <h4 className="font-bold text-[13.5px] text-slate-900 dark:text-white leading-snug m-0">
+                    <h4 className="font-bold text-[14.5px] text-slate-900 dark:text-white leading-snug m-0">
                         {poi.name}
                     </h4>
 
                     {/* Localized Full Name */}
                     {poi.nameFull && poi.nameFull !== poi.name && (
-                        <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-snug mt-1 mb-0">
+                        <p className="text-[12px] text-slate-500 dark:text-slate-400 leading-snug mt-1 mb-0">
                             {poi.nameFull}
                         </p>
                     )}
 
                     {/* Description if present */}
                     {poi.description && (
-                        <p className="text-[11.5px] text-slate-600 dark:text-slate-300 leading-relaxed mt-2 mb-0 bg-slate-50 dark:bg-slate-800/80 p-2 rounded-lg border border-slate-100 dark:border-slate-700/60">
+                        <p className="text-[12px] text-slate-600 dark:text-slate-300 leading-relaxed mt-2.5 mb-0 bg-slate-50 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700/60">
                             {poi.description}
                         </p>
                     )}
@@ -479,10 +466,10 @@ const PoiMarker = React.memo(({ poi, currentLang = 'tr', onSelectPoi }) => {
                         <button
                             type="button"
                             onClick={() => onSelectPoi(poi)}
-                            className="w-full mt-3 py-1.5 px-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white rounded-lg text-[11.5px] font-semibold flex items-center justify-center gap-1.5 shadow-xs hover:shadow transition-all cursor-pointer"
+                            className="w-full mt-3.5 py-2 px-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white rounded-xl text-[12px] font-semibold flex items-center justify-center gap-1.5 shadow-sm hover:shadow transition-all cursor-pointer"
                         >
-                            <span className="material-symbols-outlined text-[15px]">travel_explore</span>
-                            <span>{currentLang === 'tr' ? 'Bu Noktanın Çevresinde Ara' : 'Search Hotels Near Here'}</span>
+                            <span className="material-symbols-outlined text-[16px]">travel_explore</span>
+                            <span>{currentLang === 'tr' ? 'Bu Noktanın Çevresinde Otel Ara' : 'Search Hotels Near Here'}</span>
                         </button>
                     )}
                 </div>

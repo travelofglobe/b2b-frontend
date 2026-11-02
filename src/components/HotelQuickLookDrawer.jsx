@@ -1180,6 +1180,27 @@ const HotelQuickLookDrawer = ({
             return;
         }
 
+        const currentTargetConfig = parsedRooms[selectedRooms.length] || parsedRooms[0];
+        let rateAdults = null;
+        const occ = rateItem?.hubRateModel?.occupancy;
+        if (occ && typeof occ.adults === 'number') {
+            rateAdults = occ.adults;
+        } else {
+            try {
+                const rawRateCode = rateItem?.hubRateModel?.rateCode || rateItem?.rateCode || rateCode;
+                if (rawRateCode) {
+                    const decoded = JSON.parse(atob(rawRateCode));
+                    if (typeof decoded.adultCount === 'number') rateAdults = decoded.adultCount;
+                }
+            } catch (e) {}
+        }
+        if (rateAdults !== null && currentTargetConfig && typeof currentTargetConfig.adults === 'number' && rateAdults !== currentTargetConfig.adults) {
+            if (toastError) {
+                toastError(`Bu fiyat ${selectedRooms.length + 1}. Oda (${currentTargetConfig.adults} Yetişkin) için uygun değil.`);
+            }
+            return;
+        }
+
         const newRoom = {
             type: roomName,
             rate: price,

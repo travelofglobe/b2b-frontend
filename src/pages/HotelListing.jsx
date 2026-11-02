@@ -1094,12 +1094,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
     const displayAmenities = React.useMemo(() => {
         const items = [];
 
-        // 1. Star / Category info is ALWAYS the 1st item in Google
-        const propertyTypeName = categoryMeta?.name || hotel.type || (currentLang === 'tr' ? 'Otel' : 'Hotel');
-        const firstAmenityText = starLabel ? `${starLabel} ${(propertyTypeName || '').toLowerCase()}` : propertyTypeName;
-        items.push({ icon: categoryMeta?.icon || 'hotel', label: firstAmenityText });
-
-        // 2. Meal / Board (e.g. Kahvaltı ($), Kahvaltı Dahil, Sadece Oda)
+        // 1. Meal / Board (e.g. Kahvaltı ($), Kahvaltı Dahil, Sadece Oda)
         if (hotel.boardName) {
             const bLower = String(hotel.boardName).toLowerCase();
             const isBreakfast = bLower.includes('breakfast') || bLower.includes('kahvalt');
@@ -1107,13 +1102,24 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
             items.push({ icon, label: hotel.boardName });
         }
 
-        // 3. Hotel facilities/amenities
+        // 2. Hotel facilities/amenities (excluding property type & star label as property badge already exists)
         if (Array.isArray(hotel.amenities)) {
             const lowerStarLabel = starLabel ? starLabel.toLowerCase() : null;
+            const lowerCategoryName = categoryMeta?.name ? categoryMeta.name.toLowerCase() : null;
+            const lowerType = hotel.type ? String(hotel.type).toLowerCase() : null;
+
             hotel.amenities.forEach(a => {
                 const label = typeof a === 'object' ? (Array.isArray(a.label) ? a.label[0] : a.label) : (a != null ? String(a) : '');
                 const icon = (typeof a === 'object' && a?.icon) ? a.icon : 'check_circle';
-                if (label && (!lowerStarLabel || String(label).toLowerCase() !== lowerStarLabel)) {
+                const lowerLabel = String(label).trim().toLowerCase();
+                if (
+                    label &&
+                    (!lowerStarLabel || lowerLabel !== lowerStarLabel) &&
+                    (!lowerCategoryName || lowerLabel !== lowerCategoryName) &&
+                    (!lowerType || lowerLabel !== lowerType) &&
+                    lowerLabel !== 'hotel' &&
+                    lowerLabel !== 'otel'
+                ) {
                     items.push({ icon, label });
                 }
             });
@@ -1138,7 +1144,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
             };
         }
         return sliced;
-    }, [starLabel, hotel.boardName, hotel.amenities, currentLang]);
+    }, [categoryMeta, starLabel, hotel.boardName, hotel.amenities, currentLang]);
 
     const showPricesLabel = {
         tr: 'Fiyatları göster', en: 'Show prices', ar: 'عرض الأسعار', de: 'Preise anzeigen',

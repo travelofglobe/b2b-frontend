@@ -74,26 +74,21 @@ const DashboardSearch = () => {
     const [isClearingHistory, setIsClearingHistory] = useState(false);
     const historyLoadedRef = useRef(false);
 
-    const fetchSearchHistory = async () => {
-        const fetchSearchHistory = async (force = false) => {
-            if (historyLoadedRef.current && !force) return;
-            try {
-                const res = await autocompleteService.getSearchHistory();
-                const items = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
-                if (Array.isArray(items)) {
-                    setSearchHistory(items);
-                    historyLoadedRef.current = true;
-                }
-            } catch (err) {
-                console.error("Error fetching search history:", err);
+    const fetchSearchHistory = async (force = false) => {
+        if (historyLoadedRef.current && !force) return;
+        try {
+            const res = await autocompleteService.getSearchHistory();
+            const items = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
+            if (Array.isArray(items)) {
+                setSearchHistory(items);
+                historyLoadedRef.current = true;
             }
-        };
+        } catch (err) {
+            console.error("Error fetching search history:", err);
+        }
+    };
 
-        useEffect(() => {
-            fetchSearchHistory();
-        }, []);
-
-        const handleClearHistory = async (e) => {
+    const handleClearHistory = async (e) => {
             if (e) e.stopPropagation();
             if (isClearingHistory) return;
             setIsClearingHistory(true);

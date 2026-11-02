@@ -60,31 +60,29 @@ const POI_GLOBAL_STYLES = `
     font-variation-settings: 'FILL' 1, 'wght' 500;
 }
 
-/* High-definition, clean map typography with sharp vector stroke */
+/* High-definition, clean map typography with soft, elegant vector stroke */
 .poi-marker-label {
     margin-left: 5px;
     font-family: 'Plus Jakarta Sans', 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 11.5px;
-    font-weight: 700;
-    line-height: 1.2;
-    color: #0f172a;
-    letter-spacing: -0.015em;
+    font-weight: 550;
+    line-height: 1.25;
+    color: #475569;
+    letter-spacing: -0.005em;
     max-width: 135px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     paint-order: stroke fill;
-    -webkit-text-stroke: 3px #ffffff;
-    text-stroke: 3px #ffffff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
-    transition: max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.15s ease;
+    -webkit-text-stroke: 2.2px rgba(255, 255, 255, 0.96);
+    text-stroke: 2.2px rgba(255, 255, 255, 0.96);
+    transition: max-width 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.18s ease;
 }
 
 .dark .poi-marker-label {
-    color: #f8fafc;
-    -webkit-text-stroke: 3px #0f172a;
-    text-stroke: 3px #0f172a;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+    color: #cbd5e1;
+    -webkit-text-stroke: 2.2px #18191c;
+    text-stroke: 2.2px #18191c;
 }
 
 /* Hover effects */
@@ -95,11 +93,12 @@ const POI_GLOBAL_STYLES = `
 
 .poi-marker-container:hover .poi-marker-label {
     max-width: 260px;
-    color: #0284c7;
+    color: #1a73e8;
+    font-weight: 600;
 }
 
 .dark .poi-marker-container:hover .poi-marker-label {
-    color: #38bdf8;
+    color: #60a5fa;
 }
 
 /* Luxury Leaflet POI Popup */

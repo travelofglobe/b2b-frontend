@@ -756,7 +756,7 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                                 type="button"
                                 onClick={() => togglePoiCategory('transit')}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.transit
-                                        ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 ring-2 ring-[#1a73e8]/30 shadow-xs'
+                                        ? 'bg-[#eff6ff] dark:bg-blue-900/40 text-[#2563eb] dark:text-blue-300 ring-2 ring-[#2563eb]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 title={tListing('publicTransport', currentLang)}
@@ -769,7 +769,7 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                                 type="button"
                                 onClick={() => togglePoiCategory('restaurants')}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.restaurants
-                                        ? 'bg-[#fce8e6] dark:bg-red-900/40 text-[#ea4335] dark:text-red-300 ring-2 ring-[#ea4335]/30 shadow-xs'
+                                        ? 'bg-[#fff7ed] dark:bg-orange-900/40 text-[#ea580c] dark:text-orange-300 ring-2 ring-[#ea580c]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 title={tListing('restaurants', currentLang)}
@@ -782,7 +782,7 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                                 type="button"
                                 onClick={() => togglePoiCategory('tourist')}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.tourist
-                                        ? 'bg-[#f3e8fd] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs'
+                                        ? 'bg-[#faf5ff] dark:bg-purple-900/40 text-[#9333ea] dark:text-purple-300 ring-2 ring-[#9333ea]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 title={tListing('touristAttractions', currentLang)}
@@ -795,7 +795,7 @@ const MapModal = ({ isOpen, onClose, hotel }) => {
                                 type="button"
                                 onClick={() => togglePoiCategory('shopping')}
                                 className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${activePoiCategories.shopping
-                                        ? 'bg-[#fce4ec] dark:bg-pink-900/40 text-[#e91e63] dark:text-pink-300 ring-2 ring-[#e91e63]/30 shadow-xs'
+                                        ? 'bg-[#fff1f2] dark:bg-rose-900/40 text-[#e11d48] dark:text-rose-300 ring-2 ring-[#e11d48]/30 shadow-xs'
                                         : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-700'
                                     }`}
                                 title={tListing('shoppingAreas', currentLang)}

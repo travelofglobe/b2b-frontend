@@ -613,8 +613,70 @@ const normalizeTextForCompare = (txt) => {
 };
 
 /**
+ * Location types that sit above the country level and must never be shown in breadcrumbs.
+ */
+const ABOVE_COUNTRY_TYPES = new Set(['world', 'continent', 'super_region', 'supra_region']);
+
+/**
+ * Well-known continent / world-region names (multi-language) used to strip
+ * above-country segments from plain-text paths (locationPath, saved history subtitles).
+ */
+const ABOVE_COUNTRY_NAMES = new Set([
+    'world', 'dünya', 'earth',
+    'europe', 'avrupa', 'asia', 'asya', 'africa', 'afrika',
+    'north america', 'kuzey amerika', 'south america', 'güney amerika',
+    'central america', 'orta amerika', 'latin america', 'latin amerika',
+    'oceania', 'okyanusya', 'antarctica', 'antarktika', 'antarktika kıtası',
+    'middle east', 'orta doğu', 'ortadoğu', 'caribbean', 'karayipler',
+    'europa', 'asien', 'afrique', 'amérique du nord', 'amérique du sud', 'océanie', 'moyen-orient',
+    'américa del norte', 'américa del sur', 'oriente medio', 'oceanía',
+    'america del nord', 'america del sud', 'medio oriente',
+    'américa do norte', 'américa do sul', 'oriente médio', 'oceânia',
+    'европа', 'азия', 'африка', 'северная америка', 'южная америка', 'океания', 'ближний восток',
+    'أوروبا', 'آسيا', 'أفريقيا', 'أمريكا الشمالية', 'أمريكا الجنوبية', 'أوقيانوسيا', 'الشرق الأوسط',
+    'اروپا', 'آسیا', 'آفریقا', 'خاورمیانه',
+    '欧洲', '亚洲', '非洲', '北美洲', '南美洲', '大洋洲', '中东',
+    'ヨーロッパ', 'アジア', 'アフリカ', '北アメリカ', '南アメリカ', 'オセアニア', '中東',
+    'ευρώπη', 'ασία', 'αφρική', 'μέση ανατολή',
+]);
+
+const isAboveCountryName = (name) => ABOVE_COUNTRY_NAMES.has(normalizeTextForCompare(name));
+
+/**
+ * Removes continent / world-level segments from a comma separated location text
+ * (e.g. "Safranbolu, Karabük Province, Türkiye, Europe" -> "Safranbolu, Karabük Province, Türkiye").
+ */
+export const stripAboveCountryFromText = (text) => {
+    if (!text || typeof text !== 'string') return text || '';
+    return text
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s && !isAboveCountryName(s))
+        .join(', ');
+};
+
+/**
+ * Hierarchy rank used to detect ordering of ancestor nodes (lower = closer to root).
+ */
+const getLocationTypeRank = (type) => {
+    switch (type) {
+        case 'world': return 0;
+        case 'continent':
+        case 'super_region':
+        case 'supra_region': return 1;
+        case 'country': return 2;
+        case 'province_state': return 4;
+        case 'multi_city_vicinity': return 5;
+        case 'city': return 6;
+        case 'neighborhood': return 7;
+        default: return 5;
+    }
+};
+
+/**
  * Extracts and cleans the ancestor/breadcrumb parts for an item (region, hotel, POI).
- * Filters out synthetic areas like "(and vicinity)", continents, and deduplicates names.
+ * Filters out synthetic areas like "(and vicinity)", anything above country level (continents etc.),
+ * and deduplicates names.
  * Returns an array ordered from immediate parent -> higher parent -> country (leaf-to-root).
  */
 export const getLocationHierarchyParts = (item, currentLang = 'tr') => {
@@ -629,19 +691,21 @@ export const getLocationHierarchyParts = (item, currentLang = 'tr') => {
 
     let rawParts = [];
     if (nodes.length > 0) {
-        const firstType = (nodes[0]?.type || nodes[0]?.locationType || '').toLowerCase();
-        const lastType = (nodes[nodes.length - 1]?.type || nodes[nodes.length - 1]?.locationType || '').toLowerCase();
+        const getType = (n) => (n?.type || n?.locationType || '').toLowerCase();
+        const firstType = getType(nodes[0]);
+        const lastType = getType(nodes[nodes.length - 1]);
         
         let orderedNodes = [...nodes];
-        // If the first item is country, then it is root-to-leaf (Country -> Province -> City), so reverse it to leaf-to-root
-        if (firstType === 'country' && lastType !== 'country') {
+        // If the first item is higher level than the last one (e.g. Continent/Country -> Province -> City),
+        // it is root-to-leaf, so reverse it to leaf-to-root
+        if (getLocationTypeRank(firstType) < getLocationTypeRank(lastType)) {
             orderedNodes.reverse();
         }
 
         for (const node of orderedNodes) {
-            const nodeType = (node.type || node.locationType || '').toLowerCase();
-            // Skip continents or high level world regions
-            if (nodeType === 'continent' || nodeType === 'high_level_region') continue;
+            const nodeType = getType(node);
+            // Never go above country level (continents, world regions etc.)
+            if (ABOVE_COUNTRY_TYPES.has(nodeType) || nodeType === 'high_level_region') continue;
 
             let nameStr = typeof node.name === 'string' 
                 ? node.name 
@@ -654,12 +718,15 @@ export const getLocationHierarchyParts = (item, currentLang = 'tr') => {
                 .replace(/\s*\([^)]*(?:vicinity|civarı|metropolitan|metro area)[^)]*\)/gi, '')
                 .trim();
 
-            if (nameStr) {
+            if (nameStr && !isAboveCountryName(nameStr)) {
                 rawParts.push(nameStr);
             }
+
+            // Country is the top-most level we display; ignore everything above it
+            if (nodeType === 'country') break;
         }
     } else if (item.locationPath && typeof item.locationPath === 'string') {
-        rawParts = item.locationPath.split(',').map(s => s.trim()).filter(Boolean);
+        rawParts = item.locationPath.split(',').map(s => s.trim()).filter(s => s && !isAboveCountryName(s));
     }
 
     // Deduplicate sequentially and case-insensitively while preserving original casing

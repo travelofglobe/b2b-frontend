@@ -1836,6 +1836,7 @@ const HotelDetail = () => {
     const [activeTab, setActiveTab] = useState('Rooms & Rates');
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
     const [selectedRooms, setSelectedRooms] = useState([]);
+    const [activeRoomIndex, setActiveRoomIndex] = useState(0);
     const [isCheckingRates, setIsCheckingRates] = useState(false);
 
     // -- Favorites Integration --
@@ -1894,9 +1895,57 @@ const HotelDetail = () => {
         }, { FREE: 0, NON_REFUNDABLE: 0 });
     }, [hotel?.rooms]);
 
+    // Helper to extract occupancy info from rate model or rateCode
+    const getRateOccupancy = (rateItem) => {
+        let adults = null;
+        let children = null;
+        let childAges = [];
+
+        const occ = rateItem?.hubRateModel?.occupancy;
+        if (occ) {
+            if (typeof occ.adults === 'number') adults = occ.adults;
+            if (typeof occ.child === 'number') children = occ.child;
+            if (Array.isArray(occ.children)) {
+                childAges = occ.children.map(c => (typeof c === 'object' && c !== null ? c.age : c)).filter(a => a != null);
+                if (children === null) children = childAges.length;
+            }
+        }
+
+        if (adults === null) {
+            try {
+                const rawRateCode = rateItem?.hubRateModel?.rateCode || rateItem?.rateCode;
+                if (rawRateCode) {
+                    const decoded = JSON.parse(atob(rawRateCode));
+                    if (typeof decoded.adultCount === 'number') adults = decoded.adultCount;
+                    if (Array.isArray(decoded.childrenAges)) {
+                        children = decoded.childrenAges.length;
+                        childAges = decoded.childrenAges;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        return { adults, children, childAges };
+    };
+
+    const doesRateMatchConfig = (rateItem, config) => {
+        if (!config) return true;
+        const occ = getRateOccupancy(rateItem);
+        if (occ.adults === null) return true;
+        if (typeof config.adults === 'number' && occ.adults !== config.adults) return false;
+        if (typeof config.children === 'number' && occ.children !== null && occ.children !== config.children) {
+            return false;
+        }
+        return true;
+    };
+
     // Grouping rooms by name/type
     const groupedRooms = React.useMemo(() => {
         if (!hotel.rooms) return [];
+
+        const currentTargetConfig = (roomState && roomState.length > 1)
+            ? (roomState[activeRoomIndex] || roomState[0])
+            : (roomState ? roomState[0] : null);
 
         const groups = hotel.rooms.reduce((acc, room) => {
             const key = room.names?.tr || room.names?.en || room.names?.defaultName || 'Standard Room';
@@ -1920,6 +1969,17 @@ const HotelDetail = () => {
         }, {});
 
         let result = Object.values(groups);
+
+        // Filter rates for current room occupancy if multiple room occupancies are present
+        if (currentTargetConfig) {
+            result = result.map(group => {
+                const matchingRates = group.rates.filter(r => doesRateMatchConfig(r, currentTargetConfig));
+                return {
+                    ...group,
+                    rates: matchingRates.length > 0 ? matchingRates : group.rates
+                };
+            }).filter(group => group.rates.length > 0);
+        }
 
         // Apply local filters
         if (boardTypeFilter !== 'ALL') {
@@ -1957,7 +2017,7 @@ const HotelDetail = () => {
         });
 
         return result;
-    }, [hotel.rooms, boardTypeFilter, cancelFilter]);
+    }, [hotel.rooms, boardTypeFilter, cancelFilter, activeRoomIndex, roomState]);
 
     // Fetch data when search parameters or hotel ID change
     useEffect(() => {
@@ -2044,18 +2104,6 @@ const HotelDetail = () => {
         const rateCode = fullRateData?.hubRateModel?.rateCode || fullRateData?.rateCode;
         const maxAllowedRooms = Math.min(roomState.length || 1, 4);
 
-        // Check if this specific rate offer is already selected
-        const existingIndex = selectedRooms.findIndex(r =>
-            (rateCode && (r.hubRateModel?.rateCode === rateCode || r.rateCode === rateCode)) ||
-            (!rateCode && r.type === roomType && r.name === roomName && r.rate === rate)
-        );
-
-        // If user clicks an already selected rate, remove/deselect it
-        if (existingIndex > -1) {
-            setSelectedRooms(prev => prev.filter((_, i) => i !== existingIndex));
-            return;
-        }
-
         // Single room search: selecting an unselected room rate replaces current selection
         if (maxAllowedRooms === 1) {
             setSelectedRooms([{
@@ -2069,23 +2117,49 @@ const HotelDetail = () => {
             return;
         }
 
-        // Multi-room search: check if selection is at maximum capacity
-        if (selectedRooms.length >= maxAllowedRooms) {
-            const errorTemplate = tLocal('maxRoomsSelectedError') || 'Aramanızda {{count}} oda belirttiniz. En fazla {{count}} oda seçebilirsiniz.';
-            const errorMsg = errorTemplate.replace(/\{\{count\}\}/g, maxAllowedRooms);
-            toastError(errorMsg);
+        // Multi-room search:
+        const currentTargetConfig = roomState[activeRoomIndex] || roomState[0];
+        if (!doesRateMatchConfig(fullRateData, currentTargetConfig)) {
+            toastError(tLocal('rateOccupancyMismatch') || `Bu fiyat ${activeRoomIndex + 1}. Oda (${currentTargetConfig.adults} Yetişkin) için uygun değil.`);
             return;
         }
 
-        // If selection is below maximum capacity, add new room selection instance
-        setSelectedRooms(prev => [...prev, {
+        // Check if rate is already selected for activeRoomIndex
+        const existingForActive = selectedRooms[activeRoomIndex];
+        const isClickingCurrent = existingForActive && (
+            (rateCode && (existingForActive.hubRateModel?.rateCode === rateCode || existingForActive.rateCode === rateCode)) ||
+            (!rateCode && existingForActive.type === roomType && existingForActive.name === roomName && existingForActive.rate === rate)
+        );
+
+        if (isClickingCurrent) {
+            // Deselect this room
+            const next = [...selectedRooms];
+            next.splice(activeRoomIndex, 1);
+            setSelectedRooms(next);
+            return;
+        }
+
+        const next = [...selectedRooms];
+        next[activeRoomIndex] = {
             type: roomType,
             rate,
             name: roomName,
             currency: fullRateData?.currency || agencyCurrency || 'USD',
             hubRateModel: fullRateData?.hubRateModel,
-            dailyPrices: fullRateData?.hubRateModel?.price?.dailyPrices || []
-        }]);
+            dailyPrices: fullRateData?.hubRateModel?.price?.dailyPrices || [],
+            targetRoomIndex: activeRoomIndex,
+            targetConfig: currentTargetConfig
+        };
+        const cleaned = next.filter(Boolean);
+        setSelectedRooms(cleaned);
+
+        // Advance activeRoomIndex to next unselected room if any
+        if (cleaned.length < maxAllowedRooms) {
+            const nextUnselected = roomState.findIndex((_, idx) => !next[idx]);
+            if (nextUnselected !== -1) {
+                setActiveRoomIndex(nextUnselected);
+            }
+        }
     };
 
     // Auto-select room rate if rateCode is provided in URL params
@@ -2151,6 +2225,11 @@ const HotelDetail = () => {
     const handleInstantReservation = async () => {
         if (isRequestingRef.current || isCheckingRates) return;
         const maxAllowedRooms = Math.min(roomState.length || 1, 4);
+        if (selectedRooms.length < maxAllowedRooms) {
+            const errorMsg = tLocal('completeAllRoomSelections') || `Lütfen tüm ${maxAllowedRooms} oda için seçim yapın (${selectedRooms.length}/${maxAllowedRooms}).`;
+            toastError(errorMsg);
+            return;
+        }
         if (selectedRooms.length > maxAllowedRooms) {
             const errorTemplate = tLocal('maxRoomsSelectedError') || 'Aramanızda {{count}} oda belirttiniz. En fazla {{count}} oda seçebilirsiniz.';
             const errorMsg = errorTemplate.replace(/\{\{count\}\}/g, maxAllowedRooms);
@@ -2863,7 +2942,55 @@ const HotelDetail = () => {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <>{(groupedRooms || []).map((roomGroup, roomIndex) => {
+                                            <>
+                                                {roomState.length > 1 && (
+                                                    <div className="mb-6 p-4 rounded-xl bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 shadow-xs">
+                                                        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="material-symbols-outlined text-[#1a73e8]">meeting_room</span>
+                                                                <span className="text-sm font-semibold text-[#202124] dark:text-white">
+                                                                    {tLocal('roomSelectionProgress') || 'Oda Seçimi'} ({selectedRooms.length} / {roomState.length})
+                                                                </span>
+                                                            </div>
+                                                            <span className="text-xs text-[#5f6368] dark:text-slate-400 font-medium">
+                                                                {selectedRooms.length === roomState.length 
+                                                                    ? (tLocal('allRoomsSelected') || 'Tüm odalar seçildi') 
+                                                                    : `${tLocal('selectForRoom') || 'Şu an seçilen'}: ${activeRoomIndex + 1}. ${tLocal('room') || 'Oda'} (${roomState[activeRoomIndex]?.adults} ${tLocal('adult') || 'Yetişkin'}${roomState[activeRoomIndex]?.children > 0 ? `, ${roomState[activeRoomIndex]?.children} ${tLocal('child') || 'Çocuk'}` : ''})`}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {roomState.map((r, rIdx) => {
+                                                                const isSelected = !!selectedRooms[rIdx];
+                                                                const isActive = activeRoomIndex === rIdx;
+                                                                return (
+                                                                    <button
+                                                                        key={rIdx}
+                                                                        type="button"
+                                                                        onClick={() => setActiveRoomIndex(rIdx)}
+                                                                        className={`px-3.5 py-2 rounded-lg text-xs font-medium flex items-center gap-2 transition-all cursor-pointer ${
+                                                                            isActive
+                                                                                ? 'bg-[#1a73e8] text-white shadow-xs'
+                                                                                : isSelected
+                                                                                    ? 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300'
+                                                                                    : 'bg-[#f8f9fa] dark:bg-slate-800 text-[#5f6368] dark:text-slate-300 border border-[#dadce0] dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                                                        }`}
+                                                                    >
+                                                                        <span className={`size-4 rounded-full flex items-center justify-center text-[10px] font-bold ${isActive ? 'bg-white/20 text-white' : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-200'}`}>
+                                                                            {isSelected ? '✓' : rIdx + 1}
+                                                                        </span>
+                                                                        <span>{rIdx + 1}. {tLocal('room') || 'Oda'} ({r.adults} {tLocal('adult') || 'Yetişkin'}{r.children > 0 ? `, ${r.children} ${tLocal('child') || 'Çocuk'}` : ''})</span>
+                                                                        {isSelected && (
+                                                                            <span className="text-[10px] opacity-80 truncate max-w-[120px]">
+                                                                                - {selectedRooms[rIdx]?.name}
+                                                                            </span>
+                                                                        )}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {(groupedRooms || []).map((roomGroup, roomIndex) => {
                                                 const roomName = decodeHTMLEntities(roomGroup.name);
                                                 const isGroupExpanded = expandedRates[roomName];
                                                 const ratesToShow = isGroupExpanded ? roomGroup.rates : roomGroup.rates.slice(0, 4);
@@ -2998,9 +3125,11 @@ const HotelDetail = () => {
                                                                 {ratesToShow.map((rateItem, rateIdx) => {
                                                                     const ratePrice = rateItem.hubRateModel?.price?.calculatedAmount || rateItem.hubRateModel?.price?.totalPaymentAmount || rateItem.price || 0;
                                                                     const currency = rateItem.hubRateModel?.price?.currency || agencyCurrency || 'USD';
-                                                                    const isSelected = selectedRooms.some(r => r.hubRateModel?.rateCode === rateItem.hubRateModel?.rateCode);
+                                                                    const rateCode = rateItem.hubRateModel?.rateCode || rateItem.rateCode;
+                                                                    const isSelected = selectedRooms.some(r => r && (r.hubRateModel?.rateCode === rateCode || r.rateCode === rateCode));
                                                                     const boardType = rateItem.hubRateModel?.boardCode || 'RO';
                                                                     const isFreeCancel = rateItem.hubRateModel?.refundable ?? (rateItem.hubRateModel?.price?.cancellationPolicies?.[0]?.amount === 0);
+                                                                    const rateOcc = getRateOccupancy(rateItem);
 
                                                                     return (
                                                                         <div
@@ -3030,6 +3159,13 @@ const HotelDetail = () => {
                                                                                         <p className="font-semibold text-sm text-[#202124] dark:text-white leading-tight">
                                                                                             {rateItem.hubRateModel?.boardName || getBoardTypeLabel(boardType, currentLang)}
                                                                                         </p>
+                                                                                        {rateOcc.adults != null && (
+                                                                                            <span className="text-xs text-[#5f6368] dark:text-slate-400 flex items-center gap-1 font-medium bg-[#f1f3f4] dark:bg-slate-700 px-2 py-0.5 rounded-md">
+                                                                                                <span className="material-symbols-outlined text-[14px]">group</span>
+                                                                                                {rateOcc.adults} {rateOcc.adults > 1 ? (tLocal('adults') || 'Yetişkin') : (tLocal('adult') || 'Yetişkin')}
+                                                                                                {rateOcc.children > 0 && ` + ${rateOcc.children} ${tLocal('child') || 'Çocuk'}`}
+                                                                                            </span>
+                                                                                        )}
                                                                                         {isSelected && (
                                                                                             <span className="bg-[#1a73e8] text-white text-[10px] font-semibold px-2 py-0.5 rounded-md uppercase tracking-wider" lang="en">
                                                                                                 {tLocal('selected')}
@@ -3360,12 +3496,15 @@ const HotelDetail = () => {
                                 roomState={roomState}
                                 selectedRooms={selectedRooms}
                                 currency={selectedRooms[0]?.hubRateModel?.price?.currency || selectedRooms[0]?.currency || agencyCurrency || 'EUR'}
-                                onRemoveRoom={(idx) => setSelectedRooms(prev => prev.filter((_, i) => i !== idx))}
+                                onRemoveRoom={(idx) => {
+                                    setSelectedRooms(prev => prev.filter((_, i) => i !== idx));
+                                    setActiveRoomIndex(idx);
+                                }}
                                 actionConfig={{
                                     text: tLocal('instantReservation'),
                                     loadingText: tLocal('checkingBestRates'),
                                     loading: isCheckingRates,
-                                    disabled: selectedRooms.length === 0 || isCheckingRates,
+                                    disabled: selectedRooms.length < Math.min(roomState.length || 1, 4) || isCheckingRates,
                                     onClick: handleInstantReservation,
                                     icon: 'arrow_forward'
                                 }}

@@ -964,13 +964,42 @@ const CheckoutGuestDetails = () => {
                         // Initial roomsData setup if empty
                         if (!session.roomsData || session.roomsData.length === 0) {
                             const initialRoomsData = (session.selectedRooms || []).map((room, roomIdx) => {
+                                let rateAdults = null;
+                                let rateChildren = null;
+                                let rateChildAges = null;
+                                try {
+                                    const rawRateCode = room.hubRateModel?.rateCode || room.rateCode;
+                                    if (rawRateCode) {
+                                        const decoded = JSON.parse(atob(rawRateCode));
+                                        if (typeof decoded.adultCount === 'number') {
+                                            rateAdults = decoded.adultCount;
+                                        }
+                                        if (Array.isArray(decoded.childrenAges)) {
+                                            rateChildren = decoded.childrenAges.length;
+                                            rateChildAges = decoded.childrenAges;
+                                        }
+                                    }
+                                } catch (e) {}
+
+                                const occ = room.hubRateModel?.occupancy;
+                                if (rateAdults === null && occ && typeof occ.adults === 'number') {
+                                    rateAdults = occ.adults;
+                                }
+                                if (rateChildren === null && occ && typeof occ.child === 'number') {
+                                    rateChildren = occ.child;
+                                }
+
                                 const config = (session.roomState || [])[roomIdx] || { adults: 1, children: 0, childAges: [] };
+                                const adults = rateAdults !== null ? rateAdults : (config.adults || 1);
+                                const children = rateChildren !== null ? rateChildren : (config.children || 0);
+                                const childAges = rateChildAges !== null ? rateChildAges : (config.childAges || []);
+
                                 const guests = [];
-                                for (let i = 0; i < config.adults; i++) {
+                                for (let i = 0; i < adults; i++) {
                                     guests.push({ type: 'Adult', firstName: '', lastName: '', email: '', phone: '', birthDate: '', gender: '' });
                                 }
-                                for (let i = 0; i < config.children; i++) {
-                                    guests.push({ type: 'Child', age: config.childAges[i], firstName: '', lastName: '', birthDate: '', gender: '' });
+                                for (let i = 0; i < children; i++) {
+                                    guests.push({ type: 'Child', age: childAges[i] !== undefined ? childAges[i] : 0, firstName: '', lastName: '', birthDate: '', gender: '' });
                                 }
                                 return { roomName: room.name, guests, cancellationPolicies: room.cancellationPolicies || [], hubRateModel: room.hubRateModel };
                             });

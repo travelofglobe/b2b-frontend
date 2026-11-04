@@ -4,12 +4,22 @@ import { financeService } from '../services/financeService';
 import { agencyService } from '../services/agencyService';
 import { useAuth } from '../context/AuthContext';
 import Pagination from '../components/Pagination';
+import { useToast } from '../context/ToastContext';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const fmt = (num) => {
     if (num === null || num === undefined) return '-';
     return Number(num).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+// Format a raw digit string with tr-TR thousand separators (no decimals).
+// "30000" → "30.000", "0" → "0", "" → ""
+const formatInteger = (digits) => {
+    if (!digits || digits === '') return '';
+    const num = parseInt(digits, 10);
+    if (isNaN(num)) return '';
+    return num.toLocaleString('tr-TR', { maximumFractionDigits: 0 });
 };
 
 const fmtDate = (str) => {
@@ -178,6 +188,89 @@ const agencyTypeBadgeClass = (type) => {
     return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300';
 };
 
+// ─── Formatted Number Input ─────────────────────────────────────────────────────
+//
+// A text input that displays an integer with tr-TR thousand separators (e.g.
+// "30000" → "30.000") while keeping the parent state as a raw digit string.
+// Cursor position is preserved across formatting changes, and non-digit
+// input is blocked at the keyboard level (with a paste safety net in
+// handleChange).
+
+const FormattedNumberInput = ({ value, onChange, placeholder, maxDigits, className }) => {
+    const inputRef = useRef(null);
+    const displayValue = formatInteger(value);
+
+    const handleChange = (e) => {
+        const input = e.target;
+        const newValue = input.value;
+        const cursorPos = input.selectionStart ?? 0;
+
+        // Count digits that appear before the cursor in the *new* raw text.
+        let digitsBeforeCursor = 0;
+        for (let i = 0; i < cursorPos && i < newValue.length; i++) {
+            if (/\d/.test(newValue[i])) digitsBeforeCursor++;
+        }
+
+        // Extract digits only (strips thousand separators, letters, etc.)
+        let digits = newValue.replace(/\D/g, '');
+
+        // Enforce maxDigits — extra digits are silently truncated.
+        if (maxDigits && digits.length > maxDigits) {
+            digits = digits.slice(0, maxDigits);
+            if (digitsBeforeCursor > maxDigits) digitsBeforeCursor = maxDigits;
+        }
+
+        onChange(digits);
+
+        // After formatting, find where the same logical digit position lands.
+        const newDisplay = formatInteger(digits);
+        let newPos = 0;
+        let count = 0;
+        for (let i = 0; i < newDisplay.length; i++) {
+            if (/\d/.test(newDisplay[i])) {
+                count++;
+                if (count === digitsBeforeCursor) {
+                    newPos = i + 1;
+                    break;
+                }
+            }
+            newPos = i + 1;
+        }
+        // If fewer digits survived than the cursor counted (e.g. leading
+        // zeros collapsed by parseInt), park at the end.
+        if (count < digitsBeforeCursor) newPos = newDisplay.length;
+
+        requestAnimationFrame(() => {
+            if (inputRef.current) {
+                inputRef.current.setSelectionRange(newPos, newPos);
+            }
+        });
+    };
+
+    const handleKeyDown = (e) => {
+        const allowedKeys = [
+            'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+            'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End',
+        ];
+        if (allowedKeys.includes(e.key)) return;
+        if (e.ctrlKey || e.metaKey) return;   // allow copy/paste/cut/select-all
+        if (!/\d/.test(e.key)) e.preventDefault();
+    };
+
+    return (
+        <input
+            ref={inputRef}
+            type="text"
+            inputMode="numeric"
+            placeholder={placeholder}
+            value={displayValue}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            className={className}
+        />
+    );
+};
+
 // ─── Create / Edit Modal ───────────────────────────────────────────────────────
 
 const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType }) => {
@@ -192,6 +285,7 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
     const [error, setError] = useState(null);
 
     const isEdit = !!editData;
+    const toast = useToast();
 
     // On open: reset form and load agencies (create mode only)
     useEffect(() => {
@@ -200,8 +294,10 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
         setSaving(false);
 
         if (isEdit) {
-            setCreditLimit(String(editData.creditLimit ?? ''));
-            setAdditionLimit(String(editData.additionLimit ?? '0'));
+            // Safely convert backend values to raw digit strings (handles
+            // numbers, strings, null, and accidental float values).
+            setCreditLimit(editData.creditLimit != null ? String(Math.trunc(Number(editData.creditLimit))) : '');
+            setAdditionLimit(editData.additionLimit != null ? String(Math.trunc(Number(editData.additionLimit))) : '0');
             setStatus(editData.status ?? 'ACTIVE');
             setSelectedAgencyId('');
             setAgencies([]);
@@ -238,27 +334,38 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
         if (!creditLimit || isNaN(Number(creditLimit)) || Number(creditLimit) <= 0) {
             setError('Geçerli bir credit limit girin.'); return;
         }
+        // Addition Limit: required, must be >= 0, max 6 digits (999999).
+        if (!additionLimit || isNaN(Number(additionLimit)) || Number(additionLimit) < 0) {
+            setError('Geçerli bir addition limit girin.'); return;
+        }
+        if (Number(additionLimit) > 999999) {
+            setError('Addition limit en fazla 6 hane olabilir (maks. 999999).'); return;
+        }
         setSaving(true);
         try {
             if (isEdit) {
                 await financeService.updateLimit(editData.id, {
                     creditLimit: Number(creditLimit),
-                    additionLimit: Number(additionLimit) || 0,
+                    additionLimit: Number(additionLimit),
                     status,
                 });
+                toast.success('Limit başarıyla güncellendi.');
             } else {
                 await financeService.createLimit({
                     agencyId: Number(selectedAgencyId),
                     creditLimit: Number(creditLimit),
-                    additionLimit: Number(additionLimit) || 0,
+                    additionLimit: Number(additionLimit),
                     usedCreditLimit: 0,
                     usedAdditionLimit: 0,
                 });
+                toast.success('Limit başarıyla oluşturuldu.');
             }
             onSuccess?.();
             onClose();
         } catch (err) {
-            setError(err?.message || 'İşlem sırasında hata oluştu.');
+            const msg = err?.message || 'İşlem sırasında hata oluştu.';
+            setError(msg);
+            toast.error(msg);
         } finally {
             setSaving(false);
         }
@@ -377,13 +484,10 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                     {/* ── Credit Limit ── */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Credit Limit</label>
-                        <input
-                            type="number"
-                            min="0"
-                            step="100"
-                            placeholder="10000"
+                        <FormattedNumberInput
                             value={creditLimit}
-                            onChange={(e) => setCreditLimit(e.target.value)}
+                            onChange={setCreditLimit}
+                            placeholder="10.000"
                             className="h-10 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors"
                         />
                     </div>
@@ -391,13 +495,11 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                     {/* ── Addition Limit ── */}
                     <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Addition Limit</label>
-                        <input
-                            type="number"
-                            min="0"
-                            step="100"
-                            placeholder="0"
+                        <FormattedNumberInput
                             value={additionLimit}
-                            onChange={(e) => setAdditionLimit(e.target.value)}
+                            onChange={setAdditionLimit}
+                            placeholder="0"
+                            maxDigits={6}
                             className="h-10 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors"
                         />
                     </div>
@@ -782,22 +884,42 @@ const LimitManagementPage = () => {
                             <table className="w-full text-sm border-collapse">
                                 <thead>
                                     <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 sticky top-0 z-10">
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>
                                             {agencyType === 'GSA' ? 'RSA / Agency Adı' : 'Agency Adı'}
                                         </th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Para Birimi</th>
-                                        <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Credit Limit</th>
-                                        <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Addition Limit</th>
-                                        <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Total Limit</th>
-                                        <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Used Limit</th>
-                                        <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Available Limit</th>
-                                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Kullanım %</th>
-                                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Limit Görselleştirme</th>
-                                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Durum</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Tanımlanma Tarihi</th>
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>Para Birimi</th>
+                                        {/* Credit Group */}
+                                        <th colSpan={2} className="text-center px-4 py-1.5 text-xs font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wide whitespace-nowrap bg-sky-50 dark:bg-sky-900/20 border-x border-sky-200 dark:border-sky-800/40">
+                                            Credit
+                                        </th>
+                                        {/* Addition Group */}
+                                        <th colSpan={2} className="text-center px-4 py-1.5 text-xs font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wide whitespace-nowrap bg-violet-50 dark:bg-violet-900/20 border-x border-violet-200 dark:border-violet-800/40">
+                                            Addition
+                                        </th>
+                                        {/* Separator + Cumulative group */}
+                                        <th className="w-px p-0 bg-slate-300 dark:bg-slate-600" rowSpan={2} />
+                                        <th colSpan={3} className="text-center px-4 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide whitespace-nowrap bg-slate-100 dark:bg-slate-700/60 border-x border-slate-300 dark:border-slate-600">
+                                            Kümülatif
+                                        </th>
+                                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>Kullanım %</th>
+                                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>Görselleştirme</th>
+                                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>Durum</th>
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>Tanımlanma Tarihi</th>
                                         {canCreate && (
-                                            <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">İşlem</th>
+                                            <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>İşlem</th>
                                         )}
+                                    </tr>
+                                    <tr className="border-b-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 sticky top-[41px] z-10">
+                                        {/* Credit sub-headers */}
+                                        <th className="text-right px-4 py-2 text-xs font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wide whitespace-nowrap bg-sky-50/70 dark:bg-sky-900/10 border-l border-sky-200 dark:border-sky-800/40">Limit</th>
+                                        <th className="text-right px-4 py-2 text-xs font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wide whitespace-nowrap bg-sky-50/70 dark:bg-sky-900/10 border-r border-sky-200 dark:border-sky-800/40">Kullanılan</th>
+                                        {/* Addition sub-headers */}
+                                        <th className="text-right px-4 py-2 text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wide whitespace-nowrap bg-violet-50/70 dark:bg-violet-900/10 border-l border-violet-200 dark:border-violet-800/40">Limit</th>
+                                        <th className="text-right px-4 py-2 text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wide whitespace-nowrap bg-violet-50/70 dark:bg-violet-900/10 border-r border-violet-200 dark:border-violet-800/40">Kullanılan</th>
+                                        {/* Cumulative sub-headers */}
+                                        <th className="text-right px-4 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide whitespace-nowrap bg-slate-100/80 dark:bg-slate-700/40 border-l border-slate-300 dark:border-slate-600">Total</th>
+                                        <th className="text-right px-4 py-2 text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide whitespace-nowrap bg-slate-100/80 dark:bg-slate-700/40">Kullanılan</th>
+                                        <th className="text-right px-4 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide whitespace-nowrap bg-slate-100/80 dark:bg-slate-700/40 border-r border-slate-300 dark:border-slate-600">Available</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -823,32 +945,41 @@ const LimitManagementPage = () => {
                                                     </span>
                                                 </td>
 
-                                                {/* Credit Limit */}
-                                                <td className="px-4 py-3 text-right font-medium text-slate-700 dark:text-slate-200 tabular-nums whitespace-nowrap">
+                                                {/* ── Credit group ── */}
+                                                <td className="px-4 py-3 text-right font-medium text-sky-700 dark:text-sky-300 tabular-nums whitespace-nowrap bg-sky-50/40 dark:bg-sky-900/10 border-l border-sky-200 dark:border-sky-800/40">
                                                     {fmt(item.creditLimit)} {currency !== '—' ? currency : ''}
                                                 </td>
-
-                                                {/* Addition Limit */}
-                                                <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap">
-                                                    <span className={`font-medium ${Number(item.additionLimit) > 0 ? 'text-violet-600 dark:text-violet-400' : 'text-slate-400'}`}>
-                                                        {fmt(item.additionLimit ?? 0)} {currency !== '—' ? currency : ''}
+                                                <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap bg-sky-50/40 dark:bg-sky-900/10 border-r border-sky-200 dark:border-sky-800/40">
+                                                    <span className={`font-medium ${Number(item.usedCreditLimit) > 0 ? 'text-sky-600 dark:text-sky-400' : 'text-slate-400'}`}>
+                                                        {fmt(item.usedCreditLimit ?? 0)} {currency !== '—' ? currency : ''}
                                                     </span>
                                                 </td>
 
-                                                {/* Total Limit */}
-                                                <td className="px-4 py-3 text-right text-blue-700 dark:text-blue-300 font-semibold tabular-nums whitespace-nowrap">
-                                                    {fmt(item.totalLimit ?? ((item.creditLimit ?? 0) + (item.additionLimit ?? 0)))} {currency !== '—' ? currency : ''}
+                                                {/* ── Addition group ── */}
+                                                <td className="px-4 py-3 text-right font-medium text-violet-700 dark:text-violet-300 tabular-nums whitespace-nowrap bg-violet-50/40 dark:bg-violet-900/10 border-l border-violet-200 dark:border-violet-800/40">
+                                                    <span className={Number(item.additionLimit) > 0 ? '' : 'text-slate-400'}>
+                                                        {fmt(item.additionLimit ?? 0)} {currency !== '—' ? currency : ''}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap bg-violet-50/40 dark:bg-violet-900/10 border-r border-violet-200 dark:border-violet-800/40">
+                                                    <span className={`font-medium ${Number(item.usedAdditionLimit) > 0 ? 'text-violet-600 dark:text-violet-400' : 'text-slate-400'}`}>
+                                                        {fmt(item.usedAdditionLimit ?? 0)} {currency !== '—' ? currency : ''}
+                                                    </span>
                                                 </td>
 
-                                                {/* Used Limit */}
-                                                <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap">
+                                                {/* ── Separator ── */}
+                                                <td className="w-px p-0 bg-slate-300 dark:bg-slate-600" />
+
+                                                {/* ── Cumulative group ── */}
+                                                <td className="px-4 py-3 text-right text-blue-700 dark:text-blue-300 font-semibold tabular-nums whitespace-nowrap bg-slate-50/60 dark:bg-slate-700/20 border-l border-slate-300 dark:border-slate-600">
+                                                    {fmt(item.totalLimit ?? ((item.creditLimit ?? 0) + (item.additionLimit ?? 0)))} {currency !== '—' ? currency : ''}
+                                                </td>
+                                                <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap bg-slate-50/60 dark:bg-slate-700/20">
                                                     <span className={`font-medium ${Number(item.usedLimit) > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-400'}`}>
                                                         {fmt(item.usedLimit)} {currency !== '—' ? currency : ''}
                                                     </span>
                                                 </td>
-
-                                                {/* Available Limit */}
-                                                <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap">
+                                                <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap bg-slate-50/60 dark:bg-slate-700/20 border-r border-slate-300 dark:border-slate-600">
                                                     <span className="font-medium text-emerald-600 dark:text-emerald-400">
                                                         {fmt(item.availableLimit)} {currency !== '—' ? currency : ''}
                                                     </span>

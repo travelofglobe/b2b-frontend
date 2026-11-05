@@ -5,6 +5,7 @@ import { markupService } from '../services/markupService';
 import ConfirmModal from '../components/ConfirmModal';
 import AddMarkupModal from '../components/AddMarkupModal';
 import AppleSwitch from '../components/AppleSwitch';
+import MarkupRevisionModal from '../components/MarkupRevisionModal';
 
 const MK = {
   en: {
@@ -523,6 +524,7 @@ const MarkupManagement = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editMarkup, setEditMarkup] = useState(null);
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+    const [revisionModal, setRevisionModal] = useState({ show: false, id: null, name: '' });
 
     const showNotification = useCallback((message, type = 'success') => {
         setToast({ show: true, message, type });
@@ -848,6 +850,13 @@ const MarkupManagement = () => {
                                             <td className="px-4 py-3 text-right">
                                                 <div className="flex items-center justify-end gap-1">
                                                     <button
+                                                        onClick={() => setRevisionModal({ show: true, id: m.id, name: m.name })}
+                                                        className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#fce8e6] hover:text-[#c5221f] dark:text-[#9aa0a6] dark:hover:bg-[#c5221f]/20 dark:hover:text-[#f28b82] transition-colors cursor-pointer"
+                                                        title="Revision History"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[18px]">history</span>
+                                                    </button>
+                                                    <button
                                                         onClick={() => handleEditMarkup(m)}
                                                         className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#f1f3f4] dark:text-[#9aa0a6] dark:hover:bg-[#202124] transition-colors cursor-pointer"
                                                         title="Edit"
@@ -965,6 +974,14 @@ const MarkupManagement = () => {
                     showNotification(editMarkup ? L('updated') : L('created'));
                     fetchMarkups();
                 }}
+            />
+
+            {/* Revision History Modal */}
+            <MarkupRevisionModal
+                isOpen={revisionModal.show}
+                markupId={revisionModal.id}
+                markupName={revisionModal.name}
+                onClose={() => setRevisionModal({ show: false, id: null, name: '' })}
             />
         </div>
     );

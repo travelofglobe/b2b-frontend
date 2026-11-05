@@ -23,5 +23,9 @@ export const markupService = {
 
     updateMarkup: async (id, data) => {
         return apiClient.put(`${API_BASE_URL}/markup/update-by-id/${id}`, data);
+    },
+
+    findRevisions: async (id) => {
+        return apiClient.get(`${API_BASE_URL}/markup/find-revisions/${id}`);
     }
 };
